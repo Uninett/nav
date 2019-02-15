@@ -61,4 +61,3 @@ class AuditlogNetboxDetail(AuditlogOverview):
         if netboxid:
             api_parameters = {'netboxid': netboxid}
         return json.dumps(api_parameters)
-

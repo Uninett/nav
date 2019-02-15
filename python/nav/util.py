@@ -485,7 +485,7 @@ class NumberRange(object):
         self.ranges = list(consecutive(sequence))
 
     def __iter__(self):
-        return iter(self._range_to_str(x,y) for x, y in self.ranges)
+        return iter(self._range_to_str(x, y) for x, y in self.ranges)
 
     def __str__(self):
         return ", ".join(self)
@@ -498,4 +498,4 @@ class NumberRange(object):
         if x == y:
             return str(x)
         else:
-            return "{}-{}".format(x,y)
+            return "{}-{}".format(x, y)

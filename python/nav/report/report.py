@@ -315,8 +315,7 @@ class Report(object):
             field = None
             ## does not use aggregate function elements
             if (not self.extra.count(field_name)
-                and not self.sql_fields[num].count("(")
-                ):
+                and not self.sql_fields[num].count("(")):
                 field = Field()
                 field.raw = self.sql_fields[num]
                 if field_name in name:

@@ -36,7 +36,6 @@ class LGFKRelatedField(serializers.RelatedField):
         return six.text_type(value)
 
 
-
 class LogEntrySerializer(serializers.ModelSerializer):
     actor = LGFKRelatedField(read_only=True)
     object = LGFKRelatedField(read_only=True)

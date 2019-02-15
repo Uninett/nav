@@ -320,8 +320,8 @@ def group_list(request):
     """Controller for listing all user groups in NAV"""
     groups = AccountGroup.objects.all()
     context = {
-      'active': {'group_list': True},
-       'groups': groups,
+        'active': {'group_list': True},
+        'groups': groups,
     }
     context.update(DEFAULT_NAVPATH)
     return render(request, 'useradmin/group_list.html', context)

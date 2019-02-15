@@ -32,5 +32,6 @@ base=http://localhost:8000/
 format=png
 """
 
+
 CONFIG = GraphiteConfigParser()
 CONFIG.read_all()

@@ -80,7 +80,7 @@ except (IOError, OSError):
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
 
-#Static files
+# Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(nav.buildconf.webrootdir, 'static')
 STATICFILES_FINDERS = (
@@ -179,7 +179,7 @@ CACHES = {
 }
 
 
-SECRET_KEY = nav_config.get('SECRET_KEY', None) # Must be set in nav.conf!
+SECRET_KEY = nav_config.get('SECRET_KEY', None)  # Must be set in nav.conf!
 
 # Because registering hstore extension in a database may lead to problems
 # with type conversion, force registering of hstore on each new connection

@@ -693,5 +693,5 @@ def convert_oids(mib):
     for node_name in mib['nodes']:
         node = mib['nodes'][node_name]
         if isinstance(node['oid'], six.string_types):
-            #oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
+            # oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
             node['oid'] = OID(node['oid'])

@@ -177,5 +177,6 @@ def verify_singleton():
     daemon.writepidfile(PID_FILE)
     atexit.register(daemon.daemonexit, PID_FILE)
 
+
 if __name__ == '__main__':
     main()

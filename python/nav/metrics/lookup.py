@@ -40,6 +40,8 @@ def _lookup(metric):
         match = pattern.search(metric)
         if match:
             return func(**match.groupdict())
+
+
 # pylint: disable=C0103
 lookup = lru_cache(maxsize=200)(_lookup)
 

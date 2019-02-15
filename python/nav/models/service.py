@@ -135,14 +135,14 @@ class ServiceProperty(models.Model):
     """From NAV Wiki: Each service may have an additional set of attributes.
     They are defined here."""
 
-    id = models.AutoField(primary_key=True) # Serial for faking a primary key
+    id = models.AutoField(primary_key=True)  # Serial for faking a primary key
     service = models.ForeignKey(Service, db_column='serviceid')
     property = models.CharField(max_length=64)
     value = VarcharField()
 
     class Meta(object):
         db_table = 'serviceproperty'
-        unique_together = (('service', 'property'),) # Primary key
+        unique_together = (('service', 'property'),)  # Primary key
 
     def __str__(self):
         return u'%s=%s, for %s' % (self.property, self.value, self.service)

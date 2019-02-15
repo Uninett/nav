@@ -8,7 +8,7 @@
 #
 # Pylint does not like import *. Django 1.7 requires all models be loaded from here,
 # so disabling pylint.
-#pylint: disable-all
+# pylint: disable-all
 
 from .manage import *
 from .api import *

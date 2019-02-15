@@ -31,8 +31,8 @@ rights. Comment out the DB_USER above and uncomment the next two lines
 to enable this. NB! Some modification to views.py and db.conf must
 also be done to enable this. See INSTALL for instructions.
 """
-#DB_USER_READ = "radius_front"
-#DB_USER_WRITE = "radius_back"
+# DB_USER_READ = "radius_front"
+# DB_USER_WRITE = "radius_back"
 
 ##############################################################################
 # Module config

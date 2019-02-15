@@ -77,7 +77,6 @@ if django.VERSION >= (1, 8):
         """
         return rel.related_model, rel.name
 
-
     def get_all_related_objects(model):
         """Gets all related objects based on django version"""
         return [
@@ -85,7 +84,6 @@ if django.VERSION >= (1, 8):
             if (f.one_to_many or f.one_to_one)
             and f.auto_created and not f.concrete
         ]
-
 
     def get_all_related_many_to_many_objects(model):
         """Gets all related many-to-many objects based on django version"""
@@ -103,11 +101,9 @@ else:  # This section can be removed when support for Django 1.7 is dropped.
         """
         return rel.model, rel.var_name
 
-
     def get_all_related_objects(model):
         """Gets all related objects based on django version"""
         return model._meta.get_all_related_objects()
-
 
     def get_all_related_many_to_many_objects(model):
         """Gets all related many-to-many objects based on django version"""

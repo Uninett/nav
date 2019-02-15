@@ -325,6 +325,7 @@ class _MySnmpSession(Session):
 ## and BER encoding in the NET-SNMP library.
 ##
 
+
 CONVERTER_MAP = {}
 
 
@@ -380,6 +381,7 @@ def asn_octet_str(value):
 def asn_counter64(value):
     value = c_uint64(value)
     return byref(value), sizeof(value)
+
 
 # Some global ctypes initializations needed for the snmp_api_errstring function
 _charptr = POINTER(c_char)

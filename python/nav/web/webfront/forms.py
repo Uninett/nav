@@ -60,6 +60,7 @@ class NavbarlinkForm(forms.ModelForm):
             ),
         )
 
+
 NavbarLinkFormSet = modelformset_factory(
     NavbarLink, exclude=('account',),
     form=NavbarlinkForm, extra=2, can_delete=1)

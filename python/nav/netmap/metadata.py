@@ -72,7 +72,7 @@ class Node(object):
                         'x': self.metadata['position'].x,
                         'y': self.metadata['position'].y
                     }})
-            if 'vlans' in self.metadata: # Layer2 metadata
+            if 'vlans' in self.metadata:  # Layer2 metadata
 
                 json.update({
                     'vlans': [nav_vlan_id for nav_vlan_id, _ in

@@ -223,5 +223,6 @@ def _event_template():
     event.event_type_id = 'thresholdState'
     return event
 
+
 if __name__ == '__main__':
     main()

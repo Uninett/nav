@@ -50,7 +50,6 @@ from nav.web.webfront import (get_widget_columns, find_dashboard,
 _logger = logging.getLogger('nav.web.tools')
 
 
-
 def index(request, did=None):
     """Controller for main page."""
     # Read files that will be displayed on front page

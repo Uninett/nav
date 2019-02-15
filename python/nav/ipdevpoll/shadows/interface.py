@@ -375,6 +375,7 @@ class Interface(Shadow):
         """
         containers.setdefault(cls, {})[cls.sentinel] = cls.sentinel
 
+
 InterfaceManager.sentinel = Interface.sentinel = Interface()
 
 

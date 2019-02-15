@@ -1420,7 +1420,7 @@ class ReportSubscription(models.Model):
 
     def serialize(self):
         keys = ['report_type', 'period', 'address']
-        filtered = {k:v for k, v in model_to_dict(self).items() if k in keys}
+        filtered = {k: v for k, v in model_to_dict(self).items() if k in keys}
         return json.dumps(filtered)
 
     @staticmethod

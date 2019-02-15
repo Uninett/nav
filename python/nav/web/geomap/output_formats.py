@@ -69,6 +69,7 @@ def make_kml(featurelist):
 
 # General
 
+
 _formats = {
     'geojson': (make_geojson, 'application/json'),
     'kml': (make_kml, 'application/vnd.google-earth.kml+xml')

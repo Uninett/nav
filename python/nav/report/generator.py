@@ -179,7 +179,7 @@ class ConfigParser(object):
 
         """
 
-        conf_pattern = re.compile(r'^\s*\$(\S*)\s*\=\s*"(.*?)"\;?', re.M|re.S)
+        conf_pattern = re.compile(r'^\s*\$(\S*)\s*\=\s*"(.*?)"\;?', re.M | re.S)
         conf_match = conf_pattern.findall(report_config)
 
         config = self.configuration
@@ -210,8 +210,7 @@ class ConfigParser(object):
 
                 if match:
                     if (match.group('group') == "navn"
-                        or match.group('group') == "name"
-                        ):
+                        or match.group('group') == "name"):
                         config.name[match.group('groupkey')] = value
                     elif (match.group('group') == "url"
                           or match.group('group') == "uri"

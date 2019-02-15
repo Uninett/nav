@@ -60,7 +60,7 @@ class DispatcherHandler(object):
                     self.logger.debug("Imported module %s", modulename)
                 except DispatcherError as error:
                     self.logger.warning("Failed to import %s: %s",
-                     dispatcher, error)
+                                        dispatcher, error)
                     continue
                 except Exception as error:
                     self.logger.exception("Unknown exception: %s", error)
@@ -73,7 +73,7 @@ class DispatcherHandler(object):
                     self.logger.debug("Dispatcher loaded: %s", dispatcher)
                 except DispatcherError as error:
                     self.logger.warning("Failed to init %s: %s",
-                        dispatcher, error)
+                                        dispatcher, error)
                     continue
                 except Exception as error:
                     self.logger.exception("Unknown exception: %s", error)
@@ -134,11 +134,11 @@ class DispatcherHandler(object):
                         "Removing permanently failed dispatcher %s",
                         dispatchername)
                     del self.dispatchers[i]
-                continue # Skip to next dispatcher
+                continue  # Skip to next dispatcher
             except DispatcherError as error:
                 self.logger.warning("%s failed to send SMS: %s",
-                    dispatchername, error)
-                continue # Skip to next dispatcher
+                                    dispatchername, error)
+                continue  # Skip to next dispatcher
             except Exception as error:
                 self.logger.exception(
                     "Unknown dispatcher exception during send: %s", error)
@@ -149,7 +149,7 @@ class DispatcherHandler(object):
                     self.logger.warning(
                         "%s failed to send SMS: Returned false.",
                         dispatchername)
-                    continue # Skip to next dispatcher
+                    continue  # Skip to next dispatcher
 
             # No exception and true result? Success!
             return (sms, sent, ignored, smsid)
@@ -200,10 +200,10 @@ class Dispatcher(object):
         maxlen = self.maxlen
         ignlen = self.ignlen
 
-        msgcount = len(msgs) # Number of messages
-        msgno = 0 # Number of messages processed
-        addmsg = True # Whether we shall continue to add msgs to the SMS
-        tmpsms = "" # We format first and then checks the length
+        msgcount = len(msgs)  # Number of messages
+        msgno = 0  # Number of messages processed
+        addmsg = True  # Whether we shall continue to add msgs to the SMS
+        tmpsms = ""  # We format first and then checks the length
 
         # The empty result
         sms = ""

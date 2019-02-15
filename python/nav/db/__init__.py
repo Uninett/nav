@@ -231,6 +231,7 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
 
 ###### Initialization ######
 
+
 # Psycopg doesn't seem to close connections when they are garbage
 # collected. Here we try to clean up our act on system exit, to
 # avoid the numerous "unexpected EOF on client connection" that NAV

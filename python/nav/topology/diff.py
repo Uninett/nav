@@ -96,5 +96,6 @@ def printdiffs():
     output.sort()
     print('\n'.join(output))
 
+
 if __name__ == '__main__':
     printdiffs()

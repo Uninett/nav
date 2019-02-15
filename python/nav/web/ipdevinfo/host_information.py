@@ -56,4 +56,6 @@ def _get_host_info(host):
             addresses = list(reverse_lookup(addresses))
 
     return {'host': host, 'addresses': addresses}
+
+
 get_host_info = lru_cache()(_get_host_info)

@@ -504,4 +504,5 @@ class CounterFlusher(defaultdict):
 
         send_metrics(metrics)
 
+
 _COUNTERS = CounterFlusher()

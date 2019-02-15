@@ -310,6 +310,7 @@ class FauxNode(IpNodeFacade):
         "Marker propery for declaring the node as fake (templating reasons)"
         return True
 
+
 class FakeVLAN(object):
     "Mock object that quacks like prefix.vlan"
 
@@ -424,6 +425,7 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
             nodes = nodes_from_ips(unused_prefix, klass="empty")
             heap.add_many(nodes)
     return heap
+
 
 SORT_BY = {
     "vlan_number": lambda x: x.vlan_number

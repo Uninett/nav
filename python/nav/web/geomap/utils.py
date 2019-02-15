@@ -255,8 +255,8 @@ class lazy_dict(object):
 
     """
 
-    unevaluated = None # set of keys whose values are not evaluated
-    storage = None # dictionary for storing functions and evaluated values
+    unevaluated = None  # set of keys whose values are not evaluated
+    storage = None  # dictionary for storing functions and evaluated values
 
     def __init__(self, *args, **kwargs):
         self.unevaluated = set([])

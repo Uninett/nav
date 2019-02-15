@@ -187,6 +187,7 @@ class WeatherGoose2(WeatherGoose1):
     CLEARTRAPS.update({'cmTempSensorTempCCLEAR':
                        'weathergoose_temperature', })
 
+
 # IT Watchdogs -> Geist transition pattern
 _geistpattern = re.compile("^cm")
 

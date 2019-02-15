@@ -171,5 +171,6 @@ def msg(message):
         sys.stderr.write("navpgdump: " + string + "\n")
     sys.stderr.flush()
 
+
 if __name__ == '__main__':
     main()

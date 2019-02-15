@@ -41,6 +41,7 @@ class Cell(object):
         self.dataurl = kwargs.get('dataurl')
         self.link = kwargs.get('link')
 
+
 Link = namedtuple('Link', ('href', 'text', 'title'))
 
 

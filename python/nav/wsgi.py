@@ -21,6 +21,7 @@ from nav.web import loginit
 
 bootstrap_django(__file__)
 
+
 loginit()
 from django.core.wsgi import get_wsgi_application
 # Such is the WSGI api:
