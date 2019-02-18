@@ -76,7 +76,7 @@ def build_report(period, report_type, exclude_maintenance=False):
 
 def build_context(period, report_type, exclude_maintenance=False):
     """Builds a context for the given subscription"""
-    midnight = date.today()
+    midnight = datetime.combine(date.today(), datetime.min.time())
     start, end = get_last_interval(midnight, period)
     lookup = {
         ReportSubscription.DEVICE: utils.get_netbox_records,
