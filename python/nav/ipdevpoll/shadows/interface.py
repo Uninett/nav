@@ -350,9 +350,6 @@ class Interface(Shadow):
         self._set_netbox_if_unset(containers)
         self._set_ifindex_if_unset(containers)
         self.gone_since = None
-        # Sometimes, people are able to sneak non-ASCII strings into interface
-        # descriptions; fix that before saving to the db
-        self.ifalias = safestring(self.ifalias)
 
     def _set_netbox_if_unset(self, containers):
         """Sets this Interface's netbox reference if unset by plugins."""

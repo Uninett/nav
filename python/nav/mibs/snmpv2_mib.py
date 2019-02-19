@@ -19,6 +19,7 @@ import time
 
 from twisted.internet import defer
 
+from nav.Snmp import safestring
 from nav.oids import OID
 from . import mibretriever
 
@@ -56,7 +57,9 @@ class Snmpv2Mib(mibretriever.MibRetriever):
 
     def get_sysDescr(self):
         """Retrieves the sysDescr of the first agent instance."""
-        return self._get_sysvariable('sysDescr')
+        dfr = self._get_sysvariable('sysDescr')
+        dfr.addCallback(safestring)
+        return dfr
 
     def get_sysUpTime(self):
         """Retrieves the sysUpTime of the first agent instance."""

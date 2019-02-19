@@ -26,6 +26,8 @@ from nav.mibs.entity_mib import EntityTable
 class IfMib(mibretriever.MibRetriever):
     from nav.smidumps.if_mib import MIB as mib
 
+    text_columns = {'ifName', 'ifDescr', 'ifAlias'}
+
     def get_if_table_last_change(self):
         "Retrieves the sysUpTime value of the last time ifTable changed"
         return self.get_next('ifTableLastChange')

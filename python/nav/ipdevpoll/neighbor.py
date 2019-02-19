@@ -168,10 +168,6 @@ class Neighbor(object):
         match = self.ID_PATTERN.search(sysname)
         sysname = match.group('sysname')
         assert sysname
-        try:
-            sysname.decode('ascii')
-        except UnicodeDecodeError:
-            return None
         query = Q(sysname__iexact=sysname)
 
         is_fqdn = '.' in sysname

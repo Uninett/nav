@@ -38,6 +38,7 @@ from twisted.internet import defer, reactor
 from twisted.internet.defer import returnValue
 from twisted.internet.error import TimeoutError
 
+from nav.Snmp import safestring
 from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.utils import fire_eventually
 from nav.errors import GeneralException
@@ -340,6 +341,7 @@ class MibRetriever(object):
     mib = None
     nodes = None
     _logger = ContextLogger()
+    text_columns = set()
 
     def __init__(self, agent_proxy):
         """Create a new instance tied to an AgentProxy instance."""
@@ -390,6 +392,8 @@ class MibRetriever(object):
             for oid, value in varlist.items():
                 # Extract index information from oid
                 row_index = OID(oid).strip_prefix(node.oid)
+                if column_name in self.text_columns:
+                    value = safestring(value)
                 formatted_result[row_index] = value
 
             return formatted_result
