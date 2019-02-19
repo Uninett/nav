@@ -45,8 +45,8 @@ class MetaIP:
         """This method is used to get the string representation of the IP
         shown in the tree to left of the prefix matrix."""
 
-        #IPv6: Whole address
-        #IPv4: Not whole address
+        # IPv6: Whole address
+        # IPv4: Not whole address
         if self.netaddr.version() == 6:
             return self._getTreeNetIpv6()
         elif self.netaddr.version() == 4:

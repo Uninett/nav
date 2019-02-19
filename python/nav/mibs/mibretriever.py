@@ -171,8 +171,8 @@ class MibTableDescriptor(object):
         table_name -- the name of the table from the mib.
 
         """
-        if table_name not in mib.nodes or \
-               mib.nodes[table_name].raw_mib_data['nodetype'] != 'table':
+        if (table_name not in mib.nodes or
+                mib.nodes[table_name].raw_mib_data['nodetype'] != 'table'):
             raise MibRetrieverError("%s is not a table" % table_name)
 
         table_object = mib.nodes[table_name]

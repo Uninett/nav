@@ -92,5 +92,6 @@ class UtilsTest(unittest.TestCase):
         self.assertFalse(is_invalid_utf8(b"ABC-123"))
         self.assertFalse(is_invalid_utf8(b'\xc3\x86\xc3\x98\xc3\x85'))
 
+
 if __name__ == '__main__':
     unittest.main()
