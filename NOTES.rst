@@ -8,6 +8,15 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 4.10
+========
+
+Changed command line options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``--verify`` option has been removed from :program:`powersupplywatch.py`.
+All logging settings are controlled in :file:`logging.conf`, as with any
+other NAV program.
 
 NAV 4.9
 ========

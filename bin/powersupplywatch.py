@@ -143,17 +143,10 @@ def main():
     init_generic_logging(
         logfile=LOGFILE,
         stderr=True,
-        read_config=False,
-        stderr_level=logging.ERROR if sys.stderr.isatty() else logging.CRITICAL,
+        read_config=True,
     )
 
     opts = parse_args()
-
-    if opts.verify:
-        LOGGER.info("-v option used, setting log level to DEBUG")
-        stderr = logging.getLogger('')
-        stderr.setLevel(logging.DEBUG)
-        LOGGER.setLevel(logging.DEBUG)
 
     sysnames = []
     if opts.hostname:
@@ -180,9 +173,6 @@ def parse_args():
     parser.add_argument(
         "-n", "--netbox", dest="hostname",
         help="Check only this hostname.  Must be a FQDN")
-    parser.add_argument(
-        "-v", "--verify", action="store_true",
-        help="Print (lots of) debug-information to stderr")
     return parser.parse_args()
 
 
