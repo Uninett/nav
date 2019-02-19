@@ -16,9 +16,9 @@
 #
 """Builds and represents IP nets in a tree structure."""
 
-from IPy import IP
 from copy import deepcopy
 from nav import db
+from nav.ip import IP
 from nav.report.IPtools import getMask, sort_nets_by_prefixlength, andIpMask
 
 

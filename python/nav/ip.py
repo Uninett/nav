@@ -42,3 +42,9 @@ class IP(IPy.IP):
             return super(IP, self).__eq__(other)
         except TypeError:
             return False
+
+    def __hash__(self):
+        return self.ip.__hash__()
+
+    def __bool__(self):
+        return self.__nonzero__()
