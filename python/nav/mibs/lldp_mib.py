@@ -30,7 +30,6 @@ from nav.ipdevpoll.utils import binary_mac_to_hex
 class LLDPMib(mibretriever.MibRetriever):
     """A MibRetriever for handling LLDP-MIB"""
     from nav.smidumps.lldp_mib import MIB as mib
-    text_columns = {'lldpRemPortDesc', 'lldpRemSysName'}
 
     def get_remote_last_change(self):
         """Retrieves the sysUpTime value of the last time the lldpRemTable was

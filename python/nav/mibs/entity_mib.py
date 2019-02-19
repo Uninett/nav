@@ -35,16 +35,6 @@ class EntityMib(mibretriever.MibRetriever):
     """MibRetriever for the ENTITY-MIB"""
     from nav.smidumps.entity_mib import MIB as mib
 
-    text_columns = {
-        'entPhysicalDescr',
-        'entPhysicalName',
-        'entPhysicalHardwareRev',
-        'entPhysicalFirmwareRev',
-        'entPhysicalSoftwareRev',
-        'entPhysicalSerialNum',
-        'entPhysicalModelName',
-    }
-
     def retrieve_alternate_bridge_mibs(self):
         """Retrieves a list of alternate bridge mib instances.
 

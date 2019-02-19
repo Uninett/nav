@@ -25,7 +25,6 @@ from nav.mibs import mibretriever, reduce_index
 class QBridgeMib(mibretriever.MibRetriever):
     from nav.smidumps.qbridge_mib import MIB as mib
 
-    text_columns = {'dot1qVlanStaticName'}
     juniper_hack = False
 
     def get_baseport_pvid_map(self):

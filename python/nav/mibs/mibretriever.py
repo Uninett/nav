@@ -45,6 +45,7 @@ from nav.errors import GeneralException
 from nav.oids import OID
 
 _logger = logging.getLogger(__name__)
+TEXT_TYPES = ("DisplayString", "SnmpAdminString")
 
 
 class MibRetrieverError(GeneralException):
@@ -266,6 +267,7 @@ class MibRetrieverMaker(type):
 
         MibRetrieverMaker.__make_scalar_getters(cls)
         MibRetrieverMaker.__make_table_getters(cls)
+        MibRetrieverMaker.__prepopulate_text_columns(cls)
 
         MibRetrieverMaker.modules[mib['moduleName']] = cls
 
@@ -334,6 +336,20 @@ class MibRetrieverMaker(type):
         cls.nodes = dict((node_name, MIBObject(cls.mib, node_name))
                          for node_name in cls.mib['nodes'].keys())
 
+    @staticmethod
+    def __prepopulate_text_columns(cls):
+        """Prepopulates the new MibRetriever class' text_columns attribute
+        with a set of names of contained MIB objects that can be considered as
+        text types.
+
+        """
+        nodes = {
+            node_name
+            for node_name in cls.mib['nodes']
+            if is_text_object(cls.mib, node_name)
+        }
+        cls.text_columns = nodes
+
 
 @six.add_metaclass(MibRetrieverMaker)
 class MibRetriever(object):
@@ -341,7 +357,6 @@ class MibRetriever(object):
     mib = None
     nodes = None
     _logger = ContextLogger()
-    text_columns = set()
 
     def __init__(self, agent_proxy):
         """Create a new instance tied to an AgentProxy instance."""
@@ -699,3 +714,25 @@ def convert_oids(mib):
         if isinstance(node['oid'], six.string_types):
             # oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
             node['oid'] = OID(node['oid'])
+
+
+def is_text_object(mib_dict, obj_name):
+    """Verifies whether a given MIB object has a syntax that can be considered
+    a text type.
+    """
+    if not mib_dict or "nodes" not in mib_dict:
+        return False
+    syntax_type = (
+        mib_dict["nodes"][obj_name]
+        .get("syntax", {})
+        .get("type", {})
+    )
+    type_name = syntax_type.get("name", "")
+    parent_type_name = syntax_type.get(
+        "parent module", {}
+    ).get("type", "")
+
+    return (
+        type_name in TEXT_TYPES
+        or parent_type_name in TEXT_TYPES
+    )

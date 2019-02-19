@@ -24,7 +24,6 @@ VALID = 'ciscoMemoryPoolValid'
 
 class CiscoMemoryPoolMib(mibretriever.MibRetriever):
     from nav.smidumps.cisco_memory_pool_mib import MIB as mib
-    text_columns = {NAME}
 
     @defer.inlineCallbacks
     def get_memory_usage(self):
