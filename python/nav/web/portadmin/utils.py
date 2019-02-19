@@ -138,6 +138,14 @@ def is_restart_interface_enabled():
     return True
 
 
+def dot1x_external_url():
+    """Returns url for external config of dot1x for a interface"""
+    config = read_config()
+    section = 'dot1x'
+    option = 'port_url_template'
+    return config[section].get(option, None)
+
+
 def find_vlans_on_netbox(netbox, factory=None):
     """Find all the vlans on this netbox
 
@@ -318,12 +326,14 @@ def add_dot1x_info(interfaces, handler):
         return
 
     dot1x_states = handler.get_dot1x_enabled_interfaces()
-    if not dot1x_states:
-        # Empty result
-        return
 
+    url_template = dot1x_external_url()
     for interface in interfaces:
         interface.dot1xenabled = dot1x_states.get(interface.ifindex)
+        if url_template:
+            interface.dot1x_external_url = url_template.format(
+                netbox=interface.netbox,
+                interface=interface)
 
 
 def is_cisco(netbox):
