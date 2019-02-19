@@ -52,8 +52,7 @@ from operator import attrgetter
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template.context import RequestContext
+from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.views.generic.base import TemplateView
 
@@ -401,8 +400,7 @@ def render_base_template(request):
         _logger.error(accountnavlet)
         cls = get_navlet_from_name(accountnavlet.navlet)
         navlet = cls(request=request)
-        return render_to_response('navlets/base.html', {'navlet': navlet},
-                                  RequestContext(request))
+        return render(request, 'navlets/base.html', {'navlet': navlet})
 
 
 def add_user_navlet_graph(request):

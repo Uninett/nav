@@ -21,8 +21,7 @@ from functools import reduce
 
 from django.core.urlresolvers import reverse
 from django.db.models import Model
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.db.models.fields import FieldDoesNotExist
 from django.utils.six import iteritems
 
@@ -77,7 +76,7 @@ def render_list(request, queryset, value_list, edit_url=None,
     # Doing it this way makes sure that the context dictionary overrides any
     # user-supplied data, not the other way around.
     extra_context.update(context)
-    return render_to_response(template, extra_context, RequestContext(request))
+    return render(request, template, extra_context)
 
 
 def _filter_query(filter_form, queryset):

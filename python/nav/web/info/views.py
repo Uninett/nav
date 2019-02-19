@@ -19,8 +19,7 @@ import logging
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.conf import settings
 
 from nav.web.info.forms import SearchForm
@@ -54,13 +53,17 @@ def index(request):
     else:
         form = SearchForm()
 
-    return render_to_response("info/base.html",
-                              {"form": form,
-                               "searchproviders": searchproviders,
-                               "failed_providers": failed_providers,
-                               "navpath": navpath,
-                               "title": create_title(titles)},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "info/base.html",
+        {
+            "form": form,
+            "searchproviders": searchproviders,
+            "failed_providers": failed_providers,
+            "navpath": navpath,
+            "title": create_title(titles)
+        }
+    )
 
 
 def process_form(form):

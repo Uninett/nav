@@ -25,8 +25,7 @@ from IPy import IP
 from socket import gethostbyaddr, gethostbyname, error as SocketError
 
 from django.core.urlresolvers import reverse, NoReverseMatch
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
 from django.utils import six
@@ -92,7 +91,7 @@ def render_edit(request, model, form_model, object_id, redirect,
             'sub_active': {'edit': True},
         })
     extra_context.update(context)
-    return render_to_response(template, extra_context, RequestContext(request))
+    return render(request, template, extra_context)
 
 
 def _get_object(model, object_id, identifier_attr='pk'):

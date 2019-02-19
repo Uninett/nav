@@ -23,9 +23,8 @@ from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 from django.db.models import Q, Max
 from django.http import HttpResponse
-from django.shortcuts import (render_to_response, redirect, get_object_or_404,
+from django.shortcuts import (redirect, get_object_or_404,
                               render)
-from django.template import RequestContext
 
 from nav.django.decorators import require_admin
 
@@ -81,12 +80,16 @@ def search(request):
     else:
         searchform = RoomSearchForm()
 
-    return render_to_response("info/room/base.html",
-                              {"searchform": searchform,
-                               "rooms": rooms,
-                               "navpath": navpath,
-                               "title": create_title(titles)},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "info/room/base.html",
+        {
+            "searchform": searchform,
+            "rooms": rooms,
+            "navpath": navpath,
+            "title": create_title(titles)
+        }
+    )
 
 
 def process_searchform(form):
@@ -114,12 +117,16 @@ def roominfo(request, roomid):
     navpath = get_path() + [(room.id,)]
     room.sorted_data = sorted(room.data.items())
     room.meta_data = get_room_meta(room)
-    return render_to_response("info/room/roominfo.html",
-                              {"room": room,
-                               "navpath": navpath,
-                               "title": create_title(navpath),
-                               "images": images},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "info/room/roominfo.html",
+        {
+            "room": room,
+            "navpath": navpath,
+            "title": create_title(navpath),
+            "images": images
+        }
+    )
 
 
 def get_room_meta(room):
@@ -160,10 +167,14 @@ def upload_image(request, roomid):
         handle_image_upload(request, room=room)
         return redirect("room-info-upload", roomid=room.id)
 
-    return render_to_response("info/room/upload.html",
-                              {"object": room, "room": room, "navpath": navpath,
-                               "title": create_title(navpath)},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "info/room/upload.html",
+        {
+            "object": room, "room": room, "navpath": navpath,
+            "title": create_title(navpath)
+        }
+    )
 
 
 def render_netboxes(request, roomid):
@@ -184,11 +195,15 @@ def render_netboxes(request, roomid):
         netbox.interfaces = netbox.interface_set.filter(
             iftype=6).order_by("ifindex").extra(select=cam_query)
 
-    return render_to_response("info/room/netboxview.html",
-                              {"netboxes": netboxes,
-                               "maxtime": datetime.datetime.max,
-                               "room": room},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "info/room/netboxview.html",
+        {
+            "netboxes": netboxes,
+            "maxtime": datetime.datetime.max,
+            "room": room
+        }
+    )
 
 
 def create_csv(request):

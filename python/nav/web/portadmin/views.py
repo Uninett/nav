@@ -22,8 +22,8 @@ from operator import or_ as OR
 from functools import reduce
 
 from django.http import HttpResponse, JsonResponse
-from django.template import RequestContext, Context
-from django.shortcuts import render, render_to_response, get_object_or_404
+from django.template import Context
+from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -576,9 +576,7 @@ def render_trunk_edit(request, interfaceid):
                     'allowed_vlans': allowed_vlans,
                     'trunk_edit': get_trunk_edit(config)})
 
-    return render_to_response('portadmin/trunk_edit.html',
-                              context,
-                              RequestContext(request))
+    return render(request, 'portadmin/trunk_edit.html', context)
 
 
 def handle_trunk_edit(request, agent, interface):

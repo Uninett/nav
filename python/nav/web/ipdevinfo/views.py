@@ -22,9 +22,8 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
-from django.shortcuts import (render_to_response, get_object_or_404, redirect,
+from django.shortcuts import (get_object_or_404, redirect,
                               render)
-from django.template import RequestContext
 from django.utils import six
 
 from nav.django.templatetags.thresholds import find_rules
@@ -45,7 +44,6 @@ from nav.metrics.graphs import Graph
 
 from nav.web.ipdevinfo.forms import (SearchForm, ActivityIntervalForm,
                                      SensorRangesForm)
-from nav.web.ipdevinfo.context_processors import search_form_processor
 from nav.web.ipdevinfo import utils
 from .host_information import get_host_info
 
@@ -107,13 +105,16 @@ def search(request):
     else:
         search_form = SearchForm()
 
-    return render_to_response('ipdevinfo/search.html',
-                              {'errors': errors, 'netboxes': netboxes,
-                               'navpath': NAVPATH, 'query': query,
-                               'title': create_title(titles),
-                               'search_form': search_form},
-                              context_instance=RequestContext(
-                                  request, processors=[search_form_processor]))
+    return render(
+        request,
+        'ipdevinfo/search.html',
+        {
+            'errors': errors, 'netboxes': netboxes,
+            'navpath': NAVPATH, 'query': query,
+            'title': create_title(titles),
+            'search_form': search_form
+        }
+    )
 
 
 def is_valid_hostname(hostname):
@@ -331,7 +332,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     display_services_tab = netbox and (
         netbox.category.is_srv() or netbox.service_set.count())
 
-    return render_to_response(
+    return render(
+        request,
         'ipdevinfo/ipdev-details.html',
         {
             'host_info': host_info,
@@ -352,9 +354,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'future_maintenance_tasks': relevant_future_tasks,
             'sensor_metrics': sensor_metrics,
             'display_services_tab': display_services_tab
-        },
-        context_instance=RequestContext(request,
-                                        processors=[search_form_processor]))
+        }
+    )
 
 
 def get_port_view(request, netbox_sysname, perspective):
@@ -414,15 +415,16 @@ def get_port_view(request, netbox_sysname, perspective):
     # Min length of ifname for it to be shortened
     ifname_too_long = 12
 
-    return render_to_response(
+    return render(
+        request,
         'ipdevinfo/modules.html',
         {
             'netbox': netbox,
             'port_view': port_view,
             'ifname_too_long': ifname_too_long,
             'activity_interval_form': activity_interval_form
-        },
-        context_instance=RequestContext(request))
+        }
+    )
 
 
 def module_details(request, netbox_sysname, module_name):
@@ -488,7 +490,8 @@ def module_details(request, netbox_sysname, module_name):
                  kwargs={'name': netbox_sysname})),
         ('Module Details',)]
 
-    return render_to_response(
+    return render(
+        request,
         'ipdevinfo/module-details.html',
         {
             'module': module,
@@ -500,9 +503,8 @@ def module_details(request, netbox_sysname, module_name):
             'navpath': navpath,
             'heading': navpath[-1][0],
             'title': create_title(navpath)
-        },
-        context_instance=RequestContext(
-            request, processors=[search_form_processor]))
+        }
+    )
 
 
 def poegroup_details(request, netbox_sysname, grpindex):
@@ -517,16 +519,16 @@ def poegroup_details(request, netbox_sysname, grpindex):
                  kwargs={'name': netbox_sysname})),
         ('PoE Details for ' + poegroup.name,)]
 
-    return render_to_response(
+    return render(
+        request,
         'ipdevinfo/poegroup-details.html',
         {
             'poegroup': poegroup,
             'navpath': navpath,
             'heading': navpath[-1][0],
             'title': create_title(navpath),
-        },
-        context_instance=RequestContext(
-            request, processors=[search_form_processor]))
+        }
+    )
 
 
 def port_details(request, netbox_sysname, port_type=None, port_id=None,
@@ -585,7 +587,8 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
         metric['graphite_data_url'] = Graph(
             magic_targets=[metric['id']], format='json')
 
-    return render_to_response(
+    return render(
+        request,
         'ipdevinfo/port-details.html',
         {
             'port_type': port_type,
@@ -598,9 +601,8 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
             'detention': detention,
             'sensor_metrics': sensor_metrics,
             'alert_info': get_recent_alerts_interface(port)
-        },
-        context_instance=RequestContext(
-            request, processors=[search_form_processor]))
+        }
+    )
 
 
 def get_recent_alerts_interface(interface, days_back=7):
@@ -673,7 +675,6 @@ def service_list(request, handler=None):
             'heading': navpath[-1][0],
             'services': services,
             'page': page,
-            'context_processors': [search_form_processor],
             'template_object_name': 'service'
         },)(request)
 
@@ -699,7 +700,8 @@ def service_matrix(request):
     matrix = matrix_dict.values()
     navpath = NAVPATH + [('Service Matrix',)]
 
-    return render_to_response(
+    return render(
+        request,
         'ipdevinfo/service-matrix.html',
         {
             'handler_list': handler_list,
@@ -707,9 +709,8 @@ def service_matrix(request):
             'title': create_title(navpath),
             'navpath': navpath,
             'heading': navpath[-1][0]
-        },
-        context_instance=RequestContext(
-            request, processors=[search_form_processor]))
+        }
+    )
 
 
 def render_affected(request, netboxid):
@@ -726,16 +727,18 @@ def render_affected(request, netboxid):
     services = Service.objects.filter(netbox__in=unreachable).order_by('netbox')
     affected_hosts = utils.get_affected_host_count(unreachable)
 
-    return render_to_response(
-        'ipdevinfo/frag-affected.html', {
+    return render(
+        request,
+        'ipdevinfo/frag-affected.html',
+        {
             'unreachable': unreachable,
             'affected': affected,
             'services': services,
             'organizations': organizations,
             'contacts': contacts,
             'affected_hosts': affected_hosts
-        },
-        context_instance=RequestContext(request))
+        }
+    )
 
 
 def render_host_info(request, identifier):

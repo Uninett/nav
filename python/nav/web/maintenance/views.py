@@ -22,8 +22,7 @@ from datetime import datetime, date
 from django.core.urlresolvers import reverse
 from django.db import transaction, connection
 from django.db.models import Count, Q
-from django.template import RequestContext
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 
@@ -84,7 +83,8 @@ def calendar(request, year=None, month=None):
         end_time__gt=this_month_start
     ).exclude(state=MaintenanceTask.STATE_CANCELED).order_by('start_time')
     cal = MaintenanceCalendar(tasks).formatmonth(year, month)
-    return render_to_response(
+    return render(
+        request,
         'maintenance/calendar.html',
         {
             'active': {'calendar': True},
@@ -97,7 +97,6 @@ def calendar(request, year=None, month=None):
             'next_month': next_month_start,
             'curr_month': datetime.today(),
         },
-        RequestContext(request)
     )
 
 
@@ -128,7 +127,8 @@ def active(request):
                     continue
                 task.netbox = netbox
 
-    return render_to_response(
+    return render(
+        request,
         'maintenance/list.html',
         {
             'active': {'active': True},
@@ -137,7 +137,6 @@ def active(request):
             'heading': heading,
             'tasks': tasks,
         },
-        RequestContext(request)
     )
 
 
@@ -151,7 +150,8 @@ def planned(request):
     ).order_by(
         '-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
-    return render_to_response(
+    return render(
+        request,
         'maintenance/list.html',
         {
             'active': {'planned': True},
@@ -160,7 +160,6 @@ def planned(request):
             'heading': heading,
             'tasks': tasks,
         },
-        RequestContext(request)
     )
 
 
@@ -173,7 +172,8 @@ def historic(request):
     ).order_by(
         '-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
-    return render_to_response(
+    return render(
+        request,
         'maintenance/list.html',
         {
             'active': {'historic': True},
@@ -182,7 +182,6 @@ def historic(request):
             'heading': heading,
             'tasks': tasks,
         },
-        RequestContext(request)
     )
 
 
@@ -204,7 +203,8 @@ def view(request, task_id):
 
     heading = 'Task "%s"' % task.description
     infodict = infodict_by_state(task)
-    return render_to_response(
+    return render(
+        request,
         'maintenance/details.html',
         {
             'active': infodict['active'],
@@ -214,7 +214,6 @@ def view(request, task_id):
             'task': task,
             'components': component_trail,
         },
-        RequestContext(request)
     )
 
 
@@ -229,7 +228,8 @@ def cancel(request, task_id):
                                                 args=[task_id]))
     else:
         infodict = infodict_by_state(task)
-        return render_to_response(
+        return render(
+            request,
             'maintenance/cancel.html',
             {
                 'active': infodict['active'],
@@ -238,7 +238,6 @@ def cancel(request, task_id):
                 'heading': heading,
                 'task': task,
             },
-            RequestContext(request)
         )
 
 
@@ -328,7 +327,8 @@ def edit(request, task_id=None, start_time=None):
         navpath = NAVPATH + [('New', '')]
         heading = 'New task'
         title = TITLE + " - " + heading
-    return render_to_response(
+    return render(
+        request,
         'maintenance/new_task.html',
         {
             'active': {'new': True},
@@ -341,7 +341,6 @@ def edit(request, task_id=None, start_time=None):
             'components': component_trail,
             'selected': component_keys,
         },
-        RequestContext(request)
     )
 
 

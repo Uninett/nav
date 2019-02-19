@@ -18,8 +18,7 @@
 import logging
 
 from django.http import HttpResponseRedirect
-from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 from nav.django.utils import get_account
 
@@ -39,10 +38,7 @@ def do_list(request, messages=None):
     info_dict = populate_info_dict(account,
                                     macwatches=macwatches,
                                     messages=messages)
-    return render_to_response(
-                'macwatch/list_watches.html',
-                info_dict,
-                RequestContext(request))
+    return render(request, 'macwatch/list_watches.html', info_dict)
 
 
 def list_watch(request):
@@ -69,18 +65,12 @@ def add_macwatch(request):
             messages = ['Illegal input-data']
             info_dict = populate_info_dict(account, messages=messages)
             info_dict['form'] = macwatchform
-            return render_to_response(
-                    'macwatch/addmacwatch.html',
-                    info_dict,
-                    RequestContext(request))
+            return render(request, 'macwatch/addmacwatch.html', info_dict)
 
     info_dict = populate_info_dict(account)
     macwatchform = MacWatchForm()
     info_dict['form'] = macwatchform
-    return render_to_response(
-                    'macwatch/addmacwatch.html',
-                    info_dict,
-                    RequestContext(request))
+    return render(request, 'macwatch/addmacwatch.html', info_dict)
 
 
 def delete_macwatch(request, macwatchid):
@@ -110,10 +100,7 @@ def delete_macwatch(request, macwatchid):
         else:
             info_dict = populate_info_dict(account)
             info_dict['macwatch'] = m
-            return render_to_response(
-                    'macwatch/deletemacwatch.html',
-                    info_dict,
-                    RequestContext(request))
+            return render(request, 'macwatch/deletemacwatch.html', info_dict)
     return HttpResponseRedirect('/macwatch/')
 
 
@@ -131,10 +118,7 @@ def edit_macwatch(request, macwatchid):
             account = get_account(request)
             info_dict = populate_info_dict(account)
             info_dict['form'] = macwatchform
-            return render_to_response(
-                    'macwatch/editmacwatch.html',
-                    info_dict,
-                    RequestContext(request))
+            return render(request, 'macwatch/editmacwatch.html', info_dict)
 
     if macwatchid:
         m = MacWatch.objects.get(id=macwatchid)
@@ -142,10 +126,7 @@ def edit_macwatch(request, macwatchid):
         macwatchform = MacWatchForm(initial=data)
     info_dict = populate_info_dict(account)
     info_dict['form'] = macwatchform
-    return render_to_response(
-                    'macwatch/editmacwatch.html',
-                    info_dict,
-                    RequestContext(request))
+    return render(request, 'macwatch/editmacwatch.html', info_dict)
 
 
 def populate_info_dict(account, macwatches=None, messages=None):

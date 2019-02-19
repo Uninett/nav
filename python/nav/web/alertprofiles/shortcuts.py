@@ -16,10 +16,8 @@
 #
 """Shortcuts for Alert Profiles"""
 
-from django.template import RequestContext
-
 from nav.web.message import Messages, new_message
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 BASE_PATH = [
     ('Home', '/'),
@@ -29,12 +27,10 @@ BASE_PATH = [
 
 def _alertprofiles_response(request, status_code=200):
     # Get a normal response object
-    response = render_to_response(
+    response = render(
+        request,
         'alertprofiles/base.html',
         {'navpath': BASE_PATH},
-        context_instance=RequestContext(
-            request,
-        ),
     )
 
     # Change the status_code

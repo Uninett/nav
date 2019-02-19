@@ -22,8 +22,7 @@ from functools import partial
 
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template.context import RequestContext
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 
 from ..forms import SearchForm
@@ -68,12 +67,16 @@ def index(request):
 
     LOGGER.debug(vlans)
 
-    return render_to_response("info/vlan/base.html",
-                              {'navpath': navpath,
-                               'title': create_title(navpath),
-                               'form': searchform,
-                               'vlans': vlans},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        "info/vlan/base.html",
+        {
+            'navpath': navpath,
+            'title': create_title(navpath),
+            'form': searchform,
+            'vlans': vlans
+        }
+    )
 
 
 def process_searchform(form):
@@ -108,15 +111,19 @@ def vlan_details(request, vlanid):
 
     navpath = get_path([(str(vlan), '')])
 
-    return render_to_response('info/vlan/vlandetails.html',
-                              {'vlan': vlan,
-                               'prefixes': prefixes,
-                               'gwportprefixes': find_gwportprefixes(vlan),
-                               'navpath': navpath,
-                               'has_v4': has_v4,
-                               'has_v6': has_v6,
-                               'title': create_title(navpath)},
-                              context_instance=RequestContext(request))
+    return render(
+        request,
+        'info/vlan/vlandetails.html',
+        {
+            'vlan': vlan,
+            'prefixes': prefixes,
+            'gwportprefixes': find_gwportprefixes(vlan),
+            'navpath': navpath,
+            'has_v4': has_v4,
+            'has_v6': has_v6,
+            'title': create_title(navpath)
+        }
+    )
 
 
 def create_prefix_graph(request, prefixid):
