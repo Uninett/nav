@@ -29,9 +29,9 @@ import os
 import re
 from collections import defaultdict
 
-from django.utils import six
 from twisted.internet import defer
 
+from nav.Snmp import safestring
 from nav.config import ConfigurationError
 from nav.mibs import mibretriever
 from nav.ipdevpoll import Plugin
@@ -196,29 +196,3 @@ def _get_space_separated_list(config, section, option):
     raw_string = config.get(section, option, fallback='').strip()
     items = re.split(r"\s+", raw_string)
     return [item for item in items if item]
-
-
-def safestring(string, encodings_to_try=('utf-8', 'latin-1')):
-    """Tries to safely decode strings retrieved using SNMP.
-
-    SNMP does not really define encodings, and will not normally allow
-    non-ASCII strings to be written  (though binary data is fine). Sometimes,
-    administrators have been able to enter descriptions containing non-ASCII
-    characters using CLI's or web interfaces. The encoding of these are
-    undefined and unknown. To ensure they can be safely stored in the
-    database (which only accepts UTF-8), we make various attempts at decoding
-    strings to unicode objects before the database becomes involved.
-    """
-    if string is None:
-        return
-
-    if isinstance(string, six.text_type):
-        return string
-
-    for encoding in encodings_to_try:
-        try:
-            return string.decode(encoding)
-        except UnicodeDecodeError:
-            pass
-
-    return repr(string)  # fallback

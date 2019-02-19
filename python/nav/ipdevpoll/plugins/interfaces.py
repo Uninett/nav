@@ -20,9 +20,9 @@ The plugin uses IF-MIB to retrieve generic interface data, and
 EtherLike-MIB to retrieve duplex status for ethernet interfaces.
 
 """
-from django.utils import six
 from twisted.internet import defer
 
+from nav.Snmp import safestring
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
 from nav.mibs.etherlike_mib import EtherLikeMib
@@ -104,7 +104,7 @@ class Interfaces(Plugin):
 
         interface.ifname = row['ifName'] or interface.baseport or row['ifDescr']
         interface.ifconnectorpresent = row['ifConnectorPresent'] == 1
-        interface.ifalias = decode_to_unicode(row['ifAlias'])
+        interface.ifalias = safestring(row['ifAlias'])
 
         # Set duplex if sucessfully retrieved
         if 'duplex' in row and row['duplex'] in DUPLEX_MAP:
@@ -169,14 +169,3 @@ class Interfaces(Plugin):
         deferred = self.etherlikemib.get_duplex()
         deferred.addCallback(update_result)
         return deferred
-
-
-def decode_to_unicode(string):
-    if string is None:
-        return
-    try:
-        return string.decode('utf-8')
-    except UnicodeDecodeError:
-        return string.decode('latin-1')
-    except AttributeError:
-        return six.text_type(string)

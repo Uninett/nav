@@ -20,6 +20,7 @@ multiple implementations
 
 """
 from __future__ import absolute_import
+from django.utils import six
 
 BACKEND = None
 
@@ -37,3 +38,29 @@ if BACKEND == 'pynetsnmp':
     from .pynetsnmp import *
 else:
     raise ImportError("No supported SNMP backend was found")
+
+
+def safestring(string, encodings_to_try=('utf-8', 'latin-1')):
+    """Tries to safely decode strings retrieved using SNMP.
+
+    SNMP does not really define encodings, and will not normally allow
+    non-ASCII strings to be written  (though binary data is fine). Sometimes,
+    administrators have been able to enter descriptions containing non-ASCII
+    characters using CLI's or web interfaces. The encoding of these are
+    undefined and unknown. To ensure they can be safely stored in the
+    database (which only accepts UTF-8), we make various attempts at decoding
+    strings to unicode objects before the database becomes involved.
+    """
+    if string is None:
+        return
+
+    if isinstance(string, six.text_type):
+        return string
+    if isinstance(string, six.binary_type):
+        for encoding in encodings_to_try:
+            try:
+                return string.decode(encoding)
+            except UnicodeDecodeError:
+                pass
+
+    return repr(string)  # fallback

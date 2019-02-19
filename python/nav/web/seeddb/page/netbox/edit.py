@@ -32,7 +32,7 @@ from django.contrib import messages
 from nav.auditlog.models import LogEntry
 from nav.models.manage import Netbox, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
-from nav.Snmp import Snmp
+from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
 from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
@@ -134,15 +134,15 @@ def snmp_write_test(ip, community, snmp_version):
     value = ''
     try:
         snmp = Snmp(ip, community, snmp_version)
-        value = snmp.get(syslocation)
-        snmp.set(syslocation, 's', value)
+        value = safestring(snmp.get(syslocation))
+        snmp.set(syslocation, 's', value.encode('utf-8'))
     except SnmpError as error:
         try:
             value.decode('ascii')
         except UnicodeDecodeError:
             testresult['custom_error'] = 'UnicodeDecodeError'
 
-        testresult['error_message'] = error.message
+        testresult['error_message'] = error.args
         testresult['status'] = False
     else:
         testresult['status'] = True
@@ -186,7 +186,7 @@ def snmp_type(ip_addr, snmp_ro, snmp_version):
         sysobjectid = snmp.get('.1.3.6.1.2.1.1.2.0')
     except SnmpError:
         return None
-    sysobjectid = sysobjectid.lstrip('.')
+    sysobjectid = str(sysobjectid).lstrip('.')
     try:
         netbox_type = NetboxType.objects.get(sysobjectid=sysobjectid)
         return netbox_type
