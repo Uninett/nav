@@ -133,6 +133,7 @@ class LLDPMib(mibretriever.MibRetriever):
             lookup[ifname] = ifindex
         returnValue(lookup)
 
+
 # pylint: disable=C0103
 LLDPNeighbor = namedtuple("LLDPNeighbor",
                           "ifindex chassis_id port_id port_desc sysname")

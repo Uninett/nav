@@ -29,7 +29,7 @@ class LdapAuthenticateTest(TestCase):
 
     def test_authenticate_should_return_account_when_ldap_says_yes(self):
         with patch("nav.web.ldapauth.authenticate", return_value=True):
-            self.assertEquals(auth.authenticate('knight', 'shrubbery'),
+            self.assertEqual(auth.authenticate('knight', 'shrubbery'),
                               self.mock_account)
 
     def test_authenticate_should_return_false_when_ldap_says_no(self):
@@ -38,7 +38,7 @@ class LdapAuthenticateTest(TestCase):
 
     def test_authenticate_should_fallback_when_ldap_is_disabled(self):
         nav.web.ldapauth.available = False
-        self.assertEquals(auth.authenticate('knight', 'shrubbery'),
+        self.assertEqual(auth.authenticate('knight', 'shrubbery'),
                           self.mock_account)
 
 
@@ -62,7 +62,7 @@ class NormalAuthenticateTest(TestCase):
 
     def test_authenticate_should_return_account_when_password_is_ok(self):
         with patch("nav.web.auth.Account.check_password", return_value=True):
-            self.assertEquals(auth.authenticate('knight', 'shrubbery'),
+            self.assertEqual(auth.authenticate('knight', 'shrubbery'),
                               self.mock_account)
 
     def test_authenticate_should_return_false_when_ldap_says_no(self):

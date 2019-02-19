@@ -48,13 +48,13 @@ class CiscoVTPMib(mibretriever.MibRetriever):
         """
 
         def get_vlan_list(row):
-            concatenated_bits = ''
+            concatenated_bits = b''
             for column in ('vlanTrunkPortVlansEnabled',
                            'vlanTrunkPortVlansEnabled2k',
                            'vlanTrunkPortVlansEnabled3k',
                            'vlanTrunkPortVlansEnabled4k'):
-                value = row[column] or ''
-                concatenated_bits += value.ljust(CHARS_IN_1024_BITS, '\x00')
+                value = row[column] or b''
+                concatenated_bits += value.ljust(CHARS_IN_1024_BITS, b'\x00')
 
             enabled = BitVector(concatenated_bits)
             return as_bitvector and enabled or enabled.get_set_bits()

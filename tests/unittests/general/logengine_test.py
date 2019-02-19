@@ -75,7 +75,7 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
             return input
 
         value = 'foo'
-        self.assertEquals(nonraiser(value), value)
+        self.assertEqual(nonraiser(value), value)
 
 
 class ParseTest(TestCase):
@@ -95,23 +95,23 @@ class ParseTest(TestCase):
 
     def test_should_parse_timestamp_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEquals(msg.time, self.timestamp)
+        self.assertEqual(msg.time, self.timestamp)
 
     def test_should_parse_facility_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEquals(msg.facility, self.facility)
+        self.assertEqual(msg.facility, self.facility)
 
     def test_should_parse_priority_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEquals(msg.priorityid, self.priority)
+        self.assertEqual(msg.priorityid, self.priority)
 
     def test_should_parse_mnemonic_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEquals(msg.mnemonic, self.mnemonic)
+        self.assertEqual(msg.mnemonic, self.mnemonic)
 
     def test_should_parse_description_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEquals(msg.description, self.description)
+        self.assertEqual(msg.description, self.description)
 
 
 class ParseMessageWithStrangeGarbageTest(ParseTest):

@@ -57,7 +57,7 @@ class PortadminResponseTest(unittest.TestCase):
         self.handler = SNMPFactory.get_instance(self.netboxHP)
         self.assertNotEqual(self.handler, None,
                             'Could not get handler-object')
-        self.assertEquals(six.text_type(self.handler),  u'hp',
+        self.assertEqual(six.text_type(self.handler),  u'hp',
                           'Wrong handler-type')
 
     def test_get_ifalias_hp(self):
@@ -67,7 +67,7 @@ class PortadminResponseTest(unittest.TestCase):
         # replace get-method on Snmp-object with a mock-method
         # this get-method returns a ifalias
         self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 999")
-        self.assertEquals(self.handler.get_if_alias(1), "pkt: 999",
+        self.assertEqual(self.handler.get_if_alias(1), "pkt: 999",
                           "getIfAlias-test failed")
 
     def test_get_vlan_hp(self):
@@ -124,8 +124,8 @@ class PortadminResponseTest(unittest.TestCase):
         #  cisco-netbox
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
         self.assertNotEqual(self.handler, None, 'Could not get handler-object')
-        self.assertEquals(six.text_type(self.handler),  u'cisco', 'Wrong handler-type')
-        self.assertEquals(type(self.handler), Cisco, 'Wrong handler-type')
+        self.assertEqual(six.text_type(self.handler),  u'cisco', 'Wrong handler-type')
+        self.assertEqual(type(self.handler), Cisco, 'Wrong handler-type')
 
     def test_get_ifalias_cisco(self):
         self.handler = SNMPFactory.get_instance(self.netboxCisco)
@@ -134,7 +134,7 @@ class PortadminResponseTest(unittest.TestCase):
         # replace get-method on Snmp-object with a mock-method
         # this get-method returns a ifalias
         self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 88")
-        self.assertEquals(self.handler.get_if_alias(1), "pkt: 88",
+        self.assertEqual(self.handler.get_if_alias(1), "pkt: 88",
                           "getIfAlias-test failed")
 
     def test_get_vlan_cisco(self):

@@ -57,7 +57,7 @@ class StatSensors(Plugin):
         netboxes = yield db.run_in_thread(self._get_netbox_list)
         sensors = yield run_in_thread(self._get_sensors)
         self._logger.debug("retrieving data from %d sensors", len(sensors))
-        oids = sensors.keys()
+        oids = list(sensors.keys())
         requests = [oids[x:x+MAX_SENSORS_PER_REQUEST]
                     for x in range(0, len(oids), MAX_SENSORS_PER_REQUEST)]
         for req in requests:

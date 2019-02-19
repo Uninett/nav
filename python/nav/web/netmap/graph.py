@@ -17,7 +17,6 @@
 
 from datetime import datetime
 from collections import defaultdict
-from functools import partial
 from django.shortcuts import get_object_or_404
 
 from nav.netmap.metadata import (

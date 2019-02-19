@@ -61,19 +61,19 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
 
     def test_should_find_correct_alert_type(self):
         goose = wg.WeatherGoose1(self.trap, None, None, None)
-        self.assertEquals(goose._get_alert_type(), 'cmClimateTempCTRAP')
+        self.assertEqual(goose._get_alert_type(), 'cmClimateTempCTRAP')
 
     def test_should_find_correct_goosename(self):
         goose = wg.WeatherGoose1(self.trap, None, None, None)
-        self.assertEquals(goose.goosename, self.goosename)
+        self.assertEqual(goose.goosename, self.goosename)
 
     def test_should_find_climate_values(self):
         goose = wg.WeatherGoose1(self.trap, None, None, None)
-        self.assertEquals(goose.climatevalue, self.temperature)
+        self.assertEqual(goose.climatevalue, self.temperature)
 
     def test_should_find_triptype_high(self):
         goose = wg.WeatherGoose1(self.trap, None, None, None)
-        self.assertEquals(goose.triptype, 'High')
+        self.assertEqual(goose.triptype, 'High')
 
     def test_event_event_post(self):
         goose = wg.WeatherGoose1(self.trap, None, None, None)
@@ -81,7 +81,7 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
 
     def test_should_find_correct_sensorname(self):
         goose = wg.WeatherGoose1(self.trap, None, None, None)
-        self.assertEquals(goose._get_sensorname(), 'cleese')
+        self.assertEqual(goose._get_sensorname(), 'cleese')
 
 
 class WeatherGoose2Test(WeatherGooseMockedDb):
@@ -115,7 +115,7 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
         TRIP_TYPE_HIGH = 2
         trap.varbinds = {'.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH}
         goose = wg.WeatherGoose2(trap, None, None, None)
-        self.assertEquals(goose._get_alert_type(), 'cmClimateTempCNOTIFY')
+        self.assertEqual(goose._get_alert_type(), 'cmClimateTempCNOTIFY')
 
     def test_should_find_correct_alert_type_remote(self):
         trap = Mock('trap')
@@ -123,7 +123,7 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
         TRIP_TYPE_HIGH = 2
         trap.varbinds = {'.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH}
         goose = wg.WeatherGoose2(trap, None, None, None)
-        self.assertEquals(goose._get_alert_type(), 'cmTempSensorTempCNOTIFY')
+        self.assertEqual(goose._get_alert_type(), 'cmTempSensorTempCNOTIFY')
 
     def test_should_add_subid_when_alarminstance_defined(self):
         trap = Mock('trap')
@@ -134,7 +134,7 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
             '.1.3.6.1.4.1.17373.3.1.12.0': 4
         }
         goose = wg.WeatherGoose2(trap, None, None, None)
-        self.assertEquals(goose._get_subid(), 4)
+        self.assertEqual(goose._get_subid(), 4)
 
     def test_should_not_add_subid_when_not_in_varbinds(self):
         trap = Mock('trap')
@@ -144,7 +144,7 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
             '.1.3.6.1.4.1.17373.3.1.6.0': TRIP_TYPE_HIGH,
         }
         goose = wg.WeatherGoose2(trap, None, None, None)
-        self.assertEquals(goose._get_subid(), None)
+        self.assertEqual(goose._get_subid(), None)
 
     def test_should_find_correct_value_from_external_trap(self):
         trap = Mock('trap')

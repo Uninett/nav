@@ -17,14 +17,10 @@
 
 import logging
 from IPy import IP
-import django
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.db.models import Q
-if django.VERSION < (1, 8):
-    from django.db.models.related import RelatedObject as _RelatedObject
-else:
-    from django.db.models.fields.related import ManyToOneRel as _RelatedObject
+from django.db.models.fields.related import ManyToOneRel as _RelatedObject
 from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601

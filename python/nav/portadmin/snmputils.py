@@ -318,11 +318,11 @@ class SNMPHandler(object):
     @staticmethod
     def _get_last_number(oid):
         """Get the last index for an OID."""
-        if not (isinstance(oid, str) or isinstance(oid, unicode)):
+        if not (isinstance(oid, six.string_types)):
             raise TypeError('Illegal value for oid')
         splits = oid.split('.')
         last = splits[-1]
-        if isinstance(last, str):
+        if isinstance(last, six.string_types):
             if last.isdigit():
                 last = int(last)
         return last
@@ -694,7 +694,7 @@ class Cisco(SNMPHandler):
         self.set_trunk_vlans(interface, [])
         self.set_native_vlan(interface, access_vlan)
         self.set_vlan(interface, access_vlan)
-        interface.trunk = False # Make sure database is updated
+        interface.trunk = False  # Make sure database is updated
         interface.vlan = access_vlan
         interface.save()
 
@@ -836,9 +836,16 @@ class Dell(SNMPHandler):
     # Overriding members
     VlAN_OID = mib['nodes']['agentPortAccessVlanID']['oid']
     VLAN_EGRESS_PORTS = mib['nodes']['agentVlanSwitchportTrunkStaticEgressPorts']['oid']
+    WRITE_MEM_OID = mib['nodes']['agentSaveConfig']['oid'] + '.0'
 
     def __init__(self, netbox, **kwargs):
         super(Dell, self).__init__(netbox, **kwargs)
+
+    def write_mem(self):
+        """Use DNOS-SWITCHING-MIB agentSaveConfig to write to memory.
+        Write configuration into non-volatile memory."""
+        handle = self._get_read_write_handle()
+        return handle.set(self.WRITE_MEM_OID, 'i', 1)
 
     def set_vlan(self, interface, vlan):
         baseport = interface.baseport

@@ -85,13 +85,13 @@ def get_exception_dicts(config):
                 exceptionorigin[opt[1]] = newpriority
             if not opt[1] or any_re.search(opt[1]):
                 exceptiontype[opt[0]] = newpriority
-            #both fields
+            # both fields
             if opt[0] and opt[1]:
                 if opt[0] not in exceptiontypeorigin:
                     exceptiontypeorigin[opt[0]] = {}
                 exceptiontypeorigin[opt[0]][opt[1]] = newpriority
 
-        #only one of the fields
+        # only one of the fields
         for exception, priority in exceptions.items():
             typematch = re.search(r"^\w+\-\d+\-\S+$", exception)
             if typematch:
@@ -100,6 +100,7 @@ def get_exception_dicts(config):
                 exceptionorigin[exception] = priority
 
     return exceptionorigin, exceptiontype, exceptiontypeorigin
+
 
 _typical_match_re = re.compile(
     r"""
@@ -325,7 +326,7 @@ def read_log_lines(config):
 
         ## unlock logfile
         fcntl.flock(logfile, fcntl.LOCK_UN)
-        ##close log
+        ## close log
         logfile.close()
 
         for line in fcon:

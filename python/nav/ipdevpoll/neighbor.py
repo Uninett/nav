@@ -84,6 +84,7 @@ def _get_netbox_catids():
                   for i in manage.Netbox.objects.values('id', 'category__id'))
     return catids
 
+
 INVALID_IPS = ('None', '0.0.0.0',)
 
 

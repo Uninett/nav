@@ -286,10 +286,10 @@ def add_navlet(account, navlet, preferences=None, dashboard=None):
                                   dashboard=dashboard)
     accountnavlet.column, accountnavlet.order = find_new_placement()
 
-    default_preferences = get_default_preferences(
+    accountnavlet.preferences = get_default_preferences(
         get_navlet_from_name(navlet)) or {}
-    accountnavlet.preferences = dict(preferences.items() +
-                                     default_preferences.items())
+    accountnavlet.preferences.update(preferences)
+
     accountnavlet.save()
     return accountnavlet
 
@@ -364,7 +364,7 @@ def save_navlet_order(request):
 
 def save_order(account, request):
     """Update navlets with new placement data"""
-    columns = json.loads(request.body)
+    columns = json.loads(request.body.decode('utf-8'))
     for index, column in enumerate(columns):
         index += 1
         for key, value in column.items():
@@ -399,7 +399,8 @@ def render_base_template(request):
                                           account=account, pk=navlet_id)
         _logger.error(accountnavlet)
         cls = get_navlet_from_name(accountnavlet.navlet)
-        return render(request, 'navlets/base.html', {'navlet': cls})
+        navlet = cls(request=request)
+        return render(request, 'navlets/base.html', {'navlet': navlet})
 
 
 def add_user_navlet_graph(request):

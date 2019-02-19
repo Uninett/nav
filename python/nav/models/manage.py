@@ -1309,7 +1309,7 @@ class SwPortAllowedVlan(models.Model):
         # parse the hexstring correctly.
         max_vlan = max(vlans)
         needed_octets = int(math.ceil((max_vlan+1) / 8.0))
-        bits = BitVector('\x00' * max(needed_octets, 128))
+        bits = BitVector(b'\x00' * max(needed_octets, 128))
         for vlan in vlans:
             bits[vlan] = True
         return bits.to_hex()
@@ -1318,10 +1318,7 @@ class SwPortAllowedVlan(models.Model):
         self.hex_string = self.vlan_list_to_hex(vlans)
 
     def _calculate_allowed_vlans(self):
-        octets = [self.hex_string[x:x + 2]
-                  for x in range(0, len(self.hex_string), 2)]
-        string = ''.join(chr(int(o, 16)) for o in octets)
-        bits = BitVector(string)
+        bits = BitVector(bytes.fromhex(self.hex_string))
         return set(bits.get_set_bits())
 
     def __str__(self):

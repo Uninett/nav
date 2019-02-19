@@ -15,7 +15,7 @@
 #
 """High level synchronouse NAV API for NetSNMP"""
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from collections import namedtuple
 from ctypes import (c_int, sizeof, byref, cast, POINTER, c_char, c_char_p,
@@ -325,6 +325,7 @@ class _MySnmpSession(Session):
 ## and BER encoding in the NET-SNMP library.
 ##
 
+
 CONVERTER_MAP = {}
 
 
@@ -381,6 +382,7 @@ def asn_counter64(value):
     value = c_uint64(value)
     return byref(value), sizeof(value)
 
+
 # Some global ctypes initializations needed for the snmp_api_errstring function
 _charptr = POINTER(c_char)
 netsnmp.lib.snmp_api_errstring.restype = _charptr
@@ -390,13 +392,13 @@ netsnmp.lib.snmp_errstring.restype = _charptr
 def snmp_api_errstring(err_code):
     """Converts an SNMP API error code to an error string"""
     buf = netsnmp.lib.snmp_api_errstring(err_code)
-    return cast(buf, c_char_p).value
+    return cast(buf, c_char_p).value.decode('utf-8')
 
 
 def snmp_errstring(err_status):
     """Converts an SNMP protocol error status to an error string"""
     buf = netsnmp.lib.snmp_errstring(err_status)
-    return cast(buf, c_char_p).value
+    return cast(buf, c_char_p).value.decode('utf-8')
 
 
 def _raise_on_error(err_code):

@@ -71,7 +71,7 @@ def process_form(form):
     query = form.cleaned_data['query']
 
     if not query:
-        return []
+        return [], []
 
     providers_with_errors = []
     searchproviders = []

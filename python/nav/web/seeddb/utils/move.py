@@ -23,9 +23,9 @@ from nav.django.utils import get_verbose_name
 
 from nav.web.message import new_message, Messages
 
-STEP_CHANGEVALUES = 0 # Dropdown boxes with new values
-STEP_CONFIRM = 1 # What the objects will look like afterwards
-STEP_SAVE = 2 # Update the objects
+STEP_CHANGEVALUES = 0  # Dropdown boxes with new values
+STEP_CONFIRM = 1  # What the objects will look like afterwards
+STEP_SAVE = 2  # Update the objects
 
 
 def move(request, model, form_model, redirect, title_attr='id',

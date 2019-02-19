@@ -61,8 +61,8 @@ def binary_mac_to_hex(binary_mac):
 
     """
     if binary_mac:
-        binary_mac = binary_mac[-6:].rjust(MAX_MAC_ADDRESS_LENGTH, '\x00')
-        return ":".join("%02x" % ord(x) for x in binary_mac)
+        binary_mac = binary_mac[-6:].rjust(MAX_MAC_ADDRESS_LENGTH, b'\x00')
+        return ":".join("%02x" % x for x in six.iterbytes(binary_mac))
 
 
 def truncate_mac(mac):

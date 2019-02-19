@@ -30,12 +30,12 @@ class EncodingTests(TestCase):
     def test_latin1_encoded_ifalias_should_be_properly_decoded(self):
         result = decode_to_unicode(b'A m\xf8\xf8se once bit my sister')
         expected = u'A m\xf8\xf8se once bit my sister'
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_utf_8_encoded_ifalias_should_be_properly_decoded(self):
         result = decode_to_unicode(b'A m\xc3\xb8\xc3\xb8se once bit my sister')
         expected = u'A m\xf8\xf8se once bit my sister'
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_none_should_be_returned_unchanged(self):
         result = decode_to_unicode(None)
@@ -47,4 +47,4 @@ class EncodingTests(TestCase):
 
     def test_number_should_be_encoded(self):
         result = decode_to_unicode(42)
-        self.assertEquals(result, "42")
+        self.assertEqual(result, "42")

@@ -38,7 +38,7 @@ CONTACT_INFORMATION_PATH = find_configfile(
 def debug(_request):
     """Returns context variables helpful for debugging.
 
-    Same as django.core.context_processors.debug, just without the check
+    Same as django.templates.context_processors.debug, just without the check
     against INTERNAL_IPS."""
     context_extras = {}
     if settings.DEBUG:

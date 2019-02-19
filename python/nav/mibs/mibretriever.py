@@ -118,7 +118,8 @@ class MIBObject(object):
         SNMPv2-TC::TruthValue, it will be translated from int to bool.
 
         """
-        if self.enum and isinstance(value, (int, long)) and value in self.enum:
+        if (self.enum and isinstance(value, six.integer_types)
+                and value in self.enum):
             value = self.enum[value]
         return value
 
@@ -692,5 +693,5 @@ def convert_oids(mib):
     for node_name in mib['nodes']:
         node = mib['nodes'][node_name]
         if isinstance(node['oid'], six.string_types):
-            #oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
+            # oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
             node['oid'] = OID(node['oid'])

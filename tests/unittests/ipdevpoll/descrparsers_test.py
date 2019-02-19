@@ -65,7 +65,7 @@ class NtnuConventionTest(unittest.TestCase):
 
     def test_lan_invalid(self):
         d = descrparsers.parse_ntnu_convention(self.sysname, 'lan,foo')
-        self.assertEquals(d, None)
+        self.assertEqual(d, None)
 
     def test_link(self):
         d = descrparsers.parse_ntnu_convention(self.sysname, 'link,mts-gw')
@@ -99,7 +99,7 @@ class NtnuConventionTest(unittest.TestCase):
 
     def test_core_invalid(self):
         d = descrparsers.parse_ntnu_convention(self.sysname, 'core,foo')
-        self.assertEquals(d, None)
+        self.assertEqual(d, None)
 
     def test_elink(self):
         d = descrparsers.parse_ntnu_convention(
@@ -121,20 +121,20 @@ class NtnuConventionTest(unittest.TestCase):
 
     def test_invalid(self):
         d = descrparsers.parse_ntnu_convention(self.sysname, 'foobar,bar,baz')
-        self.assertEquals(d, None)
+        self.assertEqual(d, None)
 
 
 class UninettConventionTest(unittest.TestCase):
     def test_simple(self):
         d = descrparsers.parse_uninett_convention(
             'foo-sw', 'lokal link, uninett-gw.teknobyen-gw2')
-        self.assertEquals(d['comment'], 'lokal link')
-        self.assertEquals(d['netident'], 'uninett-gw.teknobyen-gw2')
+        self.assertEqual(d['comment'], 'lokal link')
+        self.assertEqual(d['netident'], 'uninett-gw.teknobyen-gw2')
 
     def test_invalid(self):
         d = descrparsers.parse_uninett_convention(
             'foo-sw', 'KX182')
-        self.assertEquals(d, None)
+        self.assertEqual(d, None)
 
 if __name__ == '__main__':
         unittest.main()

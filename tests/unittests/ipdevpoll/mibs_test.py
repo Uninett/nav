@@ -41,7 +41,7 @@ class IpMibTests(unittest.TestCase):
         ip_tuple = (1, 4, 192, 0, 2, 1)
         expected = IP('192.0.2.1')
         ip = IpMib.inetaddress_to_ip(ip_tuple)
-        self.assertEquals(ip, expected)
+        self.assertEqual(ip, expected)
 
     def test_invalid_ipv4_syntax_should_raise_error(self):
         ip_tuple = (1, 4, 300, 300, 300, 300)
@@ -55,7 +55,7 @@ class IpMibTests(unittest.TestCase):
         ip_tuple = (1, 192, 0, 2, 1)
         expected = IP('192.0.2.1')
         ip = IpMib.inetaddress_to_ip(ip_tuple)
-        self.assertEquals(ip, expected)
+        self.assertEqual(ip, expected)
 
     def test_too_long_ipv6_address_should_raise_exception(self):
         ip_tuple = (2, 16, 32, 1, 13, 184, 18, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
@@ -65,7 +65,7 @@ class IpMibTests(unittest.TestCase):
         ip_tuple = (2, 16, 32, 1, 13, 184, 18, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         expected = IP('2001:db8:1234::1')
         ip = IpMib.inetaddress_to_ip(ip_tuple)
-        self.assertEquals(ip, expected)
+        self.assertEqual(ip, expected)
 
     _ipAddressPrefixEntry = (1, 3, 6, 1, 2, 1, 4, 32, 1)
 
@@ -74,28 +74,28 @@ class IpMibTests(unittest.TestCase):
             5, 439541760, 1, 4, 192, 168, 70, 0, 24)
         expected = IP('192.168.70/24')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
-        self.assertEquals(prefix, expected)
+        self.assertEqual(prefix, expected)
 
     def test_ipv6_prefix_rowpointer_should_be_parsed_correctly(self):
         rowpointer = self._ipAddressPrefixEntry + (
             5, 11, 2, 16, 32, 1, 7, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64)
         expected = IP('2001:700:0:500::/64')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
-        self.assertEquals(prefix, expected)
+        self.assertEqual(prefix, expected)
 
     def test_nxos_ipv4_prefix_rowpointer_should_be_parsed_correctly(self):
         rowpointer = self._ipAddressPrefixEntry + (
             439541760, 1, 4, 192, 168, 70, 0, 24)
         expected = IP('192.168.70/24')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
-        self.assertEquals(prefix, expected)
+        self.assertEqual(prefix, expected)
 
     def test_nxos_ipv6_prefix_rowpointer_should_be_parsed_correctly(self):
         rowpointer = self._ipAddressPrefixEntry + (
             11, 2, 16, 32, 1, 7, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64)
         expected = IP('2001:700:0:500::/64')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
-        self.assertEquals(prefix, expected)
+        self.assertEqual(prefix, expected)
 
 
 class Ipv6MibTests(unittest.TestCase):
@@ -103,7 +103,7 @@ class Ipv6MibTests(unittest.TestCase):
         ip_tuple = (32, 1, 13, 184, 18, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         expected = IP('2001:db8:1234::1')
         ip = Ipv6Mib.ipv6address_to_ip(ip_tuple)
-        self.assertEquals(ip, expected)
+        self.assertEqual(ip, expected)
 
 
 class EntityMibTests(unittest.TestCase):

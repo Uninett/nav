@@ -77,7 +77,7 @@ def read_flat_config(config_file, delimiter='='):
             # Split the key/value pair (max 1 split)
             try:
                 (key, value) = line.split(delimiter, 1)
-                value = value.split('#', 1)[0] # Remove end-of-line comments
+                value = value.split('#', 1)[0]  # Remove end-of-line comments
                 configuration[key.strip()] = value.strip()
             except ValueError:
                 sys.stderr.write("Config file %s has errors.\n" %

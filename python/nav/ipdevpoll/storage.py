@@ -189,6 +189,9 @@ class Shadow(object):
                     continue
         return False
 
+    def __hash__(self):
+        return hash(id(self))
+
     def __ne__(self, other):
         return not (self == other)
 

@@ -16,7 +16,7 @@
 """Django URL configuration"""
 
 from django.conf.urls import url
-from nav.web.info.room import  views
+from nav.web.info.room import views
 
 
 urlpatterns = [

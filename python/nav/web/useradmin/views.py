@@ -22,7 +22,6 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template import RequestContext
 from django.views import generic
 from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_post_parameters
@@ -320,8 +319,8 @@ def group_list(request):
     """Controller for listing all user groups in NAV"""
     groups = AccountGroup.objects.all()
     context = {
-      'active': {'group_list': True},
-       'groups': groups,
+        'active': {'group_list': True},
+        'groups': groups,
     }
     context.update(DEFAULT_NAVPATH)
     return render(request, 'useradmin/group_list.html', context)

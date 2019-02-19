@@ -62,7 +62,7 @@ class UtilsTest(unittest.TestCase):
 
     def test_binary_mac_to_hex(self):
         # Make a simple "binary" mac
-        binary_mac = '123456'
+        binary_mac = b'123456'
         mac = '31:32:33:34:35:36'
         converted_mac = binary_mac_to_hex(binary_mac)
         self.assertEqual(converted_mac, mac)
@@ -71,19 +71,19 @@ class UtilsTest(unittest.TestCase):
         mac = '01:02:03:04:05:06'
         long_mac = mac + ':07:08:09'
         trunc_mac = truncate_mac(long_mac)
-        self.assertEquals(trunc_mac, mac)
+        self.assertEqual(trunc_mac, mac)
 
     def test_binary_mac_too_short(self):
-        binary_mac = '23456'
+        binary_mac = b'23456'
         mac = '00:32:33:34:35:36'
         converted_mac = binary_mac_to_hex(binary_mac)
-        self.assertEquals(converted_mac, mac)
+        self.assertEqual(converted_mac, mac)
 
     def test_binary_mac_too_long_should_return_last_part(self):
-        binary_mac = 'x123456'
+        binary_mac = b'x123456'
         mac = '31:32:33:34:35:36'
         converted_mac = binary_mac_to_hex(binary_mac)
-        self.assertEquals(converted_mac, mac)
+        self.assertEqual(converted_mac, mac)
 
     def test_invalid_utf8(self):
         self.assertTrue(is_invalid_utf8(b'P%\xe4\xb8D\xb6\x108B\x1d'))

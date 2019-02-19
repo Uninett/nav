@@ -146,7 +146,7 @@ def _build_context(request):
                 if value:
                     context.update({'log_messages': results})
                     context.update({'show_log': value})
-                form.data = form.data.copy() # mutable QueryDict, yes please
+                form.data = form.data.copy()  # mutable QueryDict, yes please
                 form.data['show_log'] = value
 
             if form.cleaned_data.get('show_log', None):

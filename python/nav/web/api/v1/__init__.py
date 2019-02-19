@@ -1,5 +1,6 @@
 from rest_framework import pagination
 
+
 class NavPageNumberPagination(pagination.PageNumberPagination):
     """Custom pagination class for NAV API
 

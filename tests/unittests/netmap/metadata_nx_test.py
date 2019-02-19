@@ -57,7 +57,7 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
             frozenset((second.u.interface, second.v.interface)))
 
     def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
-        self.assertEquals(2, len(self._get_metadata(self.a, self.b)))
+        self.assertEqual(2, len(self._get_metadata(self.a, self.b)))
 
     def test_netmap_metadata_is_correct_for_2_links_edge_between_a_and_b(self):
         self.maxDiff = None

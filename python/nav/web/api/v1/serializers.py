@@ -90,6 +90,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class SubNetboxSerializer(serializers.ModelSerializer):
     object_url = serializers.CharField(source='get_absolute_url')
+
     class Meta(object):
         model = manage.Netbox
         fields = '__all__'
@@ -134,7 +135,6 @@ class NetboxSerializer(serializers.ModelSerializer):
                                                 write_only=True,
                                                 queryset=manage.NetboxType.objects.all())
     type = NetboxTypeSerializer(read_only=True)
-
 
     class Meta(object):
         model = manage.Netbox
@@ -183,6 +183,7 @@ class ArpSerializer(serializers.ModelSerializer):
 
 class SubInterfaceSerializer(serializers.ModelSerializer):
     object_url = serializers.CharField(source='get_absolute_url')
+
     class Meta(object):
         model = manage.Interface
         fields = '__all__'

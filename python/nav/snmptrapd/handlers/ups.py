@@ -31,34 +31,37 @@ from nav.Snmp import Snmp
 logger = logging.getLogger('nav.snmptrapd.ups')
 
 # upsonbattery traps
-ONBATTERY = {'APC': ['.1.3.6.1.4.1.318.0.5'],
-             'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.3',
-                        # XUPS-MIB: xupstdOnBattery
-                       '.1.3.6.1.4.1.534.1.11.4.1.0.3',
-                       '.1.3.6.1.4.1.534.1.11.4.2.0.3'],
-                        # MG-SNMP-UPS-MIB: upsmgOnBattery'
-             'MGE': ['1.3.6.1.4.1.705.1.11.0.11'],
-                        # UPS-MIB: upsAlarmOnBattery
-             'RFC1628': ['.1.3.6.1.2.1.33.1.6.3.2'],
-             }
-BATTERYTIME = {'APC': ('.1.3.6.1.4.1.318.1.1.1.2.2.3.0', 'TIMETICKS'),
-                        # XUPS-MIB: xupsBatTimeRemaining
-               'Eaton': ('.1.3.6.1.4.1.534.1.2.1.0', 'SECONDS'),
-                        # MG-SNMP-UPS-MIB: upsmgBatteryRemainingTime
-               'MGE': ('1.3.6.1.4.1.705.1.5.1.0', 'SECONDS'),
-                        # UPS-MIB: upsEstimatedMinutesRemaining
-               'RFC1628': ('.1.3.6.1.2.1.33.1.2.3.0', 'MINUTES'),
-            }
+ONBATTERY = {
+    'APC': ['.1.3.6.1.4.1.318.0.5'],
+    'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.3',
+              # XUPS-MIB: xupstdOnBattery
+              '.1.3.6.1.4.1.534.1.11.4.1.0.3',
+              '.1.3.6.1.4.1.534.1.11.4.2.0.3'],
+    # MG-SNMP-UPS-MIB: upsmgOnBattery'
+    'MGE': ['1.3.6.1.4.1.705.1.11.0.11'],
+    # UPS-MIB: upsAlarmOnBattery
+    'RFC1628': ['.1.3.6.1.2.1.33.1.6.3.2'],
+}
+BATTERYTIME = {
+    'APC': ('.1.3.6.1.4.1.318.1.1.1.2.2.3.0', 'TIMETICKS'),
+    # XUPS-MIB: xupsBatTimeRemaining
+    'Eaton': ('.1.3.6.1.4.1.534.1.2.1.0', 'SECONDS'),
+    # MG-SNMP-UPS-MIB: upsmgBatteryRemainingTime
+    'MGE': ('1.3.6.1.4.1.705.1.5.1.0', 'SECONDS'),
+    # UPS-MIB: upsEstimatedMinutesRemaining
+    'RFC1628': ('.1.3.6.1.2.1.33.1.2.3.0', 'MINUTES'),
+}
 
 # upsoffbattery traps
-OFFBATTERY = {'APC': ['.1.3.6.1.4.1.318.0.9'],
-              'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.5',
-                        # XUPS-MIBS: xupstdUtilityPowerRestored
-                        '.1.3.6.1.4.1.534.1.11.4.1.0.5',
-                        '.1.3.6.1.4.1.534.1.11.4.2.0.5'],
-                        # MG-SNMP-UPS-MIB: upsmgReturnFromBattery
-              'MGE': ['1.3.6.1.4.1.705.1.11.0.12'],
-              }
+OFFBATTERY = {
+    'APC': ['.1.3.6.1.4.1.318.0.9'],
+    'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.5',
+              # XUPS-MIBS: xupstdUtilityPowerRestored
+              '.1.3.6.1.4.1.534.1.11.4.1.0.5',
+              '.1.3.6.1.4.1.534.1.11.4.2.0.5'],
+    # MG-SNMP-UPS-MIB: upsmgReturnFromBattery
+    'MGE': ['1.3.6.1.4.1.705.1.11.0.12'],
+}
 
 
 # pylint: disable=unused-argument
@@ -164,7 +167,7 @@ def format_batterytime(timeunit, format):
             seconds = (timeunit * 60)
         if 'TIMETICKS' == format:
             seconds = timeunit / 100
-        return "%sh:%sm" %(int(seconds / 60 / 60), (seconds/60) % 60)
+        return "%sh:%sm" % (int(seconds / 60 / 60), (seconds/60) % 60)
 
 
 # This function is a nice to run to make sure the event and alerttypes

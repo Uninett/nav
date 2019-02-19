@@ -63,6 +63,7 @@ class _serviceconf(Conf):
         self._file = kwargs.get('configfile', 'servicemon.conf')
         super(_serviceconf, self).__init__(*args, **kwargs)
 
+
 def serviceconf(*args, **kwargs):
     if _serviceconf._instance is None:
         _serviceconf._instance = _serviceconf(*args, **kwargs)

@@ -147,11 +147,11 @@ class PointFieldTest(TestCase):
         point_string = "(1.2, 3.4)"
         field = PointField()
         point = field.to_python(point_string)
-        self.assertEquals(expected_point, point)
+        self.assertEqual(expected_point, point)
 
     def get_db_prep_value(self):
         expected_db_string = "(7.1,5.12)"
         point = (Decimal("7.1"), Decimal("5.12"))
         field = PointField()
         db_string = field.get_db_prep_value(point)
-        self.assertEquals(expected_db_string, db_string)
+        self.assertEqual(expected_db_string, db_string)

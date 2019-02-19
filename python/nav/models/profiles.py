@@ -1383,6 +1383,7 @@ class AccountNavlet(models.Model):
         ordering = ['order']
 
 
+@python_2_unicode_compatible
 class ReportSubscription(models.Model):
     """Subscriptions for availability reports"""
 
@@ -1404,7 +1405,7 @@ class ReportSubscription(models.Model):
     class Meta(object):
         db_table = u'report_subscription'
 
-    def __unicode__(self):
+    def __str__(self):
         if self.report_type == self.LINK:
             return u"{} report for {} sent to {}".format(
                 self.get_period_description(self.period),
@@ -1419,7 +1420,7 @@ class ReportSubscription(models.Model):
 
     def serialize(self):
         keys = ['report_type', 'period', 'address']
-        filtered = {k:v for k, v in model_to_dict(self).items() if k in keys}
+        filtered = {k: v for k, v in model_to_dict(self).items() if k in keys}
         return json.dumps(filtered)
 
     @staticmethod

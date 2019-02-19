@@ -29,6 +29,7 @@ import os
 import re
 from collections import defaultdict
 
+from django.utils import six
 from twisted.internet import defer
 
 from nav.config import ConfigurationError
@@ -211,7 +212,7 @@ def safestring(string, encodings_to_try=('utf-8', 'latin-1')):
     if string is None:
         return
 
-    if isinstance(string, unicode):
+    if isinstance(string, six.text_type):
         return string
 
     for encoding in encodings_to_try:

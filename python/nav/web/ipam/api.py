@@ -35,7 +35,7 @@ from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets, \
 
 
 from rest_framework import serializers
-#from nav.models.fields import CIDRField
+# from nav.models.fields import CIDRField
 
 
 # Inspired by
@@ -106,7 +106,7 @@ class PrefixViewSet(viewsets.ViewSet):
         if not params.is_valid():
             return Response(data=params.errors,
                             status=status.HTTP_400_BAD_REQUEST)
-        params = params.object
+        params = params.validated_data
         payload = suggest_range(params["prefix"], offset=params["offset"],
                                 size=params["size"], n=params["n"])
         return Response(payload, status=status.HTTP_200_OK)
@@ -190,6 +190,7 @@ class PrefixFinderSet(viewsets.ViewSet):
             "children": make_tree_from_ip(result).fields["children"]
         }
         return Response(payload, status=status.HTTP_200_OK)
+
 
 router = routers.SimpleRouter()
 router.register(r"^/find", PrefixFinderSet, base_name="ipam-api-finder")

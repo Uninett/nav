@@ -401,11 +401,5 @@ def reset_object_foreignkeys(obj):
 
 def get_foreign_key_fields(obj):
     """Gets foreign key fields from this object"""
-    if django.VERSION >= (1, 8):
-        foreign_fields = [field for field in obj._meta.get_fields()
-                          if field.many_to_one]
-    else:
-        foreign_fields = [field for field in obj._meta.fields
-                          if
-                          isinstance(field, models.fields.related.ForeignKey)]
-    return foreign_fields
+    return [field for field in obj._meta.get_fields()
+            if field.many_to_one]

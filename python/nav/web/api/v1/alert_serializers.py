@@ -85,7 +85,6 @@ class AlertHistorySerializer(serializers.ModelSerializer):
     start_time = serializers.DateTimeField()
     end_time = serializers.SerializerMethodField()
 
-
     @staticmethod
     def get_subject(obj):
         """Return textual description of object"""

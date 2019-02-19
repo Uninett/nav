@@ -104,6 +104,7 @@ def String(iterator, length=None):
         length = next(iterator)
     return OID(islice(iterator, length))
 
+
 ObjectIdentifier = String
 InetAddressType = Unsigned32
 InetAddress = String

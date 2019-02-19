@@ -154,4 +154,5 @@ def _parse_description(descr):
 class InvalidJobSectionName(ConfigurationError):
     """Section name is invalid as a job section"""
 
+
 ipdevpoll_conf = IpdevpollConfig()

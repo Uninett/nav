@@ -15,7 +15,7 @@
 #
 """Stubs for use in Netmap"""
 
-#Ignore too few public methods, these are stubs.
+# Ignore too few public methods, these are stubs.
 # pylint: disable=R0903
 
 

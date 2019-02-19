@@ -82,7 +82,7 @@ class AccountForm(forms.ModelForm):
             if kwargs['instance'].ext_sync:
                 authenticator = "" \
                     "<p class='alert-box'>External authenticator: %s</p>" % (
-                    kwargs['instance'].ext_sync)
+                        kwargs['instance'].ext_sync)
                 del self.fields['password1']
                 del self.fields['password2']
                 self.fields['login'].widget.attrs['readonly'] = True

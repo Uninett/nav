@@ -129,6 +129,7 @@ def value_to_str(value):
     else:
         return str(value)
 
+
 SNMP_TRAPS = OID('.1.3.6.1.6.3.1.1.5')
 TRAP_MAP = {
     netsnmp.SNMP_TRAP_COLDSTART: 'coldStart',
@@ -200,6 +201,7 @@ class TrapSession(netsnmp.Session):
     def callback(self, pdu):
         addr = get_transport_addr(pdu)
         self._callback(addr, pdu)
+
 
 IPADDR_SIZE = 4
 IP6ADDR_SIZE = 16

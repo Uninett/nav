@@ -188,5 +188,6 @@ class CamManager(DefaultManager):
         """
         containers.setdefault(Cam, {})[Cam.sentinel] = Cam.sentinel
 
+
 Cam.manager = CamManager
 CamManager.sentinel = Cam.sentinel

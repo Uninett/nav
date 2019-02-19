@@ -49,7 +49,7 @@ def load_handler_modules(modules):
             try:
                 mod.initialize()
             except AttributeError:
-                pass # Silently ignore if module has no initialize method
+                pass  # Silently ignore if module has no initialize method
 
             handlermodules.append(mod)
         except Exception as why:

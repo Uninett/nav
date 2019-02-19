@@ -34,7 +34,7 @@ def reduce_index(result):
     instance.
 
     """
-    for key, value in result.items():
+    for key, value in list(result.items()):
         if len(key) == 1:
             del result[key]
             key = key[0]

@@ -80,7 +80,7 @@ except (IOError, OSError):
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
 
-#Static files
+# Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(nav.buildconf.webrootdir, 'static')
 STATICFILES_FINDERS = (
@@ -113,25 +113,19 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.core.context_processors.request',
+                'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
                 'nav.django.context_processors.debug',
                 'nav.django.context_processors.account_processor',
                 'nav.django.context_processors.nav_version',
                 'nav.django.context_processors.graphite_base',
                 'nav.django.context_processors.footer_info',
-                'django.core.context_processors.static',
+                'django.template.context_processors.static',
             ],
             'debug': DEBUG,
         },
     }
 ]
-
-TEMPLATE_DEBUG = DEBUG                       # XXX Pre Django 1.8
-TEMPLATE_DIRS = tuple(TEMPLATES[0]['DIRS'])  # XXX Pre Django 1.8
-TEMPLATE_CONTEXT_PROCESSORS = tuple(         # XXX Pre Django 1.8
-    TEMPLATES[0]['OPTIONS']['context_processors']
-)
 
 # Middleware
 MIDDLEWARE_CLASSES = (
@@ -185,7 +179,7 @@ CACHES = {
 }
 
 
-SECRET_KEY = nav_config.get('SECRET_KEY', None) # Must be set in nav.conf!
+SECRET_KEY = nav_config.get('SECRET_KEY', None)  # Must be set in nav.conf!
 
 # Because registering hstore extension in a database may lead to problems
 # with type conversion, force registering of hstore on each new connection
@@ -235,12 +229,8 @@ INSTALLED_APPS = (
     'nav.web.macwatch',
     'nav.web.geomap',
     'nav.web.portadmin',
+    'django.contrib.postgres',
 )
-
-if tuple(django.VERSION[:2]) == (1, 7):
-    INSTALLED_APPS = INSTALLED_APPS + ('django_hstore',)
-else:
-    INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.postgres',)
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),

@@ -131,8 +131,8 @@ def raw_metric_query(query):
 
     req = Request(url)
     try:
-        response = urlopen(req)
-        return json.load(response)
+        response_data = urlopen(req).read().decode('utf-8')
+        return json.loads(response_data)
     except URLError as err:
         raise errors.GraphiteUnreachableError(
             "{0} is unreachable".format(base), err)

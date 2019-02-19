@@ -57,7 +57,7 @@ class EntityMib(mibretriever.MibRetriever):
             def _is_bridge_mib_instance_with_valid_community(row):
                 return (row['entLogicalType']
                         and OID(row['entLogicalType']) == bridge_mib_oid
-                        and '\x00' not in row['entLogicalCommunity'])
+                        and b'\x00' not in row['entLogicalCommunity'])
 
             new_result = [(r['entLogicalDescr'], r['entLogicalCommunity'])
                           for r in result.values()
@@ -315,7 +315,7 @@ class EntityTable(dict):
         """
         for entity in self.values():
             for key, value in entity.items():
-                if isinstance(value, str):
+                if isinstance(value, six.binary_type):
                     try:
                         new_value = value.decode(encoding)
                     except UnicodeDecodeError:

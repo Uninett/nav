@@ -56,9 +56,11 @@ class OtherSnmpTests(SnmpTestCase):
 
         with patch.dict(sys.modules, modules):
             self._patch_cleaning(sys.modules)
-            pytest.raises(ImportError, 'import pynetsnmp')
+            with pytest.raises(ImportError):
+                import pynetsnmp
 
-            pytest.raises(ImportError, 'from nav.Snmp.pynetsnmp import *')
+            with pytest.raises(ImportError):
+                import nav.Snmp.pynetsnmp
 
             try:
                 from nav.Snmp import Snmp

@@ -29,23 +29,23 @@ class BitVectorTestCase(unittest.TestCase):
         self.somebits[50] = True
 
     def test_unmodified_vector_size(self):
-        self.assertEquals(64, len(self.zerobits))
+        self.assertEqual(64, len(self.zerobits))
 
     def test_modified_vector_size(self):
-        self.assertEquals(64, len(self.somebits))
+        self.assertEqual(64, len(self.somebits))
 
     def test_individual_modified_bits(self):
-        self.assertEquals(True, bool(self.somebits[5]))
-        self.assertEquals(True, bool(self.somebits[50]))
+        self.assertEqual(True, bool(self.somebits[5]))
+        self.assertEqual(True, bool(self.somebits[50]))
 
     def test_modified_string(self):
-        self.assertEquals(b'\x04\x00\x00\x00\x00\x00 \x00',
+        self.assertEqual(b'\x04\x00\x00\x00\x00\x00 \x00',
                           self.somebits.to_bytes())
 
     def test_modified_binary_string(self):
-        self.assertEquals('00000100000000000000000000000000'
+        self.assertEqual('00000100000000000000000000000000'
                           '00000000000000000010000000000000',
                           self.somebits.to_binary())
 
     def test_unmodified_binary_string(self):
-        self.assertEquals('0' * 64, self.zerobits.to_binary())
+        self.assertEqual('0' * 64, self.zerobits.to_binary())

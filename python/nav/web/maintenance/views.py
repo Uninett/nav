@@ -106,8 +106,9 @@ def active(request):
         start_time__lt=datetime.now(),
         end_time__gt=datetime.now(),
         state__in=(MaintenanceTask.STATE_SCHEDULED,
-                    MaintenanceTask.STATE_ACTIVE),
-    ).order_by('-start_time', '-end_time'
+                   MaintenanceTask.STATE_ACTIVE),
+    ).order_by(
+        '-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     for task in tasks:
         # Tasks that have only one component should show a link
@@ -145,8 +146,9 @@ def planned(request):
         start_time__gt=datetime.now(),
         end_time__gt=datetime.now(),
         state__in=(MaintenanceTask.STATE_SCHEDULED,
-                    MaintenanceTask.STATE_ACTIVE),
-    ).order_by('-start_time', '-end_time'
+                   MaintenanceTask.STATE_ACTIVE),
+    ).order_by(
+        '-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render(
         request,
@@ -166,8 +168,9 @@ def historic(request):
     tasks = MaintenanceTask.objects.filter(
         Q(end_time__lt=datetime.now()) |
         Q(state__in=(MaintenanceTask.STATE_CANCELED,
-                        MaintenanceTask.STATE_PASSED))
-    ).order_by('-start_time', '-end_time'
+                     MaintenanceTask.STATE_PASSED))
+    ).order_by(
+        '-start_time', '-end_time'
     ).annotate(component_count=Count('maintenancecomponent'))
     return render(
         request,

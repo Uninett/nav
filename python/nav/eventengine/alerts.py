@@ -265,6 +265,7 @@ def get_list_of_templates_for(event_type, alert_type="default"):
                             match.group('language') or DEFAULT_LANGUAGE)
             for match, name in matches if match]
 
+
 # pylint sucks on namedtuples
 # pylint: disable=C0103
 TemplateDetails = namedtuple("TemplateDetails", "name msgtype language")

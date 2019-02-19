@@ -202,7 +202,7 @@ def netbox_do_save(form):
     do a commit=False save first.
     """
 
-    netbox = form.save(commit=False) # Prevents saving m2m relationships
+    netbox = form.save(commit=False)  # Prevents saving m2m relationships
     netbox.save()
 
     # Save the function field

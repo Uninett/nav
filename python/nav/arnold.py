@@ -492,7 +492,7 @@ def get_host_name(ip):
     return hostname
 
 
-#pylint: disable=E1103
+# pylint: disable=E1103
 def get_netbios(ip):
     """Get netbiosname of computer with ip"""
 

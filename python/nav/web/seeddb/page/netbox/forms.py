@@ -129,16 +129,17 @@ class NetboxModelForm(forms.ModelForm):
                                  css_id='real_collected_fields')),
                     css_class=css_class),
                 Column(
-                    Fieldset('Meta information',
-                             'function',
-                             Field('groups', css_class='select2'),
-                             'data',
-                             HTML("<a class='advanced-toggle'><i class='fa fa-caret-square-o-right'>&nbsp;</i>Advanced options</a>"),
-                             Div(
-                                 HTML('<small class="alert-box">NB: An IP Device cannot both have a master and have virtual instances</small>'),
-                                 'master', 'virtual_instance',
-                                 css_class='advanced'
-                             )
+                    Fieldset(
+                        'Meta information',
+                        'function',
+                        Field('groups', css_class='select2'),
+                        'data',
+                        HTML("<a class='advanced-toggle'><i class='fa fa-caret-square-o-right'>&nbsp;</i>Advanced options</a>"),
+                        Div(
+                            HTML('<small class="alert-box">NB: An IP Device cannot both have a master and have virtual instances</small>'),
+                            'master', 'virtual_instance',
+                            css_class='advanced'
+                        )
                     ),
                     css_class=css_class),
             ),

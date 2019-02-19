@@ -19,7 +19,7 @@ class StrangeDnsResponsesTest(TestCase):
         plugin = DnsName(netbox_in, Mock('agent'), containers)
         plugin._verify_name_change(None)
 
-        self.assertEquals(netbox.sysname, 'original-sw.example.org')
+        self.assertEqual(netbox.sysname, 'original-sw.example.org')
 
     def test_response_without_ptr_record_should_translate_to_none(self):
         plugin = DnsName(Mock(), Mock(), Mock())

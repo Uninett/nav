@@ -334,7 +334,7 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
         raise ForkError(1, error)
 
     # Decouple from parent environment
-    os.chdir('/') # In case the dir we started in are removed
+    os.chdir('/')  # In case the dir we started in are removed
     os.umask(0)
     os.setsid()
 
