@@ -21,6 +21,11 @@
       <a class="navbar-brand" href="#">NAV API</a>
     </div>
   </nav>
+  {% if debug %}
+    {% if not current_user_data.account.is_default_account %}
+      {% include "debug.html" %}
+    {% endif %}
+  {% endif %}
 {% endblock %}
 
 {% block footer %}{% endblock %}
