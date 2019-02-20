@@ -18,11 +18,10 @@
 API and prefixes related utilities
 """
 
+import ipaddress
 from nav.models.manage import Prefix
 from django.db.models import Q
 from IPy import IP, IPSet
-from itertools import islice
-import math
 
 
 class PrefixQuerysetBuilder(object):
@@ -181,18 +180,14 @@ def _get_available_subnets(prefix_or_prefixes, used_prefixes):
     return sorted([ip for ip in acc if str(ip) not in base_prefixes])
 
 
-def partition_subnet(size, prefix):
+def partition_subnet(prefixlen, prefix):
     "Partition prefix into subnets with room for at at least n hosts"
-    subnet_size = math.ceil(math.log(size, 2))
-    chunk_size = 2 ** subnet_size
-    _iter = iter(IP(prefix))
-    chunk = list(islice(_iter, chunk_size))
-    while chunk:
-        yield IPSet(chunk).prefixes[0]
-        chunk = list(islice(_iter, chunk_size))
+    net = ipaddress.ip_network(prefix)
+    return (IP(subnet.with_prefixlen) for
+            subnet in net.subnets(new_prefix=prefixlen))
 
 
-def suggest_range(prefix, size=256, offset=0, n=10):
+def suggest_range(prefix, prefixlen=24, offset=0, n=10):
     """Partitions prefix into blocks of 'n' hosts. Returns a list of
     [startAddr, endAddr, prefix]
 
@@ -219,18 +214,18 @@ def suggest_range(prefix, size=256, offset=0, n=10):
     """
     acc = {
         "prefix": prefix,
-        "requested_size": size,
+        "prefixlen": prefixlen,
         "candidates": [],
         "offset": offset,
         "more": True
     }
     # Fast path: size > size of network, so just return the original prefix
     _prefix = IP(prefix)
-    if size >= _prefix.len():
+    if prefixlen < _prefix.prefixlen():
         _blocks = iter([_prefix])
     # Somewhat slow path
     else:
-        _blocks = partition_subnet(size, prefix)
+        _blocks = partition_subnet(prefixlen, prefix)
     try:
         # drop first #offset blocks
         for _ in range(offset):

@@ -43,7 +43,7 @@ from rest_framework import serializers
 class SuggestParams(serializers.Serializer):
     prefix = serializers.CharField()
     n = serializers.IntegerField(default=10)
-    size = serializers.IntegerField(default=256)
+    prefixlen = serializers.IntegerField(default=24)
     offset = serializers.IntegerField(default=0)
 
 
@@ -108,7 +108,7 @@ class PrefixViewSet(viewsets.ViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         params = params.validated_data
         payload = suggest_range(params["prefix"], offset=params["offset"],
-                                size=params["size"], n=params["n"])
+                                prefixlen=params["prefixlen"], n=params["n"])
         return Response(payload, status=status.HTTP_200_OK)
 
     @detail_route(methods=["get"])
