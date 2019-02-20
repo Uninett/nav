@@ -21,6 +21,7 @@ contains ad-hoc serializer methods (self.fields) for API purposes.
 """
 
 from __future__ import unicode_literals, absolute_import
+import bisect
 import json
 import functools
 import logging
@@ -87,15 +88,13 @@ class PrefixHeap(object):
         assert isinstance(node, PrefixHeap), \
             "Can only add classes inheriting from PrefixHeap"
         # first, try adding to children (recursively)
-        matches = (child for child in self.children if node in child)
-        for child in matches:
+        i = bisect.bisect_left(self.children, node)
+        if i > 0 and node in self.children[i-1]:
+            child = self.children[i-1]
             node.parent = child
             child.add(node)
             return
-        # if this fails, add to self
-        node.parent = self
-        self.children.append(node)
-        self.children.sort()
+        self.children.insert(i, node)
 
     def add_many(self, nodes):
         "Add multiple nodes to heap"
@@ -406,9 +405,9 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
         return False
 
     heap = PrefixHeap(initial_children)
-    filtered = [prefix for prefix in prefixes if accept(prefix)]
-    nodes = [PrefixNode(prefix, sort_fn=sort_fn) for prefix in filtered]
-    for node in sorted(nodes, reverse=False):
+    filtered = (prefix for prefix in prefixes if accept(prefix))
+    nodes = (PrefixNode(prefix, sort_fn=sort_fn) for prefix in filtered)
+    for node in nodes:
         heap.add(node)
     # Add marker nodes for available ranges/prefixes
     if show_available:
