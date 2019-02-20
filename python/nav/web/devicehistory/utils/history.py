@@ -125,13 +125,13 @@ def fetch_history(selection, form):
         where=[
             '''
             (
-                (end_time IS NULL AND start_time >= %s) OR
+                (end_time IS NULL AND start_time >= %s AND start_time <= %s) OR
                 (end_time = 'infinity' AND start_time < %s) OR
                 (end_time >= %s AND start_time < %s)
             )
            ''',
         ],
-        params=[from_date, to_date, from_date, to_date]
+        params=[from_date, to_date, to_date, from_date, to_date]
     ).order_by(*order_by_keys)
 
     return history
