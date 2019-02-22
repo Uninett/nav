@@ -52,40 +52,44 @@ class LdapChecker(AbstractChecker):
         else:
             ip, port = self.get_address()
             conn = ldap.initialize("ldap://%s:%s" % (ip, port))
-        username = args.get("username", "")
-        password = args.get("password", "")
-        conn.simple_bind(username, password)
-
         try:
-            self._set_version(args, conn)
-        except ValueError:
-            return Event.DOWN, "unsupported protocol version"
+            username = args.get("username", "")
+            password = args.get("password", "")
+            conn.simple_bind(username, password)
 
-        base = args.get("base", "dc=example,dc=org")
-        if base == "cn=monitor":
-            my_res = conn.search_st(base, ldap.SCOPE_BASE,
-                                    timeout=self.timeout)
-            versionstr = str(my_res[0][-1]['description'][0])
-            self.version = versionstr
-            return Event.UP, versionstr
-        scope = args.get("scope", "SUBTREE").upper()
-        if scope == "BASE":
-            scope = ldap.SCOPE_BASE
-        elif scope == "ONELEVEL":
-            scope = ldap.SCOPE_ONELEVEL
-        else:
-            scope = ldap.SCOPE_SUBTREE
-        filtr = args.get("filter", "objectClass=*")
-        try:
-            conn.search_ext_s(base, scope, filterstr=filtr,
-                              timeout=self.timeout)
-            # pylint: disable=W0703
-        except Exception as err:
-            return (Event.DOWN,
-                    "Failed ldapSearch on %s for %s: %s" % (
-                        self.get_address(), filtr, str(err)))
+            try:
+                self._set_version(args, conn)
+            except ValueError:
+                return Event.DOWN, "unsupported protocol version"
 
-        conn.unbind()
+            base = args.get("base", "dc=example,dc=org")
+            if base == "cn=monitor":
+                my_res = conn.search_st(base, ldap.SCOPE_BASE,
+                                        timeout=self.timeout)
+                versionstr = str(my_res[0][-1]['description'][0])
+                self.version = versionstr
+                return Event.UP, versionstr
+            scope = args.get("scope", "SUBTREE").upper()
+            if scope == "BASE":
+                scope = ldap.SCOPE_BASE
+            elif scope == "ONELEVEL":
+                scope = ldap.SCOPE_ONELEVEL
+            else:
+                scope = ldap.SCOPE_SUBTREE
+            filtr = args.get("filter", "objectClass=*")
+            try:
+                conn.search_ext_s(base, scope, filterstr=filtr,
+                                  timeout=self.timeout)
+                # pylint: disable=W0703
+            except Exception as err:
+                return (Event.DOWN,
+                        "Failed ldapSearch on %s for %s: %s" % (
+                            self.get_address(), filtr, str(err)))
+        finally:
+            try:
+                conn.unbind()
+            except Exception:
+                pass
 
         return Event.UP, "Ok"
 
