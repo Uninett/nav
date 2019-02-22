@@ -42,21 +42,23 @@ class Pop3Checker(AbstractChecker):
         passwd = self.args.get("password", "")
         ip, port = self.get_address()
         conn = PopConnection(self.timeout, ip, port)
-        ver = conn.getwelcome()
-        if user:
-            conn.user(user)
-            conn.pass_(passwd)
-            len(conn.list()[1])
+        try:
+            ver = conn.getwelcome()
+            if user:
+                conn.user(user)
+                conn.pass_(passwd)
+                len(conn.list()[1])
+            version = ''
+            ver = ver.split(' ')
+            if len(ver) >= 1:
+                for i in ver[1:]:
+                    if i != "server":
+                        version += "%s " % i
+                    else:
+                        break
+            self.version = version
+        finally:
             conn.quit()
-        version = ''
-        ver = ver.split(' ')
-        if len(ver) >= 1:
-            for i in ver[1:]:
-                if i != "server":
-                    version += "%s " % i
-                else:
-                    break
-        self.version = version
 
         return Event.UP, version
 

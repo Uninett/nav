@@ -15,6 +15,7 @@
 #
 """IMAP service checker"""
 
+import contextlib
 import socket
 import imaplib
 
@@ -60,19 +61,20 @@ class ImapChecker(AbstractChecker):
         user = self.args.get("username", "")
         ip, port = self.get_address()
         passwd = self.args.get("password", "")
-        session = IMAPConnection(self.timeout, ip, port)
-        ver = session.welcome
-        if user:
-            session.login(user, passwd)
-            session.logout()
-        version = ''
-        ver = ver.split(' ')
-        if len(ver) >= 2:
-            for i in ver[2:]:
-                if i != "at":
-                    version += "%s " % i
-                else:
-                    break
-        self.version = version
+        with contextlib.closing(IMAPConnection(self.timeout,
+                                               ip, port)) as session:
+            ver = session.welcome
+            if user:
+                session.login(user, passwd)
+                session.logout()
+            version = ''
+            ver = ver.split(' ')
+            if len(ver) >= 2:
+                for i in ver[2:]:
+                    if i != "at":
+                        version += "%s " % i
+                    else:
+                        break
+            self.version = version
 
-        return Event.UP, version
+            return Event.UP, version
