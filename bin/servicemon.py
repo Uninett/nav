@@ -108,12 +108,6 @@ class Controller:
                 self._runqueue.enq(checker)
                 sleep(pause)
 
-            # extensive debugging
-            objects = gc.get_objects()
-            dbgthreads = [i for i in objects if isinstance(i, threading.Thread)]
-            LOGGER.debug("Garbage: %s Objects: %i Threads: %i", gc.garbage,
-                         len(objects), len(dbgthreads))
-
             wait = self._looptime - (time.time() - start)
             LOGGER.debug("Waiting %i seconds.", wait)
             if wait <= 0:
