@@ -15,6 +15,7 @@
 #
 """HTTP Service Checker"""
 from nav import buildconf
+import contextlib
 
 from nav.statemon.event import Event
 from nav.statemon.abstractchecker import AbstractChecker
@@ -63,28 +64,28 @@ class HttpChecker(AbstractChecker):
             url = "/"
         _protocol, vhost, path, query, _fragment = urlsplit(url)
 
-        i = self.connect(ip, port or self.PORT)
+        with contextlib.closing(self.connect(ip, port or self.PORT)) as i:
 
-        if vhost:
-            i.host = vhost
+            if vhost:
+                i.host = vhost
 
-        if '?' in url:
-            path = path + '?' + query
-        i.putrequest('GET', path)
-        i.putheader('User-Agent',
-                    'NAV/servicemon; version %s' % buildconf.VERSION)
-        if username:
-            auth = "%s:%s" % (username, password)
-            i.putheader("Authorization", "Basic %s" % auth.encode("base64"))
-        i.endheaders()
-        response = i.getresponse()
-        if 200 <= response.status < 400 or (response.status == 401 and not username):
-            status = Event.UP
-            version = response.getheader('SERVER')
-            self.version = version
-            info = 'OK (%s) %s' % (str(response.status), version)
-        else:
-            status = Event.DOWN
-            info = 'ERROR (%s) %s' % (str(response.status), url)
+            if '?' in url:
+                path = path + '?' + query
+            i.putrequest('GET', path)
+            i.putheader('User-Agent',
+                        'NAV/servicemon; version %s' % buildconf.VERSION)
+            if username:
+                auth = "%s:%s" % (username, password)
+                i.putheader("Authorization", "Basic %s" % auth.encode("base64"))
+            i.endheaders()
+            response = i.getresponse()
+            if 200 <= response.status < 400 or (response.status == 401 and not username):
+                status = Event.UP
+                version = response.getheader('SERVER')
+                self.version = version
+                info = 'OK (%s) %s' % (str(response.status), version)
+            else:
+                status = Event.DOWN
+                info = 'ERROR (%s) %s' % (str(response.status), url)
 
-        return status, info
+            return status, info

@@ -36,11 +36,11 @@ class SshChecker(AbstractChecker):
 
     def execute(self):
         (hostname, port) = self.get_address()
-        sock = socket.create_connection((hostname, port),
-                                        self.timeout)
-        stream = sock.makefile('r+')
-        version = stream.readline().strip()
         try:
+            sock = socket.create_connection((hostname, port),
+                                            self.timeout)
+            stream = sock.makefile('r+')
+            version = stream.readline().strip()
             protocol, major = version.split('-')[:2]
             stream.write("%s-%s-%s" % (protocol, major, "NAV_Servicemon"))
             stream.flush()
@@ -48,6 +48,7 @@ class SshChecker(AbstractChecker):
             return (Event.DOWN,
                     "Failed to send version reply to %s: %s" % (
                         self.get_address(), str(err)))
-        sock.close()
+        finally:
+            sock.close()
         self.version = version
         return Event.UP, version

@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """IMAP over SSL service checker"""
-
+import contextlib
 import socket
 import imaplib
 
@@ -42,22 +42,23 @@ class ImapsChecker(AbstractChecker):
         user = self.args.get("username", "")
         ip, port = self.get_address()
         passwd = self.args.get("password", "")
-        session = IMAPSConnection(self.timeout, ip, port)
-        ver = session.welcome
-        if user:
-            session.login(user, passwd)
-            session.logout()
-        version = ''
-        ver = ver.split(' ')
-        if len(ver) >= 2:
-            for i in ver[2:]:
-                if i != "at":
-                    version += "%s " % i
-                else:
-                    break
-        self.version = version
+        with contextlib.closing(IMAPSConnection(self.timeout,
+                                                ip, port)) as session:
+            ver = session.welcome
+            if user:
+                session.login(user, passwd)
+                session.logout()
+            version = ''
+            ver = ver.split(' ')
+            if len(ver) >= 2:
+                for i in ver[2:]:
+                    if i != "at":
+                        version += "%s " % i
+                    else:
+                        break
+            self.version = version
 
-        return Event.UP, version
+            return Event.UP, version
 
 
 # pylint: disable=R0904

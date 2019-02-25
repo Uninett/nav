@@ -55,7 +55,6 @@ class Worker(threading.Thread):
         self._running = 1
         self._time_created = time.time()
         self._time_start_execute = 0
-        self._checker = None
 
     def run(self):
         """
@@ -64,13 +63,13 @@ class Worker(threading.Thread):
         """
         while self._running:
             try:
-                self._checker = self._runqueue.deq()
-                self.execute()
+                checker = self._runqueue.deq()
+                self.execute(checker)
             except TerminateException:
                 self._runqueue.workers.remove(self)
                 return
 
-    def execute(self):
+    def execute(self, checker):
         """
         Executes the checker. If maximum runcount is
         exceeded, self._running is set to zero and the
@@ -78,7 +77,7 @@ class Worker(threading.Thread):
         """
         self._runcount += 1
         self._time_start_execute = time.time()
-        self._checker.run()
+        checker.run()
         if (self._runqueue.get_max_run_count() != 0 and
                 self._runcount > self._runqueue.get_max_run_count()):
             self._running = 0
