@@ -123,7 +123,7 @@ class Service(models.Model):
         """
         classname = u"{}Checker".format(str(self.handler).capitalize())
         modulename = u"nav.statemon.checker.{}".format(classname)
-        checker = __import__(modulename, globals(), locals(), [classname], -1)
+        checker = __import__(modulename, globals(), locals(), [classname], 0)
         klass = getattr(checker, classname)
         return getattr(klass, 'DESCRIPTION', '')
 
