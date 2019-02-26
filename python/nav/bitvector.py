@@ -20,6 +20,8 @@ import re
 
 from django.utils import six
 
+from .six import encode_array
+
 
 class BitVector(object):
     """
@@ -35,7 +37,7 @@ class BitVector(object):
         self.vector = array.array("B", octetstring)
 
     def to_bytes(self):
-        return self.vector.tostring()
+        return encode_array(self.vector)
 
     def __len__(self):
         return len(self.vector)*8

@@ -27,7 +27,10 @@ from struct import unpack
 import array
 from IPy import IP
 from itertools import islice
+
 from .oids import OID
+from .six import encode_array
+
 
 IPV4_ID = 1
 IPV6_ID = 2
@@ -65,7 +68,7 @@ def oid_to_ipv6(oid):
     if len(oid) != 16:
         raise ValueError("IPv6 address must be 16 octets, not %d" % len(oid))
     try:
-        high, low = unpack("!QQ", array.array("B", oid).tostring())
+        high, low = unpack("!QQ", encode_array(array.array("B", oid)))
     except OverflowError as error:
         raise ValueError(error)
     addr = (high << 64) + low
@@ -82,7 +85,7 @@ def oid_to_ipv4(oid):
     if len(oid) != 4:
         raise ValueError("IPv4 address must be 4 octets, not %d" % len(oid))
     try:
-        addr, = unpack("!I", array.array("B", oid).tostring())
+        addr, = unpack("!I", encode_array(array.array("B", oid)))
     except OverflowError as error:
         raise ValueError(error)
     return IP(addr, ipversion=4)
