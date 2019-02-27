@@ -19,8 +19,6 @@
 # pylint: disable=C0111
 """Dumps core information from NAV to textfiles importable by SeedDB"""
 
-from __future__ import print_function
-
 import sys
 import argparse
 
@@ -112,15 +110,16 @@ def fail(resultcode, msg):
 
 def header(definition):
     """Output the header definition, possibly with replaced separators"""
-    definition = definition.replace(":", SEPARATOR)
-    print(definition)
+    definition = definition.replace(u":", SEPARATOR) + u'\n'
+    sys.stdout.write(definition)
 
 
 def lineout(line):
     """Output line, remove any : in strings"""
     newline = (u'"%s"' % column if SEPARATOR in column else column
                for column in line)
-    print(SEPARATOR.join(newline).encode('utf-8'))
+    line = SEPARATOR.join(newline) + '\n'
+    sys.stdout.write(line)
 
 
 class Handlers(object):
