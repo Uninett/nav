@@ -19,6 +19,9 @@
 from __future__ import print_function
 import argparse
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django()
+
 from nav.models.event import EventQueue as Event, Subsystem, EventType
 from nav.models.manage import Interface
 from django.db import transaction

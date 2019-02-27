@@ -26,6 +26,9 @@ from __future__ import print_function
 import sys
 from optparse import OptionParser
 
+from nav.bootstrap import bootstrap_django
+bootstrap_django()
+
 from nav.models.event import EventQueue as Event, Subsystem, EventType
 from nav.models.manage import Netbox
 from nav.models.service import Service

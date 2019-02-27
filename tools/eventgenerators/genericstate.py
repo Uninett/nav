@@ -15,8 +15,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module comment"""
-
 from argparse import ArgumentParser
+
+from nav.bootstrap import bootstrap_django
+bootstrap_django()
+
 from nav.event import Event
 from nav.models.event import EventQueue, EventType
 from nav.models.manage import Netbox
@@ -62,6 +65,7 @@ def get_state(args):
     else:
         return (EventQueue.STATE_START if args.state.startswith('s')
                 else EventQueue.STATE_END)
+
 
 if __name__ == '__main__':
     main()
