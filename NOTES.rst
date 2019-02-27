@@ -12,14 +12,14 @@ NAV 4.10
 ========
 
 Changed command line options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 The ``--verify`` option has been removed from :program:`powersupplywatch.py`.
 All logging settings are controlled in :file:`logging.conf`, as with any
 other NAV program.
 
 NAV 4.9
-========
+=======
 
 License changes
 ---------------
