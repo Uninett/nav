@@ -138,7 +138,8 @@ class DaemonService(Service):
                 else:
                     raise
             if self.is_up(pid=pid):
-                time.sleep(1)
+                delay = (attempt+1) * 2
+                time.sleep(delay)
         else:
             return False
 

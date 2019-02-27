@@ -40,15 +40,20 @@ class Email(Dispatcher):
         message = '\n'.join(message.splitlines()[1:])
 
         headers = {
-            'X-NAV-alert-netbox': alert.netbox,
-            'X-NAV-alert-device': alert.device,
-            'X-NAV-alert-subsystem': alert.source,
+            'X-NAV-Alert-ID': alert.id,
+            'X-NAV-Alert-Subsystem': alert.source,
+            'X-NAV-Alert-Netbox': alert.netbox,
+            'X-NAV-Alert-Device': alert.device,
+            'X-NAV-Alert-SubID': alert.subid,
+            'X-NAV-Event-Type': alert.event_type_id,
+            'X-NAV-Alert-State': alert.get_state_display(),
+            'X-NAV-Alert-History-ID': alert.history_id,
         }
 
         try:
             if not address.DEBUG_MODE:
                 email = EmailMessage(subject=subject, body=message,
-                                     to=[address.address])
+                                     to=[address.address], headers=headers)
                 email.send(fail_silently=False)
             else:
                 _logger.debug('alert %d: In testing mode, would have sent '

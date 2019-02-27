@@ -24,36 +24,8 @@ graphs.
 Assuming you will be running Graphite on the same Debian server as you are
 running NAV, all you need to do to install Graphite is::
 
-  apt-get install -t stretch-backports/graphite-carbon graphite-web
-
-
-.. note:: For some strange reason, Twisted may be installed in two places at
-          this point, causing ``carbon-cache`` startup to fail. If you see an
-          error that looks like this:: error::
-
-            Job for carbon-cache.service failed because the control process exited with error code.
-            See "systemctl status carbon-cache.service" and "journalctl -xe" for details.
-            invoke-rc.d: initscript carbon-cache, action "start" failed.
-            ● carbon-cache.service - Graphite Carbon Cache
-               Loaded: loaded (/lib/systemd/system/carbon-cache.service; enabled; vendor preset: enabled)
-               Active: failed (Result: exit-code) since Mon 2019-01-28 10:55:45 CET; 13ms ago
-              Process: 3142 ExecStart=/usr/bin/carbon-cache --config=/etc/carbon/carbon.conf --pidfile=/var/run/carbon-cache.pid --logdir=/var/log/carbon/ start (code=exited, status=1/FAILURE)
-
-            Jan 28 10:55:45 myserver carbon-cache[3142]:     config.parseOptions(twistd_options)
-            Jan 28 10:55:45 myserver carbon-cache[3142]:   File "/usr/local/lib/python2.7/dist-packages/twisted/application/app.py", line 624,…seOptions
-            Jan 28 10:55:45 myserver carbon-cache[3142]:     usage.Options.parseOptions(self, options)
-            Jan 28 10:55:45 myserver carbon-cache[3142]:   File "/usr/local/lib/python2.7/dist-packages/twisted/python/usage.py", line 270, in…seOptions
-            Jan 28 10:55:45 myserver carbon-cache[3142]:     raise UsageError("Unknown command: %s" % sub)
-            Jan 28 10:55:45 myserver carbon-cache[3142]: twisted.python.usage.UsageError: Unknown command: carbon-cache
-            Jan 28 10:55:45 myserver systemd[1]: carbon-cache.service: Control process exited, code=exited status=1
-            Jan 28 10:55:45 myserver systemd[1]: Failed to start Graphite Carbon Cache.
-            Jan 28 10:55:45 myserver systemd[1]: carbon-cache.service: Unit entered failed state.
-            Jan 28 10:55:45 myserver systemd[1]: carbon-cache.service: Failed with result 'exit-code'.
-            Hint: Some lines were ellipsized, use -l to show in full.
-
-          ...you may need to execute ``rm -rf
-          /usr/local/lib/python2.7/dist-packages/twisted/`` followed by a
-          ``dpkg --configure -a`` to rectify the situation.
+  apt-get install python-psycopg2 graphite-carbon \
+    python-whisper/stretch-backports graphite-web/stretch-backports
 
 
 Configuring Carbon
@@ -155,8 +127,8 @@ make to set these three settings:
 
 Now make ``graphite-web`` initialize its database schema::
 
-  graphite-manage migrate auth --noinput
-  graphite-manage migrate --noinput
+  sudo -u _graphite graphite-manage migrate auth --noinput
+  sudo -u _graphite graphite-manage migrate --run-syncdb --noinput
 
 Configure Apache to serve the Graphite web app
 ----------------------------------------------

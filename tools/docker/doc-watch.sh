@@ -1,11 +1,12 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 # Rebuilds Sphinx documentation on changes
 #
 cd /source
 # Build once first
-python3 setup.py build_sphinx
+python3 setup.py develop
+sudo -u nav python3 setup.py build_sphinx
 # Then re-build on any changes to the doc directory
 while inotifywait -e modify -e move -e create -e delete -r --exclude \# /source/doc
 do
-  python3 setup.py build_sphinx
+  sudo -u nav python3 setup.py build_sphinx
 done

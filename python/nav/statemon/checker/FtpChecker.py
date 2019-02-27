@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """FTP Service Checker"""
+import contextlib
 import socket
 import ftplib
 
@@ -35,26 +36,26 @@ class FtpChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
-        session = FTP(self.timeout)
-        ip, port = self.get_address()
-        output = session.connect(ip, port or 21)
+        with contextlib.closing(FTP(self.timeout)) as session:
+            ip, port = self.get_address()
+            output = session.connect(ip, port or 21)
 
-        # Get server version from the banner.
-        version = ''
-        for line in session.welcome.split('\n'):
-            if line.startswith('220 '):
-                version = line[4:].strip()
-        self.version = version
+            # Get server version from the banner.
+            version = ''
+            for line in session.welcome.split('\n'):
+                if line.startswith('220 '):
+                    version = line[4:].strip()
+            self.version = version
 
-        username = self.args.get('username', '')
-        password = self.args.get('password', '')
-        path = self.args.get('path', '')
-        output = session.login(username, password, path)
+            username = self.args.get('username', '')
+            password = self.args.get('password', '')
+            path = self.args.get('path', '')
+            output = session.login(username, password, path)
 
-        if output[:3] == '230':
-            return Event.UP, 'code 230'
-        else:
-            return Event.DOWN, output.split('\n')[0]
+            if output[:3] == '230':
+                return Event.UP, 'code 230'
+            else:
+                return Event.DOWN, output.split('\n')[0]
 
 
 # pylint: disable=R0913,W0221,R0904

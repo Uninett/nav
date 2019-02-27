@@ -52,12 +52,12 @@ class MysqlChecker(AbstractChecker):
             except MysqlError as err:
                 pass  # Ignore login error
 
-            conn.close()
-
             return Event.UP, 'OK'
 
         except MysqlError as err:
             return Event.DOWN, str(err)
+        finally:
+            conn.close()
 
 
 class MysqlConnection(object):

@@ -23,8 +23,6 @@ import os
 import sys
 import time
 import random
-import gc
-import threading
 import signal
 import argparse
 import logging
@@ -107,12 +105,6 @@ class Controller:
             for checker in self._checkers:
                 self._runqueue.enq(checker)
                 sleep(pause)
-
-            # extensive debugging
-            objects = gc.get_objects()
-            dbgthreads = [i for i in objects if isinstance(i, threading.Thread)]
-            LOGGER.debug("Garbage: %s Objects: %i Threads: %i", gc.garbage,
-                         len(objects), len(dbgthreads))
 
             wait = self._looptime - (time.time() - start)
             LOGGER.debug("Waiting %i seconds.", wait)
