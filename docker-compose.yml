@@ -35,4 +35,4 @@ services:
     build: .
     volumes_from:
       - nav
-    command: sudo -u nav /source/tools/docker/doc-watch.sh
+    command: /source/tools/docker/doc-watch.sh
