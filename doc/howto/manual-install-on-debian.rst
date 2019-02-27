@@ -194,10 +194,9 @@ You should now be able to browse the NAV web interface.
 11. Installing and configuring Graphite
 =======================================
 
-NAV uses Graphite_ to store and retrieve time-series data. A `somewhat outdated
-guide for installing Graphite for use with NAV on a Debian system can be found
-in the wiki <https://nav.uninett.no/wiki/graphite_on_debian>`_.  This guide
-will be updated and included in the official documentation.
+NAV uses Graphite_ to store and retrieve time-series data. See the :doc:`how-to
+guide for installing Graphite for use with NAV on a Debian system
+</howto/installing-graphite-on-debian>`.
 
 .. _Graphite: http://graphite.readthedocs.org/
 
