@@ -48,7 +48,12 @@ class Dispatcher(object):
         self.config = config if config is not None else {}
 
     def send(self, address, alert, language='en'):
-        """Sends an alert to a specific address for a specific language"""
+        """Sends an alert to a specific address for a specific language
+
+        :type address: nav.models.profiles.AlertAddress
+        :type alert: nav.models.event.AlertQueue
+        :param language: A two-letter ISO language code string
+        """
         raise NotImplementedError
 
     def get_message(self, alert, language, message_type):
