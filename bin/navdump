@@ -192,7 +192,7 @@ class Handlers(object):
     def room():
         header("# roomid[:locationid:descr:position:attr=value:...]")
         for room in manage.Room.objects.all():
-            line = [room.id, room.location.id if room.location else "",
+            line = [room.id, room.location_id if room.location_id else "",
                     room.description or ""]
             if room.position:
                 line.append("(%s, %s)" % room.position)
