@@ -270,15 +270,23 @@ class ThresholdEvent(object):
     """
     def __init__(self, event):
         self.event = event
-        ruleid, self.metric = event.subid.split(':', 1)
+        try:
+            ruleid, self.metric = event.subid.split(':', 1)
+        except ValueError:
+            ruleid = event.subid
+            self.metric = None
+
         klass = models.get_model('models', 'ThresholdRule')
         try:
             self.rule = klass.objects.get(pk=ruleid)
-        except klass.DoesNotExist:
+        except (klass.DoesNotExist, ValueError):
             self.rule = None
 
-        from nav.metrics.lookup import lookup
-        self.subject = lookup(self.metric)
+        if self.metric:
+            from nav.metrics.lookup import lookup
+            self.subject = lookup(self.metric)
+        else:
+            self.subject = None
 
     def __str__(self):
         subject = self.subject or self.metric
