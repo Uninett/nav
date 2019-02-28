@@ -16,6 +16,7 @@
 """ A class for extracting sensors from MGE UPSes.
 """
 from nav.mibs.ups_mib import UpsMib
+from nav.models.manage import Sensor
 
 
 class MgSnmpUpsMib(UpsMib):
@@ -24,24 +25,26 @@ class MgSnmpUpsMib(UpsMib):
 
     sensor_columns = {
         'mginputVoltage': {
-            'u_o_m': 'Volts',
+            'u_o_m': Sensor.UNIT_VOLTS_AC,
+            'precision': 1,
             },
         'mginputFrequency': {
-            'o_u_m': 'Hz',
+            'u_o_m': Sensor.UNIT_HERTZ,
+            'precision': 1,
             },
         'mgoutputLoadPerPhase': {
-            'o_u_m': 'Unknown',
+            'u_o_m': Sensor.UNIT_PERCENT,
             },
         'mgoutputCurrent': {
-            'o_u_m': 'Amperes',
+            'u_o_m': Sensor.UNIT_AMPERES,
             },
         'upsmgEnvironAmbientTemp': {
-            'o_u_m': 'Celsius',
+            'u_o_m': Sensor.UNIT_CELSIUS,
             },
         'upsmgBatteryLevel': {
-            'o_u_m': 'Percent',
+            'u_o_m': Sensor.UNIT_PERCENT,
             },
         'upsmgBatteryRemainingTime': {
-            'o_u_m': 'Seconds',
+            'u_o_m': Sensor.UNIT_SECONDS,
             },
     }
