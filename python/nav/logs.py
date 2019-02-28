@@ -35,7 +35,7 @@ _logger = logging.getLogger(__name__)
 def set_log_config():
     """Set log levels and custom log files"""
     set_log_levels()
-    set_custom_log_file()
+    _set_custom_log_file()
 
 
 def set_log_levels():
@@ -43,7 +43,7 @@ def set_log_levels():
     Read the logging config file and set up log levels for the different
     loggers.
     """
-    config = get_logging_conf()
+    config = _get_logging_conf()
     if 'levels' not in config.sections():
         return
 
@@ -53,10 +53,10 @@ def set_log_levels():
         if logger_name.lower() == 'root':
             logger_name = ''
         logger = logging.getLogger(logger_name)
-        logger.setLevel(translate_log_level(level))
+        logger.setLevel(_translate_log_level(level))
 
 
-def translate_log_level(level):
+def _translate_log_level(level):
     """Allow log levels to be specified as either names or values.
 
     Translate any non-integer levels to integer first.
@@ -72,10 +72,10 @@ def translate_log_level(level):
     return level
 
 
-def set_custom_log_file():
+def _set_custom_log_file():
     """Read logging config and add additional file handlers to specified logs"""
 
-    config = get_logging_conf()
+    config = _get_logging_conf()
     section = 'files'
 
     if section not in config.sections():
@@ -88,12 +88,12 @@ def set_custom_log_file():
             logger_name = ''
         logger = logging.getLogger(logger_name)
 
-        filehandler = logging.FileHandler(get_logfile_path(filename))
+        filehandler = logging.FileHandler(_get_logfile_path(filename))
         filehandler.setFormatter(DEFAULT_LOG_FORMATTER)
         logger.addHandler(filehandler)
 
 
-def get_logging_conf():
+def _get_logging_conf():
     """
     Returns a ConfigParser with the logging configuration to use.
 
@@ -212,7 +212,7 @@ def init_generic_logging(logfile=None, stderr=True, stdout=False,
 
     if logfile:
         try:
-            filehandler = logging.FileHandler(get_logfile_path(logfile))
+            filehandler = logging.FileHandler(_get_logfile_path(logfile))
         except IOError as err:
             pass
         else:
@@ -226,7 +226,7 @@ def init_generic_logging(logfile=None, stderr=True, stdout=False,
         set_log_levels()
 
 
-def get_logfile_path(logfile):
+def _get_logfile_path(logfile):
     """Returns the fully qualified path to logfile.
 
     If logfile is an absolute path, it is returned unchanged, otherwise,
