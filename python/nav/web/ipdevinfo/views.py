@@ -543,10 +543,16 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None,
         port = get_object_or_404(ports, id=port_id)
     elif port_name is not None:
         try:
-            port = ports.get(netbox__sysname=netbox_sysname, ifname=port_name)
+            port = ports.get(
+                netbox__sysname=netbox_sysname,
+                ifname__iexact=port_name
+            )
         except Interface.DoesNotExist:
-            port = get_object_or_404(ports, netbox__sysname=netbox_sysname,
-                                     ifdescr=port_name)
+            port = get_object_or_404(
+                ports,
+                netbox__sysname=netbox_sysname,
+                ifdescr__iexact=port_name
+            )
 
     navpath = NAVPATH + [
         (netbox_sysname,
