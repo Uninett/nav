@@ -1,3 +1,24 @@
+Version 4.9.3
+(released 28 Feb 2019)
+
+ Fixed GitHub issues in this release:
+
+  * #757  (devicehistory search by date ignores date)
+  * #1792 (Precision of several Eaton/MGE UPS sensors are wrong)
+  * #1812 (Malformed subid on (old) thresholdState events can cause
+           status page and alert API endpoints to crash)
+  * #1818 (Update ENTITY-MIB definition to RFC 6933)
+  * #1855 (IPAM subnet suggest function is broken)
+  * #1856 (Geomap doesn't work in NAV 4.9)
+  * #1857 (E-mailing of business report subscriptions doesn't work)
+  * #1862 (Please add case-insensitive matching on interface names in
+           ipdevinfo queries for 'ifname')
+  * #1865 (Servicemon resource leak causes all services to be reported
+           as down)
+  * #1871 (Alert detail headers are not present in e-mail notifications
+           from AlertEngine)
+
+
 Version 4.9.2
 (released 14 Feb 2019)
 
