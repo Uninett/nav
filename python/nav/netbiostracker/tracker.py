@@ -73,20 +73,45 @@ def get_addresses_to_scan(exclude_list=None):
 
 
 @timed
-def scan(addresses):
-    """Scan a list of ip-addresses for netbios names"""
+def scan(addresses, ignore_failed_sendto=True):
+    """Scan a list of ip-addresses for netbios names
+
+    :param addresses: A list of IP address strings.
+    :param ignore_failed_sendto: Whether to ignore "sendto" failures, which may
+                                 sometimes be a low-level OS error reported for
+                                 individual addresses.
+    """
 
     _logger.debug('Scanning %s addresses', len(addresses))
-    proc = Popen(['nbtscan', '-f-', '-s', SPLITCHAR], stdin=PIPE, stdout=PIPE)
+    proc = Popen(
+        ['nbtscan', '-f-', '-s', SPLITCHAR],
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=PIPE,
+    )
     stdout, stderr = proc.communicate('\n'.join(addresses))
-    if stderr:
-        raise Exception(stderr)
 
+    if isinstance(stderr, six.binary_type):
+        stderr = stderr.decode('cp850')  # cp850 seems like netbios' standard
     if isinstance(stdout, six.binary_type):
         stdout = stdout.decode('cp850')  # cp850 seems like netbios' standard
 
+    if ignore_failed_sendto:
+        stderr = _filter_failed_sendto(stderr)
+    if stderr:
+        raise Exception(stderr)
+
     _logger.debug('Result from scan:\n%s', stdout)
     return stdout
+
+
+def _filter_failed_sendto(data):
+    lines = data.splitlines()
+    return '\n'.join(
+        line
+        for line in lines
+        if 'sendto failed' not in line.lower()
+    )
 
 
 @timed
