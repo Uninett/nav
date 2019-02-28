@@ -16,6 +16,7 @@
 """ A class for extracting sensors from EATON UPSes.
 """
 from nav.mibs.ups_mib import UpsMib
+from nav.models.manage import Sensor
 
 
 class XupsMib(UpsMib):
@@ -24,21 +25,21 @@ class XupsMib(UpsMib):
 
     sensor_columns = {
         'xupsInputVoltage': {
-            'u_o_m': 'Volts',
+            'u_o_m': Sensor.UNIT_VOLTS_AC,
         },
         'xupsInputFrequency': {
-            'u_o_m': 'Hz',
+            'u_o_m': Sensor.UNIT_HERTZ,
         },
         'xupsOutputCurrent': {
-            'u_o_m': 'Amperes',
+            'u_o_m': Sensor.UNIT_AMPERES,
         },
         'xupsEnvAmbientTemp': {
-            'u_o_m': 'Celsius',
+            'u_o_m': Sensor.UNIT_CELSIUS,
         },
         'xupsBatCapacity': {
-            'u_o_m': 'Percent',
+            'u_o_m': Sensor.UNIT_PERCENT,
         },
         'xupsBatTimeRemaining': {
-            'u_o_m': 'Seconds',
+            'u_o_m': Sensor.UNIT_SECONDS,
         },
     }

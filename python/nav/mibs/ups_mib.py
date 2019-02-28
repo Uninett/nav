@@ -19,6 +19,7 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs import mibretriever
+from nav.models.manage import Sensor
 
 
 class UpsMib(mibretriever.MibRetriever):
@@ -28,13 +29,13 @@ class UpsMib(mibretriever.MibRetriever):
     sensor_columns = {
         # battery group
         'upsBatteryTemperature': {
-            'u_o_m': 'Celsius',
+            'u_o_m': Sensor.UNIT_CELSIUS,
         },
         'upsEstimatedChargeRemaining': {
-            'u_o_m': 'Percent',
+            'u_o_m': Sensor.UNIT_PERCENT,
         },
         'upsEstimatedMinutesRemaining': {
-            'u_o_m': 'Minutes',
+            'u_o_m': Sensor.UNIT_MINUTES,
         },
 
         # input group
@@ -42,67 +43,67 @@ class UpsMib(mibretriever.MibRetriever):
 
         'upsInputFrequency': {
             'is_column': True,
-            'u_o_m': 'Hz',
+            'u_o_m': Sensor.UNIT_HERTZ,
             'precision': 1,
         },
         'upsInputVoltage': {
             'is_column': True,
-            'u_o_m': 'Volts',
+            'u_o_m': Sensor.UNIT_VOLTS_AC,
         },
         'upsInputCurrent': {
             'is_column': True,
-            'u_o_m': 'Amperes',
+            'u_o_m': Sensor.UNIT_AMPERES,
             'precision': 1,
         },
         'upsInputTruePower': {
             'is_column': True,
-            'u_o_m': 'Watts',
+            'u_o_m': Sensor.UNIT_WATTS,
         },
 
         # output group
         'upsOutputFrequency': {
-            'u_o_m': 'Hz',
+            'u_o_m': Sensor.UNIT_HERTZ,
             'precision': 1,
         },
         'upsOutputNumLines': {},
 
         'upsOutputVoltage': {
             'is_column': True,
-            'u_o_m': 'Volts',
+            'u_o_m': Sensor.UNIT_VOLTS_AC,
         },
         'upsOutputCurrent': {
             'is_column': True,
-            'u_o_m': 'Amperes',
+            'u_o_m': Sensor.UNIT_AMPERES,
             'precision': 1,
         },
         'upsOutputPower': {
             'is_column': True,
-            'u_o_m': 'Watts',
+            'u_o_m': Sensor.UNIT_WATTS,
         },
         'upsOutputPercentLoad': {
             'is_column': True,
-            'u_o_m': 'Percent',
+            'u_o_m': Sensor.UNIT_PERCENT,
         },
 
         # bypass group
         'upsBypassFrequency': {
-            'u_o_m': 'Hz',
+            'u_o_m': Sensor.UNIT_HERTZ,
             'precision': 1
         },
         'upsBypassNumLines': {},
 
         'upsBypassVoltage': {
             'is_column': True,
-            'u_o_m': 'Volts',
+            'u_o_m': Sensor.UNIT_VOLTS_AC,
         },
         'upsBypassCurrent': {
             'is_column': True,
-            'u_o_m': 'Amperes',
+            'u_o_m': Sensor.UNIT_AMPERES,
             'precision': 1,
         },
         'upsBypassPower': {
             'is_column': True,
-            'u_o_m': 'Watts',
+            'u_o_m': Sensor.UNIT_WATTS,
         },
     }
 
