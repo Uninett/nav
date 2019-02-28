@@ -194,6 +194,9 @@ def init_generic_logging(logfile=None, stderr=True, stdout=False,
 
     Attempts to cover all the possible existing ways of setting up logging"""
 
+    if 'TIME_ZONE' in NAV_CONFIG:
+        os.environ['TZ'] = NAV_CONFIG['TIME_ZONE']
+
     root = logging.getLogger(rootlogger)
 
     if stderr or (stdout and sys.stdout.isatty()):
