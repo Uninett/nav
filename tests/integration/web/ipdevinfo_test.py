@@ -15,6 +15,17 @@ def test_device_details_should_include_sysname(client, netbox):
     assert netbox.sysname in smart_text(response.content)
 
 
+def test_port_search_should_match_case_insensitively(client, netbox):
+    ifc = netbox.interface_set.all()[0]
+    url = reverse('ipdevinfo-interface-details-by-name', kwargs={
+        'netbox_sysname': netbox.sysname,
+        'port_name': ifc.ifdescr.upper(),
+    })
+    response = client.get(url)
+    assert response.status_code == 200
+    assert ifc.ifdescr in smart_text(response.content)
+
+
 @pytest.mark.parametrize("perspective", [
     'swportstatus',
     'swportactive',
