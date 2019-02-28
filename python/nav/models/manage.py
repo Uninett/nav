@@ -276,7 +276,7 @@ class Netbox(models.Model):
     def get_function(self):
         """Returns the function description of this netbox."""
         try:
-            return self.info_set.get(variable='function').value
+            return self.info_set.get(variable='function', key='').value
         except NetboxInfo.DoesNotExist:
             return None
 
