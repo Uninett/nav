@@ -27,21 +27,21 @@ class MgSnmpUpsMib(UpsMib):
             'u_o_m': 'Volts',
             },
         'mginputFrequency': {
-            'o_u_m': 'Hz',
+            'u_o_m': 'Hz',
             },
         'mgoutputLoadPerPhase': {
-            'o_u_m': 'Unknown',
+            'u_o_m': 'Unknown',
             },
         'mgoutputCurrent': {
-            'o_u_m': 'Amperes',
+            'u_o_m': 'Amperes',
             },
         'upsmgEnvironAmbientTemp': {
-            'o_u_m': 'Celsius',
+            'u_o_m': 'Celsius',
             },
         'upsmgBatteryLevel': {
-            'o_u_m': 'Percent',
+            'u_o_m': 'Percent',
             },
         'upsmgBatteryRemainingTime': {
-            'o_u_m': 'Seconds',
+            'u_o_m': 'Seconds',
             },
     }
