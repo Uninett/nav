@@ -54,7 +54,7 @@ def generate_salt():
         raw_salt = "".join([chr(x) for x in
                             [random.randint(0, 255) for x in range(saltlen)]])
 
-    return base64.encodestring(raw_salt).strip()
+    return base64.b64encode(raw_salt).strip()
 
 
 class Hash(object):
@@ -90,7 +90,7 @@ class Hash(object):
         return str(self) == str(other)
 
     def __str__(self):
-        digest64 = base64.encodestring(self.digest).strip().decode('ASCII')
+        digest64 = base64.b64encode(self.digest).strip().decode('ASCII')
         return "{%s}%s$%s" % (self.method, self.salt, digest64)
 
     def update(self, password):
@@ -117,7 +117,7 @@ class Hash(object):
             else:
                 self.method = method
             self.salt = match.group(2)
-            self.digest = base64.decodestring(match.group(3).encode('ASCII'))
+            self.digest = base64.b64decode(match.group(3).encode('ASCII'))
 
     def verify(self, password):
         """Verify a password against this hash."""
