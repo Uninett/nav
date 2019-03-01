@@ -235,6 +235,7 @@ INSTALLED_APPS = (
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_PAGINATION_CLASS': 'nav.web.api.v1.NavPageNumberPagination',
+    'UNAUTHENTICATED_USER': 'nav.django.utils.default_account',
 }
 
 # Classes that implement a search engine for the web navbar

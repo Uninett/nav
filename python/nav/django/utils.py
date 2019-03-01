@@ -22,12 +22,16 @@ from django.db.models.fields import FieldDoesNotExist
 from nav.models.profiles import Account, AccountGroup
 
 
+def default_account():
+    return Account.objects.get(id=Account.DEFAULT_ACCOUNT)
+
+
 def get_account(request):
     """Returns the account associated with the request"""
     try:
         return request.account
     except AttributeError:
-        return Account.objects.get(id=Account.DEFAULT_ACCOUNT)
+        return default_account()
 
 
 def is_admin(account):
