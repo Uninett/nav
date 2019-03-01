@@ -132,7 +132,7 @@ class AdjacencyAnalyzer(object):
 
     def get_single_edges_from_ports(self):
         """Returns a list of edges from ports whose degree is 1"""
-        edges = [self.graph.edges(port)[0]
+        edges = [list(self.graph.edges(port))[0]
                  for port in self.get_ports_by_degree(1)]
         return edges
 
@@ -238,7 +238,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
 
     def _visit_unvisited(self, unvisited):
         for port in unvisited:
-            for source, dest, proto in self.graph.edges(port, keys=True):
+            for source, dest, proto in list(self.graph.edges(port, keys=True)):
                 _logger.debug("Considering %s %s source %s",
                               source, dest, proto)
                 if dest == source[0]:

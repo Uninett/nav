@@ -264,7 +264,7 @@ class RoutedVlanTopologyAnalyzer(object):
     def _out_edges_on_vlan(self, node):
         return (
             (u, v, w)
-            for u, v, w in self.layer2.out_edges_iter(node, keys=True)
+            for u, v, w in self.layer2.out_edges(node, keys=True)
             if self._ifc_has_vlan(w))
 
     def _ifc_has_vlan(self, ifc):

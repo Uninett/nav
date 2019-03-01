@@ -32,7 +32,7 @@ def _get_vlans_map_layer2(graph):
     """Builds two dictionaries to lookup VLAN information for layer2
     :param a networkx NAV topology graph
     :returns a tuple to look up vlans by interface and/or netbox"""
-    interface_id_list = [x[2].id for x in graph.edges_iter(keys=True)]
+    interface_id_list = [x[2].id for x in graph.edges(keys=True)]
 
     vlan_by_interface = defaultdict(list)
     vlan_by_netbox = defaultdict(dict)
@@ -49,7 +49,7 @@ def _get_vlans_map_layer2(graph):
 
 def _get_vlans_map_layer3(graph):
     vlans = set()
-    for _, _, swpv in graph.edges_iter(keys=True):
+    for _, _, swpv in graph.edges(keys=True):
         vlans.add(swpv)
     return vlans
 
@@ -84,7 +84,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     # basically loops over the whole MultiDiGraph from nav.topology and make
     # sure we fetch all 'loose' ends and makes sure they get attached as
     # metadata into netmap_graph
-    for source, neighbors_dict in topology_without_metadata.adjacency_iter():
+    for source, neighbors_dict in topology_without_metadata.adjacency():
         for target, connected_interfaces_at_source_for_target in (
                 six.iteritems(neighbors_dict)):
             for interface in connected_interfaces_at_source_for_target:
@@ -101,13 +101,13 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
                 port_pairs.add(port_pair)
 
                 netmap_graph.add_edge(target, source,
-                                      attr_dict=existing_metadata)
+                                      **existing_metadata)
 
     _LOGGER.debug(
         "build_netmap_layer2_graph() graph reduced.Port_pair metadata attached")
 
     empty_traffic = Traffic()
-    for source, target, metadata_dict in netmap_graph.edges_iter(data=True):
+    for source, target, metadata_dict in netmap_graph.edges(data=True):
         for interface_a, interface_b in metadata_dict.get('port_pairs'):
             traffic = get_traffic_data(
                 (interface_a, interface_b)) if load_traffic else empty_traffic
@@ -122,7 +122,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
 
     _LOGGER.debug("build_netmap_layer2_graph() netmap metadata built")
 
-    for node, data in netmap_graph.nodes_iter(data=True):
+    for node, data in netmap_graph.nodes(data=True):
         if node in vlan_by_netbox:
             data['metadata'] = {
                 'vlans': sorted(six.iteritems(vlan_by_netbox[node]),
@@ -157,7 +157,7 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False,
 
     # Make a copy of the graph, and add edge meta data
     graph = nx.Graph()
-    for gwpp_u, gwpp_v, prefix in topology_without_metadata.edges_iter(
+    for gwpp_u, gwpp_v, prefix in topology_without_metadata.edges(
             keys=True):
 
         netbox_u = gwpp_u.interface.netbox
@@ -166,19 +166,19 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False,
         existing_metadata = graph.get_edge_data(netbox_u, netbox_v) or {}
         gwportprefix_pairs = existing_metadata.setdefault('gwportprefix_pairs',
                                                           set())
+        existing_metadata['key'] = prefix.vlan
         gwportprefix = frozenset((gwpp_u, gwpp_v))
         gwportprefix_pairs.add(gwportprefix)
 
         graph.add_edge(
             netbox_v,
             netbox_u,
-            key=prefix.vlan,
-            attr_dict=existing_metadata)
+            **existing_metadata)
 
     _LOGGER.debug("build_netmap_layer3_graph() graph copy with metadata done")
 
     empty_traffic = Traffic()
-    for u, v, metadata_dict in graph.edges_iter(data=True):
+    for u, v, metadata_dict in graph.edges.data():
         for gwpp_u, gwpp_v in metadata_dict.get('gwportprefix_pairs'):
             traffic = get_traffic_data(
                 (gwpp_u.interface, gwpp_v.interface)
