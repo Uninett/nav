@@ -138,7 +138,7 @@ class NAVConfigParser(configparser.ConfigParser):
         configparser.ConfigParser.__init__(self)
         # TODO: perform sanity check on config settings
         faked_default_file = io.StringIO(self.DEFAULT_CONFIG)
-        self.readfp(faked_default_file)
+        self.read_file(faked_default_file)
         self.read_all()
 
     def read_all(self):
