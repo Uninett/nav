@@ -24,14 +24,12 @@ class EtherLikeMib(mibretriever.MibRetriever):
     """MibRetriever for EtherLike-MIB"""
     from nav.smidumps.etherlike_mib import MIB as mib
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def get_duplex(self):
         """Get a mapping of ifindexes->duplex status."""
-        dw = defer.waitForDeferred(
-            self.retrieve_columns(('dot3StatsDuplexStatus',)))
-        yield dw
-        duplex = self.translate_result(dw.getResult())
+        data = yield self.retrieve_columns(('dot3StatsDuplexStatus',))
+        duplex = self.translate_result(data)
 
         result = dict([(index[0], row['dot3StatsDuplexStatus'])
                       for index, row in duplex.items()])
-        yield result
+        defer.returnValue(result)

@@ -18,7 +18,6 @@
 from __future__ import absolute_import
 
 from django.utils import six
-from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.oids import OID
@@ -139,15 +138,13 @@ class IpMib(mibretriever.MibRetriever):
             prefix = ip.make_net(prefix_length)
             return prefix
 
-    @defer.deferredGenerator
+    @inlineCallbacks
     def _get_ifindex_ip_mac_mappings(self,
                                      column='ipNetToPhysicalPhysAddress'):
         """Get IP/MAC mappings from a table indexed by IfIndex+InetAddressType+
         InetAddress.
         """
-        waiter = defer.waitForDeferred(self.retrieve_column(column))
-        yield waiter
-        all_phys_addrs = waiter.getResult()
+        all_phys_addrs = yield self.retrieve_column(column)
 
         mappings = set()
 
@@ -161,14 +158,12 @@ class IpMib(mibretriever.MibRetriever):
             mappings.add(row)
         self._logger.debug("ip/mac pairs: Got %d rows from %s",
                            len(all_phys_addrs), column)
-        yield mappings
+        returnValue(mappings)
 
-    @defer.deferredGenerator
+    @inlineCallbacks
     def _get_ifindex_ipv4_mac_mappings(self, column='ipNetToMediaPhysAddress'):
         """Get IP/MAC mappings from a table indexed by IfIndex+IpAddress."""
-        waiter = defer.waitForDeferred(self.retrieve_column(column))
-        yield waiter
-        ipv4_phys_addrs = waiter.getResult()
+        ipv4_phys_addrs = yield self.retrieve_column(column)
 
         mappings = set()
         ignore_count = 0
@@ -191,7 +186,7 @@ class IpMib(mibretriever.MibRetriever):
                                  ignore_count, len(ipv4_phys_addrs), column)
         self._logger.debug("ip/mac pairs: Got %d rows from %s",
                            len(ipv4_phys_addrs), column)
-        yield mappings
+        returnValue(mappings)
 
     @staticmethod
     def _binary_mac_to_hex(mac):
@@ -218,7 +213,7 @@ class IpMib(mibretriever.MibRetriever):
 
         returnValue(mappings_new | mappings_deprecated)
 
-    @defer.deferredGenerator
+    @inlineCallbacks
     def _get_interface_ipv4_addresses(self,
                                       ifindex_column='ipAdEntIfIndex',
                                       netmask_column='ipAdEntNetMask'):
@@ -226,10 +221,8 @@ class IpMib(mibretriever.MibRetriever):
         indexed by IpAddress.  Default is the ipAddrTable.
 
         """
-        waiter = defer.waitForDeferred(
-            self.retrieve_columns((ifindex_column, netmask_column)))
-        yield waiter
-        address_rows = waiter.getResult()
+        address_rows = yield self.retrieve_columns((ifindex_column,
+                                                    netmask_column))
 
         addresses = set()
         ignore_count = 0
@@ -258,9 +251,9 @@ class IpMib(mibretriever.MibRetriever):
                                  ifindex_column)
         self._logger.debug("interface addresses: Got %d rows from %s",
                            len(address_rows), ifindex_column)
-        yield addresses
+        returnValue(addresses)
 
-    @defer.deferredGenerator
+    @inlineCallbacks
     def _get_interface_addresses(self,
                                  ifindex_column='ipAddressIfIndex',
                                  prefix_column='ipAddressPrefix',
@@ -269,10 +262,8 @@ class IpMib(mibretriever.MibRetriever):
         indexed by InetAddressType+InetAddress.  Default is the ipAddressTable.
 
         """
-        waiter = defer.waitForDeferred(
-            self.retrieve_columns((ifindex_column, prefix_column)))
-        yield waiter
-        address_rows = waiter.getResult()
+        address_rows = yield self.retrieve_columns((ifindex_column,
+                                                    prefix_column))
 
         addresses = set()
         unparseable_addrs = set()
@@ -297,7 +288,7 @@ class IpMib(mibretriever.MibRetriever):
                 len(unparseable_addrs), ifindex_column, unparseable_addrs)
         self._logger.debug("interface addresses: Got %d rows from %s",
                            len(address_rows), ifindex_column)
-        yield addresses
+        returnValue(addresses)
 
     @inlineCallbacks
     def get_interface_addresses(self):
@@ -327,7 +318,7 @@ class IpMib(mibretriever.MibRetriever):
         octets = yield self.retrieve_columns([IP_IN_OCTETS, IP_OUT_OCTETS])
         result = dict((index[-1], (row[IP_IN_OCTETS], row[IP_OUT_OCTETS]))
                       for index, row in octets.items() if index[-2] == IPV6_ID)
-        defer.returnValue(result)
+        returnValue(result)
 
 
 class IndexToIpException(Exception):

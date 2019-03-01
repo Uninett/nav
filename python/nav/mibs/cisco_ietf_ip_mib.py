@@ -55,7 +55,7 @@ class CiscoIetfIpMib(IpMib):
 
         return super(CiscoIetfIpMib, cls).prefix_index_to_ip(stripped_index)
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def get_ifindex_ip_mac_mappings(self):
         """Retrieve the layer 3->layer 2 address mappings of this device.
 
@@ -66,14 +66,12 @@ class CiscoIetfIpMib(IpMib):
           of a MAC address.
 
         """
-        waiter = defer.waitForDeferred(self._get_ifindex_ip_mac_mappings(
-                column='cInetNetToMediaPhysAddress'))
-        yield waiter
-        mappings = waiter.getResult()
+        mappings = yield self._get_ifindex_ip_mac_mappings(
+                column='cInetNetToMediaPhysAddress')
 
-        yield mappings
+        defer.returnValue(mappings)
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def get_interface_addresses(self):
         """Retrieve the IP addresses and prefixes of interfaces.
 
@@ -83,14 +81,12 @@ class CiscoIetfIpMib(IpMib):
           IPy.IP objects.
 
         """
-        waiter = defer.waitForDeferred(self._get_interface_addresses(
+        addresses = yield defer.waitForDeferred(self._get_interface_addresses(
                 ifindex_column='cIpAddressIfIndex',
                 prefix_column='cIpAddressPrefix',
                 prefix_entry='cIpAddressPfxOrigin'))
-        yield waiter
-        addresses = waiter.getResult()
 
-        yield addresses
+        defer.returnValue(addresses)
 
     @staticmethod
     def _binary_mac_to_hex(mac):

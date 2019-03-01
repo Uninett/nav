@@ -23,13 +23,11 @@ class CiscoVlanMembershipMib(mibretriever.MibRetriever):
     """MibRetriever for CISCO-VLAN-MEMBERSHIP-MIB"""
     from nav.smidumps.cisco_vlan_membership_mib import MIB as mib
 
-    @defer.deferredGenerator
+    @defer.inlineCallbacks
     def get_vlan_membership(self):
         """Get a mapping of access port ifindexes->VLAN"""
-        dw = defer.waitForDeferred(self.retrieve_column('vmVlan'))
-        yield dw
-        vlans = dw.getResult()
+        vlans = yield self.retrieve_column('vmVlan')
 
         result = dict([(index[0], vlan)
                       for index, vlan in vlans.items()])
-        yield result
+        defer.returnValue(result)
