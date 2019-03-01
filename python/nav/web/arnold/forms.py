@@ -207,7 +207,7 @@ class DetentionProfileForm(forms.Form):
                     Column('keep_closed', css_class='medium-4'),
                     Column(CheckBox('exponential', css_class='input-align'),
                            css_class='medium-4'),
-                    Column('', css_class='medium-4'),
+                    Div(css_class='medium-4 columns'),
                 ),
                 'mail',
                 'active_on_vlans',
