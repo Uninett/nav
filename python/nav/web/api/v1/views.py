@@ -25,7 +25,8 @@ from django.db.models.fields import FieldDoesNotExist
 from datetime import datetime, timedelta
 import iso8601
 
-from rest_framework import status, filters, viewsets, exceptions, pagination
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
+from rest_framework import status, filters, viewsets, exceptions
 from rest_framework.decorators import (api_view, renderer_classes, list_route,
                                        detail_route)
 from rest_framework.reverse import reverse_lazy
@@ -177,7 +178,7 @@ class NAVAPIMixin(APIView):
     authentication_classes = (NavBaseAuthentication, APIAuthentication)
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
-    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend,
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend,
                        RelatedOrderingFilter)
     ordering_fields = '__all__'
 
@@ -385,7 +386,7 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
         return qs
 
 
-class InterfaceFilterClass(filters.FilterSet):
+class InterfaceFilterClass(FilterSet):
     """Exists only to have a sane implementation of multiple choice filters"""
     netbox = filters.django_filters.ModelMultipleChoiceFilter(
         queryset=manage.Netbox.objects.all())
@@ -789,7 +790,7 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
     serializer_class = serializers.PrefixUsageSerializer
 
     # RelatedOrderingFilter does not work with the custom pagination
-    filter_backends = (filters.SearchFilter, filters.DjangoFilterBackend)
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
 
     def get(self, request, *args, **kwargs):
         """Override get method to verify url parameters"""
