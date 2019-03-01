@@ -70,7 +70,7 @@ class SnmptrapdSignalTest(TestCase):
         time.sleep(0.5)
         handler.open()
         try:
-            self.assertRaises(self.TestIsOk,
-                              handler.listen, 'public', lambda x, y: None)
+            with pytest.raises(self.TestIsOk):
+                handler.listen('public', lambda x, y: None)
         finally:
             handler.close()

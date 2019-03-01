@@ -3,6 +3,8 @@ from unittest import TestCase
 from mock import patch, Mock
 from django.utils import six
 
+import pytest
+
 import nav.web.ldapauth
 from nav.web import auth
 
@@ -29,17 +31,15 @@ class LdapAuthenticateTest(TestCase):
 
     def test_authenticate_should_return_account_when_ldap_says_yes(self):
         with patch("nav.web.ldapauth.authenticate", return_value=True):
-            self.assertEqual(auth.authenticate('knight', 'shrubbery'),
-                              self.mock_account)
+            assert auth.authenticate('knight', 'shrubbery') == self.mock_account
 
     def test_authenticate_should_return_false_when_ldap_says_no(self):
         with patch("nav.web.ldapauth.authenticate", return_value=False):
-            self.assertFalse(auth.authenticate('knight', 'shrubbery'))
+            assert not auth.authenticate('knight', 'shrubbery')
 
     def test_authenticate_should_fallback_when_ldap_is_disabled(self):
         nav.web.ldapauth.available = False
-        self.assertEqual(auth.authenticate('knight', 'shrubbery'),
-                          self.mock_account)
+        assert auth.authenticate('knight', 'shrubbery') == self.mock_account
 
 
 class NormalAuthenticateTest(TestCase):
@@ -62,12 +62,11 @@ class NormalAuthenticateTest(TestCase):
 
     def test_authenticate_should_return_account_when_password_is_ok(self):
         with patch("nav.web.auth.Account.check_password", return_value=True):
-            self.assertEqual(auth.authenticate('knight', 'shrubbery'),
-                              self.mock_account)
+            assert auth.authenticate('knight', 'shrubbery') == self.mock_account
 
     def test_authenticate_should_return_false_when_ldap_says_no(self):
         with patch("nav.web.auth.Account.check_password", return_value=False):
-            self.assertFalse(auth.authenticate('knight', 'rabbit'))
+            assert not auth.authenticate('knight', 'rabbit')
 
 
 class LdapUserTestCase(TestCase):
@@ -86,7 +85,8 @@ class LdapUserTestCase(TestCase):
                                       (None, "at the end of the universe")]
         })
         u = nav.web.ldapauth.LDAPUser("zaphod", conn)
-        self.assertRaises(nav.web.ldapauth.UserNotFound, u.search_dn)
+        with pytest.raises(nav.web.ldapauth.UserNotFound):
+            u.search_dn()
 
     @patch.dict("nav.web.ldapauth._config._sections",
                 {'ldap': {'__name__': 'ldap',

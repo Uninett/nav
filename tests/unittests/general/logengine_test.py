@@ -1,11 +1,10 @@
+import datetime
 import pytest
 from mock import Mock
 from unittest import TestCase
 import random
 import logging
 logging.raiseExceptions = False
-
-import datetime
 
 from nav import logengine
 
@@ -34,10 +33,9 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
     def test_parse_without_exceptions(self):
         for line in self.loglines:
             msg = logengine.create_message(line)
-            self.assertTrue(msg, "unparseable: %s" % line)
-            self.assertFalse(msg.facility is None,
-                             "Message has no facility: {0!r}\n{1!r}"
-                             .format(line, vars(msg)))
+            assert msg, "unparseable: %s" % line
+            assert msg.facility is not None, \
+                "Message has no facility: {0!r}\n{1!r}".format(line, vars(msg))
 
     def test_insert(self):
         for line in self.loglines:
@@ -48,7 +46,7 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
                 return sql % params
             database.execute = execute
             message = logengine.create_message(line)
-            self.assertTrue(message, "unparseable: %s" % line)
+            assert message, "unparseable: %s" % line
             logengine.insert_message(message, database,
                                      {}, {}, {},
                                      {}, {}, {})
@@ -67,7 +65,8 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
         def raiser():
             raise driver.Error("This is an ex-database")
 
-        self.assertRaises(driver.Error, raiser)
+        with pytest.raises(driver.Error):
+            raiser()
 
     def test_non_failing_function_should_run_fine(self):
         @logengine.swallow_all_but_db_exceptions
@@ -75,7 +74,7 @@ Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN:
             return input
 
         value = 'foo'
-        self.assertEqual(nonraiser(value), value)
+        assert nonraiser(value) == value
 
 
 class ParseTest(TestCase):
@@ -95,23 +94,23 @@ class ParseTest(TestCase):
 
     def test_should_parse_timestamp_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEqual(msg.time, self.timestamp)
+        assert msg.time == self.timestamp
 
     def test_should_parse_facility_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEqual(msg.facility, self.facility)
+        assert msg.facility == self.facility
 
     def test_should_parse_priority_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEqual(msg.priorityid, self.priority)
+        assert msg.priorityid == self.priority
 
     def test_should_parse_mnemonic_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEqual(msg.mnemonic, self.mnemonic)
+        assert msg.mnemonic == self.mnemonic
 
     def test_should_parse_description_correctly(self):
         msg = logengine.create_message(self.message)
-        self.assertEqual(msg.description, self.description)
+        assert msg.description == self.description
 
 
 class ParseMessageWithStrangeGarbageTest(ParseTest):

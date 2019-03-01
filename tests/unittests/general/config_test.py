@@ -49,18 +49,18 @@ class ConfigTestCase(unittest.TestCase):
 
     def test_read_flat_config(self):
         values = config.read_flat_config(self.mockfile)
-        self.assertEqual(values['foo1'], 'bar1')
-        self.assertEqual(values['foo2'], 'bar2')
-        self.assertEqual(values['foo4'], 'bar4')
-        self.assertFalse('foo3' in values)
+        assert values['foo1'] == 'bar1'
+        assert values['foo2'] == 'bar2'
+        assert values['foo4'] == 'bar4'
+        assert 'foo3' not in values
 
     def test_getconfig(self):
         values = config.getconfig(self.mockinifile)
-        self.assertEqual(2, len(values.keys()))
-        self.assert_('section1' in values)
-        self.assert_('section2' in values)
+        assert 2 == len(values.keys())
+        assert 'section1' in values
+        assert 'section2' in values
 
-        self.assertEqual(values['section1']['foo1'], 'bar1')
-        self.assertEqual(values['section1']['foo2'], 'bar2')
-        self.assertEqual(values['section2']['foo4'], 'bar4')
-        self.assertFalse('foo3' in values['section2'])
+        assert values['section1']['foo1'] == 'bar1'
+        assert values['section1']['foo2'] == 'bar2'
+        assert values['section2']['foo4'] == 'bar4'
+        assert 'foo3' not in values['section2']

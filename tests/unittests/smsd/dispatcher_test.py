@@ -20,6 +20,9 @@ from __future__ import print_function
 
 import types
 import unittest
+
+import pytest
+
 from nav.smsd import dispatcher
 
 
@@ -34,29 +37,27 @@ class DispatcherHandlerTest(unittest.TestCase):
     def setUp(self):
         self.config = {
             'main': {'exit_on_permanent_error': 'yes'},
-            'dispatcher': {'dispatcherretry':'30',
-                           'dispatcher1':'FakeDispatcher'},
+            'dispatcher': {'dispatcherretry': '30',
+                           'dispatcher1': 'FakeDispatcher'},
             'FakeDispatcher': {}
             }
 
     def test_init_with_simple_config(self):
-        self.assert_(FakeDispatcherHandler(self.config))
+        assert FakeDispatcherHandler(self.config)
 
     def test_empty_message_list(self):
         handler = FakeDispatcherHandler(self.config)
-        self.assert_(handler.sendsms('fakenumber', []))
+        assert handler.sendsms('fakenumber', [])
 
     def test_dispatcher_exception(self):
         handler = FakeDispatcherHandler(self.config)
-        self.assertRaises(
-            dispatcher.DispatcherError,
-            handler.sendsms, 'failure', [])
+        with pytest.raises(dispatcher.DispatcherError):
+            handler.sendsms('failure', [])
 
     def test_dispatcher_unhandled_exception(self):
         handler = FakeDispatcherHandler(self.config)
-        self.assertRaises(
-            dispatcher.DispatcherError,
-            handler.sendsms, 'unhandled', [])
+        with pytest.raises(dispatcher.DispatcherError):
+            handler.sendsms('unhandled', [])
 
 
 class FakeDispatcherHandler(dispatcher.DispatcherHandler):

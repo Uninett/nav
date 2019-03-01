@@ -1,5 +1,8 @@
 """Tests for should_detain"""
 import unittest
+
+import pytest
+
 from mock import Mock, patch
 from nav.arnold import (InExceptionListError, WrongCatidError,
                         BlockonTrunkError, raise_if_detainment_not_allowed, check_non_block)
@@ -16,8 +19,8 @@ class TestArnoldShouldDetain(unittest.TestCase):
         """Test that InExceptionListError is properly thrown"""
         with patch('nav.arnold.parse_nonblock_file') as parse:
             parse.return_value = {'ip': {'10.0.0.1': 1}}
-            arguments = ['10.0.0.1']
-            self.assertRaises(InExceptionListError, check_non_block, *arguments)
+            with pytest.raises(InExceptionListError):
+                check_non_block('10.0.0.1')
 
     def test_should_detain_wrongcatid(self, mock_getconfig):
         """Test that WrongCatidError is properly thrown"""
@@ -28,8 +31,8 @@ class TestArnoldShouldDetain(unittest.TestCase):
         category = interface.netbox.category
         category.id = 'GW'
 
-        arguments = [interface]
-        self.assertRaises(WrongCatidError, raise_if_detainment_not_allowed, *arguments)
+        with pytest.raises(WrongCatidError):
+            raise_if_detainment_not_allowed(interface)
 
     def test_should_detain_blockontrunk(self, mock_getconfig):
         """Test that BlockonTrunkError is properly thrown"""
@@ -38,9 +41,9 @@ class TestArnoldShouldDetain(unittest.TestCase):
 
         interface = self.interface
         interface.trunk = True
-        arguments = [interface]
 
-        self.assertRaises(BlockonTrunkError, raise_if_detainment_not_allowed, *arguments)
+        with pytest.raises(BlockonTrunkError):
+            raise_if_detainment_not_allowed(interface)
 
 
 def create_interface():

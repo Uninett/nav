@@ -19,6 +19,9 @@ from __future__ import unicode_literals
 
 import unittest
 from configparser import NoOptionError
+
+import pytest
+
 from nav.config import NAVConfigParser
 from nav.ipdevpoll.config import (get_job_sections, get_jobs,
                                   get_job_descriptions, JobDescriptor)
@@ -51,7 +54,7 @@ description = blepp
         self.config = self.TestConfig()
 
     def test_find_all_job_sections(self):
-        self.assertEqual(len(get_job_sections(self.config)), 3)
+        assert len(get_job_sections(self.config)) == 3
 
     def test_should_not_fail_on_missing_description(self):
         try:
@@ -66,14 +69,13 @@ description = blepp
 
     def test_description_should_not_contain_newline(self):
         descr = get_job_descriptions(self.config)
-        self.assertEqual(descr['one'], 'blapp blupp')
+        assert descr['one'] == 'blapp blupp'
 
     def test_job_two_descr(self):
-        self.assertEqual(get_job_descriptions(self.config)['two'],'')
+        assert get_job_descriptions(self.config)['two'] == ''
 
     def test_job_three_descr(self):
-        self.assertEqual(get_job_descriptions(self.config)['three'],
-                         'blepp')
+        assert get_job_descriptions(self.config)['three'] == 'blepp'
 
 
 class JobDescriptorTest(unittest.TestCase):
@@ -99,26 +101,21 @@ plugins =
         self.config = self.TestConfig()
 
     def test_should_raise_on_no_interval(self):
-        self.assertRaises(
-            NoOptionError,
-            JobDescriptor.from_config_section, self.config, 'job_one')
+        with pytest.raises(NoOptionError):
+            JobDescriptor.from_config_section(self.config, 'job_one')
 
     def test_should_raise_on_zero_interval(self):
-        self.assertRaises(
-            ValueError,
-            JobDescriptor.from_config_section, self.config, 'job_two')
+        with pytest.raises(ValueError):
+            JobDescriptor.from_config_section(self.config, 'job_two')
 
     def test_should_raise_on_negative_interval(self):
-        self.assertRaises(
-            ValueError,
-            JobDescriptor.from_config_section, self.config, 'job_negative')
+        with pytest.raises(ValueError):
+            JobDescriptor.from_config_section(self.config, 'job_negative')
 
     def test_should_raise_on_no_plugins(self):
-        self.assertRaises(
-            NoOptionError,
-            JobDescriptor.from_config_section, self.config, 'job_noplugins')
+        with pytest.raises(NoOptionError):
+            JobDescriptor.from_config_section(self.config, 'job_noplugins')
 
     def test_should_raise_on_empty_plugins(self):
-        self.assertRaises(
-            ValueError,
-            JobDescriptor.from_config_section, self.config, 'job_emptyplugins')
+        with pytest.raises(ValueError):
+            JobDescriptor.from_config_section(self.config, 'job_emptyplugins')

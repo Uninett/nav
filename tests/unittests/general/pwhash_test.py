@@ -14,6 +14,8 @@
 #
 import unittest
 
+import pytest
+
 from nav import pwhash
 
 
@@ -23,42 +25,37 @@ class PwHashTestCase(unittest.TestCase):
     def test_methods_are_callable(self):
         """All values in the known_methods dictionary must be callable"""
         for method in pwhash.KNOWN_METHODS.values():
-            self.assert_(callable(method))
+            assert callable(method)
 
     def test_sha1_hash(self):
         hash = pwhash.Hash('sha1', 'e7MaFMQE', 'foobar')
-        self.assertEqual('{sha1}e7MaFMQE$cCqMIINS5t85J0MIgNwMprXBfLA=',
-                          str(hash))
+        assert '{sha1}e7MaFMQE$cCqMIINS5t85J0MIgNwMprXBfLA=' == str(hash)
 
     def test_md5_hash(self):
         hash = pwhash.Hash('md5', 'e7MaFMQE', 'foobar')
-        self.assertEqual('{md5}e7MaFMQE$wbzoUnM9Jju9ob9bY29+hA==',
-                          str(hash))
+        assert '{md5}e7MaFMQE$wbzoUnM9Jju9ob9bY29+hA==' == str(hash)
 
     def test_pbkdf25_hash(self):
         hash = pwhash.Hash('pbkdf2', 'e7MaFMQE', 'foobar')
-        self.assertEqual(
-            '{pbkdf2}e7MaFMQE$7j7bgQb8xED7mEY+8g1QM2zs/ispKZVeNEv/nMCYPX0=',
-            str(hash))
+        assert '{pbkdf2}e7MaFMQE$7j7bgQb8xED7mEY+8g1QM2zs/ispKZVeNEv/nMCYPX0=' == str(hash)
 
     def test_unknown_hash(self):
-        self.assertRaises(pwhash.UnknownHashMethodError,
-                          pwhash.Hash,
-                          'montyhash', 'e7MaFMQE', 'foobar')
+        with pytest.raises(pwhash.UnknownHashMethodError):
+            pwhash.Hash('montyhash', 'e7MaFMQE', 'foobar')
 
     def test_verify_sha1_hash(self):
         hash = pwhash.Hash()
         hash.set_hash('{sha1}e7MaFMQE$cCqMIINS5t85J0MIgNwMprXBfLA=')
-        self.assert_(hash.verify('foobar'))
-        self.assertFalse(hash.verify('blueparrot'))
+        assert hash.verify('foobar')
+        assert not hash.verify('blueparrot')
 
     def test_verify_md5_hash(self):
         hash = pwhash.Hash()
         hash.set_hash('{md5}e7MaFMQE$wbzoUnM9Jju9ob9bY29+hA==')
-        self.assert_(hash.verify('foobar'))
-        self.assertFalse(hash.verify('blueparrot'))
+        assert hash.verify('foobar')
+        assert not hash.verify('blueparrot')
 
     def test_bad_hash(self):
         hash = pwhash.Hash()
-        self.assertRaises(pwhash.InvalidHashStringError,
-                          hash.set_hash, 'badc0ffee')
+        with pytest.raises(pwhash.InvalidHashStringError):
+            hash.set_hash('badc0ffee')
