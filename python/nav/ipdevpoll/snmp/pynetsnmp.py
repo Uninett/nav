@@ -47,7 +47,10 @@ def pynetsnmp_limits_results():
     except ImportError:
         return False
     else:
-        args = inspect.getargspec(TableRetriever.__init__)[0]
+        if six.PY2:
+            args = inspect.getargspec(TableRetriever.__init__)[0]
+        else:
+            args = inspect.getfullargspec(TableRetriever.__init__)[0]
         return 'limit' in args
 
 
