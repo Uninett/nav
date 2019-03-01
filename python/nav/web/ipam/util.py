@@ -231,19 +231,13 @@ def suggest_range(prefix, size=256, offset=0, n=10):
     # Somewhat slow path
     else:
         _blocks = partition_subnet(size, prefix)
-    try:
-        # drop first #offset blocks
-        for _ in range(offset):
-            next(_blocks)
-        # collect remainder
-        for block in (next(_blocks) for _ in range(n)):
-            acc["candidates"].append({
-                "length": block.len(),
-                "prefix": str(block),
-                "start": str(block[-0]),
-                "end": str(block[-1])
-            })
-    except StopIteration:
-        # done, set "more" flag
+    for block in islice(_blocks, offset, offset + n):
+        acc["candidates"].append({
+            "length": block.len(),
+            "prefix": str(block),
+            "start": str(block[-0]),
+            "end": str(block[-1])
+        })
+    if len(acc["candidates"]) < n:
         acc["more"] = False
     return acc
