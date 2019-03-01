@@ -24,7 +24,7 @@
   <div class="panel white">
     <h5>Creating new reservation</h5>
     <form class="allocation-tree-reserve-form">
-      <label for="Size of network">Number of addresses required (minimum)</label>
+      <label for="Size of network">Wanted prefix length</label>
       <input type="number" class="size-of-network" value="<%= network_size %>" min="2" />
       <button class="button small choose-network-size">Suggest subnets of this size</button>
       <% if (state === "CHOSEN_RESERVATION_SIZE" || state === "CHOSEN_SUBNET") { %>

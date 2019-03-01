@@ -23,7 +23,7 @@ API specific code for the private IPAM API. Exports a router for easy mounting.
 from rest_framework import viewsets, status, routers
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
-from IPy import IP
+from nav.ip import IP
 
 from .prefix_tree import make_tree, make_tree_from_ip
 
@@ -35,7 +35,7 @@ from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets, \
 
 
 from rest_framework import serializers
-#from nav.models.fields import CIDRField
+# from nav.models.fields import CIDRField
 
 
 # Inspired by
@@ -43,8 +43,17 @@ from rest_framework import serializers
 class SuggestParams(serializers.Serializer):
     prefix = serializers.CharField()
     n = serializers.IntegerField(default=10)
-    size = serializers.IntegerField(default=256)
+    prefixlen = serializers.IntegerField(default=24, min_value=1, max_value=128)
     offset = serializers.IntegerField(default=0)
+
+    def validate(self, data):
+        try:
+            if IP(data['prefix']).version() == 4 and data['prefixlen'] > 32:
+                raise serializers.ValidationError(
+                    "Prefixlen can not be higher than 32 for ipv4 prefixes")
+        except ValueError:
+            raise serializers.ValidationError("Invalid prefix")
+        return data
 
 
 class PrefixViewSet(viewsets.ViewSet):
@@ -108,7 +117,7 @@ class PrefixViewSet(viewsets.ViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         params = params.validated_data
         payload = suggest_range(params["prefix"], offset=params["offset"],
-                                size=params["size"], n=params["n"])
+                                prefixlen=params["prefixlen"], n=params["n"])
         return Response(payload, status=status.HTTP_200_OK)
 
     @detail_route(methods=["get"])
