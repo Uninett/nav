@@ -45,7 +45,8 @@ from nav.util import auth_token
 from nav.web.api.v1 import serializers, alert_serializers
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
-from .filter_backends import *
+from .filter_backends import (AlertHistoryFilterBackend, IfClassFilter,
+                              NaturalIfnameFilter)
 from nav.web.status2 import STATELESS_THRESHOLD
 from nav.macaddress import MacPrefix
 
