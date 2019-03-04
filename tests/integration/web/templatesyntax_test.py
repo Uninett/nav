@@ -24,7 +24,7 @@ def test_alert_templates_can_be_found():
 def get_template_list(directories=None):
     if not directories:
         ensure_alert_templates_are_available()
-        directories = (settings.TEMPLATE_DIRS + get_nav_app_template_dirs())
+        directories = (list(settings.TEMPLATE_DIRS) + list(get_nav_app_template_dirs()))
 
     for tmpldir in directories:
         for dirname, _subdirs, files in os.walk(tmpldir):
