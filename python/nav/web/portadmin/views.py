@@ -22,7 +22,6 @@ from operator import or_ as OR
 from functools import reduce
 
 from django.http import HttpResponse, JsonResponse
-from django.template import Context
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -212,7 +211,7 @@ def populate_infodict(request, netbox, interfaces):
     aliastemplate = ''
     if ifaliasformat:
         tmpl = get_aliastemplate()
-        aliastemplate = tmpl.render(Context({'ifaliasformat': ifaliasformat}))
+        aliastemplate = tmpl.render({'ifaliasformat': ifaliasformat})
 
     save_to_database(interfaces)
 

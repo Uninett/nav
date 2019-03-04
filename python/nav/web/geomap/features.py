@@ -34,7 +34,6 @@ import os
 import logging
 from functools import partial
 
-from django.template import Context
 from django import template
 
 from nav.config import open_configfile
@@ -162,7 +161,7 @@ def create_node_popup(node, popup_template):
     """Create the popup for a node."""
     if popup_template is None:
         return None
-    content = popup_template.render(Context({'place': node.properties}))
+    content = popup_template.render({'place': node.properties})
     return Popup('popup-' + node.id, [300, 250], content, True)
 
 
@@ -212,7 +211,7 @@ def create_edge_popup(data, popup_template):
     """Create the popup for a node."""
     if popup_template is None:
         return None
-    content = popup_template.render(Context({'network': data}))
+    content = popup_template.render({'network': data})
     return Popup('popup-' + data['id'], [300, 250], content, True)
 
 
