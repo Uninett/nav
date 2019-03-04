@@ -1,4 +1,7 @@
-.PHONY: clean bigclean
+.PHONY: dummy clean bigclean
+
+dummy:
+	@echo "'make' is no longer used for deployment. See 'doc/intro/install.rst'"
 
 clean:
 	find . -name __pycache__ -print0 | xargs -0 rm -rf
