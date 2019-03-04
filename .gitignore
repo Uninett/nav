@@ -51,8 +51,6 @@ config.status
 aclocal.m4
 autom4te.cache
 version.m4
-Makefile
-Makefile.in
 /tests/docker/*-requirements.txt
 
 # Static files and cached static files genereated
