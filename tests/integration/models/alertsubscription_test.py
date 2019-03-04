@@ -13,7 +13,7 @@ from nav.models.event import AlertQueue, Subsystem
 import pytest
 
 
-def test_delete_alert_subscription(alert, alertsub):
+def test_delete_alert_subscription(db, alert, alertsub):
     account_queue = AccountAlertQueue(alert=alert, subscription=alertsub)
     account_queue.save()
     alertsub.delete()
