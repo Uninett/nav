@@ -1,8 +1,10 @@
 .tox
 .git
-.tox
 .cache
-tools/virtual-appliance
+.idea
+.eggs
+.npm
+.pytest_cache
 build/
-htdocs/static/js/node_modules
+python/nav/web/static/js/node_modules
 *.pyc
