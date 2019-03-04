@@ -57,12 +57,12 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
 
         # should be the same as
         #  test_edges_length_of_netmap_graph_is_reduced_properly
-        assert (
+        self.assertEqual(
             [
                 (self.a, self.b),
                 (self.a, self.c),
                 (self.c, self.d)
-            ] ==
+            ],
             list(self.netmap_graph.edges())
         )
 
