@@ -76,7 +76,7 @@ def test_delete(db, api_client, token, endpoint):
     response_delete = delete(api_client, endpoint, res.get('id'))
     response_get = get(api_client, endpoint, res.get('id'))
 
-    print(response_delete)
+#    print(response_delete)
     assert response_delete.status_code == 204
 
     print(response_get)
@@ -158,7 +158,7 @@ def test_delete_netbox(db, api_client, token):
     response_get = get(api_client, endpoint, json_create['id'])
     json_get = json.loads(response_get.content.decode('utf-8'))
 
-    print(response_delete)
+#    print(response_delete)
     print(json_get['deleted_at'])
 
     assert response_delete.status_code == 204
