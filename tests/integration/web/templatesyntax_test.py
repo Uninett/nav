@@ -22,9 +22,13 @@ def test_alert_templates_can_be_found():
 
 
 def get_template_list(directories=None):
+    templates = getattr(settings, 'TEMPLATES', [{}])
+    template_dirs = list(getattr(templates[0], 'DIRS', []))
+    if not template_dirs:
+        template_dirs = list(getattr(settings, 'TEMPLATE_DIRS', []))  # Outdated, remove when on 1.11
     if not directories:
         ensure_alert_templates_are_available()
-        directories = (list(settings.TEMPLATE_DIRS) + list(get_nav_app_template_dirs()))
+        directories = template_dirs + list(get_nav_app_template_dirs())
 
     for tmpldir in directories:
         for dirname, _subdirs, files in os.walk(tmpldir):
