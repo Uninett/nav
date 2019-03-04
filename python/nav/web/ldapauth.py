@@ -194,7 +194,7 @@ class LDAPUser(object):
             _logger.debug("Attempting authenticated bind as user %s",
                           self.username + suffix)
 
-            self.ldap.simple_bind_s(self.username + suffix + password)
+            self.ldap.simple_bind_s(self.username + suffix, password)
 
     def get_user_dn(self):
         """
