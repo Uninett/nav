@@ -225,7 +225,7 @@ def cancel(request, task_id):
         task.save()
         new_message(request, "This task is now cancelled.", Messages.SUCCESS)
         return HttpResponseRedirect(reverse('maintenance-view',
-                                                args=[task_id]))
+                                            args=[task_id]))
     else:
         infodict = infodict_by_state(task)
         return render(
