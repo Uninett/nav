@@ -1,0 +1,3 @@
+css/font-awesome/*.css -diff
+js/libs/**/*.js -diff
+*.svg -diff
