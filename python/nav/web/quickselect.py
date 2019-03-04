@@ -17,7 +17,6 @@
 """QuickSelect widget for use in various web forms."""
 
 from django.template.loader import get_template
-from django.template import Context
 from django.utils.six import iteritems
 from django.utils.encoding import python_2_unicode_compatible
 
@@ -251,6 +250,6 @@ class QuickSelect(object):
             self.output = output
 
         template = get_template('webfront/quickselect.html')
-        context = Context({'output': self.output})
+        context = {'output': self.output}
 
         return template.render(context)
