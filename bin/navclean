@@ -26,7 +26,8 @@ bootstrap_django(__file__)
 
 import psycopg2
 from django.db.transaction import atomic
-from django.contrib.sessions.backends.db import Session, timezone
+from django.contrib.sessions.models import Session
+from django.utils import timezone
 
 import nav.db
 
