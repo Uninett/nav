@@ -192,18 +192,13 @@ DEFAULT_LANGUAGE = "en"
 
 def ensure_alert_templates_are_available():
     """Inserts the ALERT_TEMPLATE_DIR into Django's TEMPLATE_DIRS list"""
-    import django
     from django.conf import settings
 
-    if django.VERSION[:2] == (1, 7):
-        if ALERT_TEMPLATE_DIR not in settings.TEMPLATE_DIRS:
-            settings.TEMPLATE_DIRS += (ALERT_TEMPLATE_DIR,)
-    else:
-        for config in settings.TEMPLATES:
-            if (config.get('BACKEND') ==
-                    'django.template.backends.django.DjangoTemplates'
-                    and ALERT_TEMPLATE_DIR not in config['DIRS']):
-                config['DIRS'] += (ALERT_TEMPLATE_DIR,)
+    for config in settings.TEMPLATES:
+        if (config.get('BACKEND') ==
+                'django.template.backends.django.DjangoTemplates'
+                and ALERT_TEMPLATE_DIR not in config['DIRS']):
+            config['DIRS'] += (ALERT_TEMPLATE_DIR,)
 
 
 def render_templates(alert):

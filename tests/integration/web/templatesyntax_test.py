@@ -38,9 +38,6 @@ def get_nav_app_template_dirs():
     This replaces django.template.loads.get_app_template_dirs, to just
     return templates that belong to apps in the nav namespace.
     """
-    if hasattr(app_directories, 'app_template_dirs'):  # Django < 1.8
-        return app_directories.app_template_dirs
-
     from django.apps import apps
     template_dirs = []
     for app_config in apps.get_app_configs():
