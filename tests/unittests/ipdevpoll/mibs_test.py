@@ -14,7 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import unittest
 import os
 import datetime
 from IPy import IP
@@ -38,7 +37,7 @@ from nav.mibs.entity_mib import EntityMib, parse_dateandtime_tc
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 
 
-class IpMibTests(unittest.TestCase):
+class TestIpMib(object):
     def test_ipv4_syntax_with_length_should_be_parsed_correctly(self):
         ip_tuple = (1, 4, 192, 0, 2, 1)
         expected = IP('192.0.2.1')
@@ -103,7 +102,7 @@ class IpMibTests(unittest.TestCase):
         assert prefix == expected
 
 
-class Ipv6MibTests(unittest.TestCase):
+class TestIpv6Mib(object):
     def test_ipv6mib_index(self):
         ip_tuple = (32, 1, 13, 184, 18, 52, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         expected = IP('2001:db8:1234::1')
@@ -111,7 +110,7 @@ class Ipv6MibTests(unittest.TestCase):
         assert ip == expected
 
 
-class EntityMibTests(unittest.TestCase):
+class TestEntityMib(object):
     def test_empty_logical_type_should_not_raise(self):
         mib = EntityMib(Mock('AgentProxy'))
 
@@ -129,7 +128,7 @@ class EntityMibTests(unittest.TestCase):
             df.result.raiseException()
 
 
-class Snmpv2MibTests(unittest.TestCase):
+class TestSnmpv2Mib(object):
     def test_simple_uptime_deviation_should_be_correct(self):
         first_uptime = (1338372778.0, 10000)
         second_uptime = (1338372900.0, 22200)
@@ -149,7 +148,7 @@ class Snmpv2MibTests(unittest.TestCase):
         assert dev is None
 
 
-class CiscoHSRPMibTests(unittest.TestCase):
+class TestCiscoHSRPMib(object):
     def test_virtual_address_map(self):
         class MockedMib(CiscoHSRPMib):
             def retrieve_column(self, column):
@@ -182,6 +181,3 @@ def test_zero_dateandtime_parses_properly():
 
 def test_crazy_dateandtime_should_not_crash():
     assert parse_dateandtime_tc(b"FOOBAR") is None
-
-if __name__ == '__main__':
-    unittest.main()

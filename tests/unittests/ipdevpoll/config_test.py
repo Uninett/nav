@@ -27,7 +27,8 @@ from nav.ipdevpoll.config import (get_job_sections, get_jobs,
                                   get_job_descriptions, JobDescriptor)
 
 
-class ConfigTest(unittest.TestCase):
+@pytest.fixture
+def config():
     class TestConfig(NAVConfigParser):
         DEFAULT_CONFIG = """
 [job_one]
@@ -49,36 +50,38 @@ interval = 5m
 plugins = foo
 description = blepp
 """
+    return TestConfig()
 
-    def setUp(self):
-        self.config = self.TestConfig()
 
-    def test_find_all_job_sections(self):
-        assert len(get_job_sections(self.config)) == 3
+class TestConfig(object):
 
-    def test_should_not_fail_on_missing_description(self):
+    def test_find_all_job_sections(self, config):
+        assert len(get_job_sections(config)) == 3
+
+    def test_should_not_fail_on_missing_description(self, config):
         try:
-            get_jobs(self.config)
+            get_jobs(config)
         except NoOptionError:
             self.fail('Failed to ignore missing option')
 
-    def test_job_prefix_must_be_filtered(self):
-        descriptions = get_job_descriptions(self.config)
+    def test_job_prefix_must_be_filtered(self, config):
+        descriptions = get_job_descriptions(config)
         for desc in descriptions:
-            self.assertFalse(desc.startswith('job_'))
+            assert not desc.startswith('job_')
 
-    def test_description_should_not_contain_newline(self):
-        descr = get_job_descriptions(self.config)
+    def test_description_should_not_contain_newline(self, config):
+        descr = get_job_descriptions(config)
         assert descr['one'] == 'blapp blupp'
 
-    def test_job_two_descr(self):
-        assert get_job_descriptions(self.config)['two'] == ''
+    def test_job_two_descr(self, config):
+        assert get_job_descriptions(config)['two'] == ''
 
-    def test_job_three_descr(self):
-        assert get_job_descriptions(self.config)['three'] == 'blepp'
+    def test_job_three_descr(self, config):
+        assert get_job_descriptions(config)['three'] == 'blepp'
 
 
-class JobDescriptorTest(unittest.TestCase):
+@pytest.fixture
+def invalid_config():
     class TestConfig(NAVConfigParser):
         DEFAULT_CONFIG = """
 [job_one]
@@ -96,26 +99,27 @@ interval = 5m
 plugins =
 
 """
+    return TestConfig()
 
-    def setUp(self):
-        self.config = self.TestConfig()
 
-    def test_should_raise_on_no_interval(self):
+class TestJobDescriptor(object):
+
+    def test_should_raise_on_no_interval(self, invalid_config):
         with pytest.raises(NoOptionError):
-            JobDescriptor.from_config_section(self.config, 'job_one')
+            JobDescriptor.from_config_section(invalid_config, 'job_one')
 
-    def test_should_raise_on_zero_interval(self):
+    def test_should_raise_on_zero_interval(self, invalid_config):
         with pytest.raises(ValueError):
-            JobDescriptor.from_config_section(self.config, 'job_two')
+            JobDescriptor.from_config_section(invalid_config, 'job_two')
 
-    def test_should_raise_on_negative_interval(self):
+    def test_should_raise_on_negative_interval(self, invalid_config):
         with pytest.raises(ValueError):
-            JobDescriptor.from_config_section(self.config, 'job_negative')
+            JobDescriptor.from_config_section(invalid_config, 'job_negative')
 
-    def test_should_raise_on_no_plugins(self):
+    def test_should_raise_on_no_plugins(self, invalid_config):
         with pytest.raises(NoOptionError):
-            JobDescriptor.from_config_section(self.config, 'job_noplugins')
+            JobDescriptor.from_config_section(invalid_config, 'job_noplugins')
 
-    def test_should_raise_on_empty_plugins(self):
+    def test_should_raise_on_empty_plugins(self, invalid_config):
         with pytest.raises(ValueError):
-            JobDescriptor.from_config_section(self.config, 'job_emptyplugins')
+            JobDescriptor.from_config_section(invalid_config, 'job_emptyplugins')

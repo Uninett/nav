@@ -20,10 +20,9 @@ import unittest
 from nav.ipdevpoll import descrparsers
 
 
-class NtnuConventionTest(unittest.TestCase):
+class TestNtnuConvention(object):
 
-    def setUp(self):
-        self.sysname = 'foo-sw'
+    sysname = 'foo-sw'
 
     def test_lan(self):
         d = descrparsers.parse_ntnu_convention(
@@ -124,7 +123,7 @@ class NtnuConventionTest(unittest.TestCase):
         assert d is None
 
 
-class UninettConventionTest(unittest.TestCase):
+class TestUninettConvention(object):
     def test_simple(self):
         d = descrparsers.parse_uninett_convention(
             'foo-sw', 'lokal link, uninett-gw.teknobyen-gw2')
@@ -135,6 +134,3 @@ class UninettConventionTest(unittest.TestCase):
         d = descrparsers.parse_uninett_convention(
             'foo-sw', 'KX182')
         assert d is None
-
-if __name__ == '__main__':
-        unittest.main()

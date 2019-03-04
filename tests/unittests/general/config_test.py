@@ -14,7 +14,7 @@
 #
 
 from __future__ import unicode_literals
-import unittest
+import pytest
 try:
     from io import StringIO
 except ImportError:
@@ -23,44 +23,47 @@ except ImportError:
 from nav import config
 
 
-class ConfigTestCase(unittest.TestCase):
-    def setUp(self):
-        mockfile = StringIO("".join([
-            '# mock config file\n',
-            'foo1=bar1\n',
-            'foo2 =  bar2  \n',
-            '#foo3=invalid\n',
-            'foo4 = bar4 # comment\n',
-            '# eof',
-            ]))
-        self.mockfile = mockfile
+@pytest.fixture
+def mockfile():
+    return StringIO("".join([
+        '# mock config file\n',
+        'foo1=bar1\n',
+        'foo2 =  bar2  \n',
+        '#foo3=invalid\n',
+        'foo4 = bar4 # comment\n',
+        '# eof',
+    ]))
 
-        mockinifile = StringIO("".join([
-            '# mock config file\n',
-            '[section1]\n',
-            'foo1=bar1\n',
-            'foo2 =  bar2  \n',
-            '[section2] \n',
-            '#foo3=invalid\n',
-            'foo4 = bar4 \n',
-            '# eof',
-         ]))
-        self.mockinifile = mockinifile
 
-    def test_read_flat_config(self):
-        values = config.read_flat_config(self.mockfile)
-        assert values['foo1'] == 'bar1'
-        assert values['foo2'] == 'bar2'
-        assert values['foo4'] == 'bar4'
-        assert 'foo3' not in values
+@pytest.fixture
+def mockinifile():
+    return StringIO("".join([
+        '# mock config file\n',
+        '[section1]\n',
+        'foo1=bar1\n',
+        'foo2 =  bar2  \n',
+        '[section2] \n',
+        '#foo3=invalid\n',
+        'foo4 = bar4 \n',
+        '# eof',
+    ]))
 
-    def test_getconfig(self):
-        values = config.getconfig(self.mockinifile)
-        assert 2 == len(values.keys())
-        assert 'section1' in values
-        assert 'section2' in values
 
-        assert values['section1']['foo1'] == 'bar1'
-        assert values['section1']['foo2'] == 'bar2'
-        assert values['section2']['foo4'] == 'bar4'
-        assert 'foo3' not in values['section2']
+def test_read_flat_config(mockfile):
+    values = config.read_flat_config(mockfile)
+    assert values['foo1'] == 'bar1'
+    assert values['foo2'] == 'bar2'
+    assert values['foo4'] == 'bar4'
+    assert 'foo3' not in values
+
+
+def test_getconfig(mockinifile):
+    values = config.getconfig(mockinifile)
+    assert 2 == len(values.keys())
+    assert 'section1' in values
+    assert 'section2' in values
+
+    assert values['section1']['foo1'] == 'bar1'
+    assert values['section1']['foo2'] == 'bar2'
+    assert values['section2']['foo4'] == 'bar4'
+    assert 'foo3' not in values['section2']

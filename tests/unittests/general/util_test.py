@@ -12,8 +12,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-import unittest
-
 import pytest
 
 from nav import util
@@ -21,18 +19,17 @@ from nav.util import IPRange
 from IPy import IP
 
 
-class UtilTestCase(unittest.TestCase):
-    """Test various functions in the util module"""
-    def setUp(self):
-        self.gradient_start = 0
-        self.gradient_stop = 952
-        self.gradient_steps = 20
-        self.gradient = util.gradient(self.gradient_start,
-                                      self.gradient_stop,
-                                      self.gradient_steps)
-        self.reverse_gradient = util.gradient(self.gradient_stop,
-                                              self.gradient_start,
-                                              self.gradient_steps)
+class TestGradient(object):
+    """ tests for the gradient function """
+    gradient_start = 0
+    gradient_stop = 952
+    gradient_steps = 20
+    gradient = util.gradient(gradient_start,
+                             gradient_stop,
+                             gradient_steps)
+    reverse_gradient = util.gradient(gradient_stop,
+                                     gradient_start,
+                                     gradient_steps)
 
     def test_gradient_size(self):
         assert self.gradient_steps == len(self.gradient)
@@ -49,22 +46,24 @@ class UtilTestCase(unittest.TestCase):
         ordered.reverse()
         assert ordered == self.reverse_gradient
 
-    def test_colortohex(self):
-        assert 'ea702a' == util.colortohex((234, 112, 42))
 
-    def test_is_valid_ip(self):
-        valid_ips = ['129.241.75.1', '10.0.25.62', '2001:700:1::abcd',
-                     'fe80::baad']
-        invalid_ips = ['www.uninett.no', '92835235', '5:4', '-5325']
-
-        for ip in valid_ips:
-            assert util.is_valid_ip(ip), "%s should be valid" % ip
-
-        for ip in invalid_ips:
-            assert not util.is_valid_ip(ip), "%s should be invalid" % ip
+def test_colortohex():
+    assert 'ea702a' == util.colortohex((234, 112, 42))
 
 
-class IPRangeTests(unittest.TestCase):
+def test_is_valid_ip():
+    valid_ips = ['129.241.75.1', '10.0.25.62', '2001:700:1::abcd',
+                 'fe80::baad']
+    invalid_ips = ['www.uninett.no', '92835235', '5:4', '-5325']
+
+    for ip in valid_ips:
+        assert util.is_valid_ip(ip), "%s should be valid" % ip
+
+    for ip in invalid_ips:
+        assert not util.is_valid_ip(ip), "%s should be invalid" % ip
+
+
+class TestIPRange(object):
     def test_ipv4_range_length_should_be_correct(self):
         i = IPRange(IP('10.0.42.0'), IP('10.0.42.127'))
         assert len(i) == 128
@@ -88,7 +87,7 @@ class IPRangeTests(unittest.TestCase):
             i[-129]
 
 
-class IPRangeStringTests(unittest.TestCase):
+class TestIPRangeString(object):
     def test_simple_ipv4_range_should_parse(self):
         i = IPRange.from_string('10.0.42.0-10.0.42.63')
         assert i[0] == IP('10.0.42.0')

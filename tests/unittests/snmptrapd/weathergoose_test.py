@@ -5,17 +5,9 @@ import pytest
 from nav.snmptrapd.handlers import weathergoose as wg
 
 
-class WeatherGooseMockedDb(TestCase):
-    def setUp(self):
-        self.getConnection = patch('nav.snmptrapd.handlers.weathergoose'
-                                   '.getConnection')
-        self.getConnection.start()
-
-    def tearDown(self):
-        self.getConnection.stop()
-
-
-class WeatherGoose1ClassTest(WeatherGooseMockedDb):
+@patch('nav.snmptrapd.handlers.weathergoose.getConnection',
+       new=Mock())
+class TestWeatherGoose1Class(object):
     def test_should_not_handle_a_weathergoose2_trap(self):
         assert not (
             wg.WeatherGoose1.can_handle('.1.3.6.1.4.1.17373.3.32767.0.10205'))
@@ -35,28 +27,22 @@ class WeatherGoose1ClassTest(WeatherGooseMockedDb):
             wg.WeatherGoose1(trap, None, None, None)
 
 
-class WeatherGoose1TrapTest(WeatherGooseMockedDb):
-    def setUp(self):
-        super(WeatherGoose1TrapTest, self).setUp()
-        trap = Mock(snmpTrapOID='.1.3.6.1.4.1.17373.0.10205')
-        TRIP_TYPE_HIGH = 2
-        self.goosename = 'cleese'
-        self.temperature = 32
-        trap.varbinds = {'.1.3.6.1.4.1.17373.2.1.6': TRIP_TYPE_HIGH,
-                         '.1.3.6.1.4.1.17373.2.2.1.3.1': self.goosename,
-                         '.1.3.6.1.4.1.17373.2.2.1.5.1': self.temperature}
-        self.trap = trap
+class Event(dict):
+    def post(self):
+        pass
 
-        class Event(dict):
-            def post(self):
-                pass
 
-        self.event = patch('nav.event.Event', side_effect=Event)
-        self.event.start()
-
-    def tearDown(self):
-        super(WeatherGoose1TrapTest, self).tearDown()
-        self.event.stop()
+@patch('nav.snmptrapd.handlers.weathergoose.getConnection',
+       new=Mock())
+@patch('nav.event.Event', new=Mock(side_effect=Event))
+class TestWeatherGoose1Trap(object):
+    trap = Mock(snmpTrapOID='.1.3.6.1.4.1.17373.0.10205')
+    TRIP_TYPE_HIGH = 2
+    goosename = 'cleese'
+    temperature = 32
+    trap.varbinds = {'.1.3.6.1.4.1.17373.2.1.6': TRIP_TYPE_HIGH,
+                     '.1.3.6.1.4.1.17373.2.2.1.3.1': goosename,
+                     '.1.3.6.1.4.1.17373.2.2.1.5.1': temperature}
 
     def test_init_should_parse_trap_without_error(self):
         assert wg.WeatherGoose1(self.trap, None, None, None)
@@ -86,7 +72,9 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
         assert goose._get_sensorname() == 'cleese'
 
 
-class WeatherGoose2Test(WeatherGooseMockedDb):
+@patch('nav.snmptrapd.handlers.weathergoose.getConnection',
+       new=Mock())
+class TestWeatherGoose2(object):
     def test_should_not_handle_a_weathergoose1_trap(self):
         assert not (
             wg.WeatherGoose2.can_handle('.1.3.6.1.4.1.17373.0.10205'))
@@ -184,7 +172,9 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
         assert goose.goosename == 'SuperGoose II'
 
 
-class GeistWeatherGooseTest(WeatherGooseMockedDb):
+@patch('nav.snmptrapd.handlers.weathergoose.getConnection',
+       new=Mock())
+class TestGeistWeatherGoose(object):
     def test_should_handle_a_geist_weathergoose_trap(self):
         assert wg.GeistWeatherGoose.can_handle(
             '.1.3.6.1.4.1.21239.2.32767.0.10205')
