@@ -21,8 +21,4 @@ default_app_config = 'nav.auditlog.apps.AuditlogConfig'
 
 
 def find_modelname(obj):
-    try:
-        # Django <= 1.7.*
-        return obj._meta.db_table
-    except AttributeError:
-        return obj
+    return obj._meta.db_table
