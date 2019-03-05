@@ -7,13 +7,13 @@ module.exports = function (config) {
         reporters: ['dots', 'coverage', 'junit'],
         coverageReporter: {
           type : 'cobertura',
-          dir : '../../../reports/javascript/coverage/'
+          dir : '../../../../../reports/javascript/coverage/'
         },
-	junitReporter: {
-	    outputDir: '../../../reports/javascript',
-	    outputFile: 'javascript-results.xml',
-            suite: ''
-	},
+        junitReporter: {
+            outputDir: '../../../../../reports/javascript',
+            outputFile: 'javascript-results.xml',
+                suite: ''
+        },
         browsers:      ['ChromeNoSandbox', 'Firefox', 'PhantomJS'],
         autoWatch:      false,
         singleRun: true,
