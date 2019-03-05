@@ -1,12 +1,16 @@
 from nav.models.manage import Netbox
 from nav.models.manage import Vlan
-from mock import patch
+from mock import Mock, patch
 import types
 
 from nav.web import l2trace
 from nav.tests.cases import DjangoTransactionTestCase
 
 
+@patch('nav.web.l2trace.Host.get_host_by_name',
+       new=Mock(return_value=None))
+@patch('nav.web.l2trace.Host.get_host_by_addr',
+       new=Mock(return_value=None))
 class L2TraceTestCase(DjangoTransactionTestCase):
     fixtures = ['l2trace_fixture.xml']
 
@@ -14,21 +18,11 @@ class L2TraceTestCase(DjangoTransactionTestCase):
         super(L2TraceTestCase, self).setUp()
         # Mock the DNS lookup methods; none of the test addresses will
         # resolve, they will just cause the tests to take a long time
-        self.get_host_by_name = patch('nav.web.l2trace.Host.get_host_by_name',
-                                      return_value=None)
-        self.get_host_by_addr = patch('nav.web.l2trace.Host.get_host_by_addr',
-                                      return_value=None)
-        self.get_host_by_name.start()
-        self.get_host_by_addr.start()
 
         self.foo_sw1 = Netbox.objects.get(sysname='foo-sw1.example.org')
         self.foo_gw = Netbox.objects.get(sysname='foo-gw.example.org')
         self.employee_vlan = Vlan.objects.get(net_ident='employeevlan')
         self.admin_vlan = Vlan.objects.get(net_ident='adminvlan')
-
-    def tearDown(self):
-        self.get_host_by_name.stop()
-        self.get_host_by_addr.stop()
 
 
 class GetVlanFromThingsTest(L2TraceTestCase):
