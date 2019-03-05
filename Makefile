@@ -8,5 +8,8 @@ clean:
 	find . -name "*.pyc" -print0 | xargs -0 rm -rf
 	find . -name "*.egg-info" -print0 | xargs -0 rm -rf
 
-bigclean: clean
+testclean: clean
+	rm core
+	rm nav.snmptrapd.handlers.weathergoose1.stats
+	rm python/nav/web/static/js/package-lock.json
 	rm -rf .tox
