@@ -73,6 +73,11 @@ recent versions of Django - we expect to land on Django 1.11, which is the last
 long-term support release of Django 1. Django 2 drops support for Python 2, as
 will NAV.
 
+NAV 4.9.4 will require this new dependency for them IPAM subnet suggest
+function to work also for IPv6:
+
+* :mod:`py2-ipaddress` must be version 3.4.1
+
 
 Upgraded dependencies
 ~~~~~~~~~~~~~~~~~~~~~

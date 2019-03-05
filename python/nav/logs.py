@@ -183,13 +183,8 @@ def init_stderr_logging(formatter=None, rootlogger=''):
     to sys.stderr.
 
     """
-    set_log_config()
-
-    handler = logging.StreamHandler(sys.stderr)
-    formatter = formatter or DEFAULT_LOG_FORMATTER
-    handler.setFormatter(formatter)
-    root = logging.getLogger(rootlogger)
-    root.addHandler(handler)
+    init_generic_logging(formatter=formatter, read_config=True,
+                         rootlogger=rootlogger)
 
 
 def init_generic_logging(logfile=None, stderr=True, stdout=False,
@@ -198,6 +193,9 @@ def init_generic_logging(logfile=None, stderr=True, stdout=False,
     """Setup logging
 
     Attempts to cover all the possible existing ways of setting up logging"""
+
+    if 'TIME_ZONE' in NAV_CONFIG:
+        os.environ['TZ'] = NAV_CONFIG['TIME_ZONE']
 
     root = logging.getLogger(rootlogger)
 

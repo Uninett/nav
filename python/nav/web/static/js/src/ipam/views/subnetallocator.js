@@ -290,7 +290,6 @@ define(function(require, exports, module) {
       if (!(sizeOfNetwork && prefix)) {
         return;
       }
-      var url = "/ipam/api/suggest/?size=" + sizeOfNetwork + "&prefix=" + prefix;
       var optionTemplate = _.template("<%= prefix %> (<%= start%>-<%= end %>)");
       var pageSize = 10;
       selectElem.select2({
@@ -301,7 +300,7 @@ define(function(require, exports, module) {
           data: function(term, page) {
             return {
               n: pageSize,
-              size: sizeOfNetwork,
+              prefixlen: sizeOfNetwork,
               prefix: prefix,
               offset: pageSize * (page - 1)
             };
