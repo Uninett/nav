@@ -58,3 +58,11 @@ class TestPwHash(object):
         hash = pwhash.Hash()
         with pytest.raises(pwhash.InvalidHashStringError):
             hash.set_hash('badc0ffee')
+
+    def test_verifyable_hash(self):
+        password = 'foobar'
+        hash = pwhash.Hash(password=password)
+        hashed = str(hash)
+        hash2 = pwhash.Hash()
+        hash2.set_hash(hashed)
+        assert hash2.verify(password)

@@ -54,7 +54,7 @@ def generate_salt():
         raw_salt = "".join([chr(x) for x in
                             [random.randint(0, 255) for x in range(saltlen)]])
 
-    return base64.b64encode(raw_salt).strip()
+    return base64.b64encode(raw_salt).strip().decode('ASCII')
 
 
 class Hash(object):
