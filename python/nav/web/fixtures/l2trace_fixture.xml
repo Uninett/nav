@@ -6,37 +6,15 @@
     <object pk="testroom" model="models.room">
         <field to="models.location" name="location" rel="ManyToOneRel">somewhere</field>
         <field type="CharField" name="description"></field>
-        <field type="CharField" name="optional_1"></field>
-        <field type="CharField" name="optional_2"></field>
-        <field type="CharField" name="optional_3"></field>
-        <field type="CharField" name="optional_4"></field>
-    </object>
-    <object pk="1" model="models.device">
-        <field type="CharField" name="serial">test_router1</field>
-        <field type="CharField" name="hardware_version"><None></None></field>
-        <field type="CharField" name="firmware_version"><None></None></field>
-        <field type="CharField" name="software_version"><None></None></field>
-        <field type="DateTimeField" name="discovered">2010-10-06 11:40:36</field>
-    </object>
-    <object pk="2" model="models.device">
-        <field type="CharField" name="serial">test_switch1</field>
-        <field type="CharField" name="hardware_version"><None></None></field>
-        <field type="CharField" name="firmware_version"><None></None></field>
-        <field type="CharField" name="software_version"><None></None></field>
-        <field type="DateTimeField" name="discovered">2010-10-06 11:40:36</field>
     </object>
     <object pk="testorg" model="models.organization">
         <field to="models.organization" name="parent" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="description"></field>
-        <field type="CharField" name="optional_1"></field>
-        <field type="CharField" name="optional_2"></field>
-        <field type="CharField" name="optional_3"></field>
     </object>
     <object pk="1" model="models.netbox">
         <field type="IPAddressField" name="ip">10.0.0.1</field>
         <field to="models.room" name="room" rel="ManyToOneRel">testroom</field>
         <field to="models.netboxtype" name="type" rel="ManyToOneRel"><None></None></field>
-        <field to="models.device" name="device" rel="ManyToOneRel">1</field>
         <field type="CharField" name="sysname">foo-gw.example.org</field>
         <field to="models.category" name="category" rel="ManyToOneRel">GSW</field>
         <field to="models.organization" name="organization" rel="ManyToOneRel">testorg</field>
@@ -52,7 +30,6 @@
         <field type="IPAddressField" name="ip">10.0.0.11</field>
         <field to="models.room" name="room" rel="ManyToOneRel">testroom</field>
         <field to="models.netboxtype" name="type" rel="ManyToOneRel"><None></None></field>
-        <field to="models.device" name="device" rel="ManyToOneRel">2</field>
         <field type="CharField" name="sysname">foo-sw1.example.org</field>
         <field to="models.category" name="category" rel="ManyToOneRel">SW</field>
         <field to="models.organization" name="organization" rel="ManyToOneRel">testorg</field>

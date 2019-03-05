@@ -19,14 +19,13 @@
 from __future__ import print_function
 
 import types
-import unittest
 
 import pytest
 
 from nav.smsd import dispatcher
 
 
-class DispatcherHandlerTest(unittest.TestCase):
+class TestDispatcherHandler(object):
     """Tests for the DispatcherHandler class.
 
     Uses a subclass of the DispatcherHandler to provide a fake
@@ -34,13 +33,12 @@ class DispatcherHandlerTest(unittest.TestCase):
     module/class that will cooperate with this unit test.
 
     """
-    def setUp(self):
-        self.config = {
-            'main': {'exit_on_permanent_error': 'yes'},
-            'dispatcher': {'dispatcherretry': '30',
-                           'dispatcher1': 'FakeDispatcher'},
-            'FakeDispatcher': {}
-            }
+    config = {
+        'main': {'exit_on_permanent_error': 'yes'},
+        'dispatcher': {'dispatcherretry': '30',
+                       'dispatcher1': 'FakeDispatcher'},
+        'FakeDispatcher': {}
+    }
 
     def test_init_with_simple_config(self):
         assert FakeDispatcherHandler(self.config)
@@ -80,8 +78,3 @@ class FakeDispatcher(object):
         elif phone == 'unhandled':
             raise Exception('This exception should be unknown')
         return (None, 1, 0, 1, 1)
-
-
-# Run all tests if run as a program
-if __name__ == '__main__':
-    unittest.main()

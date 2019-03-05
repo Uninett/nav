@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from unittest import TestCase
-from mock import patch, Mock
+from mock import patch, MagicMock, Mock
 from django.utils import six
 
 import pytest
@@ -8,68 +7,45 @@ import pytest
 import nav.web.ldapauth
 from nav.web import auth
 
+LDAP_ACCOUNT = auth.Account(login='knight', ext_sync='ldap',
+                            password='shrubbery')
+PLAIN_ACCOUNT = auth.Account(login='knight', password='shrubbery')
 
-class LdapAuthenticateTest(TestCase):
-    def setUp(self):
-        self.ldap_available = nav.web.ldapauth.available
-        nav.web.ldapauth.available = True
 
-        self.patched_save = patch("nav.web.auth.Account.save",
-                                  return_value=True)
-        self.patched_save.start()
-
-        self.mock_account = auth.Account(login='knight', ext_sync='ldap',
-                                         password='shrubbery')
-        self.patched_get = patch("nav.web.auth.Account.objects.get",
-                                 return_value=self.mock_account)
-        self.patched_get.start()
-
-    def tearDown(self):
-        nav.web.ldapauth.available = self.ldap_available
-        self.patched_save.stop()
-        self.patched_get.stop()
-
+@patch("nav.web.auth.Account.save", new=MagicMock(return_value=True))
+@patch("nav.web.auth.Account.objects.get",
+       new=MagicMock(return_value=LDAP_ACCOUNT))
+class TestLdapAuthenticate(object):
     def test_authenticate_should_return_account_when_ldap_says_yes(self):
-        with patch("nav.web.ldapauth.authenticate", return_value=True):
-            assert auth.authenticate('knight', 'shrubbery') == self.mock_account
+        with patch("nav.web.ldapauth.available", new=True):
+            with patch("nav.web.ldapauth.authenticate", return_value=True):
+                assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
 
     def test_authenticate_should_return_false_when_ldap_says_no(self):
-        with patch("nav.web.ldapauth.authenticate", return_value=False):
-            assert not auth.authenticate('knight', 'shrubbery')
+        with patch("nav.web.ldapauth.available", new=True):
+            with patch("nav.web.ldapauth.authenticate", return_value=False):
+                assert not auth.authenticate('knight', 'shrubbery')
 
     def test_authenticate_should_fallback_when_ldap_is_disabled(self):
-        nav.web.ldapauth.available = False
-        assert auth.authenticate('knight', 'shrubbery') == self.mock_account
+        with patch("nav.web.ldapauth.available", new=False):
+            assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
 
 
-class NormalAuthenticateTest(TestCase):
-    def setUp(self):
-        self.ldap_available = nav.web.ldapauth.available
-        nav.web.ldapauth.available = False
-        self.patched_save = patch("nav.web.auth.Account.save",
-                                  return_value=True)
-        self.patched_save.start()
-
-        self.mock_account = auth.Account(login='knight', password='shrubbery')
-        self.patched_get = patch("nav.web.auth.Account.objects.get",
-                                 return_value=self.mock_account)
-        self.patched_get.start()
-
-    def tearDown(self):
-        nav.web.ldapauth.available = self.ldap_available
-        self.patched_save.stop()
-        self.patched_get.stop()
-
+@patch("nav.web.auth.Account.save", new=MagicMock(return_value=True))
+@patch("nav.web.auth.Account.objects.get",
+       new=MagicMock(return_value=PLAIN_ACCOUNT))
+@patch("nav.web.ldapauth.available", new=False)
+class TestNormalAuthenticate(object):
     def test_authenticate_should_return_account_when_password_is_ok(self):
         with patch("nav.web.auth.Account.check_password", return_value=True):
-            assert auth.authenticate('knight', 'shrubbery') == self.mock_account
+            assert auth.authenticate('knight', 'shrubbery') == PLAIN_ACCOUNT
 
     def test_authenticate_should_return_false_when_ldap_says_no(self):
         with patch("nav.web.auth.Account.check_password", return_value=False):
             assert not auth.authenticate('knight', 'rabbit')
 
 
-class LdapUserTestCase(TestCase):
+class TestLdapUser(object):
     @patch.dict("nav.web.ldapauth._config._sections",
                 {'ldap': {'__name__': 'ldap',
                           'basedn': 'empty',

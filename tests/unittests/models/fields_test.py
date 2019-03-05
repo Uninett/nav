@@ -3,11 +3,9 @@
 from datetime import datetime as dt
 from decimal import Decimal
 import pickle
-from unittest import TestCase
 
 from django.core import exceptions
 from django.db import connection
-from django.db.models import DateTimeField
 
 import pytest
 
@@ -18,7 +16,7 @@ from nav.models.fields import LegacyGenericForeignKey
 from nav.models.fields import PointField
 
 
-class CIDRFieldTestCase(TestCase):
+class TestCIDRField(object):
 
     def test_to_python_empty(self):
         falsey = (None, u'', 0, False, [], {}, set(), 0.0)
@@ -59,7 +57,7 @@ class CIDRFieldTestCase(TestCase):
                 field.to_python(value)
 
 
-class DateTimeInfinityFieldTestCase(TestCase):
+class TestDateTimeInfinityField(object):
 
     def test_get_db_prep_value_infinity(self):
         field = DateTimeInfinityField()
@@ -93,7 +91,7 @@ class DateTimeInfinityFieldTestCase(TestCase):
         assert result == expected
 
 
-class DictAsJsonFieldTest(TestCase):
+class TestDictAsJsonField(object):
 
     def test_to_python_dict(self):
         field = DictAsJsonField()
@@ -131,7 +129,7 @@ class DictAsJsonFieldTest(TestCase):
         assert result == u'{"a": "b"}'
 
 
-class LegacyGenericForeignKeyTest(TestCase):
+class TestLegacyGenericForeignKey(object):
 
     def test_get_model_class_unknown_model(self):
         mc = LegacyGenericForeignKey.get_model_class('doesnotexistindb')
@@ -143,7 +141,7 @@ class LegacyGenericForeignKeyTest(TestCase):
         assert bool(mc)
 
 
-class PointFieldTest(TestCase):
+class TestPointField(object):
     def test_to_python_from_string(self):
         expected_point = (Decimal("1.2"), Decimal("3.4"))
         point_string = "(1.2, 3.4)"

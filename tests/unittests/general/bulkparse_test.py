@@ -2,16 +2,13 @@
 
 # pylint: disable=C0111, C0103, W0614
 
-from io import BytesIO
-from unittest import TestCase
-
 import pytest
 from django.utils import six
 
 from nav import bulkparse
 
 
-class TestBulkParser(TestCase):
+class TestBulkParser(object):
     def test_init(self):
         data = b"room1:10.0.0.186:myorg:OTHER::parrot::"
         b = bulkparse.BulkParser(data)
@@ -37,7 +34,7 @@ class TestBulkParser(TestCase):
             self.fail("No exception raised")
 
 
-class TestNetboxBulkParser(TestCase):
+class TestNetboxBulkParser(object):
     def test_parse_returns_iterator(self):
         data = b"room1:10.0.0.186:myorg:OTHER::parrot::"
         b = bulkparse.NetboxBulkParser(data)
@@ -109,7 +106,7 @@ class TestNetboxBulkParser(TestCase):
             self.fail("No exception raised")
 
 
-class TestUsageBulkParser(TestCase):
+class TestUsageBulkParser(object):
     def test_get_header(self):
         assert (
             bulkparse.UsageBulkParser.get_header() ==
@@ -122,7 +119,7 @@ class TestUsageBulkParser(TestCase):
         assert first_row['usageid'] == 'sby'
 
 
-class TestPrefixBulkParser(TestCase):
+class TestPrefixBulkParser(object):
     def test_invalid_prefix_should_raise_error(self):
         data = b"10.0.0.x/3f:scope"
         b = bulkparse.PrefixBulkParser(data)
@@ -135,7 +132,7 @@ class TestPrefixBulkParser(TestCase):
         assert (six.next(b))
 
 
-class TestServiceBulkParser(TestCase):
+class TestServiceBulkParser(object):
     def test_invalid_service_arguments_should_raise_error(self):
         data = b"host.example.org;http;port80"
         b = bulkparse.ServiceBulkParser(data)
@@ -148,7 +145,7 @@ class TestServiceBulkParser(TestCase):
         assert (six.next(b))
 
 
-class TestCommentStripper(TestCase):
+class TestCommentStripper(object):
     def test_leading_comment_should_be_stripped(self):
         data = iter(['#leadingcomment\n', 'something\n'])
         stripper = bulkparse.CommentStripper(data)
@@ -162,7 +159,7 @@ class TestCommentStripper(TestCase):
         assert six.next(stripper) == 'otherdata\n'
 
 
-class TestHeaderGenerator(TestCase):
+class TestHeaderGenerator(object):
     def test_simple(self):
         class C(bulkparse.BulkParser):
             format = ('one', 'two', 'three')

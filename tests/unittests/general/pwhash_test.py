@@ -12,14 +12,13 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-import unittest
 
 import pytest
 
 from nav import pwhash
 
 
-class PwHashTestCase(unittest.TestCase):
+class TestPwHash(object):
     """Tests for nav.pwhash.Hash class"""
 
     def test_methods_are_callable(self):
@@ -59,3 +58,11 @@ class PwHashTestCase(unittest.TestCase):
         hash = pwhash.Hash()
         with pytest.raises(pwhash.InvalidHashStringError):
             hash.set_hash('badc0ffee')
+
+    def test_verifyable_hash(self):
+        password = 'foobar'
+        hash = pwhash.Hash(password=password)
+        hashed = str(hash)
+        hash2 = pwhash.Hash()
+        hash2.set_hash(hashed)
+        assert hash2.verify(password)
