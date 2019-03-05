@@ -36,6 +36,8 @@ import warnings
 import logging
 from django.utils.six.moves import http_cookies
 
+from nav.bootstrap import bootstrap_django
+
 from django.contrib.sessions.middleware import SessionMiddleware
 from nav.django.auth import AuthenticationMiddleware, AuthorizationMiddleware
 from nav.web import loginit
@@ -91,6 +93,7 @@ def _get_cookie_dict(req):
 # this module.
 #
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+bootstrap_django()
 
 loginit()
 _logger = logging.getLogger(__name__)
