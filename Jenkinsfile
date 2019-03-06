@@ -4,16 +4,18 @@
  * Jenkins.
 */
 def lastStage = ''
-def requirementsChanged = false
+def rebuildToxEnvirons = false
 node {
   setDisplayNameIfPullRequest()
 
   stage("Checkout") {
       lastStage = env.STAGE_NAME
       def scmVars = checkout scm
-      requirementsChanged = sh(
-                               returnStatus: true,
-                               script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} | egrep '^(tests/)?requirements.*txt\$'") == 0
+
+      def commit = getRealCommitID()
+      echo "The REAL commit ID of this potential PR is ${commit}"
+      writeFile file: '.current-commit', text: commit
+      rebuildToxEnvirons = shouldRebuildToxEnvirons()
   }
 
   try {
@@ -31,8 +33,8 @@ node {
             sh "env"  // debug print environment
             sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
             sh "rm -rf ${WORKSPACE}/reports/*"  // remove old, potentially stale reports
-            if (requirementsChanged) {
-              echo '============================= Some requirements files changed, recreating tox environments ============================='
+            if (rebuildToxEnvirons) {
+              echo '============================= Recreating tox environments ============================='
               sh "tox --recreate --notest"
             }
         }
@@ -97,6 +99,9 @@ node {
         }
     }
 
+    // If we got this far, we were successful and can make a note of the commit ID
+    sh "mv -f .current-commit .successful-commit"
+
 } catch (e) {
     currentBuild.result = "FAILED"
     echo "Build FAILED set status ${currentBuild.result} in ${lastStage}"
@@ -113,8 +118,15 @@ node {
     notifyBuild(currentBuild.result, lastStage)
 
   }
-}
+} // node
 
+
+/*********************************************************************
+ *                                                                   *
+ * Helper functions (which should probably be moved into a library)  *
+ *                                                                   *
+ *********************************************************************
+ */
 
 
 def notifyBuild(String buildStatus = 'STARTED', lastStage = 'N/A') {
@@ -183,6 +195,76 @@ def getTitle(json) {
     def slurper = new groovy.json.JsonSlurper()
     def jsonObject = slurper.parseText(json.content)
     return jsonObject.title
+}
+
+
+def isMerge() {
+  return sh(
+    returnStatus: true,
+    script:"git show HEAD | grep -q '^Merge:'"
+  ) == 0
+}
+
+def isAuthoredByJenkins() {
+  return sh(
+    returnStatus: true,
+    script: "git show HEAD | grep -q '^Author:.*Jenkins'"
+  ) == 0
+}
+
+def getFirstParent() {
+  return sh (
+    returnStdout: true,
+    script: "git rev-parse 'HEAD^'"
+  ).trim()
+}
+
+def getRealCommitID() {
+  if (isMerge() && isAuthoredByJenkins()) {
+      echo "This appears to be a PR headed by a Jenkins merge"
+      return getFirstParent()
+  } else {
+    return sh(
+      returnStdout: true,
+      script: 'git rev-parse HEAD'
+    ).trim()
+  }
+}
+
+def getPreviouslySuccessfulCommitID() {
+  if (fileExists('.successful-commit')) {
+    return readFile('.successful-commit').trim()
+  } else {
+    return null
+  }
+}
+
+def gitCommitIDIsValid(commit) {
+  return sh(
+    returnStatus: true,
+    script: "git log -1 ${commit}"
+  ) == 0
+}
+
+def shouldRebuildToxEnvirons() {
+  def previous = getPreviouslySuccessfulCommitID()
+  if (!previous) {
+    echo 'No previous successful runs of this job detected, tox environments should be recreated'
+    return true
+  } else if (!gitCommitIDIsValid(previous)) {
+    echo 'The previous successful build was ${previous}, but this no longer exists. Perhaps this is a force-pushed branch? Tox environments should be recreated'
+    return true
+  }
+
+  def current = getRealCommitID()
+  def requirementsChanged = sh(
+     returnStatus: true,
+     script: "git diff --name-only ${previous} ${current} | egrep '^(tests/)?requirements.*txt\$'"
+  ) == 0
+  if (requirementsChanged) {
+    echo 'Some requirements files changed, tox environments should be recreated'
+  }
+  return requirementsChanged
 }
 
 // Local Variables:
