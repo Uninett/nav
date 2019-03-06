@@ -38,7 +38,7 @@ load-plugins=
 # R0924: Badly implemented Container
 # R0903: Too Few Public methods - just annoyingly common and not a problem
 # C0330: bad continuation - doesn't work with our style guide.
-disable=W0142,W0232,R0924,R0903,C0330,no-else-return
+disable=W0142,W0232,R0924,R0903,C0330,no-else-return,inconsistent-return-statements,useless-object-inheritance
 
 
 [REPORTS]
