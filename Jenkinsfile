@@ -35,7 +35,7 @@ node {
             sh "rm -rf ${WORKSPACE}/reports/*"  // remove old, potentially stale reports
             if (rebuildToxEnvirons) {
               echo '============================= Recreating tox environments ============================='
-              sh "tox --recreate --notest"
+              sh "tox -vv --recreate --notest"
             }
         }
 
