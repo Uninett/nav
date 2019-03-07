@@ -56,8 +56,8 @@ node {
                                               parserName: 'PYLint',
                                                 pattern   : 'reports/pylint.txt'
                                             ]],
-                unstableTotalAll           : '1680',
-                failedTotalAll             : '1730',
+                unstableTotalAll           : '1770',
+                failedTotalAll             : '1800',
                 usePreviousBuildAsReference: true
             ])
         }
