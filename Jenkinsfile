@@ -4,16 +4,12 @@
  * Jenkins.
 */
 def lastStage = ''
-def requirementsChanged = false
 node {
   setDisplayNameIfPullRequest()
 
   stage("Checkout") {
       lastStage = env.STAGE_NAME
       def scmVars = checkout scm
-      requirementsChanged = sh(
-                               returnStatus: true,
-                               script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} | egrep '^(tests/)?requirements.*txt\$'") == 0
   }
 
   try {
@@ -31,10 +27,6 @@ node {
             sh "env"  // debug print environment
             sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
             sh "rm -rf ${WORKSPACE}/reports/*"  // remove old, potentially stale reports
-            if (requirementsChanged) {
-              echo '============================= Some requirements files changed, recreating tox environments ============================='
-              sh "tox --recreate --notest"
-            }
         }
 
         try {
