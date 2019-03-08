@@ -45,7 +45,7 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
                 (self.a, self.c),
                 (self.c, self.d)
             ],
-            self.netmap_graph.edges()
+            list(self.netmap_graph.edges())
         )
 
     def test_layer2_create_directional_metadata_from_nav_graph(self):
@@ -63,7 +63,7 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
                 (self.a, self.c),
                 (self.c, self.d)
             ],
-            self.netmap_graph.edges()
+            list(self.netmap_graph.edges())
         )
 
         self.assertEqual(2,

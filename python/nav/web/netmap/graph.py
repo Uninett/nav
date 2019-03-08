@@ -80,7 +80,7 @@ def _json_layer2(load_traffic=False, view=None):
         'vlans': get_vlan_lookup_json(vlan_by_interface),
         'nodes': _get_nodes(node_to_json_layer2, graph),
         'links': [edge_to_json_layer2(get_edge_from_meta(meta), meta) for
-                  u, v, meta in graph.edges_iter(data=True)]
+                  u, v, meta in graph.edges(data=True)]
     }
     return result
 
@@ -105,14 +105,14 @@ def _json_layer3(load_traffic=False, view=None):
         'vlans': [vlan_to_json(prefix.vlan) for prefix in vlans_map],
         'nodes': _get_nodes(node_to_json_layer3, graph),
         'links': [edge_to_json_layer3(get_edge_from_meta(meta), meta) for
-                  u, v, meta in graph.edges_iter(data=True)]
+                  u, v, meta in graph.edges(data=True)]
     }
     return result
 
 
 def _get_nodes(node_to_json_function, graph):
     nodes = {}
-    for node, nx_metadata in graph.nodes_iter(data=True):
+    for node, nx_metadata in graph.nodes(data=True):
         nodes.update(node_to_json_function(node, nx_metadata))
     return nodes
 

@@ -139,7 +139,7 @@ def strip_down_nodes_from_graph(graph, keep=None):
     :param keep: A node to keep regardless of its current status.
 
     """
-    removable = set(node for node in graph.nodes_iter()
+    removable = set(node for node in graph.nodes()
                     if node.up != node.UP_UP and node != keep)
     graph.remove_nodes_from(removable)
     return len(removable)
@@ -156,7 +156,7 @@ def strip_down_links_from_graph(graph):
 
     removable = set(
         (u, v, key)
-        for u, v, key, data in graph.edges_iter(data=True, keys=True)
+        for u, v, key, data in graph.edges(data=True, keys=True)
         if _is_down(data)
     )
     graph.remove_edges_from(removable)
