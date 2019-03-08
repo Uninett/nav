@@ -30,6 +30,7 @@ node {
             sh "mkdir -p ${WORKSPACE}/reports"  // ensure the reports directory is actually there
         }
 
+        parallel(testing: {
         try {
             def toxEnvirons = sh(returnStdout: true,
                                  script: "tox -a tox -a | egrep '^(unit|integration|functional|javascript|docs)' | paste -sd ,").trim().split(',')
@@ -48,6 +49,7 @@ node {
             step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/*coverage.xml'])
         }
 
+        }, analysis: {
         stage("PyLint") {
             lastStage = env.STAGE_NAME
             sh "tox -e pylint"
@@ -66,6 +68,7 @@ node {
             sloccountPublish encoding: '', pattern: 'reports/cloc.xml'
         }
 
+        }) // parallel
     }
 
     stage("Publish documentation") {
