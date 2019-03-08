@@ -3,6 +3,7 @@
  * Work in tandem with tests/docker/Dockerfile & Co to run a full CI run in
  * Jenkins.
 */
+properties([disableConcurrentBuilds()])
 def lastStage = ''
 node {
   setDisplayNameIfPullRequest()
