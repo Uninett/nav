@@ -27,6 +27,7 @@ node {
             sh "env"  // debug print environment
             sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
             sh "rm -rf ${WORKSPACE}/reports/*"  // remove old, potentially stale reports
+            sh "mkdir -p ${WORKSPACE}/reports"  // ensure the reports directory is actually there
         }
 
         try {
@@ -50,16 +51,13 @@ node {
         stage("PyLint") {
             lastStage = env.STAGE_NAME
             sh "tox -e pylint"
-            step([
-                $class                     : 'WarningsPublisher',
-                parserConfigurations       : [[
-                                              parserName: 'PYLint',
-                                                pattern   : 'reports/pylint.txt'
-                                            ]],
-                unstableTotalAll           : '1770',
-                failedTotalAll             : '1800',
-                usePreviousBuildAsReference: true
-            ])
+            recordIssues      tool: pyLint(pattern: 'reports/pylint.txt'),
+                sourceCodeEncoding: 'UTF-8',
+                      qualityGates: [
+                                     [threshold: 1770, type: 'TOTAL', unstable: true],
+                                     [threshold: 1800, type: 'TOTAL', unstable: false]
+                                    ]
+
         }
 
         stage("Lines of code") {
