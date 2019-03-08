@@ -18,6 +18,18 @@ The ``--verify`` option has been removed from :program:`powersupplywatch.py`.
 All logging settings are controlled in :file:`logging.conf`, as with any
 other NAV program.
 
+Dependency changes
+------------------
+
+Upgraded dependencies
+~~~~~~~~~~~~~~~~~~~~~
+
+The version requirements have changed for these dependencies:
+
+* :mod:`feedparser` must be any version from the *5.2* series.
+* :mod:`networkx` must be any version from the *2.2* series.
+
+
 NAV 4.9
 =======
 
