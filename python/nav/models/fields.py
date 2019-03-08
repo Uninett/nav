@@ -21,21 +21,12 @@ import json
 from datetime import datetime
 from decimal import Decimal
 
-import django
 from django import forms
 from django.db import models
 from django.core import exceptions
 from django.db.models import Q
 from django.utils import six
-
-try:
-    # Django >= 1.8
-    from django.apps import apps
-    get_models = apps.get_models
-    del apps
-except ImportError:
-    # Django < 1.9
-    from django.db.models import get_models
+from django.apps import apps
 
 from nav.util import is_valid_cidr, is_valid_ip
 from nav.django import validators, forms as navforms
@@ -217,6 +208,6 @@ class LegacyGenericForeignKey(object):
     @staticmethod
     def get_model_class(table_name):
         """Returns a Model class based on a database table name"""
-        classmap = dict((m._meta.db_table, m) for m in get_models())
+        classmap = {model._meta.db_table: model for model in apps.get_models()}
         if table_name in classmap:
             return classmap[table_name]
