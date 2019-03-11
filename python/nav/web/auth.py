@@ -26,56 +26,111 @@ _logger = logging.getLogger(__name__)
 
 
 def authenticate(username, password):
-    '''Authenticate username and password against database.
-    Returns account object if user was authenticated, else None.
-    '''
-    # FIXME Log stuff?
-    auth = False
-    account = None
+    """
+    Authenticate username and password
 
-    # Try to find the account in the database. If it's not found we can try
-    # LDAP.
+    First try LDAP, if available. Then fall back to Account.
+
+    Returns account object if user was authenticated, else None.
+    """
+    account = authenticate_ldap(username, password)
+    if account:
+        return account
+    if account is False:  # An LDAP user is preferred over a db user
+        return None
+
+    account = authenticate_account(username, password)
+    if account:
+        return account
+
+    # Not authenticated
+    return None
+
+
+def authenticate_ldap(username=None, password=None):
+    """
+    Authenticate username and password against LDAP, if available
+
+    Returns account object if user was authenticated, False if the user is
+    invlid or otherwise is not allowed to log in, else None.
+    """
+    if not username and not password:
+        return None
+
+    if not ldapauth.available:
+        return None
+
+    try:
+        ldapuser = ldapauth.authenticate(username, password)
+    except ldapauth.NoAnswerError:
+        # LDAP unreachable, fallback
+        return None
+
     try:
         account = Account.objects.get(login__iexact=username)
     except Account.DoesNotExist:
-        if ldapauth.available:
-            user = ldapauth.authenticate(username, password)
-            # If we authenticated, store the user in database.
-            if user:
-                account = Account(
-                    login=user.username,
-                    name=user.get_real_name(),
-                    ext_sync='ldap'
-                )
-                account.set_password(password)
-                account.save()
-                # We're authenticated now
-                auth = True
+        # Store the ldapuser in the database and return the new account
+        if ldapuser:
+            account = Account(
+                login=ldapuser.username,
+                name=ldapuser.get_real_name(),
+                ext_sync='ldap'
+            )
+            account.set_password(password)
+            account.save()
+            _logger.info("Created user %s from LDAP", account.login)
+            return account
 
-    if account and account.locked:
-        _logger.info("Locked user %s tried to log in", account.login)
+    # From this point on we have an existing Account
 
-    if (account and
-            account.ext_sync == 'ldap' and
-            ldapauth.available and
-            not auth and
-            not account.locked):
-        try:
-            auth = ldapauth.authenticate(username, password)
-        except ldapauth.NoAnswerError:
-            # Fallback to stored password if ldap is unavailable
-            auth = False
-        else:
-            if auth:
-                account.set_password(password)
-                account.save()
-            else:
-                return
+    if ldapuser is False and account.ext_sync == 'ldap':
+        # This account is controlled by LDAP, and LDAP cannot
+        # authenticate the user
+        _logger.warn('Local database is out of sync with LDAP for user {}: '
+                    'either the password is wrong or the user is no '
+                    'longer registered in LDAP'.format(username))
+        return False
 
-    if account and not auth:
-        auth = account.check_password(password)
+    # From this point on we have an authenticated LDAPUser
 
-    if auth and account:
-        return account
-    else:
+    # Bail out! Potentially evil user
+    if account.locked:
+        _logger.info("Locked ldap user %s tried to log in", account.login)
+        # Needs auditlog
+        return False
+
+    # Sync password from ldap to local db
+    if not account.check_password(password):
+        account.set_password(password)
+        _logger.info("Synced user %s's password from LDAP", account.login)
+        account.save()
+
+    return account
+
+
+def authenticate_account(username=None, password=None):
+    """
+    Authenticate username and password against database
+
+    Returns account object if user was authenticated, False if the user is
+    invlid or otherwise is not allowed to log in, else None.
+    """
+    if not username and not password:
         return None
+
+    try:
+        account = Account.objects.get(login__iexact=username)
+    except Account.DoesNotExist:
+        return None
+
+    # Bail out! Potentially evil user
+    if account.locked:
+        _logger.info("Locked user %s tried to log in", account.login)
+        # Needs auditlog
+        return False
+
+    if account.check_password(password):
+        return account
+
+    # Password was incorrect
+    return None
