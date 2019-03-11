@@ -23,6 +23,8 @@ implementation for multiple MIBs must be implemented.
 
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
+
+from nav.Snmp import safestring
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
@@ -58,8 +60,8 @@ class Comet(MibRetriever):
             o_value = "ch%dIntVal" % channel
             value_oid = self.nodes[o_value].oid
 
-            name = yield self.get_next(o_name)
-            unit = yield self.get_next(o_unit)
+            name = yield self.get_next(o_name).addCallback(safestring)
+            unit = yield self.get_next(o_unit).addCallback(safestring)
             if not name and not unit:
                 continue
             unit = UNIT_MAP.get(unit, unit)
@@ -90,7 +92,7 @@ class Comet(MibRetriever):
             value_oid = self.nodes[o_value].oid
             alarm_oid = self.nodes[o_alarm].oid
 
-            name = yield self.get_next(o_name)
+            name = yield self.get_next(o_name).addCallback(safestring)
             value = yield self.get_next(o_value)
             if value is None:
                 self._logger.debug("Ignoring BIN input %s (%s), it has no value",
