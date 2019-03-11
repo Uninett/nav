@@ -38,6 +38,12 @@ def authenticate_account(username=None, password=None):
     except Account.DoesNotExist:
         return None
 
+    # Bail out! Potentially evil user
+    if account.locked:
+        logger.info("Locked user %s tried to log in", account.login)
+        # Needs auditlog
+        return None
+
     if account.check_password(password):
         return account
 
