@@ -81,10 +81,10 @@ class CiscoIetfIpMib(IpMib):
           IPy.IP objects.
 
         """
-        addresses = yield defer.waitForDeferred(self._get_interface_addresses(
+        addresses = yield self._get_interface_addresses(
                 ifindex_column='cIpAddressIfIndex',
                 prefix_column='cIpAddressPrefix',
-                prefix_entry='cIpAddressPfxOrigin'))
+                prefix_entry='cIpAddressPfxOrigin')
 
         defer.returnValue(addresses)
 
