@@ -24,7 +24,7 @@ dnspython==1.15.0
 # REST framework
 iso8601
 
-pynetsnmp-2==0.1.3
+pynetsnmp-2==0.1.5
 
 # libsass for compiling scss files to css using distutils/setuptools
 libsass==0.15.1
