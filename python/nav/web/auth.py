@@ -17,9 +17,25 @@ Contains web authentication functionality for NAV.
 """
 """NAV authentication and authorization middleware for Django"""
 
+from os.path import join
 import logging
 import os
 from logging import getLogger
+
+try:
+    # Python 3.6+
+    import secrets
+
+    def fake_password(length):
+        return secrets.token_urlsafe(length)
+
+except ImportError:
+    from random import choice
+    import string
+
+    def fake_password(length):
+        symbols = string.ascii_letters + string.punctuation + string.digits
+        return u"".join(choice(symbols) for i in range(length))
 
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.sessions.backends.db import SessionStore
@@ -31,13 +47,14 @@ try:
 except ImportError:  # Django <= 1.9
     MiddlewareMixin = object
 
+from nav.auditlog.models import LogEntry
+from nav.config import NAVConfigParser
 from nav.django.utils import is_admin, get_account
 from nav.models.profiles import Account, AccountGroup
 from nav.web import ldapauth
 
 
 _logger = logging.getLogger(__name__)
-
 
 ACCOUNT_ID_VAR = 'account_id'
 SUDOER_ID_VAR = 'sudoer'
@@ -46,6 +63,67 @@ SUDOER_ID_VAR = 'sudoer'
 # will hang under some usages of these middleware classes - so until we figure
 # out what's going on, we'll hardcode this here.
 LOGIN_URL = '/index/login/'
+
+
+class RemoteUserConfigParser(NAVConfigParser):
+    DEFAULT_CONFIG_FILES = [join('webfront', 'webfront.conf')]
+    DEFAULT_CONFIG = u"""
+[remote-user]
+enabled=no
+"""
+_config = RemoteUserConfigParser()
+
+
+def get_login_url(request):
+    "Calculate which login_url to use"
+    default_new_url = '{0}?origin={1}&noaccess'.format(
+        LOGIN_URL,
+        parse.quote(request.get_full_path()))
+    remote_loginurl = get_remote_loginurl(request)
+    return remote_loginurl if remote_loginurl else default_new_url
+
+
+def get_remote_loginurl(request):
+    remote_login_url = None
+    try:
+        if not _config.getboolean('remote-user', 'enabled'):
+            return None
+        remote_login_url = _config.get('remote-user', 'login-url')
+    except ValueError:
+        return None
+    if remote_login_url:
+        nexthop = request.build_absolute_uri(request.get_full_path())
+        remote_login_url = remote_login_url.format(nexthop)
+    return remote_login_url
+
+
+def get_remote_username(request):
+    try:
+        if not _config.getboolean('remote-user', 'enabled'):
+            return None
+    except ValueError:
+        return None
+
+    if not request:
+        return None
+
+    username = request.META.get('REMOTE_USER', '').strip()
+    if not username:
+        return None
+
+    return username
+
+
+def login_remote_user(request):
+    remote_username = get_remote_username(request)
+    if remote_username:
+        # Get or create an account from the REMOTE_USER http header
+        account = authenticate_remote_user(request)
+        if account:
+            request.session[ACCOUNT_ID_VAR] = account.id
+            request.account = account
+            return account
+    return None
 
 
 def authenticate(username, password):
@@ -117,16 +195,79 @@ def _handle_ldap_admin_status(ldap_user, nav_account):
             nav_account.accountgroup_set.remove(admin_group)
 
 
+def authenticate_remote_user(request=None):
+    '''Authenticate username from http header REMOTE_USER
+
+    Returns:
+
+    * account object if user was authenticated
+    * False if authenticated but blocked from logging in
+    * None in all other cases
+    '''
+    username = get_remote_username(request)
+    if not username:
+        return None
+
+    # We now have a username-ish
+
+    try:
+        account = Account.objects.get(login=username)
+    except Account.DoesNotExist:
+        # Store the remote user in the database and return the new account
+        account = Account(
+            login=username,
+            name=username,
+            ext_sync='REMOTE_USER'
+        )
+        account.set_password(fake_password(32))
+        account.save()
+        _logger.info("Created user %s from header REMOTE_USER", account.login)
+        template = 'Account "{actor}" created due to REMOTE_USER HTTP header'
+        LogEntry.add_log_entry(account, 'create-account', template=template,
+                               subsystem='auth')
+        return account
+
+    # Bail out! Potentially evil user
+    if account.locked:
+        _logger.info("Locked user %s tried to log in", account.login)
+        template = 'Account "{actor}" was prevented from logging in: blocked'
+        LogEntry.add_log_entry(account, 'login-prevent', template=template,
+                               subsystem='auth')
+        return False
+
+    return account
+
+
 # Middleware
 
 
 class AuthenticationMiddleware(MiddlewareMixin):
     def process_request(self, request):
         session = request.session
+        account = getattr(request, 'account', None)
 
-        if ACCOUNT_ID_VAR not in session:
+        if ACCOUNT_ID_VAR not in session:  # Not logged in
+            # Fallback: Set account id to anonymous user
             session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
-        account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+            # Try remote user
+            login_remote_user(request)
+            account = getattr(request, 'account', None)
+
+        if not account or account.id != session[ACCOUNT_ID_VAR]:
+            # Reget account if:
+            # * account not set
+            # * account.id different from session[ACCOUNT_ID_VAR]
+            account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+
+        remote_username = get_remote_username(request)
+        if remote_username and remote_username != account.login:
+            # REMOTE_USER has changed behind your back
+            # Log out current user, log in new user
+            logout(request)
+            login_remote_user(request)
+            account = getattr(request, 'account', None)
+
+        # Now we have an account
         request.account = account
 
         if SUDOER_ID_VAR in session:
@@ -162,9 +303,7 @@ class AuthorizationMiddleware(MiddlewareMixin):
         if request.is_ajax():
             return HttpResponse(status=401)
 
-        new_url = '{0}?origin={1}&noaccess'.format(
-            LOGIN_URL,
-            parse.quote(request.get_full_path()))
+        new_url = get_login_url(request)
         return HttpResponseRedirect(new_url)
 
 
@@ -178,6 +317,22 @@ def authorization_not_required(fullpath):
     for url in auth_not_required:
         if fullpath.startswith(url):
             return True
+
+
+def logout(request):
+    "Log out a user from a request"
+    if request.method == 'POST' and 'submit_desudo' in request.POST:
+        desudo(request)
+        return reverse('webfront-index')
+    else:
+        account = request.account
+        del request.session[ACCOUNT_ID_VAR]
+        del request.account
+        request.session.set_expiry(datetime.now())
+        request.session.save()
+        LogEntry.add_log_entry(account, 'log-out', '{actor} logged out',
+                               before=account)
+    return u'/'
 
 
 #
