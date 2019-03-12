@@ -185,7 +185,7 @@ class TrapSession(netsnmp.Session):
             self._initv6()
         else:
             tdomain = "udp:"
-        return self.awaitTraps((tdomain + addr).encode('ascii'))
+        return self.awaitTraps((tdomain + addr))
 
     def _initv6(self):
         lib = netsnmp.lib
