@@ -622,6 +622,11 @@ class AlertSubscription(models.Model):
     class Meta(object):
         db_table = u'alertsubscription'
 
+    def delete(self):
+        for a in self.accountalertqueue_set.all():
+            a.delete()
+        super(AlertSubscription, self).delete()
+
     def __str__(self):
         return 'alerts received %s should be sent %s to %s' % (
             self.time_period, self.get_type_display(), self.alert_address)
