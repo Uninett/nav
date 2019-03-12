@@ -20,7 +20,7 @@ node {
     echo "Acceptable image name: ${acceptableName}"
     def imageTag = "nav/${acceptableName}:${env.BUILD_NUMBER}".toLowerCase()
     echo "Docker image tag: ${imageTag}"
-    docker.build("${imageTag}", "-f ${dockerfile} .").inside("--tmpfs /var/lib/postgresql --volume ${WORKSPACE}:/source:rw,z --volume ${HUDSON_HOME}/.cache:/source/.cache:rw,z") {
+    docker.build("${imageTag}", "-f ${dockerfile} tests/docker").inside("--tmpfs /var/lib/postgresql --volume ${WORKSPACE}:/source:rw,z --volume ${HUDSON_HOME}/.cache:/source/.cache:rw,z") {
         env.WORKSPACE = "${WORKSPACE}"
 
         stage("Prepare build") {

@@ -83,7 +83,7 @@ RUN adduser --system --group --home=/source --shell=/bin/bash build && \
 ENV WORKSPACE /source
 ENV HOME /source
 
-COPY tests/docker/scripts/ /
+COPY scripts/ /
 WORKDIR /source
 ENTRYPOINT ["/entrypoint.sh"]
 RUN chmod 755 /*.sh
