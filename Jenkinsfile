@@ -57,8 +57,8 @@ node {
             recordIssues      tool: pyLint(pattern: 'reports/pylint.txt'),
                 sourceCodeEncoding: 'UTF-8',
                       qualityGates: [
-                                     [threshold: 1680, type: 'TOTAL', unstable: true],
-                                     [threshold: 1690, type: 'TOTAL', unstable: false]
+                                     [threshold: 1660, type: 'TOTAL', unstable: true],
+                                     [threshold: 1670, type: 'TOTAL', unstable: false]
                                     ]
 
         }
