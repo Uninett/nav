@@ -42,7 +42,7 @@ def authenticate_account(username=None, password=None):
     if account.locked:
         logger.info("Locked user %s tried to log in", account.login)
         # Needs auditlog
-        return None
+        return False
 
     if account.check_password(password):
         return account
@@ -70,8 +70,8 @@ def authenticate_ldap(username=None, password=None):
         return None
 
     if ldapuser is False:
-        # This user does not exist in LDAP, fallback
-        return None
+        # This user does not exist in LDAP, abort!
+        return False
 
     # From this point on we have an authenticated LDAPUser
 
@@ -93,9 +93,9 @@ def authenticate_ldap(username=None, password=None):
 
     # Bail out! Potentially evil user
     if account.locked:
-        logger.info("Locked user %s tried to log in", account.login)
+        logger.info("Locked ldap user %s tried to log in", account.login)
         # Needs auditlog
-        return None
+        return False
 
     # Sync password from ldap to local db
     if not account.check_password(password):
@@ -117,6 +117,8 @@ def authenticate(username, password):
     account = authenticate_ldap(username, password)
     if account:
         return account
+    if account is False:  # An LDAP user is preferred over a db user
+        return None
 
     account = authenticate_account(username, password)
     if account:
