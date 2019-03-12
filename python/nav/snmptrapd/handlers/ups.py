@@ -202,7 +202,7 @@ def verifyEventtype():
 
     queries = sql.split(';')
     for q in queries:
-        if len(q.rstrip()) > 0:
+        if q.rstrip():
             c.execute(q)
 
     db.commit()

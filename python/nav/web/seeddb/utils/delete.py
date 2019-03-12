@@ -59,7 +59,7 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
     """
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
-    if not len(request.POST.getlist('object')):
+    if not request.POST.getlist('object'):
         new_message(request,
                     "You need to select at least one object to edit",
                     Messages.ERROR)

@@ -37,7 +37,7 @@ def move(request, model, form_model, redirect, title_attr='id',
     # If no post or no objects selected, start over
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
-    if not len(request.POST.getlist('object')):
+    if not request.POST.getlist('object'):
         new_message(request,
                     "You need to select at least one object to edit",
                     Messages.ERROR)

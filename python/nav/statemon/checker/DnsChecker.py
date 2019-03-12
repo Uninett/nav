@@ -62,9 +62,9 @@ class DnsChecker(AbstractChecker):
             if not error and reply.rcode() != dns.rcode.NOERROR:
                 error = True
 
-            if not error and len(reply.answer) > 0:
+            if not error and reply.answer:
                 answer = 1
-            elif not error and len(reply.answers) == 0:
+            elif not error and not reply.answers:
                 answer = 0
 
             # This breaks on windows dns servers and probably other not bind

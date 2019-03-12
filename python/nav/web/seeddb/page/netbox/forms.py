@@ -220,7 +220,7 @@ class NetboxModelForm(forms.ModelForm):
             msg.append("IP (%s) is already in database" % ip)
         if does_sysname_exist(sysname, self.instance.pk):
             msg.append("Sysname (%s) is already in database" % sysname)
-        if len(msg) > 0:
+        if msg:
             raise IPExistsException(msg)
 
     def save(self, commit=True):

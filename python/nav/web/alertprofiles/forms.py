@@ -183,7 +183,7 @@ class TimePeriodForm(forms.ModelForm):
             start=start_time,
             valid_during__in=valid_during_choices
         )
-        if len(time_periods) > 0:
+        if time_periods:
             errors = [
                 forms.ValidationError(
                     _("""Collides with existing time period: %(start)s for

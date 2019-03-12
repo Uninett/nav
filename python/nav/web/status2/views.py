@@ -160,7 +160,7 @@ def put_on_maintenance(request):
                         "by " + request.account.login
         description = request.POST.get('description') or default_descr
         candidates = [n for n in netboxes if not is_maintenance_task_posted(n)]
-        if len(candidates):
+        if candidates:
             add_maintenance_task(request.account, candidates, description)
             check_devices_on_maintenance()
         return HttpResponse(status=200)
@@ -204,7 +204,7 @@ def is_maintenance_task_posted(netbox):
 
 def add_maintenance_task(owner, netboxes, description=""):
     """Add a maintenance task with a component for each netbox"""
-    if not len(netboxes):
+    if not netboxes:
         return
 
     task = MaintenanceTask(

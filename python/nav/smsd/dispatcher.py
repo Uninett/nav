@@ -79,7 +79,7 @@ class DispatcherHandler(object):
                     self.logger.exception("Unknown exception: %s", error)
 
         # Fail if no dispatchers are available
-        if len(self.dispatchers) == 0:
+        if not self.dispatchers:
             raise PermanentDispatcherError(
                   "No dispatchers available. None configured "
                   "or all dispatchers failed permanently.")
@@ -155,7 +155,7 @@ class DispatcherHandler(object):
             return (sms, sent, ignored, smsid)
 
         # Still running? All dispatchers failed permanently.
-        if len(self.dispatchers) == 0:
+        if not self.dispatchers:
             raise PermanentDispatcherError(
                   "No dispatchers available. None configured "
                   "or all dispatchers failed permanently.")
@@ -244,7 +244,7 @@ class Dispatcher(object):
                 addmsg = False
 
         # Tell how many was ignored
-        if len(ignored) > 0:
+        if ignored:
             sms = "%s +%d see web." % (sms, len(ignored))
 
         return sms, sent, ignored

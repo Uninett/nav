@@ -67,7 +67,7 @@ def check_alerts(debug=False):
 
     logger.debug('Checking %d queued alerts', len(queued_alerts))
 
-    if len(queued_alerts):
+    if queued_alerts:
         (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends,
          num_resolved_alerts_ignored) = handle_queued_alerts(queued_alerts,
                                                              now)

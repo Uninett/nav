@@ -73,7 +73,7 @@ def geomap_all_room_pos():
                     (DEFAULT_LON + DEFAULT_VARIANCE,
                      DEFAULT_LAT + DEFAULT_VARIANCE)]
     rooms_with_pos = _get_rooms_with_pos()
-    if len(rooms_with_pos) > 0:
+    if rooms_with_pos:
         multi_points = []
         for room in rooms_with_pos:
             room_lat, room_lon = room.position

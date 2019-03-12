@@ -114,7 +114,7 @@ class EventQ(object):
             if hasattr(event, attr) and getattr(event, attr):
                 fields.append(attr)
                 values.append(getattr(event, attr))
-        if len(fields) == 0:
+        if not fields:
             raise EventIncompleteError
         field_string = ','.join(fields)
         placeholders = ', %s' * len(values)
@@ -126,7 +126,7 @@ class EventQ(object):
         cursor.execute(eventsql, (eventqid,) + tuple(values))
 
         # Prepare an SQL statement to post the variables, if any
-        if len(event) > 0:
+        if event:
             varsql = ("INSERT INTO eventqvar (eventqid, var, val)"
                       "VALUES (%s, %s, %s)")
             values = [(eventqid,) + i for i in event.items()]

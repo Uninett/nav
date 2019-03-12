@@ -141,7 +141,7 @@ def get_subtree(tree, ip):
 
 
 def _is_leaf_node(node):
-    if len(node.keys()) == 0:
+    if not node.keys():
         return True
     else:
         return False

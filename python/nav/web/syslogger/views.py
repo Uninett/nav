@@ -65,7 +65,7 @@ def _build_context(request):
     context = {}
     aggregates = {}
 
-    if len(request.GET.keys()) > 0:
+    if request.GET.keys():
         query_dict = request.GET.copy()
 
         form = LoggerGroupSearchForm(query_dict)

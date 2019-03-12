@@ -70,7 +70,7 @@ class Test(object):
         self.errors = self._get_errors()
         runtime = datetime.now() - starttime
         LOGGER.debug('%s used %s', type(self).__name__, runtime)
-        self.status = (STATUS_OK if len(self.errors) == 0
+        self.status = (STATUS_OK if not self.errors
                        else STATUS_NOT_OK)
 
     def get_status(self):

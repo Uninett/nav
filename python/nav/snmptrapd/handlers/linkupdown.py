@@ -159,7 +159,7 @@ def verify_event_type():
 
     queries = sql.split(';')
     for query in queries:
-        if len(query.rstrip()) > 0:
+        if query.rstrip():
             cursor.execute(query)
 
     connection.commit()
