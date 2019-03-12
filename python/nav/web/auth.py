@@ -97,21 +97,12 @@ def authenticate_ldap(username=None, password=None):
         # Needs auditlog
         return None
 
-    save = False
-    # Ensure ext_sync is correct
-    if not account.ext_sync == 'ldap':
-        account.ext_sync = 'ldap'
-        logger.info("Correctly set ext_sync for user %s", account.login)
-        save = True
-
     # Sync password from ldap to local db
     if not account.check_password(password):
         account.set_password(password)
         logger.info("Synced user %s's password from LDAP", account.login)
-        save = True
-
-    if save:
         account.save()
+
     return account
 
 
