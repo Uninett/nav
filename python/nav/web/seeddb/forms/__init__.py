@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# pylint: disable=C1001,R0903
+# pylint: disable=R0903
 """Forms for seeddb pages"""
 
 from django import forms

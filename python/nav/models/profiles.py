@@ -16,7 +16,7 @@
 #
 """Django ORM wrapper for profiles in NAV"""
 
-# pylint: disable=R0903, C1001
+# pylint: disable=R0903
 
 from hashlib import md5
 import itertools
