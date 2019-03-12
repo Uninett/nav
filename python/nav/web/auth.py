@@ -17,7 +17,23 @@
 Contains web authentication functionality for NAV.
 """
 import logging
+try:
+    # Python 3.6+
+    import secrets
 
+    def fake_password(length):
+        return secrets.token_urlsafe(length)
+
+except ImportError:
+    from random import choice
+    import string
+
+    def fake_password(length):
+        S = string.ascii_letters + string.punctuation + string.digits
+        return u"".join(choice(S) for i in range(length))
+
+
+from nav.config import NAV_CONFIG
 from nav.web import ldapauth
 from nav.models.profiles import Account
 
@@ -78,3 +94,39 @@ def authenticate(username, password):
         return account
     else:
         return None
+
+
+def authenticate_remote_user(request=None):
+    if not NAV_CONFIG.get('AUTH_SUPPORT_REMOTE_USER', False):
+        return None
+
+    if not request:
+        return None
+
+    username = request.META.get('REMOTE_USER', None)
+    if not username:
+        return None
+
+    # We now have a username-ish
+
+    try:
+        account = Account.objects.get(login=username)
+    except Account.DoesNotExist:
+        # Store the ldapuser in the database and return the new account
+        account = Account(
+            login=username,
+            name=username,
+            ext_sync='REMOTE_USER'
+        )
+        account.set_password(fake_password(32))
+        account.save()
+        logger.info("Created user %s from header REMOTE_USER", account.login)
+        return account
+
+    # Bail out! Potentially evil user
+    if account.locked:
+        logger.info("Locked user %s tried to log in", account.login)
+        # Needs auditlog
+        return False
+
+    return account
