@@ -17,8 +17,10 @@
 import os
 from logging import getLogger
 
+from nav.config import NAV_CONFIG
 from nav.models.profiles import Account
 from nav.django.utils import is_admin, get_account
+from nav.web.auth import authenticate_remote_user
 
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.sessions.backends.db import SessionStore
@@ -45,10 +47,18 @@ LOGIN_URL = '/index/login/'
 class AuthenticationMiddleware(MiddlewareMixin):
     def process_request(self, request):
         session = request.session
+        account = None
 
-        if ACCOUNT_ID_VAR not in session:
-            session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
-        account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+        if ACCOUNT_ID_VAR not in session:  # Not logged in
+            # Get or create an account from the REMOTE_USER http header
+            account = authenticate_remote_user(request)
+            if account:
+                session[ACCOUNT_ID_VAR]  = account.id
+            else:
+                # Set account id to anonymous user
+                session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
+        if not account:
+            account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
         request.account = account
 
         if SUDOER_ID_VAR in session:
