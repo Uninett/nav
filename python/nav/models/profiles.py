@@ -427,13 +427,11 @@ class AlertSender(models.Model):
     _blacklist = {}
     _handlers = {}
 
-    JABBER = u'Jabber'
     EMAIL = u'Email'
     SMS = u'SMS'
     SLACK = u'Slack'
 
     SCHEMES = {
-        JABBER: u'jabber:',
         EMAIL: u'mailto:',
         SMS: u'sms:',
         SLACK: u'slack:'
