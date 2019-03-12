@@ -384,7 +384,7 @@ def daemonexit(pidfile):
 
     try:
         os.remove(pidfile)
-    except Exception as error:
+    except OSError as error:
         _logger.debug("Can't remove pidfile (%s). (%s)", pidfile, error)
         if error.errno != errno.ENOENT:
             raise PidFileWriteError(pidfile, error)
