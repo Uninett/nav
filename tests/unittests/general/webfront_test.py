@@ -52,18 +52,19 @@ class TestNormalAuthenticate(object):
 
 
 def test_authenticate_should_return_ldap_account_when_ldap_user_exists():
-    with patch("nav.web.ldapauth.available", new=True):
-        with patch("nav.web.ldapauth.authenticate", return_value=True):
-            with patch("nav.web.auth.Account.objects.get",
-                        new=MagicMock(return_value=LDAP_ACCOUNT)):
-                with patch("nav.web.auth.Account.check_password", return_value=True):
-                    assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
+    with patch("nav.web.auth.authenticate_ldap", return_value=LDAP_ACCOUNT):
+        assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
 
 
-def test_authenticate_should_return_none_when_ldap_user_does_not_exist():
-    with patch("nav.web.ldapauth.available", new=True):
-        with patch("nav.web.ldapauth.authenticate", return_value=False):
-            assert auth.authenticate('knight', 'shrubbery') == None
+def test_authenticate_should_return_none_when_ldap_says_no():
+    with patch("nav.web.auth.authenticate_ldap", return_value=False):
+        assert auth.authenticate('knight', 'shrubbery') == None
+
+
+def test_authenticate_should_fallback_to_account_if_ldap_fails():
+    with patch("nav.web.auth.authenticate_ldap", return_value=None):
+        with patch("nav.web.auth.authenticate_account", return_value=LDAP_ACCOUNT):
+            assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
 
 
 class TestLdapUser(object):
