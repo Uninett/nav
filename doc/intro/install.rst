@@ -76,9 +76,6 @@ in alert profiles, you will need to install :program:`Gammu` and the Python
 messages through other means, but using Gammu as an SMS dispatcher is the
 default.
 
-If you wish to use the Jabber plugin for alertengine, the python module :mod:`xmpp`
-is required.
-
 
 Installing NAV
 ==============

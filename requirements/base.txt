@@ -12,7 +12,6 @@ twisted>=14.0.1,<18 ; python_version < '3'
 twisted>=16.6.0,<18 ; python_version >= '3'
 
 networkx>=2.2,<2.3
-xmpppy==0.5.0rc1  # optional, for alerting via Jabber
 Pillow==3.0.0
 pyrad==2.1
 python-ldap==3.0.0 # optional for LDAP authentication, requires libldap (OpenLDAP) to build

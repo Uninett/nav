@@ -22,7 +22,6 @@ from django import forms
 from django.db.models import Q
 
 from nav.alertengine.dispatchers.email_dispatcher import Email
-from nav.alertengine.dispatchers.jabber_dispatcher import Jabber
 from nav.alertengine.dispatchers.sms_dispatcher import Sms
 
 from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
@@ -78,8 +77,9 @@ class AlertProfileForm(forms.ModelForm):
 class AlertAddressForm(forms.ModelForm):
     """Form for editing and creating alert addresses
 
-    An alert address is where the alert is sent, and can be either email, slack
-    or jabber in addition to sms.
+    An alert address is where the alert is sent, and can be either
+    email or slack in addition to sms.
+
     """
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     address = forms.CharField(required=True)
@@ -111,9 +111,6 @@ class AlertAddressForm(forms.ModelForm):
             if type.handler == 'sms':
                 if not Sms.is_valid_address(address):
                     error = 'Not a valid phone number.'
-            elif type.handler == 'jabber':
-                if not Jabber.is_valid_address(address):
-                    error = 'Not a valid jabber address.'
             elif type.handler == 'email':
                 if not Email.is_valid_address(address):
                     error = 'Not a valid email address.'
