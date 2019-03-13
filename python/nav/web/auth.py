@@ -28,7 +28,8 @@ def authenticate_account(username=None, password=None):
     """
     Authenticate username and password against database
 
-    Returns account object if user was authenticated, else None.
+    Returns account object if user was authenticated, False if the user is
+    invlid or otherwise is not allowed to log in, else None.
     """
     if not username and not password:
         return None
@@ -55,7 +56,8 @@ def authenticate_ldap(username=None, password=None):
     """
     Authenticate username and password against LDAP, if available
 
-    Returns account object if user was authenticated, else None.
+    Returns account object if user was authenticated, False if the user is
+    invlid or otherwise is not allowed to log in, else None.
     """
     if not username and not password:
         return None
