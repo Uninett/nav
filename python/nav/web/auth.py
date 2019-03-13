@@ -71,27 +71,32 @@ def authenticate_ldap(username=None, password=None):
         # LDAP unreachable, fallback
         return None
 
-    if ldapuser is False:
-        # This user does not exist in LDAP, abort!
-        return False
-
-    # From this point on we have an authenticated LDAPUser
-
     try:
         account = Account.objects.get(login__iexact=username)
     except Account.DoesNotExist:
         # Store the ldapuser in the database and return the new account
-        account = Account(
-            login=ldapuser.username,
-            name=ldapuser.get_real_name(),
-            ext_sync='ldap'
-        )
-        account.set_password(password)
-        account.save()
-        logger.info("Created user %s from LDAP", account.login)
-        return account
+        if ldapuser:
+            account = Account(
+                login=ldapuser.username,
+                name=ldapuser.get_real_name(),
+                ext_sync='ldap'
+            )
+            account.set_password(password)
+            account.save()
+            logger.info("Created user %s from LDAP", account.login)
+            return account
 
     # From this point on we have an existing Account
+
+    if ldapuser is False and account.ext_sync == 'ldap':
+        # This account is controlled by LDAP, and LDAP cannot
+        # authenticate the user
+        logger.warn('Local database is out of sync with LDAP for user {}: '
+                    'either the password is wrong or the user is no '
+                    'longer registered in LDAP'.format(username))
+        return False
+
+    # From this point on we have an authenticated LDAPUser
 
     # Bail out! Potentially evil user
     if account.locked:
