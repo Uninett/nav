@@ -30,7 +30,7 @@ def authenticate_account(username=None, password=None):
 
     Returns account object if user was authenticated, else None.
     """
-    if not username and password:
+    if not username and not password:
         return None
 
     try:
@@ -57,7 +57,7 @@ def authenticate_ldap(username=None, password=None):
 
     Returns account object if user was authenticated, else None.
     """
-    if not username and password:
+    if not username and not password:
         return None
 
     if not ldapauth.available:
