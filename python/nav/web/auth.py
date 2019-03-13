@@ -24,31 +24,25 @@ from nav.models.profiles import Account
 logger = logging.getLogger("nav.web.auth")
 
 
-def authenticate_account(username=None, password=None):
+def authenticate(username, password):
     """
-    Authenticate username and password against database
+    Authenticate username and password
 
-    Returns account object if user was authenticated, False if the user is
-    invlid or otherwise is not allowed to log in, else None.
+    First try LDAP, if available. Then fall back to Account.
+
+    Returns account object if user was authenticated, else None.
     """
-    if not username and not password:
+    account = authenticate_ldap(username, password)
+    if account:
+        return account
+    if account is False:  # An LDAP user is preferred over a db user
         return None
 
-    try:
-        account = Account.objects.get(login__iexact=username)
-    except Account.DoesNotExist:
-        return None
-
-    # Bail out! Potentially evil user
-    if account.locked:
-        logger.info("Locked user %s tried to log in", account.login)
-        # Needs auditlog
-        return False
-
-    if account.check_password(password):
+    account = authenticate_account(username, password)
+    if account:
         return account
 
-    # Password was incorrect
+    # Not authenticated
     return None
 
 
@@ -113,23 +107,29 @@ def authenticate_ldap(username=None, password=None):
     return account
 
 
-def authenticate(username, password):
+def authenticate_account(username=None, password=None):
     """
-    Authenticate username and password
+    Authenticate username and password against database
 
-    First try LDAP, if available. Then fall back to Account.
-
-    Returns account object if user was authenticated, else None.
+    Returns account object if user was authenticated, False if the user is
+    invlid or otherwise is not allowed to log in, else None.
     """
-    account = authenticate_ldap(username, password)
-    if account:
-        return account
-    if account is False:  # An LDAP user is preferred over a db user
+    if not username and not password:
         return None
 
-    account = authenticate_account(username, password)
-    if account:
+    try:
+        account = Account.objects.get(login__iexact=username)
+    except Account.DoesNotExist:
+        return None
+
+    # Bail out! Potentially evil user
+    if account.locked:
+        logger.info("Locked user %s tried to log in", account.login)
+        # Needs auditlog
+        return False
+
+    if account.check_password(password):
         return account
 
-    # Not authenticated
+    # Password was incorrect
     return None
