@@ -82,8 +82,8 @@ def authenticate_ldap(username=None, password=None):
     except Account.DoesNotExist:
         # Store the ldapuser in the database and return the new account
         account = Account(
-            login=user.username,
-            name=user.get_real_name(),
+            login=ldapuser.username,
+            name=ldapuser.get_real_name(),
             ext_sync='ldap'
         )
         account.set_password(password)
