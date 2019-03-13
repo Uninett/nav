@@ -10,10 +10,10 @@ name := navtest:$(shell git describe --tags)-$(dockerfile)
 .PHONY: build check
 
 build:
-	docker build -t $(name) -f $(dockerfile) $(top_srcdir)
+	docker build -t $(name) -f $(dockerfile) $(mkfile_dir)
 
 buildnocache:
-	docker build --no-cache -t $(name) -f $(dockerfile) $(top_srcdir)
+	docker build --no-cache -t $(name) -f $(dockerfile) $(mkfile_dir)
 
 check: build
 	docker run -t -u $(uid):$(gid) -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) /source/tests/docker/test.sh

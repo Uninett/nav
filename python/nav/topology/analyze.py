@@ -183,7 +183,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
             _logger.debug("At degree %s", degree)
             unvisited = self.get_ports_by_degree(degree)
             _logger.debug("Found %d unvisited ports", len(unvisited))
-            if len(unvisited) == 0:
+            if not unvisited:
                 degree += 1
                 continue
 

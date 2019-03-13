@@ -54,7 +54,7 @@ def avg(lst):
     :return: An average value of the list.
 
     """
-    if len(lst) == 0:
+    if not lst:
         return 0
     return float(sum(lst))/len(lst)
 
@@ -67,7 +67,7 @@ def weighted_avg(lst):
     :return: A weighted average.
 
     """
-    if len(lst) == 0:
+    if not lst:
         return 0
     total = sum(value * weight for value, weight in lst)
     num = sum(weight for value, weight in lst)
@@ -322,7 +322,7 @@ class lazy_dict(object):
         else:
             for key in dict1.keys():
                 self[key] = dict1[key]
-        if len(dict2.keys()) > 0:
+        if dict2:
             self.update(dict2)
 
     def values(self):
@@ -389,7 +389,7 @@ class lazy_dict(object):
         self[k] for each k in key. Otherwise, evaluate d[key].
 
         """
-        if len(self.unevaluated) == 0:
+        if not self.unevaluated:
             return
         if key is None:
             self.force(self.keys())

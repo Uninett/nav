@@ -20,7 +20,7 @@ node {
     echo "Acceptable image name: ${acceptableName}"
     def imageTag = "nav/${acceptableName}:${env.BUILD_NUMBER}".toLowerCase()
     echo "Docker image tag: ${imageTag}"
-    docker.build("${imageTag}", "-f ${dockerfile} .").inside("--tmpfs /var/lib/postgresql --volume ${WORKSPACE}:/source:rw,z --volume ${HUDSON_HOME}/.cache:/source/.cache:rw,z") {
+    docker.build("${imageTag}", "-f ${dockerfile} tests/docker").inside("--tmpfs /var/lib/postgresql --volume ${WORKSPACE}:/source:rw,z --volume ${HUDSON_HOME}/.cache:/source/.cache:rw,z") {
         env.WORKSPACE = "${WORKSPACE}"
 
         stage("Prepare build") {
@@ -57,8 +57,8 @@ node {
             recordIssues      tool: pyLint(pattern: 'reports/pylint.txt'),
                 sourceCodeEncoding: 'UTF-8',
                       qualityGates: [
-                                     [threshold: 1770, type: 'TOTAL', unstable: true],
-                                     [threshold: 1800, type: 'TOTAL', unstable: false]
+                                     [threshold: 1660, type: 'TOTAL', unstable: true],
+                                     [threshold: 1670, type: 'TOTAL', unstable: false]
                                     ]
 
         }

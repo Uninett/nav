@@ -73,7 +73,7 @@ def read_flat_config(config_file, delimiter='='):
     for line in config_file.readlines():
         line = line.strip()
         # Unless the line is a comment, we parse it
-        if len(line) and line[0] != '#':
+        if line and line[0] != '#':
             # Split the key/value pair (max 1 split)
             try:
                 (key, value) = line.split(delimiter, 1)

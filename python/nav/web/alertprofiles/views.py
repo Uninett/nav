@@ -353,7 +353,7 @@ def profile_remove(request):
         profiles = AlertProfile.objects.filter(
             pk__in=request.POST.getlist('profile'))
 
-        if len(profiles) == 0:
+        if not profiles:
             new_message(request,
                         _('No profiles were selected.'),
                         Messages.NOTICE)
@@ -584,7 +584,7 @@ def profile_time_period_remove(request):
                     Messages.WARNING
                 )
 
-        if len(time_periods) == 0:
+        if not time_periods:
             new_message(request,
                         _('No time periods were selected.'),
                         Messages.NOTICE)
@@ -825,7 +825,7 @@ def profile_time_period_subscription_remove(request):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this profile.'))
 
-        if len(subscriptions) == 0:
+        if not subscriptions:
             new_message(request,
                         _('No alert subscriptions were selected.'),
                         Messages.NOTICE)
@@ -1030,7 +1030,7 @@ def address_remove(request):
 
         subscriptions = AlertSubscription.objects.filter(
             alert_address__in=addresses)
-        if len(subscriptions) > 0:
+        if subscriptions:
             for sub in subscriptions:
                 new_message(
                     request,
@@ -1057,7 +1057,7 @@ def address_remove(request):
         addresses = AlertAddress.objects.filter(
             pk__in=request.POST.getlist('address'))
 
-        if len(addresses) == 0:
+        if not addresses:
             new_message(request,
                         _('No addresses were selected'),
                         Messages.NOTICE)
@@ -1257,7 +1257,7 @@ def filter_show_form(request, filter_id=None, filter_form=None):
 
         # Check if filter is used by any filter groups
         filter_groups = FilterGroupContent.objects.filter(filter=filtr)
-        if len(filter_groups) > 0:
+        if filter_groups:
             fg_names = ', '.join([f.filter_group.name for f in filter_groups])
             new_message(
                 request,
@@ -1382,7 +1382,7 @@ def filter_remove(request):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this filter.'))
 
-        if len(filters) == 0:
+        if not filters:
             new_message(request,
                         _('No filters were selected.'),
                         Messages.NOTICE)
@@ -1555,7 +1555,7 @@ def filter_removeexpression(request):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this filter.'))
 
-        if len(expressions) == 0:
+        if not expressions:
             new_message(request,
                         _('No expressions were selected'),
                         Messages.NOTICE)
@@ -1694,7 +1694,7 @@ def filter_group_show_form(request, filter_group_id=None,
         profiles = AlertProfile.objects.filter(
             timeperiod__alertsubscription__filter_group=filter_group
         ).distinct()
-        if len(profiles) > 0:
+        if profiles:
             names = ', '.join([p.name for p in profiles])
             new_message(
                 request,
@@ -1818,7 +1818,7 @@ def filter_group_remove(request):
             return alertprofiles_response_forbidden(
                 request, _('You do not own this filter group.'))
 
-        if len(filter_groups) == 0:
+        if not filter_groups:
             new_message(request,
                         _('No filter groups were selected.'),
                         Messages.NOTICE)
@@ -2011,7 +2011,7 @@ def filter_group_removefilter(request):
                 Messages.WARNING
             )
 
-        if len(filter_group_content) == 0:
+        if not filter_group_content:
             new_message(request,
                         _('No filters were selected.'),
                         Messages.NOTICE)
@@ -2198,7 +2198,7 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         expressions = Expression.objects.filter(match_field=matchfield)
         filters = Filter.objects.filter(expression__in=expressions)
 
-        if len(filters) > 0:
+        if filters:
             names = ', '.join([f.name for f in filters])
             new_message(
                 request,
@@ -2308,7 +2308,7 @@ def matchfield_remove(request):
             'expression_set'
         ).filter(pk__in=request.POST.getlist('matchfield'))
 
-        if len(matchfields) == 0:
+        if not matchfields:
             new_message(request,
                         _('No matchfields were selected'),
                         Messages.NOTICE)

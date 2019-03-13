@@ -87,7 +87,7 @@ class Arp(Plugin):
             mappings.update(ipv6_mappings)
 
         # If we got no results, or no IPv6 results, try vendor specific MIBs
-        if len(mappings) == 0 or not ipv6_address_in_mappings(mappings):
+        if not mappings or not ipv6_address_in_mappings(mappings):
             cisco_ip_mib = CiscoIetfIpMib(self.agent)
             cisco_ip_mappings = yield cisco_ip_mib.get_ifindex_ip_mac_mappings()
             self._logger.debug("Found %d mappings in CISCO-IETF-IP-MIB",

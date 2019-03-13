@@ -149,7 +149,7 @@ class _RunQueue(object):
         elif len(self.workers) < self._max_threads:
             new_worker = Worker(self)
             new_worker.setDaemon(self.make_daemon)
-            if len(self.unused_thread_name) > 0:
+            if self.unused_thread_name:
                 new_worker.setName(self.unused_thread_name.pop())
             else:
                 new_worker.setName('worker'+str(len(self.workers)))

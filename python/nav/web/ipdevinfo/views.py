@@ -264,7 +264,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     # If addr or host not a netbox it is not monitored by NAV
     if netbox is None:
         host_info = get_host_info(name or addr)
-        if not addr and len(host_info['addresses']) > 0:
+        if not addr and host_info['addresses']:
             # Picks the first address in array if addr not specified
             addr = host_info['addresses'][0]['addr']
 

@@ -469,7 +469,6 @@ not part of the RFC1918 ranges.
     init = []
 
     if root_ip is not None and root_ip:
-        # pylint: disable=redefined-variable-type
         scope = Prefix.objects.get(net_address=root_ip)
         if scope is not None:
             node = PrefixNode(scope)

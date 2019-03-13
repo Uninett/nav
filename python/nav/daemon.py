@@ -166,14 +166,14 @@ def switchuser(username):
                 for (_name, _passwd, gid, members) in grp.getgrall():
                     if username in members:
                         gids.append(gid)
-                if len(gids) > 0:
+                if gids:
                     os.setgroups(gids)
 
                 # Set user id
                 os.setuid(uid)
             except OSError:
                 # Failed changing uid/gid
-                _logger.debug("Failed chaning uid/gid from %d/%d to %d/%d.",
+                _logger.debug("Failed changing uid/gid from %d/%d to %d/%d.",
                               olduid, oldgid, uid, gid)
                 raise SwitchUserError(olduid, oldgid, uid, gid)
             else:
@@ -384,7 +384,7 @@ def daemonexit(pidfile):
 
     try:
         os.remove(pidfile)
-    except Exception as error:
+    except OSError as error:
         _logger.debug("Can't remove pidfile (%s). (%s)", pidfile, error)
         if error.errno != errno.ENOENT:
             raise PidFileWriteError(pidfile, error)

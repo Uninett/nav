@@ -59,7 +59,7 @@ class Sensors(Plugin):
                            [type(m).__name__ for m in mibs])
         for mib in mibs:
             all_sensors = yield mib.get_all_sensors()
-            if len(all_sensors) > 0:
+            if all_sensors:
                 # Store and jump out on the first MIB that give
                 # any results
                 self._logger.debug("Found %d sensors from %s",

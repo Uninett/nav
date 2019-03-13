@@ -90,7 +90,7 @@ def order_filter_group_content(filter_group):
             filter_group=filter_group.id
         ).order_by('priority')
 
-    if len(filter_group_content) > 0:
+    if filter_group_content:
         prev_priority = 0
         for f in filter_group_content:
             priority = f.priority

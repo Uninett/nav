@@ -16,7 +16,7 @@
 #
 """Django ORM wrapper for profiles in NAV"""
 
-# pylint: disable=R0903, C1001
+# pylint: disable=R0903
 
 from hashlib import md5
 import itertools
@@ -181,7 +181,7 @@ class Account(models.Model):
     @sensitive_variables('password')
     def set_password(self, password):
         """Sets user password. Copied from nav.db.navprofiles"""
-        if len(password.strip()):
+        if password.strip():
             pw_hash = nav.pwhash.Hash(password=password)
             self.password = str(pw_hash)
         else:
@@ -551,7 +551,7 @@ class AlertProfile(models.Model):
         # If the current time is before the start of the first time
         # period, the active time period is the last one (i.e. from
         # the day before)
-        if len(timeperiods) > 0 and timeperiods[0].start > now.time():
+        if timeperiods and timeperiods[0].start > now.time():
             active_timeperiod = timeperiods[-1]
         else:
             for period in timeperiods:

@@ -486,7 +486,7 @@ class GwPortPrefix(Shadow):
     def _delete_missing_addresses(cls, containers):
         missing_addresses = cls._get_missing_addresses(containers)
         gwips = [row['gw_ip'] for row in missing_addresses.values('gw_ip')]
-        if len(gwips) < 1:
+        if not gwips:
             return
 
         netbox = containers.get(None, Netbox).get_existing_model()
@@ -609,7 +609,7 @@ class Sensor(Shadow):
         missing_sensors = cls._get_missing_sensors(containers)
         sensor_names = [row['internal_name']
                         for row in missing_sensors.values('internal_name')]
-        if len(missing_sensors) < 1:
+        if not missing_sensors:
             return
         netbox = containers.get(None, Netbox)
         cls._logger.debug('Deleting %d missing sensors from %s: %s',
@@ -651,7 +651,7 @@ class PowerSupplyOrFan(Shadow):
         missing_psus_and_fans = cls._get_missing_psus_and_fans(containers)
         psu_and_fan_names = [row['name']
                              for row in missing_psus_and_fans.values('name')]
-        if len(missing_psus_and_fans) < 1:
+        if not missing_psus_and_fans:
             return
         netbox = containers.get(None, Netbox)
         cls._logger.debug('Deleting %d missing psus and fans from %s: %s',

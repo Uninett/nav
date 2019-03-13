@@ -320,7 +320,7 @@ class ExpandSWPortContextMixin(object):
                                     target="_blank">{3}</a>]
                         """.format(hostname, arp_entry.ip, mac.mac, mac.mac)
                 hosts_behind_port.add(host_string)
-            if not len(arp_entries) and mac.mac not in hosts_behind_port:
+            if not arp_entries and mac.mac not in hosts_behind_port:
                 hosts_behind_port.add(mac.mac)
         return {
             'type': 'swport-leaf',

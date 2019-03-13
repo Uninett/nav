@@ -23,7 +23,7 @@ import copy
 import django
 from django.utils.log import DEFAULT_LOGGING
 
-from nav.config import (read_flat_config, getconfig, find_config_dir)
+from nav.config import (NAV_CONFIG, getconfig, find_config_dir)
 from nav.db import get_connection_parameters
 import nav.buildconf
 
@@ -31,16 +31,11 @@ ALLOWED_HOSTS = ['*']
 
 _config_dir = find_config_dir()
 try:
-    nav_config = read_flat_config('nav.conf')
+    _webfront_config = getconfig('webfront/webfront.conf')
 except (IOError, OSError):
-    nav_config = {'SECRET_KEY': 'Very bad default value'}
+    _webfront_config = {}
 
-try:
-    webfront_config = getconfig('webfront/webfront.conf')
-except (IOError, OSError):
-    webfront_config = {}
-
-DEBUG = nav_config.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
+DEBUG = NAV_CONFIG.get('DJANGO_DEBUG', 'False').upper() in ('TRUE', 'YES', 'ON')
 
 # Copy Django's default logging config, but modify it to enable HTML e-mail
 # part for improved debugging:
@@ -51,7 +46,7 @@ _mail_admin_handler['include_html'] = True
 
 # Admins
 ADMINS = (
-    ('NAV Administrator', nav_config.get('ADMIN_MAIL', 'root@localhost')),
+    ('NAV Administrator', NAV_CONFIG.get('ADMIN_MAIL', 'root@localhost')),
 )
 MANAGERS = ADMINS
 
@@ -88,7 +83,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 # This is a custom NAV setting for upload directory location:
-UPLOAD_DIR = nav_config.get(
+UPLOAD_DIR = NAV_CONFIG.get(
     'UPLOAD_DIR',
     os.path.join(nav.buildconf.localstatedir, 'uploads'))
 
@@ -140,7 +135,8 @@ MIDDLEWARE_CLASSES = (
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = int(
-    webfront_config.get('sessions', {}).get('timeout', 3600))
+    _webfront_config.get('sessions', {}).get('timeout', 3600)
+)
 SESSION_COOKIE_NAME = 'nav_sessionid'
 SESSION_SAVE_EVERY_REQUEST = False
 
@@ -148,15 +144,15 @@ SESSION_SAVE_EVERY_REQUEST = False
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Email sending
-DEFAULT_FROM_EMAIL = nav_config.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
+DEFAULT_FROM_EMAIL = NAV_CONFIG.get('DEFAULT_FROM_EMAIL', 'nav@localhost')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-EMAIL_HOST = nav_config.get('EMAIL_HOST', 'localhost')
-EMAIL_PORT = int(nav_config.get('EMAIL_PORT', 25))
+EMAIL_HOST = NAV_CONFIG.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(NAV_CONFIG.get('EMAIL_PORT', 25))
 
-EMAIL_HOST_USER = nav_config.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = nav_config.get('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = nav_config.get('EMAIL_USE_TLS', 'False') == 'True'
+EMAIL_HOST_USER = NAV_CONFIG.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = NAV_CONFIG.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = NAV_CONFIG.get('EMAIL_USE_TLS', 'False') == 'True'
 
 # Date formatting
 DATE_FORMAT = 'Y-m-d'
@@ -165,8 +161,8 @@ SHORT_TIME_FORMAT = 'H:i'  # Use template filter to access this
 DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
 SHORT_DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, SHORT_TIME_FORMAT)
 
-TIME_ZONE = nav_config.get('TIME_ZONE', 'Europe/Oslo')
-DOMAIN_SUFFIX = nav_config.get('DOMAIN_SUFFIX', None)
+TIME_ZONE = NAV_CONFIG.get('TIME_ZONE', 'Europe/Oslo')
+DOMAIN_SUFFIX = NAV_CONFIG.get('DOMAIN_SUFFIX', None)
 
 # Cache backend. Used only for report subsystem in NAV 3.5.
 # FIXME: Make this configurable in nav.conf (or possibly webfront.conf)
@@ -179,7 +175,7 @@ CACHES = {
 }
 
 
-SECRET_KEY = nav_config.get('SECRET_KEY', None)  # Must be set in nav.conf!
+SECRET_KEY = NAV_CONFIG.get('SECRET_KEY', 'Very bad default value!')
 
 # Because registering hstore extension in a database may lead to problems
 # with type conversion, force registering of hstore on each new connection

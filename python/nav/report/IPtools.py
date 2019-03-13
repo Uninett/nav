@@ -50,7 +50,7 @@ def getLastbitsIpMap(ip_list):
 
     Used by the presentation logic for Column-to-IP mapping
     """
-    if ip_list is None or len(ip_list) < 1:
+    if not ip_list:
         return None
 
     version = ip_list[0].version()

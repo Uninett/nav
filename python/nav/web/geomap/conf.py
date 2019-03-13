@@ -153,7 +153,7 @@ def parse_conf(lines, filename):
         current_objlist().append(obj)
 
     def last_object():
-        if len(current_objlist()) > 0:
+        if current_objlist():
             return current_objlist()[-1]
         return None
 

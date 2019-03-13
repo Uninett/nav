@@ -292,7 +292,7 @@ class LDAPUser(object):
             filterstr = group_search % escape_filter_chars(user_dn)
             result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE, filterstr)
             _logger.debug("groupOfNames results: %s", result)
-            if len(result) < 1:
+            if not result:
                 # If no match, match posixGroup objects
                 filterstr = (
                     '(memberUid=%s)' % escape_filter_chars(self.username))

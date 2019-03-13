@@ -369,7 +369,7 @@ def add_box_to_maintenance(request):
                 value=str(netbox.id),
                 maintenance_task__state=MaintenanceTask.STATE_ACTIVE,
                 maintenance_task__end_time=datetime.max)
-            if len(already_on_maint) == 0:
+            if not already_on_maint:
                 # Box is not on maintenance
                 _add_neverending_maintenance_task(account, netbox)
 
