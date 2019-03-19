@@ -303,7 +303,7 @@ class CommandProcessor(object):
         opt("--threadpoolsize", action="store", dest="threadpoolsize",
             metavar="COUNT", type=int, default=10,
             help="the number of database worker threads, and thus db "
-                 "connections, to use")
+                 "connections, to use in this process")
         opt("--worker", action="store_true",
             help="Used internally when lauching worker processes")
         return parser

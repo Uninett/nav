@@ -40,7 +40,7 @@ Usage
 			    and then exits
       --threadpoolsize COUNT
 			    the number of database worker threads, and thus db
-			    connections, to use
+			    connections, to use in this process
       --worker              Used internally when lauching worker processes
 
     This program runs SNMP polling jobs for IP devices monitored by NAV
@@ -170,20 +170,21 @@ the individual workers.
    necessarily sane for multiprocess usage. Unless a number of workers is
    supplied to the :option:`--multiprocess` option, it will spawn a number of
    workers corresponding to the number of cores it detects on your system. The
-   default number of database threads in ipdevpoll's threadpool is **10**,
-   which means each worker will create **10 individual connections to
+   default number of database threads in ipdevpoll's threadpool is **10** per process,
+   which means each worker process will create **10 individual connections to
    PostgreSQL**.
 
    These numbers multiply fast, and can end up easily saturating PostgreSQL's
    default pool of 100 available connections, causing other NAV processes to
-   be unable to connect to the database. You should really tune down the
-   threadpool size by adding the :option:`--threadpoolsize` option.
+   be unable to connect to the database. When enabling multiprocess mode, you
+   should really tune down the threadpool size by adding the
+   :option:`--threadpoolsize` option.
 
 
 Another good thing about the multiprocess mode is that you can limit the
 number of jobs any worker process will run before it is killed and respawned.
-This may provide additional protection against memory leaks or other
-unintended resource leaks. See the :option:`--max-jobs-per-worker` option.
+This may provide additional protection against unintended resource leaks. See
+the :option:`--max-jobs-per-worker` option.
 
 You can make sure ipdevpoll always runs in multiprocess mode by altering the
 ``command`` option in the ``ipdevpoll`` entry of the configuration file
