@@ -76,6 +76,10 @@ def pytest_generate_tests(metafunc):
         binaries = _nav_binary_tests()
         ids = [b[0] for b in binaries]
         metafunc.parametrize("binary", _nav_binary_tests(), ids=ids)
+    elif 'admin_navlet' in metafunc.fixturenames:
+        from nav.models.profiles import AccountNavlet
+        navlets = AccountNavlet.objects.filter(account__login='admin')
+        metafunc.parametrize("admin_navlet", navlets)
 
 
 def _nav_binary_tests():
