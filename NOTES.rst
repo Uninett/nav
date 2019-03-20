@@ -1703,7 +1703,7 @@ The hierarchy/naming conventions in the ``alertmsg/`` directory are as follows::
 
 The `<event type>` is one of the available event types in NAV, whereas `<alert
 type>` is one of the alert types associated with the event type. `<medium>` is
-one of the supported alert mediums, such as `email`, `sms` or `slack`. A two
+one of the supported alert mediums, such as `email`, `sms` or `jabber`. A two
 letter language code is optional; if omitted, English will be assumed.
 
 To make a Norwegian translation of the ``boxState/boxDown-email.txt``
