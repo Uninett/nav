@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 Uninett AS
+# Copyright (C) 2013, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -40,6 +40,9 @@ except curses.error:
     _is_term = False
 else:
     _is_term = sys.stdout.isatty()
+finally:
+    if not _set_color:
+        _is_term = False
 
 if six.PY3:
     _term = sys.stdout.buffer
