@@ -105,7 +105,7 @@ class Navlet(TemplateView):
     @property
     def mode(self):
         """Fetch the mode of this request"""
-        return self.request.REQUEST.get('mode', NAVLET_MODE_VIEW)
+        return self.request.GET.get('mode', NAVLET_MODE_VIEW)
 
     def get_template_basename(self):
         """Should return the base template name
@@ -389,7 +389,7 @@ def render_base_template(request):
 
     """
     try:
-        navlet_id = int(request.REQUEST.get('id'))
+        navlet_id = int(request.GET.get('id'))
     except (ValueError, TypeError):
         # We're fucked
         return HttpResponse(status=400)
@@ -420,7 +420,7 @@ def add_user_navlet_sensor(request):
     """Add a sensor widget with sensor id set"""
     if request.method == 'POST':
         sensor = get_object_or_404(
-            Sensor, pk=int(request.REQUEST.get('sensor_id')))
+            Sensor, pk=int(request.GET.get('sensor_id')))
         add_navlet(request.account, 'nav.web.navlets.sensor.SensorWidget',
                    {'sensor_id': sensor.pk, 'title': sensor.netbox.sysname})
         return HttpResponse(status=200)
