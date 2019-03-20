@@ -29,7 +29,7 @@ node {
             sh "git fetch --tags" // seems tags arent't cloned by Jenkins :P
             sh "rm -rf ${WORKSPACE}/reports/*"  // remove old, potentially stale reports
             sh "mkdir -p ${WORKSPACE}/reports"  // ensure the reports directory is actually there
-        }
+        } // Prepare build
 
         try {
             def toxEnvirons = sh(returnStdout: true,
@@ -47,7 +47,7 @@ node {
         } finally {
             junit "reports/**/*-results.xml"
             step([$class: 'CoberturaPublisher', coberturaReportFile: 'reports/**/*coverage.xml'])
-        }
+        } // testing stages
 
         stage("PyLint") {
             lastStage = env.STAGE_NAME
@@ -59,13 +59,13 @@ node {
                                      [threshold: 1670, type: 'TOTAL', unstable: false]
                                     ]
 
-        }
+        } // PyLint
 
         stage("Lines of code") {
             lastStage = env.STAGE_NAME
             sh "/count-lines-of-code.sh"
             sloccountPublish encoding: '', pattern: 'reports/cloc.xml'
-        }
+        } // Lines of code
 
     }
 
