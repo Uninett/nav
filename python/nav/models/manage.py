@@ -19,6 +19,7 @@
 # pylint: disable=R0903
 
 import datetime as dt
+import warnings
 from functools import partial
 from itertools import count, groupby
 import logging
@@ -217,6 +218,60 @@ class Netbox(models.Model):
         """
         for chassis in self.get_chassis().order_by('index'):
             return chassis.device
+
+    @property
+    def read_only(self):
+        """Returns the read-only SNMP community"""
+        warnings.warn(
+            "The Netbox.read_only attribute will be removed in the next "
+            "feature release",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._get_snmp_config('community', writeable=False)
+
+    @property
+    def read_write(self):
+        """Returns the read-write SNMP community"""
+        warnings.warn(
+            "The Netbox.read_write attribute will be removed in the next "
+            "feature release",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._get_snmp_config('community', writeable=True)
+
+    @property
+    def snmp_version(self):
+        """Returns the configured SNMP version"""
+        warnings.warn(
+            "The Netbox.snmp_version attribute will be removed in the next "
+            "feature release",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._get_snmp_config('version')
+
+    def _get_snmp_config(self, variable='community', writeable=None):
+        """Returns SNMP profile configuration variables, preferring the profile
+        with the highest available SNMP version.
+        """
+        # TODO: This method can be removed when the SNMP properties above are removed
+        query = Q(protocol=ManagementProfile.PROTOCOL_SNMP)
+        if writeable:
+            query = query & Q(configuration__write=True)
+        elif writeable is not None:
+            query = query & (
+                Q(configuration__write=False)
+                | ~Q(configuration__has_key='write')
+            )
+        profiles = sorted(
+            self.profiles.filter(query),
+            key=lambda p: p.configuration.get('version'),
+            reverse=True,
+        )
+        if profiles:
+            return profiles[0].configuration.get(variable)
 
     def is_up(self):
         """Returns True if the Netbox isn't known to be down or in shadow"""
