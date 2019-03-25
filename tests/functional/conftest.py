@@ -109,5 +109,14 @@ def base_url():
 
 @pytest.fixture
 def chrome_options(chrome_options):
-    chrome_options.add_argument('--no-sandbox')
+    # All options stolen from https://stackoverflow.com/questions/48450594/selenium-timed-out-receiving-message-from-renderer
+    # AGGRESSIVE: options.setPageLoadStrategy(PageLoadStrategy.NONE)  # https://www.skptricks.com/2018/08/timed-out-receiving-message-from-renderer-selenium.html
+    chrome_options.add_argument("start-maximized")  # https://stackoverflow.com/a/26283818/1689770
+    chrome_options.add_argument("enable-automation")  # https://stackoverflow.com/a/43840128/1689770
+    chrome_options.add_argument("--headless")  # only if you are ACTUALLY running headless
+    chrome_options.add_argument("--no-sandbox")  # https://stackoverflow.com/a/50725918/1689770
+    chrome_options.add_argument("--disable-infobars")  # https://stackoverflow.com/a/43840128/1689770
+    chrome_options.add_argument("--disable-dev-shm-usage")  # https://stackoverflow.com/a/50725918/1689770
+    chrome_options.add_argument("--disable-browser-side-navigation")  # https://stackoverflow.com/a/49123152/1689770
+    chrome_options.add_argument("--disable-gpu")  # https://stackoverflow.com/questions/51959986/how-to-solve-selenium-chromedriver-timed-out-receiving-message-from-renderer-exc
     return chrome_options
