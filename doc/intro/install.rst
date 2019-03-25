@@ -182,8 +182,8 @@ Users and privileges
 Apart from the ``pping`` and ``snmptrapd`` daemons, no NAV processes should
 ever be run as ``root``. You should create a non-privileged system user and
 group, and ensure the ``NAV_USER`` option in :file:`nav.conf` is set
-accordingly. Also make sure this user has permissions to write to your
-configured PID-file and log directories.
+accordingly. Also make sure this user has permissions to write to the directories
+configured in ``PID_DIR``, ``LOG_DIR`` and ``UPLOAD_DIR``.
 
 .. note:: The ``pping`` and ``snmptrapd`` daemons must be started as ``root``
           to be able to create privileged communication sockets. Both daemons
