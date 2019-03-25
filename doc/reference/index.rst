@@ -17,6 +17,7 @@ This section contains reference material for end-users.
    ipam
    ipdevpoll
    ldap
+   web_authentication
    mailin
    navstats
    portadmin
