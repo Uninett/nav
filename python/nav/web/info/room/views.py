@@ -25,6 +25,7 @@ from django.db.models import Q, Max
 from django.http import HttpResponse
 from django.shortcuts import (redirect, get_object_or_404,
                               render)
+from django.views.decorators.http import require_http_methods
 
 from nav.django.decorators import require_admin
 
@@ -206,9 +207,10 @@ def render_netboxes(request, roomid):
     )
 
 
+@require_http_methods(['POST'])
 def create_csv(request):
     """Create csv-file from form data"""
-    roomname = request.REQUEST.get('roomid', 'room').encode('utf-8')
+    roomname = request.POST.get('roomid', 'room').encode('utf-8')
     filename = "{}.csv".format(roomname)
 
     response = HttpResponse(content_type='text/csv')
@@ -216,7 +218,7 @@ def create_csv(request):
         filename)
 
     writer = csv.writer(response)
-    rows = request.REQUEST.get('rows', '').encode('utf-8')
+    rows = request.POST.get('rows', '').encode('utf-8')
     for row in rows.splitlines():
         writer.writerow(row.split(';'))
     return response
