@@ -33,7 +33,12 @@ class MacWatch(models.Model):
     id = models.AutoField(db_column='id', primary_key=True)
     # TODO: Create MACAddressField in Django
     mac = models.CharField(db_column='mac', max_length=17, unique=True)
-    userid = models.ForeignKey(Account, db_column='userid', null=False)
+    userid = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        db_column='userid',
+        null=False
+    )
     description = VarcharField(db_column='description', null=True)
     created = models.DateTimeField(db_column='created', auto_now_add=True)
     # Used only when a mac-address prefix is given.  This is value of
@@ -72,8 +77,18 @@ class MacWatchMatch(models.Model):
     """Extra model (helper-model) for mac-watch when macwatch
     only has a mac-adress prefix"""
     id = models.AutoField(db_column='id', primary_key=True)
-    macwatch = models.ForeignKey(MacWatch, db_column='macwatch', null=False)
-    cam = models.ForeignKey(Cam, db_column='cam', null=False)
+    macwatch = models.ForeignKey(
+        MacWatch,
+        on_delete=models.CASCADE,
+        db_column='macwatch',
+        null=False
+    )
+    cam = models.ForeignKey(
+        Cam,
+        on_delete=models.CASCADE,
+        db_column='cam',
+        null=False
+    )
     posted = models.DateTimeField(db_column='posted', auto_now_add=True)
 
     class Meta(object):

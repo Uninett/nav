@@ -47,7 +47,11 @@ class Rack(models.Model):
     objects = RackManager()
 
     id = models.AutoField(primary_key=True, db_column='rackid')
-    room = models.ForeignKey(Room, db_column='roomid')
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        db_column='roomid'
+    )
     rackname = VarcharField(blank=True)
     ordering = models.IntegerField()
     _configuration = VarcharField(default=None, db_column='configuration')

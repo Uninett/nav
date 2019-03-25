@@ -45,7 +45,11 @@ class Origin(models.Model):
     """
     origin = models.AutoField(db_column='origin', primary_key=True)
     name = VarcharField(db_column='name')
-    category = models.ForeignKey(LoggerCategory, db_column='category')
+    category = models.ForeignKey(
+        LoggerCategory,
+        on_delete=models.CASCADE,
+        db_column='category'
+    )
 
     def __str__(self):
         return self.name
@@ -76,7 +80,11 @@ class LogMessageType(models.Model):
     Model for the logger.log_message_type-table
     """
     type = models.AutoField(db_column='type', primary_key=True)
-    priority = models.ForeignKey(Priority, db_column='priority')
+    priority = models.ForeignKey(
+        Priority,
+        on_delete=models.CASCADE,
+        db_column='priority'
+    )
     facility = VarcharField(db_column='facility')
     mnemonic = VarcharField(db_column='mnemonic')
 
@@ -98,9 +106,21 @@ class LogMessage(models.Model):
     """
     id = models.AutoField(db_column='id', primary_key=True)
     time = models.DateTimeField(db_column='time', auto_now=True)
-    origin = models.ForeignKey(Origin, db_column='origin')
-    newpriority = models.ForeignKey(Priority, db_column='newpriority')
-    type = models.ForeignKey(LogMessageType, db_column='type')
+    origin = models.ForeignKey(
+        Origin,
+        on_delete=models.CASCADE,
+        db_column='origin'
+    )
+    newpriority = models.ForeignKey(
+        Priority,
+        on_delete=models.CASCADE,
+        db_column='newpriority'
+    )
+    type = models.ForeignKey(
+        LogMessageType,
+        on_delete=models.CASCADE,
+        db_column='type'
+    )
     message = VarcharField(db_column='message')
 
     class Meta(object):
@@ -125,10 +145,27 @@ class MessageView(models.Model):
     Do not change attributes unless You know what You are doing!
     Check: https://docs.djangoproject.com/en/dev/ref/models/options/
     """
-    origin = models.ForeignKey(Origin, db_column='origin', primary_key=True)
-    type = models.ForeignKey(LogMessageType, db_column='type')
-    newpriority = models.ForeignKey(Priority, db_column='newpriority')
-    category = models.ForeignKey(LoggerCategory, db_column='category')
+    origin = models.ForeignKey(
+        Origin,
+        on_delete=models.CASCADE,
+        db_column='origin',
+        primary_key=True
+    )
+    type = models.ForeignKey(
+        LogMessageType,
+        on_delete=models.CASCADE,
+        db_column='type'
+    )
+    newpriority = models.ForeignKey(
+        Priority,
+        on_delete=models.CASCADE,
+        db_column='newpriority'
+    )
+    category = models.ForeignKey(
+        LoggerCategory,
+        on_delete=models.CASCADE,
+        db_column='category'
+    )
     time = models.DateTimeField(db_column='time')
 
     class Meta(object):

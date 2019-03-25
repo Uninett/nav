@@ -46,9 +46,16 @@ class Identity(models.Model):
     id = models.AutoField(db_column='identityid', primary_key=True)
     mac = models.CharField(db_column='mac', max_length=17)
     status = VarcharField(db_column='blocked_status', choices=STATUSES)
-    justification = models.ForeignKey('Justification',
-                                      db_column='blocked_reasonid')
-    interface = models.ForeignKey(Interface, db_column='swportid')
+    justification = models.ForeignKey(
+        'Justification',
+        on_delete=models.CASCADE,
+        db_column='blocked_reasonid'
+    )
+    interface = models.ForeignKey(
+        Interface,
+        on_delete=models.CASCADE,
+        db_column='swportid'
+    )
     ip = models.GenericIPAddressField(null=True, default='0.0.0.0')
     dns = VarcharField(blank=True)
     netbios = VarcharField(blank=True)
@@ -58,13 +65,21 @@ class Identity(models.Model):
     autoenable = models.DateTimeField(null=True)
     autoenablestep = models.IntegerField(null=True, default=2)
     mail = VarcharField(blank=True)
-    organization = models.ForeignKey('Organization', db_column='orgid',
-                                     null=True)
+    organization = models.ForeignKey(
+        'Organization',
+        on_delete=models.CASCADE,
+        db_column='orgid',
+        null=True
+    )
     keep_closed = models.CharField(db_column='determined', default='n',
                                    choices=KEEP_CLOSED_CHOICES, max_length=1)
     fromvlan = models.IntegerField(null=True)
-    tovlan = models.ForeignKey('QuarantineVlan', db_column='tovlan',
-                               to_field='vlan', null=True, default=None)
+    tovlan = models.ForeignKey(
+        'QuarantineVlan',
+        on_delete=models.CASCADE,
+        db_column='tovlan',
+        to_field='vlan',null=True,default=None
+    )
     # If the interface does not exist any longer in the database, the user
     # needs a hint of what interface was blocked as information as ifname
     # and netbox naturally no longer exists based on interfaceid.
@@ -92,11 +107,18 @@ class Identity(models.Model):
 class Event(models.Model):
     """A class representing an action taken"""
     id = models.AutoField(db_column='eventid', primary_key=True)
-    identity = models.ForeignKey('Identity', db_column='identityid')
+    identity = models.ForeignKey(
+        'Identity',
+        on_delete=models.CASCADE,
+        db_column='identityid'
+    )
     comment = VarcharField(db_column='event_comment', blank=True)
     action = VarcharField(db_column='blocked_status', choices=STATUSES)
-    justification = models.ForeignKey('Justification',
-                                      db_column='blocked_reasonid')
+    justification = models.ForeignKey(
+        'Justification',
+        on_delete=models.CASCADE,
+        db_column='blocked_reasonid'
+    )
     event_time = models.DateTimeField(db_column='eventtime', auto_now_add=True)
     autoenablestep = models.IntegerField(null=True)
     executor = VarcharField(db_column='username')
@@ -146,7 +168,11 @@ class DetentionProfile(models.Model):
     name = VarcharField(db_column='blocktitle')
     description = VarcharField(db_column='blockdesc', blank=True)
     mailfile = VarcharField(blank=True)
-    justification = models.ForeignKey('Justification', db_column='reasonid')
+    justification = models.ForeignKey(
+        'Justification',
+        on_delete=models.CASCADE,
+        db_column='reasonid'
+    )
     keep_closed = models.CharField(db_column='determined', default='n',
                                    choices=KEEP_CLOSED_CHOICES, max_length=1)
     incremental = models.CharField(default='n', max_length=1)
@@ -159,8 +185,11 @@ class DetentionProfile(models.Model):
     active_on_vlans = VarcharField(db_column='activeonvlans')
     detention_type = VarcharField(db_column='detainmenttype',
                                   choices=DETENTION_TYPE_CHOICES)
-    quarantine_vlan = models.ForeignKey('QuarantineVlan',
-                                        db_column='quarantineid', null=True)
+    quarantine_vlan = models.ForeignKey(
+        'QuarantineVlan',
+        on_delete=models.CASCADE,
+        db_column='quarantineid',null=True
+    )
 
     def __str__(self):
         return self.name
