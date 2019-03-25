@@ -255,7 +255,10 @@ class Shadow(object):
         for field in cls._meta.fields:
             if issubclass(field.__class__,
                           django.db.models.fields.related.ForeignKey):
-                django_dependency = field.rel.to
+                try:
+                    django_dependency = field.remote_field.model
+                except AttributeError:  # Django <= 1.8
+                    django_dependency = field.rel.to
 
                 shadow_dependency = MetaShadow.shadowed_classes.get(
                     django_dependency, None)
