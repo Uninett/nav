@@ -21,6 +21,7 @@ import json
 from datetime import datetime
 from decimal import Decimal
 
+import django
 from django import forms
 from django.db import models
 from django.db.models import signals
@@ -181,7 +182,10 @@ class LegacyGenericForeignKey(object):
         self.name = name
         self.model = cls
         self.cache_attr = "_%s_cache" % name
-        cls._meta.virtual_fields.append(self)
+        if django.VERSION[:2] == (1, 8):  # Django <= 1.8
+            cls._meta.virtual_fields.append(self)
+        else:
+            cls._meta.private_fields.append(self)
 
         if not cls._meta.abstract:
             signals.pre_init.connect(self.instance_pre_init, sender=cls)
