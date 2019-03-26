@@ -32,6 +32,7 @@ from django.db import models
 from django.db.models import Q
 from nav.six import reverse
 from django.utils.encoding import python_2_unicode_compatible
+from django.contrib.postgres.fields import JSONField
 
 from nav import util
 from nav.adapters import HStoreField
@@ -67,6 +68,57 @@ class UpsManager(models.Manager):
         return super(UpsManager, self).get_queryset().filter(
             category='POWER',
             sensor__internal_name__startswith='ups').distinct()
+
+
+@python_2_unicode_compatible
+class ManagementProfile(models.Model):
+    """Management connection profiles shared between multiple netboxes. These
+    may include protocols, credentials etc.
+
+    """
+
+    id = models.AutoField(db_column='management_profileid', primary_key=True)
+    name = VarcharField(unique=True)
+    description = VarcharField(blank=True, null=True)
+
+    PROTOCOL_SNMP = 1
+    PROTOCOL_CHOICES = (
+        (PROTOCOL_SNMP, "SNMP"),
+    )
+    protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
+    configuration = JSONField(default=dict)
+
+    class Meta(object):
+        db_table = 'management_profile'
+        verbose_name = 'management profile'
+        verbose_name_plural = 'management profiles'
+        ordering = ('protocol', 'name')
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def is_snmp(self):
+        return self.protocol == self.PROTOCOL_SNMP
+
+    @property
+    def snmp_version(self):
+        if self.is_snmp:
+            return self.configuration['version']
+
+        raise ValueError("Getting snmp protocol version for non-snmp "
+                         "management profile")
+
+
+class NetboxProfile(models.Model):
+    """Stores the relation between Netboxes and their management profiles"""
+    id = models.AutoField(primary_key=True, db_column='netbox_profileid')
+    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    profile = models.ForeignKey('ManagementProfile', db_column='profileid')
+
+    class Meta(object):
+        db_table = 'netbox_profile'
+        unique_together = (('netbox', 'profile'), )
 
 
 @python_2_unicode_compatible
@@ -113,10 +165,12 @@ class Netbox(models.Model):
         on_delete=models.CASCADE,
         db_column='orgid'
     )
-    read_only = VarcharField(db_column='ro', blank=True, null=True)
-    read_write = VarcharField(db_column='rw', blank=True, null=True)
+
+    profiles = models.ManyToManyField(
+        'ManagementProfile', through='NetboxProfile', blank=True
+    )
+
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
-    snmp_version = models.IntegerField(verbose_name="SNMP version")
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
