@@ -123,7 +123,7 @@ TEMPLATES = [
 ]
 
 # Middleware
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'nav.django.auth.AuthenticationMiddleware',
@@ -131,6 +131,8 @@ MIDDLEWARE_CLASSES = (
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
+if django.VERSION[:2] == (1, 8):  # Django <= 1.8
+    MIDDLEWARE_CLASSES = MIDDLEWARE
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
