@@ -36,18 +36,18 @@ class TestBulkParser(object):
 
 class TestNetboxBulkParser(object):
     def test_parse_returns_iterator(self):
-        data = b"room1:10.0.0.186:myorg:OTHER::parrot::"
+        data = b"room1:10.0.0.186:myorg:OTHER:SNMP v1 read profile:::"
         b = bulkparse.NetboxBulkParser(data)
         assert (hasattr(b, '__next__'))
 
     def test_parse_single_line_should_yield_value(self):
-        data = b"room1:10.0.0.186:myorg:OTHER::parrot::"
+        data = b"room1:10.0.0.186:myorg:OTHER:SNMP v2c read profile:::"
         b = bulkparse.NetboxBulkParser(data)
         out_data = six.next(b)
         assert (out_data is not None)
 
     def test_parse_single_line_yields_columns(self):
-        data = (b"room1:10.0.0.186:myorg:SW:1:public:secret:amaster:doesthings:"
+        data = (b"room1:10.0.0.186:myorg:SW:SNMP v2c read profile:amaster:doesthings:"
                 b"key=value:blah1:blah2")
         b = bulkparse.NetboxBulkParser(data)
         out_data = six.next(b)
@@ -64,20 +64,20 @@ class TestNetboxBulkParser(object):
         assert (
             bulkparse.NetboxBulkParser.get_header() ==
             "#roomid:ip:orgid:catid"
-            "[:snmp_version:ro:rw:master:function:data:netboxgroup:...]")
+            "[:management_profiles:master:function:data:netboxgroup:...]")
 
     def test_two_rows_returned_with_empty_lines_in_input(self):
-        data = (b"room1:10.0.0.186:myorg:SW:1:public:parrot::\n"
+        data = (b"room1:10.0.0.186:myorg:SW:SNMP v1 read profile::\n"
                 b"\n"
-                b"room1:10.0.0.187:myorg:OTHER::parrot::\n")
+                b"room1:10.0.0.187:myorg:OTHER:SNMP v1 read profile::\n")
         b = bulkparse.NetboxBulkParser(data)
         out_data = list(b)
         assert len(out_data) == 2
 
     def test_three_lines_with_two_rows_should_be_counted_as_three(self):
-        data = (b"room1:10.0.0.186:myorg:SW:1:public:parrot::\n"
+        data = (b"room1:10.0.0.186:myorg:SW:SNMP v1 read profile::\n"
                 b"\n"
-                b"room1:10.0.0.187:myorg:OTHER::parrot::\n")
+                b"room1:10.0.0.187:myorg:OTHER:SNMP v2c read profile::\n")
         b = bulkparse.NetboxBulkParser(data)
         out_data = list(b)
         assert b.line_num == 3
@@ -89,7 +89,7 @@ class TestNetboxBulkParser(object):
             b.__next__()
 
     def test_invalid_ip_should_raise_error(self):
-        data = b"room1:10.0.x.x:myorg:SW:public:parrot::\n"
+        data = b"room1:10.0.x.x:myorg:SW:SNMP v2c read profile::\n"
         b = bulkparse.NetboxBulkParser(data)
         with pytest.raises(bulkparse.InvalidFieldValue):
             six.next(b)
