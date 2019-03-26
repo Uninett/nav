@@ -5,7 +5,7 @@ import pytest_twisted
 
 from mock import patch
 
-
+from nav.models.manage import NetboxProfile
 from nav.config import find_configfile
 from nav.ipdevpoll import config, jobs, plugins
 from nav.ipdevpoll.pool import InlinePool, WorkerPool
@@ -35,8 +35,7 @@ def test_fail(localhost, ipdevpoll_test_config, pool):
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
 def test_not_done(localhost, ipdevpoll_test_config, pool):
-    localhost.read_only = None
-    localhost.save()
+    NetboxProfile.objects.filter(netbox=localhost).delete()
     res = yield pool.execute_job('noop', localhost.pk, ['snmpcheck', ], 0)
     assert res is False
 
