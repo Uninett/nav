@@ -30,7 +30,7 @@ from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
 from nav.ipdevpoll.snmp.common import snmp_parameter_factory, SnmpError
-from nav.models.manage import Netbox
+from nav.models.manage import Netbox, ManagementProfile
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.oids import OID
 
@@ -45,7 +45,9 @@ def main():
     if sysnames:
         boxes = Netbox.objects.filter(sysname__in=sysnames)
     else:
-        boxes = Netbox.objects.filter(read_only__isnull=False)
+        boxes = Netbox.objects.filter(
+            profiles__protocol=ManagementProfile.PROTOCOL_SNMP
+        )
 
     if boxes:
         reactor.callWhenRunning(reactor_main, list(boxes), options.baseoid)
