@@ -22,16 +22,17 @@ import copy
 import json
 import socket
 from socket import error as SocketError
-from nav.six import reverse
+import logging
 
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render, get_object_or_404
+from nav.six import reverse
+from django.http import HttpResponse, JsonResponse, Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
 from django.contrib import messages
 
 from nav.auditlog.models import LogEntry
-from nav.models.manage import Netbox, NetboxCategory, NetboxType
-from nav.models.manage import NetboxInfo
+from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
+from nav.models.manage import NetboxInfo, ManagementProfile
 from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
 from nav.util import is_valid_ip
@@ -39,6 +40,9 @@ from nav.web.seeddb import reverse_lazy
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname
 from nav.web.seeddb.page.netbox import NetboxInfo as NI
 from nav.web.seeddb.page.netbox.forms import NetboxModelForm
+
+
+_logger = logging.getLogger(__name__)
 
 
 def log_netbox_change(account, old, new):
@@ -101,27 +105,46 @@ def get_title(netbox):
 def get_read_only_variables(request):
     """Fetches read only attributes for an IP-address"""
     ip_address = request.GET.get('ip_address')
-    read_community = request.GET.get('read_community')
-    write_community = request.GET.get('read_write_community')
-    snmp_version = request.GET.get('snmp_version')
-    if snmp_version == '2':
-        snmp_version = '2c'
+    profile_ids = request.GET.getlist('profiles[]')
+    profiles = ManagementProfile.objects.filter(id__in=profile_ids)
+    _logger.debug(
+        "testing management profiles against %s: %r = %r",
+        ip_address,
+        profile_ids,
+        profiles,
+    )
+    if not profiles:
+        raise Http404
 
     sysname = get_sysname(ip_address)
+    netbox_type = None
+
+    snmp_profiles = [p for p in profiles if p.is_snmp]
+    result = {p.id: {} for p in snmp_profiles}
+    for profile in snmp_profiles:
+        if profile.configuration.get('write'):
+            result[profile.id] = snmp_write_test(ip_address, profile)
+        else:
+            netbox_type = get_type_id(ip_address, profile)
+            result[profile.id]['status'] = check_snmp_version(
+                ip_address, profile
+            )
+        result[profile.id]['name'] = profile.name
+        result[profile.id]['url'] = reverse(
+            'seeddb-management-profile-edit',
+            kwargs={'management_profile_id': profile.id}
+        )
 
     data = {
         'sysname': sysname,
-        'netbox_type': get_type_id(ip_address, read_community, snmp_version),
-        'snmp_read_test': check_snmp_version(ip_address, read_community, snmp_version),
-        'snmp_write_test': snmp_write_test(ip_address, write_community, snmp_version)
+        'netbox_type': netbox_type,
+        'profiles': result,
     }
     return JsonResponse(data)
 
 
-def snmp_write_test(ip, community, snmp_version):
+def snmp_write_test(ip, profile):
     """Test that snmp write works"""
-    if not community:
-        return False
 
     testresult = {
         'error_message': '',
@@ -133,15 +156,18 @@ def snmp_write_test(ip, community, snmp_version):
     syslocation = '1.3.6.1.2.1.1.6.0'
     value = ''
     try:
-        snmp = Snmp(ip, community, snmp_version)
+        snmp = Snmp(
+            ip,
+            profile.configuration.get("community"),
+            profile.configuration.get("version"),
+        )
         value = safestring(snmp.get(syslocation))
         snmp.set(syslocation, 's', value.encode('utf-8'))
     except SnmpError as error:
-        try:
-            value.decode('ascii')
-        except UnicodeDecodeError:
-            testresult['custom_error'] = 'UnicodeDecodeError'
-
+        testresult['error_message'] = error.args
+        testresult['status'] = False
+    except UnicodeDecodeError as error:
+        testresult['custom_error'] = 'UnicodeDecodeError'
         testresult['error_message'] = error.args
         testresult['status'] = False
     else:
@@ -151,11 +177,15 @@ def snmp_write_test(ip, community, snmp_version):
     return testresult
 
 
-def check_snmp_version(ip, community, version):
+def check_snmp_version(ip, profile):
     """Check if version of snmp is supported by device"""
     sysobjectid = '1.3.6.1.2.1.1.2.0'
     try:
-        snmp = Snmp(ip, community, version)
+        snmp = Snmp(
+            ip,
+            profile.configuration.get("community"),
+            profile.configuration.get("version"),
+        )
         snmp.get(sysobjectid)
     except Exception:  # pylint: disable=W0703
         return False
@@ -172,9 +202,10 @@ def get_sysname(ip_address):
         return None
 
 
-def get_type_id(ip_addr, snmp_ro, snmp_version):
+def get_type_id(ip_addr, profile):
     """Gets the id of the type of the ip_addr"""
-    netbox_type = snmp_type(ip_addr, snmp_ro, snmp_version)
+    netbox_type = snmp_type(ip_addr, profile.configuration.get("community"),
+                            profile.snmp_version)
     if netbox_type:
         return netbox_type.id
 
@@ -222,6 +253,16 @@ def netbox_do_save(form):
     NetboxCategory.objects.filter(netbox=netbox).delete()
     for netboxgroup in netboxgroups:
         NetboxCategory.objects.create(netbox=netbox, category=netboxgroup)
+
+    # Update the list of management profiles
+    current_profiles = set(form.cleaned_data['profiles'])
+    old_profiles = set(netbox.profiles.all())
+    to_add = current_profiles.difference(old_profiles)
+    to_remove = old_profiles.difference(current_profiles)
+    for profile in to_remove:
+        NetboxProfile.objects.get(netbox=netbox, profile=profile).delete()
+    for profile in to_add:
+        NetboxProfile(netbox=netbox, profile=profile).save()
 
     return netbox
 

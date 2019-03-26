@@ -34,6 +34,9 @@
         <li class="{{ active.service|yesno:"tabactive," }}">
             <a href="{% url 'seeddb-service' %}">Service</a>
         </li>
+        <li class="{{ active.management_profile|yesno:"tabactive," }}">
+            <a href="{% url 'seeddb-management-profile' %}">Management Profile</a>
+        </li>
         <li class="{{ active.room|yesno:"tabactive," }}">
             <a href="{% url 'seeddb-room' %}">Room</a>
         </li>

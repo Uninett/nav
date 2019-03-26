@@ -27,7 +27,8 @@ from django.utils import six
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (Location, Room, Organization, NetboxType,
-                               Vendor, NetboxGroup, Netbox)
+                               Vendor, NetboxGroup, Netbox,
+                               ManagementProfile)
 from nav.models.cabling import Cabling
 
 import logging
@@ -327,6 +328,27 @@ class DeviceGroupForm(forms.ModelForm):
 
     class Meta(object):
         model = NetboxGroup
+        fields = '__all__'
+
+
+class ManagementProfileFilterForm(forms.Form):
+    """Form for filtering connection profiles"""
+    protocol = forms.ChoiceField(
+        required=False,
+        choices=ManagementProfile.PROTOCOL_CHOICES)
+
+    def __init__(self, *args, **kwargs):
+        super(ManagementProfileFilterForm, self).__init__(*args, **kwargs)
+        self.helper = get_formhelper()
+        self.helper.layout = get_single_layout('Filter connection profiles',
+                                               'protocol')
+
+
+class ManagementProfileForm(forms.ModelForm):
+    """Form for editing/adding connection profiless"""
+
+    class Meta(object):
+        model = ManagementProfile
         fields = '__all__'
 
 
