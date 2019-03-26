@@ -3,7 +3,7 @@ from __future__ import print_function
 from nav.six import reverse
 from django.utils.encoding import smart_text
 
-from nav.models.manage import Netbox, Module, Interface, Device
+from nav.models.manage import Netbox, Module, Interface, Device, NetboxProfile
 from nav.web.ipdevinfo.utils import get_module_view
 
 import pytest
@@ -46,11 +46,11 @@ def test_get_module_view(netbox, perspective):
 
 
 @pytest.fixture()
-def netbox(db):
+def netbox(db, management_profile):
     box = Netbox(ip='10.254.254.254', sysname='example-sw.example.org',
-                 organization_id='myorg', room_id='myroom', category_id='SW',
-                 snmp_version=2, read_only='public')
+                 organization_id='myorg', room_id='myroom', category_id='SW')
     box.save()
+    NetboxProfile(netbox=box, profile=management_profile).save()
 
     device = Device(serial="1234test")
     device.save()

@@ -30,10 +30,9 @@ def test_editing_deleted_netboxes_should_raise_404():
 
 
 @pytest.fixture()
-def netbox():
+def netbox(management_profile):
     box = Netbox(ip='10.254.254.254', sysname='downhost.example.org',
-                 organization_id='myorg', room_id='myroom', category_id='SRV',
-                 snmp_version=2)
+                 organization_id='myorg', room_id='myroom', category_id='SRV')
     box.save()
     yield box
     print("teardown test device")
