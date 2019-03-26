@@ -1,6 +1,3 @@
-from nav.bootstrap import bootstrap_django
-bootstrap_django(__file__)
-
 from nav.models.profiles import AlertSender
 from nav.alertengine.dispatchers import Dispatcher
 

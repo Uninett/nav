@@ -5,8 +5,6 @@ import pytest_twisted
 
 from mock import patch
 
-from nav.bootstrap import bootstrap_django
-bootstrap_django(__file__)
 
 from nav.config import find_configfile
 from nav.ipdevpoll import config, jobs, plugins

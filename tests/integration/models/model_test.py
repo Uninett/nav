@@ -19,9 +19,6 @@ except ImportError:
 
 import pytest
 
-from nav.bootstrap import bootstrap_django
-bootstrap_django(__file__)
-
 import nav.models
 
 # Ensure that all modules are loaded
