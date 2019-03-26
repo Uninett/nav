@@ -19,7 +19,7 @@ import copy
 from datetime import datetime
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse, reverse_lazy
+from nav.six import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import generic

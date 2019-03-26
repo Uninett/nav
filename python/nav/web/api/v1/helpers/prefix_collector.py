@@ -18,7 +18,7 @@
 from IPy import IP
 
 from django.db import connection
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 
 
 class UsageResult(object):

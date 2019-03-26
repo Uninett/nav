@@ -22,7 +22,7 @@ import json
 import logging
 from operator import attrgetter
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.http import (HttpResponseForbidden, HttpResponseRedirect,
                          HttpResponse, JsonResponse)
 from django.views.decorators.http import require_POST

@@ -17,7 +17,7 @@
 
 from collections import namedtuple
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db.models import Q, Count
 
 from IPy import IP

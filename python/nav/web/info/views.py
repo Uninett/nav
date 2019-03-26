@@ -17,7 +17,7 @@
 import importlib
 import logging
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.conf import settings

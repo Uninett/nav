@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.utils.encoding import smart_text
 
 from nav.models.manage import Netbox, Module, Interface, Device

@@ -30,7 +30,7 @@ import re
 # this is just here to make sure Django finds NAV's settings file
 # pylint: disable=W0611
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render
 from django.http import HttpResponse, Http404, HttpResponseRedirect

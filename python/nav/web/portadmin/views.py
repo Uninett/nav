@@ -24,7 +24,7 @@ from functools import reduce
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db.models import Q
 from django.views.decorators.http import require_POST
 

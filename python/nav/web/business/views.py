@@ -4,7 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 from operator import attrgetter
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse

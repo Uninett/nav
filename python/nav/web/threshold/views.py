@@ -17,7 +17,7 @@
 
 import datetime
 import json
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import six

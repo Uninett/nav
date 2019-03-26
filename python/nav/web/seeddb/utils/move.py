@@ -15,7 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 

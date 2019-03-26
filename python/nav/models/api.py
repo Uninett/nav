@@ -18,7 +18,7 @@
 from datetime import datetime
 
 from django.db import models
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav.adapters import HStoreField

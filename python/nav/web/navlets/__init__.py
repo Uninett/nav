@@ -50,7 +50,7 @@ import json
 from operator import attrgetter
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST

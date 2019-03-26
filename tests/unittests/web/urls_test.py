@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 
 
 def test_ipdevinfo_interface_details_should_support_typical_sysnames():

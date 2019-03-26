@@ -15,7 +15,7 @@
 #
 """Serializers for status API data"""
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.template.defaultfilters import urlize
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags

@@ -19,7 +19,7 @@ import datetime
 import pickle
 
 from django.shortcuts import render
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.views.generic import View
 from django.http import HttpResponse, Http404
 

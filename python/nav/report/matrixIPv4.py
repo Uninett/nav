@@ -15,7 +15,7 @@
 #
 """This class serves as an interface for the prefix matrix."""
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 
 from nav.report import IPtools, metaIP
 from nav.report.matrix import Matrix, Link, Cell

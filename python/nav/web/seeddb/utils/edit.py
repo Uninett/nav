@@ -24,7 +24,7 @@ import logging
 from IPy import IP
 from socket import gethostbyaddr, gethostbyname, error as SocketError
 
-from django.core.urlresolvers import reverse, NoReverseMatch
+from nav.six import reverse, NoReverseMatch
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q

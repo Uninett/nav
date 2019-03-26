@@ -26,7 +26,7 @@
 
 from django.http import HttpResponseRedirect
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db.models import Q
 from django.shortcuts import render
 from django.utils import six

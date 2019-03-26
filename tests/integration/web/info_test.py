@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 import pytest
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 
 from nav.web.info.searchproviders import SearchProvider
 

@@ -15,7 +15,7 @@
 #
 """Module containing PDUWidget"""
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 
 from nav.models.manage import Room
 import nav.natsort

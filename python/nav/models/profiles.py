@@ -28,7 +28,7 @@ import json
 
 from django.utils import six
 from django.views.decorators.debug import sensitive_variables
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db import models, transaction
 from django.utils.encoding import python_2_unicode_compatible
 from django.forms.models import model_to_dict

@@ -19,7 +19,7 @@ import datetime
 import logging
 import csv
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db import IntegrityError
 from django.db.models import Q, Max
 from django.http import HttpResponse

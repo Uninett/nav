@@ -144,7 +144,7 @@ def localhost():
 def client():
     """Provides a Django test Client object already logged in to the web UI as
     an admin"""
-    from django.core.urlresolvers import reverse
+    from nav.six import reverse
 
     client_ = Client()
     url = reverse('webfront-login')

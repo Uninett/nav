@@ -19,7 +19,7 @@ Forms and controllers for the prefix functionality in SeedDB
 """
 
 from django import forms
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db import transaction
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
