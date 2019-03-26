@@ -20,12 +20,13 @@ from __future__ import absolute_import
 import csv
 import re
 import io
+import json
 
 from django.utils import six
 from IPy import IP
 
 from nav.errors import GeneralException
-from nav.models.manage import Location, Room, Organization, Vendor, Usage
+from nav.models.manage import Location, Room, Organization, Vendor, Usage, ManagementProfile
 
 
 class BulkParser(six.Iterator):
@@ -62,7 +63,9 @@ class BulkParser(six.Iterator):
         self.reader = csv.DictReader(CommentStripper(self.data),
                                      fieldnames=self.format,
                                      delimiter=self.delimiter,
-                                     restkey=self.restkey)
+                                     restkey=self.restkey,
+                                     doublequote=True,
+                                     quoting=csv.QUOTE_ALL)
         self.line_num = 0
 
     def __iter__(self):
@@ -161,7 +164,7 @@ def validate_attribute_list(value):
 
 class NetboxBulkParser(BulkParser):
     """Parses the netbox bulk format"""
-    format = ('roomid', 'ip', 'orgid', 'catid', 'snmp_version', 'ro', 'rw',
+    format = ('roomid', 'ip', 'orgid', 'catid', 'management_profiles',
               'master', 'function', 'data')
     required = 4
     restkey = 'netboxgroup'
@@ -176,15 +179,6 @@ class NetboxBulkParser(BulkParser):
             return True
 
     @staticmethod
-    def _validate_snmp_version(value):
-        if not value:
-            return True  # empty values are ok
-        try:
-            return int(value) in (1, 2)
-        except ValueError:
-            return False
-
-    @staticmethod
     def _validate_data(datastring):
         try:
             if datastring:
@@ -195,6 +189,37 @@ class NetboxBulkParser(BulkParser):
             return False
         else:
             return True
+
+
+class ManagementProfileBulkParser(BulkParser):
+    """Parses the netbox management profile bulk format.
+
+    The configuration attribute is a JSON attribute, but this cannot be fully
+    represented by the CSV-based bulk import/export format, so this will only
+    support simple "flat dictionaries", such as is used in some of the other
+    bulk formats.
+
+    """
+    format = ('name', 'protocol', 'configuration')
+    required = 3
+
+    @staticmethod
+    def _validate_configuration(configuration):
+        try:
+            if configuration:
+                json.loads(configuration)
+        except ValueError:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def _validate_protocol(protocol):
+        allowable = set(
+            name
+            for value, name in ManagementProfile.PROTOCOL_CHOICES
+        )
+        return protocol in allowable
 
 
 class UsageBulkParser(BulkParser):

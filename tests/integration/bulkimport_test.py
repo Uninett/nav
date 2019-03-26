@@ -132,6 +132,23 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         return objects
 
 
+class TestManagementProfileImporter(DjangoTransactionTestCase):
+    def test_import(self):
+        name = "SNMP v1 read profile"
+        data = name + ':SNMP:"{""version"":1, ""community"":""public""}"'
+        objects = self.parse_to_objects(data)
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(isinstance(objects[0], manage.ManagementProfile))
+        self.assertEqual(objects[0].name, name)
+
+    @staticmethod
+    def parse_to_objects(data):
+        parser = bulkparse.ManagementProfileBulkParser(data)
+        importer = bulkimport.ManagementProfileImporter(parser)
+        _line_num, objects = six.next(importer)
+        return objects
+
+
 class TestLocationImporter(DjangoTransactionTestCase):
     def test_import(self):
         data = "somewhere::Over the rainbow"

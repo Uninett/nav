@@ -19,13 +19,14 @@
 
 from __future__ import absolute_import
 
-import django
+import json
 
 from nav.models.manage import Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, NetboxGroup
 from nav.models.manage import NetboxCategory, Interface
 from nav.models.manage import Location, Usage, NetboxType, Vendor
 from nav.models.manage import Prefix, Vlan, NetType
+from nav.models.manage import ManagementProfile, NetboxProfile
 from nav.models.cabling import Cabling, Patch
 from nav.models.service import Service, ServiceProperty
 from nav.util import is_valid_ip
@@ -33,7 +34,6 @@ from nav.web.servicecheckers import get_description
 
 from nav.bulkparse import BulkParseError
 
-from nav.models.manage import models
 from django.core.exceptions import ValidationError
 from django.utils import six
 
@@ -94,13 +94,17 @@ class NetboxImporter(BulkImporter):
         if netboxgroups:
             objects.extend(netboxgroups)
 
+        profiles = self._get_management_profiles(
+            netbox, row.get('management_profiles', '')
+        )
+        if profiles:
+            objects.extend(profiles)
+
         return objects
 
     @staticmethod
     def _get_netbox_from_row(row):
-        netbox = Netbox(ip=row['ip'], read_only=row['ro'],
-                        read_write=row['rw'],
-                        snmp_version=row['snmp_version'] or 2)
+        netbox = Netbox(ip=row['ip'])
         netbox.room = get_object_or_fail(Room, id=row['roomid'])
         netbox.organization = get_object_or_fail(Organization, id=row['orgid'])
         netbox.category = get_object_or_fail(Category, id=row['catid'])
@@ -115,6 +119,19 @@ class NetboxImporter(BulkImporter):
                                                    sysname__startswith=master)
 
         return netbox
+
+    @staticmethod
+    def _get_management_profiles(netbox, profile_names):
+        profiles = profile_names.split('|')
+        profiles = [
+            get_object_or_fail(ManagementProfile, name=name)
+            for name in profiles
+            if name.strip()
+        ]
+        return [
+            NetboxProfile(netbox=netbox, profile=profile)
+            for profile in profiles
+        ]
 
     @staticmethod
     def _get_netboxinfo_from_function(netbox, function):
@@ -217,6 +234,22 @@ class RoomImporter(BulkImporter):
         except (ValidationError, ValueError):
             raise InvalidValue(row['position'])
         return [room]
+
+
+class ManagementProfileImporter(BulkImporter):
+    """Creates objects from the management profile bulk format"""
+    def _create_objects_from_row(self, row):
+        raise_if_exists(ManagementProfile, name=row['name'])
+        result = ManagementProfile(name=row['name'])
+
+        proto_lookup = {
+            name: value
+            for value, name in ManagementProfile.PROTOCOL_CHOICES
+        }
+
+        result.protocol = proto_lookup.get(row['protocol'])
+        result.configuration = json.loads(row['configuration'])
+        return [result]
 
 
 class OrgImporter(BulkImporter):
