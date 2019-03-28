@@ -1,7 +1,22 @@
 Version 4.9.4
-(released XX YYY Feb 2019)
+(released 28 Mar 2019)
 
  NB: This release introduces a new dependency to py2-ipaddress==3.4.1
+
+ Fixed GitHub issues in this release:
+
+  * #1639 (Not all NAV programs respect TIME_ZONE from nav.conf)
+  * #1762 (navdump drops function-data)
+  * #1788 (Deleting an alert profile subscription that has queued alerts
+           will cause alertengine to process all those alerts as if they
+           were new ones on the queue. )
+  * #1885 (LDAP authentication against Microsoft AD using suffix bind is
+           broken in NAV 4.9)
+  * #1894 (Terminals that don't support colors cause nav start/stop
+           commands to crash)
+  * #1895 (Verify nav.conf values as part of nav start)
+  * #1896 (UnicodeEncodeError when LDAP user with non-ASCII characters
+           in DN logs in)
 
 
 Version 4.9.3
