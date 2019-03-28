@@ -17,11 +17,14 @@
 from __future__ import absolute_import
 
 import errno
+import grp
 import io
 import logging
 
 import os
 import sys
+import pwd
+import stat
 import configparser
 import pkg_resources
 
@@ -257,6 +260,66 @@ def _install_single_config_resource_(source, target, overwrite=False):
     with open(target_file, 'wb') as handle:
         handle.write(content)
         return target_file
+
+
+def verify_nav_config(config):
+    """Verifies the validity of the most critical options of nav.conf
+
+    :param config: A NAV config dictionary, typically the result of
+                   read_flat_config('nav.conf')
+    :returns: None, but will raise a ConfigurationError if verification failed.
+
+    """
+    if not config:
+        return
+
+    # First, verify presence of absolutely required options
+    for option in ('NAV_USER', 'LOG_DIR', 'PID_DIR'):
+        if option not in config:
+            raise ConfigurationError(
+                'Configuration option {} is missing!'.format(option)
+            )
+
+    # Verify that user exists
+    username = config['NAV_USER']
+    try:
+        pwd.getpwnam(username)
+    except KeyError:
+        raise ConfigurationError('No such user: {}'.format(username))
+
+    # Verify that directories exist and are writable
+    for option, moniker in (('LOG_DIR', 'log'), ('PID_DIR', 'pid file')):
+        dir_name = config[option]
+        if not os.path.isdir(dir_name):
+            raise ConfigurationError(
+                'The {} directory {} does not exist or is not a directory'.format(
+                    moniker, dir_name
+                )
+            )
+        if not _is_directory_writable_by_user(dir_name, username):
+            raise ConfigurationError(
+                'The {} directory {} is not writeable for the {} user'.format(
+                    moniker, dir_name, username
+                )
+            )
+
+
+def _is_directory_writable_by_user(directory, username):
+    dir_stat = os.stat(directory)
+
+    user = pwd.getpwnam(username)
+    uid, gid = user.pw_uid, user.pw_gid
+    dir_mode = dir_stat[stat.ST_MODE]
+    dir_uid = dir_stat[stat.ST_UID]
+    dir_gid = dir_stat[stat.ST_GID]
+    dir_group = grp.getgrgid(dir_gid)
+
+    writeable_owner = uid == dir_uid and stat.S_IRWXU & dir_mode == stat.S_IRWXU
+    is_in_group = gid == dir_gid or username in dir_group.gr_mem
+    writeable_group = is_in_group and stat.S_IRWXG & dir_mode == stat.S_IRWXG
+    writeable_world = stat.S_IRWXO & dir_mode == stat.S_IRWXO
+
+    return writeable_owner or writeable_group or writeable_world
 
 
 class ConfigurationError(GeneralException):

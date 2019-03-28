@@ -212,6 +212,12 @@ def c_start(args):
     """starts services"""
     if not args.nonroot:
         verify_root()
+    from nav import config
+    try:
+        config.verify_nav_config(config.NAV_CONFIG)
+    except config.ConfigurationError as error:
+        sys.exit("There is a problem with nav.conf:\n{}".format(error))
+
     action_iterator(args.service, "start", "Starting", "Failed",
                     verbose=args.verbose)
 
