@@ -87,7 +87,7 @@ recent versions of Django - we expect to land on Django 1.11, which is the last
 long-term support release of Django 1. Django 2 drops support for Python 2, as
 will NAV.
 
-NAV 4.9.4 will require this new dependency for them IPAM subnet suggest
+NAV 4.9.4 will require this new dependency for the IPAM subnet suggest
 function to work also for IPv6:
 
 * :mod:`py2-ipaddress` must be version 3.4.1
@@ -168,6 +168,21 @@ Changed configuration files
 
 These configuration files changed:
 
+* :file:`nav.conf`: New options have been added. Some of these will be
+  *required*, as the new build system will no longer build their values into
+  the NAV binaries and libraries. All of them are present in the new example
+  config file:
+
+  ``NAV_USER``
+    **REQUIRED**: Which user to run NAV processes as.
+  ``PID_DIR``
+    **REQUIRED**: Which directory to store process PID files in.
+  ``LOG_DIR``
+    **REQUIRED**: Which directory to store log files in.
+  ``UPLOAD_DIR``
+    Where to store images uploaded through the web interface. This option has a
+    default value based on the system build parameters, but it is recommended to
+    verify its value with your system.
 * :file:`smsd.conf`: The ``loglevel`` option is no longer supported. Use
   :file:`logging.conf` to configure log levels.
 * :file:`alertengine.conf`: The ``loglevel`` option is no longer supported. Use
