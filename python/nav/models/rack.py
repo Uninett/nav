@@ -256,7 +256,7 @@ class SensorRackItem(BaseRackItem):
 
     def get_absolute_url(self):
         if self.sensor_exists():
-            return self.sensor.netbox.get_absolute_url()
+            return self.sensor.get_absolute_url()
 
     def human_readable(self):
         if self.sensor_exists():
