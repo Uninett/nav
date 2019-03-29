@@ -259,7 +259,6 @@ require([
             var gauge = new LinearGauge({
                 nodeId: gaugeElement.id,
                 precision: 2,
-                color: 'lightsteelblue',
                 height: 100,
                 max: minMax[1]
             });

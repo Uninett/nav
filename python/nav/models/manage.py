@@ -1959,6 +1959,9 @@ class Sensor(models.Model):
             self.human_readable or self.internal_name,
             self.netbox)
 
+    def get_absolute_url(self):
+        return reverse('sensor-details', kwargs={'identifier': self.pk})
+
     def get_metric_name(self):
         return metric_path_for_sensor(self.netbox.sysname, self.internal_name)
 

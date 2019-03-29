@@ -13,6 +13,11 @@ version: '2'
 services:
   nav:
     build: .
+    environment:
+      - NONAVSTART=0  # Set to 1 to disable startup of NAV backend processes when container starts
+      - PGHOST=postgres
+      - PGDATABASE=nav
+      - PGUSER=postgres
     ports:
       - "80:80"
     volumes:
