@@ -23,7 +23,7 @@ def get_auditlog_entries(modelname=None, queryset=None, pks=None,
         qs_pks = set(force_text(o.pk) for o in queryset)
         if qs_pks:
             if pks:
-                pks = qs_pks.intersect(pks)
+                pks = qs_pks.intersection(pks)
             else:
                 pks = qs_pks
         if modelname is None:
