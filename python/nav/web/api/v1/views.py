@@ -26,6 +26,7 @@ from django.db.models.fields import FieldDoesNotExist
 import iso8601
 
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
+from django_filters.filters import ModelMultipleChoiceFilter
 from rest_framework import status, filters, viewsets, exceptions
 from rest_framework.decorators import (api_view, renderer_classes, list_route,
                                        detail_route)
@@ -408,7 +409,7 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
 
 class InterfaceFilterClass(FilterSet):
     """Exists only to have a sane implementation of multiple choice filters"""
-    netbox = filters.django_filters.ModelMultipleChoiceFilter(
+    netbox = ModelMultipleChoiceFilter(
         queryset=manage.Netbox.objects.all())
 
     class Meta(object):
