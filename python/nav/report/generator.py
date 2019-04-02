@@ -377,7 +377,7 @@ class ReportConfig(object):
                                self.parameters, self.order_by)
 
     def make_sql(self):
-        sql = "SELECT * FROM (%s) AS foo %s%s" % (self.sql,
+        sql = "SELECT * FROM (%s) AS foo %s%s" % (self.escaped_sql,
                                                   self.wherestring(),
                                                   self.orderstring())
         return sql, self.parameters
@@ -399,3 +399,13 @@ class ReportConfig(object):
 
         sort = [_transform(s) for s in self.order_by]
         return " ORDER BY %s" % ",".join(sort) if sort else ""
+
+    @property
+    def escaped_sql(self):
+        """Returns an 'escaped' version of the configured SQL statement.
+        Wildcard signs, '%' are doubles, as to not interfer with parameter
+        references when feeding the psycopg2 driver.
+
+        """
+        if self.sql:
+            return self.sql.replace("%", "%%")
