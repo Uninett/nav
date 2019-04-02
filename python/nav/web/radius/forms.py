@@ -85,7 +85,9 @@ class MultitypeQueryField(forms.MultiValueField):
         """
         if validators is None:
             validators = {}
-        super(MultitypeQueryField, self).__init__(*args, **kwargs)
+        # Prevent Django from affecting "required" by setting the fields
+        # ourselves
+        super(MultitypeQueryField, self).__init__(fields=(), *args, **kwargs)
         self.fields = (
             forms.ChoiceField(choices=choices),
             forms.CharField(min_length=1)
