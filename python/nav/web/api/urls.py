@@ -19,6 +19,6 @@ from django.conf.urls import include, url
 from nav.web.api.v1 import urls as v1_urls
 
 urlpatterns = [
-    url(r'^', include(v1_urls)),
-    url(r'^1/', include(v1_urls, namespace='1')),
+    url(r'^', include((v1_urls, 'api'))),
+    url(r'^1/', include((v1_urls, 'api'), namespace='1')),
 ]
