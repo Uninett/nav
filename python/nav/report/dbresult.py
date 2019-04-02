@@ -64,3 +64,10 @@ class DatabaseResult(object):
                           "invalid type: {}".format(error))
         else:
             self.error = report_config.error
+
+    def __repr__(self):
+        return "<{} sql={!r} parameters={!r}>".format(
+            self.__class__.__name__,
+            self.sql,
+            self.parameters,
+        )
