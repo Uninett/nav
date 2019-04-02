@@ -64,7 +64,7 @@ class DnsChecker(AbstractChecker):
 
             if not error and len(reply.answer) > 0:
                 answer = 1
-            elif not error and len(reply.answers) == 0:
+            elif not error and len(reply.answer) == 0:
                 answer = 0
 
             # This breaks on windows dns servers and probably other not bind
