@@ -65,11 +65,10 @@ class TestAuthenticationMiddleware(object):
         fake_request = FakeRequest(
             META={'REMOTE_USER': 'tim'}
         )
-        with patch.dict('nav.django.auth.NAV_CONFIG', {'AUTH_SUPPORT_REMOTE_USER': True}):
-            with patch('nav.django.auth.authenticate_remote_user', return_value=PLAIN_ACCOUNT):
-                AuthenticationMiddleware().process_request(fake_request)
-                assert fake_request.account == PLAIN_ACCOUNT
-                assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
+        with patch('nav.django.auth.authenticate_remote_user', return_value=PLAIN_ACCOUNT):
+            AuthenticationMiddleware().process_request(fake_request)
+            assert fake_request.account == PLAIN_ACCOUNT
+            assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
 
 
 class TestAuthorizationMiddleware(object):

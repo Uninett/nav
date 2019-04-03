@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010, 2011 Uninett AS
+# Copyright (C) 2010, 2011, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,6 +16,7 @@
 """
 Contains web authentication functionality for NAV.
 """
+from os.path import join
 import logging
 try:
     # Python 3.6+
@@ -34,11 +35,23 @@ except ImportError:
 
 
 from nav.auditlog.models import LogEntry
-from nav.config import NAV_CONFIG
+from nav.config import NAVConfigParser
 from nav.web import ldapauth
 from nav.models.profiles import Account
 
+
 logger = logging.getLogger("nav.web.auth")
+
+
+class RemoteUserConfigParser(NAVConfigParser):
+    DEFAULT_CONFIG_FILES = [join('webfront', 'webfront.conf')]
+    DEFAULT_CONFIG = u"""
+[remote-user]
+enabled=no
+"""
+
+
+_config = RemoteUserConfigParser()
 
 
 def authenticate(username, password):
@@ -98,7 +111,10 @@ def authenticate(username, password):
 
 
 def authenticate_remote_user(request=None):
-    if not NAV_CONFIG.get('AUTH_SUPPORT_REMOTE_USER', False):
+    try:
+        if not _config.getboolean('remote-user', 'enabled'):
+            return None
+    except ValueError:
         return None
 
     if not request:

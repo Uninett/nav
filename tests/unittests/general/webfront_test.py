@@ -56,23 +56,23 @@ class TestRemoteUserAuthenticate(object):
 
     def test_authenticate_remote_user_should_return_account_if_header_set(self):
         request = self.FakeRequest(REMOTE_USER='knight')
-        with patch.dict("nav.web.auth.NAV_CONFIG", {'AUTH_SUPPORT_REMOTE_USER': True}):
+        with patch("nav.web.auth._config.getboolean", return_value=True):
             with patch("nav.web.auth.Account.objects.get",
                        new=MagicMock(return_value=REMOTE_USER_ACCOUNT)):
                 assert auth.authenticate_remote_user(request) == REMOTE_USER_ACCOUNT
 
     def test_authenticate_remote_user_should_return_none_if_header_not_set(self):
         request = self.FakeRequest()
-        with patch.dict("nav.web.auth.NAV_CONFIG", {'AUTH_SUPPORT_REMOTE_USER': True}):
+        with patch("nav.web.auth._config.getboolean", return_value=True):
             assert auth.authenticate_remote_user(request) == None
 
     def test_authenticate_remote_user_should_return_false_if_account_locked(self):
         request = self.FakeRequest(REMOTE_USER='knight')
-        with patch.dict("nav.web.auth.NAV_CONFIG", {'AUTH_SUPPORT_REMOTE_USER': True}):
-            with patch("nav.web.auth.Account.objects.get",
-                       new=MagicMock(return_value=REMOTE_USER_ACCOUNT)):
-                with patch("nav.web.auth.Account.locked", return_value=True):
-                    assert auth.authenticate_remote_user(request) == False
+        with patch("nav.web.auth._config.getboolean", return_value=True):
+            with patch("nav.web.auth.Account.objects.get", return_value=REMOTE_USER_ACCOUNT):
+                with patch("nav.web.auth.LogEntry.add_log_entry"):
+                    with patch("nav.web.auth.Account.locked", return_value=True):
+                        assert auth.authenticate_remote_user(request) == False
 
 
 class TestLdapUser(object):

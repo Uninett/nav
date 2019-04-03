@@ -2,10 +2,13 @@
 Web authentication (REMOTE_USER)
 ================================
 
-If you set ``AUTH_SUPPORT_REMOTE_USER`` to ``True`` in ``nav.conf``, NAV will
-check for the HTTP header ``REMOTE_USER`` on every page load, and attempt to
-log in the username found there. An account will be created if one does not
-already exist for that username.
+Whether the ``REMOTE_USER`` http header is honored is configured in
+``webfront.conf``. In the section ``[remote-user]``, set ``enabled`` to ``on``
+or ``yes``. (A missing section or value is interpreted as
+``REMOTE_USER``-support being off.) When enabled, NAV will check for the HTTP
+header ``REMOTE_USER`` on every page load, and attempt to log in the username
+found there. An account will be created if one does not already exist for that
+username.
 
 ``REMOTE_USER`` can be set by the web server hosting NAV, and is a simple way
 of supporting federated logins via eg. Kerberors or SAML, provided the web
