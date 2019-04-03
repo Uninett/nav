@@ -33,6 +33,7 @@ except ImportError:
         return u"".join(choice(symbols) for i in range(length))
 
 
+from nav.auditlog.models import LogEntry
 from nav.config import NAV_CONFIG
 from nav.web import ldapauth
 from nav.models.profiles import Account
@@ -121,12 +122,17 @@ def authenticate_remote_user(request=None):
         account.set_password(fake_password(32))
         account.save()
         logger.info("Created user %s from header REMOTE_USER", account.login)
+        template = 'Account "{actor}" created due to REMOTE_USER HTTP header'
+        LogEntry.add_log_entry(account, 'create-account', template=template,
+                               subsystem='auth')
         return account
 
     # Bail out! Potentially evil user
     if account.locked:
         logger.info("Locked user %s tried to log in", account.login)
-        # Needs auditlog
+        template = 'Account "{actor}" was prevented from logging in: blocked'
+        LogEntry.add_log_entry(account, 'login-prevent', template=template,
+                               subsystem='auth')
         return False
 
     return account
