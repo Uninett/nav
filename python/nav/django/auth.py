@@ -50,11 +50,10 @@ class AuthenticationMiddleware(MiddlewareMixin):
         account = None
 
         if ACCOUNT_ID_VAR not in session:  # Not logged in
-            if NAV_CONFIG.get('AUTH_SUPPORT_REMOTE_USER', False):
-                # Get or create an account from the REMOTE_USER http header
-                account = authenticate_remote_user(request)
-                if account:
-                    session[ACCOUNT_ID_VAR]  = account.id
+            # Get or create an account from the REMOTE_USER http header
+            account = authenticate_remote_user(request)
+            if account:
+                session[ACCOUNT_ID_VAR]  = account.id
             else:
                 # Set account id to anonymous user
                 session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
