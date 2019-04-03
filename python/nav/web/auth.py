@@ -103,7 +103,7 @@ def authenticate_remote_user(request=None):
     if not request:
         return None
 
-    username = request.META.get('REMOTE_USER', None)
+    username = request.META.get('REMOTE_USER', '').strip()
     if not username:
         return None
 
