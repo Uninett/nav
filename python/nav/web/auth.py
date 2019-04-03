@@ -29,8 +29,8 @@ except ImportError:
     import string
 
     def fake_password(length):
-        S = string.ascii_letters + string.punctuation + string.digits
-        return u"".join(choice(S) for i in range(length))
+        symbols = string.ascii_letters + string.punctuation + string.digits
+        return u"".join(choice(symbols) for i in range(length))
 
 
 from nav.config import NAV_CONFIG
