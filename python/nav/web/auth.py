@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010, 2011 Uninett AS
+# Copyright (C) 2010, 2011, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,6 +16,7 @@
 """
 Contains web authentication functionality for NAV.
 """
+from os.path import join
 import logging
 try:
     # Python 3.6+
@@ -34,12 +35,23 @@ except ImportError:
 
 
 from nav.auditlog.models import LogEntry
-from nav.config import NAV_CONFIG
+from nav.config import NAVConfigParser
 from nav.web import ldapauth
 from nav.models.profiles import Account
 
 
 _logger = logging.getLogger(__name__)
+
+
+class RemoteUserConfigParser(NAVConfigParser):
+    DEFAULT_CONFIG_FILES = [join('webfront', 'webfront.conf')]
+    DEFAULT_CONFIG = u"""
+[remote-user]
+enabled=no
+"""
+
+
+_config = RemoteUserConfigParser()
 
 
 def authenticate(username, password):
@@ -107,7 +119,10 @@ def authenticate_remote_user(request=None):
     * False if authentcaired but blocked from logging in
     * None in all other cases
     '''
-    if not NAV_CONFIG.get('AUTH_SUPPORT_REMOTE_USER', False):
+    try:
+        if not _config.getboolean('remote-user', 'enabled'):
+            return None
+    except ValueError:
         return None
 
     if not request:
@@ -130,7 +145,7 @@ def authenticate_remote_user(request=None):
         )
         account.set_password(fake_password(32))
         account.save()
-        logger.info("Created user %s from header REMOTE_USER", account.login)
+        _logger.info("Created user %s from header REMOTE_USER", account.login)
         template = 'Account "{actor}" created due to REMOTE_USER HTTP header'
         LogEntry.add_log_entry(account, 'create-account', template=template,
                                subsystem='auth')
@@ -138,7 +153,7 @@ def authenticate_remote_user(request=None):
 
     # Bail out! Potentially evil user
     if account.locked:
-        logger.info("Locked user %s tried to log in", account.login)
+        _logger.info("Locked user %s tried to log in", account.login)
         template = 'Account "{actor}" was prevented from logging in: blocked'
         LogEntry.add_log_entry(account, 'login-prevent', template=template,
                                subsystem='auth')
