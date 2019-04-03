@@ -112,7 +112,7 @@ def authenticate_remote_user(request=None):
     try:
         account = Account.objects.get(login=username)
     except Account.DoesNotExist:
-        # Store the ldapuser in the database and return the new account
+        # Store the remote user in the database and return the new account
         account = Account(
             login=username,
             name=username,
