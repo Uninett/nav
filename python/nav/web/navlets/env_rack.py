@@ -42,6 +42,9 @@ class EnvironmentRackWidget(Navlet):
     """Widget for displaying an environment rack"""
 
     title = 'Environment rack'
+    description = (
+        'Displays a selected rack of environment sensors from a specific room'
+    )
     refresh_interval = 60000  # 60 seconds
     is_editable = True
 
