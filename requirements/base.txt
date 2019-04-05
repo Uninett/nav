@@ -3,7 +3,7 @@
 
 asciitree==0.3.3  # optional, for naventity
 configparser==3.5.0 ; python_version < '3'
-psycopg2==2.5.4  # requires libpq to build
+psycopg2==2.7.7  # requires libpq to build
 IPy==1.00
 py2-ipaddress==3.4.1 ; python_version < '3'
 pyaml
