@@ -1,4 +1,6 @@
 FROM mbrekkevold/navbase-debian:jessie
+ADD sources.list /etc/apt/sources.list
+ADD apt.conf /etc/apt/apt.conf
 
 RUN apt-get update \
    && apt-get -y --no-install-recommends install \
