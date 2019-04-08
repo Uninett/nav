@@ -68,7 +68,8 @@ define(['libs/datatables.min'], function () {
      * Secondary filters
      */
 
-    /* Filter on row 4 and 5 */
+    /* Filter on column 5 (last active) when column 4 (vlan) is not trunk.
+     * Very reusable code! ;-P */
     function filter_last_seen(oSettings, aData, iDataIndex) {
         var days = get_keyword(/\$days:\w+/) || getInputValue(filters.last_seen.node);
         if (days) {
