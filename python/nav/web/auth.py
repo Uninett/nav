@@ -111,6 +111,14 @@ def authenticate(username, password):
 
 
 def authenticate_remote_user(request=None):
+    '''Authenticate username from htpp header REMOTE_USER
+
+    Returns:
+
+    * account object if user was authenticated
+    * False if authentcaired but blocked from logging in
+    * None in all other cases
+    '''
     try:
         if not _config.getboolean('remote-user', 'enabled'):
             return None
