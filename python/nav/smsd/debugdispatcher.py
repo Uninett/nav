@@ -26,7 +26,7 @@ import logging
 from nav.smsd.dispatcher import (Dispatcher, DispatcherError,
                                  PermanentDispatcherError)
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class DebugDispatcher(Dispatcher):
@@ -61,20 +61,20 @@ class DebugDispatcher(Dispatcher):
 
         # Format SMS
         (sms, sent_count, ignored_count) = self.formatsms(msgs)
-        logger.info("SMS to %s: %s", phone, sms)
+        _logger.info("SMS to %s: %s", phone, sms)
         smsid = 0
         result = True
 
         if self.result == self.RESULT_FAIL:
             result = False
-            logger.info("Returning failed status")
+            _logger.info("Returning failed status")
         if self.result == self.RESULT_SUCCESS:
-            logger.info("Returning success status")
+            _logger.info("Returning success status")
         elif self.result == self.RESULT_ERROR:
-            logger.info("Raising DispatcherError")
+            _logger.info("Raising DispatcherError")
             raise DispatcherError("Failed, because I was configured to.")
         elif self.result == self.RESULT_PERMANENT:
-            logger.info("Raising PermanentDispatcherError")
+            _logger.info("Raising PermanentDispatcherError")
             raise PermanentDispatcherError(
                 "Failed permanently, because I was configured to.")
 

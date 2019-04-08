@@ -28,7 +28,7 @@ from nav.event import Event
 from nav.Snmp import Snmp
 
 # Create logger with modulename here
-logger = logging.getLogger('nav.snmptrapd.ups')
+_logger = logging.getLogger(__name__)
 
 # upsonbattery traps
 ONBATTERY = {
@@ -82,7 +82,7 @@ def handleTrap(trap, config=None):
     # Use the trap-object to access trap-variables and do stuff.
     for vendor in ONBATTERY.keys():
         if trap.snmpTrapOID in ONBATTERY[vendor]:
-            logger.debug("Got ups on battery trap (%s)", vendor)
+            _logger.debug("Got ups on battery trap (%s)", vendor)
 
             # Get time to live
             try:
@@ -90,19 +90,19 @@ def handleTrap(trap, config=None):
                 s = Snmp(trap.agent, trap.community)
                 batterytime = s.get(batterytimeoid)
             except Exception as err:
-                logger.info("Could not get battery time from %s: %s",
+                _logger.info("Could not get battery time from %s: %s",
                             trap.agent, err)
                 batterytime = False
             else:
                 batterytime = format_batterytime(batterytime, format)
-                logger.debug("batterytime: %s", batterytime)
+                _logger.debug("batterytime: %s", batterytime)
 
             # Get netboxid from database
             c = db.cursor()
             c.execute("SELECT netboxid, sysname FROM netbox WHERE ip = %s",
                       (trap.agent,))
             if not c.rowcount > 0:
-                logger.error("Could not find netbox in database, no event \
+                _logger.error("Could not find netbox in database, no event \
                 will be posted")
                 return False
 
@@ -120,21 +120,21 @@ def handleTrap(trap, config=None):
             try:
                 e.post()
             except Exception as e:
-                logger.error(e)
+                _logger.error(e)
                 return False
 
             return True
 
     for vendor in OFFBATTERY.keys():
         if trap.snmpTrapOID in OFFBATTERY[vendor]:
-            logger.debug("Got ups on utility power trap (%s)", vendor)
+            _logger.debug("Got ups on utility power trap (%s)", vendor)
 
             # Get netboxid from database
             c = db.cursor()
             c.execute("SELECT netboxid, sysname FROM netbox WHERE ip = %s",
                       (trap.agent,))
             if not c.rowcount > 0:
-                logger.error("Could not find netbox in database, no event \
+                _logger.error("Could not find netbox in database, no event \
                 will be posted")
                 return False
 
@@ -151,7 +151,7 @@ def handleTrap(trap, config=None):
             try:
                 e.post()
             except Exception as e:
-                logger.error(e)
+                _logger.error(e)
                 return False
 
             return True

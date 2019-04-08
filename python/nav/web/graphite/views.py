@@ -21,7 +21,7 @@ from django.http import HttpResponse, HttpResponseNotAllowed
 from nav.metrics import CONFIG
 
 import logging
-LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 def index(request, uri):
@@ -42,7 +42,7 @@ def index(request, uri):
     else:
         return HttpResponseNotAllowed(['GET', 'POST', 'HEAD'])
 
-    LOGGER.debug("proxying request to %r", url)
+    _logger.debug("proxying request to %r", url)
     try:
         proxy = urlopen(req)
     except HTTPError as error:
@@ -50,7 +50,7 @@ def index(request, uri):
         headers = error.hdrs
         output = error.fp.read()
 
-        LOGGER.error("%s error on graphite render request: "
+        _logger.error("%s error on graphite render request: "
                      "%r with arguments: %r", status, url, data)
 
     else:

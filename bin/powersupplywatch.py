@@ -135,7 +135,7 @@ VENDOR_PSU_STATES = {
 }
 
 LOGFILE = "powersupplywatch.log"
-LOGGER = logging.getLogger('nav.powersupplywatch')
+_logger = logging.getLogger('nav.powersupplywatch')
 
 
 def main():
@@ -154,7 +154,7 @@ def main():
     if opts.hostsfile:
         sysnames.extend(read_hostsfile(opts.hostsfile))
 
-    LOGGER.debug('Start checking PSUs and FANs')
+    _logger.debug('Start checking PSUs and FANs')
     check_psus_and_fans(get_psus_and_fans(sysnames),
                         dryrun=opts.dryrun)
 
@@ -178,12 +178,12 @@ def parse_args():
 
 def read_hostsfile(filename):
     """ Read file with hostnames."""
-    LOGGER.debug('Reading hosts from %s', filename)
+    _logger.debug('Reading hosts from %s', filename)
     hostnames = []
     try:
         hosts_file = open(filename, 'r')
     except IOError as error:
-        LOGGER.error("I/O error (%s): %s (%s)",
+        _logger.error("I/O error (%s): %s (%s)",
                      error.errno, filename, error.strerror)
         sys.exit(2)
     for line in hosts_file:
@@ -191,7 +191,7 @@ def read_hostsfile(filename):
         if sysname and len(sysname) > 0:
             hostnames.append(sysname)
     hosts_file.close()
-    LOGGER.debug('Hosts from %s: %s', filename, hostnames)
+    _logger.debug('Hosts from %s: %s', filename, hostnames)
     return hostnames
 
 
@@ -205,13 +205,13 @@ def get_psus_and_fans(sysnames):
     :return: A QuerySet of PowerSupplyOrFan objects.
 
     """
-    LOGGER.debug('Getting PSUs and FANs')
+    _logger.debug('Getting PSUs and FANs')
     if sysnames and len(sysnames) > 0:
         psus_and_fans = PowerSupplyOrFan.objects.filter(
             netbox__sysname__in=sysnames).order_by('netbox')
     else:
         psus_and_fans = PowerSupplyOrFan.objects.all().order_by('netbox')
-    LOGGER.debug('Got %s PSUs and FANs', len(psus_and_fans))
+    _logger.debug('Got %s PSUs and FANs', len(psus_and_fans))
     return psus_and_fans
 
 
@@ -223,13 +223,13 @@ def check_psus_and_fans(to_check, dryrun=False):
     for psu_or_fan in to_check:
         snmp_handle = get_snmp_handle(psu_or_fan.netbox)
         numerical_status = None
-        LOGGER.debug('Polling %s: %s',
+        _logger.debug('Polling %s: %s',
                      psu_or_fan.netbox.sysname, psu_or_fan.name)
         if psu_or_fan.sensor_oid and snmp_handle:
             try:
                 numerical_status = snmp_handle.get(psu_or_fan.sensor_oid)
             except Exception as ex:
-                LOGGER.error('%s: %s, Exception = %s',
+                _logger.error('%s: %s, Exception = %s',
                              psu_or_fan.netbox.sysname, psu_or_fan.name, ex)
                 # Don't jump out, continue to next psu or fan
                 continue
@@ -242,14 +242,14 @@ def check_psus_and_fans(to_check, dryrun=False):
         elif is_psu(psu_or_fan):
             status = get_psu_state(numerical_status, vendor_id)
         if status:
-            LOGGER.debug('Stored state = %s; polled state = %s',
+            _logger.debug('Stored state = %s; polled state = %s',
                          STATE_MAP[psu_or_fan.up], STATE_MAP[status])
             handle_status(psu_or_fan, status, dryrun)
 
 
 def get_snmp_handle(netbox):
     """Allocates an Snmp-handle for a given netbox"""
-    LOGGER.debug('Allocate SNMP-handle for %s', netbox.sysname)
+    _logger.debug('Allocate SNMP-handle for %s', netbox.sysname)
     return Snmp(netbox.ip, netbox.read_only, netbox.snmp_version)
 
 
@@ -273,10 +273,10 @@ def _handle_internal_state(psu_or_fan, status, dry_run=False):
     psu_or_fan.up = status
 
     if not dry_run:
-        LOGGER.debug('Saving state to database.')
+        _logger.debug('Saving state to database.')
         psu_or_fan.save()
     else:
-        LOGGER.debug('Dry run, not saving state.')
+        _logger.debug('Dry run, not saving state.')
 
 
 def _handle_alert_state(psu_or_fan, status, dry_run=False):
@@ -288,7 +288,7 @@ def _handle_alert_state(psu_or_fan, status, dry_run=False):
     )
 
     if should_post and not dry_run:
-        LOGGER.debug('Posting event (%s)...', STATE_MAP[status])
+        _logger.debug('Posting event (%s)...', STATE_MAP[status])
         post_event(psu_or_fan, status)
 
 
@@ -323,11 +323,11 @@ def post_event(psu_or_fan, status):
         event.state = 'e'
     event['unitname'] = psu_or_fan.name
     event['state'] = status
-    LOGGER.debug('Posting event: %s', event)
+    _logger.debug('Posting event: %s', event)
     try:
         event.post()
     except Exception as why:
-        LOGGER.error('post_event: exception = %s', why)
+        _logger.error('post_event: exception = %s', why)
         return False
     return True
 

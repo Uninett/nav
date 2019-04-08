@@ -32,7 +32,7 @@ from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import join_series
 from nav.metrics.templates import metric_path_for_prefix
 
-LOGGER = logging.getLogger('nav.web.info.vlan')
+_logger = logging.getLogger(__name__)
 ADDRESS_RESERVED_SPACE = 18
 
 
@@ -65,7 +65,7 @@ def index(request):
     else:
         searchform = VlanSearchForm()
 
-    LOGGER.debug(vlans)
+    _logger.debug(vlans)
 
     return render(
         request,
@@ -82,7 +82,7 @@ def index(request):
 def process_searchform(form):
     """Find and return vlans based on searchform"""
     query = form.cleaned_data['query']
-    LOGGER.debug('Processing searchform for vlans with query: %s', query)
+    _logger.debug('Processing searchform for vlans with query: %s', query)
     if query is None:
         return Vlan.objects.all()
     else:

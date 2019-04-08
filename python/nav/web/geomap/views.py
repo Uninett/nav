@@ -43,7 +43,7 @@ from nav.web.geomap.output_formats import format_mime_type
 
 from nav.models.manage import Room
 
-logger = logging.getLogger('nav.web.geomap.views')
+_logger = logging.getLogger(__name__)
 
 DEFAULT_LON = Decimal('10.4059409151806')
 DEFAULT_LAT = Decimal('63.4141131037476')
@@ -91,7 +91,7 @@ def geomap(request, variant):
     if variant not in config['variants']:
         raise Http404
     room_points = geomap_all_room_pos()
-    logger.debug('geomap: room_points = %s', room_points)
+    _logger.debug('geomap: room_points = %s', room_points)
     variant_config = config['variants'][variant]
 
     context = {
@@ -193,19 +193,19 @@ def get_formatted_data(variant, db, format_, bounds, viewport_size, limit,
 
     """
     data = get_data(db, bounds, time_interval)
-    logger.debug('build_graph')
+    _logger.debug('build_graph')
     graph = build_graph(data)
-    logger.debug('simplify')
+    _logger.debug('simplify')
     simplify(graph, bounds, viewport_size, limit)
     if do_fetch_data:
-        logger.debug('_attach_cpu_load')
+        _logger.debug('_attach_cpu_load')
         _attach_cpu_load(graph, time_interval)
         if do_create_edges:
-            logger.debug('_attach_traffic_load')
+            _logger.debug('_attach_traffic_load')
             _attach_traffic_load(graph, time_interval)
-    logger.debug('create_features')
+    _logger.debug('create_features')
     features = create_features(variant, graph, do_create_edges)
-    logger.debug('format')
+    _logger.debug('format')
     output = format_data(format_, features)
     return output
 

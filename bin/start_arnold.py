@@ -55,7 +55,7 @@ from nav.models.arnold import DetentionProfile, Identity
 from nav.models.manage import Prefix
 
 LOG_FILE = "arnold/start_arnold.log"
-LOGGER = logging.getLogger('nav.start_arnold')
+_logger = logging.getLogger('nav.start_arnold')
 
 
 def main(args):
@@ -71,7 +71,7 @@ def main(args):
         print_detention_profiles()
         return
 
-    LOGGER.info('Starting automatic detentions based on %s', args.profile.name)
+    _logger.info('Starting automatic detentions based on %s', args.profile.name)
     addresses = get_addresses_to_detain(args)
 
     detentions = []  # List of successfully blocked ip-addresses
@@ -79,7 +79,7 @@ def main(args):
         try:
             detentions.append(detain(address, args.profile, comment))
         except GeneralException as error:
-            LOGGER.error(error)
+            _logger.error(error)
             continue
 
     if args.profile.mailfile and detentions:
@@ -100,7 +100,7 @@ def get_addresses_to_detain(options):
         try:
             handle = open(options.filename, 'r')
         except IOError as error:
-            LOGGER.error(error)
+            _logger.error(error)
             return
         return parse_input(handle.readlines())
     else:
@@ -139,14 +139,14 @@ def parse_input(lines):
 
 def detain(address, profile, comment=''):
     """Detain address with the given profile"""
-    LOGGER.debug("Trying to detain %s", address)
+    _logger.debug("Trying to detain %s", address)
 
     username = getpass.getuser()
     candidate = find_computer_info(address)
 
     if profile.active_on_vlans and not is_inside_vlans(
             candidate.ip, profile.active_on_vlans):
-        LOGGER.error(
+        _logger.error(
             "%s is not inside defined vlanrange for this predefined "
             "detention", address)
         return
@@ -188,13 +188,13 @@ def find_duration(candidate, profile):
             if event:
                 autoenablestep = event[0].autoenablestep * 2
 
-    LOGGER.debug("Setting duration to %s days", autoenablestep)
+    _logger.debug("Setting duration to %s days", autoenablestep)
     return autoenablestep
 
 
 def report_detentions(profile, detentions):
     """For all ip's that are detained, group by contactinfo and send mail"""
-    LOGGER.debug("Trying to report detentions")
+    _logger.debug("Trying to report detentions")
 
     emails = find_contact_addresses(detentions)
 
@@ -203,11 +203,11 @@ def report_detentions(profile, detentions):
             join("arnold", "mailtemplates", profile.mailfile))
         message_template = open(mailfile).read()
     except IOError as error:
-        LOGGER.error(error)
+        _logger.error(error)
         return
 
     for email, iplist in emails.items():
-        LOGGER.info("Sending mail to %s", email)
+        _logger.info("Sending mail to %s", email)
 
         fromaddr = 'noreply'
         toaddr = email
@@ -221,7 +221,7 @@ def report_detentions(profile, detentions):
         try:
             nav.arnold.sendmail(fromaddr, toaddr, subject, msg)
         except Exception as error:
-            LOGGER.error(error)
+            _logger.error(error)
             continue
 
 
@@ -231,11 +231,11 @@ def find_contact_addresses(detentions):
     for ip in detentions:
         organization = get_organization(ip)
         if not organization:
-            LOGGER.info("No organization found for %s", ip)
+            _logger.info("No organization found for %s", ip)
             continue
 
         if not organization.contact:
-            LOGGER.info("No contact info for %s", organization)
+            _logger.info("No contact info for %s", organization)
             continue
 
         dns = nav.arnold.get_host_name(ip)

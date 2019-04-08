@@ -23,7 +23,7 @@ from django.utils import six
 from nav.statemon import config, RunQueue, db, statistics, event
 
 
-LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 TIMEOUT = 5  # default, hardcoded timeout :)
 
 
@@ -94,7 +94,7 @@ class AbstractChecker(object):
                            self._conf.get('timeout', TIMEOUT)))
         self.timeout = int(timeout)
         self.db = db.db()
-        LOGGER.info("New checker instance for %s:%s ",
+        _logger.info("New checker instance for %s:%s ",
                     self.sysname, self.get_type())
         self.runcount = 0
         self.runq = RunQueue.RunQueue()
@@ -108,14 +108,14 @@ class AbstractChecker(object):
         orig_version = self.version
         status, info = self.execute_test()
         service = "%s:%s" % (self.sysname, self.get_type())
-        LOGGER.info("%-20s -> %s", service, info)
+        _logger.info("%-20s -> %s", service, info)
 
         if status == event.Event.UP:
             # Dirty hack to check if we timed out...
             # this is needed as ssl-socket calls may hang
             # in python < 2.3
             if self.response_time > 2 * self.timeout:
-                LOGGER.info("Adjusting status due to high responsetime (%s, "
+                _logger.info("Adjusting status due to high responsetime (%s, "
                             "%s)", service, self.response_time)
                 status = event.Event.DOWN
                 self.response_time = 2 * self.timeout
@@ -124,7 +124,7 @@ class AbstractChecker(object):
                                       int(self._conf.get('retry', 3))):
             delay = int(self._conf.get('retry delay', 5))
             self.runcount += 1
-            LOGGER.info("%-20s -> State changed. New check in %i sec. (%s, "
+            _logger.info("%-20s -> State changed. New check in %i sec. (%s, "
                         "%s)", service, delay, status, info)
             # Update metrics every time to get proper 'uptime' for the service
             self.update_stats()
@@ -134,7 +134,7 @@ class AbstractChecker(object):
             return
 
         if status != self.status:
-            LOGGER.critical("%-20s -> %s, %s", service, status, info)
+            _logger.critical("%-20s -> %s, %s", service, status, info)
             new_event = event.Event(self.serviceid,
                                     self.netboxid,
                                     None,  # deviceid
@@ -177,7 +177,7 @@ class AbstractChecker(object):
             )
         except Exception as err:  # pylint: disable=broad-except
             service = "%s:%s" % (self.sysname, self.get_type())
-            LOGGER.error("statistics update failed for %s [%s]", service, err)
+            _logger.error("statistics update failed for %s [%s]", service, err)
 
     def execute_test(self):
         """

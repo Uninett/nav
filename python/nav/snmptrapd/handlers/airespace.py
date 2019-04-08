@@ -24,7 +24,7 @@ from nav.smidumps.airespace_wireless_mib import MIB
 from nav.event import Event
 import logging
 
-logger = logging.getLogger('nav.snmptrapd.airespace')
+_logger = logging.getLogger(__name__)
 
 NODES = MIB['nodes']
 TRAPS = MIB['notifications']
@@ -40,7 +40,7 @@ def handleTrap(trap, config=None):
                                 "." + TRAPS['bsnAPDisassociated']['oid']]:
         return False
 
-    logger.debug("Got trap %s", trap.snmpTrapOID)
+    _logger.debug("Got trap %s", trap.snmpTrapOID)
 
     # Eventvariables:
     source = "snmptrapd"
@@ -57,7 +57,7 @@ def handleTrap(trap, config=None):
     for key, val in trap.varbinds.items():
         if key.find(NODES['bsnAPName']['oid']) >= 0:
             apname = val
-            logger.debug("Set apname to %s", apname)
+            _logger.debug("Set apname to %s", apname)
         elif key.find(NODES['bsnAPMacAddrTrapVariable']['oid']) >= 0:
             mac = val
             subid = mac
@@ -75,12 +75,12 @@ def handleTrap(trap, config=None):
     e['mac'] = mac
     e['apname'] = apname
 
-    logger.debug(e)
+    _logger.debug(e)
 
     try:
         e.post()
     except Exception as e:
-        logger.error(e)
+        _logger.error(e)
         return False
 
     return True

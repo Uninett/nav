@@ -17,9 +17,6 @@
 
 from nav.models.manage import Netbox
 from nav.topology import vlan
-import logging
-
-_LOGGER = logging.getLogger(__name__)
 
 STATUS_IMAGE_MAP = {
     Netbox.UP_DOWN: 'red.png',

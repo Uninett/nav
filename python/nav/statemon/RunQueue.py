@@ -34,7 +34,7 @@ from django.utils import six
 from . import config
 
 
-LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class TerminateException(Exception):
@@ -83,8 +83,8 @@ class Worker(threading.Thread):
             self._running = 0
             self._runqueue.unused_thread_name.append(self.getName())
             self._runqueue.workers.remove(self)
-            LOGGER.info("%s is recycling.", self.getName())
-        LOGGER.debug("%s finished checker number %i", self.getName(),
+            _logger.info("%s is recycling.", self.getName())
+        _logger.debug("%s finished checker number %i", self.getName(),
                      self._runcount)
         self._time_start_execute = 0
 
@@ -103,9 +103,9 @@ class _RunQueue(object):
     def __init__(self, **kwargs):
         self.conf = config.serviceconf()
         self._max_threads = int(self.conf.get('maxthreads', six.MAXSIZE))
-        LOGGER.info("Setting maxthreads=%i", self._max_threads)
+        _logger.info("Setting maxthreads=%i", self._max_threads)
         self._max_run_count = int(self.conf.get('recycle interval', 50))
-        LOGGER.info("Setting maxRunCount=%i", self._max_run_count)
+        _logger.info("Setting maxRunCount=%i", self._max_run_count)
         self._controller = kwargs.get('controller', self)
         self.workers = []
         self.unused_thread_name = []
@@ -142,7 +142,7 @@ class _RunQueue(object):
         # threads are waiting for checkers.
         # pylint: disable=protected-access, no-member
         num_waiters = len(self.await_work._Condition__waiters)
-        LOGGER.debug("Number of workers: %i Waiting workers: %i",
+        _logger.debug("Number of workers: %i Waiting workers: %i",
                      len(self.workers), num_waiters)
         if num_waiters > 0:
             self.await_work.notify()
@@ -193,7 +193,7 @@ class _RunQueue(object):
                 return r
             # Wait to execute priority checker, break if new checkers arrive
             else:
-                LOGGER.debug("Thread waits for %s secs", wait)
+                _logger.debug("Thread waits for %s secs", wait)
                 self.await_work.wait(wait)
 
     def terminate(self):
@@ -202,10 +202,10 @@ class _RunQueue(object):
         self.stop = 1
         self.await_work.notifyAll()
         self.lock.release()
-        LOGGER.info("Waiting for threads to terminate...")
+        _logger.info("Waiting for threads to terminate...")
         for i in self.workers:
             i.join()
-        LOGGER.info("All threads have finished")
+        _logger.info("All threads have finished")
 
 
 class EventQueue(object):
