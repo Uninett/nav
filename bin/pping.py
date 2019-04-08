@@ -42,7 +42,7 @@ from nav.statemon.event import Event
 from nav.statemon.netbox import Netbox
 
 
-LOGGER = logging.getLogger('nav.pping')
+_logger = logging.getLogger('nav.pping')
 
 
 def main():
@@ -78,7 +78,7 @@ class Pinger(object):
         init_generic_logging(stderr=True, read_config=True)
         self._isrunning = 1
         self._looptime = int(self.config.get("checkinterval", 60))
-        LOGGER.info("Setting checkinterval=%i", self._looptime)
+        _logger.info("Setting checkinterval=%i", self._looptime)
         self.db = db.db()
         self.pinger = megaping.MegaPing(socket)
         self._nrping = int(self.config.get("nrping", 3))
@@ -93,7 +93,7 @@ class Pinger(object):
         Fetches all netboxes from the NAVdb, and updates
         internal data structures.
         """
-        LOGGER.debug("Getting hosts from database...")
+        _logger.debug("Getting hosts from database...")
         hosts = self.db.hosts_to_ping()
         netboxmap = {}
         self.ip_to_netboxid = {}
@@ -103,7 +103,7 @@ class Pinger(object):
             if netbox.netboxid not in self.netboxmap:
                 # new netbox. Be sure to get it's state
                 if netbox.up != 'y':
-                    LOGGER.debug(
+                    _logger.debug(
                         "Got new netbox, %s, currently "
                         "marked down in navDB", netbox.ip)
                     self.down.append(netbox.netboxid)
@@ -117,7 +117,7 @@ class Pinger(object):
             self.ip_to_netboxid[netbox.ip] = netbox.netboxid
         # Update netboxmap
         self.netboxmap = netboxmap
-        LOGGER.debug("We now got %i hosts in our list to ping",
+        _logger.debug("We now got %i hosts in our list to ping",
                      len(self.netboxmap))
         # then update our pinger object
         self.pinger.set_hosts(self.ip_to_netboxid.keys())
@@ -126,7 +126,7 @@ class Pinger(object):
         """
         Report state changes to event engine.
         """
-        LOGGER.debug("Checks which hosts didn't answer")
+        _logger.debug("Checks which hosts didn't answer")
         answers = self.pinger.results()
         for ip, rtt in answers:
             # rtt = round trip time (-1 => host didn't reply)
@@ -147,14 +147,14 @@ class Pinger(object):
             if replies[:self._nrping] == [-1]*self._nrping:
                 down_now.append(netboxid)
 
-        LOGGER.debug("No answer from %i hosts", len(down_now))
+        _logger.debug("No answer from %i hosts", len(down_now))
         # Detect state changes since last run
         report_down = set(down_now) - set(self.down)
         report_up = set(self.down) - set(down_now)
         self.down = down_now
 
         # Reporting netboxes as down
-        LOGGER.debug("Starts reporting %i hosts as down", len(report_down))
+        _logger.debug("Starts reporting %i hosts as down", len(report_down))
         for netboxid in report_down:
             netbox = self.netboxmap[netboxid]
             new_event = Event(None,
@@ -165,14 +165,14 @@ class Pinger(object):
                               Event.DOWN
                               )
             self.db.new_event(new_event)
-            LOGGER.info("%s marked as down.", netbox)
+            _logger.info("%s marked as down.", netbox)
         # Reporting netboxes as up
-        LOGGER.debug("Starts reporting %i hosts as up", len(report_up))
+        _logger.debug("Starts reporting %i hosts as up", len(report_up))
         for netboxid in report_up:
             try:
                 netbox = self.netboxmap[netboxid]
             except:
-                LOGGER.info("Netbox %s is no longer with us...", netboxid)
+                _logger.info("Netbox %s is no longer with us...", netboxid)
                 continue
             new_event = Event(None,
                               netbox.netboxid,
@@ -182,7 +182,7 @@ class Pinger(object):
                               Event.UP
                               )
             self.db.new_event(new_event)
-            LOGGER.info("%s marked as up.", netbox)
+            _logger.info("%s marked as up.", netbox)
 
     def main(self):
         """
@@ -190,39 +190,39 @@ class Pinger(object):
         """
         self.db.start()
         while self._isrunning:
-            LOGGER.debug("Starts pinging....")
+            _logger.debug("Starts pinging....")
             self.update_host_list()
             elapsedtime = self.pinger.ping()
             self.generate_events()
-            LOGGER.info("%i hosts checked in %03.3f secs. %i hosts "
+            _logger.info("%i hosts checked in %03.3f secs. %i hosts "
                         "currently marked as down.",
                         len(self.netboxmap), elapsedtime, len(self.down))
             wait = self._looptime-elapsedtime
             if wait > 0:
-                LOGGER.debug("Sleeping %03.3f secs", wait)
+                _logger.debug("Sleeping %03.3f secs", wait)
             else:
                 wait = abs(self._looptime + wait)
-                LOGGER.warning("Check lasted longer than looptime. "
+                _logger.warning("Check lasted longer than looptime. "
                                "Delaying next check for %03.3f secs", wait)
             sleep(wait)
 
     def signalhandler(self, signum, _frame):
         if signum == signal.SIGTERM:
-            LOGGER.critical("Caught SIGTERM. Exiting.")
+            _logger.critical("Caught SIGTERM. Exiting.")
             sys.exit(0)
         elif signum == signal.SIGINT:
-            LOGGER.critical("Caught SIGINT. Exiting.")
+            _logger.critical("Caught SIGINT. Exiting.")
             sys.exit(0)
         elif signum == signal.SIGHUP:
             # reopen the logfile
             conf = config.pingconf()
-            LOGGER.info("Caught SIGHUP. Reopening logfile...")
+            _logger.info("Caught SIGHUP. Reopening logfile...")
             logfile = open(conf.logfile, 'a')
             nav.daemon.redirect_std_fds(stdout=logfile, stderr=logfile)
 
-            LOGGER.info("Reopened logfile: %s", conf.logfile)
+            _logger.info("Reopened logfile: %s", conf.logfile)
         else:
-            LOGGER.critical("Caught %s. Resuming operation.", signum)
+            _logger.critical("Caught %s. Resuming operation.", signum)
 
 
 def start(foreground, socket):

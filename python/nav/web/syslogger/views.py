@@ -15,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """syslogger view definitions"""
-import logging
 from django.core.urlresolvers import reverse
 from django.db.models.aggregates import Count
 import json
@@ -42,8 +41,6 @@ try:
 except IOError:
     DOMAIN_SUFFICES = []
 DOMAIN_SUFFICES = [s.strip() for s in DOMAIN_SUFFICES]
-
-logger = logging.getLogger("nav.web.syslogger")
 
 
 def _strip_empty_arguments(request):

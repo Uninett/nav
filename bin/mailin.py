@@ -36,7 +36,7 @@ from nav import logs
 
 import logging
 logging.raiseExceptions = False
-logger = logging.getLogger('nav.mailin')
+_logger = logging.getLogger('nav.mailin')
 conf = None
 
 CONFIG_FILE = 'mailin.conf'
@@ -64,11 +64,11 @@ def main():
     plugins = load_plugins(plugins)
 
     if args.init:
-        logger.info('Initialization done. Exiting.')
+        _logger.info('Initialization done. Exiting.')
         return
 
     read_and_process_input(plugins, test=args.test)
-    logger.info('Done')
+    _logger.info('Done')
 
 
 def parse_args():
@@ -87,12 +87,12 @@ def parse_args():
 def read_and_process_input(plugins, test=False):
     """Parses stdin as e-mail and passes it to each plugin in order"""
     msg = email.message_from_file(sys.stdin)
-    logger.info('---')
-    logger.info('Got message: From=%r Subject=%r', msg['From'], msg['Subject'])
+    _logger.info('---')
+    _logger.info('Got message: From=%r Subject=%r', msg['From'], msg['Subject'])
 
     for plugin in plugins:
         if plugin.accept(msg):
-            logger.info('%s accepted the message', plugin.name)
+            _logger.info('%s accepted the message', plugin.name)
 
             if authorize_match(plugin, msg):
                 if plugin.authorize(msg):
@@ -108,9 +108,9 @@ def read_and_process_input(plugins, test=False):
                     else:
                         for event in events:
                             event.post()
-                            logger.info('Posted %r', event)
+                            _logger.info('Posted %r', event)
                 else:
-                    logger.error('Message not authorized')
+                    _logger.error('Message not authorized')
 
             break  # Only one message gets to play
 
@@ -132,18 +132,18 @@ def load_plugins(paths):
     plugins = []
 
     for path in paths:
-        logger.info('Loading plugin %s ...', path)
+        _logger.info('Loading plugin %s ...', path)
         parent = path.split('.')[:-1]
 
         try:
             mod = __import__(path, globals(), locals(), [parent])
         except ImportError:
-            logger.error('Plugin not found: %s', path)
+            _logger.error('Plugin not found: %s', path)
         except Exception:
-            logger.exception('Failed to load plugin %s', path)
+            _logger.exception('Failed to load plugin %s', path)
             continue
 
-        plugin = mod.Plugin(path, conf, logger)
+        plugin = mod.Plugin(path, conf, _logger)
         plugins.append(plugin)
 
     return plugins
@@ -170,7 +170,7 @@ def authorize_match(plugin, msg):
             return True
 
     # Should this logged as error or warning?
-    logger.error("Message doesn't match auth pattern %r", raw)
+    _logger.error("Message doesn't match auth pattern %r", raw)
     return False
 
 

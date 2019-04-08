@@ -21,7 +21,7 @@ import logging
 from nav.web import ldapauth
 from nav.models.profiles import Account
 
-logger = logging.getLogger("nav.web.auth")
+_logger = logging.getLogger("nav.web.auth")
 
 
 def authenticate(username, password):
@@ -52,7 +52,7 @@ def authenticate(username, password):
                 auth = True
 
     if account and account.locked:
-        logger.info("Locked user %s tried to log in", account.login)
+        _logger.info("Locked user %s tried to log in", account.login)
 
     if (account and
             account.ext_sync == 'ldap' and

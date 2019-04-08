@@ -43,9 +43,8 @@ from nav.web.maintenance.forms import MaintenanceAddSingleNetbox
 import nav.maintengine
 
 INFINITY = datetime.max
-LOGGER_NAME = 'nav.web.maintenance'
 
-logger = logging.getLogger(LOGGER_NAME)
+_logger = logging.getLogger(__name__)
 
 
 def redirect_to_calendar(_request):
@@ -122,7 +121,7 @@ def active(request):
                 try:
                     netbox = Netbox.objects.get(pk=int(netbox_id))
                 except Exception as get_ex:
-                    logger.error('Get netbox %s failed; Exception = %s',
+                    _logger.error('Get netbox %s failed; Exception = %s',
                                  netbox_id, get_ex.message)
                     continue
                 task.netbox = netbox
@@ -373,22 +372,22 @@ def add_box_to_maintenance(request):
                 # Box is not on maintenance
                 _add_neverending_maintenance_task(account, netbox)
 
-                logger.debug('Run maintenance checker')
+                _logger.debug('Run maintenance checker')
                 nav.maintengine.check_devices_on_maintenance()
-                logger.debug('Maintenance checker finished')
+                _logger.debug('Maintenance checker finished')
 
-                logger.debug('Add netbox to maintenance finished in %.3fs',
+                _logger.debug('Add netbox to maintenance finished in %.3fs',
                              time.clock() - before)
             else:
                 # What should we do here?
-                logger.error('Netbox %s (id=%d) is already on maintenance',
+                _logger.error('Netbox %s (id=%d) is already on maintenance',
                              netbox.sysname, netbox.id)
     return HttpResponseRedirect(reverse('status-index'))
 
 
 @transaction.atomic()
 def _add_neverending_maintenance_task(owner, netbox):
-    logger.debug('Adding maintenance task...')
+    _logger.debug('Adding maintenance task...')
     maint_task = MaintenanceTask()
     maint_task.start_time = datetime.now()
     maint_task.end_time = INFINITY
@@ -398,7 +397,7 @@ def _add_neverending_maintenance_task(owner, netbox):
     maint_task.author = owner.login
     maint_task.state = MaintenanceTask.STATE_SCHEDULED
     maint_task.save()
-    logger.debug("Maintenance task %d; Adding component %s (id=%d)",
+    _logger.debug("Maintenance task %d; Adding component %s (id=%d)",
                  maint_task.id, netbox.sysname, netbox.id)
     maint_component = MaintenanceComponent()
     maint_component.maintenance_task = maint_task

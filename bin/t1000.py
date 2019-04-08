@@ -46,7 +46,7 @@ from nav.arnold import (find_computer_info, disable, quarantine,
 from nav.models.arnold import Identity, DetentionProfile
 
 LOG_FILE = "arnold/t1000.log"
-LOGGER = logging.getLogger('nav.t1000')
+_logger = logging.getLogger('nav.t1000')
 
 
 def main():
@@ -56,7 +56,7 @@ def main():
         stderr=False,
         read_config=True,
     )
-    LOGGER.info("Starting t1000")
+    _logger.info("Starting t1000")
 
     # Fetch all mac-addresses that we have detained, check if they are
     # active somewhere else. As NAV collects arp and cam data periodically,
@@ -67,27 +67,27 @@ def main():
         status__in=['disabled', 'quarantined'])
 
     if len(identities) <= 0:
-        LOGGER.info("No detained ports in database where lastchanged > 1 "
+        _logger.info("No detained ports in database where lastchanged > 1 "
                     "hour.")
         sys.exit(0)
 
     for identity in identities:
-        LOGGER.info("%s is %s, checking for activity",
+        _logger.info("%s is %s, checking for activity",
                     identity.mac, identity.status)
         try:
             candidate = find_computer_info(identity.mac)
         except NoDatabaseInformationError as error:
-            LOGGER.info(error)
+            _logger.info(error)
             continue
 
         # If this mac-address is active behind another port, block it.
         if candidate.endtime > datetime.now():
             if candidate.interface == identity.interface:
-                LOGGER.info('Active on detained interface, will not pursue')
+                _logger.info('Active on detained interface, will not pursue')
             else:
                 pursue(identity, candidate)
         else:
-            LOGGER.info("%s is not active.", candidate.mac)
+            _logger.info("%s is not active.", candidate.mac)
 
 
 def pursue(identity, candidate):
@@ -99,7 +99,7 @@ def pursue(identity, candidate):
     in the old code.
 
     """
-    LOGGER.info("%s is active on interface %s",
+    _logger.info("%s is active on interface %s",
                 candidate.mac, candidate.interface)
 
     # Check if this reason is a part of any detention profile. If it is we
@@ -113,7 +113,7 @@ def pursue(identity, candidate):
     try:
         raise_if_detainment_not_allowed(candidate.interface)
     except DetainmentNotAllowedError as error:
-        LOGGER.error(error)
+        _logger.error(error)
         return
 
     identity.autoenablestep = find_autoenable_step(identity)
@@ -124,7 +124,7 @@ def pursue(identity, candidate):
             open_port(identity, getpass.getuser(),
                       'Blocked on another interface')
         except GeneralException as error:
-            LOGGER.error(error)
+            _logger.error(error)
 
 
 def is_detained_by_profile(identity):
@@ -150,15 +150,15 @@ def find_autoenable_step(identity):
 
 def should_pursue(identity, profile):
     """Verify that this identity is inside the defined vlans for the profile"""
-    LOGGER.debug('%s is %s by a profile', identity.mac, identity.status)
+    _logger.debug('%s is %s by a profile', identity.mac, identity.status)
     if profile.active_on_vlans:
         if not is_inside_vlans(identity.ip, profile.active_on_vlans):
-            LOGGER.info("Ip not in activeonvlans")
+            _logger.info("Ip not in activeonvlans")
             return False
         else:
-            LOGGER.debug("Ip in activeonvlans")
+            _logger.debug("Ip in activeonvlans")
     else:
-        LOGGER.debug("Profile has no activeonvlans set")
+        _logger.debug("Profile has no activeonvlans set")
 
     return True
 
@@ -170,17 +170,17 @@ def detain(identity, candidate):
 
     try:
         if identity.status == 'disabled':
-            LOGGER.debug("Trying to disable %s", identity.mac)
+            _logger.debug("Trying to disable %s", identity.mac)
             disable(candidate, identity.justification, username, comment,
                     identity.autoenablestep)
 
         elif identity.status == 'quarantined':
-            LOGGER.debug("Trying to quarantine %s with vlan %s",
+            _logger.debug("Trying to quarantine %s with vlan %s",
                          identity.mac, identity.tovlan)
             quarantine(candidate, identity.tovlan, identity.justification,
                        username, comment, identity.autoenablestep)
     except GeneralException as error:
-        LOGGER.error(error)
+        _logger.error(error)
 
 
 if __name__ == '__main__':

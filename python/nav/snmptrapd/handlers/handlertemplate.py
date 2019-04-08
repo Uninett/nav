@@ -25,7 +25,7 @@ from nav.event import Event
 
 
 # Create logger with modulename here
-logger = logging.getLogger('nav.snmptrapd.template')
+_logger = logging.getLogger(__name__)
 
 
 # If you need to contact database.
@@ -42,7 +42,7 @@ def handleTrap(trap, config=None):
 
     # Use the trap-object to access trap-variables and do stuff.
     if trap.genericType in ['LINKUP', 'LINKDOWN']:
-        logger.debug("This is a linkState trap")
+        _logger.debug("This is a linkState trap")
 
     # config may be fetched like this
     variable = config.get('template', 'variable')
@@ -64,7 +64,7 @@ def handleTrap(trap, config=None):
         try:
             e.post()
         except nav.errors.GeneralException as why:
-            logger.error(why)
+            _logger.error(why)
             return False
 
         # Return True if trap was processed.

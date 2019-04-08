@@ -37,7 +37,7 @@ from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
 
-LOGGER = logging.getLogger('nav.web.arnold')
+_logger = logging.getLogger(__name__)
 
 
 def create_context(path, context):
@@ -282,7 +282,7 @@ def get_last_seen(camid):
 
 def process_manual_detention_form(form, account):
     """Execute a manual detention based on form data"""
-    LOGGER.debug('process_manual_detention_form')
+    _logger.debug('process_manual_detention_form')
 
     target = form.cleaned_data['target']
     justification = Justification.objects.get(

@@ -16,7 +16,6 @@
 """Handles attaching and converting metadata in a netmap networkx toplogy
 graph"""
 from collections import defaultdict
-import logging
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils import six
 
@@ -26,8 +25,6 @@ from nav.errors import GeneralException
 from nav.models.manage import GwPortPrefix, Interface
 from nav.netmap import stubs
 from nav.web.netmap.common import get_status_image_link
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class NetmapException(GeneralException):

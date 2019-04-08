@@ -30,7 +30,7 @@ from nav.statemon import config
 from .icmppacket import ICMP_MINLEN, PacketV4, PacketV6
 
 
-LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 # pylint: disable=W0703
@@ -44,14 +44,14 @@ def make_sockets():
         socketv6 = socket.socket(socket.AF_INET6, socket.SOCK_RAW,
                                  socket.getprotobyname('ipv6-icmp'))
     except Exception:
-        LOGGER.error("Could not create v6 socket")
+        _logger.error("Could not create v6 socket")
         raise
 
     try:
         socketv4 = socket.socket(socket.AF_INET, socket.SOCK_RAW,
                                  socket.getprotobyname('icmp'))
     except Exception:
-        LOGGER.error("Could not create v6 socket")
+        _logger.error("Could not create v6 socket")
         raise
 
     return [socketv6, socketv4]
@@ -156,7 +156,7 @@ class MegaPing(object):
             try:
                 self._conf = config.pingconf()
             except Exception:
-                LOGGER.critical("Failed to open config file. Using default values.")
+                _logger.critical("Failed to open config file. Using default values.")
                 self._conf = {}
         else:
             self._conf = conf
@@ -186,11 +186,11 @@ class MegaPing(object):
             try:
                 sockets = make_sockets()
             except Exception:
-                LOGGER.error("Tried to create sockets without being root!")
+                _logger.error("Tried to create sockets without being root!")
 
             self._sock6 = sockets[0]
             self._sock4 = sockets[1]
-            LOGGER.info("No sockets passed as argument, creating own")
+            _logger.info("No sockets passed as argument, creating own")
 
     def set_hosts(self, ips):
         """
@@ -253,7 +253,7 @@ class MegaPing(object):
                 else:
                     self._sock6.sendto(packet, (host.ip, 0, 0, 0))
             except Exception as error:
-                LOGGER.info("Failed to ping %s [%s]", host.ip, error)
+                _logger.info("Failed to ping %s [%s]", host.ip, error)
 
             sleep(self._delay)
         self._sender_finished = time.time()
@@ -286,7 +286,7 @@ class MegaPing(object):
                     try:
                         raw_pong, sender = sock.recvfrom(4096)
                     except socket.error:
-                        LOGGER.critical("RealityError -2", exc_info=True)
+                        _logger.critical("RealityError -2", exc_info=True)
                         continue
 
                     is_ipv6 = sock == self._sock6
@@ -306,18 +306,18 @@ class MegaPing(object):
         try:
             pong = packet_class(raw_pong)
         except Exception as error:
-            LOGGER.critical("could not disassemble packet from %r: %s",
+            _logger.critical("could not disassemble packet from %r: %s",
                             sender, error)
             return
 
         if pong.type != pong.ICMP_ECHO_REPLY:
             # we only care about echo replies
-            LOGGER.debug("Packet from %s was not an echo reply, but %s",
+            _logger.debug("Packet from %s was not an echo reply, but %s",
                          sender, pong)
             return
 
         if not pong.id == self._pid:
-            LOGGER.debug("packet from %r doesn't match our id (%s): %r (raw "
+            _logger.debug("packet from %r doesn't match our id (%s): %r (raw "
                          "packet: %r)", sender, self._pid, pong, raw_pong)
             return
 
@@ -327,7 +327,7 @@ class MegaPing(object):
         try:
             host = self._requests[cookie]
         except KeyError:
-            LOGGER.debug("packet from %r does not match any outstanding "
+            _logger.debug("packet from %r does not match any outstanding "
                          "request: %r (raw packet: %r cookie: %r)",
                          sender, pong, raw_pong, cookie)
             return
@@ -335,7 +335,7 @@ class MegaPing(object):
         # Delete the entry of the host who has replied and add the pingtime
         pingtime = arrival - host.time
         host.reply = pingtime
-        LOGGER.debug("Response from %-16s in %03.3f ms",
+        _logger.debug("Response from %-16s in %03.3f ms",
                      sender, pingtime*1000)
         del self._requests[cookie]
 

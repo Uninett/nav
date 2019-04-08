@@ -48,7 +48,7 @@ from nav.util import is_valid_ip
 
 CONFIGFILE = os.path.join("arnold", "arnold.conf")
 NONBLOCKFILE = os.path.join("arnold", "nonblock.conf")
-LOGGER = logging.getLogger("nav.arnold")
+_logger = logging.getLogger(__name__)
 
 # pylint: disable=C0103
 Candidate = namedtuple("Candidate", "camid ip mac interface endtime")
@@ -269,7 +269,7 @@ def find_computer_info(ip_or_mac, trunk_ok=False):
 
 def disable(candidate, justification, username, comment="", autoenablestep=0):
     """Disable a target by blocking the port"""
-    LOGGER.info('Disabling %s - %s on interface %s',
+    _logger.info('Disabling %s - %s on interface %s',
                 candidate.ip, candidate.mac, candidate.interface)
 
     if not candidate.interface.netbox.read_write:
@@ -280,14 +280,14 @@ def disable(candidate, justification, username, comment="", autoenablestep=0):
     update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
-    LOGGER.info("Successfully %s %s (%s)",
+    _logger.info("Successfully %s %s (%s)",
                 identity.status, identity.ip, identity.mac)
 
 
 def quarantine(candidate, qvlan, justification, username, comment="",
                autoenablestep=0):
     """Quarantine a target bu changing vlan on port"""
-    LOGGER.info('Quarantining %s - %s on interface %s',
+    _logger.info('Quarantining %s - %s on interface %s',
                 candidate.ip, candidate.mac, candidate.interface)
 
     if not candidate.interface.netbox.read_write:
@@ -299,13 +299,13 @@ def quarantine(candidate, qvlan, justification, username, comment="",
     update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
-    LOGGER.info("Successfully %s %s (%s)",
+    _logger.info("Successfully %s %s (%s)",
                 identity.status, identity.ip, identity.mac)
 
 
 def check_target(target, trunk_ok=False):
     """Check if target can be blocked or not"""
-    LOGGER.debug('Checking target %s', target)
+    _logger.debug('Checking target %s', target)
     if find_input_type(target) == 'IP':
         check_non_block(target)
     find_computer_info(target, trunk_ok)
@@ -362,11 +362,11 @@ def raise_if_detainment_not_allowed(interface, trunk_ok=False):
                   for x in str(config.get('arnold', 'allowtypes')).split(',')]
 
     if netbox.category.id not in allowtypes:
-        LOGGER.info("Not allowed to detain on %s", netbox.category.id)
+        _logger.info("Not allowed to detain on %s", netbox.category.id)
         raise WrongCatidError(netbox.category)
 
     if not trunk_ok and interface.trunk:
-        LOGGER.info("Cannot detain on a trunk")
+        _logger.info("Cannot detain on a trunk")
         raise BlockonTrunkError
 
 
@@ -384,9 +384,9 @@ def open_port(identity, username, eventcomment=""):
     try:
         identity.interface
     except Interface.DoesNotExist:
-        LOGGER.info("Interface did not exist, enabling in database only")
+        _logger.info("Interface did not exist, enabling in database only")
     else:
-        LOGGER.info("Trying to lift detention for %s on %s",
+        _logger.info("Trying to lift detention for %s on %s",
                     identity.mac, identity.interface)
         if identity.status == 'disabled':
             change_port_status('enable', identity)
@@ -404,7 +404,7 @@ def open_port(identity, username, eventcomment=""):
                   executor=username)
     event.save()
 
-    LOGGER.info("openPort: Port successfully opened")
+    _logger.info("openPort: Port successfully opened")
 
 
 def change_port_status(action, identity):
@@ -430,14 +430,14 @@ def change_port_status(action, identity):
     try:
         if action == 'disable':
             agent.set(query, 'i', 2)
-            LOGGER.info('Setting ifadminstatus down on interface %s',
+            _logger.info('Setting ifadminstatus down on interface %s',
                         identity.interface)
         elif action == 'enable':
             agent.set(query, 'i', 1)
-            LOGGER.info('Setting ifadminstatus up on interface %s',
+            _logger.info('Setting ifadminstatus up on interface %s',
                         identity.interface)
     except AgentError as why:
-        LOGGER.error("Error when executing snmpquery: %s", why)
+        _logger.error("Error when executing snmpquery: %s", why)
         raise ChangePortStatusError(why)
 
 
@@ -460,7 +460,7 @@ def change_port_vlan(identity, vlan):
     except Exception as error:
         raise ChangePortVlanError(error)
     else:
-        LOGGER.info('Setting vlan %s on interface %s', vlan, interface)
+        _logger.info('Setting vlan %s on interface %s', vlan, interface)
         try:
             agent.set_vlan(interface, vlan)
             agent.restart_if(interface.ifindex)
@@ -477,7 +477,7 @@ def sendmail(from_email, toaddr, subject, msg):
         email = EmailMessage(subject, msg, from_email=from_email, to=[toaddr])
         email.send()
     except (SMTPException, socket.error) as error:
-        LOGGER.error('Failed to send mail to %s: %s', toaddr, error)
+        _logger.error('Failed to send mail to %s: %s', toaddr, error)
 
 
 def get_host_name(ip):
@@ -527,7 +527,7 @@ def check_non_block(ip):
 
     # Specific ip-addresses
     if ip in nonblockdict['ip']:
-        LOGGER.info('Computer in nonblock list, skipping')
+        _logger.info('Computer in nonblock list, skipping')
         raise InExceptionListError
 
     # Ip-ranges

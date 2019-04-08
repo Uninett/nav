@@ -33,7 +33,7 @@ from nav.web.ipam.util import get_available_subnets
 from nav.models.manage import Prefix
 
 
-LOGGER = logging.getLogger('nav.web.ipam.prefix_tree')
+_logger = logging.getLogger(__name__)
 
 
 class PrefixHeap(object):
@@ -353,7 +353,7 @@ class PrefixNode(IpNodeFacade):
         # issues, in which case we use a filler
         vlan = getattr(prefix, "vlan", None)
         if vlan is None:
-            LOGGER.warning(
+            _logger.warning(
                 "Prefix % id=% does not have a VLAN relation",
                 prefix.net_address, prefix.id)
             vlan = FakeVLAN()

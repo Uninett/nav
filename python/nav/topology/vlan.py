@@ -30,7 +30,7 @@ from operator import attrgetter
 from collections import defaultdict
 from nav.netmap import stubs
 
-_LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 NO_TRUNK = Q(trunk=False) | Q(trunk__isnull=True)
 
 
@@ -41,7 +41,7 @@ class VlanGraphAnalyzer(object):
         self.unrouted_vlans = self._build_unrouted_vlan_seed_dict()
         self.layer2 = build_layer2_graph()
         self.stp_blocked = get_stp_blocked_ports()
-        _LOGGER.debug("blocked ports: %r", self.stp_blocked)
+        _logger.debug("blocked ports: %r", self.stp_blocked)
         self.ifc_vlan_map = {}
 
     @staticmethod
@@ -66,14 +66,14 @@ class VlanGraphAnalyzer(object):
     def analyze_all(self):
         """Analyze all VLAN topologies"""
         for vlan in sorted(self.routed_vlans, key=lambda x: x.vlan):
-            _LOGGER.debug("Analyzing routed VLAN %s", vlan)
+            _logger.debug("Analyzing routed VLAN %s", vlan)
             self.analyze_vlan(vlan)
         while self.unrouted_vlans:
             vlan = min(self.unrouted_vlans, key=_unrouted_vlan_sort)
             self.unrouted_vlans.remove(vlan)
             if vlan.netbox not in self.layer2:
                 continue
-            _LOGGER.debug("Analyzing unrouted VLAN %s", vlan)
+            _logger.debug("Analyzing unrouted VLAN %s", vlan)
             self.analyze_vlan(vlan)
         return self.ifc_vlan_map
 
@@ -106,7 +106,7 @@ class VlanGraphAnalyzer(object):
         for ifc in topology:
             for cand in list(self.unrouted_vlans):
                 if cand.vlan == vlan.vlan and cand.netbox == ifc.netbox:
-                    _LOGGER.debug("pruning vlan %s because of %s",
+                    _logger.debug("pruning vlan %s because of %s",
                                   cand, vlan)
                     self.unrouted_vlans.remove(cand)
 
@@ -215,7 +215,7 @@ class RoutedVlanTopologyAnalyzer(object):
                     self._log_block(next_edge)
 
         if vlan_is_active and ifc:
-            _LOGGER.debug("(%s) setting %s direction: %s",
+            _logger.debug("(%s) setting %s direction: %s",
                           self.vlan.vlan, ifc, direction)
             self.ifc_directions[ifc] = direction
 
@@ -279,7 +279,7 @@ class RoutedVlanTopologyAnalyzer(object):
         """Returns True if at least one of the edge endpoints are blocked"""
         reverse_edge = self._find_reverse_edge(edge)
         if not reverse_edge:
-            _LOGGER.debug("could not find reverse edge for %r", edge)
+            _logger.debug("could not find reverse edge for %r", edge)
         return (self._is_edge_blocked(edge) or
                 self._is_edge_blocked(reverse_edge))
 
@@ -291,7 +291,7 @@ class RoutedVlanTopologyAnalyzer(object):
 
     def _log_descent(self, next_edge):
         source, dest, ifc = next_edge
-        _LOGGER.debug("(%s) descending from %s (%s [%d]) to %s",
+        _logger.debug("(%s) descending from %s (%s [%d]) to %s",
                       self.vlan.vlan,
                       source.sysname, ifc.ifname, ifc.id,
                       dest.sysname)
@@ -301,13 +301,13 @@ class RoutedVlanTopologyAnalyzer(object):
         reverse_edge = self._find_reverse_edge(next_edge)
         if reverse_edge:
             dest, _source, dest_ifc = reverse_edge
-            _LOGGER.info("at least one of %s (%s) <-> %s (%s) is blocked "
+            _logger.info("at least one of %s (%s) <-> %s (%s) is blocked "
                          "on VLAN %s",
                          source.sysname, source_ifc.ifname,
                          dest.sysname, dest_ifc.ifname,
                          self.vlan.vlan)
         else:
-            _LOGGER.info("%s (%s) is blocked on VLAN %s",
+            _logger.info("%s (%s) is blocked on VLAN %s",
                          source.sysname, source_ifc.ifname, self.vlan.vlan)
 
     def _mark_both_ends_as_blocked(self, edge):
@@ -419,7 +419,7 @@ class VlanTopologyUpdater(object):
         )
         to_delete = existing_interfaceids.difference(touched_interfaceids)
         if to_delete:
-            _LOGGER.debug("deleting obsolete swpvlan records for these ifcs: "
+            _logger.debug("deleting obsolete swpvlan records for these ifcs: "
                           "%s", to_delete)
             SwPortVlan.objects.filter(interface__id__in=to_delete).delete()
 
@@ -522,7 +522,7 @@ def build_layer3_graph(related_extra=None):
                         # about topology detector should really not classify
                         # this as an elink. (since we found >1 known gwpp's
                         # in given prefix means it shold be a link or core.)
-                        _LOGGER.warning(
+                        _logger.warning(
                             "Topology error? %s classified as elink, "
                             "we know %s GwPortPrefixes ...",
                             six.text_type(prefix), len(gwportprefixes))

@@ -40,7 +40,7 @@ from nav.arnold import (open_port, GeneralException)
 from nav.models.arnold import Identity
 
 
-LOGGER = logging.getLogger('nav.autoenable')
+_logger = logging.getLogger('nav.autoenable')
 
 
 def main():
@@ -50,13 +50,13 @@ def main():
         stderr=False,
         read_config=True,
     )
-    LOGGER.info("Starting autoenable")
+    _logger.info("Starting autoenable")
 
     candidates = Identity.objects.filter(
         autoenable__lte=datetime.now(), status__in=['disabled', 'quarantined'])
 
     if len(candidates) <= 0:
-        LOGGER.info("No ports ready for opening.")
+        _logger.info("No ports ready for opening.")
         sys.exit(0)
 
     # For each port that is blocked, try to enable the port.
@@ -66,11 +66,11 @@ def main():
                       eventcomment="Opened automatically by autoenable")
             interface = candidate.interface
             netbox = interface.netbox
-            LOGGER.info("Opening %s %s:%s for %s",
+            _logger.info("Opening %s %s:%s for %s",
                         netbox.sysname, interface.module, interface.baseport,
                         candidate.mac)
         except GeneralException as why:
-            LOGGER.error(why)
+            _logger.error(why)
             continue
 
 
