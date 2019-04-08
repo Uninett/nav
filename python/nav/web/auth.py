@@ -40,7 +40,7 @@ from nav.web import ldapauth
 from nav.models.profiles import Account
 
 
-logger = logging.getLogger("nav.web.auth")
+_logger = logging.getLogger(__name__)
 
 
 class RemoteUserConfigParser(NAVConfigParser):
@@ -82,7 +82,7 @@ def authenticate(username, password):
                 auth = True
 
     if account and account.locked:
-        logger.info("Locked user %s tried to log in", account.login)
+        _logger.info("Locked user %s tried to log in", account.login)
 
     if (account and
             account.ext_sync == 'ldap' and
@@ -145,7 +145,7 @@ def authenticate_remote_user(request=None):
         )
         account.set_password(fake_password(32))
         account.save()
-        logger.info("Created user %s from header REMOTE_USER", account.login)
+        _logger.info("Created user %s from header REMOTE_USER", account.login)
         template = 'Account "{actor}" created due to REMOTE_USER HTTP header'
         LogEntry.add_log_entry(account, 'create-account', template=template,
                                subsystem='auth')
@@ -153,7 +153,7 @@ def authenticate_remote_user(request=None):
 
     # Bail out! Potentially evil user
     if account.locked:
-        logger.info("Locked user %s tried to log in", account.login)
+        _logger.info("Locked user %s tried to log in", account.login)
         template = 'Account "{actor}" was prevented from logging in: blocked'
         LogEntry.add_log_entry(account, 'login-prevent', template=template,
                                subsystem='auth')
