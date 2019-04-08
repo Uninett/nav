@@ -25,7 +25,7 @@ from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2
 from nav.netmap.traffic import get_traffic_data, Traffic
 
 
-_LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 def _get_vlans_map_layer2(graph):
@@ -78,7 +78,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
     :type view: nav.modeles.profiles.NetmapView
     :return NetworkX Graph with attached metadata for edges and nodes
     """
-    _LOGGER.debug("_build_netmap_layer2_graph()")
+    _logger.debug("_build_netmap_layer2_graph()")
     netmap_graph = nx.Graph()
 
     # basically loops over the whole MultiDiGraph from nav.topology and make
@@ -96,14 +96,14 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
                 port_pairs = existing_metadata.setdefault('port_pairs', set())
                 port_pair = frozenset((interface, interface.to_interface))
                 if len(port_pair) < 2:
-                    _LOGGER.warning("Wonky self-loop at %r", port_pair)
+                    _logger.warning("Wonky self-loop at %r", port_pair)
                     continue  # ignore wonk!
                 port_pairs.add(port_pair)
 
                 netmap_graph.add_edge(target, source,
                                       **existing_metadata)
 
-    _LOGGER.debug(
+    _logger.debug(
         "build_netmap_layer2_graph() graph reduced.Port_pair metadata attached")
 
     empty_traffic = Traffic()
@@ -120,7 +120,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
             metadata = metadata_dict.setdefault('metadata', list())
             metadata.append(additional_metadata)
 
-    _LOGGER.debug("build_netmap_layer2_graph() netmap metadata built")
+    _logger.debug("build_netmap_layer2_graph() netmap metadata built")
 
     for node, data in netmap_graph.nodes(data=True):
         if node in vlan_by_netbox:
@@ -128,13 +128,13 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
                 'vlans': sorted(six.iteritems(vlan_by_netbox[node]),
                         key=lambda x: x[1].vlan.vlan)}
 
-    _LOGGER.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")
+    _logger.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")
 
     if view:
         saved_views = view.node_position_set.all()
         netmap_graph = _attach_node_positions(netmap_graph,
                                               saved_views)
-    _LOGGER.debug("build_netmap_layer2_graph() view positions and graph done")
+    _logger.debug("build_netmap_layer2_graph() view positions and graph done")
 
     return netmap_graph
 
@@ -175,7 +175,7 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False,
             netbox_u,
             **existing_metadata)
 
-    _LOGGER.debug("build_netmap_layer3_graph() graph copy with metadata done")
+    _logger.debug("build_netmap_layer3_graph() graph copy with metadata done")
 
     empty_traffic = Traffic()
     for u, v, metadata_dict in graph.edges.data():
@@ -194,7 +194,7 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False,
 
     if view:
         graph = _attach_node_positions(graph, view.node_position_set.all())
-    _LOGGER.debug("build_netmap_layer3_graph() view positions and graph done")
+    _logger.debug("build_netmap_layer3_graph() view positions and graph done")
     return graph
 
 

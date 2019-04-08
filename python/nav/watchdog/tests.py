@@ -29,7 +29,7 @@ from nav.asyncdns import reverse_lookup
 from nav.models.manage import IpdevpollJobLog, Netbox, Arp, Cam
 from nav.models.fields import INFINITY
 
-LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 STATUS_OK = 'ok'
@@ -69,7 +69,7 @@ class Test(object):
         starttime = datetime.now()
         self.errors = self._get_errors()
         runtime = datetime.now() - starttime
-        LOGGER.debug('%s used %s', type(self).__name__, runtime)
+        _logger.debug('%s used %s', type(self).__name__, runtime)
         self.status = (STATUS_OK if not self.errors
                        else STATUS_NOT_OK)
 

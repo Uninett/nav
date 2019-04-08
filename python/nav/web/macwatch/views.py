@@ -15,8 +15,6 @@
 #
 """macwatch view definitions"""
 
-import logging
-
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
@@ -28,8 +26,6 @@ from nav.web.macwatch.models import MacWatch
 
 NAVBAR = [('Home', '/'), ('MacWatch', None)]
 DEFAULT_VALUES = {'title': "MacWatch", 'navpath': NAVBAR}
-
-logger = logging.getLogger("nav.web.macwatch")
 
 
 def do_list(request, messages=None):

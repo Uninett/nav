@@ -25,7 +25,7 @@ import itertools
 import nav.event
 from nav.db import getConnection
 
-logger = logging.getLogger('nav.snmptrapd.weathergoose')
+_logger = logging.getLogger(__name__)
 
 
 class WeatherGoose1(object):
@@ -82,7 +82,7 @@ class WeatherGoose1(object):
         oid = self.trap.snmpTrapOID
         self.trigger = self.map_oid_to_trigger(oid)
         if self.trigger:
-            logger.info("Got %s", self.TRAPS[self.trigger]['description'])
+            _logger.info("Got %s", self.TRAPS[self.trigger]['description'])
         else:
             raise Exception("This trap cannot be handled by this plugin")
 
@@ -123,13 +123,13 @@ class WeatherGoose1(object):
         e['sysname'] = self.sysname
         e['room'] = self.roomid
 
-        logger.debug(e)
+        _logger.debug(e)
 
         # Post event on eventqueue
         try:
             e.post()
         except Exception as e:
-            logger.error(e)
+            _logger.error(e)
             return False
 
         return True
@@ -228,7 +228,7 @@ def handleTrap(trap, config=None):
                 (trap.agent,))
 
     if cur.rowcount < 1:
-        logger.error("Could not find trapagent %s in database.", trap.agent)
+        _logger.error("Could not find trapagent %s in database.", trap.agent)
         return False
 
     netboxid, sysname, roomid = cur.fetchone()
@@ -247,7 +247,7 @@ def initialize_eventdb():
     try:
         nav.event.create_type_hierarchy(_get_event_hierarchy())
     except Exception as e:
-        logger.error(e)
+        _logger.error(e)
         return False
 
 

@@ -28,7 +28,7 @@ from nav.django.utils import get_model_and_name, get_all_related_objects
 from nav.web.message import new_message, Messages
 from nav.auditlog.models import LogEntry
 
-LOGGER = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 @transaction.atomic()
@@ -93,7 +93,7 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
             new_message(request, msg, Messages.ERROR)
         except Exception as ex:
             # Something else went wrong
-            LOGGER.exception("Unhandled exception during delete: %r", request)
+            _logger.exception("Unhandled exception during delete: %r", request)
             msg = "Error: %s" % ex
             new_message(request, msg, Messages.ERROR)
         else:
