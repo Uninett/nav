@@ -179,8 +179,8 @@ class EventEngine(object):
         self._log_task_queue()
 
     def _log_task_queue(self):
-        logger = logging.getLogger(__name__ + '.queue')
-        if not logger.isEnabledFor(logging.DEBUG):
+        _logger = logging.getLogger(__name__ + '.queue')
+        if not _logger.isEnabledFor(logging.DEBUG):
             return
 
         modified_queue = [
@@ -189,10 +189,10 @@ class EventEngine(object):
         ]
         if modified_queue:
             logtime = time.time()
-            logger.debug("%d tasks in queue at %s",
-                         len(modified_queue), logtime)
+            _logger.debug("%d tasks in queue at %s",
+                          len(modified_queue), logtime)
             for event in modified_queue:
-                logger.debug("In %s seconds: %r", event.time - logtime, event)
+                _logger.debug("In %s seconds: %r", event.time - logtime, event)
 
     def _post_generic_alert(self, event):
         alert = AlertGenerator(event)

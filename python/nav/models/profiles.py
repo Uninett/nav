@@ -367,23 +367,23 @@ class AlertAddress(models.Model):
 
            Return value should indicate if message was sent"""
 
-        logger = logging.getLogger('nav.alertengine.alertaddress.send')
+        _logger = logging.getLogger('nav.alertengine.alertaddress.send')
 
         # Determine the right language for the user.
         lang = self.account.preferences.get(
             Account.PREFERENCE_KEY_LANGUAGE, 'en')
 
         if not (self.address or '').strip():
-            logger.error(
-                'Ignoring alert %d (%s: %s)! Account %s does not have an '
-                'address set for the alertaddress with id %d, this needs '
-                'to be fixed before the user will recieve any alerts.',
-                alert.id, alert, alert.netbox, self.account, self.id)
+            _logger.error(
+                 'Ignoring alert %d (%s: %s)! Account %s does not have an '
+                 'address set for the alertaddress with id %d, this needs '
+                 'to be fixed before the user will recieve any alerts.',
+                 alert.id, alert, alert.netbox, self.account, self.id)
 
             return True
 
         if self.type.is_blacklisted():
-            logger.warning(
+            _logger.warning(
                 'Not sending alert %s to %s as handler %s is blacklisted: %s',
                 alert.id, self.address, self.type,
                 self.type.blacklist_reason())
@@ -391,27 +391,27 @@ class AlertAddress(models.Model):
 
         try:
             self.type.send(self, alert, language=lang)
-            logger.info(
+            _logger.info(
                 'alert %d sent by %s to %s due to %s subscription %d',
                 alert.id, self.type, self.address,
                 subscription.get_type_display(), subscription.id)
 
         except FatalDispatcherException as error:
-            logger.error(
+            _logger.error(
                 '%s raised a FatalDispatcherException indicating that the '
                 'alert never will be sent: %s',
                 self.type, error)
             raise
 
         except DispatcherException as error:
-            logger.error(
+            _logger.error(
                 '%s raised a DispatcherException indicating that an alert '
                 'could not be sent at this time: %s',
                 self.type, error)
             return False
 
         except Exception as error:
-            logger.exception(
+            _logger.exception(
                 'Unhandled error from %s (the handler has been blacklisted)',
                 self.type)
             self.type.blacklist(error)
@@ -564,7 +564,7 @@ class AlertProfile(models.Model):
         # Could have been done with a ModelManager, but the logic
         # is somewhat tricky to do with the django ORM.
 
-        logger = logging.getLogger(
+        _logger = logging.getLogger(
             'nav.alertengine.alertprofile.get_active_timeperiod')
 
         now = datetime.now()
@@ -590,10 +590,10 @@ class AlertProfile(models.Model):
                     active_timeperiod = period
 
         if active_timeperiod:
-            logger.debug("Active timeperiod for alertprofile %d is %s (%d)",
-                         self.id, active_timeperiod, active_timeperiod.id)
+            _logger.debug("Active timeperiod for alertprofile %d is %s (%d)",
+                          self.id, active_timeperiod, active_timeperiod.id)
         else:
-            logger.debug("No active timeperiod for alertprofile %d", self.id)
+            _logger.debug("No active timeperiod for alertprofile %d", self.id)
 
         return active_timeperiod
 
@@ -882,7 +882,7 @@ class Filter(models.Model):
 
         :type alert: nav.models.event.AlertQueue
         """
-        logger = logging.getLogger('nav.alertengine.filter.check')
+        _logger = logging.getLogger('nav.alertengine.filter.check')
 
         filtr = {}
         exclude = {}
@@ -959,7 +959,7 @@ class Filter(models.Model):
         if not extra['where']:
             extra = {}
 
-        logger.debug(
+        _logger.debug(
             'alert %d: checking against filter %d with filter: %s, exclude: '
             '%s and extra: %s',
             alert.id, self.id, filtr, exclude, extra)
@@ -968,10 +968,10 @@ class Filter(models.Model):
         # db doesn't have to work as much.
         if AlertQueue.objects.filter(**filtr).exclude(**exclude).extra(
                 **extra).count():
-            logger.debug('alert %d: matches filter %d', alert.id, self.id)
+            _logger.debug('alert %d: matches filter %d', alert.id, self.id)
             return True
 
-        logger.debug('alert %d: did not match filter %d', alert.id, self.id)
+        _logger.debug('alert %d: did not match filter %d', alert.id, self.id)
         return False
 
 
@@ -1170,7 +1170,7 @@ class MatchField(models.Model):
 
     def get_lookup_mapping(self):
         """Returns the field lookup represented by this MatchField."""
-        logger = logging.getLogger(
+        _logger = logging.getLogger(
             'nav.alertengine.matchfield.get_lookup_mapping')
 
         try:
@@ -1182,7 +1182,7 @@ class MatchField(models.Model):
             return value
 
         except KeyError:
-            logger.error(
+            _logger.error(
                 "Tried to lookup mapping for %s which is not supported",
                 self.value_id)
         return None
@@ -1293,12 +1293,12 @@ class AccountAlertQueue(models.Model):
                     "failed db upgrade from 3.4 to 3.5" % address)
 
         except AlertQueue.DoesNotExist:
-            logger = logging.getLogger(
+            _logger = logging.getLogger(
                 'nav.alertengine.accountalertqueue.send')
-            logger.error(('Inconsistent database state, alertqueue entry %d ' +
-                          'missing for account-alert. If you know how the ' +
-                          'database got into this state please update ' +
-                          'LP#494036'), self.alert_id)
+            _logger.error(('Inconsistent database state, alertqueue entry %d ' +
+                           'missing for account-alert. If you know how the ' +
+                           'database got into this state please update ' +
+                           'LP#494036'), self.alert_id)
 
             super(AccountAlertQueue, self).delete()
             return False

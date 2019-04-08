@@ -60,7 +60,7 @@ configfile = 'alertengine.conf'
 logfile = os.path.join(NAV_CONFIG['LOG_DIR'], 'alertengine.log')
 pidfile = 'alertengine.pid'
 
-logger = None
+_logger = logging.getLogger('nav.alertengine')
 
 #
 # MAIN FUNCTION
@@ -102,8 +102,6 @@ def main():
             sys.exit(1)
 
     # Initialize logger
-    global logger
-    logger = logging.getLogger('nav.alertengine')
     nav.logs.init_stderr_logging()
 
     # Init SMTP logging of grave errors
@@ -114,7 +112,7 @@ def main():
     try:
         nav.daemon.justme(pidfile)
     except nav.daemon.DaemonError as error:
-        logger.error(error)
+        _logger.error(error)
         sys.exit(1)
 
     # Daemonize
@@ -122,7 +120,7 @@ def main():
         try:
             nav.daemon.daemonize(pidfile, stderr=open(logfile, "a"))
         except nav.daemon.DaemonError as error:
-            logger.error(error)
+            _logger.error(error)
             sys.exit(1)
 
         # Reopen log files on SIGHUP
@@ -135,7 +133,7 @@ def main():
     signal.signal(signal.SIGINT, signalhandler)
 
     # Loop forever
-    logger.info('Starting alertengine loop.')
+    _logger.info('Starting alertengine loop.')
     while True:
         try:
             check_alerts(debug=args.test)
@@ -146,18 +144,18 @@ def main():
             nav.db.commit_all_connections()
 
         except DatabaseError as err:
-            logger.error('Database error, closing the DB connection just in '
-                         'case:\n%s', err)
-            logger.debug('', exc_info=True)
+            _logger.error('Database error, closing the DB connection just in '
+                          'case:\n%s', err)
+            _logger.debug('', exc_info=True)
             if connection.queries:
-                logger.debug(connection.queries[-1]['sql'])
+                _logger.debug(connection.queries[-1]['sql'])
             try:
                 connection.close()
             except InterfaceError:
                 connection.connection = None
 
         except Exception as err:
-            logger.critical('Unhandled error: %s', err, exc_info=True)
+            _logger.critical('Unhandled error: %s', err, exc_info=True)
             sys.exit(1)
 
         # Devel only
@@ -165,7 +163,7 @@ def main():
             break
         else:
             # Sleep a bit before the next run
-            logger.debug('Sleeping for %d seconds.', delay)
+            _logger.debug('Sleeping for %d seconds.', delay)
             time.sleep(delay)
 
     # Exit nicely
@@ -197,17 +195,17 @@ def signalhandler(signum, _):
     """Signal handler to close and reopen log file(s) on HUP and exit on TERM"""
 
     if signum == signal.SIGHUP:
-        logger.info('SIGHUP received; reopening log files.')
+        _logger.info('SIGHUP received; reopening log files.')
         nav.logs.reopen_log_files()
         nav.daemon.redirect_std_fds(stderr=open(logfile, "a"))
         nav.logs.reset_log_levels()
         nav.logs.set_log_config()
-        logger.info('Log files reopened.')
+        _logger.info('Log files reopened.')
     elif signum == signal.SIGTERM:
-        logger.warning('SIGTERM received: Shutting down')
+        _logger.warning('SIGTERM received: Shutting down')
         sys.exit(0)
     elif signum == signal.SIGINT:
-        logger.warning('SIGINT received: Shutting down')
+        _logger.warning('SIGINT received: Shutting down')
         sys.exit(0)
 
 
@@ -225,8 +223,8 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)
         mailhandler.setLevel(loglevel)
-        logger = logging.getLogger()
-        logger.addHandler(mailhandler)
+        _logger = logging.getLogger()
+        _logger.addHandler(mailhandler)
         return True
     except Exception as error:
         print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)"
@@ -245,10 +243,10 @@ def setdelay(sec):
     if sec.isdigit():
         sec = int(sec)
         delay = sec
-        logger.info("Setting delay to %d seconds.", sec)
+        _logger.info("Setting delay to %d seconds.", sec)
         return True
     else:
-        logger.warning("Given delay not a digit. Using default.")
+        _logger.warning("Given delay not a digit. Using default.")
         return False
 
 

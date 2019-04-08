@@ -21,7 +21,8 @@ import logging
 from nav.web import ldapauth
 from nav.models.profiles import Account
 
-_logger = logging.getLogger("nav.web.auth")
+
+_logger = logging.getLogger(__name__)
 
 
 def authenticate(username, password):
