@@ -32,9 +32,7 @@ import time
 import nav.config
 import nav.daemon
 import nav.logs
-import nav.buildconf
 import nav.smsd.navdbqueue
-from nav import buildconf
 from nav.smsd.dispatcher import DispatcherError, PermanentDispatcherError
 from nav.config import getconfig, NAV_CONFIG
 from nav.bootstrap import bootstrap_django
