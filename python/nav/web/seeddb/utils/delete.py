@@ -20,7 +20,7 @@
 import logging
 
 from django.db import connection, transaction, IntegrityError
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 

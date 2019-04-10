@@ -17,7 +17,7 @@
 
 from operator import attrgetter
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db import connection, transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render

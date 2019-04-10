@@ -16,7 +16,7 @@
 """Views for the netbox groups"""
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db.models import Q
 
 from nav.web.info.forms import SearchForm

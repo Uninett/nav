@@ -22,7 +22,7 @@ import copy
 import json
 import socket
 from socket import error as SocketError
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404

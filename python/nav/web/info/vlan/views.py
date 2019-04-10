@@ -20,7 +20,7 @@ from IPy import IP
 from operator import methodcaller, attrgetter
 from functools import partial
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse

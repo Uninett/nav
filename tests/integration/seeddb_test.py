@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.http import Http404
 from django.test.client import RequestFactory
 from mock import MagicMock

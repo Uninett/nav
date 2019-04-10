@@ -45,7 +45,11 @@ class Service(models.Model):
     TIME_FRAMES = ('day', 'week', 'month')
 
     id = models.AutoField(db_column='serviceid', primary_key=True)
-    netbox = models.ForeignKey(Netbox, db_column='netboxid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
     active = models.BooleanField(default=True)
     handler = VarcharField(verbose_name='service')
     version = VarcharField()
@@ -136,7 +140,11 @@ class ServiceProperty(models.Model):
     They are defined here."""
 
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
-    service = models.ForeignKey(Service, db_column='serviceid')
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE,
+        db_column='serviceid'
+    )
     property = models.CharField(max_length=64)
     value = VarcharField()
 

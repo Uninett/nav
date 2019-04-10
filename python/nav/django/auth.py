@@ -36,7 +36,7 @@ _logger = getLogger(__name__)
 ACCOUNT_ID_VAR = 'account_id'
 SUDOER_ID_VAR = 'sudoer'
 
-# This may seem like redundant information, but it seems urlresolvers.reverse
+# This may seem like redundant information, but it seems django's reverse
 # will hang under some usages of these middleware classes - so until we figure
 # out what's going on, we'll hardcode this here.
 LOGIN_URL = '/index/login/'

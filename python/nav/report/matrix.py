@@ -18,7 +18,7 @@ import math
 import IPy
 from collections import namedtuple
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 
 from nav.metrics.templates import metric_path_for_prefix
 from nav.metrics.graphs import get_simple_graph_url

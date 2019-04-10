@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 
 from nav.web.navlets.roomstatus import RoomStatus
 from nav.web.navlets.feedreader import FeedReaderNavlet

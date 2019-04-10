@@ -19,7 +19,7 @@
 from collections import defaultdict
 from functools import reduce
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db.models import Model
 from django.shortcuts import render
 from django.db.models.fields import FieldDoesNotExist

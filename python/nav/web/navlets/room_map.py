@@ -17,7 +17,7 @@
 
 from nav.web.navlets import Navlet
 from nav.web.info.room.views import SearchForm
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 
 
 class RoomMapNavlet(Navlet):

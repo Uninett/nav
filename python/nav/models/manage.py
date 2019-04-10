@@ -28,9 +28,9 @@ import re
 import IPy
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
+from nav.six import reverse
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav import util
@@ -87,15 +87,32 @@ class Netbox(models.Model):
 
     id = models.AutoField(db_column='netboxid', primary_key=True)
     ip = models.GenericIPAddressField(unique=True)
-    room = models.ForeignKey('Room', db_column='roomid')
-    type = models.ForeignKey('NetboxType', db_column='typeid',
-                             blank=True, null=True)
+    room = models.ForeignKey(
+        'Room',
+        on_delete=models.CASCADE,
+        db_column='roomid'
+    )
+    type = models.ForeignKey(
+        'NetboxType',
+        on_delete=models.CASCADE,
+        db_column='typeid',
+        blank=True,
+        null=True
+    )
     sysname = VarcharField(unique=True, blank=True)
-    category = models.ForeignKey('Category', db_column='catid')
+    category = models.ForeignKey(
+        'Category',
+        on_delete=models.CASCADE,
+        db_column='catid'
+    )
     groups = models.ManyToManyField(
         'NetboxGroup', through='NetboxCategory', blank=True)
     groups.help_text = ''
-    organization = models.ForeignKey('Organization', db_column='orgid')
+    organization = models.ForeignKey(
+        'Organization',
+        on_delete=models.CASCADE,
+        db_column='orgid'
+    )
     read_only = VarcharField(db_column='ro', blank=True, null=True)
     read_write = VarcharField(db_column='rw', blank=True, null=True)
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
@@ -104,11 +121,17 @@ class Netbox(models.Model):
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
     deleted_at = models.DateTimeField(blank=True, null=True, default=None)
-    master = models.ForeignKey('Netbox', db_column='masterid', null=True,
-                               blank=True, default=None,
-                               related_name='instances')
-
+    master = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='masterid',
+        null=True,
+        blank=True,
+        default=None,
+        related_name='instances'
+    )
     data = HStoreField(blank=True, null=True, default={})
+
     objects = models.Manager()
     ups_objects = UpsManager()
 
@@ -393,8 +416,12 @@ class NetboxInfo(models.Model):
     to store additional info on a netbox."""
 
     id = models.AutoField(db_column='netboxinfoid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid',
-                               related_name='info_set')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name='info_set'
+    )
     key = VarcharField()
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
@@ -450,21 +477,33 @@ class NetboxEntity(models.Model):
     )
 
     id = models.AutoField(db_column='netboxentityid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid',
-                               related_name='entity_set')
-
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name='entity_set'
+    )
     index = models.IntegerField()
     source = VarcharField(default='ENTITY-MIB')
     descr = VarcharField(null=True)
     vendor_type = VarcharField(null=True)
-    contained_in = models.ForeignKey('NetboxEntity', null=True)
+    contained_in = models.ForeignKey(
+        'NetboxEntity',
+        on_delete=models.CASCADE,
+        null=True
+    )
     physical_class = models.IntegerField(choices=CLASS_CHOICES, null=True)
     parent_relpos = models.IntegerField(null=True)
     name = VarcharField(null=True)
     hardware_revision = VarcharField(null=True)
     firmware_revision = VarcharField(null=True)
     software_revision = VarcharField(null=True)
-    device = models.ForeignKey('Device', null=True, db_column='deviceid')
+    device = models.ForeignKey(
+        'Device',
+        on_delete=models.CASCADE,
+        null=True,
+        db_column='deviceid'
+    )
     mfg_name = VarcharField(null=True)
     model_name = VarcharField(null=True)
     alias = VarcharField(null=True)
@@ -557,10 +596,18 @@ class NetboxPrefix(models.Model):
     This models the read-only netboxprefix view.
 
     """
-    netbox = models.OneToOneField('Netbox', db_column='netboxid',
-                                  primary_key=True)
-    prefix = models.ForeignKey('Prefix', db_column='prefixid',
-                               related_name='netbox_set')
+    netbox = models.OneToOneField(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        primary_key=True
+    )
+    prefix = models.ForeignKey(
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid',
+        related_name='netbox_set'
+    )
 
     class Meta(object):
         db_table = 'netboxprefix'
@@ -610,8 +657,16 @@ class Module(models.Model):
     )
 
     id = models.AutoField(db_column='moduleid', primary_key=True)
-    device = models.ForeignKey('Device', db_column='deviceid')
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    device = models.ForeignKey(
+        'Device',
+        on_delete=models.CASCADE,
+        db_column='deviceid'
+    )
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
     module_number = models.IntegerField(db_column='module')
     name = VarcharField()
     model = VarcharField()
@@ -716,7 +771,11 @@ class Memory(models.Model):
     (memory and nvram) of a netbox."""
 
     id = models.AutoField(db_column='memid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
     type = VarcharField(db_column='memtype')
     device = VarcharField()
     size = models.IntegerField()
@@ -739,7 +798,11 @@ class Room(models.Model):
     server room."""
 
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
-    location = models.ForeignKey('Location', db_column='locationid')
+    location = models.ForeignKey(
+        'Location',
+        on_delete=models.CASCADE,
+        db_column='locationid'
+    )
     description = VarcharField(db_column='descr', blank=True)
     position = PointField(null=True, blank=True, default=None)
     data = HStoreField(blank=True, default={})
@@ -801,8 +864,13 @@ class Location(models.Model, TreeMixin):
 
     id = models.CharField(db_column='locationid',
                           max_length=30, primary_key=True)
-    parent = models.ForeignKey('self', db_column='parent',
-                               blank=True, null=True)
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        db_column='parent',
+        blank=True,
+        null=True
+    )
     description = VarcharField(db_column='descr', blank=True)
     data = HStoreField(default={})
 
@@ -830,8 +898,12 @@ class Organization(models.Model, TreeMixin):
     of a given netbox and is the user of a given prefix."""
 
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
-    parent = models.ForeignKey('self', db_column='parent',
-                               blank=True, null=True)
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        db_column='parent',
+        blank=True,null=True
+    )
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)
     data = HStoreField(default={})
@@ -930,8 +1002,16 @@ class NetboxCategory(models.Model):
     # Django only supports specifying the name of the M2M-table, and not the
     # column names.
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    category = models.ForeignKey('NetboxGroup', db_column='category')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    category = models.ForeignKey(
+        'NetboxGroup',
+        on_delete=models.CASCADE,
+        db_column='category'
+    )
 
     class Meta(object):
         db_table = 'netboxcategory'
@@ -947,7 +1027,11 @@ class NetboxType(models.Model):
     sysobjectid being the unique identifier."""
 
     id = models.AutoField(db_column='typeid', primary_key=True)
-    vendor = models.ForeignKey('Vendor', db_column='vendorid')
+    vendor = models.ForeignKey(
+        'Vendor',
+        on_delete=models.CASCADE,
+        db_column='vendorid'
+    )
     name = VarcharField(db_column='typename', verbose_name="type name")
     sysobjectid = VarcharField(unique=True)
     description = VarcharField(db_column='descr')
@@ -1003,8 +1087,16 @@ class GwPortPrefix(models.Model):
     associated Prefix.
 
     """
-    interface = models.ForeignKey('Interface', db_column='interfaceid')
-    prefix = models.ForeignKey('Prefix', db_column='prefixid')
+    interface = models.ForeignKey(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid'
+    )
+    prefix = models.ForeignKey(
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid'
+    )
     gw_ip = CIDRField(db_column='gwip', primary_key=True)
     virtual = models.BooleanField(default=False)
 
@@ -1053,7 +1145,11 @@ class Prefix(models.Model):
 
     id = models.AutoField(db_column='prefixid', primary_key=True)
     net_address = CIDRField(db_column='netaddr', unique=True)
-    vlan = models.ForeignKey('Vlan', db_column='vlanid')
+    vlan = models.ForeignKey(
+        'Vlan',
+        on_delete=models.CASCADE,
+        db_column='vlanid'
+    )
     usages = models.ManyToManyField('Usage', through='PrefixUsage',
                                     through_fields=('prefix', 'usage'))
 
@@ -1107,16 +1203,31 @@ class Vlan(models.Model):
 
     id = models.AutoField(db_column='vlanid', primary_key=True)
     vlan = models.IntegerField(null=True, blank=True)
-    net_type = models.ForeignKey('NetType', db_column='nettype')
-    organization = models.ForeignKey('Organization', db_column='orgid',
-                                     null=True, blank=True)
-    usage = models.ForeignKey('Usage', db_column='usageid',
-                              null=True, blank=True)
+    net_type = models.ForeignKey(
+        'NetType',
+        on_delete=models.CASCADE,
+        db_column='nettype'
+    )
+    organization = models.ForeignKey(
+        'Organization',
+        on_delete=models.CASCADE,
+        db_column='orgid',
+        null=True, blank=True
+    )
+    usage = models.ForeignKey(
+        'Usage',
+        on_delete=models.CASCADE,
+        db_column='usageid',
+        null=True,blank=True
+    )
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
     description = VarcharField(null=True, blank=True)
-    netbox = models.ForeignKey('NetBox', db_column='netboxid',
-                               on_delete=models.SET_NULL,
-                               null=True, blank=True)
+    netbox = models.ForeignKey(
+        'NetBox',
+        on_delete=models.SET_NULL,
+        db_column='netboxid',
+        null=True,blank=True
+    )
 
     class Meta(object):
         db_table = 'vlan'
@@ -1187,8 +1298,16 @@ class NetType(models.Model):
 class PrefixUsage(models.Model):
     """Combines prefixes and usages for tagging of prefixes"""
     id = models.AutoField(db_column='prefix_usage_id', primary_key=True)
-    prefix = models.ForeignKey('Prefix', db_column='prefixid')
-    usage = models.ForeignKey('Usage', db_column='usageid')
+    prefix = models.ForeignKey(
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid'
+    )
+    usage = models.ForeignKey(
+        'Usage',
+        on_delete=models.CASCADE,
+        db_column='usageid'
+    )
 
     class Meta(object):
         db_table = 'prefix_usage'
@@ -1220,8 +1339,17 @@ class Arp(models.Model):
     start, time end)."""
 
     id = models.AutoField(db_column='arpid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
-    prefix = models.ForeignKey('Prefix', db_column='prefixid', null=True)
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid', null=True
+    )
+    prefix = models.ForeignKey(
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid',
+        null=True
+    )
     sysname = VarcharField()
     ip = models.GenericIPAddressField()
     # TODO: Create MACAddressField in Django
@@ -1257,8 +1385,16 @@ class SwPortVlan(models.Model):
     )
 
     id = models.AutoField(db_column='swportvlanid', primary_key=True)
-    interface = models.ForeignKey('Interface', db_column='interfaceid')
-    vlan = models.ForeignKey('Vlan', db_column='vlanid')
+    interface = models.ForeignKey(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid'
+    )
+    vlan = models.ForeignKey(
+        'Vlan',
+        on_delete=models.CASCADE,
+        db_column='vlanid'
+    )
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
                                  default=DIRECTION_UNDEFINED)
 
@@ -1276,8 +1412,12 @@ class SwPortAllowedVlan(models.Model):
     traverse a trunk port.
 
     """
-    interface = models.OneToOneField('Interface', db_column='interfaceid',
-                                     primary_key=True)
+    interface = models.OneToOneField(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        primary_key=True
+    )
     hex_string = VarcharField(db_column='hexstring')
     _cached_hex_string = ''
     _cached_vlan_set = None
@@ -1331,7 +1471,11 @@ class SwPortBlocked(models.Model):
     a given switch port."""
 
     id = models.AutoField(db_column='swportblockedid', primary_key=True)
-    interface = models.ForeignKey('Interface', db_column='interfaceid')
+    interface = models.ForeignKey(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid'
+    )
     vlan = models.IntegerField()
 
     class Meta(object):
@@ -1352,13 +1496,29 @@ class AdjacencyCandidate(models.Model):
 
     """
     id = models.AutoField(db_column='adjacency_candidateid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    interface = models.ForeignKey('Interface', db_column='interfaceid')
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid',
-                                  related_name='to_adjacencycandidate_set')
-    to_interface = models.ForeignKey('Interface', db_column='to_interfaceid',
-                                     null=True,
-                                     related_name='to_adjacencycandidate_set')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    interface = models.ForeignKey(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid'
+    )
+    to_netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='to_netboxid',
+        related_name='to_adjacencycandidate_set'
+    )
+    to_interface = models.ForeignKey(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='to_interfaceid',
+        null=True,
+        related_name='to_adjacencycandidate_set'
+    )
     source = VarcharField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
 
@@ -1382,7 +1542,11 @@ class NetboxVtpVlan(models.Model):
     information."""
 
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
 
     class Meta(object):
@@ -1399,7 +1563,12 @@ class Cam(models.Model):
     end)"""
 
     id = models.AutoField(db_column='camid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid', null=True)
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        null=True
+    )
     sysname = VarcharField()
     ifindex = models.IntegerField()
     module = models.CharField(max_length=4)
@@ -1462,8 +1631,16 @@ class Interface(models.Model):
     )
 
     id = models.AutoField(db_column='interfaceid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    module = models.ForeignKey('Module', db_column='moduleid', null=True)
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    module = models.ForeignKey(
+        'Module',
+        on_delete=models.CASCADE,
+        db_column='moduleid', null=True
+    )
     ifindex = models.IntegerField()
     ifname = VarcharField()
     ifdescr = VarcharField()
@@ -1483,11 +1660,20 @@ class Interface(models.Model):
     trunk = models.BooleanField(default=False)
     duplex = models.CharField(max_length=1, choices=DUPLEX_CHOICES, null=True)
 
-    to_netbox = models.ForeignKey('Netbox', db_column='to_netboxid', null=True,
-                                  related_name='connected_to_interface')
-    to_interface = models.ForeignKey('self', db_column='to_interfaceid',
-                                     null=True,
-                                     related_name='connected_to_interface')
+    to_netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='to_netboxid',
+        null=True,
+        related_name='connected_to_interface'
+    )
+    to_interface = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        db_column='to_interfaceid',
+        null=True,
+        related_name='connected_to_interface'
+    )
 
     gone_since = models.DateTimeField()
 
@@ -1708,10 +1894,18 @@ class Interface(models.Model):
 
 class InterfaceStack(models.Model):
     """Interface layered stacking relationships"""
-    higher = models.ForeignKey(Interface, db_column='higher',
-                               related_name='higher_layer')
-    lower = models.ForeignKey(Interface, db_column='lower',
-                              related_name='lower_layer')
+    higher = models.ForeignKey(
+        Interface,
+        on_delete=models.CASCADE,
+        db_column='higher',
+        related_name='higher_layer'
+    )
+    lower = models.ForeignKey(
+        Interface,
+        on_delete=models.CASCADE,
+        db_column='lower',
+        related_name='lower_layer'
+    )
 
     class Meta(object):
         db_table = u'interface_stack'
@@ -1719,10 +1913,18 @@ class InterfaceStack(models.Model):
 
 class InterfaceAggregate(models.Model):
     """Interface aggregation relationships"""
-    aggregator = models.ForeignKey(Interface, db_column='aggregator',
-                                   related_name='aggregators')
-    interface = models.ForeignKey(Interface, db_column='interface',
-                                  related_name='bundled')
+    aggregator = models.ForeignKey(
+        Interface,
+        on_delete=models.CASCADE,
+        db_column='aggregator',
+        related_name='aggregators'
+    )
+    interface = models.ForeignKey(
+        Interface,
+        on_delete=models.CASCADE,
+        db_column='interface',
+        related_name='bundled'
+    )
 
     class Meta(object):
         db_table = u'interface_aggregate'
@@ -1741,7 +1943,11 @@ class IanaIftype(models.Model):
 class RoutingProtocolAttribute(models.Model):
     """Routing protocol metric as configured on a routing interface"""
     id = models.IntegerField(primary_key=True)
-    interface = models.ForeignKey('Interface', db_column='interfaceid')
+    interface = models.ForeignKey(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid'
+    )
     name = VarcharField(db_column='protoname')
     metric = models.IntegerField()
 
@@ -1762,7 +1968,11 @@ class GatewayPeerSession(models.Model):
     )
 
     id = models.AutoField(primary_key=True, db_column='peersessionid')
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
     protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
     peer = models.GenericIPAddressField()
     state = VarcharField()
@@ -1929,8 +2139,17 @@ class Sensor(models.Model):
     )
 
     id = models.AutoField(db_column='sensorid', primary_key=True)
-    netbox = models.ForeignKey(Netbox, db_column='netboxid')
-    interface = models.ForeignKey(Interface, db_column='interfaceid', null=True)
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    interface = models.ForeignKey(
+        Interface,
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        null=True
+    )
     oid = VarcharField(db_column="oid")
     unit_of_measurement = VarcharField(db_column="unit_of_measurement",
                                        choices=UNIT_OF_MEASUREMENTS_CHOICES)
@@ -2016,8 +2235,16 @@ class PowerSupplyOrFan(models.Model):
     )
 
     id = models.AutoField(db_column='powersupplyid', primary_key=True)
-    netbox = models.ForeignKey(Netbox, db_column='netboxid')
-    device = models.ForeignKey(Device, db_column='deviceid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    device = models.ForeignKey(
+        Device,
+        on_delete=models.CASCADE,
+        db_column='deviceid'
+    )
     name = VarcharField(db_column='name')
     model = VarcharField(db_column='model', null=True)
     descr = VarcharField(db_column='descr', null=True)
@@ -2054,8 +2281,16 @@ class PowerSupplyOrFan(models.Model):
 @python_2_unicode_compatible
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)
-    netbox = models.ForeignKey(Netbox, db_column='netboxid')
-    interface = models.ForeignKey('Interface', db_column='interfaceid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    interface = models.ForeignKey(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid'
+    )
     remote_id = VarcharField()
     remote_name = VarcharField()
     source = VarcharField()
@@ -2076,8 +2311,12 @@ class UnrecognizedNeighbor(models.Model):
 @python_2_unicode_compatible
 class IpdevpollJobLog(models.Model):
     id = models.AutoField(primary_key=True)
-    netbox = models.ForeignKey(Netbox, db_column='netboxid', null=False,
-                               related_name='job_log')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid', null=False,
+        related_name='job_log'
+    )
     job_name = VarcharField(null=False, blank=False)
     end_time = models.DateTimeField(auto_now_add=True, null=False)
     duration = models.FloatField(null=True)
@@ -2167,9 +2406,17 @@ class Netbios(models.Model):
 class POEGroup(models.Model):
     """Model representing a group of power over ethernet ports"""
     id = models.AutoField(db_column='poegroupid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    module = models.ForeignKey('Module', db_column='moduleid',
-                               null=True)
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    module = models.ForeignKey(
+        'Module',
+        on_delete=models.CASCADE,
+        db_column='moduleid',
+        null=True
+    )
     index = models.IntegerField()
 
     STATUS_ON = 1
@@ -2209,10 +2456,22 @@ class POEGroup(models.Model):
 class POEPort(models.Model):
     """Model representing a PoE port"""
     id = models.AutoField(db_column='poeportid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    poegroup = models.ForeignKey('POEGroup', db_column='poegroupid')
-    interface = models.ForeignKey('Interface', db_column='interfaceid',
-                                  null=True)
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    poegroup = models.ForeignKey(
+        'POEGroup',
+        on_delete=models.CASCADE,
+        db_column='poegroupid'
+    )
+    interface = models.ForeignKey(
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        null=True
+    )
     admin_enable = models.BooleanField(default=False)
     index = models.IntegerField()
 

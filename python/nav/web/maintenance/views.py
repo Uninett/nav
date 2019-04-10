@@ -19,7 +19,7 @@ import logging
 import time
 from datetime import datetime, date
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db import transaction, connection
 from django.db.models import Count, Q
 from django.shortcuts import render, get_object_or_404, redirect

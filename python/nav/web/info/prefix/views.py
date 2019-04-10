@@ -16,7 +16,7 @@
 """Controllers and Forms for prefix details page"""
 
 from django import forms
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db.utils import DatabaseError
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404

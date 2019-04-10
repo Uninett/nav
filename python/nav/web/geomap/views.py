@@ -25,7 +25,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import Http404
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.shortcuts import render
 from django.utils.six import itervalues
 

@@ -44,7 +44,7 @@ class ThresholdRule(models.Model):
         help_text="Inspection interval when calculating values. "
                   "For interface counters this should be set to 15 minutes")
     description = VarcharField(null=True, blank=True)
-    creator = models.ForeignKey(Account, null=True)
+    creator = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
     created = models.DateTimeField(auto_now=True)
 
     class Meta(object):

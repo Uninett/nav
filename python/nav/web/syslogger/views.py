@@ -15,7 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """syslogger view definitions"""
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.db.models.aggregates import Count
 import json
 import datetime

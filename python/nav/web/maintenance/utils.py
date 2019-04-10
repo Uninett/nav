@@ -18,7 +18,7 @@ from calendar import HTMLCalendar
 from datetime import date, datetime, timedelta
 from time import strftime
 
-from django.core.urlresolvers import reverse
+from nav.six import reverse
 from django.utils.html import conditional_escape
 from django.utils.six.moves import range
 
