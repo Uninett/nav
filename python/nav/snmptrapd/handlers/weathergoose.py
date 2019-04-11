@@ -23,7 +23,6 @@ from collections import defaultdict
 import itertools
 
 import nav.event
-from nav.db import getConnection
 
 _logger = logging.getLogger(__name__)
 
@@ -222,17 +221,10 @@ HANDLER_CLASSES = (WeatherGoose1, WeatherGoose2, GeistWeatherGoose)
 def handleTrap(trap, config=None):
     """ This function is called from snmptrapd """
 
-    conn = getConnection('default')
-    cur = conn.cursor()
-    cur.execute("SELECT netboxid, sysname, roomid FROM netbox WHERE ip = %s",
-                (trap.agent,))
-
-    if cur.rowcount < 1:
-        _logger.error("Could not find trapagent %s in database.", trap.agent)
+    if not trap.netbox:
         return False
 
-    netboxid, sysname, roomid = cur.fetchone()
-
+    netboxid, sysname, roomid = trap.netbox
     oid = trap.snmpTrapOID
     for handler_class in HANDLER_CLASSES:
         if handler_class.can_handle(oid):

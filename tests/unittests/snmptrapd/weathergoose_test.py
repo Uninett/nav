@@ -5,8 +5,6 @@ import pytest
 from nav.snmptrapd.handlers import weathergoose as wg
 
 
-@patch('nav.snmptrapd.handlers.weathergoose.getConnection',
-       new=Mock())
 class TestWeatherGoose1Class(object):
     def test_should_not_handle_a_weathergoose2_trap(self):
         assert not (
@@ -32,8 +30,6 @@ class Event(dict):
         pass
 
 
-@patch('nav.snmptrapd.handlers.weathergoose.getConnection',
-       new=Mock())
 @patch('nav.event.Event', new=Mock(side_effect=Event))
 class TestWeatherGoose1Trap(object):
     trap = Mock(snmpTrapOID='.1.3.6.1.4.1.17373.0.10205')
@@ -72,8 +68,6 @@ class TestWeatherGoose1Trap(object):
         assert goose._get_sensorname() == 'cleese'
 
 
-@patch('nav.snmptrapd.handlers.weathergoose.getConnection',
-       new=Mock())
 class TestWeatherGoose2(object):
     def test_should_not_handle_a_weathergoose1_trap(self):
         assert not (
@@ -172,8 +166,6 @@ class TestWeatherGoose2(object):
         assert goose.goosename == 'SuperGoose II'
 
 
-@patch('nav.snmptrapd.handlers.weathergoose.getConnection',
-       new=Mock())
 class TestGeistWeatherGoose(object):
     def test_should_handle_a_geist_weathergoose_trap(self):
         assert wg.GeistWeatherGoose.can_handle(

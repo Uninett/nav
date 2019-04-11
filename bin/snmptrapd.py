@@ -33,6 +33,7 @@ from nav import daemon
 from nav.config import NAV_CONFIG, NAVConfigParser
 import nav.buildconf
 from nav.snmptrapd.plugin import load_handler_modules, ModuleLoadError
+from nav.snmptrapd.trap import SNMPTrap
 from nav.util import is_valid_ip, address_to_string
 from nav.db import getConnection
 from nav.bootstrap import bootstrap_django
@@ -200,7 +201,7 @@ def Address(address):
 def trap_handler(trap):
     """Handles a trap.
 
-    :type trap: nav.snmptrapd.trap.SNMPTrap
+    :type trap: SNMPTrap
 
     """
     _traplogger.debug("%s", trap)
@@ -208,27 +209,51 @@ def trap_handler(trap):
     handled_by = []
 
     for mod in handlermodules:
-        _logger.debug("Giving trap to %s" % str(mod))
+        _logger.debug("Offering trap (%s) to %s", id(trap), mod)
         try:
             accepted = mod.handleTrap(trap, config=config)
             if accepted:
                 handled_by.append(mod.__name__)
-            _logger.debug("Module %s %s trap", mod.__name__,
-                         accepted and 'accepted' or 'ignored',)
+            _logger.debug(
+                "Module %s %s trap (%s)",
+                mod.__name__,
+                'accepted' if accepted else 'ignored',
+                id(trap),
+            )
         except Exception as why:
-            _logger.exception("Error when handling trap with %s: %s"
-                             % (mod.__name__, why))
+            _logger.exception(
+                "Unhandled exception when handling trap (%s) with %s: %s",
+                id(trap),
+                mod.__name__,
+                why,
+            )
         # Assuming that the handler used the same connection as this
         # function, we rollback any uncommitted changes.  This is to
         # avoid idling in transactions.
         connection.rollback()
 
+    _log_trap_handle_result(handled_by, trap)
+
+
+def _log_trap_handle_result(handled_by, trap):
+    agent_string = (
+        trap.netbox.sysname + ' ({})'.format(trap.agent)
+        if trap.netbox else trap.agent
+    )
     if handled_by:
-        _logger.info("v%s trap received from %s, handled by %s", trap.version,
-                    trap.src, handled_by)
+        _logger.info(
+            "v%s trap received from %s, handled by %s",
+            trap.version,
+            agent_string,
+            handled_by,
+        )
     else:
-        _logger.info("v%s trap received from %s, no handlers wanted it",
-                    trap.version, trap.src)
+        _logger.info(
+            "v%s trap received from %s, no handlers wanted it: %s",
+            trap.version,
+            agent_string,
+            trap.snmpTrapOID,
+        )
 
 
 def verify_subsystem():
