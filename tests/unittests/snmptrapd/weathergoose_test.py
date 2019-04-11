@@ -4,17 +4,7 @@ from mock import patch, Mock
 from nav.snmptrapd.handlers import weathergoose as wg
 
 
-class WeatherGooseMockedDb(TestCase):
-    def setUp(self):
-        self.getConnection = patch('nav.snmptrapd.handlers.weathergoose'
-                                   '.getConnection')
-        self.getConnection.start()
-
-    def tearDown(self):
-        self.getConnection.stop()
-
-
-class WeatherGoose1ClassTest(WeatherGooseMockedDb):
+class WeatherGoose1ClassTest(TestCase):
     def test_should_not_handle_a_weathergoose2_trap(self):
         self.assertFalse(
             wg.WeatherGoose1.can_handle('.1.3.6.1.4.1.17373.3.32767.0.10205'))
@@ -33,7 +23,7 @@ class WeatherGoose1ClassTest(WeatherGooseMockedDb):
         self.assertRaises(Exception, wg.WeatherGoose1, trap, None, None, None)
 
 
-class WeatherGoose1TrapTest(WeatherGooseMockedDb):
+class WeatherGoose1TrapTest(TestCase):
     def setUp(self):
         super(WeatherGoose1TrapTest, self).setUp()
         trap = Mock(snmpTrapOID = '.1.3.6.1.4.1.17373.0.10205')
@@ -84,7 +74,7 @@ class WeatherGoose1TrapTest(WeatherGooseMockedDb):
         self.assertEquals(goose._get_sensorname(), 'cleese')
 
 
-class WeatherGoose2Test(WeatherGooseMockedDb):
+class WeatherGoose2Test(TestCase):
     def test_should_not_handle_a_weathergoose1_trap(self):
         self.assertFalse(
             wg.WeatherGoose2.can_handle('.1.3.6.1.4.1.17373.0.10205'))
@@ -184,7 +174,7 @@ class WeatherGoose2Test(WeatherGooseMockedDb):
         self.assertEqual(goose.goosename, 'SuperGoose II')
 
 
-class GeistWeatherGooseTest(WeatherGooseMockedDb):
+class GeistWeatherGooseTest(TestCase):
     def test_should_handle_a_geist_weathergoose_trap(self):
         self.assertTrue(wg.GeistWeatherGoose.can_handle(
             '.1.3.6.1.4.1.21239.2.32767.0.10205'))
