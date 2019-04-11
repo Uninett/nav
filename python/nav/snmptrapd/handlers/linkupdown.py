@@ -38,17 +38,16 @@ def handleTrap(trap, config=None):
                   trap.snmpTrapOID, trap.genericType)
 
     ifindex = get_ifindex_from_trap(trap, config)
-    netboxid = find_corresponding_netbox(trap.agent)
-    if not netboxid:
+    if not trap.netbox:
         _logger.error("Could not find agent %s in database", trap.agent)
         return False
     (interfaceid, deviceid, modulename, ifname,
-     ifalias) = get_interface_details(netboxid, ifindex)
+     ifalias) = get_interface_details(trap.netbox.netboxid, ifindex)
 
     # Check for traptype, post event on queue
     down = trap.genericType == 'LINKDOWN'
     success = post_link_event(down,
-                              netboxid, deviceid, interfaceid,
+                              trap.netbox.netboxid, deviceid, interfaceid,
                               modulename, ifname, ifalias)
     if success:
         _logger.info("Interface %s (%s) on %s is %s.",
@@ -63,22 +62,6 @@ def get_ifindex_from_trap(trap, config):
         if key.find(port_oid) >= 0:
             return value
     return ""
-
-
-def find_corresponding_netbox(ipaddr):
-    """Find a netboxid corresponding to the given ip address"""
-    cursor = getConnection('default').cursor()
-    try:
-        query = "SELECT netboxid FROM netbox WHERE ip = %s"
-        cursor.execute(query, (ipaddr,))
-        row = cursor.fetchone()
-        if row:
-            return row[0]
-
-    except Exception:
-        _logger.exception("Unexpected error when querying database")
-    finally:
-        _logger.debug("Query was: %s", cursor.query)
 
 
 def get_interface_details(netboxid, ifindex):
