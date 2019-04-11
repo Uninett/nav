@@ -69,8 +69,6 @@ def handleTrap(trap, config=None):
     accepted.
     """
 
-    db = getConnection('default')
-
     # Event variables
     source = "snmptrapd"
     target = "eventEngine"
@@ -94,24 +92,23 @@ def handleTrap(trap, config=None):
                 batterytime = format_batterytime(batterytime, format)
                 logger.debug("batterytime: %s", batterytime)
 
-            # Get netboxid from database
-            c = db.cursor()
-            c.execute("SELECT netboxid, sysname FROM netbox WHERE ip = %s",
-                      (trap.agent,))
-            if not c.rowcount > 0:
-                logger.error("Could not find netbox in database, no event \
-                will be posted")
+            if not trap.netbox:
+                logger.error(
+                    "Could not find netbox in database, no event will be posted",
+                )
                 return False
 
-            netboxid, sysname = c.fetchone()
-            state = 's'
-
             # Create event-object, fill it and post event.
-            e = Event(source=source, target=target, netboxid=netboxid,
-                      eventtypeid=eventtypeid, state=state)
+            e = Event(
+                source=source,
+                target=target,
+                netboxid=trap.netbox.netboxid,
+                eventtypeid=eventtypeid,
+                state='s',
+            )
             e['alerttype'] = "upsOnBatteryPower"
             e['batterytime'] = batterytime
-            e['sysname'] = sysname
+            e['sysname'] = trap.netbox.sysname
 
             # Post event
             try:
@@ -126,22 +123,21 @@ def handleTrap(trap, config=None):
         if trap.snmpTrapOID in OFFBATTERY[vendor]:
             logger.debug("Got ups on utility power trap (%s)", vendor)
 
-            # Get netboxid from database
-            c = db.cursor()
-            c.execute("SELECT netboxid, sysname FROM netbox WHERE ip = %s",
-                      (trap.agent,))
-            if not c.rowcount > 0:
-                logger.error("Could not find netbox in database, no event \
-                will be posted")
+            if not trap.netbox:
+                logger.error(
+                    "Could not find netbox in database, no event will be posted",
+                )
                 return False
 
-            netboxid, sysname = c.fetchone()
-            state = 'e'
-
             # Create event-object, fill it and post event.
-            e = Event(source=source, target=target, netboxid=netboxid,
-                      eventtypeid=eventtypeid, state=state)
-            e['sysname'] = sysname
+            e = Event(
+                source=source,
+                target=target,
+                netboxid=trap.netbox.netboxid,
+                eventtypeid=eventtypeid,
+                state='e',
+            )
+            e['sysname'] = trap.netbox.sysname
             e['alerttype'] = "upsOnUtilityPower"
 
             # Post event

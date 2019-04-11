@@ -15,6 +15,15 @@
 #
 """Trap related data structures."""
 import string
+import logging
+from collections import namedtuple
+
+from nav.db import getConnection
+
+_logger = logging.getLogger(__name__)
+
+
+AgentNetbox = namedtuple('Agent', 'netboxid sysname roomid')
 
 
 class SNMPTrap(object):
@@ -40,6 +49,29 @@ class SNMPTrap(object):
             if not val.strip(string.printable) == '':
                 val = ':'.join(["%02x" % ord(c) for c in val])
                 self.varbinds[key] = val
+
+    def _lookup_agent(self):
+        """Attempts to look up the corresponding netbox of this trap"""
+        conn = getConnection('snmptrapd')
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT netboxid, sysname, roomid FROM netbox WHERE ip = %s",
+            (self.agent,),
+        )
+
+        if cur.rowcount < 1:
+            _logger.warning(
+                "Unable to match trap agent %s to a NAV-monitored device",
+                self.agent)
+            return None
+
+        return AgentNetbox(*cur.fetchone())
+
+    @property
+    def netbox(self):
+        if not hasattr(self, '_netbox'):
+            setattr(self, '_netbox', self._lookup_agent())
+        return getattr(self, '_netbox')
 
     def __str__(self):
         text = "Got snmp version %s trap\n" % self.version
