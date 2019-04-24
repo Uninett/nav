@@ -221,7 +221,7 @@ define(function (require, exports, module) {
             }
 
             if (invert) {
-                colors.reverse();
+                config.colors.reverse();
             }
 
             var scale = d3.scale.linear()
