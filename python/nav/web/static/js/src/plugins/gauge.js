@@ -180,7 +180,7 @@ define(function (require, exports, module) {
                     return t.substr(0, 1) === '>';
                 })),
                 colors: ['#FF4136', '#FFDC00', '#2ECC40', '#FFDC00', '#FF4136']
-            }
+            };
         },
         getConfigOneThreshold: function(values) {
             var invert = values.thresholds[0].substr(0, 1) === '<';
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
                 min: invert ? this.trimThreshold(thresholds[0]) : values.min,
                 max: invert ? values.max : this.trimThreshold(thresholds[0]),
                 colors: invert ? values.colors.reverse() : values.colors
-            }
+            };
         },
         getConfigZeroThreshold: function(values) {
             return values;
@@ -200,14 +200,14 @@ define(function (require, exports, module) {
                 max: max,
                 colors: ['#2ECC40', '#FFDC00', '#FF4136'],
                 thresholds: thresholds
-            }
+            };
 
             // Colorscale greatly varies based on thresholds.
             var lookup = {
                 2: this.getConfigTwoThresholds.bind(this, defaults),
                 1: this.getConfigOneThreshold.bind(this, defaults),
                 0: this.getConfigZeroThreshold.bind(this, defaults)
-            }
+            };
 
             var config = _.extend(defaults, lookup[thresholds.length]());
             var domain = this.getDomain(config.min, config.max, config.colors.length);
