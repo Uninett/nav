@@ -163,7 +163,7 @@ define(function (require, exports, module) {
             return text;
         },
         getDomain: function(min, max, steps) {
-            step = (max - min) / (steps - 1);
+            var step = (max - min) / (steps - 1);
             return _.range(steps).map(function(m) {
                 return min + (step * m);
             });
