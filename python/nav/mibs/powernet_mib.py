@@ -16,6 +16,7 @@
 """A class for extracting information from APC devices"""
 from django.utils.six import iteritems
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from nav.mibs import reduce_index
 from nav.mibs.ups_mib import UpsMib
 from nav.models.manage import Sensor
@@ -39,7 +40,7 @@ U_TIMETICKS = dict(u_o_m=Sensor.UNIT_SECONDS, precision=2)
 
 class PowerNetMib(UpsMib):
     """ Custom class for retrieveing sensors from APC UPSes."""
-    from nav.smidumps.powernet_mib import MIB as mib
+    mib = get_mib('PowerNet-MIB')
 
     sensor_columns = {
         'atsInputVoltage': U_VOLT,

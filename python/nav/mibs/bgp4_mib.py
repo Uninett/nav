@@ -25,6 +25,7 @@ from twisted.internet.defer import returnValue
 
 from collections import namedtuple
 from nav.oidparsers import oid_to_ipv4
+from nav.smidumps import get_mib
 from . import mibretriever
 
 BgpPeerState = namedtuple('BgpPeerState',
@@ -33,7 +34,7 @@ BgpPeerState = namedtuple('BgpPeerState',
 
 class BGP4Mib(mibretriever.MibRetriever):
     """MibRetriever implementation for BGP4-MIB"""
-    from nav.smidumps.bgp4_mib import MIB as mib
+    mib = get_mib('BGP4-MIB')
     SUPPORTED_ROOT = 'bgp'
     PEERSTATE_COLUMN = 'bgpPeerState'
     ADMINSTATUS_COLUMN = 'bgpPeerAdminStatus'

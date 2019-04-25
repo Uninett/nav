@@ -15,6 +15,7 @@
 #
 """JUNIPER-MIB MibRetriever"""
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 
 OPERATING_DESCR = 'jnxOperatingDescr'
@@ -26,7 +27,7 @@ LOAD_AVG_15MIN = 'jnxOperating1MinLoadAvg'
 
 class JuniperMib(MibRetriever):
     """JUNIPER-MIB MibRetriever"""
-    from nav.smidumps.juniper_mib import MIB as mib
+    mib = get_mib('JUNIPER-MIB')
 
     @defer.inlineCallbacks
     def get_serial_number(self):

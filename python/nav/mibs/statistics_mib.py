@@ -19,6 +19,7 @@ from IPy import IP
 from django.utils.six import iteritems
 from twisted.internet import defer
 
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
 
 MulticastStat = namedtuple("MulticastStat", "group ifindex vlan access")
@@ -26,7 +27,7 @@ MulticastStat = namedtuple("MulticastStat", "group ifindex vlan access")
 
 class StatisticsMib(mibretriever.MibRetriever):
     """HP STATISTICS-MIB"""
-    from nav.smidumps.statistics_mib import MIB as mib
+    mib = get_mib('STATISTICS-MIB')
 
     @defer.inlineCallbacks
     def get_cpu_utilization(self):

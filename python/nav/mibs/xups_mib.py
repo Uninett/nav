@@ -15,13 +15,14 @@
 #
 """ A class for extracting sensors from EATON UPSes.
 """
+from nav.smidumps import get_mib
 from nav.mibs.ups_mib import UpsMib
 from nav.models.manage import Sensor
 
 
 class XupsMib(UpsMib):
     """ A custom class for retrieving sensors from EATON UPSes."""
-    from nav.smidumps.xups_mib import MIB as mib
+    mib = get_mib('XUPS-MIB')
 
     sensor_columns = {
         'xupsInputVoltage': {

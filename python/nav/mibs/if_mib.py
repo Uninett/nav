@@ -18,13 +18,14 @@
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 from nav.mibs.entity_mib import EntityTable
 
 
 class IfMib(mibretriever.MibRetriever):
-    from nav.smidumps.if_mib import MIB as mib
+    mib = get_mib('IF-MIB')
 
     def get_if_table_last_change(self):
         "Retrieves the sysUpTime value of the last time ifTable changed"

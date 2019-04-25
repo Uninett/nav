@@ -13,8 +13,9 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 
 class CiscoPowerEthernetExtMib(mibretriever.MibRetriever):
-    from nav.smidumps.cisco_power_ethernet_ext_mib import MIB as mib
+    mib = get_mib('CISCO-POWER-ETHERNET-EXT-MIB')

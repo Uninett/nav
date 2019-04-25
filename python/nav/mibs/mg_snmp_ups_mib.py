@@ -15,13 +15,14 @@
 #
 """ A class for extracting sensors from MGE UPSes.
 """
+from nav.smidumps import get_mib
 from nav.mibs.ups_mib import UpsMib
 from nav.models.manage import Sensor
 
 
 class MgSnmpUpsMib(UpsMib):
     """ A custom class for retrieving sensors from MGE UPSes."""
-    from nav.smidumps.mg_snmp_ups_mib import MIB as mib
+    mib = get_mib('MG-SNMP-UPS-MIB')
 
     sensor_columns = {
         'mginputVoltage': {

@@ -19,6 +19,7 @@
 
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
@@ -53,7 +54,7 @@ COLUMNS = {
 
 class JuniperDomMib(MibRetriever):
     """MibRetriever for Juniper DOM Sensors"""
-    from nav.smidumps.juniper_dom_mib import MIB as mib
+    mib = get_mib('JUNIPER-DOM-MIB')
 
     @defer.inlineCallbacks
     def get_all_sensors(self):

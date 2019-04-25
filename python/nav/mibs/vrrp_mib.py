@@ -18,12 +18,13 @@ from __future__ import absolute_import
 
 from IPy import IP
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from . import mibretriever
 
 
 class VRRPMib(mibretriever.MibRetriever):
     """A MibRetriever for handling VRRP-MIB"""
-    from nav.smidumps.vrrp_mib import MIB as mib
+    mib = get_mib('VRRP-MIB')
 
     @defer.inlineCallbacks
     def get_virtual_addresses(self):

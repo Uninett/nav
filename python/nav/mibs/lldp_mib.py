@@ -23,13 +23,14 @@ from django.utils import six
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs.if_mib import IfMib
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
 from nav.ipdevpoll.utils import binary_mac_to_hex
 
 
 class LLDPMib(mibretriever.MibRetriever):
     """A MibRetriever for handling LLDP-MIB"""
-    from nav.smidumps.lldp_mib import MIB as mib
+    mib = get_mib('LLDP-MIB')
 
     def get_remote_last_change(self):
         """Retrieves the sysUpTime value of the last time the lldpRemTable was

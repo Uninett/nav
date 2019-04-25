@@ -18,6 +18,7 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
@@ -35,7 +36,7 @@ class IbmPduMib(MibRetriever):
     """MibRetriever implementation for IBM-PDU-MIB, as used by IBM/Lenovo Power
     Distribution Units.
     """
-    from nav.smidumps.ibm_pdu_mib import MIB as mib
+    mib = get_mib('IBM-PDU-MIB')
 
     @inlineCallbacks
     def get_all_sensors(self):

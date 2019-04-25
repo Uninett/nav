@@ -19,11 +19,12 @@ import re
 from twisted.internet import defer
 
 import nav.bitvector
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
 
 
 class QBridgeMib(mibretriever.MibRetriever):
-    from nav.smidumps.qbridge_mib import MIB as mib
+    mib = get_mib('Q-BRIDGE-MIB')
     juniper_hack = False
 
     def get_baseport_pvid_map(self):

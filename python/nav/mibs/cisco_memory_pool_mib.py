@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 NAME = 'ciscoMemoryPoolName'
@@ -23,7 +24,7 @@ VALID = 'ciscoMemoryPoolValid'
 
 
 class CiscoMemoryPoolMib(mibretriever.MibRetriever):
-    from nav.smidumps.cisco_memory_pool_mib import MIB as mib
+    mib = get_mib('CISCO-MEMORY-POOL-MIB')
 
     @defer.inlineCallbacks
     def get_memory_usage(self):

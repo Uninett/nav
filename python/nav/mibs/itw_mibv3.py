@@ -24,6 +24,7 @@ from django.utils.six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 from nav.oids import OID
@@ -33,7 +34,7 @@ from .itw_mib import for_table
 
 class ItWatchDogsMibV3(mibretriever.MibRetriever):
     """A class that tries to retrieve all sensors from WeatherGoose II"""
-    from nav.smidumps.itw_mibv3 import MIB as mib
+    mib = get_mib('IT-WATCHDOGS-MIB-V3')
 
     oid_name_map = dict((OID(attrs['oid']), name)
                         for name, attrs in mib['nodes'].items())

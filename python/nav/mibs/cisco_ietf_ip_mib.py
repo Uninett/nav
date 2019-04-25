@@ -18,6 +18,7 @@ from __future__ import absolute_import
 from twisted.internet import defer
 
 from .ip_mib import IpMib
+from nav.smidumps import get_mib
 from nav.oids import OID
 
 
@@ -32,7 +33,7 @@ class CiscoIetfIpMib(IpMib):
     IP-MIB.
 
     """
-    from nav.smidumps.cisco_ietf_ip_mib import MIB as mib
+    mib = get_mib('CISCO-IETF-IP-MIB')
 
     @classmethod
     def address_index_to_ip(cls, index):

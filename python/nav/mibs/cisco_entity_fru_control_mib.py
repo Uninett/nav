@@ -24,6 +24,7 @@ CISCO-ENTITY-FRU-CONTROL-MIB to collect sensor-oids and read statuses.
 
 from twisted.internet import defer
 
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
 
 
@@ -32,7 +33,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
     A class that collects the oids for fan- and psu-sensors,- and their
     corresponding fan and psu-status.
     """
-    from nav.smidumps.cisco_entity_fru_control_mib import MIB as mib
+    mib = get_mib('CISCO-ENTITY-FRU-CONTROL-MIB')
 
     def __init__(self, agent_proxy):
         """Good old constructor..."""

@@ -18,12 +18,13 @@ from __future__ import absolute_import
 
 from IPy import IP
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from . import mibretriever
 
 
 class CiscoHSRPMib(mibretriever.MibRetriever):
     """A MibRetriever for handling CISCO-HSRP-MIB"""
-    from nav.smidumps.cisco_hsrp_mib import MIB as mib
+    mib = get_mib('CISCO-HSRP-MIB')
 
     @defer.inlineCallbacks
     def get_virtual_addresses(self):

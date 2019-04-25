@@ -1,11 +1,12 @@
 from twisted.internet import defer
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
 
 class CD6CMib(MibRetriever):
-    from nav.smidumps.cd6c_mib import MIB as mib
+    mib = get_mib('CD6C')
     sensors = {
         'uptime': 'cduStatusUpTime',  # Number of minutes since CDU power-up
         'temp': [

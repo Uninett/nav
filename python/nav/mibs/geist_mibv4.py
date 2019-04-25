@@ -28,6 +28,7 @@ external sensors, but these are not implemented because we did not have any
 external sensors available at the time of this implementation.
 """
 from nav.oids import OID
+from nav.smidumps import get_mib
 from .itw_mibv4 import ItWatchDogsMibV4
 
 
@@ -41,7 +42,7 @@ class GeistMibV4(ItWatchDogsMibV4):
     same.
 
     """
-    from nav.smidumps.geist_mibv4 import MIB as mib
+    mib = get_mib('GEIST-V4-MIB')
 
     oid_name_map = {OID(attrs['oid']): name
                     for name, attrs in mib['nodes'].items()}

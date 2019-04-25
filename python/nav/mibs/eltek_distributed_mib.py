@@ -15,6 +15,7 @@
 #
 """MibRetriever implementation for Eltek 48V rectifier devices"""
 from twisted.internet.defer import inlineCallbacks, returnValue
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 from nav.oids import OID
@@ -41,7 +42,7 @@ UNIT_TRANSLATION = {
 
 class EltekDistributedMib(MibRetriever):
     """MibRetriever for ELTEK-DISTRIBUTED-MIB"""
-    from nav.smidumps.eltek_distributed_mib import MIB as mib
+    mib = get_mib('ELTEK-DISTRIBUTED-MIB')
 
     @inlineCallbacks
     def get_all_sensors(self):

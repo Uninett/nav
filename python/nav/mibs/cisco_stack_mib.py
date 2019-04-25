@@ -13,11 +13,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 
 class CiscoStackMib(mibretriever.MibRetriever):
-    from nav.smidumps.cisco_stack_mib import MIB as mib
+    mib = get_mib('CISCO-STACK-MIB')
 
     def get_bandwidth_percent(self):
         return self.get_next('sysTraffic')

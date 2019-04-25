@@ -24,6 +24,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from nav.oids import OID
 from nav.oidparsers import IPV4_ID, IPV6_ID, oid_to_ipv6, oid_to_ipv4
 from nav.ipdevpoll.utils import binary_mac_to_hex
+from nav.smidumps import get_mib
 from . import mibretriever
 
 IP_IN_OCTETS = 'ipIfStatsHCInOctets'
@@ -32,7 +33,7 @@ IP_OUT_OCTETS = 'ipIfStatsHCOutOctets'
 
 class IpMib(mibretriever.MibRetriever):
     """MibRetriever implementation for IP-MIB"""
-    from nav.smidumps.ip_mib import MIB as mib
+    mib = get_mib('IP-MIB')
 
     @staticmethod
     def inetaddress_to_ip(oid):

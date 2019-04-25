@@ -14,11 +14,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 
 class PowerEthernetMib(mibretriever.MibRetriever):
-    from nav.smidumps.power_ethernet_mib import MIB as mib
+    mib = get_mib('POWER-ETHERNET-MIB')
 
     @defer.inlineCallbacks
     def get_groups_table(self):
