@@ -255,9 +255,6 @@ class MibRetrieverMaker(type):
             # This may be the MibRetriever base class or a MixIn of some sort
             return
 
-        # modify mib data to slightly optimize later OID manipulation
-        convert_oids(mib)
-
         MibRetrieverMaker.__make_node_objects(cls)
         cls.tables = dict((t.table.name, t)
                           for t in MibTableDescriptor.build_all(cls))
@@ -681,16 +678,3 @@ class MultiMibMixIn(MibRetriever):
 
         return alt_agent
 
-
-def convert_oids(mib):
-    """Convert a mib data structure's oid strings to OID objects.
-
-    mib is expected to be a data structure as dumped by the smidump utility
-    (using the -python option).
-
-    """
-    for node_name in mib['nodes']:
-        node = mib['nodes'][node_name]
-        if isinstance(node['oid'], six.string_types):
-            #oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
-            node['oid'] = OID(node['oid'])

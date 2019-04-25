@@ -8,6 +8,11 @@ from os.path import dirname, join, basename, isfile, splitext
 import glob
 import importlib
 
+from django.utils import six
+
+from nav.oids import OID
+
+
 _submodule_files = (
     glob.glob(join(dirname(__file__), "*.py")) +
     glob.glob(join(dirname(__file__), "*.pyc")) +
@@ -34,6 +39,7 @@ def get_mib_modules():
         for modname in _submodules:
             module = importlib.import_module('.' + modname, 'nav.smidumps')
             if hasattr(module, 'MIB') and 'moduleName' in module.MIB:
+                convert_oids(module.MIB)
                 _mib_map[module.MIB['moduleName']] = module
 
     return _mib_map
@@ -47,3 +53,16 @@ def get_mib(mib_module):
     modules = get_mib_modules()
     if mib_module in modules:
         return modules[mib_module].MIB
+
+
+def convert_oids(mib):
+    """Converts a mib data structure's oid strings to OID objects.
+
+    mib is expected to be a data structure as dumped by the smidump utility
+    (using the -f python option).
+
+    """
+    for node_name in mib['nodes']:
+        node = mib['nodes'][node_name]
+        if isinstance(node['oid'], six.string_types):
+            node['oid'] = OID(node['oid'])
