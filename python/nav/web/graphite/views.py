@@ -36,7 +36,7 @@ def index(request, uri):
         req = Request(url)
         data = None
     elif request.method == 'POST':
-        data = _inject_default_arguments(request.POST)
+        data = _inject_default_arguments(request.POST).encode('utf-8')
         url = urljoin(base, uri)
         req = Request(url, data)
     else:
