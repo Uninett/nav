@@ -26,6 +26,7 @@ from django.utils.six import iteritems
 from twisted.internet import defer
 
 from nav.oids import OID
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 _logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ _logger = logging.getLogger(__name__)
 
 class EntityMib(mibretriever.MibRetriever):
     """MibRetriever for the ENTITY-MIB"""
-    from nav.smidumps.entity_mib import MIB as mib
+    mib = get_mib('ENTITY-MIB')
 
     def retrieve_alternate_bridge_mibs(self):
         """Retrieves a list of alternate bridge mib instances.

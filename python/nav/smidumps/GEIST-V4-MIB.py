@@ -323,6 +323,114 @@ MIB = {
             "description" :
                 """Current reading for Dew-point in tenths of degrees. Units are given by temperatureUnits field in deviceInfo""",
         }, # column
+        "internalIO1" : {
+            "nodetype" : "column",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.2.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "100"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "100"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Current reading for Analog Input 1""",
+        }, # column
+        "internalIO2" : {
+            "nodetype" : "column",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.2.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "100"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "100"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Current reading for Analog Input 2""",
+        }, # column
+        "internalIO3" : {
+            "nodetype" : "column",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.2.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "100"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "100"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Current reading for Analog Input 3""",
+        }, # column
+        "internalIO4" : {
+            "nodetype" : "column",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.2.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "100"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "100"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Current reading for Analog Input 4""",
+        }, # column
+        "internalRelayState" : {
+            "nodetype" : "column",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.2.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Is the relay on?""",
+        }, # column
         "tempSensorTable" : {
             "nodetype" : "table",
             "moduleName" : "GEIST-V4-MIB",
@@ -1714,6 +1822,62 @@ MIB = {
             "description" :
                 """Internal Dew Point Sensor Trap""",
         }, # notification
+        "internalIO1NOTIFY" : {
+            "nodetype" : "notification",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.32767.0.10208",
+            "status" : "current",
+            "objects" : {
+                "internalIO1" : {
+                    "nodetype" : "object",
+                    "module" : "GEIST-V4-MIB"
+                },
+            },
+            "description" :
+                """Current reading for Analog Input 1 Trap""",
+        }, # notification
+        "internalIO2NOTIFY" : {
+            "nodetype" : "notification",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.32767.0.10209",
+            "status" : "current",
+            "objects" : {
+                "internalIO2" : {
+                    "nodetype" : "object",
+                    "module" : "GEIST-V4-MIB"
+                },
+            },
+            "description" :
+                """Current reading for Analog Input 2 Trap""",
+        }, # notification
+        "internalIO3NOTIFY" : {
+            "nodetype" : "notification",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.32767.0.10210",
+            "status" : "current",
+            "objects" : {
+                "internalIO3" : {
+                    "nodetype" : "object",
+                    "module" : "GEIST-V4-MIB"
+                },
+            },
+            "description" :
+                """Current reading for Analog Input 3 Trap""",
+        }, # notification
+        "internalIO4NOTIFY" : {
+            "nodetype" : "notification",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.32767.0.10211",
+            "status" : "current",
+            "objects" : {
+                "internalIO4" : {
+                    "nodetype" : "object",
+                    "module" : "GEIST-V4-MIB"
+                },
+            },
+            "description" :
+                """Current reading for Analog Input 4 Trap""",
+        }, # notification
         "tempSensorAvailNOTIFY" : {
             "nodetype" : "notification",
             "moduleName" : "GEIST-V4-MIB",
@@ -2315,6 +2479,62 @@ MIB = {
             },
             "description" :
                 """Internal Dew Point Sensor Clear Trap""",
+        }, # notification
+        "internalIO1CLEAR" : {
+            "nodetype" : "notification",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.32767.0.20208",
+            "status" : "current",
+            "objects" : {
+                "internalIO1" : {
+                    "nodetype" : "object",
+                    "module" : "GEIST-V4-MIB"
+                },
+            },
+            "description" :
+                """Current reading for Analog Input 1 Clear Trap""",
+        }, # notification
+        "internalIO2CLEAR" : {
+            "nodetype" : "notification",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.32767.0.20209",
+            "status" : "current",
+            "objects" : {
+                "internalIO2" : {
+                    "nodetype" : "object",
+                    "module" : "GEIST-V4-MIB"
+                },
+            },
+            "description" :
+                """Current reading for Analog Input 2 Clear Trap""",
+        }, # notification
+        "internalIO3CLEAR" : {
+            "nodetype" : "notification",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.32767.0.20210",
+            "status" : "current",
+            "objects" : {
+                "internalIO3" : {
+                    "nodetype" : "object",
+                    "module" : "GEIST-V4-MIB"
+                },
+            },
+            "description" :
+                """Current reading for Analog Input 3 Clear Trap""",
+        }, # notification
+        "internalIO4CLEAR" : {
+            "nodetype" : "notification",
+            "moduleName" : "GEIST-V4-MIB",
+            "oid" : "1.3.6.1.4.1.21239.5.1.32767.0.20211",
+            "status" : "current",
+            "objects" : {
+                "internalIO4" : {
+                    "nodetype" : "object",
+                    "module" : "GEIST-V4-MIB"
+                },
+            },
+            "description" :
+                """Current reading for Analog Input 4 Clear Trap""",
         }, # notification
         "tempSensorAvailCLEAR" : {
             "nodetype" : "notification",

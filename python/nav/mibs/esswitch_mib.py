@@ -18,11 +18,12 @@ Grand Junction Networks)
 
 """
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 
 class ESSwitchMib(mibretriever.MibRetriever):
-    from nav.smidumps.esswitch_mib import MIB as mib
+    mib = get_mib('STAND-ALONE-ETHERNET-SWITCH-MIB')
 
     BANDWIDTH_USAGE_CURRENT = 'bandwidthUsageCurrent'
     BANDWIDTH_USAGE_CURRENT_PEAK_ENTRY = 'bandwidthUsageCurrentPeakEntry'

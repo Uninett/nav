@@ -19,12 +19,13 @@ FAN-MIB is a mib that can be downloaded from HP's support pages.
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 
 class HpIcfFanMib(mibretriever.MibRetriever):
     """ A class for collecting fan states from HP netboxes."""
-    from nav.smidumps.hpicf_fan_mib import MIB as mib
+    mib = get_mib('FAN-MIB')
 
     def __init__(self, agent_proxy):
         """Just a constructor..."""

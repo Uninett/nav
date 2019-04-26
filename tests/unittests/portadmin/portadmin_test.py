@@ -4,6 +4,7 @@ import unittest
 
 from django.utils import six
 
+from nav.oids import OID
 from nav.web.portadmin.utils import *
 from nav.portadmin.snmputils import *
 
@@ -80,7 +81,9 @@ class PortadminResponseTest(unittest.TestCase):
         ifc = Mock(baseport=1)
         self.assertEqual(self.handler.get_vlan(ifc), 666,
                                 "getVlan-test failed")
-        self.snmpReadOnlyHandler.get.assert_called_with('1.3.6.1.2.1.17.7.1.4.5.1.1.1')
+        self.snmpReadOnlyHandler.get.assert_called_with(
+            OID('.1.3.6.1.2.1.17.7.1.4.5.1.1.1')
+        )
 
     def test_get_ifaliases_hp(self):
         self.handler = SNMPFactory.get_instance(self.netboxHP)

@@ -22,6 +22,7 @@ from collections import namedtuple
 from django.utils.six import iteritems
 from twisted.internet.defer import inlineCallbacks, returnValue
 
+from nav.smidumps import get_mib
 from . import mibretriever
 from nav.oidparsers import consume
 from nav.oidparsers import InetPrefix, ObjectIdentifier, TypedInetAddress
@@ -53,7 +54,7 @@ CidrRouteEntry = namedtuple('CidrRouteEntry', ('index', 'destination', 'policy',
 
 class IpForwardMib(mibretriever.MibRetriever):
     """A MibRetriever implementation for IP-FORWARD-MIB"""
-    from nav.smidumps.ip_forward_mib import MIB as mib
+    mib = get_mib('IP-FORWARD-MIB')
 
     @inlineCallbacks
     def get_routes(self, protocols=None):

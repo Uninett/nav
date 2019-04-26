@@ -21,6 +21,7 @@ on two different MIBs,- and we need to keep them apart.  Therfore it is not
 possible to use inheritance.  Call it cheating,- well it works perfectly...
 """
 
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 from nav.mibs.hpicf_fan_mib import HpIcfFanMib
@@ -30,7 +31,7 @@ from nav.mibs.hpicf_powersupply_mib import HpIcfPowerSupplyMib
 class HpEntityFruControlMib(mibretriever.MibRetriever):
     """Actually a wrapper class around two classes that retrieve status
     for powersupplies and fans in HP netboxes."""
-    from nav.smidumps.hpicf_powersupply_mib import MIB as mib
+    mib = get_mib('POWERSUPPLY-MIB')
 
     def __init__(self, agent_proxy):
         """A good old constructor."""

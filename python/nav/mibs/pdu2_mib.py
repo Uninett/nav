@@ -18,6 +18,7 @@
 
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
@@ -63,7 +64,7 @@ SENSOR_COLUMNS = [
 
 class PDU2Mib(MibRetriever):
     """MibRetriever for Raritan PDU2"""
-    from nav.smidumps.pdu2_mib import MIB as mib
+    mib = get_mib('PDU2-MIB')
 
     @defer.inlineCallbacks
     def get_all_sensors(self):

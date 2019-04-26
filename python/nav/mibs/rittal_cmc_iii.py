@@ -20,6 +20,7 @@ import math
 
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
@@ -66,7 +67,7 @@ IGNORED_STATUSES = {
 
 class RittalCMCIIIMib(MibRetriever):
     """MibRetriever for Rittal CMC III devices"""
-    from nav.smidumps.rittal_cmc_iii_mib import MIB as mib
+    mib = get_mib('RITTAL-CMC-III-MIB')
 
     def get_module_name(self):
         """Returns the MIB module name"""

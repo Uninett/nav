@@ -14,12 +14,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 
 
 class HPHTTPManageableMib(MibRetriever):
     """HP-httpManageable-MIB (SEMI-MIB) MibRetriever"""
-    from nav.smidumps.hp_httpmanageable_mib import MIB as mib
+    mib = get_mib('SEMI-MIB')
 
     @defer.inlineCallbacks
     def get_serial_number(self):

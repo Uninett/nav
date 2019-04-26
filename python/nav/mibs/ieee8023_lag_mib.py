@@ -16,12 +16,13 @@
 """"A MibRetriever to retrieve IEEE 802.3ad info from the IEEE8023-LAG-MIB"""
 from collections import defaultdict
 from twisted.internet.defer import inlineCallbacks, returnValue
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
 
 
 class IEEE8023LagMib(mibretriever.MibRetriever):
     """"A MibRetriever for handling IEEE8023-LAG-MIB"""
-    from nav.smidumps.ieee8023_lag_mib import MIB as mib
+    mib = get_mib('IEEE8023-LAG-MIB')
 
     @inlineCallbacks
     def retrieve_selected_aggregators(self):

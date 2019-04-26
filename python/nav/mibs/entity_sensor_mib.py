@@ -19,6 +19,7 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.mibs.entity_mib import EntityMib
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 
@@ -61,7 +62,7 @@ DATA_SCALE = {
 
 
 class EntitySensorMib(mibretriever.MibRetriever):
-    from nav.smidumps.entity_sensor_mib import MIB as mib
+    mib = get_mib('ENTITY-SENSOR-MIB')
     TYPE_COLUMN = 'entPhySensorType'
     SCALE_COLUMN = 'entPhySensorScale'
     PRECISION_COLUMN = 'entPhySensorPrecision'

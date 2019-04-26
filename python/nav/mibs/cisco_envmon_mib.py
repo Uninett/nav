@@ -19,6 +19,7 @@ import re
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 
@@ -33,7 +34,7 @@ POWER_SENSOR_TYPE = {
 
 
 class CiscoEnvMonMib(mibretriever.MibRetriever):
-    from nav.smidumps.cisco_envmon_mib import MIB as mib
+    mib = get_mib('CISCO-ENVMON-MIB')
 
     def _get_voltage_sensors(self):
         df = self.retrieve_columns([

@@ -14,11 +14,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 
 class OldCiscoCpuMib(mibretriever.MibRetriever):
-    from nav.smidumps.old_cisco_cpu_mib import MIB as mib
+    mib = get_mib('OLD-CISCO-CPU-MIB')
 
     @defer.inlineCallbacks
     def get_cpu_loadavg(self):

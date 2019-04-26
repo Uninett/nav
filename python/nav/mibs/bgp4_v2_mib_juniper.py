@@ -19,12 +19,13 @@
 from __future__ import absolute_import
 
 from nav.oidparsers import consume, TypedFixedInetAddress, Unsigned32
+from nav.smidumps import get_mib
 from .bgp4_mib import BGP4Mib
 
 
 class BGP4V2JuniperMib(BGP4Mib):
     """MibRetriever implementation for BGP4-V2-MIB-JUNIPER"""
-    from nav.smidumps.bgp4_v2_mib_juniper import MIB as mib
+    mib = get_mib('BGP4-V2-MIB-JUNIPER')
     SUPPORTED_ROOT = 'jnxBgpM2'
     PEERSTATE_COLUMN = 'jnxBgpM2PeerState'
     ADMINSTATUS_COLUMN = 'jnxBgpM2PeerStatus'

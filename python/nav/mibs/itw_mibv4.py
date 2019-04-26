@@ -30,6 +30,7 @@ from django.utils.six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 from nav.oids import OID
@@ -39,7 +40,7 @@ from .itw_mib import for_table
 
 class ItWatchDogsMibV4(mibretriever.MibRetriever):
     """A class that tries to retrieve all internal sensors from WeatherGoose II"""
-    from nav.smidumps.itw_mibv4 import MIB as mib
+    mib = get_mib('IT-WATCHDOGS-V4-MIB')
 
     def _get_oid_for_sensor(self, sensor_name):
         """Return the OID for the given sensor-name as a string; Return
