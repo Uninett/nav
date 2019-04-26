@@ -64,6 +64,96 @@ TABLES = {
             }
         }
     ],
+    'airFlowSensorTable': [
+        {
+            'avail': 'airFlowSensorAvail',
+            'serial': 'airFlowSensorSerial',
+            'name': 'airFlowSensorName',
+            'sensors': {
+                'airFlowSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'airFlowSensorFlow': dict(u_o_m=Sensor.UNIT_UNKNOWN),
+                'airFlowSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'airFlowDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        }
+    ],
+    'dewPointSensorTable': [
+        {
+            'avail': 'dewPointSensorAvail',
+            'serial': 'dewPointSensorSerial',
+            'name': 'dewPointSensorName',
+            'sensors': {
+                'dewPointSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'dewPointSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'dewPointDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        }
+    ],
+    't3hdSensorTable': [
+        {
+            'avail': 't3hdSensorAvail',
+            'serial': 't3hdSensorSerial',
+            'name': 't3hdSensorIntName',
+            'sensors': {
+                't3hdSensorIntSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                't3hdSensorIntSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                't3hdSensorIntDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        },
+        {
+            'avail': 't3hdSensorExtAAvail',
+            'serial': 't3hdSensorSerial',
+            'name': 't3hdSensorExtAName',
+            'sensors': {
+                't3hdSensorExtATemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        },
+        {
+            'avail': 't3hdSensorExtBAvail',
+            'serial': 't3hdSensorSerial',
+            'name': 't3hdSensorExtBName',
+            'sensors': {
+                't3hdSensorExtBTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        },
+        {
+            'avail': 't3hdSensorExtCAvail',
+            'serial': 't3hdSensorSerial',
+            'name': 't3hdSensorExtCName',
+            'sensors': {
+                't3hdSensorExtCTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        },
+    ],
+    'thdSensorTable': [
+        {
+            'avail': 'thdSensorAvail',
+            'serial': 'thdSensorSerial',
+            'name': 'thdSensorName',
+            'sensors': {
+                'thdSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'thdSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'thdDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        }
+    ],
+    'rpmSensorTable': [
+        {
+            'avail': 'rpmSensorAvail',
+            'serial': 'rpmSensorSerial',
+            'name': 'rpmSensorName',
+            'sensors': {
+                'rpmSensorEnergy': dict(u_o_m=Sensor.UNIT_WATTHOURS, scale=Sensor.SCALE_KILO),
+                'rpmSensorVoltage': dict(u_o_m=Sensor.UNIT_VOLTS_DC),
+                'rpmSensorCurrent': dict(precision=1, u_o_m=Sensor.UNIT_AMPERES),
+                'rpmSensorRealPower': dict(u_o_m=Sensor.UNIT_WATTS),
+                'rpmSensorApparentPower': dict(u_o_m=Sensor.UNIT_VOLTAMPERES),
+                'rpmSensorPowerFactor': dict(u_o_m=Sensor.UNIT_PERCENT),
+                'rpmSensorOutlet1': dict(u_o_m=Sensor.UNIT_TRUTHVALUE),
+                'rpmSensorOutlet2': dict(u_o_m=Sensor.UNIT_TRUTHVALUE),
+            }
+        }
+    ],
 }
 
 
