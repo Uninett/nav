@@ -41,6 +41,10 @@ INTERNAL_SENSORS = {
     'internalTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
     'internalHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
     'internalDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+    'internalIO1': dict(u_o_m=Sensor.UNIT_UNKNOWN),
+    'internalIO2': dict(u_o_m=Sensor.UNIT_UNKNOWN),
+    'internalIO3': dict(u_o_m=Sensor.UNIT_UNKNOWN),
+    'internalIO4': dict(u_o_m=Sensor.UNIT_UNKNOWN),
 }
 
 
