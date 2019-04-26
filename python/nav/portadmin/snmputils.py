@@ -146,7 +146,7 @@ class SNMPHandler(object):
 
     def _get_query(self, oid, if_index):
         """Concat given oid and interface-index."""
-        return oid + "." + self._get_legal_if_index(if_index)
+        return oid + ("." + self._get_legal_if_index(if_index))
 
     def _get_read_only_handle(self):
         """Get a read only SNMP-handle."""
