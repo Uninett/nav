@@ -37,6 +37,12 @@ from nav.oids import OID
 
 from .itw_mib import for_table
 
+INTERNAL_SENSORS = {
+    'internalTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+    'internalHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+    'internalDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+}
+
 
 class ItWatchDogsMibV4(mibretriever.MibRetriever):
     """A class that tries to retrieve all internal sensors from WeatherGoose II"""
@@ -81,21 +87,11 @@ class ItWatchDogsMibV4(mibretriever.MibRetriever):
                 climate_oid = temp_sensor.get(0, None)
                 serial = temp_sensor.get('internalSerial', None)
                 name = temp_sensor.get('internalName', None)
-                sensors.append(self._make_result_dict(
-                    climate_oid,
-                    self._get_oid_for_sensor('internalTemp'),
-                    serial, 'internalTemp', precision=1, u_o_m=Sensor.UNIT_CELSIUS,
-                    name=name))
-                sensors.append(self._make_result_dict(
-                    climate_oid,
-                    self._get_oid_for_sensor('internalHumidity'),
-                    serial, 'internalHumidity', u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
-                    name=name))
-                sensors.append(self._make_result_dict(
-                    climate_oid,
-                    self._get_oid_for_sensor('internalDewPoint'),
-                    serial, 'internalDewPoint', precision=1, u_o_m=Sensor.UNIT_CELSIUS,
-                    name=name))
+                for sensor, conf in INTERNAL_SENSORS.items():
+                    sensors.append(self._make_result_dict(
+                        climate_oid,
+                        self._get_oid_for_sensor(sensor),
+                        serial, sensor, name=name, **conf))
 
         return sensors
 
