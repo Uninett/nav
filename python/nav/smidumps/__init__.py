@@ -4,6 +4,8 @@ As dumped by smidump dump using the python format option.
 
 """
 from __future__ import absolute_import
+
+from itertools import chain
 from os.path import dirname, join, basename, isfile, splitext
 import glob
 import importlib
@@ -62,7 +64,9 @@ def convert_oids(mib):
     (using the -f python option).
 
     """
-    for node_name in mib['nodes']:
-        node = mib['nodes'][node_name]
+    for node in chain(
+        mib.get('nodes', {}).values(),
+        mib.get('notifications', {}).values()
+    ):
         if isinstance(node['oid'], six.string_types):
             node['oid'] = OID(node['oid'])
