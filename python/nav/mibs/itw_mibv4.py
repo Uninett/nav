@@ -99,11 +99,29 @@ class ItWatchDogsMibV4(mibretriever.MibRetriever):
 
         return sensors
 
+    @for_table('tempSensorTable')
+    def _get_temp_sensors_params(self, internal_sensors):
+        sensors = []
+
+        for temp_sensor in itervalues(internal_sensors):
+            temp_avail = temp_sensor.get('tempSensorAvail', None)
+            if temp_avail:
+                climate_oid = temp_sensor.get(0, None)
+                serial = temp_sensor.get('tempSensorSerial', None)
+                name = temp_sensor.get('tempSensorName', None)
+                sensors.append(self._make_result_dict(
+                    climate_oid,
+                    self._get_oid_for_sensor('tempSensorTemp'),
+                    serial, 'tempSensorTemp', name=name,
+                    u_o_m=Sensor.UNIT_CELSIUS, precision=1))
+
+        return sensors
+
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """ Try to retrieve all internal available sensors in this WxGoose"""
 
-        tables = ['internalTable']
+        tables = ['internalTable', 'tempSensorTable']
 
         result = []
         for table in tables:
