@@ -6,45 +6,13 @@ As dumped by smidump dump using the python format option.
 from __future__ import absolute_import
 
 from itertools import chain
-from os.path import dirname, join, basename, isfile, splitext
-import glob
 import importlib
 
 from django.utils import six
 
 from nav.oids import OID
 
-
-_submodule_files = (
-    glob.glob(join(dirname(__file__), "*.py")) +
-    glob.glob(join(dirname(__file__), "*.pyc")) +
-    glob.glob(join(dirname(__file__), "*.pyo"))
-)
-
-_submodules = list(set(
-    splitext(basename(f))[0]
-    for f in _submodule_files
-    if isfile(f) and not basename(f).startswith('__init__')
-))
-
-__all__ = _submodules + ['get_mib_modules', 'get_mib']
-
 _mib_map = {}
-
-
-def get_mib_modules():
-    """Returns a dict mapping MIB module names to the corresponding Python
-    module containing its smidumped version.
-
-    """
-    if not _mib_map:
-        for modname in _submodules:
-            module = importlib.import_module('.' + modname, 'nav.smidumps')
-            if hasattr(module, 'MIB') and 'moduleName' in module.MIB:
-                convert_oids(module.MIB)
-                _mib_map[module.MIB['moduleName']] = module
-
-    return _mib_map
 
 
 def get_mib(mib_module):
@@ -52,9 +20,18 @@ def get_mib(mib_module):
     in NAV.
 
     """
-    modules = get_mib_modules()
-    if mib_module in modules:
-        return modules[mib_module].MIB
+    if not mib_module:
+        return None
+
+    if mib_module not in _mib_map:
+        try:
+            module = importlib.import_module('.' + mib_module, 'nav.smidumps')
+            convert_oids(module.MIB)
+            _mib_map[mib_module] = module
+        except ImportError:
+            return None
+
+    return _mib_map[mib_module].MIB
 
 
 def convert_oids(mib):
