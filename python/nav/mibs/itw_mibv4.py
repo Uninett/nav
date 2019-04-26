@@ -59,7 +59,7 @@ class ItWatchDogsMibV4(mibretriever.MibRetriever):
         if not sensor_oid or not base_oid or not serial or not desc:
             return {}
         oid = OID(base_oid) + OID(sensor_oid)
-        internal_name = serial + desc
+        internal_name = serial.decode('utf-8') + desc
         return {'oid': oid,
                 'unit_of_measurement': u_o_m,
                 'precision': precision,
