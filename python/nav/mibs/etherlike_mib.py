@@ -17,12 +17,13 @@
 """Implements a EtherLike-MIB MibRetriever and associated functionality."""
 from __future__ import absolute_import
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from . import mibretriever
 
 
 class EtherLikeMib(mibretriever.MibRetriever):
     """MibRetriever for EtherLike-MIB"""
-    from nav.smidumps.etherlike_mib import MIB as mib
+    mib = get_mib('EtherLike-MIB')
 
     @defer.deferredGenerator
     def get_duplex(self):

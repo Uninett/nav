@@ -13,11 +13,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from nav.smidumps import get_mib
 from nav.mibs import esswitch_mib
 
 
 class CiscoC2900Mib(esswitch_mib.ESSwitchMib):
-    from nav.smidumps.cisco_c2900_mib import MIB as mib
+    mib = get_mib('CISCO-C2900-MIB')
 
     BANDWIDTH_USAGE_CURRENT = 'c2900BandwidthUsageCurrent'
     BANDWIDTH_USAGE_CURRENT_PEAK_ENTRY = 'c2900BandwidthUsageCurrentPeakEntry'

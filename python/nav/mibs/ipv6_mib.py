@@ -24,13 +24,14 @@ from __future__ import absolute_import
 from twisted.internet import defer
 
 from nav.ipdevpoll.utils import binary_mac_to_hex
+from nav.smidumps import get_mib
 from . import mibretriever
 from . import ip_mib
 
 
 class Ipv6Mib(mibretriever.MibRetriever):
     """A MibRetriever for the deprecated IPv6-MIB"""
-    from nav.smidumps.ipv6_mib import MIB as mib
+    mib = get_mib('IPV6-MIB')
 
     @staticmethod
     def ipv6address_to_ip(oid):

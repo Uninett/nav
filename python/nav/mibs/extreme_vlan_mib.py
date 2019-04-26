@@ -15,6 +15,7 @@
 #
 """Implements an EXTREME-VLAN-MIB MibRetriever"""
 from __future__ import absolute_import
+from nav.smidumps import get_mib
 from . import mibretriever
 from nav.mibs.qbridge_mib import portlist
 from nav.mibs import reduce_index
@@ -22,7 +23,7 @@ from nav.mibs import reduce_index
 
 class ExtremeVlanMib(mibretriever.MibRetriever):
     """Gets data from the EXTREME-VLAN-MIB"""
-    from nav.smidumps.extreme_vlan_mib import MIB as mib
+    mib = get_mib('EXTREME-VLAN-MIB')
 
     def get_vlan_ports(self):
         """Retrieves the VLAN port configurations.

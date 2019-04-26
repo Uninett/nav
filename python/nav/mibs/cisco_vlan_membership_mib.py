@@ -16,12 +16,13 @@
 """MibRetriever for CISCO-VLAN-MEMBERSHIP-MIB"""
 from __future__ import absolute_import
 from twisted.internet import defer
+from nav.smidumps import get_mib
 from . import mibretriever
 
 
 class CiscoVlanMembershipMib(mibretriever.MibRetriever):
     """MibRetriever for CISCO-VLAN-MEMBERSHIP-MIB"""
-    from nav.smidumps.cisco_vlan_membership_mib import MIB as mib
+    mib = get_mib('CISCO-VLAN-MEMBERSHIP-MIB')
 
     @defer.deferredGenerator
     def get_vlan_membership(self):

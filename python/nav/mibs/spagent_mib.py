@@ -27,6 +27,7 @@ like temperature, humidity, voltages and currents.
 from django.utils.six import iteritems
 from twisted.internet import defer
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
@@ -78,7 +79,7 @@ SENSOR_TABLES = {
 
 class SPAgentMib(MibRetriever):
     """SPAGENT-MIB MibRetriever"""
-    from nav.smidumps.spagent_mib import MIB as mib
+    mib = get_mib('SPAGENT-MIB')
 
     @defer.inlineCallbacks
     def get_all_sensors(self):

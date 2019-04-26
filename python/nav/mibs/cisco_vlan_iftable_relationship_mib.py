@@ -20,12 +20,13 @@ from collections import namedtuple
 
 from twisted.internet import defer
 
+from nav.smidumps import get_mib
 from . import mibretriever
 
 
 class CiscoVlanIftableRelationshipMib(mibretriever.MibRetriever):
     """A CISCO-VLAN-IFTABLE-RELATIONSHIP-MIB MibRetriever"""
-    from nav.smidumps.cisco_vlan_iftable_relationship_mib import MIB as mib
+    mib = get_mib('CISCO-VLAN-IFTABLE-RELATIONSHIP-MIB')
 
     @defer.inlineCallbacks
     def get_routed_vlan_ifindexes(self):

@@ -23,6 +23,7 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 
+from nav.smidumps import get_mib
 from . import mibretriever
 
 ADDRESS_TYPE_IP = 1
@@ -30,7 +31,7 @@ ADDRESS_TYPE_IP = 1
 
 class CiscoCDPMib(mibretriever.MibRetriever):
     "A MibRetriever for handling CISCO-CDP-MIB"
-    from nav.smidumps.cisco_cdp_mib import MIB as mib
+    mib = get_mib('CISCO-CDP-MIB')
 
     def get_neighbors_last_change(self):
         """Retrieves the sysUpTime value of the last time the cdp neighbors

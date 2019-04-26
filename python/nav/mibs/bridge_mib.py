@@ -17,13 +17,14 @@
 from __future__ import absolute_import
 from twisted.internet import defer
 
+from nav.smidumps import get_mib
 from . import mibretriever
 from nav.mibs import reduce_index
 
 
 class BridgeMib(mibretriever.MibRetriever):
     """MibRetriever implementation for BRIDGE-MIB"""
-    from nav.smidumps.bridge_mib import MIB as mib
+    mib = get_mib('BRIDGE-MIB')
 
     def get_baseport_ifindex_map(self):
         """Retrieves the mapping between baseport numbers and ifindexes.

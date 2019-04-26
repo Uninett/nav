@@ -18,13 +18,14 @@ from django.utils.six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 
 
 class UpsMib(mibretriever.MibRetriever):
     """ A class for retrieveing sensors from RFC1628-compatible UPSes."""
-    from nav.smidumps.ups_mib import MIB as mib
+    mib = get_mib('UPS-MIB')
 
     sensor_columns = {
         # battery group

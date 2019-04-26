@@ -42,6 +42,7 @@ from nav.ipdevpoll import ContextLogger
 from nav.ipdevpoll.utils import fire_eventually
 from nav.errors import GeneralException
 from nav.oids import OID
+from nav.smidumps import get_mib
 
 _logger = logging.getLogger(__name__)
 
@@ -88,12 +89,11 @@ class MIBObject(object):
         typ = self._mib['nodes'][self.name]['syntax']['type']
         if 'module' in typ and 'name' in typ:
             # the typedef is separate to the node
-            # FIXME: Support type defs from external mibs?
             # FIXME: Build typedef'ed enumerations only once for a mib
             typename = typ['name']
-            if typ['module'] == self.module and \
-                    typename in self._mib['typedefs']:
-                typ = self._mib['typedefs'][typename]
+            module = get_mib(typ['module'])
+            if module and typename in module['typedefs']:
+                typ = module['typedefs'][typename]
             elif typ['module'] == 'SNMPv2-TC' and typename == 'TruthValue':
                 # no True:1 translate because of wacky Python.
                 # True is resolved as 1 anyway.
@@ -254,9 +254,6 @@ class MibRetrieverMaker(type):
         if mib is None:
             # This may be the MibRetriever base class or a MixIn of some sort
             return
-
-        # modify mib data to slightly optimize later OID manipulation
-        convert_oids(mib)
 
         MibRetrieverMaker.__make_node_objects(cls)
         cls.tables = dict((t.table.name, t)
@@ -681,16 +678,3 @@ class MultiMibMixIn(MibRetriever):
 
         return alt_agent
 
-
-def convert_oids(mib):
-    """Convert a mib data structure's oid strings to OID objects.
-
-    mib is expected to be a data structure as dumped by the smidump utility
-    (using the -python option).
-
-    """
-    for node_name in mib['nodes']:
-        node = mib['nodes'][node_name]
-        if isinstance(node['oid'], six.string_types):
-            #oid_tuple = tuple(int(i) for i in node['oid'].split('.'))
-            node['oid'] = OID(node['oid'])

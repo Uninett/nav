@@ -18,13 +18,14 @@ from twisted.internet import defer
 from twisted.internet.defer import returnValue
 
 from nav.bitvector import BitVector
+from nav.smidumps import get_mib
 from . import mibretriever
 
 CHARS_IN_1024_BITS = 128
 
 
 class CiscoVTPMib(mibretriever.MibRetriever):
-    from nav.smidumps.cisco_vtp_mib import MIB as mib
+    mib = get_mib('CISCO-VTP-MIB')
 
     @defer.inlineCallbacks
     def get_trunk_native_vlans(self):

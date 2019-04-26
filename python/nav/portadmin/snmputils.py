@@ -25,6 +25,7 @@ from nav import Snmp
 from nav.errors import NoNetboxTypeError
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
+from nav.smidumps import get_mib
 from nav.bitvector import BitVector
 from nav.models.manage import Vlan, SwPortAllowedVlan
 from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
@@ -74,8 +75,7 @@ class FantasyVlan(object):
 class SNMPHandler(object):
     """A basic class for SNMP-read and -write to switches."""
 
-    from nav.smidumps.qbridge_mib import MIB as qbridgemib
-    QBRIDGENODES = qbridgemib['nodes']
+    QBRIDGENODES = get_mib('Q-BRIDGE-MIB')['nodes']
 
     SYSOBJECTID = '.1.3.6.1.2.1.1.2.0'
     SYSLOCATION = '1.3.6.1.2.1.1.6.0'
@@ -146,7 +146,7 @@ class SNMPHandler(object):
 
     def _get_query(self, oid, if_index):
         """Concat given oid and interface-index."""
-        return oid + "." + self._get_legal_if_index(if_index)
+        return oid + ("." + self._get_legal_if_index(if_index))
 
     def _get_read_only_handle(self):
         """Get a read only SNMP-handle."""
@@ -555,8 +555,7 @@ class SNMPHandler(object):
 class Cisco(SNMPHandler):
     """A specialized class for handling ports in CISCO switches."""
 
-    from nav.smidumps.cisco_vtp_mib import MIB as vtp_mib
-    VTPNODES = vtp_mib['nodes']
+    VTPNODES = get_mib('CISCO-VTP-MIB')['nodes']
 
     VTPVLANSTATE = VTPNODES['vtpVlanState']['oid']
     VTPVLANTYPE = VTPNODES['vtpVlanType']['oid']
@@ -825,18 +824,18 @@ class Dell(SNMPHandler):
     Uses DNOS-SWITCHING-MIB
     """
 
-    from nav.smidumps.dnos_switching_mib import MIB as mib
+    DNOSNODES = get_mib('DNOS-SWITCHING-MIB')['nodes']
 
     PORT_MODE_ACCESS = 1
     PORT_MODE_TRUNK = 2
     PORT_MODE_GENERAL = 3
 
-    PORT_MODE_OID = mib['nodes']['agentPortSwitchportMode']['oid']
-    NATIVE_VLAN_ID = mib['nodes']['agentPortNativeVlanID']['oid']
+    PORT_MODE_OID = DNOSNODES['agentPortSwitchportMode']['oid']
+    NATIVE_VLAN_ID = DNOSNODES['agentPortNativeVlanID']['oid']
     # Overriding members
-    VlAN_OID = mib['nodes']['agentPortAccessVlanID']['oid']
-    VLAN_EGRESS_PORTS = mib['nodes']['agentVlanSwitchportTrunkStaticEgressPorts']['oid']
-    WRITE_MEM_OID = mib['nodes']['agentSaveConfig']['oid'] + '.0'
+    VlAN_OID = DNOSNODES['agentPortAccessVlanID']['oid']
+    VLAN_EGRESS_PORTS = DNOSNODES['agentVlanSwitchportTrunkStaticEgressPorts']['oid']
+    WRITE_MEM_OID = DNOSNODES['agentSaveConfig']['oid'] + '.0'
 
     def __init__(self, netbox, **kwargs):
         super(Dell, self).__init__(netbox, **kwargs)

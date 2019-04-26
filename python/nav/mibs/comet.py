@@ -23,6 +23,7 @@ implementation for multiple MIBs must be implemented.
 
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
@@ -36,7 +37,7 @@ UNIT_MAP = {
 
 class Comet(MibRetriever):
     """MibRetriever for Comet Web Sensors"""
-    from nav.smidumps.p8652_mib import MIB as mib
+    mib = get_mib('P8652-MIB')
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
@@ -123,7 +124,7 @@ class Comet(MibRetriever):
 
 class CometMS(MibRetriever):
     """MibRetriever for Comet Web Sensors"""
-    from nav.smidumps.cometms_mib import MIB as mib
+    mib = get_mib('COMETMS-MIB')
 
     @defer.inlineCallbacks
     def get_all_sensors(self):

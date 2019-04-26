@@ -23,18 +23,19 @@ from collections import defaultdict
 import itertools
 
 import nav.event
+from nav.smidumps import get_mib
 
 logger = logging.getLogger('nav.snmptrapd.weathergoose')
 
 
 class WeatherGoose1(object):
-    from nav.smidumps.itw_mib import MIB
+    MIB = get_mib('IT-WATCHDOGS-MIB')
 
     # Define supported traps and relations
     TRAPS = MIB['notifications']
     NODES = MIB['nodes']
-    TRIPTYPE = "." + NODES['alarmTripType']['oid']
-    GOOSENAME = "." + NODES['climateName']['oid'] + '.1'
+    TRIPTYPE = str(NODES['alarmTripType']['oid'])
+    GOOSENAME = str(NODES['climateName']['oid'] + '.1')
     SUBID = None
 
     # Values in TRIGGERTRAPS and CLEARTRAPS are used as event types
@@ -65,7 +66,7 @@ class WeatherGoose1(object):
     def map_oid_to_trigger(cls, oid):
         for trigger in itertools.chain(cls.TRIGGERTRAPS.keys(),
                                        cls.CLEARTRAPS.keys()):
-            if oid == "." + cls.TRAPS[trigger]['oid']:
+            if oid == str(cls.TRAPS[trigger]['oid']):
                 return trigger
 
     def __init__(self, trap, netboxid, sysname, roomid):
@@ -100,7 +101,7 @@ class WeatherGoose1(object):
         """
         for c in self.CLIMATEOIDS:
             # table has only one row
-            possiblekey = "." + self.NODES[c]['oid'] + '.1'
+            possiblekey = str(self.NODES[c]['oid'] + '.1')
             if possiblekey in self.trap.varbinds:
                 return (self.trap.varbinds[possiblekey],
                         self.NODES[c]['description'])
@@ -155,21 +156,21 @@ class WeatherGoose1(object):
 
     def _get_sensorname(self):
         for sensor_name in self.SENSORNAMES:
-            oid = "." + self.NODES[sensor_name]['oid'] + '.1'
+            oid = str(self.NODES[sensor_name]['oid'] + '.1')
             value = self.trap.varbinds.get(oid)
             if value:
                 return value
 
 
 class WeatherGoose2(WeatherGoose1):
-    from nav.smidumps.itw_mibv3 import MIB
+    MIB = get_mib('IT-WATCHDOGS-MIB-V3')
 
     # Define supported traps and relations
     TRAPS = MIB['notifications']
     NODES = MIB['nodes']
-    TRIPTYPE = "." + NODES['alarmTripType']['oid'] + '.0'
-    GOOSENAME = "." + NODES['productFriendlyName']['oid'] + '.0'
-    SUBID = "." + NODES['alarmInstance']['oid'] + '.0'
+    TRIPTYPE = str(NODES['alarmTripType']['oid'] + '.0')
+    GOOSENAME = str(NODES['productFriendlyName']['oid'] + '.0')
+    SUBID = str(NODES['alarmInstance']['oid'] + '.0')
     SENSORNAMES = ['tempSensorName', 'climateName']
 
     # Values in TRIGGERTRAPS and CLEARTRAPS are used as event types
@@ -192,14 +193,14 @@ _geistpattern = re.compile("^cm")
 
 class GeistWeatherGoose(WeatherGoose2):
     """The rebranded MIB after IT Watchdogs merged with Geist"""
-    from nav.smidumps.geist_mibv3 import MIB
+    MIB = get_mib('GEIST-MIB-V3')
 
     # Define supported traps and relations
     TRAPS = MIB['notifications']
     NODES = MIB['nodes']
-    TRIPTYPE = "." + NODES['alarmTripType']['oid'] + '.0'
-    GOOSENAME = "." + NODES['productFriendlyName']['oid'] + '.0'
-    SUBID = "." + NODES['alarmInstance']['oid'] + '.0'
+    TRIPTYPE = str(NODES['alarmTripType']['oid'] + '.0')
+    GOOSENAME = str(NODES['productFriendlyName']['oid'] + '.0')
+    SUBID = str(NODES['alarmInstance']['oid'] + '.0')
     SENSORNAMES = ['tempSensorName', 'climateName']
 
     # Values in TRIGGERTRAPS and CLEARTRAPS are used as event types

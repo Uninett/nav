@@ -20,12 +20,13 @@ All values from AIRESPACE-WIRELESS-MIB
 
 """
 
-from nav.smidumps.airespace_wireless_mib import MIB
+from nav.smidumps import get_mib
 from nav.event import Event
 import logging
 
 logger = logging.getLogger('nav.snmptrapd.airespace')
 
+MIB = get_mib('AIRESPACE-WIRELESS-MIB')
 NODES = MIB['nodes']
 TRAPS = MIB['notifications']
 
@@ -36,8 +37,8 @@ def handleTrap(trap, config=None):
     # Two interesting traps:
     # bsnAPAssociated and bsnAPDisassociated
 
-    if trap.snmpTrapOID not in ["." + TRAPS['bsnAPAssociated']['oid'],
-                                "." + TRAPS['bsnAPDisassociated']['oid']]:
+    if trap.snmpTrapOID not in [str(TRAPS['bsnAPAssociated']['oid']),
+                                str(TRAPS['bsnAPDisassociated']['oid'])]:
         return False
 
     logger.debug("Got trap %s", trap.snmpTrapOID)
@@ -55,17 +56,17 @@ def handleTrap(trap, config=None):
     # Name of AP: bsnAPName
     # MAC: bsnAPMacAddrTrapVariable
     for key, val in trap.varbinds.items():
-        if key.find(NODES['bsnAPName']['oid']) >= 0:
+        if key.find(str(NODES['bsnAPName']['oid'])) >= 0:
             apname = val
             logger.debug("Set apname to %s", apname)
-        elif key.find(NODES['bsnAPMacAddrTrapVariable']['oid']) >= 0:
+        elif key.find(str(NODES['bsnAPMacAddrTrapVariable']['oid'])) >= 0:
             mac = val
             subid = mac
 
-    if trap.snmpTrapOID == "." + TRAPS['bsnAPAssociated']['oid']:
+    if trap.snmpTrapOID == str(TRAPS['bsnAPAssociated']['oid']):
         state = 'e'
         alerttype = 'apUp'
-    elif trap.snmpTrapOID == "." + TRAPS['bsnAPDisassociated']['oid']:
+    elif trap.snmpTrapOID == str(TRAPS['bsnAPDisassociated']['oid']):
         state = 's'
         alerttype = 'apDown'
 

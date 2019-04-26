@@ -19,12 +19,13 @@
 from __future__ import absolute_import
 
 from nav.oidparsers import consume, TypedInetAddress
+from nav.smidumps import get_mib
 from .bgp4_mib import BGP4Mib
 
 
 class CiscoBGP4Mib(BGP4Mib):
     """MibRetriever implementation for CISCO-BGP4-MIB"""
-    from nav.smidumps.cisco_bgp4_mib import MIB as mib
+    mib = get_mib('CISCO-BGP4-MIB')
     SUPPORTED_ROOT = 'cbgpPeer2Table'
     PEERSTATE_COLUMN = 'cbgpPeer2State'
     ADMINSTATUS_COLUMN = 'cbgpPeer2AdminStatus'

@@ -20,12 +20,13 @@ import time
 from twisted.internet import defer
 
 from nav.oids import OID
+from nav.smidumps import get_mib
 from . import mibretriever
 
 
 class Snmpv2Mib(mibretriever.MibRetriever):
     """A MibRetriever for SNMPv2-MIB"""
-    from nav.smidumps.snmpv2_mib import MIB as mib
+    mib = get_mib('SNMPv2-MIB')
 
     @defer.inlineCallbacks
     def _get_sysvariable(self, var):

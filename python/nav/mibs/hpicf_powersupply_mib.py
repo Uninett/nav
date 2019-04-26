@@ -22,6 +22,7 @@ POWERSUPPLY-MIB is a mib that can be downloaded from HP's support pages.
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
+from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
 from nav.models.manage import PowerSupplyOrFan as PSU
@@ -29,7 +30,7 @@ from nav.models.manage import PowerSupplyOrFan as PSU
 
 class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
     """ A class for collecting powersupply states from HP netboxes."""
-    from nav.smidumps.hpicf_powersupply_mib import MIB as mib
+    mib = get_mib('POWERSUPPLY-MIB')
 
     def __init__(self, agent_proxy):
         """ Constructor, anything more to say...?"""

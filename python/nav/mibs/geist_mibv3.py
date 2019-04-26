@@ -23,6 +23,7 @@ to detect and collect sensor-information.
 
 """
 from nav.oids import OID
+from nav.smidumps import get_mib
 from .itw_mibv3 import ItWatchDogsMibV3
 
 
@@ -38,7 +39,7 @@ class GeistMibV3(ItWatchDogsMibV3):
     objects for anything, so we don't need to care about this name change here.
 
     """
-    from nav.smidumps.geist_mibv3 import MIB as mib
+    mib = get_mib('GEIST-MIB-V3')
 
     oid_name_map = {OID(attrs['oid']): name
                     for name, attrs in mib['nodes'].items()}
