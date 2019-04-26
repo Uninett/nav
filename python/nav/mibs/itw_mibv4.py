@@ -35,8 +35,6 @@ from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 from nav.oids import OID
 
-from .itw_mib import for_table
-
 TABLES = {
     'internalTable': [
         {
