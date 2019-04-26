@@ -156,7 +156,7 @@ TABLES = {
 
 
 class ItWatchDogsMibV4(mibretriever.MibRetriever):
-    """A class that tries to retrieve all internal sensors from WeatherGoose II"""
+    """A class that tries to retrieve all sensors from Watchdog 100"""
     mib = get_mib('IT-WATCHDOGS-V4-MIB')
 
     def _get_oid_for_sensor(self, sensor_name):
