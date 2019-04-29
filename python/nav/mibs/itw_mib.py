@@ -375,10 +375,10 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     serial, 'analogSensorAnalog', name=name))
         return sensors
 
-    @for_table("powerMonitorTable")
-    def _get_power_monitor_params(self, power_monitors_sensors):
+    @for_table('powerMonitorTable')
+    def _get_power_monitor_params(self, power_monitor_sensors):
         sensors = []
-        for pow_mon_sensor in itervalues(power_monitors_sensors):
+        for pow_mon_sensor in itervalues(power_monitor_sensors):
             pow_mon_avail = pow_mon_sensor.get('powMonAvail', None)
             if pow_mon_avail:
                 pow_mon_oid = pow_mon_sensor.get(0, None)
@@ -436,10 +436,10 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     serial, 'powMonOutlet2', name=name))
         return sensors
 
-    @for_table("powerOnlyTable")
-    def _get_power_only_params(self, power_only_sensors):
+    @for_table('powerOnlyTable')
+    def _get_power_only_params(self, power_sensors):
         sensors = []
-        for power_sensor in itervalues(power_only_sensors):
+        for power_sensor in itervalues(power_sensors):
             power_sensor_avail = power_sensor.get('powerAvail', None)
             if power_sensor_avail:
                 power_sensor_oid = power_sensor.get(0, None)
@@ -451,8 +451,9 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     'powerVolts', u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
                 sensors.append(self._make_result_dict(
                     power_sensor_oid,
-                    self._get_oid_for_sensor('powerAmps'), serial,
-                    'powerAmps', u_o_m=Sensor.UNIT_AMPERES, name=name))
+                    self._get_oid_for_sensor('powerAmps'),
+                    serial, 'powerAmps', u_o_m=Sensor.UNIT_AMPERES,
+                    name=name))
                 sensors.append(self._make_result_dict(
                     power_sensor_oid,
                     self._get_oid_for_sensor('powerRealPow'),
@@ -467,7 +468,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     serial, 'powerPwrFactor', name=name))
         return sensors
 
-    @for_table("power3ChTable")
+    @for_table('power3ChTable')
     def _get_power3_ch_params(self, power3_ch_sensors):
         sensors = []
         for pow3_ch_sensor in itervalues(power3_ch_sensors):
@@ -605,7 +606,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     serial, 'pow3ChPwrFactC', name=name))
         return sensors
 
-    @for_table("outletTable")
+    @for_table('outletTable')
     def _get_outlet_params(self, outlet_sensors):
         sensors = []
         for outlet_sensor in itervalues(outlet_sensors):
@@ -624,7 +625,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     serial, 'outlet2Status', name=name))
         return sensors
 
-    @for_table("vsfcTable")
+    @for_table('vsfcTable')
     def _get_vsfc_params(self, vsfc_sensors):
         sensors = []
         for vsfc_sensor in itervalues(vsfc_sensors):
@@ -670,7 +671,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     name=name))
         return sensors
 
-    @for_table("ctrl3ChTable")
+    @for_table('ctrl3ChTable')
     def _get_ctrl3_ch_params(self, ctrl3_ch_sensors):
         sensors = []
         for ctrl3_ch_sensor in itervalues(ctrl3_ch_sensors):
@@ -778,133 +779,134 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     serial, 'ctrl3ChPwrFactC', name=name))
         return sensors
 
-    @for_table("ctrlGrpAmpsTable")
+    @for_table('ctrlGrpAmpsTable')
     def _get_ctrl_grp_amps_params(self, ctrl_grp_amps_sensors):
         sensors = []
-        for c_grp_amps_sensor in itervalues(ctrl_grp_amps_sensors):
-            c_grp_amp_avail = c_grp_amps_sensor.get('ctrlGrpAmpsAvail', None)
-            if c_grp_amp_avail:
-                c_grp_amp_oid = c_grp_amps_sensor.get(0, None)
-                serial = c_grp_amps_sensor.get('ctrlGrpAmpsSerial', None)
-                name = c_grp_amps_sensor.get('ctrlGrpAmpsName', None)
+        for ctrl_grp_amps_sensor in itervalues(ctrl_grp_amps_sensors):
+            ctrl_grp_amp_avail = ctrl_grp_amps_sensor.get('ctrlGrpAmpsAvail',
+                                                          None)
+            if ctrl_grp_amp_avail:
+                ctrl_grp_amp_oid = ctrl_grp_amps_sensor.get(0, None)
+                serial = ctrl_grp_amps_sensor.get('ctrlGrpAmpsSerial', None)
+                name = ctrl_grp_amps_sensor.get('ctrlGrpAmpsName', None)
                 sensors.append(self._make_result_dict(
-                    c_grp_amp_oid,
+                    ctrl_grp_amp_oid,
                     self._get_oid_for_sensor('ctrlGrpAmpsA'),
                     serial, 'ctrlGrpAmpsA', u_o_m=Sensor.UNIT_AMPERES,
                     name=name))
                 sensors.append(self._make_result_dict(
-                    c_grp_amp_oid,
+                    ctrl_grp_amp_oid,
                     self._get_oid_for_sensor('ctrlGrpAmpsB'),
                     serial, 'ctrlGrpAmpsB', u_o_m=Sensor.UNIT_AMPERES,
                     name=name))
                 sensors.append(self._make_result_dict(
-                    c_grp_amp_oid,
+                    ctrl_grp_amp_oid,
                     self._get_oid_for_sensor('ctrlGrpAmpsC'),
                     serial, 'ctrlGrpAmpsC', u_o_m=Sensor.UNIT_AMPERES,
                     name=name))
                 sensors.append(self._make_result_dict(
-                    c_grp_amp_oid,
+                    ctrl_grp_amp_oid,
                     self._get_oid_for_sensor('ctrlGrpAmpsD'),
                     serial, 'ctrlGrpAmpsD', u_o_m=Sensor.UNIT_AMPERES,
                     name=name))
                 sensors.append(self._make_result_dict(
-                    c_grp_amp_oid,
+                    ctrl_grp_amp_oid,
                     self._get_oid_for_sensor('ctrlGrpAmpsE'),
                     serial, 'ctrlGrpAmpsE', u_o_m=Sensor.UNIT_AMPERES,
                     name=name))
                 sensors.append(self._make_result_dict(
-                    c_grp_amp_oid,
+                    ctrl_grp_amp_oid,
                     self._get_oid_for_sensor('ctrlGrpAmpsF'),
                     serial, 'ctrlGrpAmpsF', u_o_m=Sensor.UNIT_AMPERES,
                     name=name))
         return sensors
 
-    @for_table("ctrlOutletTable")
+    @for_table('ctrlOutletTable')
     def _get_ctrl_outlet_params(self, ctrl_outlet_sensors):
         sensors = []
-        for c_outlet_sensor in itervalues(ctrl_outlet_sensors):
-            c_outlet_oid = c_outlet_sensor.get(0, None)
-            serial = c_outlet_sensor.get('ctrlOutletGroup', None)
-            name = c_outlet_sensor.get('ctrlOutletName', None)
+        for ctrl_outlet_sensor in itervalues(ctrl_outlet_sensors):
+            ctrl_outlet_oid = ctrl_outlet_sensor.get(0, None)
+            serial = ctrl_outlet_sensor.get('ctrlOutletGroup', None)
+            name = ctrl_outlet_sensor.get('ctrlOutletName', None)
             sensors.append(self._make_result_dict(
-                c_outlet_oid,
+                ctrl_outlet_oid,
                 self._get_oid_for_sensor('ctrlOutletStatus'),
                 serial, 'ctrlOutletStatus', name=name))
             sensors.append(self._make_result_dict(
-                c_outlet_oid,
+                ctrl_outlet_oid,
                 self._get_oid_for_sensor('ctrlOutletFeedback'),
                 serial, 'ctrlOutletFeedback', name=name))
             sensors.append(self._make_result_dict(
-                c_outlet_oid,
+                ctrl_outlet_oid,
                 self._get_oid_for_sensor('ctrlOutletPending'),
                 serial, 'ctrlOutletPending', name=name))
             sensors.append(self._make_result_dict(
-                c_outlet_oid,
+                ctrl_outlet_oid,
                 self._get_oid_for_sensor('ctrlOutletAmps'),
                 serial, 'ctrlOutletAmps', u_o_m=Sensor.UNIT_AMPERES,
                 name=name))
             sensors.append(self._make_result_dict(
-                c_outlet_oid,
+                ctrl_outlet_oid,
                 self._get_oid_for_sensor('ctrlOutletUpDelay'),
                 serial, 'ctrlOutletUpDelay', name=name))
             sensors.append(self._make_result_dict(
-                c_outlet_oid,
+                ctrl_outlet_oid,
                 self._get_oid_for_sensor('ctrlOutletDwnDelay'),
                 serial, 'ctrlOutletDwnDelay', name=name))
             sensors.append(self._make_result_dict(
-                c_outlet_oid,
+                ctrl_outlet_oid,
                 self._get_oid_for_sensor('ctrlOutletRbtDelay'),
                 serial, 'ctrlOutletRbtDelay', name=name))
         return sensors
 
-    @for_table("dstsTable")
+    @for_table('dstsTable')
     def _get_dsts_params(self, dsts_sensors):
         sensors = []
         for dsts_sensor in itervalues(dsts_sensors):
-            dsts_avail = dsts_sensor.get('dstsAvail', None)
-            if dsts_avail:
-                dsts_oid = dsts_sensor.get(0, None)
+            dsts_sensor_avail = dsts_sensor.get('dstsAvail', None)
+            if dsts_sensor_avail:
+                dsts_sensor_oid = dsts_sensor.get(0, None)
                 serial = dsts_sensor.get('dstsSerial', None)
                 name = dsts_sensor.get('dstsName', None)
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsVoltsA'), serial,
                     'dstsVoltsA', u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsAmpsA'), serial,
                     'dstsAmpsA', u_o_m=Sensor.UNIT_AMPERES, name=name))
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsVoltsB'), serial,
                     'dstsVoltsB', u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsAmpsB'), serial,
                     'dstsAmpsB', u_o_m=Sensor.UNIT_AMPERES, name=name))
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsSourceAActive'),
                     serial, 'dstsSourceAActive', name=name))
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsSourceBActive'),
                     serial, 'dstsSourceBActive', name=name))
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsPowerStatusA'),
                     serial, 'dstsPowerStatusA', name=name))
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsPowerStatusB'),
                     serial, 'dstsPowerStatusB', name=name))
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsSourceATempC'),
                     serial, 'dstsSourceATempC', u_o_m=Sensor.UNIT_CELCIUS,
                     name=name))
                 sensors.append(self._make_result_dict(
-                    dsts_oid,
+                    dsts_sensor_oid,
                     self._get_oid_for_sensor('dstsSourceBTempC'),
                     serial, 'dstsSourceBTempC', u_o_m=Sensor.UNIT_CELCIUS,
                     name=name))
