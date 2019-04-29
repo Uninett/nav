@@ -35,11 +35,128 @@ from nav.mibs import mibretriever
 from nav.models.manage import Sensor
 from nav.oids import OID
 
-from .itw_mib import for_table
+TABLES = {
+    'internalTable': [
+        {
+            'avail': 'internalAvail',
+            'serial': 'internalSerial',
+            'name': 'internalName',
+            'sensors': {
+                'internalTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'internalHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'internalDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'internalIO1': dict(u_o_m=Sensor.UNIT_UNKNOWN),
+                'internalIO2': dict(u_o_m=Sensor.UNIT_UNKNOWN),
+                'internalIO3': dict(u_o_m=Sensor.UNIT_UNKNOWN),
+                'internalIO4': dict(u_o_m=Sensor.UNIT_UNKNOWN),
+            }
+        }
+    ],
+    'tempSensorTable': [
+        {
+            'avail': 'tempSensorAvail',
+            'serial': 'tempSensorSerial',
+            'name': 'tempSensorName',
+            'sensors': {
+                'tempSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        }
+    ],
+    'airFlowSensorTable': [
+        {
+            'avail': 'airFlowSensorAvail',
+            'serial': 'airFlowSensorSerial',
+            'name': 'airFlowSensorName',
+            'sensors': {
+                'airFlowSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'airFlowSensorFlow': dict(u_o_m=Sensor.UNIT_UNKNOWN),
+                'airFlowSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'airFlowDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        }
+    ],
+    'dewPointSensorTable': [
+        {
+            'avail': 'dewPointSensorAvail',
+            'serial': 'dewPointSensorSerial',
+            'name': 'dewPointSensorName',
+            'sensors': {
+                'dewPointSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'dewPointSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'dewPointDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        }
+    ],
+    't3hdSensorTable': [
+        {
+            'avail': 't3hdSensorAvail',
+            'serial': 't3hdSensorSerial',
+            'name': 't3hdSensorIntName',
+            'sensors': {
+                't3hdSensorIntSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                't3hdSensorIntSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                't3hdSensorIntDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        },
+        {
+            'avail': 't3hdSensorExtAAvail',
+            'serial': 't3hdSensorSerial',
+            'name': 't3hdSensorExtAName',
+            'sensors': {
+                't3hdSensorExtATemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        },
+        {
+            'avail': 't3hdSensorExtBAvail',
+            'serial': 't3hdSensorSerial',
+            'name': 't3hdSensorExtBName',
+            'sensors': {
+                't3hdSensorExtBTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        },
+        {
+            'avail': 't3hdSensorExtCAvail',
+            'serial': 't3hdSensorSerial',
+            'name': 't3hdSensorExtCName',
+            'sensors': {
+                't3hdSensorExtCTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        },
+    ],
+    'thdSensorTable': [
+        {
+            'avail': 'thdSensorAvail',
+            'serial': 'thdSensorSerial',
+            'name': 'thdSensorName',
+            'sensors': {
+                'thdSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'thdSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'thdDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+            }
+        }
+    ],
+    'rpmSensorTable': [
+        {
+            'avail': 'rpmSensorAvail',
+            'serial': 'rpmSensorSerial',
+            'name': 'rpmSensorName',
+            'sensors': {
+                'rpmSensorEnergy': dict(u_o_m=Sensor.UNIT_WATTHOURS, scale=Sensor.SCALE_KILO),
+                'rpmSensorVoltage': dict(u_o_m=Sensor.UNIT_VOLTS_DC),
+                'rpmSensorCurrent': dict(precision=1, u_o_m=Sensor.UNIT_AMPERES),
+                'rpmSensorRealPower': dict(u_o_m=Sensor.UNIT_WATTS),
+                'rpmSensorApparentPower': dict(u_o_m=Sensor.UNIT_VOLTAMPERES),
+                'rpmSensorPowerFactor': dict(u_o_m=Sensor.UNIT_PERCENT),
+                'rpmSensorOutlet1': dict(u_o_m=Sensor.UNIT_TRUTHVALUE),
+                'rpmSensorOutlet2': dict(u_o_m=Sensor.UNIT_TRUTHVALUE),
+            }
+        }
+    ],
+}
 
 
 class ItWatchDogsMibV4(mibretriever.MibRetriever):
-    """A class that tries to retrieve all internal sensors from WeatherGoose II"""
+    """A class that tries to retrieve all sensors from Watchdog 100"""
     mib = get_mib('IT-WATCHDOGS-V4-MIB')
 
     def _get_oid_for_sensor(self, sensor_name):
@@ -71,51 +188,38 @@ class ItWatchDogsMibV4(mibretriever.MibRetriever):
                 'mib': self.get_module_name(),
                 }
 
-    @for_table('internalTable')
-    def _get_internal_sensors_params(self, internal_sensors):
-        sensors = []
+    def _handle_sensor_group(self, sensor_group, table_data):
+        result = []
+        avail_col = sensor_group['avail']
+        name_col = sensor_group['name']
+        serial_col = sensor_group['serial']
+        sensor_conf = sensor_group['sensors']
 
-        for temp_sensor in itervalues(internal_sensors):
-            temp_avail = temp_sensor.get('internalAvail', None)
-            if temp_avail:
-                climate_oid = temp_sensor.get(0, None)
-                serial = temp_sensor.get('internalSerial', None)
-                name = temp_sensor.get('internalName', None)
-                sensors.append(self._make_result_dict(
-                    climate_oid,
-                    self._get_oid_for_sensor('internalTemp'),
-                    serial, 'internalTemp', precision=1, u_o_m=Sensor.UNIT_CELSIUS,
-                    name=name))
-                sensors.append(self._make_result_dict(
-                    climate_oid,
-                    self._get_oid_for_sensor('internalHumidity'),
-                    serial, 'internalHumidity', u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
-                    name=name))
-                sensors.append(self._make_result_dict(
-                    climate_oid,
-                    self._get_oid_for_sensor('internalDewPoint'),
-                    serial, 'internalDewPoint', precision=1, u_o_m=Sensor.UNIT_CELSIUS,
-                    name=name))
+        for row in itervalues(table_data):
+            is_avail = row.get(avail_col)
+            if is_avail:
+                oid = row.get(0)
+                serial = row.get(serial_col)
+                name = row.get(name_col)
+                for sensor, conf in sensor_conf.items():
+                    result.append(self._make_result_dict(
+                        oid,
+                        self._get_oid_for_sensor(sensor),
+                        serial, sensor, name=name, **conf))
 
-        return sensors
+        return result
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """ Try to retrieve all internal available sensors in this WxGoose"""
 
-        tables = ['internalTable']
-
         result = []
-        for table in tables:
+        for table, sensor_groups in TABLES.items():
             self._logger.debug('get_all_sensors: table = %s', table)
             sensors = yield self.retrieve_table(
                                         table).addCallback(reduce_index)
             self._logger.debug('get_all_sensors: %s = %s', table, sensors)
-            handler = for_table.map.get(table, None)
-            if not handler:
-                self._logger.error("There is not data handler for %s", table)
-            else:
-                method = getattr(self, handler)
-                result.extend(method(sensors))
+            for sensor_group in sensor_groups:
+                result.extend(self._handle_sensor_group(sensor_group, sensors))
 
         defer.returnValue(result)
