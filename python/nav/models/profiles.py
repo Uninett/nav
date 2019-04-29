@@ -90,7 +90,7 @@ class Account(models.Model):
     name = VarcharField()
     password = VarcharField()
     ext_sync = VarcharField(blank=True)
-    preferences = HStoreField(default={})
+    preferences = HStoreField(default=dict)
 
     organizations = models.ManyToManyField(Organization, db_table='accountorg',
                                            blank=True)
