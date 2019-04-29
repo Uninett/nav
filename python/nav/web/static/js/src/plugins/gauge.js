@@ -163,36 +163,38 @@ define(function (require, exports, module) {
             return text;
         },
         getDomain: function(min, max, steps) {
-            step = (max - min) / (steps - 1);
+            var step = (max - min) / (steps - 1);
             return _.range(steps).map(function(m) {
                 return min + (step * m);
             });
         },
-        /** Create special range where the mid-range between the > and < is
-           considered "green" and the rest is considered out of bounds - "red"
-           */
-        getConfigTwoThresholds: function(values) {
-            return {
-                min: this.trimThreshold(_.find(values.thresholds, function(t) {
-                    return t.substr(0, 1) === '<';
-                })),
-                max: this.trimThreshold(_.find(values.thresholds, function(t) {
-                    return t.substr(0, 1) === '>';
-                })),
-                colors: ['#FF4136', '#FFDC00', '#2ECC40', '#FFDC00', '#FF4136']
+        getConfigThresholds: function(values) {
+            var min = this.findThreshold(values.thresholds, '<', _.max);
+            var max = this.findThreshold(values.thresholds, '>', _.min);
+            var colors = values.colors;
+
+            /* Create special range where the mid-range between the > and < is
+                considered "green" and the rest is considered out of bounds - "red"
+            */
+            if (min !== undefined && max !== undefined) {
+                colors = ['#FF4136', '#FFDC00', '#2ECC40', '#FFDC00', '#FF4136'];
+                if (max < min) {
+                    colors = ['#FF4136', '#FF4136'];
+                }
+            } else if (min !== undefined) {
+                colors = values.colors.reverse();
             }
-        },
-        getConfigOneThreshold: function(values) {
-            var invert = values.thresholds[0].substr(0, 1) === '<';
-            var thresholds = values.thresholds;
-            return {
-                min: invert ? this.trimThreshold(thresholds[0]) : values.min,
-                max: invert ? values.max : this.trimThreshold(thresholds[0]),
-                colors: invert ? values.colors.reverse() : values.colors
+            if (min === undefined) {
+                min = values.min;
             }
-        },
-        getConfigZeroThreshold: function(values) {
-            return values;
+            if (max === undefined) {
+                max = values.max;
+            }
+            return {
+                min: min,
+                max: max,
+                colors: colors
+            };
         },
         createColorScale: function (min, max, thresholds, invert) {
             var defaults = {
@@ -200,16 +202,9 @@ define(function (require, exports, module) {
                 max: max,
                 colors: ['#2ECC40', '#FFDC00', '#FF4136'],
                 thresholds: thresholds
-            }
+            };
 
-            // Colorscale greatly varies based on thresholds.
-            var lookup = {
-                2: this.getConfigTwoThresholds.bind(this, defaults),
-                1: this.getConfigOneThreshold.bind(this, defaults),
-                0: this.getConfigZeroThreshold.bind(this, defaults)
-            }
-
-            var config = _.extend(defaults, lookup[thresholds.length]());
+            var config = _.extend(defaults, this.getConfigThresholds(defaults));
             var domain = this.getDomain(config.min, config.max, config.colors.length);
 
             /* Special case for negative minimum - let it start blue and then
@@ -221,7 +216,7 @@ define(function (require, exports, module) {
             }
 
             if (invert) {
-                colors.reverse();
+                config.colors.reverse();
             }
 
             var scale = d3.scale.linear()
@@ -276,6 +271,15 @@ define(function (require, exports, module) {
         },
         trimThreshold: function(threshold) {
             return +threshold.replace(/\D/, '');
+        },
+        findThreshold: function(thresholds, prefix, selectFunction) {
+            var candidates = _.map(_.filter(thresholds, function(t) {
+                return t.substr(0, 1) === prefix;
+            }), this.trimThreshold);
+            if (candidates.length > 0) {
+                return selectFunction(candidates);
+            }
+            return undefined;
         }
     };
 
