@@ -139,52 +139,6 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                     name=name))
         return sensors
 
-    @for_table('powMonTable')
-    def _get_power_monitor_params(self, power_monitor_sensors):
-        sensors = []
-        for pow_mon_sensor in itervalues(power_monitor_sensors):
-            pow_mon_avail = pow_mon_sensor.get('powMonAvail', None)
-            if pow_mon_avail:
-                pow_mon_oid = pow_mon_sensor.get(0, None)
-                serial = pow_mon_sensor.get('powMonSerial', None)
-                name = pow_mon_sensor.get('powMonName', None)
-                sensors.append(self._make_result_dict(
-                    pow_mon_oid,
-                    self._get_oid_for_sensor('powMonKWattHrs'),
-                    serial, 'powMonKWattHrs', u_o_m=Sensor.UNIT_WATTS,
-                    name=name))
-                sensors.append(self._make_result_dict(
-                    pow_mon_oid,
-                    self._get_oid_for_sensor('powMonVolts'),
-                    serial, 'powMonVolts', u_o_m=Sensor.UNIT_VOLTS_DC,
-                    name=name))
-                sensors.append(self._make_result_dict(
-                    pow_mon_oid,
-                    self._get_oid_for_sensor('powMonDeciAmps'),
-                    serial, 'powMonDeciAmps', u_o_m=Sensor.UNIT_AMPERES,
-                    name=name))
-                sensors.append(self._make_result_dict(
-                    pow_mon_oid,
-                    self._get_oid_for_sensor('powMonRealPower'),
-                    serial, 'powMonRealPower', name=name))
-                sensors.append(self._make_result_dict(
-                    pow_mon_oid,
-                    self._get_oid_for_sensor('powMonApparentPower'),
-                    serial, 'powMonApparentPower', name=name))
-                sensors.append(self._make_result_dict(
-                    pow_mon_oid,
-                    self._get_oid_for_sensor('powMonPowerFactor'),
-                    serial, 'powMonPowerFactor', name=name))
-                sensors.append(self._make_result_dict(
-                    pow_mon_oid,
-                    self._get_oid_for_sensor('powMonOutlet1'),
-                    serial, 'powMonOutlet1', name=name))
-                sensors.append(self._make_result_dict(
-                    pow_mon_oid,
-                    self._get_oid_for_sensor('powMonOutlet2'),
-                    serial, 'powMonOutlet2', name=name))
-        return sensors
-
     @for_table('tempSensorTable')
     def _get_temp_sensors_params(self, temp_sensors):
         """ Collect all temperature sensors and corresponding parameters"""
@@ -234,42 +188,6 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                     self._get_oid_for_sensor('airFlowSensorDewPointC'),
                     serial, 'airFlowSensorDewPointC',
                     u_o_m=Sensor.UNIT_CELSIUS, name=name))
-        return sensors
-
-    @for_table('powerTable')
-    def _get_power_sensors_params(self, power_sensors):
-        sensors = []
-        for power_sensor in itervalues(power_sensors):
-            power_sensor_avail = power_sensor.get('powerAvail', None)
-            if power_sensor_avail:
-                power_sensor_oid = power_sensor.get(0, None)
-                serial = power_sensor.get('powerSerial', None)
-                name = power_sensor.get('powerName', None)
-                sensors.append(self._make_result_dict(
-                    power_sensor_oid,
-                    self._get_oid_for_sensor('powerVolts'), serial,
-                    'powerVolts', u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
-                sensors.append(self._make_result_dict(
-                    power_sensor_oid,
-                    self._get_oid_for_sensor('powerDeciAmps'),
-                    serial, 'powerDeciAmps', u_o_m=Sensor.UNIT_AMPERES,
-                    name=name))
-                sensors.append(self._make_result_dict(
-                    power_sensor_oid,
-                    self._get_oid_for_sensor('powerRealPower'),
-                    serial, 'powerRealPower', name=name))
-                sensors.append(self._make_result_dict(
-                    power_sensor_oid,
-                    self._get_oid_for_sensor('powerApparentPower'),
-                    serial, 'powerApparentPower', name=name))
-                sensors.append(self._make_result_dict(
-                    power_sensor_oid,
-                    self._get_oid_for_sensor('powerApparentPower'),
-                    serial, 'powerApparentPower', name=name))
-                sensors.append(self._make_result_dict(
-                    power_sensor_oid,
-                    self._get_oid_for_sensor('powerPowerFactor'),
-                    serial, 'powerPowerFactor', name=name))
         return sensors
 
     @for_table('doorSensorTable')
@@ -335,6 +253,211 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                     self._get_oid_for_sensor('millivoltMonitorMV'),
                     serial, 'millivoltMonitorMV', u_o_m=Sensor.UNIT_VOLTS_DC,
                     scale='milli', name=name))
+        return sensors
+
+    @for_table('dewPointSensorTable')
+    def _get_dewpoint_sensors_params(self, dewpoint_sensors):
+        sensors = []
+        for dewpoint_sensor in itervalues(dewpoint_sensors):
+            dewpoint_sensor_avail = dewpoint_sensor.get('dewPointSensorAvail',
+                                                        None)
+            if dewpoint_sensor_avail:
+                dewpoint_sensor_oid = dewpoint_sensor.get(0, None)
+                serial = dewpoint_sensor.get('dewPointSensorSerial', None)
+                name = dewpoint_sensor.get('dewPointSensorName', None)
+                sensors.append(self._make_result_dict(
+                    dewpoint_sensor_oid,
+                    self._get_oid_for_sensor('dewPointSensorDewPointC'),
+                    serial, 'dewPointSensorDewPointC',
+                    u_o_m=Sensor.UNIT_CELSIUS, name=name))
+
+                sensors.append(self._make_result_dict(
+                    dewpoint_sensor_oid,
+                    self._get_oid_for_sensor('dewPointSensorTempC'),
+                    serial, 'dewPointSensorTempC',
+                    u_o_m=Sensor.UNIT_CELSIUS, name=name))
+
+                sensors.append(self._make_result_dict(
+                    dewpoint_sensor_oid,
+                    self._get_oid_for_sensor('dewPointSensorHumidity'),
+                    serial, 'dewPointSensorHumidity',
+                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY, name=name))
+        return sensors
+
+    @for_table('digitalSensorTable')
+    def _get_digital_sensors_params(self, digital_sensors):
+        sensors = []
+        for digital_sensor in itervalues(digital_sensors):
+            digital_avail = digital_sensor.get('digitalSensorAvail', None)
+            if digital_avail:
+                digital_sensor_oid = digital_sensor.get(0, None)
+                serial = digital_sensor.get('digitalSensorSerial', None)
+                name = digital_sensor.get('digitalSensorName', None)
+                sensors.append(self._make_result_dict(
+                    digital_sensor_oid,
+                    self._get_oid_for_sensor('digitalSensorDigital'),
+                    serial, 'digitalSensorDigital', name=name))
+        return sensors
+
+    @for_table('cpmSensorTable')
+    def _get_cpm_sensors_params(self, cpm_sensors):
+        sensors = []
+        for cpm_sensor in itervalues(cpm_sensors):
+            cpm_sensor_avail = cpm_sensor.get('cpmSensorAvail', None)
+            if cpm_sensor_avail:
+                cpm_sensor_oid = cpm_sensor.get(0, None)
+                serial = cpm_sensor.get('cpmSensorSerial', None)
+                name = cpm_sensor.get('cpmSensorName', None)
+                sensors.append(self._make_result_dict(
+                    cpm_sensor_oid,
+                    self._get_oid_for_sensor('cpmSensorStatus'),
+                    serial, 'cpmSensorStatus', name=name))
+        return sensors
+
+    @for_table('smokeAlarmTable')
+    def _get_smoke_alarms_params(self, smoke_alarms):
+        sensors = []
+        for smoke_alarm in itervalues(smoke_alarms):
+            smoke_alarm_avail = smoke_alarm.get('smokeAlarmAvail', None)
+            if smoke_alarm_avail:
+                smoke_alarm_oid = smoke_alarm.get(0, None)
+                serial = smoke_alarm.get('smokeAlarmSerial', None)
+                name = smoke_alarm.get('smokeAlarmName', None)
+                sensors.append(self._make_result_dict(
+                    smoke_alarm_oid,
+                    self._get_oid_for_sensor('smokeAlarmStatus'),
+                    serial, 'smokeAlarmStatus', name=name))
+        return sensors
+
+    @for_table('neg48VdcSensorTable')
+    def _get_neg48vdc_sensors_params(self, neg48vdc_sensors):
+        sensors = []
+        for neg48vdc_sensor in itervalues(neg48vdc_sensors):
+            neg48vdc_sensor_avail = neg48vdc_sensor.get('neg48VdcSensorAvail',
+                                                        None)
+            if neg48vdc_sensor_avail:
+                neg48vdc_sensor_oid = neg48vdc_sensor.get(0, None)
+                serial = neg48vdc_sensor.get('neg48VdcSensorSerial', None)
+                name = neg48vdc_sensor.get('neg48VdcSensorName', None)
+                sensors.append(self._make_result_dict(
+                    neg48vdc_sensor_oid,
+                    self._get_oid_for_sensor('neg48VdcSensorVoltage'),
+                    serial, 'neg48VdcSensorVoltage',
+                    u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
+        return sensors
+
+    @for_table('pos30VdcSensorTable')
+    def _get_pos30vdc_sensors_params(self, pos30vdc_sensors):
+        sensors = []
+        for pos30vdc_sensor in itervalues(pos30vdc_sensors):
+            pos30vdc_sensor_avail = pos30vdc_sensor.get('pos30VdcSensorAvail',
+                                                        None)
+            if pos30vdc_sensor_avail:
+                pos30vdc_sensor_oid = pos30vdc_sensor.get(0, None)
+                serial = pos30vdc_sensor.get('pos30VdcSensorSerial', None)
+                name = pos30vdc_sensor.get('pos30VdcSensorName', None)
+                sensors.append(self._make_result_dict(
+                    pos30vdc_sensor_oid,
+                    self._get_oid_for_sensor('pos30VdcSensorVoltage'),
+                    serial, 'pos30VdcSensorVoltage', u_o_m=Sensor.UNIT_VOLTS_DC,
+                    name=name))
+        return sensors
+
+    @for_table('analogSensorTable')
+    def _get_analog_sensors_params(self, analog_sensors):
+        sensors = []
+        for analog_sensor in itervalues(analog_sensors):
+            analog_avail = analog_sensor.get('analogSensorAvail', None)
+            if analog_avail:
+                analog_sensor_oid = analog_sensor.get(0, None)
+                serial = analog_sensor.get('analogSensorSerial', None)
+                name = analog_sensor.get('analogSensorName', None)
+                sensors.append(self._make_result_dict(
+                    analog_sensor_oid,
+                    self._get_oid_for_sensor('analogSensorAnalog'),
+                    serial, 'analogSensorAnalog', name=name))
+        return sensors
+
+    @for_table('powMonTable')
+    def _get_power_monitor_params(self, power_monitor_sensors):
+        sensors = []
+        for pow_mon_sensor in itervalues(power_monitor_sensors):
+            pow_mon_avail = pow_mon_sensor.get('powMonAvail', None)
+            if pow_mon_avail:
+                pow_mon_oid = pow_mon_sensor.get(0, None)
+                serial = pow_mon_sensor.get('powMonSerial', None)
+                name = pow_mon_sensor.get('powMonName', None)
+                sensors.append(self._make_result_dict(
+                    pow_mon_oid,
+                    self._get_oid_for_sensor('powMonKWattHrs'),
+                    serial, 'powMonKWattHrs', u_o_m=Sensor.UNIT_WATTS,
+                    name=name))
+                sensors.append(self._make_result_dict(
+                    pow_mon_oid,
+                    self._get_oid_for_sensor('powMonVolts'),
+                    serial, 'powMonVolts', u_o_m=Sensor.UNIT_VOLTS_DC,
+                    name=name))
+                sensors.append(self._make_result_dict(
+                    pow_mon_oid,
+                    self._get_oid_for_sensor('powMonDeciAmps'),
+                    serial, 'powMonDeciAmps', u_o_m=Sensor.UNIT_AMPERES,
+                    name=name))
+                sensors.append(self._make_result_dict(
+                    pow_mon_oid,
+                    self._get_oid_for_sensor('powMonRealPower'),
+                    serial, 'powMonRealPower', name=name))
+                sensors.append(self._make_result_dict(
+                    pow_mon_oid,
+                    self._get_oid_for_sensor('powMonApparentPower'),
+                    serial, 'powMonApparentPower', name=name))
+                sensors.append(self._make_result_dict(
+                    pow_mon_oid,
+                    self._get_oid_for_sensor('powMonPowerFactor'),
+                    serial, 'powMonPowerFactor', name=name))
+                sensors.append(self._make_result_dict(
+                    pow_mon_oid,
+                    self._get_oid_for_sensor('powMonOutlet1'),
+                    serial, 'powMonOutlet1', name=name))
+                sensors.append(self._make_result_dict(
+                    pow_mon_oid,
+                    self._get_oid_for_sensor('powMonOutlet2'),
+                    serial, 'powMonOutlet2', name=name))
+        return sensors
+
+    @for_table('powerTable')
+    def _get_power_sensors_params(self, power_sensors):
+        sensors = []
+        for power_sensor in itervalues(power_sensors):
+            power_sensor_avail = power_sensor.get('powerAvail', None)
+            if power_sensor_avail:
+                power_sensor_oid = power_sensor.get(0, None)
+                serial = power_sensor.get('powerSerial', None)
+                name = power_sensor.get('powerName', None)
+                sensors.append(self._make_result_dict(
+                    power_sensor_oid,
+                    self._get_oid_for_sensor('powerVolts'), serial,
+                    'powerVolts', u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
+                sensors.append(self._make_result_dict(
+                    power_sensor_oid,
+                    self._get_oid_for_sensor('powerDeciAmps'),
+                    serial, 'powerDeciAmps', u_o_m=Sensor.UNIT_AMPERES,
+                    name=name))
+                sensors.append(self._make_result_dict(
+                    power_sensor_oid,
+                    self._get_oid_for_sensor('powerRealPower'),
+                    serial, 'powerRealPower', name=name))
+                sensors.append(self._make_result_dict(
+                    power_sensor_oid,
+                    self._get_oid_for_sensor('powerApparentPower'),
+                    serial, 'powerApparentPower', name=name))
+                sensors.append(self._make_result_dict(
+                    power_sensor_oid,
+                    self._get_oid_for_sensor('powerApparentPower'),
+                    serial, 'powerApparentPower', name=name))
+                sensors.append(self._make_result_dict(
+                    power_sensor_oid,
+                    self._get_oid_for_sensor('powerPowerFactor'),
+                    serial, 'powerPowerFactor', name=name))
         return sensors
 
     @for_table('pow3ChTable')
@@ -575,50 +698,6 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 serial, 'ctrlOutletPower', name=name))
         return sensors
 
-    @for_table('dewPointSensorTable')
-    def _get_dewpoint_sensors_params(self, dewpoint_sensors):
-        sensors = []
-        for dewpoint_sensor in itervalues(dewpoint_sensors):
-            dewpoint_sensor_avail = dewpoint_sensor.get('dewPointSensorAvail',
-                                                        None)
-            if dewpoint_sensor_avail:
-                dewpoint_sensor_oid = dewpoint_sensor.get(0, None)
-                serial = dewpoint_sensor.get('dewPointSensorSerial', None)
-                name = dewpoint_sensor.get('dewPointSensorName', None)
-                sensors.append(self._make_result_dict(
-                    dewpoint_sensor_oid,
-                    self._get_oid_for_sensor('dewPointSensorDewPointC'),
-                    serial, 'dewPointSensorDewPointC',
-                    u_o_m=Sensor.UNIT_CELSIUS, name=name))
-
-                sensors.append(self._make_result_dict(
-                    dewpoint_sensor_oid,
-                    self._get_oid_for_sensor('dewPointSensorTempC'),
-                    serial, 'dewPointSensorTempC',
-                    u_o_m=Sensor.UNIT_CELSIUS, name=name))
-
-                sensors.append(self._make_result_dict(
-                    dewpoint_sensor_oid,
-                    self._get_oid_for_sensor('dewPointSensorHumidity'),
-                    serial, 'dewPointSensorHumidity',
-                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY, name=name))
-        return sensors
-
-    @for_table('digitalSensorTable')
-    def _get_digital_sensors_params(self, digital_sensors):
-        sensors = []
-        for digital_sensor in itervalues(digital_sensors):
-            digital_avail = digital_sensor.get('digitalSensorAvail', None)
-            if digital_avail:
-                digital_sensor_oid = digital_sensor.get(0, None)
-                serial = digital_sensor.get('digitalSensorSerial', None)
-                name = digital_sensor.get('digitalSensorName', None)
-                sensors.append(self._make_result_dict(
-                    digital_sensor_oid,
-                    self._get_oid_for_sensor('digitalSensorDigital'),
-                    serial, 'digitalSensorDigital', name=name))
-        return sensors
-
     @for_table('dstsTable')
     def _get_dsts_params(self, dsts_sensors):
         sensors = []
@@ -657,162 +736,6 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                         name=name))
         return sensors
 
-    @for_table('cpmSensorTable')
-    def _get_cpm_sensors_params(self, cpm_sensors):
-        sensors = []
-        for cpm_sensor in itervalues(cpm_sensors):
-            cpm_sensor_avail = cpm_sensor.get('cpmSensorAvail', None)
-            if cpm_sensor_avail:
-                cpm_sensor_oid = cpm_sensor.get(0, None)
-                serial = cpm_sensor.get('cpmSensorSerial', None)
-                name = cpm_sensor.get('cpmSensorName', None)
-                sensors.append(self._make_result_dict(
-                    cpm_sensor_oid,
-                    self._get_oid_for_sensor('cpmSensorStatus'),
-                    serial, 'cpmSensorStatus', name=name))
-        return sensors
-
-    @for_table('smokeAlarmTable')
-    def _get_smoke_alarms_params(self, smoke_alarms):
-        sensors = []
-        for smoke_alarm in itervalues(smoke_alarms):
-            smoke_alarm_avail = smoke_alarm.get('smokeAlarmAvail', None)
-            if smoke_alarm_avail:
-                smoke_alarm_oid = smoke_alarm.get(0, None)
-                serial = smoke_alarm.get('smokeAlarmSerial', None)
-                name = smoke_alarm.get('smokeAlarmName', None)
-                sensors.append(self._make_result_dict(
-                    smoke_alarm_oid,
-                    self._get_oid_for_sensor('smokeAlarmStatus'),
-                    serial, 'smokeAlarmStatus', name=name))
-        return sensors
-
-    @for_table('neg48VdcSensorTable')
-    def _get_neg48vdc_sensors_params(self, neg48vdc_sensors):
-        sensors = []
-        for neg48vdc_sensor in itervalues(neg48vdc_sensors):
-            neg48vdc_sensor_avail = neg48vdc_sensor.get('neg48VdcSensorAvail',
-                                                        None)
-            if neg48vdc_sensor_avail:
-                neg48vdc_sensor_oid = neg48vdc_sensor.get(0, None)
-                serial = neg48vdc_sensor.get('neg48VdcSensorSerial', None)
-                name = neg48vdc_sensor.get('neg48VdcSensorName', None)
-                sensors.append(self._make_result_dict(
-                    neg48vdc_sensor_oid,
-                    self._get_oid_for_sensor('neg48VdcSensorVoltage'),
-                    serial, 'neg48VdcSensorVoltage',
-                    u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
-        return sensors
-
-    @for_table('pos30VdcSensorTable')
-    def _get_pos30vdc_sensors_params(self, pos30vdc_sensors):
-        sensors = []
-        for pos30vdc_sensor in itervalues(pos30vdc_sensors):
-            pos30vdc_sensor_avail = pos30vdc_sensor.get('pos30VdcSensorAvail',
-                                                        None)
-            if pos30vdc_sensor_avail:
-                pos30vdc_sensor_oid = pos30vdc_sensor.get(0, None)
-                serial = pos30vdc_sensor.get('pos30VdcSensorSerial', None)
-                name = pos30vdc_sensor.get('pos30VdcSensorName', None)
-                sensors.append(self._make_result_dict(
-                    pos30vdc_sensor_oid,
-                    self._get_oid_for_sensor('pos30VdcSensorVoltage'),
-                    serial, 'pos30VdcSensorVoltage', u_o_m=Sensor.UNIT_VOLTS_DC,
-                    name=name))
-        return sensors
-
-    @for_table('analogSensorTable')
-    def _get_analog_sensors_params(self, analog_sensors):
-        sensors = []
-        for analog_sensor in itervalues(analog_sensors):
-            analog_avail = analog_sensor.get('analogSensorAvail', None)
-            if analog_avail:
-                analog_sensor_oid = analog_sensor.get(0, None)
-                serial = analog_sensor.get('analogSensorSerial', None)
-                name = analog_sensor.get('analogSensorName', None)
-                sensors.append(self._make_result_dict(
-                    analog_sensor_oid,
-                    self._get_oid_for_sensor('analogSensorAnalog'),
-                    serial, 'analogSensorAnalog', name=name))
-        return sensors
-
-    @for_table('ctrl3ChIECTable')
-    def _get_ctrl3_chiects_params(self, ctrl3_chiects):
-        sensors = []
-        for ctrl3_chiect in itervalues(ctrl3_chiects):
-            ctrl3_chiect_avail = ctrl3_chiect.get('ctrl3ChIECAvail', None)
-            if ctrl3_chiect_avail:
-                ctrl3_chiect_oid = ctrl3_chiect.get(0, None)
-                serial = ctrl3_chiect.get('ctrl3ChIECSerial', None)
-                name = ctrl3_chiect.get('ctrl3ChIECName', None)
-                postfixes = [chr(i) for i in range(ord('A'), ord('D'))]
-                for pfix in postfixes:
-                    sensors.append(self._make_result_dict(
-                        ctrl3_chiect_oid,
-                        self._get_oid_for_sensor('ctrl3ChIECKWattHrs' + pfix),
-                        serial, 'ctrl3ChIECKWattHrs' + pfix, name=name))
-
-                    sensors.append(self._make_result_dict(
-                        ctrl3_chiect_oid,
-                        self._get_oid_for_sensor('ctrl3ChIECVolts' + pfix),
-                        serial, 'ctrl3ChIECVolts' + pfix,
-                        u_o_m=Sensor.UNIT_VOLTS_DC,
-                        name=name))
-                    sensors.append(self._make_result_dict(
-                        ctrl3_chiect_oid,
-                        self._get_oid_for_sensor('ctrl3ChIECVoltPeak' + pfix),
-                        serial, 'ctrl3ChIECVoltPeak' + pfix,
-                        u_o_m=Sensor.UNIT_VOLTS_DC,
-                        name=name))
-                    sensors.append(self._make_result_dict(
-                        ctrl3_chiect_oid,
-                        self._get_oid_for_sensor('ctrl3ChIECDeciAmps' + pfix),
-                        serial, 'ctrl3ChIECDeciAmps' + pfix,
-                        u_o_m=Sensor.UNIT_AMPERES,
-                        name=name))
-                    sensors.append(self._make_result_dict(
-                        ctrl3_chiect_oid,
-                        self._get_oid_for_sensor('ctrl3ChIECDeciAmpsPeak' +
-                                                 pfix),
-                        serial, 'ctrl3ChIECDeciAmpsPeak' + pfix,
-                        u_o_m=Sensor.UNIT_AMPERES, name=name))
-                    sensors.append(self._make_result_dict(
-                        ctrl3_chiect_oid,
-                        self._get_oid_for_sensor('ctrl3ChIECRealPower' + pfix),
-                        serial, 'ctrl3ChIECRealPower' + pfix, name=name))
-                    sensors.append(self._make_result_dict(
-                        ctrl3_chiect_oid,
-                        self._get_oid_for_sensor('ctrl3ChIECApparentPower' +
-                                                 pfix),
-                        serial, 'ctrl3ChIECApparentPower' + pfix, name=name))
-                    sensors.append(self._make_result_dict(
-                        ctrl3_chiect_oid,
-                        self._get_oid_for_sensor('ctrl3ChIECPowerFactor' +
-                                                 pfix),
-                        serial, 'ctrl3ChIECPowerFactor' + pfix, name=name))
-        return sensors
-
-    @for_table('climateRelayTable')
-    def _get_climate_relays_params(self, climate_relays):
-        sensors = []
-        for climate_relay in itervalues(climate_relays):
-            climate_relay_avail = climate_relay.get('climateRelayAvail', None)
-            if climate_relay_avail:
-                climate_relay_oid = climate_relay.get(0, None)
-                serial = climate_relay.get('climateRelaySerial', None)
-                name = climate_relay.get('climateRelayName', None)
-                sensors.append(self._make_result_dict(
-                    climate_relay_oid,
-                    self._get_oid_for_sensor('climateRelayTempC'),
-                    serial, 'climateRelayTempC', u_o_m=Sensor.UNIT_CELSIUS,
-                    name=name))
-                for i in range(1, 7):
-                    sensors.append(self._make_result_dict(
-                        climate_relay_oid,
-                        self._get_oid_for_sensor('climateRelayIO' + str(i)),
-                        serial, 'climateRelayIO' + str(i), name=name))
-        return sensors
-
     @for_table('ctrlRelayTable')
     def _get_ctrl_relays_params(self, ctrl_relays):
         sensors = []
@@ -836,6 +759,27 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 ctrl_relay_oid,
                 self._get_oid_for_sensor('ctrlRelayAcknowledge'),
                 serial, 'ctrlRelayAcknowledge', name=name))
+        return sensors
+
+    @for_table('climateRelayTable')
+    def _get_climate_relays_params(self, climate_relays):
+        sensors = []
+        for climate_relay in itervalues(climate_relays):
+            climate_relay_avail = climate_relay.get('climateRelayAvail', None)
+            if climate_relay_avail:
+                climate_relay_oid = climate_relay.get(0, None)
+                serial = climate_relay.get('climateRelaySerial', None)
+                name = climate_relay.get('climateRelayName', None)
+                sensors.append(self._make_result_dict(
+                    climate_relay_oid,
+                    self._get_oid_for_sensor('climateRelayTempC'),
+                    serial, 'climateRelayTempC', u_o_m=Sensor.UNIT_CELSIUS,
+                    name=name))
+                for i in range(1, 7):
+                    sensors.append(self._make_result_dict(
+                        climate_relay_oid,
+                        self._get_oid_for_sensor('climateRelayIO' + str(i)),
+                        serial, 'climateRelayIO' + str(i), name=name))
         return sensors
 
     @for_table('airSpeedSwitchSensorTable')
@@ -929,6 +873,62 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                                                  relay_numb),
                         serial, 'ioExpanderRelayAcknowledge' + relay_numb,
                         name=relay_name))
+        return sensors
+
+    @for_table('ctrl3ChIECTable')
+    def _get_ctrl3_chiects_params(self, ctrl3_chiects):
+        sensors = []
+        for ctrl3_chiect in itervalues(ctrl3_chiects):
+            ctrl3_chiect_avail = ctrl3_chiect.get('ctrl3ChIECAvail', None)
+            if ctrl3_chiect_avail:
+                ctrl3_chiect_oid = ctrl3_chiect.get(0, None)
+                serial = ctrl3_chiect.get('ctrl3ChIECSerial', None)
+                name = ctrl3_chiect.get('ctrl3ChIECName', None)
+                postfixes = [chr(i) for i in range(ord('A'), ord('D'))]
+                for pfix in postfixes:
+                    sensors.append(self._make_result_dict(
+                        ctrl3_chiect_oid,
+                        self._get_oid_for_sensor('ctrl3ChIECKWattHrs' + pfix),
+                        serial, 'ctrl3ChIECKWattHrs' + pfix, name=name))
+
+                    sensors.append(self._make_result_dict(
+                        ctrl3_chiect_oid,
+                        self._get_oid_for_sensor('ctrl3ChIECVolts' + pfix),
+                        serial, 'ctrl3ChIECVolts' + pfix,
+                        u_o_m=Sensor.UNIT_VOLTS_DC,
+                        name=name))
+                    sensors.append(self._make_result_dict(
+                        ctrl3_chiect_oid,
+                        self._get_oid_for_sensor('ctrl3ChIECVoltPeak' + pfix),
+                        serial, 'ctrl3ChIECVoltPeak' + pfix,
+                        u_o_m=Sensor.UNIT_VOLTS_DC,
+                        name=name))
+                    sensors.append(self._make_result_dict(
+                        ctrl3_chiect_oid,
+                        self._get_oid_for_sensor('ctrl3ChIECDeciAmps' + pfix),
+                        serial, 'ctrl3ChIECDeciAmps' + pfix,
+                        u_o_m=Sensor.UNIT_AMPERES,
+                        name=name))
+                    sensors.append(self._make_result_dict(
+                        ctrl3_chiect_oid,
+                        self._get_oid_for_sensor('ctrl3ChIECDeciAmpsPeak' +
+                                                 pfix),
+                        serial, 'ctrl3ChIECDeciAmpsPeak' + pfix,
+                        u_o_m=Sensor.UNIT_AMPERES, name=name))
+                    sensors.append(self._make_result_dict(
+                        ctrl3_chiect_oid,
+                        self._get_oid_for_sensor('ctrl3ChIECRealPower' + pfix),
+                        serial, 'ctrl3ChIECRealPower' + pfix, name=name))
+                    sensors.append(self._make_result_dict(
+                        ctrl3_chiect_oid,
+                        self._get_oid_for_sensor('ctrl3ChIECApparentPower' +
+                                                 pfix),
+                        serial, 'ctrl3ChIECApparentPower' + pfix, name=name))
+                    sensors.append(self._make_result_dict(
+                        ctrl3_chiect_oid,
+                        self._get_oid_for_sensor('ctrl3ChIECPowerFactor' +
+                                                 pfix),
+                        serial, 'ctrl3ChIECPowerFactor' + pfix, name=name))
         return sensors
 
     @defer.inlineCallbacks
