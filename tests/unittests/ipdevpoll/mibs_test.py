@@ -198,7 +198,6 @@ def test_itw_tables(cls):
             for col in 'avail', 'serial', 'name':
                 assert group[col] in mib['nodes'], group[col]
                 assert is_col_of(mib, group[col], table)
-            for sensor, conf in group['sensors'].items():
+            for sensor in group['sensors']:
                 assert sensor in mib['nodes'], sensor
                 assert is_col_of(mib, sensor, table)
-                assert isinstance(conf, dict)

@@ -25,9 +25,8 @@ from twisted.internet import defer
 
 from nav.mibs import reduce_index
 from nav.smidumps import get_mib
-from nav.models.manage import Sensor
 
-from .itw_mib import BaseITWatchDogsMib
+from .itw_mib import BaseITWatchDogsMib, convertUnits
 
 
 TABLES = {
@@ -37,16 +36,15 @@ TABLES = {
             'serial': 'climateSerial',
             'name': 'climateName',
             'sensors': {
-                'climateTempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'climateHumidity': dict(
-                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
-                'climateAirflow': {},
-                'climateLight': {},
-                'climateSound': {},
-                'climateIO1': {},
-                'climateIO2': {},
-                'climateIO3': {},
-                'climateDewPointC': dict(u_o_m=Sensor.UNIT_CELSIUS),
+                'climateTempC',
+                'climateHumidity',
+                'climateAirflow',
+                'climateLight',
+                'climateSound',
+                'climateIO1',
+                'climateIO2',
+                'climateIO3',
+                'climateDewPointC',
             }
         }
     ],
@@ -56,7 +54,7 @@ TABLES = {
             'serial': 'tempSensorSerial',
             'name': 'tempSensorName',
             'sensors': {
-                'tempSensorTempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
+                'tempSensorTempC',
             }
         }
     ],
@@ -66,11 +64,10 @@ TABLES = {
             'serial': 'airFlowSensorSerial',
             'name': 'airFlowSensorName',
             'sensors': {
-                'airFlowSensorTempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'airFlowSensorFlow': {},
-                'airFlowSensorHumidity': dict(
-                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
-                'airFlowSensorDewPointC': dict(u_o_m=Sensor.UNIT_CELSIUS),
+                'airFlowSensorTempC',
+                'airFlowSensorFlow',
+                'airFlowSensorHumidity',
+                'airFlowSensorDewPointC',
             }
         }
     ],
@@ -80,7 +77,7 @@ TABLES = {
             'serial': 'doorSensorSerial',
             'name': 'doorSensorName',
             'sensors': {
-                'doorSensorStatus': {},
+                'doorSensorStatus',
             }
         }
     ],
@@ -90,7 +87,7 @@ TABLES = {
             'serial': 'waterSensorSerial',
             'name': 'waterSensorName',
             'sensors': {
-                'waterSensorDampness': {},
+                'waterSensorDampness',
             }
         }
     ],
@@ -100,8 +97,7 @@ TABLES = {
             'serial': 'currentMonitorSerial',
             'name': 'currentMonitorName',
             'sensors': {
-                'currentMonitorDeciAmps': dict(
-                    u_o_m=Sensor.UNIT_AMPERES),
+                'currentMonitorDeciAmps',
             }
         }
     ],
@@ -111,8 +107,7 @@ TABLES = {
             'serial': 'millivoltMonitorSerial',
             'name': 'millivoltMonitorName',
             'sensors': {
-                'millivoltMonitorMV': dict(
-                    u_o_m=Sensor.UNIT_VOLTS_DC, scale='milli'),
+                'millivoltMonitorMV',
             }
         }
     ],
@@ -122,10 +117,9 @@ TABLES = {
             'serial': 'dewPointSensorSerial',
             'name': 'dewPointSensorName',
             'sensors': {
-                'dewPointSensorDewPointC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'dewPointSensorTempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'dewPointSensorHumidity': dict(
-                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'dewPointSensorDewPointC',
+                'dewPointSensorTempC',
+                'dewPointSensorHumidity',
             }
         }
     ],
@@ -135,7 +129,7 @@ TABLES = {
             'serial': 'digitalSensorSerial',
             'name': 'digitalSensorName',
             'sensors': {
-                'digitalSensorDigital': {},
+                'digitalSensorDigital',
             }
         }
     ],
@@ -145,7 +139,7 @@ TABLES = {
             'serial': 'cpmSensorSerial',
             'name': 'cpmSensorName',
             'sensors': {
-                'cpmSensorStatus': {},
+                'cpmSensorStatus',
             }
         }
     ],
@@ -155,7 +149,7 @@ TABLES = {
             'serial': 'smokeAlarmSerial',
             'name': 'smokeAlarmName',
             'sensors': {
-                'smokeAlarmStatus': {},
+                'smokeAlarmStatus',
             }
         }
     ],
@@ -165,7 +159,7 @@ TABLES = {
             'serial': 'neg48VdcSensorSerial',
             'name': 'neg48VdcSensorName',
             'sensors': {
-                'neg48VdcSensorVoltage': dict(u_o_m=Sensor.UNIT_VOLTS_DC),
+                'neg48VdcSensorVoltage',
             }
         }
     ],
@@ -175,7 +169,7 @@ TABLES = {
             'serial': 'pos30VdcSensorSerial',
             'name': 'pos30VdcSensorName',
             'sensors': {
-                'pos30VdcSensorVoltage': dict(u_o_m=Sensor.UNIT_VOLTS_DC),
+                'pos30VdcSensorVoltage',
             }
         }
     ],
@@ -185,7 +179,7 @@ TABLES = {
             'serial': 'analogSensorSerial',
             'name': 'analogSensorName',
             'sensors': {
-                'analogSensorAnalog': {},
+                'analogSensorAnalog',
             }
         }
     ],
@@ -195,17 +189,17 @@ TABLES = {
             'serial': 'powMonSerial',
             'name': 'powMonName',
             'sensors': {
-                'powMonkWattHrs': dict(u_o_m=Sensor.UNIT_WATTHOURS),
-                'powMonVolts': dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'powMonVoltMax': dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'powMonVoltMin': dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'powMonVoltPeak': dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'powMonDeciAmps': dict(u_o_m=Sensor.UNIT_AMPERES),
-                'powMonRealPower': {},
-                'powMonApparentPower': {},
-                'powMonPowerFactor': {},
-                'powMonOutlet1': {},
-                'powMonOutlet2': {},
+                'powMonkWattHrs',
+                'powMonVolts',
+                'powMonVoltMax',
+                'powMonVoltMin',
+                'powMonVoltPeak',
+                'powMonDeciAmps',
+                'powMonRealPower',
+                'powMonApparentPower',
+                'powMonPowerFactor',
+                'powMonOutlet1',
+                'powMonOutlet2',
             }
         }
     ],
@@ -215,11 +209,11 @@ TABLES = {
     #         'serial': 'powerSerial',
     #         'name': 'powerName',
     #         'sensors': {
-    #             'powerVolts': dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-    #             'powerDeciAmps': dict(u_o_m=Sensor.UNIT_AMPERES),
-    #             'powerRealPower': {},
-    #             'powerApparentPower': {},
-    #             'powerPowerFactor': {},
+    #             'powerVolts',
+    #             'powerDeciAmps',
+    #             'powerRealPower',
+    #             'powerApparentPower',
+    #             'powerPowerFactor',
     #         }
     #     }
     # ],
@@ -229,16 +223,16 @@ TABLES = {
             'serial': 'pow3ChSerial',
             'name': 'pow3ChName',
             'sensors': {
-                'pow3ChkWattHrs' + ch: dict(u_o_m=Sensor.UNIT_WATTHOURS),
-                'pow3ChVolts' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'pow3ChVoltMax' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'pow3ChVoltMin' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'pow3ChVoltMin' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'pow3ChVoltPeak' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'pow3ChDeciAmps' + ch: dict(u_o_m=Sensor.UNIT_AMPERES),
-                'pow3ChRealPower' + ch: {},
-                'pow3ChApparentPower' + ch: {},
-                'pow3ChPowerFactor' + ch: {},
+                'pow3ChkWattHrs' + ch,
+                'pow3ChVolts' + ch,
+                'pow3ChVoltMax' + ch,
+                'pow3ChVoltMin' + ch,
+                'pow3ChVoltMin' + ch,
+                'pow3ChVoltPeak' + ch,
+                'pow3ChDeciAmps' + ch,
+                'pow3ChRealPower' + ch,
+                'pow3ChApparentPower' + ch,
+                'pow3ChPowerFactor' + ch,
             }
         }
         for ch in ('A', 'B', 'C')
@@ -249,8 +243,8 @@ TABLES = {
             'serial': 'outletSerial',
             'name': 'outletName',
             'sensors': {
-                'outlet1Status': {},
-                'outlet2Status': {},
+                'outlet1Status',
+                'outlet2Status',
             }
         }
     ],
@@ -260,13 +254,13 @@ TABLES = {
             'serial': 'vsfcSerial',
             'name': 'vsfcName',
             'sensors': {
-                'vsfcSetPointC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'vsfcFanSpeed': dict(u_o_m=Sensor.UNIT_RPM),
-                'vsfcIntTempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'vsfcExt1TempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'vsfcExt2TempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'vsfcExt3TempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'vsfcExt4TempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
+                'vsfcSetPointC',
+                'vsfcFanSpeed',
+                'vsfcIntTempC',
+                'vsfcExt1TempC',
+                'vsfcExt2TempC',
+                'vsfcExt3TempC',
+                'vsfcExt4TempC',
             }
         }
     ],
@@ -276,13 +270,13 @@ TABLES = {
             'serial': 'ctrl3ChSerial',
             'name': 'ctrl3ChName',
             'sensors': {
-                'ctrl3ChVolts' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'ctrl3ChVoltPeak' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'ctrl3ChDeciAmps' + ch: dict(u_o_m=Sensor.UNIT_AMPERES),
-                'ctrl3ChDeciAmpsPeak' + ch: dict(u_o_m=Sensor.UNIT_AMPERES),
-                'ctrl3ChRealPower' + ch: dict(u_o_m=Sensor.UNIT_WATTS),
-                'ctrl3ChApparentPower' + ch: dict(u_o_m=Sensor.UNIT_VOLTAMPERES),
-                'ctrl3ChPowerFactor' + ch: {},
+                'ctrl3ChVolts' + ch,
+                'ctrl3ChVoltPeak' + ch,
+                'ctrl3ChDeciAmps' + ch,
+                'ctrl3ChDeciAmpsPeak' + ch,
+                'ctrl3ChRealPower' + ch,
+                'ctrl3ChApparentPower' + ch,
+                'ctrl3ChPowerFactor' + ch,
             }
         }
         for ch in ('A', 'B', 'C')
@@ -293,8 +287,8 @@ TABLES = {
             'serial': 'ctrlGrpAmpsSerial',
             'name': 'ctrlGrpAmpsName',
             'sensors': {
-                'ctrlGrpAmps' + ch: dict(u_o_m=Sensor.UNIT_AMPERES),
-                'ctrlGrpAmps' + ch + 'Volts': dict(u_o_m=Sensor.UNIT_VOLTS_AC),
+                'ctrlGrpAmps' + ch,
+                'ctrlGrpAmps' + ch + 'Volts',
             }
         }
         for ch in ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H')
@@ -305,17 +299,17 @@ TABLES = {
             'serial': 'ctrlOutletIndex',  # and serial
             'name': 'ctrlOutletName',  # FIXME name does not match previous implementation
             'sensors': {
-                'ctrlOutletStatus': {},
-                'ctrlOutletFeedback': {},
-                'ctrlOutletPending': {},
-                'ctrlOutletDeciAmps': dict(u_o_m=Sensor.UNIT_AMPERES),
-                'ctrlOutletUpDelay': {},
-                'ctrlOutletDwnDelay': {},
-                'ctrlOutletRbtDelay': {},
-                'ctrlOutletPOAAction': {},
-                'ctrlOutletPOADelay': {},
-                'ctrlOutletkWattHrs': {},
-                'ctrlOutletPower': {},
+                'ctrlOutletStatus',
+                'ctrlOutletFeedback',
+                'ctrlOutletPending',
+                'ctrlOutletDeciAmps',
+                'ctrlOutletUpDelay',
+                'ctrlOutletDwnDelay',
+                'ctrlOutletRbtDelay',
+                'ctrlOutletPOAAction',
+                'ctrlOutletPOADelay',
+                'ctrlOutletkWattHrs',
+                'ctrlOutletPower',
             }
         }
     ],
@@ -325,12 +319,11 @@ TABLES = {
             'serial': 'dstsSerial',
             'name': 'dstsName',
             'sensors': {
-                'dstsVolts' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_DC),
-                'dstsDeciAmps' + ch: dict(
-                        u_o_m=Sensor.UNIT_AMPERES),
-                'dstsSource' + ch + 'Active': {},
-                'dstsPowerStatus' + ch: {},
-                'dstsSource' + ch + 'TempC': {},
+                'dstsVolts' + ch,
+                'dstsDeciAmps' + ch,
+                'dstsSource' + ch + 'Active',
+                'dstsPowerStatus' + ch,
+                'dstsSource' + ch + 'TempC',
             }
         }
         for ch in ('A', 'B')
@@ -341,10 +334,10 @@ TABLES = {
             'serial': 'ctrlRelayIndex',
             'name': 'ctrlRelayName',
             'sensors': {
-                'ctrlRelayState': {},
-                'ctrlRelayLatchingMode': {},
-                'ctrlRelayOverride': {},
-                'ctrlRelayAcknowledge': {},
+                'ctrlRelayState',
+                'ctrlRelayLatchingMode',
+                'ctrlRelayOverride',
+                'ctrlRelayAcknowledge',
             }
         }
     ],
@@ -354,13 +347,13 @@ TABLES = {
             'serial': 'climateRelaySerial',
             'name': 'climateRelayName',
             'sensors': {
-                'climateRelayTempC': dict(u_o_m=Sensor.UNIT_CELSIUS),
-                'climateRelayIO1': {},
-                'climateRelayIO2': {},
-                'climateRelayIO3': {},
-                'climateRelayIO4': {},
-                'climateRelayIO5': {},
-                'climateRelayIO6': {},
+                'climateRelayTempC',
+                'climateRelayIO1',
+                'climateRelayIO2',
+                'climateRelayIO3',
+                'climateRelayIO4',
+                'climateRelayIO5',
+                'climateRelayIO6',
             }
         }
     ],
@@ -370,7 +363,7 @@ TABLES = {
             'serial': 'airSpeedSwitchSensorSerial',
             'name': 'airSpeedSwitchSensorName',
             'sensors': {
-                'airSpeedSwitchSensorAirSpeed': {},
+                'airSpeedSwitchSensorAirSpeed',
             }
         }
     ],
@@ -380,14 +373,14 @@ TABLES = {
             'serial': 'ctrl3ChIECSerial',
             'name': 'ctrl3ChIECName',
             'sensors': {
-                'ctrl3ChIECkWattHrs' + ch: {},
-                'ctrl3ChIECVolts' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'ctrl3ChIECVoltPeak' + ch: dict(u_o_m=Sensor.UNIT_VOLTS_AC),
-                'ctrl3ChIECDeciAmps' + ch: dict(u_o_m=Sensor.UNIT_AMPERES),
-                'ctrl3ChIECDeciAmpsPeak' + ch: dict(u_o_m=Sensor.UNIT_AMPERES),
-                'ctrl3ChIECRealPower' + ch: dict(u_o_m=Sensor.UNIT_WATTS),
-                'ctrl3ChIECApparentPower' + ch: dict(u_o_m=Sensor.UNIT_VOLTAMPERES),
-                'ctrl3ChIECPowerFactor' + ch: {},
+                'ctrl3ChIECkWattHrs' + ch,
+                'ctrl3ChIECVolts' + ch,
+                'ctrl3ChIECVoltPeak' + ch,
+                'ctrl3ChIECDeciAmps' + ch,
+                'ctrl3ChIECDeciAmpsPeak' + ch,
+                'ctrl3ChIECRealPower' + ch,
+                'ctrl3ChIECApparentPower' + ch,
+                'ctrl3ChIECPowerFactor' + ch,
             }
         }
         for ch in ('A', 'B', 'C')
@@ -420,18 +413,18 @@ class ItWatchDogsMibV3(BaseITWatchDogsMib):
                 for i in range(1, (aux_count + 1)):
                     aux_numb = str(i)
                     aux_name = (name + ' ' +
-                          power_dm.get('powerDMChannelGroup' + aux_numb))
+                                power_dm.get('powerDMChannelGroup' + aux_numb))
                     aux_name += ': ' + power_dm_oid.get('powerDMChannelName' +
                                                         aux_numb)
                     aux_name += (' - ' +
                                  power_dm_oid.get('powerDMChannelFriendly' +
                                                   aux_numb))
+                    sensor = 'powerDMDeciAmps' + aux_numb
+                    conf = convertUnits(self.mib, sensor)
                     sensors.append(self._make_result_dict(
                         power_dm_oid,
-                        self._get_oid_for_sensor('powerDMDeciAmps' + aux_numb),
-                        serial, 'powerDMDeciAmps' + aux_numb,
-                        u_o_m=Sensor.UNIT_AMPERES,
-                        name=aux_name))
+                        self._get_oid_for_sensor(sensor),
+                        serial, sensor, name=aux_name, **conf))
         return sensors
 
     def _get_io_expanders_params(self, io_expanders):
