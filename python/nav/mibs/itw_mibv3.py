@@ -140,9 +140,9 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
         return sensors
 
     @for_table('powMonTable')
-    def _get_pow_mon_sensors_params(self, pow_mon_sensors):
+    def _get_power_monitor_params(self, power_monitor_sensors):
         sensors = []
-        for pow_mon_sensor in itervalues(pow_mon_sensors):
+        for pow_mon_sensor in itervalues(power_monitor_sensors):
             pow_mon_avail = pow_mon_sensor.get('powMonAvail', None)
             if pow_mon_avail:
                 pow_mon_oid = pow_mon_sensor.get(0, None)
@@ -187,10 +187,11 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
 
     @for_table('tempSensorTable')
     def _get_temp_sensors_params(self, temp_sensors):
+        """ Collect all temperature sensors and corresponding parameters"""
         sensors = []
         for temp_sensor in itervalues(temp_sensors):
-            temp_avail = temp_sensor.get('tempSensorAvail', None)
-            if temp_avail:
+            temp_sensor_avail = temp_sensor.get('tempSensorAvail', None)
+            if temp_sensor_avail:
                 temp_oid = temp_sensor.get(0, None)
                 serial = temp_sensor.get('tempSensorSerial', None)
                 name = temp_sensor.get('tempSensorName', None)
@@ -203,6 +204,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
 
     @for_table('airFlowSensorTable')
     def _get_air_flow_sensors_params(self, air_flow_sensors):
+        """ Collect all airflow sensors and corresponding parameters"""
         sensors = []
         for air_flow_sensor in itervalues(air_flow_sensors):
             air_flow_avail = air_flow_sensor.get('airFlowSensorAvail', None)
@@ -212,18 +214,21 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 name = air_flow_sensor.get('airFlowSensorName', None)
                 sensors.append(self._make_result_dict(
                     air_flow_oid,
-                    self._get_oid_for_sensor('airFlowSensorTempC'),
-                    serial, 'airFlowSensorTempC', u_o_m=Sensor.UNIT_CELSIUS,
-                    name=name))
-                sensors.append(self._make_result_dict(
-                    air_flow_oid,
                     self._get_oid_for_sensor('airFlowSensorFlow'),
                     serial, 'airFlowSensorFlow', name=name))
+
+                sensors.append(self._make_result_dict(
+                    air_flow_oid,
+                    self._get_oid_for_sensor('airFlowSensorTempC'),
+                    serial, 'airFlowSensorTempC',
+                    u_o_m=Sensor.UNIT_CELSIUS, name=name))
+
                 sensors.append(self._make_result_dict(
                     air_flow_oid,
                     self._get_oid_for_sensor('airFlowSensorHumidity'),
                     serial, 'airFlowSensorHumidity',
                     u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY, name=name))
+
                 sensors.append(self._make_result_dict(
                     air_flow_oid,
                     self._get_oid_for_sensor('airFlowSensorDewPointC'),
@@ -269,6 +274,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
 
     @for_table('doorSensorTable')
     def _get_door_sensors_params(self, door_sensors):
+        """ Collect all door sensors and corresponding parameters"""
         sensors = []
         for door_sensor in itervalues(door_sensors):
             door_sensor_avail = door_sensor.get('doorSensorAvail', None)
@@ -284,6 +290,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
 
     @for_table('waterSensorTable')
     def _get_water_sensors_params(self, water_sensors):
+        """ Collect all water sensors and corresponding parameters"""
         sensors = []
         for water_sensor in itervalues(water_sensors):
             water_sensor_avail = water_sensor.get('waterSensorAvail', None)
@@ -314,16 +321,17 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
         return sensors
 
     @for_table('millivoltMonitorTable')
-    def _get_millivolt_monitors_params(self, millivolts_monitors):
+    def _get_millivolt_monitors_params(self, millivolt_monitors):
         sensors = []
-        for mvolts_mon in itervalues(millivolts_monitors):
-            mvolts_mon_avail = mvolts_mon.get('millivoltMonitorAvail', None)
-            if mvolts_mon_avail:
-                mvolts_mon_oid = mvolts_mon.get(0, None)
-                serial = mvolts_mon.get('millivoltMonitorSerial', None)
-                name = mvolts_mon.get('millivoltMonitorName', None)
+        for millivolt_mon in itervalues(millivolt_monitors):
+            millivolt_mon_avail = millivolt_mon.get('millivoltMonitorAvail',
+                                                    None)
+            if millivolt_mon_avail:
+                millivolt_mon_oid = millivolt_mon.get(0, None)
+                serial = millivolt_mon.get('millivoltMonitorSerial', None)
+                name = millivolt_mon.get('millivoltMonitorName', None)
                 sensors.append(self._make_result_dict(
-                    mvolts_mon_oid,
+                    millivolt_mon_oid,
                     self._get_oid_for_sensor('millivoltMonitorMV'),
                     serial, 'millivoltMonitorMV', u_o_m=Sensor.UNIT_VOLTS_DC,
                     scale='milli', name=name))
@@ -579,20 +587,21 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 name = dewpoint_sensor.get('dewPointSensorName', None)
                 sensors.append(self._make_result_dict(
                     dewpoint_sensor_oid,
+                    self._get_oid_for_sensor('dewPointSensorDewPointC'),
+                    serial, 'dewPointSensorDewPointC',
+                    u_o_m=Sensor.UNIT_CELSIUS, name=name))
+
+                sensors.append(self._make_result_dict(
+                    dewpoint_sensor_oid,
                     self._get_oid_for_sensor('dewPointSensorTempC'),
-                    serial, 'dewPointSensorTempC', u_o_m=Sensor.UNIT_CELSIUS,
-                    name=name))
+                    serial, 'dewPointSensorTempC',
+                    u_o_m=Sensor.UNIT_CELSIUS, name=name))
+
                 sensors.append(self._make_result_dict(
                     dewpoint_sensor_oid,
                     self._get_oid_for_sensor('dewPointSensorHumidity'),
                     serial, 'dewPointSensorHumidity',
                     u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY, name=name))
-                sensors.append(self._make_result_dict(
-                    dewpoint_sensor_oid,
-                    self._get_oid_for_sensor('dewPointSensorDewPointC'),
-                    serial, 'dewPointSensorDewPointC',
-                    u_o_m=Sensor.UNIT_CELSIUS,
-                    name=name))
         return sensors
 
     @for_table('digitalSensorTable')
@@ -649,7 +658,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
         return sensors
 
     @for_table('cpmSensorTable')
-    def _get_cpm_params(self, cpm_sensors):
+    def _get_cpm_sensors_params(self, cpm_sensors):
         sensors = []
         for cpm_sensor in itervalues(cpm_sensors):
             cpm_sensor_avail = cpm_sensor.get('cpmSensorAvail', None)
@@ -691,8 +700,8 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(
                     neg48vdc_sensor_oid,
                     self._get_oid_for_sensor('neg48VdcSensorVoltage'),
-                    serial, 'neg48VdcSensorVoltage', u_o_m=Sensor.UNIT_VOLTS_DC,
-                    name=name))
+                    serial, 'neg48VdcSensorVoltage',
+                    u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
         return sensors
 
     @for_table('pos30VdcSensorTable')

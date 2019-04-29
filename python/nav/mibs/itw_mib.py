@@ -53,6 +53,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
 
     oid_name_map = dict((OID(attrs['oid']), name)
                         for name, attrs in mib['nodes'].items())
+
     lowercase_nodes = dict((key.lower(), key)
                            for key in mib['nodes'])
 
@@ -75,7 +76,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
             return {}
         oid = OID(base_oid) + OID(sensor_oid)
         internal_name = serial + desc
-        return {'oid': str(oid),
+        return {'oid': oid,
                 'unit_of_measurement': u_o_m,
                 'precision': precision,
                 'scale': scale,
@@ -99,16 +100,14 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(
                     climate_oid,
                     self._get_oid_for_sensor('climateTempC'),
-                    serial, 'climateTempC',
-                    u_o_m=Sensor.UNIT_CELSIUS,
+                    serial, 'climateTempC', u_o_m=Sensor.UNIT_CELSIUS,
                     name=name))
 
                 sensors.append(self._make_result_dict(
                     climate_oid,
                     self._get_oid_for_sensor('climateHumidity'),
                     serial, 'climateHumidity',
-                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
-                    name=name))
+                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY, name=name))
 
                 sensors.append(self._make_result_dict(
                     climate_oid,
@@ -154,40 +153,36 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(
                     temp_oid,
                     self._get_oid_for_sensor('tempSensorTempC'),
-                    serial, 'tempSensorTempC',
-                    u_o_m=Sensor.UNIT_CELSIUS,
+                    serial, 'tempSensorTempC', u_o_m=Sensor.UNIT_CELSIUS,
                     name=name))
         return sensors
 
     @for_table('airFlowSensorTable')
-    def _get_airflow_sensors_params(self, airflow_sensors):
+    def _get_air_flow_sensors_params(self, air_flow_sensors):
         """ Collect all airflow sensors and corresponding parameters"""
         sensors = []
-        for airflow_sensor in itervalues(airflow_sensors):
-            airflow_avail = airflow_sensor.get('airFlowSensorAvail', None)
-            if airflow_avail:
-                airflow_oid = airflow_sensor.get(0, None)
-                serial = airflow_sensor.get('airFlowSensorSerial', None)
-                name = airflow_sensor.get('airFlowSensorName', None)
+        for air_flow_sensor in itervalues(air_flow_sensors):
+            air_flow_avail = air_flow_sensor.get('airFlowSensorAvail', None)
+            if air_flow_avail:
+                air_flow_oid = air_flow_sensor.get(0, None)
+                serial = air_flow_sensor.get('airFlowSensorSerial', None)
+                name = air_flow_sensor.get('airFlowSensorName', None)
                 sensors.append(self._make_result_dict(
-                    airflow_oid,
+                    air_flow_oid,
                     self._get_oid_for_sensor('airFlowSensorFlow'),
-                    serial, 'airFlowSensorFlow',
-                    name=name))
+                    serial, 'airFlowSensorFlow', name=name))
 
                 sensors.append(self._make_result_dict(
-                    airflow_oid,
+                    air_flow_oid,
                     self._get_oid_for_sensor('airFlowSensorTempC'),
                     serial, 'airFlowSensorTempC',
-                    u_o_m=Sensor.UNIT_CELSIUS,
-                    name=name))
+                    u_o_m=Sensor.UNIT_CELSIUS, name=name))
 
                 sensors.append(self._make_result_dict(
-                    airflow_oid,
+                    air_flow_oid,
                     self._get_oid_for_sensor('airFlowSensorHumidity'),
                     serial, 'airFlowSensorHumidity',
-                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
-                    name=name))
+                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY, name=name))
         return sensors
 
     @for_table('doorSensorTable')
@@ -195,16 +190,15 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         """ Collect all door sensors and corresponding parameters"""
         sensors = []
         for door_sensor in itervalues(door_sensors):
-            door_avail = door_sensor.get('doorSensorAvail', None)
-            if door_avail:
-                door_oid = door_sensor.get(0, None)
+            door_sensor_avail = door_sensor.get('doorSensorAvail', None)
+            if door_sensor_avail:
+                door_sensor_oid = door_sensor.get(0, None)
                 serial = door_sensor.get('doorSensorSerial', None)
                 name = door_sensor.get('doorSensorName', None)
                 sensors.append(self._make_result_dict(
-                    door_oid,
+                    door_sensor_oid,
                     self._get_oid_for_sensor('doorSensorStatus'),
-                    serial, 'doorSensorStatus',
-                    name=name))
+                    serial, 'doorSensorStatus', name=name))
         return sensors
 
     @for_table('waterSensorTable')
@@ -213,27 +207,28 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         sensors = []
         self._logger.debug('_get_water_sensors_params: %s' % water_sensors)
         for water_sensor in itervalues(water_sensors):
-            water_avail = water_sensor.get('waterSensorAvail', 0)
-            if water_avail:
-                water_oid = water_sensor.get(0, None)
+            water_sensor_avail = water_sensor.get('waterSensorAvail', 0)
+            if water_sensor_avail:
+                water_sensor_oid = water_sensor.get(0, None)
                 serial = water_sensor.get('waterSensorSerial', None)
                 name = water_sensor.get('waterSensorName', None)
-                sensors.append(self._make_result_dict(water_oid,
-                               self._get_oid_for_sensor('waterSensorDampness'),
-                               serial, 'waterSensorDampness', name=name))
+                sensors.append(self._make_result_dict(
+                    water_sensor_oid,
+                    self._get_oid_for_sensor('waterSensorDampness'),
+                    serial, 'waterSensorDampness', name=name))
         return sensors
 
     @for_table('currentMonitorTable')
-    def _get_current_sensors_params(self, current_sensors):
+    def _get_current_monitors_params(self, current_monitors):
         sensors = []
-        for current_sensor in itervalues(current_sensors):
-            current_avail = current_sensor.get('currentMonitorAvail', None)
-            if current_avail:
-                current_oid = current_sensor.get(0, None)
-                serial = current_sensor.get('currentMonitorSerial', None)
-                name = current_sensor.get('currentMonitorName', None)
+        for current_mon in itervalues(current_monitors):
+            current_mon_avail = current_mon.get('currentMonitorAvail', None)
+            if current_mon_avail:
+                current_mon_oid = current_mon.get(0, None)
+                serial = current_mon.get('currentMonitorSerial', None)
+                name = current_mon.get('currentMonitorName', None)
                 sensors.append(self._make_result_dict(
-                    current_oid,
+                    current_mon_oid,
                     self._get_oid_for_sensor('currentMonitorAmps'),
                     serial, 'currentMonitorAmps',
                     u_o_m=Sensor.UNIT_AMPERES, scale='milli',
@@ -241,20 +236,19 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         return sensors
 
     @for_table('millivoltMonitorTable')
-    def _get_millivolt_sensors_params(self, millivolt_sensors):
+    def _get_millivolt_monitors_params(self, millivolt_monitors):
         sensors = []
-        for millivolt_sensor in itervalues(millivolt_sensors):
-            millivolt_avail = millivolt_sensor.get('millivoltMonitorAvail',
-                                                   None)
-            if millivolt_avail:
-                millivolt_oid = millivolt_sensor.get(0, None)
-                serial = millivolt_sensor.get('millivoltMonitorSerial', None)
-                name = millivolt_sensor.get('millivoltMonitorName', None)
+        for millivolt_mon in itervalues(millivolt_monitors):
+            millivolt_mon_avail = millivolt_mon.get('millivoltMonitorAvail',
+                                                    None)
+            if millivolt_mon_avail:
+                millivolt_mon_oid = millivolt_mon.get(0, None)
+                serial = millivolt_mon.get('millivoltMonitorSerial', None)
+                name = millivolt_mon.get('millivoltMonitorName', None)
                 sensors.append(self._make_result_dict(
-                    millivolt_oid,
+                    millivolt_mon_oid,
                     self._get_oid_for_sensor('millivoltMonitorMV'),
-                    serial, 'millivoltMonitorMV',
-                    u_o_m=Sensor.UNIT_VOLTS_DC,
+                    serial, 'millivoltMonitorMV', u_o_m=Sensor.UNIT_VOLTS_DC,
                     scale='milli', name=name))
         return sensors
 
@@ -262,25 +256,26 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     def _get_dewpoint_sensors_params(self, dewpoint_sensors):
         sensors = []
         for dewpoint_sensor in itervalues(dewpoint_sensors):
-            dewpoint_avail = dewpoint_sensor.get('dewPointSensorAvail', None)
-            if dewpoint_avail:
-                dewpoint_oid = dewpoint_sensor.get(0, None)
+            dewpoint_sensor_avail = dewpoint_sensor.get('dewPointSensorAvail',
+                                                        None)
+            if dewpoint_sensor_avail:
+                dewpoint_sensor_oid = dewpoint_sensor.get(0, None)
                 serial = dewpoint_sensor.get('dewPointSensorSerial', None)
                 name = dewpoint_sensor.get('dewPointSensorName', None)
                 sensors.append(self._make_result_dict(
-                    dewpoint_oid,
+                    dewpoint_sensor_oid,
                     self._get_oid_for_sensor('dewPointSensorDewPoint'),
                     serial, 'dewPointSensorDewPoint',
                     u_o_m=Sensor.UNIT_CELSIUS, name=name))
 
                 sensors.append(self._make_result_dict(
-                    dewpoint_oid,
+                    dewpoint_sensor_oid,
                     self._get_oid_for_sensor('dewPointSensorTempC'),
                     serial, 'dewPointSensorTempC',
                     u_o_m=Sensor.UNIT_CELCIUS, name=name))
 
                 sensors.append(self._make_result_dict(
-                    dewpoint_oid,
+                    dewpoint_sensor_oid,
                     self._get_oid_for_sensor('dewPointSensorHumidity'),
                     serial, 'dewPointSensorHumidity',
                     u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY, name=name))
@@ -292,11 +287,11 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         for digital_sensor in itervalues(digital_sensors):
             digital_avail = digital_sensor.get('digitalSensorAvail', None)
             if digital_avail:
-                digital_oid = digital_sensor.get(0, None)
+                digital_sensor_oid = digital_sensor.get(0, None)
                 serial = digital_sensor.get('digitalSensorSerial', None)
                 name = digital_sensor.get('digitalSensorName', None)
                 sensors.append(self._make_result_dict(
-                    digital_oid,
+                    digital_sensor_oid,
                     self._get_oid_for_sensor('digitalSensorDigital'),
                     serial, 'digitalSensorDigital', name=name))
         return sensors
@@ -305,44 +300,44 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     def _get_cpm_sensors_params(self, cpm_sensors):
         sensors = []
         for cpm_sensor in itervalues(cpm_sensors):
-            cpm_avail = cpm_sensor.get('cpmSensorAvail', None)
-            if cpm_avail:
-                cpm_oid = cpm_sensor.get(0, None)
+            cpm_sensor_avail = cpm_sensor.get('cpmSensorAvail', None)
+            if cpm_sensor_avail:
+                cpm_sensor_oid = cpm_sensor.get(0, None)
                 serial = cpm_sensor.get('cpmSensorSerial', None)
                 name = cpm_sensor.get('cpmSensorName', None)
                 sensors.append(self._make_result_dict(
-                    cpm_oid,
+                    cpm_sensor_oid,
                     self._get_oid_for_sensor('cpmSensorStatus'),
                     serial, 'cpmSensorStatus', name=name))
         return sensors
 
     @for_table('smokeAlarmTable')
-    def _get_smoke_sensors_params(self, smoke_sensors):
+    def _get_smoke_alarms_params(self, smoke_alarms):
         sensors = []
-        for smoke_sensor in itervalues(smoke_sensors):
-            smoke_avail = smoke_sensor.get('smokeAlarmAvail', None)
-            if smoke_avail:
-                smoke_oid = smoke_sensor.get(0, None)
-                serial = smoke_sensor.get('smokeAlarmSerial', None)
-                name = smoke_sensor.get('smokeAlarmName', None)
+        for smoke_alarm in itervalues(smoke_alarms):
+            smoke_alarm_avail = smoke_alarm.get('smokeAlarmAvail', None)
+            if smoke_alarm_avail:
+                smoke_alarm_oid = smoke_alarm.get(0, None)
+                serial = smoke_alarm.get('smokeAlarmSerial', None)
+                name = smoke_alarm.get('smokeAlarmName', None)
                 sensors.append(self._make_result_dict(
-                    smoke_oid,
+                    smoke_alarm_oid,
                     self._get_oid_for_sensor('smokeAlarmStatus'),
-                    serial, 'smokeAlarmStatus',
-                    name=name))
+                    serial, 'smokeAlarmStatus', name=name))
         return sensors
 
     @for_table('neg48VdcSensorTable')
     def _get_neg48vdc_sensors_params(self, neg48vdc_sensors):
         sensors = []
         for neg48vdc_sensor in itervalues(neg48vdc_sensors):
-            neg48vdc_avail = neg48vdc_sensor.get('neg48VdcSensorAvail', None)
-            if neg48vdc_avail:
-                neg48vdc_oid = neg48vdc_sensor.get(0, None)
+            neg48vdc_sensor_avail = neg48vdc_sensor.get('neg48VdcSensorAvail',
+                                                        None)
+            if neg48vdc_sensor_avail:
+                neg48vdc_sensor_oid = neg48vdc_sensor.get(0, None)
                 serial = neg48vdc_sensor.get('neg48VdcSensorSerial', None)
                 name = neg48vdc_sensor.get('neg48VdcSensorName', None)
                 sensors.append(self._make_result_dict(
-                    neg48vdc_oid,
+                    neg48vdc_sensor_oid,
                     self._get_oid_for_sensor('neg48VdcSensorVoltage'),
                     serial, 'neg48VdcSensorVoltage',
                     u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
@@ -352,16 +347,17 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
     def _get_pos30vdc_sensors_params(self, pos30vdc_sensors):
         sensors = []
         for pos30vdc_sensor in itervalues(pos30vdc_sensors):
-            pos30vdc_avail = pos30vdc_sensor.get('pos30VdcSensorAvail', None)
-            if pos30vdc_avail:
-                pos30vdc_oid = pos30vdc_sensor.get(0, None)
+            pos30vdc_sensor_avail = pos30vdc_sensor.get('pos30VdcSensorAvail',
+                                                        None)
+            if pos30vdc_sensor_avail:
+                pos30vdc_sensor_oid = pos30vdc_sensor.get(0, None)
                 serial = pos30vdc_sensor.get('pos30VdcSensorSerial', None)
                 name = pos30vdc_sensor.get('pos30VdcSensorName', None)
                 sensors.append(self._make_result_dict(
-                    pos30vdc_oid,
+                    pos30vdc_sensor_oid,
                     self._get_oid_for_sensor('pos30VdcSensorVoltage'),
-                    serial, 'pos30VdcSensorVoltage',
-                    u_o_m=Sensor.UNIT_VOLTS_DC, name=name))
+                    serial, 'pos30VdcSensorVoltage', u_o_m=Sensor.UNIT_VOLTS_DC,
+                    name=name))
         return sensors
 
     @for_table('analogSensorTable')
@@ -370,11 +366,11 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
         for analog_sensor in itervalues(analog_sensors):
             analog_avail = analog_sensor.get('analogSensorAvail', None)
             if analog_avail:
-                analog_oid = analog_sensor.get(0, None)
+                analog_sensor_oid = analog_sensor.get(0, None)
                 serial = analog_sensor.get('analogSensorSerial', None)
                 name = analog_sensor.get('analogSensorName', None)
                 sensors.append(self._make_result_dict(
-                    analog_oid,
+                    analog_sensor_oid,
                     self._get_oid_for_sensor('analogSensorAnalog'),
                     serial, 'analogSensorAnalog', name=name))
         return sensors
