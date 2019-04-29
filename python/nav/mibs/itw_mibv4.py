@@ -69,8 +69,10 @@ TABLES = {
                 'airFlowSensorTemp': dict(
                     precision=1, u_o_m=Sensor.UNIT_CELSIUS),
                 'airFlowSensorFlow': dict(u_o_m=Sensor.UNIT_UNKNOWN),
-                'airFlowSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
-                'airFlowDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'airFlowSensorHumidity': dict(
+                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'airFlowSensorDewPoint': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
             }
         }
     ],
@@ -80,9 +82,12 @@ TABLES = {
             'serial': 'dewPointSensorSerial',
             'name': 'dewPointSensorName',
             'sensors': {
-                'dewPointSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
-                'dewPointSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
-                'dewPointDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'dewPointSensorTemp': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'dewPointSensorHumidity': dict(
+                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'dewPointSensorDewPoint': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
             }
         }
     ],
@@ -92,9 +97,12 @@ TABLES = {
             'serial': 't3hdSensorSerial',
             'name': 't3hdSensorIntName',
             'sensors': {
-                't3hdSensorIntSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
-                't3hdSensorIntSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
-                't3hdSensorIntDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                't3hdSensorIntTemp': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                't3hdSensorIntHumidity': dict(
+                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                't3hdSensorIntDewPoint': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
             }
         },
         {
@@ -111,15 +119,8 @@ TABLES = {
             'serial': 't3hdSensorSerial',
             'name': 't3hdSensorExtBName',
             'sensors': {
-                't3hdSensorExtBTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
-            }
-        },
-        {
-            'avail': 't3hdSensorExtCAvail',
-            'serial': 't3hdSensorSerial',
-            'name': 't3hdSensorExtCName',
-            'sensors': {
-                't3hdSensorExtCTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                't3hdSensorExtBTemp': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
             }
         },
     ],
@@ -130,8 +131,10 @@ TABLES = {
             'name': 'thdSensorName',
             'sensors': {
                 'thdSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
-                'thdSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
-                'thdDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'thdSensorHumidity': dict(
+                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'thdSensorDewPoint': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
             }
         }
     ],
