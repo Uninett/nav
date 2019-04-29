@@ -26,14 +26,10 @@ sensors of the box are implemented. The box can be extended with additional
 external sensors, but these are not implemented because we did not have any
 external sensors available at the time of this implementation.
 """
-from django.utils.six import itervalues
-from twisted.internet import defer
 
-from nav.mibs import reduce_index
 from nav.smidumps import get_mib
-from nav.mibs import mibretriever
+from nav.mibs.itw_mib import BaseITWatchDogsMib
 from nav.models.manage import Sensor
-from nav.oids import OID
 
 TABLES = {
     'internalTable': [
@@ -43,8 +39,10 @@ TABLES = {
             'name': 'internalName',
             'sensors': {
                 'internalTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
-                'internalHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
-                'internalDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'internalHumidity': dict(
+                    u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
+                'internalDewPoint': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
                 'internalIO1': dict(u_o_m=Sensor.UNIT_UNKNOWN),
                 'internalIO2': dict(u_o_m=Sensor.UNIT_UNKNOWN),
                 'internalIO3': dict(u_o_m=Sensor.UNIT_UNKNOWN),
@@ -68,7 +66,8 @@ TABLES = {
             'serial': 'airFlowSensorSerial',
             'name': 'airFlowSensorName',
             'sensors': {
-                'airFlowSensorTemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                'airFlowSensorTemp': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
                 'airFlowSensorFlow': dict(u_o_m=Sensor.UNIT_UNKNOWN),
                 'airFlowSensorHumidity': dict(u_o_m=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY),
                 'airFlowDewPoint': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
@@ -103,7 +102,8 @@ TABLES = {
             'serial': 't3hdSensorSerial',
             'name': 't3hdSensorExtAName',
             'sensors': {
-                't3hdSensorExtATemp': dict(precision=1, u_o_m=Sensor.UNIT_CELSIUS),
+                't3hdSensorExtATemp': dict(
+                    precision=1, u_o_m=Sensor.UNIT_CELSIUS),
             }
         },
         {
@@ -141,9 +141,11 @@ TABLES = {
             'serial': 'rpmSensorSerial',
             'name': 'rpmSensorName',
             'sensors': {
-                'rpmSensorEnergy': dict(u_o_m=Sensor.UNIT_WATTHOURS, scale=Sensor.SCALE_KILO),
+                'rpmSensorEnergy': dict(
+                    u_o_m=Sensor.UNIT_WATTHOURS, scale=Sensor.SCALE_KILO),
                 'rpmSensorVoltage': dict(u_o_m=Sensor.UNIT_VOLTS_DC),
-                'rpmSensorCurrent': dict(precision=1, u_o_m=Sensor.UNIT_AMPERES),
+                'rpmSensorCurrent': dict(
+                    precision=1, u_o_m=Sensor.UNIT_AMPERES),
                 'rpmSensorRealPower': dict(u_o_m=Sensor.UNIT_WATTS),
                 'rpmSensorApparentPower': dict(u_o_m=Sensor.UNIT_VOLTAMPERES),
                 'rpmSensorPowerFactor': dict(u_o_m=Sensor.UNIT_PERCENT),
@@ -155,71 +157,7 @@ TABLES = {
 }
 
 
-class ItWatchDogsMibV4(mibretriever.MibRetriever):
+class ItWatchDogsMibV4(BaseITWatchDogsMib):
     """A class that tries to retrieve all sensors from Watchdog 100"""
     mib = get_mib('IT-WATCHDOGS-V4-MIB')
-
-    def _get_oid_for_sensor(self, sensor_name):
-        """Return the OID for the given sensor-name as a string; Return
-        None if sensor-name is not found.
-        """
-        oid_str = None
-        nodes = self.mib.get('nodes', None)
-        if nodes:
-            sensor_def = nodes.get(sensor_name, None)
-            if sensor_def:
-                oid_str = sensor_def.get('oid', None)
-        return oid_str
-
-    def _make_result_dict(self, sensor_oid, base_oid, serial, desc,
-                          u_o_m=None, precision=0, scale=None, name=None):
-        """ Make a simple dictionary to return to plugin"""
-        if not sensor_oid or not base_oid or not serial or not desc:
-            return {}
-        oid = OID(base_oid) + OID(sensor_oid)
-        internal_name = serial.decode('utf-8') + desc
-        return {'oid': oid,
-                'unit_of_measurement': u_o_m,
-                'precision': precision,
-                'scale': scale,
-                'description': desc,
-                'name': name,
-                'internal_name': internal_name,
-                'mib': self.get_module_name(),
-                }
-
-    def _handle_sensor_group(self, sensor_group, table_data):
-        result = []
-        avail_col = sensor_group['avail']
-        name_col = sensor_group['name']
-        serial_col = sensor_group['serial']
-        sensor_conf = sensor_group['sensors']
-
-        for row in itervalues(table_data):
-            is_avail = row.get(avail_col)
-            if is_avail:
-                oid = row.get(0)
-                serial = row.get(serial_col)
-                name = row.get(name_col)
-                for sensor, conf in sensor_conf.items():
-                    result.append(self._make_result_dict(
-                        oid,
-                        self._get_oid_for_sensor(sensor),
-                        serial, sensor, name=name, **conf))
-
-        return result
-
-    @defer.inlineCallbacks
-    def get_all_sensors(self):
-        """ Try to retrieve all internal available sensors in this WxGoose"""
-
-        result = []
-        for table, sensor_groups in TABLES.items():
-            self._logger.debug('get_all_sensors: table = %s', table)
-            sensors = yield self.retrieve_table(
-                                        table).addCallback(reduce_index)
-            self._logger.debug('get_all_sensors: %s = %s', table, sensors)
-            for sensor_group in sensor_groups:
-                result.extend(self._handle_sensor_group(sensor_group, sensors))
-
-        defer.returnValue(result)
+    TABLES = TABLES
