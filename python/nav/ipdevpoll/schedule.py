@@ -452,15 +452,15 @@ class JobScheduler(object):
         jobs.sort(key=itemgetter(2), reverse=True)
         table_formatter = SimpleTableFormatter(jobs)
 
-        logger = logging.getLogger("%s.joblist" % __name__)
+        _logger = logging.getLogger("%s.joblist" % __name__)
         if jobs:
-            logger.log(level,
-                       "currently active jobs (%d):\n%s",
-                       len(jobs), table_formatter)
+            _logger.log(level,
+                        "currently active jobs (%d):\n%s",
+                        len(jobs), table_formatter)
         else:
-            logger.log(level,
-                       "no active jobs (%d JobHandlers)",
-                       JobHandler.get_instance_count())
+            _logger.log(level,
+                        "no active jobs (%d JobHandlers)",
+                        JobHandler.get_instance_count())
 
 
 class CounterFlusher(defaultdict):

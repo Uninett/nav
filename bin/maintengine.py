@@ -44,15 +44,15 @@ def main():
         formatter=fmt,
         read_config=True,
     )
-    logger = logging.getLogger('')
+    _logger = logging.getLogger('')
 
-    logger.debug('------------------------------------------------------------')
+    _logger.debug('-'*60)  # Visual separation line
     try:
         check_devices_on_maintenance()
     except Exception:
-        logger.exception("An unhandled exception occurred:")
-    logger.debug('Finished in %.3fs' % (time.clock() - before))
-    logger.debug('------------------------------------------------------------')
+        _logger.exception("An unhandled exception occurred:")
+    _logger.debug('Finished in %.3fs' % (time.clock() - before))
+    _logger.debug('-'*60)  # Visual separation line
 
 
 if __name__ == '__main__':

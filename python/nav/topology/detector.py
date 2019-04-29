@@ -100,9 +100,9 @@ def with_exception_logging(func):
             return func(*args, **kwargs)
         except Exception:
             stacktrace = inspect.trace()[1:]
-            logger = logging.getLogger(__name__)
-            logger.exception("An unhandled exception occurred")
-            log_last_django_query(logger)
+            _logger = logging.getLogger(__name__)
+            _logger.exception("An unhandled exception occurred")
+            log_last_django_query(_logger)
             log_stacktrace(logging.getLogger('nav.topology.stacktrace'),
                            stacktrace)
             raise
