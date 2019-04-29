@@ -270,7 +270,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     dewpoint_sensor_oid,
                     self._get_oid_for_sensor('dewPointSensorTempC'),
                     serial, 'dewPointSensorTempC',
-                    u_o_m=Sensor.UNIT_CELCIUS, name=name))
+                    u_o_m=Sensor.UNIT_CELSIUS, name=name))
 
                 sensors.append(self._make_result_dict(
                     dewpoint_sensor_oid,
@@ -551,7 +551,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(
                     vsfc_oid,
                     self._get_oid_for_sensor('vsfcSetPointC'),
-                    serial, 'vsfcSetPointC', u_o_m=Sensor.UNIT_CELCIUS,
+                    serial, 'vsfcSetPointC', u_o_m=Sensor.UNIT_CELSIUS,
                     name=name))
                 sensors.append(self._make_result_dict(
                     vsfc_oid,
@@ -561,7 +561,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(
                     vsfc_oid,
                     self._get_oid_for_sensor('vsfcIntTempC'),
-                    serial, 'vsfcIntTempC', u_o_m=Sensor.UNIT_CELCIUS,
+                    serial, 'vsfcIntTempC', u_o_m=Sensor.UNIT_CELSIUS,
                     name=name))
                 # sensors for ports 1 - 4
                 for port in range(1, 5):
@@ -569,7 +569,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                     sensors.append(self._make_result_dict(
                         vsfc_oid,
                         self._get_oid_for_sensor(sensor_key), serial,
-                        sensor_key, u_o_m=Sensor.UNIT_CELCIUS, name=name))
+                        sensor_key, u_o_m=Sensor.UNIT_CELSIUS, name=name))
         return sensors
 
     @for_table('ctrl3ChTable')
@@ -710,7 +710,7 @@ class ItWatchDogsMib(mibretriever.MibRetriever):
                         dsts_sensor_oid,
                         self._get_oid_for_sensor('dstsSource' + pfix + 'TempC'),
                         serial, 'dstsSource' + pfix + 'TempC',
-                        u_o_m=Sensor.UNIT_CELCIUS,
+                        u_o_m=Sensor.UNIT_CELSIUS,
                         name=name))
         return sensors
 
