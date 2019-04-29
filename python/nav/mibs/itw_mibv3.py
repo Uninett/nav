@@ -219,7 +219,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                 sensors.append(self._make_result_dict(
                     water_sensor_oid,
                     self._get_oid_for_sensor('waterSensorDampness'),
-                    serial, 'waterSensorSerial', name=name))
+                    serial, 'waterSensorDampness', name=name))
         return sensors
 
     @for_table('currentMonitorTable')
@@ -479,9 +479,9 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
                         name=name))
                     sensors.append(self._make_result_dict(
                         power3_ch_sensor_oid,
-                        self._get_oid_for_sensor('pow3ChDeciAmps' + port),
+                        self._get_oid_for_sensor('pow3ChVoltMax' + port),
                         serial, 'pow3ChVoltMax' + port,
-                        u_o_m=Sensor.UNIT_AMPERES,
+                        u_o_m=Sensor.UNIT_VOLTS_DC,
                         name=name))
                     sensors.append(self._make_result_dict(
                         power3_ch_sensor_oid,
@@ -623,7 +623,7 @@ class ItWatchDogsMibV3(mibretriever.MibRetriever):
             if ctrl_grp_amp_avail:
                 ctrl_grp_amp_oid = ctrl_grp_amps_sensor.get(0)
                 serial = ctrl_grp_amps_sensor.get('ctrlGrpAmpsSerial')
-                name = ctrl_grp_amp_avail.get('ctrlGrpAmpsName')
+                name = ctrl_grp_amps_sensor.get('ctrlGrpAmpsName')
                 for pfix in ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'):
                     sensors.append(self._make_result_dict(
                         ctrl_grp_amp_oid,
