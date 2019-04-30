@@ -16,11 +16,29 @@
 Contains web authentication functionality for NAV.
 """
 """NAV authentication and authorization middleware for Django"""
+"""
+Authentication and authorization middleware for Django.
+"""
 
-from os.path import join
+from datetime import datetime
 import logging
+from os.path import join
 import os
-from logging import getLogger
+
+from django.conf import settings
+from django.contrib.sessions.backends.db import SessionStore
+from django.http import HttpResponseRedirect, HttpResponse
+from django.urls import reverse
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.six.moves.urllib import parse
+
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:  # Django <= 1.9
+    MiddlewareMixin = object
+
+
+_logger = logging.getLogger(__name__)
 
 try:
     # Python 3.6+
@@ -37,15 +55,6 @@ except ImportError:
         symbols = string.ascii_letters + string.punctuation + string.digits
         return u"".join(choice(symbols) for i in range(length))
 
-from django.http import HttpResponseRedirect, HttpResponse
-from django.contrib.sessions.backends.db import SessionStore
-from django.conf import settings
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six.moves.urllib import parse
-try:
-    from django.utils.deprecation import MiddlewareMixin
-except ImportError:  # Django <= 1.9
-    MiddlewareMixin = object
 
 from nav.auditlog.models import LogEntry
 from nav.config import NAVConfigParser
@@ -53,8 +62,6 @@ from nav.django.utils import is_admin, get_account
 from nav.models.profiles import Account, AccountGroup
 from nav.web import ldapauth
 
-
-_logger = logging.getLogger(__name__)
 
 ACCOUNT_ID_VAR = 'account_id'
 SUDOER_ID_VAR = 'sudoer'
@@ -70,6 +77,7 @@ class RemoteUserConfigParser(NAVConfigParser):
     DEFAULT_CONFIG = u"""
 [remote-user]
 enabled=no
+login-url=
 """
 _config = RemoteUserConfigParser()
 
