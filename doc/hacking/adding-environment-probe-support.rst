@@ -54,11 +54,15 @@ The downloaded :file:`akcp.mib` file defines a MIB module named
 
 .. code-block:: sh
 
-   smidump -k -f python akcp.mib > python/nav/smidumps/spagent_mib.py
+   smidump -k -f python akcp.mib > python/nav/smidumps/SPAGENT-MIB.py
 
 .. NOTE:: The SPAGENT-MIB definitions are somewhat flawed and will cause
    *smidump* to output some parsing errors. The ``-k`` command line option is
    there to make it produce its output despite many of these errors.
+
+   It does not matter that the output file is invalid as a Python module
+   name. It is loaded dynamically by NAV, and should be named verbatim after
+   the MIB module it defines.
 
 The :py:mod:`nav.smidumps` package is where NAV distributes Python versions of
 the MIB definitions its code uses.
@@ -178,10 +182,11 @@ code::
     from twisted.internet import defer
     from nav.mibs import reduce_index
     from nav.mibs.mibretriever import MibRetriever
+    from nav.smidumps import get_mib
 
 
     class SPAgentMib(MibRetriever):
-	from nav.smidumps.spagent_mib import MIB as mib
+	mib = get_mib('SPAGENT-MIB')
 
 
 The :program:`ipdevpoll` plugin :py:mod:`nav.ipdevpoll.plugins.sensors` needs
@@ -198,7 +203,7 @@ Let's hardcode an example result for a single temperature sensor, based on the
 *snmpwalk* from above::
 
     class SPAgentMib(MibRetriever):
-	from nav.smidumps.spagent_mib import MIB as mib
+	mib = get_mib('SPAGENT-MIB')
 
 	@defer.inlineCallbacks
 	def get_all_sensors(self):
@@ -282,7 +287,7 @@ Let's rewrite ``SPAgentMib`` to collect actual temperature sensors:
     
 		     
     class SPAgentMib(MibRetriever):
-	from nav.smidumps.spagent_mib import MIB as mib
+	mib = get_mib('SPAGENT-MIB')
 
 	@defer.inlineCallbacks
 	def get_all_sensors(self):
