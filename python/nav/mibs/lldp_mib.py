@@ -83,29 +83,48 @@ class LLDPMib(mibretriever.MibRetriever):
         Ideally, we want all port references to be ifIndexes, but some devices'
         LLDP-MIB implementations will use dot1dBasePort references or something
         altogether different. In our experience, ifIndex is most common,
-        dot1dBasePort is the second most common, while we really haven't seen
-        anything else used at this point.
+        dot1dBasePort is the second most common, while sometimes (such as in
+        the case with Alcatel), some arbitrary internal number is used, but
+        translateable into an ifIndex via the lldpLocPortTable.
 
         """
         remotes = remote_table.values()
         local_ports = yield self._retrieve_local_ports()
+
+        # Use SNMP queries to make lookup tables, if necessary
         idtypes = set(type(port) for port in local_ports.values())
         if idtypes:
             self._logger.debug("local port id types in use: %s",
                                [t.__name__ for t in idtypes])
-        translation_necessary = IdSubtypes.interfaceName in idtypes
+        uses_ifnames = IdSubtypes.interfaceName in idtypes
+        if uses_ifnames:
+            self._logger.debug(
+                "translation of local port numbers by ifName is necessary"
+            )
+            name_to_ifindex = yield self._make_interface_lookup_dict()
+        else:
+            name_to_ifindex = {}
 
+        # Do the actual translations
         lookup = {}
-        if translation_necessary:
-            self._logger.debug("translation of local port numbers is necessary")
-            by_name = yield self._make_interface_lookup_dict()
-            for local_portnum, port in local_ports.items():
-                ifindex = by_name.get(port, None)
+        for local_portnum, port in local_ports.items():
+            if isinstance(port, IdSubtypes.interfaceName):
+                ifindex = name_to_ifindex.get(port, None)
                 if ifindex:
                     self._logger.debug(
                         "translating local port num %s via %r to ifindex %s",
-                        local_portnum, port, ifindex)
+                        local_portnum,
+                        port,
+                        ifindex
+                    )
                     lookup[local_portnum] = ifindex
+            elif isinstance(port, IdSubtypes.local) and local_portnum != int(port):
+                self._logger.debug(
+                    "translating local port num %s to ifindex %s",
+                    local_portnum,
+                    port,
+                )
+                lookup[local_portnum] = int(port)
 
         for remote in remotes:
             _timemark, local_portnum, _index = remote[0]
