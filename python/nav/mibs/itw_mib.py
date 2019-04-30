@@ -340,21 +340,21 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
         return oid_str
 
     def _make_result_dict(self, sensor_oid, base_oid, serial, desc,
-                          u_o_m=None, precision=0, scale=None, name=None):
+                          u_o_m=None, **kwargs):
         """ Make a simple dictionary to return to plugin"""
         if not sensor_oid or not base_oid or not serial or not desc:
             return {}
         oid = OID(base_oid) + OID(sensor_oid)
         internal_name = serial.decode('utf-8') + desc
-        return {'oid': oid,
-                'unit_of_measurement': u_o_m,
-                'precision': precision,
-                'scale': scale,
-                'description': desc,
-                'name': name,
-                'internal_name': internal_name,
-                'mib': self.get_module_name(),
-                }
+        res = {
+            'oid': oid,
+            'unit_of_measurement': u_o_m,
+            'description': desc,
+            'internal_name': internal_name,
+            'mib': self.get_module_name(),
+        }
+        res.update(kwargs)
+        return res
 
     def _handle_sensor_group(self, sensor_group, table_data):
         result = []
@@ -370,6 +370,7 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
                 name = row.get(name_col)
                 for sensor in sensors:
                     conf = convertUnits(self.mib, sensor)
+                    conf.update(getRange(self.mib, sensor))
                     result.append(self._make_result_dict(
                         oid,
                         self._get_oid_for_sensor(sensor),
@@ -431,6 +432,18 @@ UNITS = {
         'u_o_m': Sensor.UNIT_WATTS,
     },
 }
+
+
+def getRange(mib, node):
+    res = {}
+    range_ = mib['nodes'][node].get('syntax', {}).get('type', {}).get('range')
+    if not range_:
+        return res
+    if 'min' not in range_ or 'max' not in range_:
+        return res
+    res['minimum'] = range_['min']
+    res['maximum'] = range_['max']
+    return res
 
 
 def convertUnits(mib, node):
