@@ -484,9 +484,8 @@ class MibRetriever(object):
                 # Build a table structure
                 for oid in sorted(varlist.keys()):
                     if not table.table.oid.is_a_prefix_of(oid):
-                        raise MibRetrieverError(
-                            "Received wrong response from client,"
-                            "%s is not in %s" % (oid, table.table.oid))
+                        _msg = "Received wrong response from client, %s is not in %s"
+                        raise MibRetrieverError(_msg % (oid, table.table.oid))
 
                     # Extract table position of value
                     oid_suffix = OID(oid).strip_prefix(table.row.oid)
@@ -496,13 +495,18 @@ class MibRetriever(object):
                         self._logger.warning(
                             "device response has bad table index %s in %s::%s, "
                             "ignoring",
-                            oid_suffix, self.mib['moduleName'], table_name)
+                            oid_suffix,
+                            self.mib['moduleName'],
+                            table_name,
+                        )
                         continue
                     column_name = table.reverse_column_index[column_no]
 
                     if row_index not in formatted_result:
-                        formatted_result[row_index] = \
-                            MibTableResultRow(row_index, table.columns.keys())
+                        formatted_result[row_index] = MibTableResultRow(
+                            row_index,
+                            table.columns.keys(),
+                        )
 
                     value = varlist[oid]
                     if column_name in self.text_columns:
