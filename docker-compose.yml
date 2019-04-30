@@ -10,6 +10,19 @@
 #     build:
 #       dockerfile: Dockerfile3
 version: '2'
+
+# x-forwarder:
+#   &forwarder
+#   build:
+#     context: tools/forward
+#     args:
+#       - USER
+#   volumes:
+#     - /run/user/1000/keyring/ssh:/auth_sock
+#     - /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts
+#   environment:
+#     - SSH_AUTH_SOCK=/auth_sock
+
 services:
   nav:
     build: .
@@ -41,3 +54,7 @@ services:
     volumes_from:
       - nav
     command: /source/tools/docker/doc-watch.sh
+
+  # dr-tmp.frd.hvl.no:
+  #   << : *forwarder
+  #   command: /snmp_forward.sh mydevice.mydomain myvk
