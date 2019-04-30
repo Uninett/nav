@@ -126,8 +126,8 @@ TEMPLATES = [
 MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'nav.django.auth.AuthenticationMiddleware',
-    'nav.django.auth.AuthorizationMiddleware',
+    'nav.web.auth.middleware.AuthenticationMiddleware',
+    'nav.web.auth.middleware.AuthorizationMiddleware',
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )

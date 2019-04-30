@@ -39,6 +39,7 @@ from nav.config import NAVConfigParser
 from nav.web import ldapauth
 from nav.models.profiles import Account
 
+ACCOUNT_ID_VAR = 'account_id'
 
 _logger = logging.getLogger(__name__)
 
@@ -160,3 +161,24 @@ def authenticate_remote_user(request=None):
         return False
 
     return account
+
+
+def create_session_cookie(username):
+    """Creates an active session for username and returns the resulting
+    session cookie.
+
+    This is useful to fake login sessions during testing.
+
+    """
+    user = Account.objects.get(login=username)
+    session = SessionStore()
+    session[ACCOUNT_ID_VAR] = user.id
+    session.save()
+
+    cookie = {
+        'name': settings.SESSION_COOKIE_NAME,
+        'value': session.session_key,
+        'secure': False,
+        'path': '/',
+    }
+    return cookie

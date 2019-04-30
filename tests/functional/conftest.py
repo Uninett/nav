@@ -62,7 +62,7 @@ def selenium(selenium, base_url):
     from nav.bootstrap import bootstrap_django
     bootstrap_django(__file__)
 
-    from nav.django.auth import create_session_cookie
+    from nav.web.auth import create_session_cookie
 
     selenium.implicitly_wait(10)
     wait = WebDriverWait(selenium, 10)
