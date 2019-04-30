@@ -55,6 +55,6 @@ services:
       - nav
     command: /source/tools/docker/doc-watch.sh
 
-  # dr-tmp.frd.hvl.no:
+  # mydevice.mydomain:
   #   << : *forwarder
   #   command: /snmp_forward.sh mydevice.mydomain myvk
