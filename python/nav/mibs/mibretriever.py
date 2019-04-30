@@ -503,7 +503,11 @@ class MibRetriever(object):
                     if row_index not in formatted_result:
                         formatted_result[row_index] = \
                             MibTableResultRow(row_index, table.columns.keys())
-                    formatted_result[row_index][column_name] = varlist[oid]
+
+                    value = varlist[oid]
+                    if column_name in self.text_columns:
+                        value = safestring(value)
+                    formatted_result[row_index][column_name] = value
 
             return formatted_result
 
