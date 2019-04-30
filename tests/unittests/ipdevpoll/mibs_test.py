@@ -195,7 +195,10 @@ def test_itw_tables(cls):
     mib = cls.mib
     for table, groups in cls.TABLES.items():
         for group in groups:
-            for col in 'avail', 'serial', 'name':
+            cols = ['serial', 'name']
+            if 'avail' in group:
+                cols.append('avail')
+            for col in cols:
                 assert group[col] in mib['nodes'], group[col]
                 assert is_col_of(mib, group[col], table)
             for sensor in group['sensors']:

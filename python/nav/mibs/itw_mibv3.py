@@ -295,7 +295,6 @@ TABLES = {
     ],
     'ctrlOutletTable': [
         {
-            'avail': 'ctrlOutletName',  # this table has no Avail column.
             'serial': 'ctrlOutletIndex',  # and serial
             'name': 'ctrlOutletName',  # FIXME name does not match previous implementation
             'sensors': {
@@ -330,7 +329,6 @@ TABLES = {
     ],
     'ctrlRelayTable': [
         {
-            'avail': 'ctrlRelayName',  # No avail
             'serial': 'ctrlRelayIndex',
             'name': 'ctrlRelayName',
             'sensors': {

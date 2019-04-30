@@ -294,7 +294,6 @@ TABLES = {
     ],
     'ctrlOutletTable': [
         {
-            'avail': 'ctrlOutletName',  # this table has no Avail column.
             'serial': 'ctrlOutletGroup',  # and serial
             'name': 'ctrlOutletName',
             'sensors': {
@@ -359,14 +358,13 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
 
     def _handle_sensor_group(self, sensor_group, table_data):
         result = []
-        avail_col = sensor_group['avail']
+        avail_col = sensor_group.get('avail')
         name_col = sensor_group['name']
         serial_col = sensor_group['serial']
         sensors = sensor_group['sensors']
 
         for row in itervalues(table_data):
-            is_avail = row.get(avail_col)
-            if is_avail:
+            if not avail_col or row.get(avail_col):
                 oid = row.get(0)
                 serial = row.get(serial_col)
                 name = row.get(name_col)
