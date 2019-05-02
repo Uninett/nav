@@ -3,6 +3,7 @@
 
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
+from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
@@ -40,8 +41,8 @@ COLUMNS = {
 
 class AlcatelInd1PortMib(MibRetriever):
     """MibRetriever for Alcatel Port Sensors"""
-    from nav.smidumps.alcatel_ind1_port_mib import MIB as mib
-    
+    mib = get_mib('ALCATEL-IND1-PORT-MIB')
+
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """Discovers and returns all eligible dom sensors from this
