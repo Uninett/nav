@@ -1,3 +1,25 @@
+Version 4.9.5
+(released 02 May 2019)
+
+ Fixed GitHub issues in this release:
+
+  * #1890 (Temperature gauges do not render if multiple threshold rules
+           apply to it)
+    + #1921 (Handle arbitrary number of thresholds for a given sensor)
+  * #1902 (Sensor widgets should hyperlink to sensor's page view, not IP
+           Device's page view)
+  * #1903 (Topology missing for LLDP-enabled Alcatel switches)
+  * #1906 ("Cisco chassis/module serial numbers decoded" report crashes
+           when filtering)
+  * #1907 (servicemon DnsChecker fails when DNS server doesn't have a
+           matching record)
+  * #1916 (UninettMailDispatcher does not work under NAV 4.9)
+  * #1917 (snmptrapd needs to log more details about received traps)
+  * #1923 (ENTITY-MIB implementation can no longer resolve physical
+           device classes properly)
+    + #1924 (Support cross-MIB type definitions in MibRetrievers)
+
+
 Version 4.9.4
 (released 28 Mar 2019)
 

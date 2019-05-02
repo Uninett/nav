@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2008, 2011, 2017 Uninett AS
+# Copyright (C) 2008, 2011, 2017, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -33,6 +33,8 @@ def main():
     parser.add_argument("version")
     parser.add_argument("--token", "-t", type=str,
                         help="GitHub API token to use")
+    parser.add_argument("--markdown", "-m", action="store_true",
+                        help="Output as markdown with hyperlinks")
     args = parser.parse_args()
 
     if args.token:
@@ -52,7 +54,11 @@ def main():
 
     issues = repo.get_issues(state='closed', milestone=mstone)
     for issue in sorted(issues, key=operator.attrgetter('number')):
-        print(format_issue(issue).encode('utf-8'))
+        if args.markdown:
+            output = format_issue_markdown(issue)
+        else:
+            output = format_issue(issue)
+        print(output.encode('utf-8'))
 
 
 def format_issue(issue):
@@ -62,6 +68,15 @@ def format_issue(issue):
 
     return '\n'.join(
         textwrap.wrap(line, width=72, subsequent_indent=indent))
+
+
+def format_issue_markdown(issue):
+    line = "* [#{number:<4}]({url}) ({title})"
+    return line.format(
+        number=issue.number,
+        title=issue.title,
+        url=issue.html_url,
+    )
 
 
 if __name__ == '__main__':
