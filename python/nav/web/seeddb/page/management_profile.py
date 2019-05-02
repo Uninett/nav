@@ -15,7 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms and view functions for SeedDB's Management Profile view"""
-from ..forms import ManagementProfileForm, ManagementProfileFilterForm
+from nav.web.seeddb.forms import ManagementProfileForm, ManagementProfileFilterForm
 
 from nav.models.manage import ManagementProfile
 from nav.bulkparse import ManagementProfileBulkParser
