@@ -79,22 +79,18 @@ node {
     }
 
     stage("Publish documentation") {
-        lastStage = env.STAGE_NAME
-        echo "This job is ${JOB_BASE_NAME}"
-        // publish dev docs and stable branch docs, but nothing else
-        if (env.JOB_BASE_NAME == 'master' || env.JOB_BASE_NAME.endsWith('.x')) {
-            VERSION = sh (
-                script: 'cat ${WORKSPACE}/reports/doc_version || true',
-                returnStdout: true
-            ).trim()
-            if (VERSION == '') {
-                echo "VERSION is empty, not publishing docs"
-            }
-            else {
-                echo "Publishing docs for ${VERSION}"
-                sh "rsync -av --delete --no-perms --chmod=Dog+rx,Fog+r '${WORKSPACE}/build/sphinx/html/' 'doc@nav.uninett.no:/var/www/doc/${VERSION}/'"
-            }
-        }
+      lastStage = env.STAGE_NAME
+      // publish dev docs and stable branch docs, but nothing else
+      if (env.JOB_BASE_NAME == 'master' || env.JOB_BASE_NAME.endsWith('.x') || env.JOB_BASE_NAME == 'doctest') {
+        // Archive documentation as an artifact to be copied from the doc publisher job
+        sh "cd build/sphinx ; tar cvzf nav-docs.tar.gz html/"
+        archiveArtifacts artifacts: 'build/sphinx/nav-docs.tar.gz', fingerprint: true
+
+        echo "Triggering doc publishing job"
+        build job: 'Publish NAV documentation', wait: false, parameters: [[$class: 'StringParameterValue', name: 'ParentJobName', value: env.JOB_NAME]]
+      } else {
+        echo "Not triggering doc publisher job for this branch"
+      }
     }
 
 } catch (e) {
