@@ -26,7 +26,7 @@ from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.smidumps import get_mib
 
-from .itw_mib import BaseITWatchDogsMib, convertUnits
+from .itw_mib import BaseITWatchDogsMib, convert_units
 
 
 TABLES = {
@@ -418,7 +418,7 @@ class ItWatchDogsMibV3(BaseITWatchDogsMib):
                                  power_dm_oid.get('powerDMChannelFriendly' +
                                                   aux_numb))
                     sensor = 'powerDMDeciAmps' + aux_numb
-                    conf = convertUnits(self.mib, sensor)
+                    conf = convert_units(self.mib, sensor)
                     sensors.append(self._make_result_dict(
                         power_dm_oid,
                         self._get_oid_for_sensor(sensor),
