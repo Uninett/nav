@@ -455,8 +455,8 @@ def convert_units(mib, node):
                 res['u_o_m'] = Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY
             return res
     if 'syntax' not in mib['nodes'][node]:
-        return {'u_o_m': Sensor.UNIT_TRUTHVALUE}.copy()
-    return {'u_o_m': Sensor.UNIT_UNKNOWN}.copy()
+        return {'u_o_m': Sensor.UNIT_TRUTHVALUE}
+    return {'u_o_m': Sensor.UNIT_UNKNOWN}
 
 
 class ItWatchDogsMib(BaseITWatchDogsMib):
