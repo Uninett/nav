@@ -369,8 +369,8 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
                 serial = row.get(serial_col)
                 name = row.get(name_col)
                 for sensor in sensors:
-                    conf = convertUnits(self.mib, sensor)
-                    conf.update(getRange(self.mib, sensor))
+                    conf = convert_units(self.mib, sensor)
+                    conf.update(get_range(self.mib, sensor))
                     result.append(self._make_result_dict(
                         oid,
                         self._get_oid_for_sensor(sensor),
@@ -386,7 +386,7 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
         for table, sensor_groups in self.TABLES.items():
             self._logger.debug('get_all_sensors: table = %s', table)
             sensors = yield self.retrieve_table(
-                                        table).addCallback(reduce_index)
+                table).addCallback(reduce_index)
             self._logger.debug('get_all_sensors: %s = %s', table, sensors)
             for sensor_group in sensor_groups:
                 result.extend(self._handle_sensor_group(sensor_group, sensors))
@@ -434,7 +434,7 @@ UNITS = {
 }
 
 
-def getRange(mib, node):
+def get_range(mib, node):
     res = {}
     range_ = mib['nodes'][node].get('syntax', {}).get('type', {}).get('range')
     if not range_:
@@ -446,7 +446,7 @@ def getRange(mib, node):
     return res
 
 
-def convertUnits(mib, node):
+def convert_units(mib, node):
     unit = mib['nodes'][node].get("units")
     if unit:
         if unit in UNITS:
