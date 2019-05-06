@@ -28,7 +28,7 @@ from nav.metrics.templates import metric_path_for_sensor
 from nav.models.manage import Sensor
 
 # Ask for no more than this number of values in a single SNMP GET operation
-MAX_SENSORS_PER_REQUEST = 10
+MAX_SENSORS_PER_REQUEST = 5
 
 
 class StatSensors(Plugin):
