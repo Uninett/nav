@@ -17,38 +17,7 @@
 {% endblock %}
 
 {% block footer_scripts %}
-<script>
- require([
-     "plugins/graphfetcher_controller",
-     "plugins/gauge",
- ], function(graphfetcher_controller, Gauge) {
-     $(function() {
-         var $gauge = $('.sensor-gauge');
-         var thresholds = $gauge.data('thresholds') ? $gauge.data('thresholds').split(',') : [];
-         var _gauge = new Gauge({
-             node: $gauge[0],
-             min: {{sensor.get_display_range.0}},
-             max: {{sensor.get_display_range.1}},
-             url: "{{sensor.get_graph_url}}&format=json",
-             symbol: ' ',
-             unit: "{{sensor.unit_of_measurement}}",
-             thresholds: thresholds,
-         });
-
-         $('#add-to-dashboard-button').on('click', function (event) {
-             event.preventDefault();
-             var $button = $(this);
-             var request = $.post($button.data('dashboardUrl'));
-             request.done(function() {
-                 $button.removeClass('secondary').addClass('success');
-             });
-             request.fail(function() {
-                 $button.removeClass('secondary').addClass('failure');
-             });
-         });
-     });
- });
-</script>
+<script src="{{ STATIC_URL }}js/src/sensor_details.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -110,11 +79,14 @@
       <h4>Gauge display ranges</h4>
       <div id="gauge-wrapper">
         <div class="sensor-gauge"
-             data-url="{{ sensor.get_graph_url }}"
+             data-url="{{ sensor.get_graph_url }}&format=json"
              data-unit="{{ sensor.normalized_unit }}"
              data-sensorid="{{ sensor.id }}"
              data-sensorname="{{ sensor.human_readable }}"
              data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
+             data-unit="{{sensor.unit_of_measurement}}"
+             data-min="{{sensor.get_display_range.0}}"
+             data-max="{{sensor.get_display_range.1}}"
         ></div>
         <button id="add-to-dashboard-button"
                 class="tiny secondary"
