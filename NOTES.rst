@@ -31,6 +31,20 @@ The version requirements have changed for these dependencies:
 * :mod:`IPy` must be at least version *1.00*.
 * :mod:`pynetsnmp-2` must be version *0.1.5*.
 
+New features
+------------
+
+Support for Alcatel DDM sensors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+DDM values collected from ALCATEL-IND1-PORT-MIB are now available as
+sensors. This includes temperature, bias current, transmit output power and
+receive optical power values.
+
+The implementation was contributed by Pär Stolpe of Linköping University, and
+has been specifically tested on Alcatel Lucent Enterprise OmniSwitch AOS 8.
+
+
 
 NAV 4.9
 =======
