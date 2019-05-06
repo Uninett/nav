@@ -21,6 +21,7 @@
 
 import sys
 import argparse
+import json
 
 
 from nav.bootstrap import bootstrap_django
@@ -143,6 +144,22 @@ class Handlers(object):
             ]
             categories = sorted(box.groups.values_list('id', flat=True))
             line.extend(categories)
+            lineout(line)
+
+    @staticmethod
+    def management_profile():
+        """Outputs a line for each management profile in the database"""
+        header("#name:protocol:option=value|option=value...")
+        for profile in manage.ManagementProfile.objects.all():
+            configuration = [
+                '{}={}'.format(key, value)
+                for key, value in profile.configuration.items()
+            ]
+            line = [
+                profile.name,
+                profile.get_protocol_display(),
+                json.dumps(profile.configuration).replace('"', '""'),
+            ]
             lineout(line)
 
     @staticmethod
