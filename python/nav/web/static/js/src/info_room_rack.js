@@ -227,6 +227,17 @@ require([
     /** Update a sensor in the middle column (not PDU) */
     function updateSensor($element, value, minMax) {
         var unit = $element.data('unit') ? $element.data('unit').toLowerCase() : "";
+        if (unit === 'boolean') {
+            var on_state = $element.data('on-state');
+            if (value === on_state ) {
+                $element.find(".off").addClass('hidden');
+                $element.find(".on").removeClass('hidden');
+            } else {
+                $element.find(".on").addClass('hidden');
+                $element.find(".off").removeClass('hidden');
+            }
+            return;
+        }
         var unitIsKnown = _.has(unitMapping, unit);
         var textvalue = value === null ? 'NaN' : value + symbol(unit);
         var min = minMax[0], max = minMax[1];

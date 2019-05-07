@@ -5,8 +5,13 @@
      data-id="{{ racksensor.id }}"
      data-sortid="item_{{ racksensor.id }}"
      data-column="{{ column }}"
+     data-unit="{{ racksensor.unit_of_measurement }}"
+     {% if racksensor.unit_of_measurement == 'boolean' %}
+     data-on-state="{{ racksensor.sensor.on_state }}"
+     {% else %}
      data-display-range="{{ racksensor.get_display_range }}"
-     data-unit="{{ racksensor.unit_of_measurement }}">
+     {% endif %}
+>
   <div class="heading">
     <span class="right">
       <i class="fa fa-arrows inline-when-edit" title="Click and drag"></i>
@@ -16,7 +21,14 @@
       {{ racksensor.human_readable }}
     </a>
   </div>
+  {% if racksensor.unit_of_measurement == racksensor.sensor.UNIT_TRUTHVALUE %}
+    <a href="{{ racksensor.get_absolute_url }}">
+      <div class="on alert-box {{ racksensor.sensor.alert_type_class }} hidden">{{ racksensor.sensor.on_message }}</div>
+      <div class="off alert-box success hidden">{{ racksensor.sensor.off_message }}</div>
+    </a>
+  {% else %}
   <div class="sparkline"></div>
   <small class="textvalue"></small>
   <small>{{ racksensor.unit_of_measurement }}</small>
+  {% endif %}
 </div>
