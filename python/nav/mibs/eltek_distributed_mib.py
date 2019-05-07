@@ -61,11 +61,11 @@ class EltekDistributedMib(MibRetriever):
         if result:
             node = self.nodes[object_name]
             oid = node.oid + OID('.0')
+            description = node.raw_mib_data.get('description', object_name)
             sensor = {'oid': str(oid),
                       'internal_name': object_name,
                       'name': object_name,
-                      'description': node.raw_mib_data.get('description',
-                                                           object_name),
+                      'description': description,
                       'mib': self.mib['moduleName'],
                       'scale': None,
                       }
@@ -75,5 +75,8 @@ class EltekDistributedMib(MibRetriever):
                 if units.lower().startswith(mibunits.lower()):
                     sensor.update(navunits)
             if object_name == 'loadDistributionBreakerStatus':
-                sensor['unit_of_measurement'] = 'boolean'
+                sensor['unit_of_measurement'] = Sensor.UNIT_TRUTHVALUE
+                sensor['on_state'] = 1
+                sensor['on_message'] = "{} alarm".format(description)
+                sensor['off_message'] = "{} normal".format(description)
             returnValue(sensor)

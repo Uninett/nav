@@ -2140,6 +2140,12 @@ class Sensor(models.Model):
         (SCALE_ZETTA, 'Zetta'),
         (SCALE_YOTTA, 'Yotta'),
     )
+    ALERT_TYPE_WARNING = 1
+    ALERT_TYPE_ALERT = 2
+    ALERT_TYPE_CHOICES = (
+        (ALERT_TYPE_ALERT, 'A red alert'),
+        (ALERT_TYPE_WARNING, 'An orange warning')
+    )
 
     id = models.AutoField(db_column='sensorid', primary_key=True)
     netbox = models.ForeignKey(
@@ -2163,6 +2169,7 @@ class Sensor(models.Model):
     name = VarcharField(db_column="name")
     internal_name = VarcharField(db_column="internal_name")
     mib = VarcharField(db_column="mib")
+    # Gauges
     display_minimum_user = models.FloatField(db_column="display_minimum_user",
                                              null=True)
     display_maximum_user = models.FloatField(db_column="display_maximum_user",
@@ -2171,6 +2178,15 @@ class Sensor(models.Model):
                                             null=True)
     display_maximum_sys = models.FloatField(db_column="display_maximum_sys",
                                             null=True)
+    # Boolean sensors
+    on_message_user = VarcharField(db_column='on_message_user', null=True)
+    on_message_sys = VarcharField(db_column='on_message_sys', null=True)
+    off_message_user = VarcharField(db_column='off_message_user', null=True)
+    off_message_sys = VarcharField(db_column='off_message_sys', null=True)
+    on_state_user = models.IntegerField(db_column='on_state_user', null=True)
+    on_state_sys = models.IntegerField(db_column='on_state_sys', null=True)
+    alert_type = models.IntegerField(db_column='alert_type',
+                                     choices=ALERT_TYPE_CHOICES, null=True)
 
     class Meta(object):
         db_table = 'sensor'
@@ -2207,6 +2223,29 @@ class Sensor(models.Model):
             maximum = 50
 
         return [minimum, maximum]
+
+    @property
+    def on_message(self):
+        return (self.on_message_user or self.on_message_sys or
+                'The alert is active')
+
+    @property
+    def off_message(self):
+        return self.off_message_user or self.off_message_sys or 'No alert'
+
+    @property
+    def on_state(self):
+        if self.on_state_user is not None:
+            return int(self.on_state_user)
+        if self.on_state_sys is not None:
+            return int(self.on_state_sys)
+        return 1
+
+    @property
+    def alert_type_class(self):
+        if self.alert_type == self.ALERT_TYPE_ALERT:
+            return "error"
+        return "warning"
 
     @property
     def normalized_unit(self):

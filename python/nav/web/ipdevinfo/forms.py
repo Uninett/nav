@@ -18,6 +18,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
+from nav.models.manage import Sensor
 from nav.web.crispyforms import LabelSubmit
 
 
@@ -64,3 +65,32 @@ class SensorRangesForm(forms.Form):
     """Form for setting display ranges for a sensor"""
     minimum = forms.FloatField(label='Minimum', required=False)
     maximum = forms.FloatField(label='Maximum', required=False)
+
+
+class BooleanSensorForm(forms.Form):
+    """Form for configuring boolean sensor display"""
+
+    on_message = forms.CharField(
+        label='Message when alert is active',
+        initial='The alert is active')
+    off_message = forms.CharField(
+        label='Message when alert is inactive (ok)',
+        initial='No alert')
+    on_state = forms.ChoiceField(
+        label='When is the alert considered "on"',
+        choices=(('1', 'When the value is 1'),
+                 ('0', 'When the value is 0 (zero)')))
+    alert_type = forms.ChoiceField(
+        label='What to display in "on" state',
+        choices=Sensor.ALERT_TYPE_CHOICES)
+
+    def __init__(self, *args, **kwargs):
+        """Init"""
+        super(BooleanSensorForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'on_message', 'off_message',
+            'on_state', 'alert_type'
+        )
