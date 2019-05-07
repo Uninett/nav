@@ -99,6 +99,11 @@
                data-on-state="{{ sensor.on_state }}"/>
           <div class="on alert-box with-icon {{ sensor.alert_type_class }} hidden">{{ sensor.on_message }}</div>
           <div class="off alert-box with-icon success hidden">{{ sensor.off_message }}</div>
+          <button id="add-to-dashboard-button"
+                  class="tiny secondary"
+                  data-dashboard-url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}">
+            Add to dashboard
+          </button>
           <form method="post">
             {% csrf_token %}
             {% crispy form %}
