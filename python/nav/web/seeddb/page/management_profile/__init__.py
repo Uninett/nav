@@ -15,8 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms and view functions for SeedDB's Management Profile view"""
-from nav.web.seeddb.forms import ManagementProfileForm, ManagementProfileFilterForm
-
 from nav.models.manage import ManagementProfile
 from nav.bulkparse import ManagementProfileBulkParser
 from nav.bulkimport import ManagementProfileImporter
@@ -28,6 +26,11 @@ from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.bulk import render_bulkimport
+
+from nav.web.seeddb.page.management_profile.forms import (
+    ManagementProfileFilterForm,
+    ManagementProfileForm,
+)
 
 
 class ManagementProfileInfo(SeeddbInfo):
@@ -62,7 +65,7 @@ def management_profile_list(request):
     query = ManagementProfile.objects.all()
     filter_form = ManagementProfileFilterForm(request.GET)
     return render_list(request, query, value_list,
-                       'seeddb-management-profile-edit',
+                       edit_url='seeddb-management-profile-edit',
                        filter_form=filter_form,
                        extra_context=info.template_context)
 
@@ -72,7 +75,7 @@ def management_profile_delete(request):
     management_profile()"""
     info = ManagementProfileInfo()
     return render_delete(request, ManagementProfile,
-                         'seeddb-management-profile',
+                         redirect='seeddb-management-profile',
                          whitelist=SEEDDB_EDITABLE_MODELS,
                          extra_context=info.template_context)
 
@@ -82,7 +85,8 @@ def management_profile_edit(request, management_profile_id=None):
     info = ManagementProfileInfo()
     return render_edit(request, ManagementProfile, ManagementProfileForm,
                        management_profile_id,
-                       'seeddb-management-profile-edit',
+                       redirect='seeddb-management-profile-edit',
+                       template='seeddb/management-profile/edit.html',
                        extra_context=info.template_context)
 
 
@@ -91,5 +95,5 @@ def management_profile_bulk(request):
     info = ManagementProfileInfo()
     return render_bulkimport(
         request, ManagementProfileBulkParser, ManagementProfileImporter,
-        'seeddb-management-profile',
+        redirect='seeddb-management-profile',
         extra_context=info.template_context)

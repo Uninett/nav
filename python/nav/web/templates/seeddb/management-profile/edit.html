@@ -1,0 +1,35 @@
+{% extends "seeddb/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+  <p><a href="{{ back_url }}">Back to list</a></p>
+
+
+  {% for message in messages %}
+    <div class="alert-box with-icon {{ message.tags }}">
+      {{ message }}
+    </div>
+  {% endfor %}
+
+  <div class="row">
+    <div class="small-6 column">
+      {% if object %}
+          <h4>Edit {{ object }}</h4>
+      {% else %}
+        <h5>Add new management profile</h5>
+      {% endif %}
+    </div>
+
+    <div class="small-6 column">
+      {% if object %}
+        <form action="{% url 'seeddb-management-profile' %}" method="post" class="pull-right">
+          <input type="hidden" name="object" value="{{ object.pk }}"/>
+          <input type="submit" name="delete" value="Delete this management profile" class="button small secondary"/>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% crispy form %}
+
+{% endblock %}
