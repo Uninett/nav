@@ -5,7 +5,13 @@
       {{ item.human_readable }}
     </a>
   </div>
-  <div class="sparkline"></div>
-  <small class="textvalue">{{ item.value }}</small>
-  <small>{{ item.unit_of_measurement }}</small>
+  <div v-if="item.unit_of_measurement == 'boolean'">
+    <div v-if="item.value == item.display_configuration.on_state" :class="['alert-box', item.display_configuration.alert_type]">{{ item.display_configuration.on_message }}</div>
+    <div v-else class="alert-box success">{{ item.display_configuration.off_message }}</div>
+  </div>
+  <div v-else>
+    <div class="sparkline"></div>
+    <small class="textvalue">{{ item.value }}</small>
+    <small>{{ item.unit_of_measurement }}</small>
+  </div>
 </div>

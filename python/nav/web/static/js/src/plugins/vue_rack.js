@@ -81,8 +81,10 @@ define(function (require) {
         },
         watch: {
             'item.value': function () {
-                this.item.value = round(this.item.value);
-                this.drawSparkline();
+                if (this.item.unit_of_measurement != 'boolean') {
+                    this.item.value = round(this.item.value);
+                    this.drawSparkline();
+                }
             }
         }
     };

@@ -2261,6 +2261,16 @@ class Sensor(models.Model):
                 return unit
         return self.unit_of_measurement
 
+    def get_display_configuration(self):
+        if self.unit_of_measurement == Sensor.UNIT_TRUTHVALUE:
+            return {
+                'on_message': self.on_message,
+                'off_message': self.off_message,
+                'on_state': self.on_state,
+                'alert_type': self.alert_type_class,
+            }
+        return {}
+
 
 @python_2_unicode_compatible
 class PowerSupplyOrFan(models.Model):
