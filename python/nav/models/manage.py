@@ -82,10 +82,14 @@ class ManagementProfile(models.Model):
     name = VarcharField(unique=True)
     description = VarcharField(blank=True, null=True)
 
+    PROTOCOL_DEBUG = 0
     PROTOCOL_SNMP = 1
-    PROTOCOL_CHOICES = (
+    PROTOCOL_CHOICES = [
         (PROTOCOL_SNMP, "SNMP"),
-    )
+    ]
+    if settings.DEBUG:
+        PROTOCOL_CHOICES.insert(0, (PROTOCOL_DEBUG, 'debug'))
+
     protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
     configuration = JSONField(default=dict)
 
