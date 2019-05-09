@@ -13,21 +13,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (
-    Layout,
-    Row,
-    Column,
-    Fieldset,
-    Div,
-    Field,
-    HTML,
-    Submit,
-)
 from django import forms
 
 from nav.models.manage import ManagementProfile
 from nav.web.seeddb.forms import get_formhelper, get_single_layout
+
+PROTOCOL_CHOICES = dict(ManagementProfile.PROTOCOL_CHOICES)
 
 
 class ManagementProfileFilterForm(forms.Form):
@@ -39,22 +30,56 @@ class ManagementProfileFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ManagementProfileFilterForm, self).__init__(*args, **kwargs)
         self.helper = get_formhelper()
-        self.helper.layout = get_single_layout('Filter connection profiles',
-                                               'protocol')
+        self.helper.layout = get_single_layout('Filter connection profiles', 'protocol')
 
 
-class DebugFormMixin(forms.Form):
+class ProtocolSpecificMixIn(object):
+    """Mixin class for protocol specific management configuration forms.
+
+    Provides the necessary functionality for translating form fields into
+    JSON-compatible configuration dicts, as required by the
+    ManagementProfile.configuration field.
+
+    """
+    def __init__(self, *args, **kwargs):
+        super(ProtocolSpecificMixIn, self).__init__(*args, **kwargs)
+
+        if self.instance:
+            cfg = self.instance.configuration
+            for field in self.Meta.configuration_fields:
+                if field in cfg:
+                    self.fields[field].initial = cfg.get(field)
+
+    def _post_clean(self):
+        super(ProtocolSpecificMixIn, self)._post_clean()
+        cfg = self.instance.configuration
+        for field in self.Meta.configuration_fields:
+            if field in self.cleaned_data:
+                cfg[field] = self.cleaned_data.get(field)
+
+
+class DebugForm(ProtocolSpecificMixIn, forms.ModelForm):
+    PROTOCOL = ManagementProfile.PROTOCOL_DEBUG
+    PROTOCOL_NAME = PROTOCOL_CHOICES.get(PROTOCOL)
+
+    class Meta(object):
+        model = ManagementProfile
+        configuration_fields = ['foo']
+        fields = []
+
     foo = forms.CharField(required=True)
 
-    fieldset = Fieldset(
-        'Debug configuration',
-        'foo',
-        css_class='management-protocol-debug',
-    )
 
+class SnmpForm(ProtocolSpecificMixIn, forms.ModelForm):
+    PROTOCOL = ManagementProfile.PROTOCOL_SNMP
+    PROTOCOL_NAME = PROTOCOL_CHOICES.get(PROTOCOL)
 
-class SnmpFormMixin(forms.Form):  # no shti
-    snmp_version = forms.ChoiceField(choices=(
+    class Meta(object):
+        model = ManagementProfile
+        configuration_fields = ['version', 'community', 'write']
+        fields = []
+
+    version = forms.ChoiceField(choices=(
         (2, '2c'),
         (1, '1'),
     ))
@@ -64,16 +89,14 @@ class SnmpFormMixin(forms.Form):  # no shti
         help_text="Check if this community string enables write access",
     )
 
-    fieldset = Fieldset(
-        'SNMP Configuration',
-        'snmp_version',
-        'community',
-        'write',
-        css_class='management-protocol-snmp',
-    )
+
+FORM_MAPPING = {
+    form_class.PROTOCOL: form_class
+    for form_class in ProtocolSpecificMixIn.__subclasses__()
+}
 
 
-class ManagementProfileForm(SnmpFormMixin, DebugFormMixin, forms.ModelForm):
+class ManagementProfileForm(forms.ModelForm):
     """Form for editing/adding connection profiless"""
     class Meta(object):
         model = ManagementProfile
@@ -82,29 +105,14 @@ class ManagementProfileForm(SnmpFormMixin, DebugFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ManagementProfileForm, self).__init__(*args, **kwargs)
 
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'POST'
-        self.helper.form_id = 'seeddb-management-profile-form'
+    def get_protocol_form_class(self):
+        """Returns the protocol-specific form class that corresponds with the selected
+        management protocol of this profile.
 
-        fieldsets = [
-            base.fieldset
-            for base in self.__class__.__bases__
-            if hasattr(base, 'fieldset')
-        ]
-        config_column = Column(*fieldsets, css_class='large-8')
+        """
+        return FORM_MAPPING.get(self.cleaned_data['protocol'])
 
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Fieldset(
-                        'Basic profile',
-                        'name', 'description', 'protocol',
-                    ),
-                    css_class='large-4',
-                ),
-                config_column,
-            ),
-            Submit('submit', 'Save management profile')
-        )
-        self.__class__.__bases__
+    @staticmethod
+    def get_protocol_forms():
+        """Returns a list of all known protocol-specific sub-form classes"""
+        return FORM_MAPPING.values()

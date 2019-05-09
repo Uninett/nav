@@ -30,6 +30,28 @@
     </div>
   </div>
 
-  {% crispy form %}
+    <form id="seeddb-management-profile-form" method="post">
+
+        <div class="row">
+            <div class="columns large-4">
+                <fieldset>
+                    <legend>Basic profile data</legend>
+                    {{ form | crispy }}
+                </fieldset>
+            </div>
+
+            <div class="columns large-8">
+                {% for form in protocol_forms %}
+                    <fieldset class="protocol-configuration" id="protocol-{{ form.PROTOCOL }}">
+                        <legend>{{ form.PROTOCOL_NAME }} configuration</legend>
+                        {{ form | crispy }}
+                    </fieldset>
+                {% endfor %}
+            </div>
+        </div>
+
+        <input type="submit" name="submit" value="Save management profile" class="submit button" id="submit-id-submit">
+
+    </form>
 
 {% endblock %}

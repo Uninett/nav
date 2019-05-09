@@ -15,15 +15,19 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms and view functions for SeedDB's Management Profile view"""
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.urls import reverse
+
 from nav.models.manage import ManagementProfile
 from nav.bulkparse import ManagementProfileBulkParser
 from nav.bulkimport import ManagementProfileImporter
+from nav.web.message import new_message, Messages
 
 from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
 from nav.web.seeddb.utils.list import render_list
-from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.bulk import render_bulkimport
 
@@ -81,13 +85,68 @@ def management_profile_delete(request):
 
 
 def management_profile_edit(request, management_profile_id=None):
-    """Controller for editing a management profile"""
-    info = ManagementProfileInfo()
-    return render_edit(request, ManagementProfile, ManagementProfileForm,
-                       management_profile_id,
-                       redirect='seeddb-management-profile-edit',
-                       template='seeddb/management-profile/edit.html',
-                       extra_context=info.template_context)
+    """Controller for editing a management profile.
+
+    The basic profile details are handled by the ManagementProfileForm. Protocol
+    specific configuration is stored in a JSONField, and the responsibility of
+    constructing this JSON structure is delegated to protocol-specific sub-forms.
+
+    Because of the more complicated handling of forms in this view, the standard
+    render_edit() function of SeedDB is eschewed. This leads to some redundancies
+    that can potentially be factored out whenever the mess that is SeedDB is
+    refactored or rewritten.
+
+    """
+    try:
+        profile = ManagementProfile.objects.get(id=management_profile_id)
+    except ManagementProfile.DoesNotExist:
+        profile = None
+
+    verbose_name = ManagementProfile._meta.verbose_name
+
+    if request.method == 'POST':
+        form = ManagementProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            protocol_form = form.get_protocol_form_class()(
+                request.POST,
+                instance=form.instance,
+            )
+            if protocol_form.is_valid():
+                profile = form.save()
+
+                new_message(
+                    request,
+                    "Saved %s %s" % (verbose_name, profile),
+                    Messages.SUCCESS
+                )
+                return HttpResponseRedirect(
+                    reverse('seeddb-management-profile-edit', args=(profile.pk,))
+                )
+        protocol_forms = [
+            f(request.POST, instance=profile)
+            for f in form.get_protocol_forms()
+        ]
+    else:
+        form = ManagementProfileForm(instance=profile)
+        protocol_forms = [f(instance=profile) for f in form.get_protocol_forms()]
+
+    context = {
+        'object': profile,
+        'form': form,
+        'protocol_forms': protocol_forms,
+        'title': 'Add new %s' % verbose_name,
+        'verbose_name': verbose_name,
+        'sub_active': {'add': True},
+    }
+    if profile and profile.pk:
+        context.update({
+            'title': 'Edit %s "%s"' % (verbose_name, profile),
+            'sub_active': {'edit': True},
+        })
+
+    template_context = ManagementProfileInfo().template_context
+    template_context.update(context)
+    return render(request, 'seeddb/management-profile/edit.html', template_context)
 
 
 def management_profile_bulk(request):

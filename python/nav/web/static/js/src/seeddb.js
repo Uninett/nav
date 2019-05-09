@@ -3,11 +3,12 @@ require([
     'plugins/checkbox_selector',
     'plugins/quickselect',
     'plugins/seeddb_hstore',
+    'plugins/seeddb_management_profile',
     'plugins/netbox_connectivity_checker',
     'plugins/ip_chooser',
     'plugins/seeddb_map',
     'libs/modernizr'],
-function (datatables, CheckboxSelector, QuickSelect, FormFuck, connectivityChecker, IpChooser, seedDBRoomMap) {
+function (datatables, CheckboxSelector, QuickSelect, FormFuck, ManagementProfile, connectivityChecker, IpChooser, seedDBRoomMap) {
 
     function executeOnLoad() {
         /**
