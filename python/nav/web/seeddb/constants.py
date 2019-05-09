@@ -18,6 +18,8 @@
 from nav.models.manage import (
     Netbox,
     NetboxType,
+    ManagementProfile,
+    NetboxProfile,
     Room,
     Location,
     Organization,
@@ -35,6 +37,8 @@ NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 SEEDDB_EDITABLE_MODELS = (
     Netbox,
     NetboxType,
+    ManagementProfile,
+    NetboxProfile,
     Room,
     Location,
     Organization,

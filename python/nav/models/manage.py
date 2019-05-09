@@ -115,6 +115,7 @@ class ManagementProfile(models.Model):
                          "management profile")
 
 
+@python_2_unicode_compatible
 class NetboxProfile(models.Model):
     """Stores the relation between Netboxes and their management profiles"""
     id = models.AutoField(primary_key=True, db_column='netbox_profileid')
@@ -124,6 +125,9 @@ class NetboxProfile(models.Model):
     class Meta(object):
         db_table = 'netbox_profile'
         unique_together = (('netbox', 'profile'), )
+
+    def __str__(self):
+        return self.netbox.sysname
 
 
 @python_2_unicode_compatible
