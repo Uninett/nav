@@ -50,6 +50,20 @@
             </div>
         </div>
 
+        {% if object %}
+            {% with object.netbox_set.all.distinct.count as netbox_count %}
+                <p>
+                {% if netbox_count > 0 %}
+                    <strong>{{ netbox_count }} IP device{{ netbox_count|pluralize:",s" }}</strong>
+                    will be affected by changes to this profile.
+                {% else %}
+                    No IP devices will currently be affected by changes to this profile.
+                {% endif %}
+                </p>
+            {% endwith %}
+        {% endif %}
+
+
         <input type="submit" name="submit" value="Save management profile" class="submit button" id="submit-id-submit">
 
     </form>
