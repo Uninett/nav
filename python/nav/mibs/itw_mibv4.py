@@ -23,7 +23,6 @@ sensor-information.
 
 from nav.smidumps import get_mib
 from nav.mibs.itw_mib import BaseITWatchDogsMib
-from nav.models.manage import Sensor
 
 TABLES = {
     'internalTable': [
