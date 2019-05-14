@@ -27,7 +27,7 @@ dependencies. RequireJS provides a
 Avoiding caching
 ================
 
-We highly suggest you create :file:`htdocs/js/require_config.dev.js` and enable
+We highly suggest you create :file:`python/nav/web/static/js/require_config.dev.js` and enable
 Django debug in :file:`etc/nav.conf` when developing.
 
 Make sure to put this in your RequireJS configuration file:
@@ -41,7 +41,7 @@ developing, something many browsers love to do! See `the RequireJS
 documentation on using urlArgs <http://requirejs.org/docs/api.html#config-urlArgs>`_
 for details.
 
-The :file:`htdocs/js/require_config.dev.js` is in the global Git ignore
+The :file:`python/nav/web/static/js/require_config.dev.js` is in the global Git ignore
 list (file:`.gitignore`).
 
 
@@ -49,20 +49,20 @@ Javascript testing
 ==================
 
 We use `Karma <http://karma-runner.github.io/>`__ as our Javascript test runner.
-See :file:`htdocs/js/test/*` for examples on how to write tests using Karma with
+See :file:`python/nav/web/static/js/test/*` for examples on how to write tests using Karma with
 *Mocha*/*Chai*.
 
 Javascript hierarchy layout
 ===========================
 
-JavaScript sources is placed under :file:`htdocs/js/` under NAV's SCM root.
+JavaScript sources are placed under :file:`python/nav/web/static/js/` under NAV's SCM root.
 
-In the JavaScript root directory (:file:`htdocs/js/`) there should normally
+In the JavaScript root directory (:file:`python/nav/web/static/js/`) there should normally
 only be global configuration files for *RequireJS*, *jshint*, etc.
 
 ::
 
-  htdocs/js
+  python/nav/web/static/js
   |-- extras/
   |-- geomap/
   |-- libs/
@@ -80,14 +80,14 @@ only be global configuration files for *RequireJS*, *jshint*, etc.
 :file:`geomap/`
   contains JavaScript files related to geomap module in NAV.
 
-:file:`libs/` 
+:file:`libs/`
   contains 3rd party libraries (both *AMD* and *non-AMD* libraries) which we
   use in NAV. **Make sure** you add the JavaScript as a shimmed library in
-  :file:`htdocs/js/require_config.*.js` **if it is not** an *AMD* library.
+  :file:`python/nav/web/static/js/require_config.*.js` **if it is not** an *AMD* library.
 
-:file:`resources/` 
+:file:`resources/`
   contains resources that should be available under the Karma testing
-  environment. :file:`htdocs/js/resources/libs/text.js` is such a module which
+  environment. :file:`python/nav/web/static/js/resources/libs/text.js` is such a module which
   is required to be available in such an environment to run tests with
   templates that get loaded using the *AMD* pattern.
 
@@ -98,5 +98,5 @@ only be global configuration files for *RequireJS*, *jshint*, etc.
 :file:`src/netmap/`
   is the **Netmap** Backbone application.
 
-:file:`src/plugins/` 
+:file:`src/plugins/`
   contains re-usable JavaScript plugins.

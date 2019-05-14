@@ -201,7 +201,7 @@ needed elements are not present.
 NAV's Javascript uses RequireJS_ - use this to create modules and specify
 dependencies.
 
-Pro tip is to create :file:`require_config.dev.js` in :file:`htdocs/js/``
+Pro tip is to create :file:`require_config.dev.js` in :file:`python/nav/web/static/js/``
 and add the following configuration to RequireJS:
 
 .. code-block:: javascript
@@ -391,7 +391,7 @@ inside the Docker CI image:
 This will take of installing the required JS modules using npm, and running the
 test suite in three different browsers (Chrome, Firefox and PhantomJS).
 
-All tests are located under :file:`htdocs/statis/js/test/`. Create new tests
+All tests are located under :file:`python/nav/web/static/js/test/`. Create new tests
 there. For syntax, assertions and related stuff take a look at the tests
 already there and the relevant documentation linked above.
 
