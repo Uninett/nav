@@ -88,7 +88,7 @@ Run configuration options should be the following:
 
 :Node.js interpreter: should point to wherever your :program:`node` binary is
                       installed.
-:Karma Node.js package: :file:`{NAV_ROOT}/htdocs/js/node_modules/karma`
-:Configuration file: :file:`{NAV_ROOT}/htdocs/js/test/karma.conf.js`
+:Karma Node.js package: :file:`python/nav/web/static/js/node_modules/karma`
+:Configuration file: :file:`python/nav/web/static/js/test/karma.conf.js`
 
 Now you should be able to run both tests and tests with coverage.
