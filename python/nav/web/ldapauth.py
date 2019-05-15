@@ -330,7 +330,7 @@ class LDAPUser(object):
         user_dn = self.get_user_dn()
         try:
             filterstr = '(%s=%s)' % (
-                entitlement_attribute,
+                escape_filter_chars(entitlement_attribute),
                 escape_filter_chars(entitlement),
             )
             result = self.ldap.search_s(
