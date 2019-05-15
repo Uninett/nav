@@ -322,7 +322,7 @@ class LDAPUser(object):
                 _logger.debug("posixGroup results: %s", result)
             return len(result) > 0
         except ldap.TIMEOUT as error:
-            _logger.error("Timed out while veryfing group memberships")
+            _logger.error("Timed out while verifying group memberships")
             raise TimeoutError(error)
 
     def has_entitlement(self, entitlement):
@@ -342,7 +342,7 @@ class LDAPUser(object):
             _logger.debug("entitlement result: %s", result)
             return len(result) > 0
         except ldap.TIMEOUT as error:
-            _logger.error("Timed out while veryfing user entitlements")
+            _logger.error("Timed out while verifying user entitlements")
             raise TimeoutError(error)
 
 
