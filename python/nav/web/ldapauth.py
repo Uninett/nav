@@ -326,6 +326,7 @@ class LDAPUser(object):
             raise TimeoutError(error)
 
     def has_entitlement(self, entitlement):
+        encoding = _config.get('ldap', 'encoding')
         entitlement_attribute = _config.get('ldap', 'entitlement_attribute')
         user_dn = self.get_user_dn()
         try:
@@ -340,7 +341,16 @@ class LDAPUser(object):
                 attrlist=[entitlement_attribute],
             )
             _logger.debug("entitlement result: %s", result)
-            return len(result) > 0
+            # Verify the result
+            if result:
+                dn, attrs = result[0]
+                return (
+                    dn == user_dn
+                    and entitlement_attribute in attrs
+                    and entitlement.encode(encoding) in attrs[entitlement_attribute]
+                )
+            else:
+                return False
         except ldap.TIMEOUT as error:
             _logger.error("Timed out while verifying user entitlements")
             raise TimeoutError(error)
