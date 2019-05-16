@@ -325,35 +325,35 @@ class LDAPUser(object):
             _logger.error("Timed out while verifying group memberships")
             raise TimeoutError(error)
 
-    def has_entitlement(self, entitlement):
+    def get_entitlements(self):
+        """Returns a list of entitlements this user has"""
         encoding = _config.get('ldap', 'encoding')
         entitlement_attribute = _config.get('ldap', 'entitlement_attribute')
         user_dn = self.get_user_dn()
+        filterstr = '({}=*)'.format(escape_filter_chars(entitlement_attribute))
+
         try:
-            filterstr = '(%s=%s)' % (
-                escape_filter_chars(entitlement_attribute),
-                escape_filter_chars(entitlement),
-            )
             result = self.ldap.search_s(
                 user_dn,
                 ldap.SCOPE_BASE,
                 filterstr=filterstr,
                 attrlist=[entitlement_attribute],
             )
-            _logger.debug("entitlement result: %s", result)
-            # Verify the result
-            if result:
-                dn, attrs = result[0]
-                return (
-                    dn == user_dn
-                    and entitlement_attribute in attrs
-                    and entitlement.encode(encoding) in attrs[entitlement_attribute]
-                )
-            else:
-                return False
         except ldap.TIMEOUT as error:
-            _logger.error("Timed out while verifying user entitlements")
+            _logger.error("Timed out while fetching user entitlements")
             raise TimeoutError(error)
+
+        _logger.debug("entitlement result: %s", result)
+        if result:
+            dn, attrs = result[0]
+            if dn == user_dn and entitlement_attribute in attrs:
+                return [ent.decode(encoding) for ent in attrs[entitlement_attribute]]
+
+        return []
+
+    def has_entitlement(self, entitlement):
+        """Verifies whether the user has a specific entitlement"""
+        return entitlement in self.get_entitlements()
 
 
 #
