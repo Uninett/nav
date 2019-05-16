@@ -48,6 +48,8 @@ suffix=
 manager=
 manager_password=
 group_search=(member=%%s)
+require_entitlement=
+entitlement_attribute=eduPersonEntitlement
 encoding=utf-8
 """
 
@@ -159,6 +161,25 @@ def authenticate(login, password):
         else:
             _logger.warning("Could NOT verify %s as a member of %s",
                             login, group_dn)
+            return False
+
+    # If successful so far, verify required entitlements before the final verdict
+    # is made
+    require_entitlement = _config.get('ldap', 'require_entitlement')
+    if require_entitlement:
+        if user.has_entitlement(require_entitlement):
+            _logger.info(
+                "%s is verified to be entitled to %s",
+                login,
+                require_entitlement
+            )
+            return user
+        else:
+            _logger.warning(
+                "Could NOT verify %s as entitled to %s",
+                login,
+                require_entitlement
+            )
             return False
 
     # If no group matching was needed, we are already authenticated,
@@ -301,8 +322,38 @@ class LDAPUser(object):
                 _logger.debug("posixGroup results: %s", result)
             return len(result) > 0
         except ldap.TIMEOUT as error:
-            _logger.error("Timed out while veryfing group memberships")
+            _logger.error("Timed out while verifying group memberships")
             raise TimeoutError(error)
+
+    def get_entitlements(self):
+        """Returns a list of entitlements this user has"""
+        encoding = _config.get('ldap', 'encoding')
+        entitlement_attribute = _config.get('ldap', 'entitlement_attribute')
+        user_dn = self.get_user_dn()
+        filterstr = '({}=*)'.format(escape_filter_chars(entitlement_attribute))
+
+        try:
+            result = self.ldap.search_s(
+                user_dn,
+                ldap.SCOPE_BASE,
+                filterstr=filterstr,
+                attrlist=[entitlement_attribute],
+            )
+        except ldap.TIMEOUT as error:
+            _logger.error("Timed out while fetching user entitlements")
+            raise TimeoutError(error)
+
+        _logger.debug("entitlement result: %s", result)
+        if result:
+            dn, attrs = result[0]
+            if dn == user_dn and entitlement_attribute in attrs:
+                return [ent.decode(encoding) for ent in attrs[entitlement_attribute]]
+
+        return []
+
+    def has_entitlement(self, entitlement):
+        """Verifies whether the user has a specific entitlement"""
+        return entitlement in self.get_entitlements()
 
 
 #

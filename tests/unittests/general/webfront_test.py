@@ -3,6 +3,8 @@ from unittest import TestCase
 from mock import patch, Mock
 from django.utils import six
 
+import pytest
+
 import nav.web.ldapauth
 from nav.web import auth
 
@@ -124,3 +126,37 @@ class LdapUserTestCase(TestCase):
         })
         u = nav.web.ldapauth.LDAPUser(u"Ægir", conn)
         u.is_group_member('cn=noc-operators,cn=groups,dc=example,dc=com')
+
+
+@patch.dict("nav.web.ldapauth._config._sections",
+            {'ldap': {'__name__': 'ldap',
+                      'basedn': 'cn=users,dc=example,dc=org',
+                      'lookupmethod': 'direct',
+                      'uid_attr': 'uid',
+                      'encoding': 'utf-8',
+                      'require_entitlement': 'president',
+                      'entitlement_attribute': 'eduPersonEntitlement',
+                      },
+             })
+class TestLdapEntitlements(object):
+    def test_required_entitlement_should_be_verified(self):
+        conn = Mock(**{
+            'search_s.return_value': [
+                (
+                    u'uid=zaphod,cn=users,dc=example,dc=org',
+                    {u'eduPersonEntitlement': [b'president']}
+                )]
+        })
+        u = nav.web.ldapauth.LDAPUser("zaphod", conn)
+        assert u.has_entitlement('president')
+
+    def test_missing_entitlement_should_not_be_verified(self):
+        conn = Mock(**{
+            'search_s.return_value': [
+                (
+                    u'uid=marvin,cn=users,dc=example,dc=org',
+                    {u'eduPersonEntitlement': [b'paranoid']}
+                )]
+        })
+        u = nav.web.ldapauth.LDAPUser("marvin", conn)
+        assert not u.has_entitlement('president')
