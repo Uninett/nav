@@ -32,8 +32,8 @@ def do_list(request, messages=None):
     account = get_account(request)
     macwatches = MacWatch.objects.all()
     info_dict = populate_info_dict(account,
-                                    macwatches=macwatches,
-                                    messages=messages)
+                                   macwatches=macwatches,
+                                   messages=messages)
     return render(request, 'macwatch/list_watches.html', info_dict)
 
 
@@ -51,8 +51,8 @@ def add_macwatch(request):
         if macwatchform.is_valid():
             # Get user object
             m = MacWatch(mac=macwatchform.cleaned_data['macaddress'],
-                        userid=account,
-                        description=macwatchform.cleaned_data['description'])
+                         userid=account,
+                         description=macwatchform.cleaned_data['description'])
             if macwatchform.prefix_length:
                 m.prefix_length = macwatchform.prefix_length
             m.save()

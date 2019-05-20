@@ -282,7 +282,7 @@ def edit(request, task_id=None, start_time=None, **_):
                 no_end_time = task_form.cleaned_data['no_end_time']
                 state = MaintenanceTask.STATE_SCHEDULED
                 if (start_time < datetime.now() and end_time
-                            and end_time <= datetime.now()):
+                        and end_time <= datetime.now()):
                     state = MaintenanceTask.STATE_SCHEDULED
 
                 new_task = MaintenanceTask()

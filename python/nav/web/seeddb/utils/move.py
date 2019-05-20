@@ -135,7 +135,7 @@ def _parse_value_differences(values, data, title_attr, fields):
         row = {
             'pk': obj['pk'],
             'values': [("Current %s" % attr, obj[attr])
-                for attr in attr_list],
+                       for attr in attr_list],
         }
 
         # If the form has data, format the fields with new values

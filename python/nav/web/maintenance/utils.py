@@ -80,7 +80,7 @@ def task_form_initial(task=None, start_time=None):
 
 def infodict_by_state(task):
     if (task.state == MaintenanceTask.STATE_SCHEDULED
-                and task.start_time > datetime.now()):
+            and task.start_time > datetime.now()):
         state = 'planned'
         navpath = NAVPATH + [
             ('Planned tasks', reverse('maintenance-planned'))
@@ -207,7 +207,7 @@ def task_component_trails(component_keys, components):
                                                  + "description"])
                     trail.append({
                         'url': reverse('report-room-location',
-                                            args=[location_id]),
+                                       args=[location_id]),
                         'title': location_description,
                         'name': location_id,
                     })
@@ -226,7 +226,7 @@ def task_component_trails(component_keys, components):
                     netbox_ip = comp[FIELD_KEYS[key]['netbox'] + "ip"]
                     trail.append({
                         'url': reverse('ipdevinfo-details-by-name',
-                                            args=[netbox_sysname]),
+                                       args=[netbox_sysname]),
                         'title': netbox_ip,
                         'name': netbox_sysname,
                     })
@@ -238,7 +238,8 @@ def task_component_trails(component_keys, components):
                     })
                 if key == 'netboxgroup':
                     trail.append({
-                        'url': reverse('netbox-group-detail', args=[comp['id']]),
+                        'url': reverse('netbox-group-detail',
+                                       args=[comp['id']]),
                         'title': '',
                         'name': comp['id'],
                     })

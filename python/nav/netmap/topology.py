@@ -126,7 +126,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
         if node in vlan_by_netbox:
             data['metadata'] = {
                 'vlans': sorted(six.iteritems(vlan_by_netbox[node]),
-                        key=lambda x: x[1].vlan.vlan)}
+                                key=lambda x: x[1].vlan.vlan)}
 
     _logger.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")
 

@@ -70,7 +70,7 @@ def get_module_view(module_object, perspective, activity_interval=None,
     elif perspective == 'physportstatus':
         if not module_object and netbox:
             ports = [p for p in netbox.get_physical_ports_sorted()
-                            if not p.module]
+                     if not p.module]
         else:
             ports = module_object.get_physical_ports_sorted()
 

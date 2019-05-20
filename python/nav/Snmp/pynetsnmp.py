@@ -415,7 +415,7 @@ def _raise_on_error(err_code):
         raise TimeOutException(snmp_api_errstring(err_code))
     else:
         raise SnmpError("%s: %s" % (SNMPERR_MAP.get(err_code, ''),
-                                           snmp_api_errstring(err_code)))
+                                    snmp_api_errstring(err_code)))
 
 
 def _raise_on_protocol_error(response):

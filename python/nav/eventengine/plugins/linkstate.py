@@ -109,11 +109,11 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
             if vlans.intersection(limited_to_vlans):
                 self._logger.info("%s vlans %r intersects with list of "
                                   "limited vlans %r",
-                                   self.get_target(), vlans, limited_to_vlans)
+                                  self.get_target(), vlans, limited_to_vlans)
             elif vlans:
                 self._logger.info("%s vlans %r does not intersect with list "
                                   "of limited vlans %r",
-                                   self.get_target(), vlans, limited_to_vlans)
+                                  self.get_target(), vlans, limited_to_vlans)
                 return True
         return False
 

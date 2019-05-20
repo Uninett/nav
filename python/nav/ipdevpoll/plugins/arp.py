@@ -54,7 +54,7 @@ INCOMPLETE_MAC = '00:00:00:00:00:00'
 
 class Arp(Plugin):
     """Collects ARP records for IPv4 devices and NDP cache for IPv6 devices."""
-    prefix_cache = [] # prefix cache, should be sorted by descending mask length
+    prefix_cache = []  # prefix cache, should be sorted by descending mask length
     prefix_cache_update_time = datetime.min
     prefix_cache_max_age = timedelta(minutes=5)
 

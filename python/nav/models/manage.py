@@ -1715,8 +1715,10 @@ class Interface(models.Model):
         """List of VLAN numbers related to the port"""
 
         # XXX: This causes a DB query per port
-        vlans = [swpv.vlan.vlan
-            for swpv in self.swportvlan_set.select_related('vlan', 'interface')]
+        vlans = [
+            swpv.vlan.vlan
+            for swpv in self.swportvlan_set.select_related('vlan', 'interface')
+        ]
         if self.vlan is not None and self.vlan not in vlans:
             vlans.append(self.vlan)
         vlans.sort()
