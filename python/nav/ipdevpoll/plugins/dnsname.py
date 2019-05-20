@@ -35,8 +35,8 @@ _resolvers = cycle([client.createResolver() for i in range(3)])
 class DnsName(Plugin):
     """Performs reverse DNS lookup on netbox IP address"""
 
-    @classmethod
-    def can_handle(self, netbox):
+    @staticmethod
+    def can_handle(netbox):
         "Handles anything, anytime, since we don't query the netbox directly"
         return True
 
