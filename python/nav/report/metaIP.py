@@ -31,7 +31,7 @@ class MetaIP:
         self.prefixid = None
         self.nettype = None
 
-        if MetaIP.MetaMap == None:
+        if MetaIP.MetaMap is None:
             MetaIP.MetaMap = self._createMetaMap(ip.version())
         self._setup()
 
