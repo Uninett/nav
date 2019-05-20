@@ -29,7 +29,13 @@ from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
                                SNMP_MSG_GETBULK, SNMP_MSG_SET, SNMP_MSG_GET)
 
 from nav.oids import OID
-from .errors import *
+from .errors import (
+    EndOfMibViewError,
+    NoSuchObjectError,
+    SnmpError,
+    TimeOutException,
+    UnsupportedSnmpVersionError
+)
 
 PDUVarbind = namedtuple("PDUVarbind", ['oid', 'type', 'value'])
 
