@@ -2391,7 +2391,6 @@ class IpdevpollJobLog(models.Model):
 
 class Netbios(models.Model):
     """Model representing netbios names collected by the netbios tracker"""
-    import datetime
 
     id = models.AutoField(db_column='netbiosid', primary_key=True)
     ip = models.GenericIPAddressField()
@@ -2400,7 +2399,7 @@ class Netbios(models.Model):
     server = VarcharField()
     username = VarcharField()
     start_time = models.DateTimeField(auto_now_add=True)
-    end_time = DateTimeInfinityField(default=datetime.datetime.max)
+    end_time = DateTimeInfinityField(default=dt.datetime.max)
 
     class Meta(object):
         db_table = 'netbios'
