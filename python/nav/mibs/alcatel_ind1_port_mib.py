@@ -89,4 +89,3 @@ class AlcatelInd1PortMib(MibRetriever):
             sensor.update(config)
             result.append(sensor)
         returnValue(result)
-        
