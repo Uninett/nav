@@ -320,10 +320,10 @@ class _MySnmpSession(Session):
         else:
             _raise_on_error(self.sess.contents.s_snmp_errno)
 
-##
-## Functions for converting Python values to C data types suitable for ASN
-## and BER encoding in the NET-SNMP library.
-##
+#
+# Functions for converting Python values to C data types suitable for ASN
+# and BER encoding in the NET-SNMP library.
+#
 
 
 CONVERTER_MAP = {}
