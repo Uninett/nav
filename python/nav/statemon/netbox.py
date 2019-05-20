@@ -17,6 +17,8 @@
 # along with NAV; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from django.utils import six
+
 
 class Netbox(object):
     """
@@ -29,7 +31,7 @@ class Netbox(object):
         self.up = up
 
     def __eq__(self, obj):
-        if type(obj) == type(""):
+        if isinstance(obj, six.string_types):
             return self.ip == obj
         return self.netboxid == obj.netboxid
 
