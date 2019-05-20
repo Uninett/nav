@@ -207,8 +207,7 @@ def get_user_navlets(request, dashboard_id=None):
     navlets = []
     for usernavlet in usernavlets:
         navlets.append(create_navlet_object(usernavlet))
-    return HttpResponse(json.dumps(navlets),
-                        content_type="application/json")
+    return JsonResponse(navlets)
 
 
 def create_navlet_object(usernavlet):
@@ -268,8 +267,7 @@ def add_user_navlet(request, dashboard_id=None):
         if can_modify_navlet(account, request):
             navlet_class = request.POST.get('navlet')
             navlet = add_navlet(account, navlet_class, dashboard=dashboard)
-            return HttpResponse(json.dumps(create_navlet_object(navlet)),
-                                content_type="application/json")
+            return JsonResponse(create_navlet_object(navlet))
 
     return HttpResponse(status=400)
 

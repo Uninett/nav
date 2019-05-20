@@ -14,11 +14,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Status2 widget"""
-import json
 from datetime import datetime
 from operator import itemgetter
 
-from django.http import HttpResponse, QueryDict, JsonResponse
+from django.http import QueryDict, JsonResponse
 from django.test.client import RequestFactory
 from django.utils.dateparse import parse_datetime
 
@@ -120,6 +119,6 @@ class Status2Widget(Navlet):
             except Exception:
                 pass
             navlet.save()
-            return HttpResponse(json.dumps(self.preferences))
+            return JsonResponse(self.preferences)
         else:
             return JsonResponse(form.errors, status=400)
