@@ -77,7 +77,7 @@ def _reverse_sensor(sysname, name):
 
 
 @reverses(r'\.devices\.(?P<sysname>[^.]+)\.cpu\.(?P<cpuname>[^.]+)')
-def _reverse_device(sysname, cpuname):
+def _reverse_device_cpu(sysname, cpuname):
     netbox = _single_like_match(Netbox, sysname=sysname)
     sysname = getattr(netbox, 'sysname', sysname)
     return "%s: %s" % (sysname, cpuname)
