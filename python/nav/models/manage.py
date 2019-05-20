@@ -1810,11 +1810,11 @@ class Interface(models.Model):
         Ex: [1, 2, 3, 4, 7, 8, 10] -> "1-4,7-8,10"
         """
         def as_range(iterable):
-            l = list(iterable)
-            if len(l) > 1:
-                return '{0}-{1}'.format(l[0], l[-1])
+            list_ = list(iterable)
+            if len(list_) > 1:
+                return '{0}-{1}'.format(list_[0], list_[-1])
             else:
-                return '{0}'.format(l[0])
+                return '{0}'.format(list_[0])
 
         if self.trunk:
             return ",".join(as_range(y) for x, y in groupby(
