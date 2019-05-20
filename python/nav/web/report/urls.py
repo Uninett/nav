@@ -43,7 +43,10 @@ urlpatterns = [
         name='widget-report-by-name'),
 ]
 
-dummy = lambda *args, **kwargs: None
+
+def dummy(*args, **kwargs):
+    return None
+
 
 # Reverse urls for known reports shipped by NAV
 # .* wildcard match for unknown reports but is hopefully defined
