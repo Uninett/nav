@@ -434,5 +434,5 @@ def remove_sensor(request, roomid):
     try:
         rack.save()
         return HttpResponse()
-    except:
+    except Exception:
         return HttpResponse(status=500)

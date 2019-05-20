@@ -15,7 +15,7 @@ def default_datetime(value):
     """Returns the date as represented by the default datetime format"""
     try:
         v = date(value, DATETIME_FORMAT)
-    except:
+    except Exception:
         return value
 
     return v
@@ -29,7 +29,7 @@ def short_time_format(value):
     """
     try:
         return time(value, SHORT_TIME_FORMAT)
-    except:
+    except Exception:
         return value
 
 
@@ -38,5 +38,5 @@ def remove_microseconds(delta):
     """Removes microseconds from timedelta"""
     try:
         return delta - timedelta(microseconds=delta.microseconds)
-    except:
+    except Exception:
         return delta

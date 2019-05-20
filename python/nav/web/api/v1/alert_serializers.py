@@ -150,7 +150,7 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         try:
             netbox = obj.netbox
             return netbox.groups.values_list('id', flat=True)
-        except:
+        except Exception:
             pass
 
     class Meta(object):
