@@ -21,7 +21,6 @@ from socket import gethostbyaddr, gethostbyname
 from django.db.models import Q
 from nav.models.manage import Netbox, SwPortVlan, GwPortPrefix, Prefix, Arp, Cam
 import datetime
-from IPy import IP
 
 from nav.util import is_valid_ip
 

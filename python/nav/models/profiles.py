@@ -21,12 +21,10 @@
 from hashlib import md5
 import itertools
 import logging
-import os
 from datetime import datetime
 import re
 import json
 
-from django.utils import six
 from django.views.decorators.debug import sensitive_variables
 from nav.six import reverse
 from django.db import models, transaction

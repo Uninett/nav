@@ -16,7 +16,6 @@
 #
 
 """Utility methods for django used in NAV"""
-import django
 from django.db.models.fields import FieldDoesNotExist
 
 from nav.models.profiles import Account, AccountGroup

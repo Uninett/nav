@@ -28,8 +28,7 @@ import re
 import yaml
 from django.utils import six
 
-from nav.config import (read_flat_config, open_configfile, find_configfile,
-                        NAV_CONFIG)
+from nav.config import open_configfile, find_configfile, NAV_CONFIG
 from nav.errors import GeneralException
 from nav import buildconf
 

@@ -18,7 +18,6 @@ import datetime
 import operator
 from itertools import groupby
 
-from nav.Snmp import safestring
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 from nav.models.event import AlertHistory

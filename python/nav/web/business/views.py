@@ -9,7 +9,6 @@ from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
 
-from nav.models.event import AlertHistory
 from nav.models.profiles import AlertAddress, ReportSubscription, AlertSender
 from nav.web.business import utils
 from nav.web.utils import create_title

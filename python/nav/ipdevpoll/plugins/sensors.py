@@ -31,7 +31,6 @@ from collections import defaultdict
 
 from twisted.internet import defer
 
-from nav.Snmp import safestring
 from nav.config import ConfigurationError
 from nav.mibs import mibretriever
 from nav.ipdevpoll import Plugin

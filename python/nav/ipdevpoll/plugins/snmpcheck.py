@@ -15,8 +15,6 @@
 #
 """snmp check plugin"""
 
-import datetime
-
 from twisted.internet import error, defer
 from twisted.internet.defer import returnValue
 
