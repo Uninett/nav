@@ -83,7 +83,7 @@ class BulkParser(six.Iterator):
         """Validate an entire row"""
         for fieldnum in range(self.required):
             fieldname = self.format[fieldnum]
-            if not fieldname in row or not row[fieldname]:
+            if fieldname not in row or not row[fieldname]:
                 raise RequiredFieldMissing(self.line_num, fieldname)
 
         for fieldname, value in row.items():

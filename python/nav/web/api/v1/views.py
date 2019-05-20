@@ -871,7 +871,7 @@ class AlertFragmentRenderer(TemplateHTMLRenderer):
         :param dict data: The serialized alert
         """
 
-        if not 'id' in data:
+        if 'id' not in data:
             return RequestContext(request, data)
 
         # Put the alert object in the context

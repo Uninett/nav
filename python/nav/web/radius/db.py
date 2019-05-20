@@ -117,7 +117,7 @@ class LogSearchQuery(SQLQuery):
         Construct search query from user input
         """
 
-        if not 'id' in fields:
+        if 'id' not in fields:
             fields_extended = ['id']
             fields_extended.extend(list(fields))
             fields = fields_extended

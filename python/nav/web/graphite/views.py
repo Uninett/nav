@@ -78,9 +78,9 @@ def _inject_default_arguments(query):
     format_ = CONFIG.get('graphiteweb', 'format')
     query = query.copy()
 
-    if not 'format' in query:
+    if 'format' not in query:
         query['format'] = format_
-    if not 'tz' in query and settings.TIME_ZONE:
+    if 'tz' not in query and settings.TIME_ZONE:
         query['tz'] = settings.TIME_ZONE
 
     return query.urlencode()

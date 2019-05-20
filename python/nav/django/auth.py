@@ -125,7 +125,7 @@ def desudo(request):
     call to sudo().
 
     """
-    if not SUDOER_ID_VAR in request.session:
+    if SUDOER_ID_VAR not in request.session:
         # We are not sudoing
         return
 

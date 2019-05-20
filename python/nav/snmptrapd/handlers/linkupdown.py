@@ -31,7 +31,7 @@ def handleTrap(trap, config=None):
 
     # Linkstate-traps are generictypes. Check for linkup/down and post
     # events on eventq.
-    if not trap.genericType in ['LINKUP', 'LINKDOWN']:
+    if trap.genericType not in ['LINKUP', 'LINKDOWN']:
         return False
 
     _logger.debug("Module linkupdown got trap %s %s",

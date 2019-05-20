@@ -344,7 +344,7 @@ class MaintenanceCalendar(HTMLCalendar):
                 # Need to stop somewhere when tasks do not specify end date.
                 end_day = task.start_time.date() + timedelta(weeks=4)
             while day <= end_day:
-                if not day in grouped:
+                if day not in grouped:
                     grouped[day] = {}
                 if task.pk in task_index:
                     index = task_index[task.pk]
