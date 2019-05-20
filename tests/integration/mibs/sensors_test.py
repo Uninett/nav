@@ -6,7 +6,7 @@ import pytest_twisted
 
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.ipdevpoll.snmp.common import SNMPParameters
-from nav.mibs import powernet_mib
+from nav.mibs import comet, powernet_mib
 
 
 ports = cycle([snmpprotocol.port() for i in range(50)])
@@ -74,5 +74,116 @@ def test_apc_pdu(snmp_agent):
             'precision': 1,
             'scale': None,
             'unit_of_measurement': 'Ampere'
+        },
+    ]
+
+
+@pytest.mark.twisted
+@pytest_twisted.inlineCallbacks
+def test_P8652(snmp_agent):
+    snmp_agent.community = 'P8652'
+    snmp_agent.open()
+    mib = comet.Comet(snmp_agent)
+    res = yield mib.get_all_sensors()
+    assert res == [
+        {
+            'description': 'Channel 1',
+            'internal_name': 'channel1',
+            'mib': 'P8652-MIB',
+            'name': 'Channel 1',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.1.3.0',
+            'precision': 1,
+            'scale': None,
+            'unit_of_measurement': 'celsius'
+        },
+        {
+            'description': 'Channel 2',
+            'internal_name': 'channel2',
+            'mib': 'P8652-MIB',
+            'name': 'Channel 2',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.2.3.0',
+            'precision': 1,
+            'scale': None,
+            'unit_of_measurement': '%RH'
+        },
+        {
+            'description': 'Channel 3',
+            'internal_name': 'channel3',
+            'mib': 'P8652-MIB',
+            'name': 'Channel 3',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.3.3.0',
+            'precision': 1,
+            'scale': None,
+            'unit_of_measurement': ''
+        },
+        {
+            'description': 'Channel 4',
+            'internal_name': 'channel4',
+            'mib': 'P8652-MIB',
+            'name': 'Channel 4',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.4.3.0',
+            'precision': 1,
+            'scale': None,
+            'unit_of_measurement': ''
+        },
+        {
+            'description': 'vann-gulv-gang',
+            'internal_name': 'bin1',
+            'mib': 'P8652-MIB',
+            'name': 'BIN 1',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.6.3.0',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'boolean'
+        },
+        {
+            'description': 'vann-gulv-gang alarm',
+            'internal_name': 'bin1Alarm',
+            'mib': 'P8652-MIB',
+            'name': 'BIN 1 Alarm',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.6.5.0',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'boolean'
+        },
+        {
+            'description': 'vann-gulv-A',
+            'internal_name': 'bin2',
+            'mib': 'P8652-MIB',
+            'name': 'BIN 2',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.7.3.0',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'boolean'
+        },
+        {
+            'description': 'vann-gulv-A alarm',
+            'internal_name': 'bin2Alarm',
+            'mib': 'P8652-MIB',
+            'name': 'BIN 2 Alarm',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.7.5.0',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'boolean'
+        },
+        {
+            'description': 'vann-lagerrom',
+            'internal_name': 'bin3',
+            'mib': 'P8652-MIB',
+            'name': 'BIN 3',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.8.3.0',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'boolean'
+        },
+        {
+            'description': 'vann-lagerrom alarm',
+            'internal_name': 'bin3Alarm',
+            'mib': 'P8652-MIB',
+            'name': 'BIN 3 Alarm',
+            'oid': '.1.3.6.1.4.1.22626.1.5.2.8.5.0',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'boolean'
         },
     ]
