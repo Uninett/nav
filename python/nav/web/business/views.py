@@ -118,7 +118,6 @@ def save_report_subscription(request):
     """Saves a report subscription"""
 
     new_address = request.POST.get('new_address')
-    address_id = request.POST.get('address')
     period = request.POST.get('period')
     report_type = request.POST.get('report_type')
     exclude_maintenance = bool(request.POST.get('exclude_maintenance'))

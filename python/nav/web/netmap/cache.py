@@ -80,7 +80,6 @@ def cache_topology(layer):
 def update_cached_node_positions(viewid, layer, updated_nodes):
     cache_key = _cache_key("topology", viewid, layer)
     to_update = cache.get(cache_key)
-    nodes = to_update["nodes"]
     for node in updated_nodes:
         # If the node is new, it is easier just to make an early exit and
         # rebuild the whole topology

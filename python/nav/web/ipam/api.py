@@ -168,7 +168,6 @@ class PrefixFinderSet(viewsets.ViewSet):
 
     def get_queryset(self):
         # Extract filters
-        prefix = self.request.query_params.get("prefix", None)
         organization = self.request.query_params.get("organization", None)
         # Build queryset
         queryset = PrefixQuerysetBuilder()

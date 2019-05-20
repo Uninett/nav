@@ -130,7 +130,6 @@ class IpMib(mibretriever.MibRetriever):
             cls._logger.debug("prefix_index_to_ip: index too short: %r", index)
             return None
 
-        _ifindex = index[0]
         addr_oid = index[1:-1]
         prefix_length = index[-1]
 

@@ -411,7 +411,7 @@ def save_rack_order(request, roomid):
 @require_admin
 def save_rack_color(request, roomid):
     """Saves the background color for the rack as a class"""
-    _room = get_object_or_404(Room, pk=roomid)
+    get_object_or_404(Room, pk=roomid)
     rackid = request.POST.get('rackid')
     rack = get_object_or_404(Rack, pk=rackid)
     rack.configuration['body_class'] = request.POST.get('class')

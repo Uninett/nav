@@ -124,8 +124,6 @@ def show_profile(request):
     """Shows a single profile"""
     account = get_account(request)
 
-    page = request.GET.get('page', 1)
-
     # Define valid options for ordering
     valid_ordering = ['name', '-name']
     order_by = request.GET.get('order_by', 'name').lower()

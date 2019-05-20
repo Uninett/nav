@@ -124,7 +124,7 @@ def register_error_events(request, **kwargs):
 
             new_event = EventQueue.objects.create(**eventq_data)
             for key in eventqvar_data:
-                event_vars = EventQueueVar.objects.create(
+                EventQueueVar.objects.create(
                     event_queue=new_event,
                     variable=key,
                     value=eventqvar_data[key]
