@@ -21,6 +21,10 @@ import logging
 from optparse import OptionParser
 from collections import defaultdict
 
+import django
+from django.db import transaction
+from django.utils import six
+
 from nav import buildconf
 from nav.logs import init_generic_logging
 from nav.models.fields import INFINITY
@@ -28,10 +32,6 @@ from nav.models.manage import Netbox, Interface, Sensor
 from nav.models.thresholds import ThresholdRule
 from nav.models.event import EventQueue as Event, AlertHistory
 from nav.metrics.lookup import lookup
-
-import django
-from django.db import transaction
-from django.utils import six
 
 LOG_FILE = 'thresholdmon.log'
 

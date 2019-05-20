@@ -19,7 +19,8 @@
 
 from __future__ import absolute_import
 
-import django
+from django.core.exceptions import ValidationError
+from django.utils import six
 
 from nav.models.manage import Netbox, Room, Organization
 from nav.models.manage import Category, NetboxInfo, NetboxGroup
@@ -32,10 +33,6 @@ from nav.util import is_valid_ip
 from nav.web.servicecheckers import get_description
 
 from nav.bulkparse import BulkParseError
-
-from nav.models.manage import models
-from django.core.exceptions import ValidationError
-from django.utils import six
 
 
 class BulkImporter(six.Iterator):

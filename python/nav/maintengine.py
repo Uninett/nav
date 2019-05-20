@@ -25,12 +25,12 @@ from __future__ import absolute_import
 import datetime
 import logging
 
+from django.db import transaction
+from django.db.models import Q
+
 from nav.models import manage, service
 from nav.models.event import EventQueue as Event, AlertHistory
 from nav.models.msgmaint import MaintenanceTask
-
-from django.db import transaction
-from django.db.models import Q
 
 INFINITY = datetime.datetime.max
 

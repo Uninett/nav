@@ -22,11 +22,12 @@ as defined by PEP-8, because their names are derived directly from SNMP MIB
 objects. Pylint messages about this are therefore disabled in this file.
 
 """
-from functools import partial
-from struct import unpack
 import array
-from IPy import IP
+from functools import partial
 from itertools import islice
+from struct import unpack
+
+from IPy import IP
 
 from .oids import OID
 from .six import encode_array
