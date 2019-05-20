@@ -53,7 +53,7 @@ def test_apc_pdu(snmp_agent):
             'oid': '.1.3.6.1.4.1.318.1.1.12.2.3.1.1.2.1',
             'precision': 1,
             'scale': None,
-            'unit_of_measurement': 'Ampere'
+            'unit_of_measurement': 'amperes'
         },
         {
             'description': 'PDU Bank 1 ampere load',
@@ -63,7 +63,7 @@ def test_apc_pdu(snmp_agent):
             'oid': '.1.3.6.1.4.1.318.1.1.12.2.3.1.1.2.2',
             'precision': 1,
             'scale': None,
-            'unit_of_measurement': 'Ampere'
+            'unit_of_measurement': 'amperes'
         },
         {
             'description': 'PDU Bank 2 ampere load',
@@ -73,7 +73,7 @@ def test_apc_pdu(snmp_agent):
             'oid': '.1.3.6.1.4.1.318.1.1.12.2.3.1.1.2.3',
             'precision': 1,
             'scale': None,
-            'unit_of_measurement': 'Ampere'
+            'unit_of_measurement': 'amperes'
         },
     ]
 
@@ -87,47 +87,47 @@ def test_P8652(snmp_agent):
     res = yield mib.get_all_sensors()
     assert res == [
         {
-            'description': 'Channel 1',
+            'description': u'Channel 1',
             'internal_name': 'channel1',
             'mib': 'P8652-MIB',
             'name': 'Channel 1',
             'oid': '.1.3.6.1.4.1.22626.1.5.2.1.3.0',
             'precision': 1,
             'scale': None,
-            'unit_of_measurement': 'celsius'
+            'unit_of_measurement': u'celsius'
         },
         {
-            'description': 'Channel 2',
+            'description': u'Channel 2',
             'internal_name': 'channel2',
             'mib': 'P8652-MIB',
             'name': 'Channel 2',
             'oid': '.1.3.6.1.4.1.22626.1.5.2.2.3.0',
             'precision': 1,
             'scale': None,
-            'unit_of_measurement': '%RH'
+            'unit_of_measurement': u'%RH'
         },
         {
-            'description': 'Channel 3',
+            'description': u'Channel 3',
             'internal_name': 'channel3',
             'mib': 'P8652-MIB',
             'name': 'Channel 3',
             'oid': '.1.3.6.1.4.1.22626.1.5.2.3.3.0',
             'precision': 1,
             'scale': None,
-            'unit_of_measurement': ''
+            'unit_of_measurement': u''
         },
         {
-            'description': 'Channel 4',
+            'description': u'Channel 4',
             'internal_name': 'channel4',
             'mib': 'P8652-MIB',
             'name': 'Channel 4',
             'oid': '.1.3.6.1.4.1.22626.1.5.2.4.3.0',
             'precision': 1,
             'scale': None,
-            'unit_of_measurement': ''
+            'unit_of_measurement': u''
         },
         {
-            'description': 'vann-gulv-gang',
+            'description': u'vann-gulv-gang',
             'internal_name': 'bin1',
             'mib': 'P8652-MIB',
             'name': 'BIN 1',
@@ -137,7 +137,7 @@ def test_P8652(snmp_agent):
             'unit_of_measurement': 'boolean'
         },
         {
-            'description': 'vann-gulv-gang alarm',
+            'description': u'vann-gulv-gang alarm',
             'internal_name': 'bin1Alarm',
             'mib': 'P8652-MIB',
             'name': 'BIN 1 Alarm',
@@ -147,7 +147,7 @@ def test_P8652(snmp_agent):
             'unit_of_measurement': 'boolean'
         },
         {
-            'description': 'vann-gulv-A',
+            'description': u'vann-gulv-A',
             'internal_name': 'bin2',
             'mib': 'P8652-MIB',
             'name': 'BIN 2',
@@ -157,7 +157,7 @@ def test_P8652(snmp_agent):
             'unit_of_measurement': 'boolean'
         },
         {
-            'description': 'vann-gulv-A alarm',
+            'description': u'vann-gulv-A alarm',
             'internal_name': 'bin2Alarm',
             'mib': 'P8652-MIB',
             'name': 'BIN 2 Alarm',
@@ -167,7 +167,7 @@ def test_P8652(snmp_agent):
             'unit_of_measurement': 'boolean'
         },
         {
-            'description': 'vann-lagerrom',
+            'description': u'vann-lagerrom',
             'internal_name': 'bin3',
             'mib': 'P8652-MIB',
             'name': 'BIN 3',
@@ -177,7 +177,7 @@ def test_P8652(snmp_agent):
             'unit_of_measurement': 'boolean'
         },
         {
-            'description': 'vann-lagerrom alarm',
+            'description': u'vann-lagerrom alarm',
             'internal_name': 'bin3Alarm',
             'mib': 'P8652-MIB',
             'name': 'BIN 3 Alarm',
