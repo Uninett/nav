@@ -122,7 +122,7 @@ def active(request):
                     netbox = Netbox.objects.get(pk=int(netbox_id))
                 except Exception as get_ex:
                     _logger.error('Get netbox %s failed; Exception = %s',
-                                 netbox_id, get_ex.message)
+                                  netbox_id, get_ex.message)
                     continue
                 task.netbox = netbox
 
@@ -377,11 +377,11 @@ def add_box_to_maintenance(request):
                 _logger.debug('Maintenance checker finished')
 
                 _logger.debug('Add netbox to maintenance finished in %.3fs',
-                             time.clock() - before)
+                              time.clock() - before)
             else:
                 # What should we do here?
                 _logger.error('Netbox %s (id=%d) is already on maintenance',
-                             netbox.sysname, netbox.id)
+                              netbox.sysname, netbox.id)
     return HttpResponseRedirect(reverse('status-index'))
 
 
@@ -398,7 +398,7 @@ def _add_neverending_maintenance_task(owner, netbox):
     maint_task.state = MaintenanceTask.STATE_SCHEDULED
     maint_task.save()
     _logger.debug("Maintenance task %d; Adding component %s (id=%d)",
-                 maint_task.id, netbox.sysname, netbox.id)
+                  maint_task.id, netbox.sysname, netbox.id)
     maint_component = MaintenanceComponent()
     maint_component.maintenance_task = maint_task
     maint_component.key = 'netbox'

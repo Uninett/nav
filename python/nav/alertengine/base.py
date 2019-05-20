@@ -237,7 +237,7 @@ def _check_permissions(account, alert, alertsubscription, dupemap, _logger,
                     subscription=alertsubscription)
                 dupemap.add((alert.id, alertsubscription.alert_address_id))
                 _logger.info('alert %d queued for %s due to subscription %d',
-                            alert.id, account, alertsubscription.id)
+                             alert.id, account, alertsubscription.id)
             else:
                 _logger.debug(
                     'alert %d was already queued for %s (address %s)',
@@ -272,12 +272,12 @@ def handle_queued_alerts(queued_alerts, now=None):
             subscription = queued_alert.subscription
         except AlertSubscription.DoesNotExist:
             _logger.error('account queued alert %d does not have subscription, '
-                         'probably a legacy table row', queued_alert.id)
+                          'probably a legacy table row', queued_alert.id)
             continue
 
         _logger.debug('Stored alert %d: Checking %s %s subscription %d',
-                     queued_alert.alert_id, queued_alert.account,
-                     subscription.get_type_display(), subscription.id)
+                      queued_alert.alert_id, queued_alert.account,
+                      subscription.get_type_display(), subscription.id)
 
         try:
             subscription.time_period.profile.alertpreference
@@ -286,7 +286,7 @@ def handle_queued_alerts(queued_alerts, now=None):
 
         if subscription is None:
             _logger.info('Sending alert %d right away as the users profile has '
-                        'been disabled', queued_alert.alert_id)
+                         'been disabled', queued_alert.alert_id)
             send = True
 
         elif subscription.type == AlertSubscription.NOW:

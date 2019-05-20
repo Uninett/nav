@@ -218,7 +218,7 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
                 except handled:
                     remaining -= 1
                     _logger.error("cannot establish db connection. "
-                                 "retries remaining: %d", remaining)
+                                  "retries remaining: %d", remaining)
                     if remaining:
                         time.sleep(delay)
                         continue

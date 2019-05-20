@@ -51,7 +51,7 @@ def index(request, uri):
         output = error.fp.read()
 
         _logger.error("%s error on graphite render request: "
-                     "%r with arguments: %r", status, url, data)
+                      "%r with arguments: %r", status, url, data)
 
     else:
         status = proxy.getcode()

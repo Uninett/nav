@@ -95,7 +95,7 @@ class AbstractChecker(object):
         self.timeout = int(timeout)
         self.db = db.db()
         _logger.info("New checker instance for %s:%s ",
-                    self.sysname, self.get_type())
+                     self.sysname, self.get_type())
         self.runcount = 0
         self.runq = RunQueue.RunQueue()
 
@@ -116,7 +116,7 @@ class AbstractChecker(object):
             # in python < 2.3
             if self.response_time > 2 * self.timeout:
                 _logger.info("Adjusting status due to high responsetime (%s, "
-                            "%s)", service, self.response_time)
+                             "%s)", service, self.response_time)
                 status = event.Event.DOWN
                 self.response_time = 2 * self.timeout
 
@@ -125,7 +125,7 @@ class AbstractChecker(object):
             delay = int(self._conf.get('retry delay', 5))
             self.runcount += 1
             _logger.info("%-20s -> State changed. New check in %i sec. (%s, "
-                        "%s)", service, delay, status, info)
+                         "%s)", service, delay, status, info)
             # Update metrics every time to get proper 'uptime' for the service
             self.update_stats()
             priority = delay + time.time()

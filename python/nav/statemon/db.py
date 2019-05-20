@@ -120,14 +120,14 @@ class _DB(threading.Thread):
                     self.db.rollback()
                 else:
                     _logger.critical("PostgreSQL reported an internal error "
-                                    "I don't know how to handle: %s "
-                                    "(code=%s)", pg_err_lookup(err.pgcode),
-                                    err.pgcode)
+                                     "I don't know how to handle: %s "
+                                     "(code=%s)", pg_err_lookup(err.pgcode),
+                                     err.pgcode)
                     raise
         except Exception as err:
             if self.db is not None:
                 _logger.critical("Could not get cursor. Trying to reconnect...",
-                                exc_info=True)
+                                 exc_info=True)
             self.close()
             self.connect()
             cursor = self.db.cursor()

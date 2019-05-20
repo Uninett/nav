@@ -307,18 +307,18 @@ class MegaPing(object):
             pong = packet_class(raw_pong)
         except Exception as error:
             _logger.critical("could not disassemble packet from %r: %s",
-                            sender, error)
+                             sender, error)
             return
 
         if pong.type != pong.ICMP_ECHO_REPLY:
             # we only care about echo replies
             _logger.debug("Packet from %s was not an echo reply, but %s",
-                         sender, pong)
+                          sender, pong)
             return
 
         if not pong.id == self._pid:
             _logger.debug("packet from %r doesn't match our id (%s): %r (raw "
-                         "packet: %r)", sender, self._pid, pong, raw_pong)
+                          "packet: %r)", sender, self._pid, pong, raw_pong)
             return
 
         cookie = pong.data[:Host.COOKIE_LENGTH]
@@ -328,15 +328,15 @@ class MegaPing(object):
             host = self._requests[cookie]
         except KeyError:
             _logger.debug("packet from %r does not match any outstanding "
-                         "request: %r (raw packet: %r cookie: %r)",
-                         sender, pong, raw_pong, cookie)
+                          "request: %r (raw packet: %r cookie: %r)",
+                          sender, pong, raw_pong, cookie)
             return
 
         # Delete the entry of the host who has replied and add the pingtime
         pingtime = arrival - host.time
         host.reply = pingtime
         _logger.debug("Response from %-16s in %03.3f ms",
-                     sender, pingtime*1000)
+                      sender, pingtime*1000)
         del self._requests[cookie]
 
     def results(self):

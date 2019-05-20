@@ -89,7 +89,7 @@ def handleTrap(trap, config=None):
                 batterytime = s.get(batterytimeoid)
             except Exception as err:
                 _logger.info("Could not get battery time from %s: %s",
-                            trap.agent, err)
+                             trap.agent, err)
                 batterytime = False
             else:
                 batterytime = format_batterytime(batterytime, format)
