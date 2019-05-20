@@ -902,7 +902,8 @@ class Organization(models.Model, TreeMixin):
         'self',
         on_delete=models.CASCADE,
         db_column='parent',
-        blank=True,null=True
+        blank=True,
+        null=True
     )
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)
@@ -1218,7 +1219,8 @@ class Vlan(models.Model):
         'Usage',
         on_delete=models.CASCADE,
         db_column='usageid',
-        null=True,blank=True
+        null=True,
+        blank=True
     )
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
     description = VarcharField(null=True, blank=True)
@@ -1226,7 +1228,8 @@ class Vlan(models.Model):
         'NetBox',
         on_delete=models.SET_NULL,
         db_column='netboxid',
-        null=True,blank=True
+        null=True,
+        blank=True
     )
 
     class Meta(object):

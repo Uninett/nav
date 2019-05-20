@@ -782,7 +782,7 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         'title': 'NAV - Alert profiles',
         'profile': profile
     }
-    return render(request, 'alertprofiles/subscription_form.html',  info_dict)
+    return render(request, 'alertprofiles/subscription_form.html', info_dict)
 
 
 @requires_post('alertprofiles-profile')

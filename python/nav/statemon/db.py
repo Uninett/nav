@@ -166,8 +166,8 @@ class _DB(threading.Thread):
             return cursor.fetchall()
         except Exception:
             _logger.critical("Failed to execute query: %s",
-                            cursor.query if cursor else statement,
-                            exc_info=True)
+                             cursor.query if cursor else statement,
+                             exc_info=True)
             if commit:
                 try:
                     self.db.rollback()
@@ -194,14 +194,14 @@ class _DB(threading.Thread):
                     _logger.critical("Failed to commit")
         except psycopg2.IntegrityError:
             _logger.critical("Database integrity error, throwing away update",
-                            exc_info=True)
+                             exc_info=True)
             _logger.debug("Tried to execute: %s", cursor.query)
             if commit:
                 self.db.rollback()
         except Exception:
             _logger.critical("Could not execute statement: %s",
-                            cursor.query if cursor else statement,
-                            exc_info=True)
+                             cursor.query if cursor else statement,
+                             exc_info=True)
             if commit:
                 self.db.rollback()
             raise DbError()
@@ -311,8 +311,8 @@ class _DB(threading.Thread):
                 new_checker = checker(service, **kwargs)
             except Exception:
                 _logger.critical("Checker %s (%s) failed to init. This checker "
-                                "will remain DISABLED:",  handler, checker,
-                                exc_info=True)
+                                 "will remain DISABLED:", handler, checker,
+                                 exc_info=True)
                 continue
 
             if onlyactive and not active:
