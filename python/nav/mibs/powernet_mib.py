@@ -117,7 +117,7 @@ class PowerNetMib(UpsMib):
 
             result.append(dict(
                 oid=oid,
-                unit_of_measurement='Ampere',
+                unit_of_measurement=Sensor.UNIT_AMPERES,
                 precision=1,
                 scale=None,
                 description='%s ampere load' % name,
