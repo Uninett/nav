@@ -89,12 +89,12 @@ class PDU2Mib(MibRetriever):
         value_oid = self.nodes['measurements{table}Value'.format(
             table=captable)].oid
         precision = row['{table}DecimalDigits'.format(table=table)] + scale
-        minimum = row['{table}Minimum'.format(table=table)] / (10**precision)
+        minimum = row['{table}Minimum'.format(table=table)] / (10.**precision)
         maximum = row['{table}Maximum'.format(table=table)]
         if maximum == 4294967295:
             maximum = None
         else:
-            maximum = maximum / (10**precision)
+            maximum = maximum / (10.**precision)
         sensor = dict(
             oid=str(value_oid + index),
             unit_of_measurement=unit,
