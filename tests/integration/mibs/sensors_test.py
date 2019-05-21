@@ -6,7 +6,7 @@ import pytest_twisted
 
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.ipdevpoll.snmp.common import SNMPParameters
-from nav.mibs import comet, powernet_mib
+from nav.mibs import comet, pdu2_mib, powernet_mib
 
 
 ports = cycle([snmpprotocol.port() for i in range(50)])
@@ -185,5 +185,89 @@ def test_P8652(snmp_agent):
             'precision': 0,
             'scale': None,
             'unit_of_measurement': 'boolean'
+        },
+    ]
+
+
+@pytest.mark.twisted
+@pytest_twisted.inlineCallbacks
+def test_raritan_pdu(snmp_agent):
+    snmp_agent.community = 'raritan'
+    snmp_agent.open()
+    mib = pdu2_mib.PDU2Mib(snmp_agent)
+    res = yield mib.get_all_sensors()
+    res = sorted(res, key=lambda x: x['description'])
+    assert res == [
+        {
+            'description': 'pdu 1 inlet I1 activeEnergy',
+            'internal_name': 'pdu1_I1_activeEnergy',
+            'maximum': None,
+            'mib': 'PDU2-MIB',
+            'minimum': 0.0,
+            'name': 'pdu 1 inlet I1 activeEnergy',
+            'oid': '.1.3.6.1.4.1.13742.6.5.2.3.1.4.1.1.8',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'watthours'
+        },
+        {
+            'description': 'pdu 1 inlet I1 activePower',
+            'internal_name': 'pdu1_I1_activePower',
+            'maximum': 10000.0,
+            'mib': 'PDU2-MIB',
+            'minimum': 0.0,
+            'name': 'pdu 1 inlet I1 activePower',
+            'oid': '.1.3.6.1.4.1.13742.6.5.2.3.1.4.1.1.5',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'watts'
+        },
+        {
+            'description': 'pdu 1 inlet I1 apparentPower',
+            'internal_name': 'pdu1_I1_apparentPower',
+            'maximum': 10000.0,
+            'mib': 'PDU2-MIB',
+            'minimum': 0.0,
+            'name': 'pdu 1 inlet I1 apparentPower',
+            'oid': '.1.3.6.1.4.1.13742.6.5.2.3.1.4.1.1.6',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'voltsamperes'
+        },
+        {
+            'description': 'pdu 1 inlet I1 powerFactor',
+            'internal_name': 'pdu1_I1_powerFactor',
+            'maximum': 1.0,
+            'mib': 'PDU2-MIB',
+            'minimum': 0.0,
+            'name': 'pdu 1 inlet I1 powerFactor',
+            'oid': '.1.3.6.1.4.1.13742.6.5.2.3.1.4.1.1.7',
+            'precision': 2,
+            'scale': None,
+            'unit_of_measurement': 'unknown'
+        },
+        {
+            'description': 'pdu 1 inlet I1 rmsCurrent',
+            'internal_name': 'pdu1_I1_rmsCurrent',
+            'maximum': 32.0,
+            'mib': 'PDU2-MIB',
+            'minimum': 0.0,
+            'name': 'pdu 1 inlet I1 rmsCurrent',
+            'oid': '.1.3.6.1.4.1.13742.6.5.2.3.1.4.1.1.1',
+            'precision': 1,
+            'scale': None,
+            'unit_of_measurement': 'amperes'
+        },
+        {
+            'description': 'pdu 1 inlet I1 rmsVoltage',
+            'internal_name': 'pdu1_I1_rmsVoltage',
+            'maximum': 264.0,
+            'mib': 'PDU2-MIB',
+            'minimum': 0.0,
+            'name': 'pdu 1 inlet I1 rmsVoltage',
+            'oid': '.1.3.6.1.4.1.13742.6.5.2.3.1.4.1.1.4',
+            'precision': 0,
+            'scale': None,
+            'unit_of_measurement': 'voltsAC'
         },
     ]
