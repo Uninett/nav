@@ -20,7 +20,7 @@ from twisted.internet import defer
 from nav.models import manage
 from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
-from nav.ipdevpoll.neighbor import CDPNeighbor
+from nav.ipdevpoll.neighbor import Neighbor
 from nav.ipdevpoll.db import run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
@@ -141,3 +141,20 @@ class CDP(Plugin):
         neighbor.remote_id = six.text_type(record.ip)
         neighbor.remote_name = record.deviceid
         neighbor.source = SOURCE
+
+
+class CDPNeighbor(Neighbor):
+    "Parses a CDP tuple from nav.mibs.cisco_cdp_mib to identify a neighbor"
+
+    def _identify_netbox(self):
+        netbox = None
+        if self.record.ip:
+            netbox = self._netbox_from_ip(self.record.ip)
+
+        if not netbox and self.record.deviceid:
+            netbox = self._netbox_from_sysname(self.record.deviceid)
+
+        return netbox
+
+    def _identify_interfaces(self):
+        return self._interfaces_from_name(self.record.deviceport)

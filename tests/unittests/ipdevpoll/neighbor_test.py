@@ -1,5 +1,6 @@
 from unittest import TestCase
-from nav.ipdevpoll.neighbor import _get_netbox_macs, CDPNeighbor
+from nav.ipdevpoll.neighbor import _get_netbox_macs
+from nav.ipdevpoll.plugins.cdp import CDPNeighbor
 from mock import patch, Mock
 
 
