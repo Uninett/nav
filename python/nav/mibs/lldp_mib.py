@@ -118,7 +118,11 @@ class LLDPMib(mibretriever.MibRetriever):
                         ifindex
                     )
                     lookup[local_portnum] = ifindex
-            elif isinstance(port, IdSubtypes.local) and local_portnum != int(port):
+            elif (
+                isinstance(port, IdSubtypes.local)
+                and port.isdigit()
+                and local_portnum != int(port)
+            ):
                 self._logger.debug(
                     "translating local port num %s to ifindex %s",
                     local_portnum,
@@ -168,6 +172,14 @@ class IdType(str):
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__,
                            str(self))
+
+    def isdigit(self):
+        """Returns True if self can be successfully cast to an integer"""
+        try:
+            int(self)
+            return True
+        except ValueError:
+            return False
 
 
 class MacAddress(IdType):
