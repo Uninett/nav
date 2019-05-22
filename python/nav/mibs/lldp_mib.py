@@ -118,13 +118,16 @@ class LLDPMib(mibretriever.MibRetriever):
                         ifindex
                     )
                     lookup[local_portnum] = ifindex
-            elif isinstance(port, IdSubtypes.local) and local_portnum != int(port):
+            elif isinstance(port, IdSubtypes.local) and str(local_portnum) != port:
                 self._logger.debug(
                     "translating local port num %s to ifindex %s",
                     local_portnum,
                     port,
                 )
-                lookup[local_portnum] = int(port)
+                try:
+                    lookup[local_portnum] = int(port)
+                except ValueError:
+                    pass
 
         for remote in remotes:
             _timemark, local_portnum, _index = remote[0]
