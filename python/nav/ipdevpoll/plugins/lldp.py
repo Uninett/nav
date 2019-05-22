@@ -21,7 +21,7 @@ from django.utils import six
 from twisted.internet import defer
 
 from nav.models import manage
-from nav.mibs.lldp_mib import IdSubtypes, LLDPMib
+from nav.mibs import lldp_mib
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.neighbor import Neighbor, get_netbox_macs
 from nav.ipdevpoll.db import run_in_thread
@@ -29,6 +29,9 @@ from nav.ipdevpoll.timestamps import TimestampChecker
 
 INFO_VAR_NAME = 'lldp'
 SOURCE = 'lldp'
+INFO_KEY_LLDP_INFO = "lldp"
+INFO_VAR_CHASSIS_ID = "chassis_id"
+INFO_VAR_CHASSIS_MAC = "chassis_mac"
 
 
 class LLDP(Plugin):
@@ -57,7 +60,7 @@ class LLDP(Plugin):
 
     @defer.inlineCallbacks
     def handle(self):
-        mib = LLDPMib(self.agent)
+        mib = lldp_mib.LLDPMib(self.agent)
         stampcheck = yield self._stampcheck(mib)
         need_to_collect = yield stampcheck.is_changed()
         if need_to_collect:
@@ -69,10 +72,35 @@ class LLDP(Plugin):
 
             # Store sentinel to signal that LLDP neighbors have been processed
             shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+            yield self._get_chassis_id(mib)
         else:
             self._logger.debug("LLDP remote table seems unchanged")
 
         stampcheck.save()
+
+    @defer.inlineCallbacks
+    def _get_chassis_id(self, mib):
+        chassis_id_subtype = yield mib.get_next("lldpLocChassisIdSubtype",
+                                                translate_result=True)
+        chassis_id = yield mib.get_next("lldpLocChassisId")
+        if not chassis_id:
+            return
+        chassis_id = lldp_mib.IdSubtypes.get(chassis_id_subtype, chassis_id)
+        info = self.containers.factory((INFO_KEY_LLDP_INFO,
+                                        INFO_VAR_CHASSIS_ID),
+                                       shadows.NetboxInfo)
+        info.value = chassis_id
+        info.netbox = self.netbox
+        info.key = INFO_KEY_LLDP_INFO
+        info.variable = INFO_VAR_CHASSIS_ID
+        if isinstance(chassis_id, lldp_mib.MacAddress):
+            info = self.containers.factory((INFO_KEY_LLDP_INFO,
+                                            INFO_VAR_CHASSIS_MAC),
+                                           shadows.NetboxInfo)
+            info.value = chassis_id
+            info.netbox = self.netbox
+            info.key = INFO_KEY_LLDP_INFO
+            info.variable = INFO_VAR_CHASSIS_MAC
 
     @defer.inlineCallbacks
     def _stampcheck(self, mib):
@@ -149,12 +177,12 @@ class LLDPNeighbor(Neighbor):
         netbox = None
         if chassid:
             lookup = None
-            if isinstance(chassid, IdSubtypes.macAddress):
+            if isinstance(chassid, lldp_mib.IdSubtypes.macAddress):
                 lookup = self._netbox_from_mac
-            elif isinstance(chassid, IdSubtypes.networkAddress):
+            elif isinstance(chassid, lldp_mib.IdSubtypes.networkAddress):
                 lookup = self._netbox_from_ip
-            elif isinstance(chassid, IdSubtypes.local):
-                lookup = self._netbox_from_sysname
+            elif isinstance(chassid, lldp_mib.IdSubtypes.local):
+                lookup = self._netbox_from_local
 
             if lookup:
                 netbox = lookup(str(chassid))
@@ -162,6 +190,14 @@ class LLDPNeighbor(Neighbor):
         if not netbox and self.record.sysname:
             netbox = self._netbox_from_sysname(self.record.sysname)
 
+        return netbox
+
+    def _netbox_from_local(self, chassid):
+        netbox = self._netbox_query(info__key=INFO_KEY_LLDP_INFO,
+                                    info__variable=INFO_VAR_CHASSIS_ID,
+                                    value=chassid).first()
+        if netbox:
+            self._logger.info("Found netbox through local type lookup")
         return netbox
 
     def _netbox_from_mac(self, mac):
@@ -173,14 +209,14 @@ class LLDPNeighbor(Neighbor):
         portid = self.record.port_id
         if self.netbox and portid:
             lookup = None
-            if isinstance(portid, (IdSubtypes.interfaceAlias,
-                                   IdSubtypes.interfaceName)):
+            if isinstance(portid, (lldp_mib.IdSubtypes.interfaceAlias,
+                                   lldp_mib.IdSubtypes.interfaceName)):
                 lookup = self._interfaces_from_name
-            elif isinstance(portid, (IdSubtypes.local)):
+            elif isinstance(portid, (lldp_mib.IdSubtypes.local)):
                 lookup = self._interfaces_from_local
-            elif isinstance(portid, (IdSubtypes.macAddress)):
+            elif isinstance(portid, (lldp_mib.IdSubtypes.macAddress)):
                 lookup = self._interfaces_from_mac
-            elif isinstance(portid, (IdSubtypes.networkAddress)):
+            elif isinstance(portid, (lldp_mib.IdSubtypes.networkAddress)):
                 lookup = self._interfaces_from_ip
 
             if lookup:
