@@ -341,7 +341,7 @@ class ArgumentParser(object):
                     value = [None, None]
 
         self.config.where.append(field + " " + negate + operat + " %s")
-        if type(value) is list:
+        if isinstance(value, list):
             self.config.parameters.extend(value)
         else:
             self.config.parameters.append(value)

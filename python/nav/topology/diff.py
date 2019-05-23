@@ -61,9 +61,9 @@ def printdiffs():
             found_link = found_links[port_id]
 
             diff = False
-            if type(found_link) is Box and port.to_netbox.id != found_link:
+            if isinstance(found_link, Box) and port.to_netbox.id != found_link:
                 diff = True
-            elif (type(found_link) is Port and
+            elif (isinstance(found_link, Port) and
                   (port.to_netbox.id != found_link[0] or
                    not port.to_interface or
                    port.to_interface.id != found_link[1])):

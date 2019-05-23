@@ -418,7 +418,7 @@ def add_category(category, categories, database):
 def add_origin(origin, category, origins, database):
     database.execute("SELECT nextval('origin_origin_seq')")
     originid = database.fetchone()[0]
-    assert type(originid) in six.integer_types
+    assert isinstance(originid, six.integer_types)
     database.execute("INSERT INTO origin (origin, name, "
                      "category) VALUES (%s, %s, %s)",
                      (originid, origin, category))
@@ -429,7 +429,7 @@ def add_origin(origin, category, origins, database):
 def add_type(facility, mnemonic, priorityid, types, database):
     database.execute("SELECT nextval('log_message_type_type_seq')")
     typeid = int(database.fetchone()[0])
-    assert type(typeid) in six.integer_types
+    assert isinstance(typeid, six.integer_types)
 
     database.execute("INSERT INTO log_message_type (type, facility, "
                      "mnemonic, priority) "
