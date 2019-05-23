@@ -233,6 +233,19 @@ sensor data from Powertek PDUs. The implemented proprietary MIB is:
 
 * ``PWTv1-MIB``
 
+Support for HPE metered PDUs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Support for ``CPQPOWER-MIB`` has been implemented, so that all sensor readings
+from HPE metered PDUs will be collected by NAV.
+
+LDAP entitlement verification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NAV 4.9.6 adds entitlement verification as a possible filter step for
+LDAP-based logins to the web interface. The new options are documented in
+:doc:`the LDAP configuration docs </reference/ldap>`.
+
 
 NAV 4.8
 ========
