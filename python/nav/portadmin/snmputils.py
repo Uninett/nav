@@ -351,7 +351,7 @@ class SNMPHandler(object):
         """Create Fantasyvlans for all vlans on this netbox"""
         numerical_vlans = self.get_available_vlans()
         vlan_objects = Vlan.objects.filter(
-            swportvlan__interface__netbox=self.netbox)
+            swportvlan__interface__netbox=self.netbox).distinct()
         vlans = []
         for numerical_vlan in numerical_vlans:
             try:
