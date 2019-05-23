@@ -135,8 +135,7 @@ def service_edit(request, service_id=None):
                 'netbox': netbox.pk,
                 'handler': handler,
             })
-            initial = dict(
-                [(prop.property, prop.value) for prop in service_prop])
+            initial = {prop.property: prop.value for prop in service_prop}
             property_form = ServicePropertyForm(
                 service_args=get_description(service.handler),
                 initial=initial)

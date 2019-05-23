@@ -79,8 +79,8 @@ COMPAQ = CPQPOWER-MIB
 
 def get_job_descriptions(config=None):
     """Builds a dict of all job descriptions"""
-    return dict([(d.name.replace(JOB_PREFIX, ''), d.description)
-                 for d in get_jobs(config)])
+    return {d.name.replace(JOB_PREFIX, ''): d.description
+            for d in get_jobs(config)}
 
 
 def get_jobs(config=None):
