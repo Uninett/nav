@@ -176,13 +176,13 @@ def get_layer2_traffic(location_or_room_id=None):
         else:
             interfaces = interfaces.filter(netbox__room=room)
 
-    edges = set([
+    edges = {
         (
             interface.netbox_id,
             interface.to_netbox_id
         )
         for interface in interfaces
-    ])
+    }
 
     traffic = []
     traffic_cache = get_traffic_for(

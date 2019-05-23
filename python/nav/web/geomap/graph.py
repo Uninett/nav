@@ -140,8 +140,8 @@ def area_filter(graph, bounds):
     edges = filter_dict(lambda edge: edge_connected_to(edge, nodes),
                         graph.edges)
     node_ids = (set(nodes.keys())
-                | set([e.source.id for e in edges.values()])
-                | set([e.target.id for e in edges.values()]))
+                | {e.source.id for e in edges.values()}
+                | {e.target.id for e in edges.values()})
     graph.nodes = subdict(graph.nodes, node_ids)
     graph.edges = edges
 
