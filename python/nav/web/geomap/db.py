@@ -316,8 +316,7 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
             connection_rid not in connections):
             connections[connection_id] = connection
         else:
-            for existing_id in connections.keys():
-                existing_conn = connections[existing_id]
+            for existing_id, existing_conn in connections.items():
                 if ((existing_id == connection_id or
                      existing_id == connection_rid) and
                     (existing_conn['forward']['capacity'] < res['capacity'])):

@@ -26,8 +26,8 @@ def time_since(timestamp):
         return "Now"
     else:
         text = timesince(timestamp)
-        for key in mapping.keys():
-            text = text.replace(key, mapping[key])
+        for key, replacement in mapping.items():
+            text = text.replace(key, replacement)
 
         return text
 
