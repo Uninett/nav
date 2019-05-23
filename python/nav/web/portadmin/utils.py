@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Util functions for the PortAdmin"""
+from __future__ import unicode_literals
 import re
 import configparser
 import logging
