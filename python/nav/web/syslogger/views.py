@@ -15,11 +15,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """syslogger view definitions"""
-from django.db.models.aggregates import Count
 import json
 import datetime
 from configparser import ConfigParser
 
+from django.db.models.aggregates import Count
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 

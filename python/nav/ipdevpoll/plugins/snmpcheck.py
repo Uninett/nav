@@ -18,12 +18,12 @@
 from twisted.internet import error, defer
 from twisted.internet.defer import returnValue
 
+from django.db import transaction
+
 from nav.event2 import EventFactory
 from nav.models import manage
 from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll.jobs import SuggestedReschedule
-
-from django.db import transaction
 
 SYSTEM_OID = '.1.3.6.1.2.1.1'
 EVENT = EventFactory('ipdevpoll', 'eventEngine',

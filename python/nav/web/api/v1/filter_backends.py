@@ -18,12 +18,12 @@
 import operator
 # reduce is removed in python 3, import it from functools
 from functools import reduce as reduce3
-from . import alert_serializers
 from rest_framework import filters
 from django.db.models import Q
 
 from nav import natsort
 from nav.models.manage import Location
+from . import alert_serializers
 
 __all__ = ['NaturalIfnameFilter', 'IfClassFilter', 'AlertHistoryFilterBackend']
 

@@ -27,6 +27,7 @@ Based on datacollector.py from the old Java-applet based Netmap.
 
 import logging
 
+from django.core.cache import cache
 from django.utils.six import iteritems, iterkeys
 from django.utils.six.moves.urllib.error import HTTPError
 
@@ -40,7 +41,6 @@ from nav.metrics.templates import (metric_path_for_interface,
                                    metric_path_for_cpu_load,
                                    metric_path_for_cpu_utilization)
 from nav.web.geomap.utils import lazy_dict, subdict, is_nan, chunks
-from django.core.cache import cache
 
 _logger = logging.getLogger(__name__)
 

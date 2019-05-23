@@ -30,7 +30,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-from nav.six import reverse
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav import util
@@ -52,6 +51,7 @@ import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 import nav.models.event
+from nav.six import reverse
 
 
 _logger = logging.getLogger(__name__)

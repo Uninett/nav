@@ -22,10 +22,12 @@ from datetime import datetime
 from functools import wraps
 from time import time
 from subprocess import Popen, PIPE
-from nav.models.manage import Arp, Netbios
-from nav.macaddress import MacAddress
+
 from django.db import transaction
 from django.utils import six
+
+from nav.models.manage import Arp, Netbios
+from nav.macaddress import MacAddress
 
 SPLITCHAR = '!'
 

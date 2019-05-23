@@ -16,11 +16,12 @@
 """Functions for updating the database's layer 2 topology"""
 import logging
 
+from django.db import transaction
+from django.db.models import Q
+
 from nav.topology.analyze import Port
 
 from nav.models.manage import Interface, Netbox
-from django.db import transaction
-from django.db.models import Q
 
 
 _logger = logging.getLogger(__name__)

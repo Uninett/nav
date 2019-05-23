@@ -28,14 +28,16 @@ import select
 import time
 from functools import wraps
 import errno
+
 from psycopg2 import OperationalError
+from django.db import connection, DatabaseError, transaction
+
 from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.config import EVENTENGINE_CONF
 from nav.eventengine import unresolved
 from nav.models.event import EventQueue as Event
 import nav.db
-from django.db import connection, DatabaseError, transaction
 
 _logger = logging.getLogger(__name__)
 

@@ -24,6 +24,9 @@ import logging
 import sys
 import atexit
 
+from django.db.models import Q
+import django.db
+
 from nav import buildconf
 from nav import daemon
 from nav.debug import log_stacktrace, log_last_django_query
@@ -34,8 +37,6 @@ from nav.topology.analyze import (AdjacencyReducer, build_candidate_graph_from_d
 from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
 
 from nav.models.manage import Vlan, Prefix
-from django.db.models import Q
-import django.db
 
 LOG_FILE = 'navtopology.log'
 PID_FILE = 'navtopology.pid'

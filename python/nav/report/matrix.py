@@ -16,6 +16,7 @@
 """Builds the prefix matrix."""
 
 from collections import namedtuple
+import logging
 import math
 
 import IPy
@@ -27,7 +28,6 @@ from nav.metrics.graphs import get_simple_graph_url
 from nav.report import metaIP, IPtools, IPtree
 
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

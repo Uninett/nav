@@ -32,6 +32,8 @@ from collections import namedtuple
 from smtplib import SMTPException
 
 from IPy import IP
+from django.db import connection
+from django.core.mail import EmailMessage
 
 import nav.Snmp
 from nav.Snmp.errors import AgentError
@@ -42,8 +44,6 @@ from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
 from nav.portadmin.snmputils import SNMPFactory
-from django.db import connection  # import this after any django models
-from django.core.mail import EmailMessage
 from nav.util import is_valid_ip
 
 CONFIGFILE = os.path.join("arnold", "arnold.conf")

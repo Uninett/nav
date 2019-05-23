@@ -18,8 +18,9 @@
 
 
 import logging
-import psycopg2.extras
 from decimal import Decimal
+
+import psycopg2.extras
 
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden

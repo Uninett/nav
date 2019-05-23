@@ -18,8 +18,9 @@
 import json
 import logging
 
-from .tests import Test
 from django.core.cache import cache
+
+from .tests import Test
 
 _logger = logging.getLogger(__name__)
 

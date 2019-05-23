@@ -22,9 +22,9 @@ import ipaddress
 from itertools import islice
 
 from IPy import IP, IPSet
+from django.db.models import Q
 
 from nav.models.manage import Prefix
-from django.db.models import Q
 
 
 class PrefixQuerysetBuilder(object):

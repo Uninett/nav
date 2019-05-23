@@ -17,11 +17,12 @@
 import contextlib
 import socket
 
+from django.utils.six.moves.urllib.parse import urlsplit
+from django.utils.six.moves import http_client
+
 from nav import buildconf
 from nav.statemon.event import Event
 from nav.statemon.abstractchecker import AbstractChecker
-from django.utils.six.moves.urllib.parse import urlsplit
-from django.utils.six.moves import http_client
 
 
 class HTTPConnection(http_client.HTTPConnection):

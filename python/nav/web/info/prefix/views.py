@@ -25,8 +25,8 @@ from IPy import IP
 
 from nav.six import reverse
 from nav.web import utils
-from ..forms import SearchForm
 from nav.models.manage import Prefix, Usage, PrefixUsage
+from ..forms import SearchForm
 
 
 ### Forms
