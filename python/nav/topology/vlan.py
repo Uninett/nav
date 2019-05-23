@@ -341,7 +341,7 @@ class UnroutedVlanTopologyAnalyzer(RoutedVlanTopologyAnalyzer):
     def analyze(self):
         start_edge = (self.seed_netbox, self.seed_netbox, None)
         self._examine_edge(start_edge)
-        return {ifc: 'undefined' for ifc in self.ifc_directions.keys()}
+        return {ifc: 'undefined' for ifc in self.ifc_directions}
 
 
 class VlanTopologyUpdater(object):

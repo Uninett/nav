@@ -60,7 +60,7 @@ def register_error_events(request, **kwargs):
     event_type = kwargs.pop('event_type', 'deviceNotice')
     alert_type = kwargs.pop('alert_type', 'deviceError')
 
-    for key in kwargs.keys():
+    for key in kwargs:
         raise TypeError('register_error_events() got an unexpected keyword '
                         'argument %s' % key)
 
