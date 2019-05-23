@@ -17,9 +17,9 @@
 from __future__ import absolute_import
 from twisted.internet import defer
 
-from .ip_mib import IpMib
 from nav.smidumps import get_mib
 from nav.oids import OID
+from .ip_mib import IpMib
 
 
 class CiscoIetfIpMib(IpMib):

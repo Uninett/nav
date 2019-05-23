@@ -15,9 +15,10 @@
 #
 """Loading and caching of unresolved alert states from the database"""
 
+import logging
+
 from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
-import logging
 
 _logger = logging.getLogger(__name__)
 _unresolved_alerts_map = {}

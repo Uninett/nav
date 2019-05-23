@@ -15,12 +15,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from nav.six import reverse
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 
 from nav.django.utils import get_verbose_name
 
+from nav.six import reverse
 from nav.web.message import new_message, Messages
 
 STEP_CHANGEVALUES = 0  # Dropdown boxes with new values

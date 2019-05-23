@@ -15,11 +15,11 @@
 #
 """LDAP service checker"""
 from IPy import IP
+import ldap
 import ldapurl
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
-import ldap
 
 
 class LdapChecker(AbstractChecker):

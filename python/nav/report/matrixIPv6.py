@@ -15,12 +15,13 @@
 #
 """This class serves as an interface for the prefix matrix."""
 
+import logging
+
 from nav.six import reverse
 
 from nav.report import IPtools, metaIP
 from nav.report.matrix import Matrix, Link
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

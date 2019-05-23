@@ -14,11 +14,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """eventengine config"""
-from nav.config import NAVConfigParser
-from nav.util import parse_interval
 from configparser import NoSectionError, NoOptionError
 
 from django.utils import six
+
+from nav.config import NAVConfigParser
+from nav.util import parse_interval
 
 
 class EventEngineConfig(NAVConfigParser):

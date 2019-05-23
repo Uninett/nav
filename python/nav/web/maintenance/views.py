@@ -19,7 +19,6 @@ import logging
 import time
 from datetime import datetime, date
 
-from nav.six import reverse
 from django.db import transaction, connection
 from django.db.models import Count, Q
 from django.shortcuts import render, get_object_or_404, redirect
@@ -29,6 +28,7 @@ from django.utils.safestring import mark_safe
 from nav.django.utils import get_account
 from nav.models.manage import Netbox
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
+from nav.six import reverse
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 

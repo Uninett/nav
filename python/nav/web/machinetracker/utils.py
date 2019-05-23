@@ -17,9 +17,10 @@
 
 from datetime import datetime
 from socket import gethostbyaddr, herror
-from IPy import IP
 from collections import namedtuple, OrderedDict
 import logging
+
+from IPy import IP
 
 from django.utils import six
 

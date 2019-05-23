@@ -36,8 +36,8 @@ from collections import defaultdict
 
 from nav.models import manage, event
 from nav import ipdevpoll
-from . import storage
 from nav.ipdevpoll.db import django_debug_cleanup, run_in_thread
+from . import storage
 import django.db
 
 

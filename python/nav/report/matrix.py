@@ -14,9 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Builds the prefix matrix."""
-import math
-import IPy
+
 from collections import namedtuple
+import math
+
+import IPy
 
 from nav.six import reverse
 

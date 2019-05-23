@@ -15,9 +15,9 @@
 #
 """Module comment"""
 
-from . import Navlet
 from nav.watchdog.util import get_statuses
 from nav.watchdog.tests import STATUS_OK
+from . import Navlet
 
 
 class WatchDogWidget(Navlet):

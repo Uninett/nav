@@ -19,7 +19,6 @@ import logging
 import datetime as dt
 
 from django.conf import settings
-from nav.six import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import (get_object_or_404, redirect,
@@ -37,6 +36,7 @@ from nav.models.service import Service
 from nav.models.profiles import Account
 from nav.models.event import AlertHistory
 from nav.ipdevpoll.config import get_job_descriptions
+from nav.six import reverse
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
 from nav.web.utils import create_title, SubListView

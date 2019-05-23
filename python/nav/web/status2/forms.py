@@ -22,10 +22,10 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
                                             HTML, Fieldset)
 
-from . import STATELESS_THRESHOLD
 from nav.models.event import EventType, AlertType
 from nav.models.manage import Organization, Category, NetboxGroup, Location
 from nav.web.crispyforms import NumberField
+from . import STATELESS_THRESHOLD
 
 
 class StatusPanelForm(forms.Form):

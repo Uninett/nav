@@ -19,7 +19,6 @@ import datetime
 import logging
 import csv
 
-from nav.six import reverse
 from django.db import IntegrityError
 from django.db.models import Q, Max
 from django.http import HttpResponse
@@ -32,6 +31,7 @@ from nav.django.decorators import require_admin
 from nav.models.manage import Room, Sensor, Interface
 from nav.models.rack import (Rack, SensorRackItem, SensorsDiffRackItem,
                              SensorsSumRackItem)
+from nav.six import reverse
 from nav.web.info.forms import SearchForm
 from nav.web.info.images.upload import handle_image_upload
 from nav.web.utils import create_title

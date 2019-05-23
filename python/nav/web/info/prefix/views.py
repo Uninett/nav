@@ -16,7 +16,6 @@
 """Controllers and Forms for prefix details page"""
 
 from django import forms
-from nav.six import reverse
 from django.db.utils import DatabaseError
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -24,6 +23,7 @@ from django.views.decorators.http import require_POST
 
 from IPy import IP
 
+from nav.six import reverse
 from nav.web import utils
 from ..forms import SearchForm
 from nav.models.manage import Prefix, Usage, PrefixUsage

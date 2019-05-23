@@ -23,9 +23,9 @@ from django.utils.six import iteritems
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.smidumps import get_mib
-from . import mibretriever
 from nav.oidparsers import consume
 from nav.oidparsers import InetPrefix, ObjectIdentifier, TypedInetAddress
+from . import mibretriever
 
 # Extracted from IANA-RPROTO-MIB::IANAipRouteProtocol, revision 200009260000Z
 IANA_IP_ROUTE_PROTOCOLS = {

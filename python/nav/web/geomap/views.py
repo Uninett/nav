@@ -25,13 +25,13 @@ from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import Http404
-from nav.six import reverse
 from django.shortcuts import render
 from django.utils.six import itervalues
 
 import nav.db
 from nav.django.utils import get_account
 
+from nav.six import reverse
 from nav.web.geomap.conf import get_configuration
 from nav.web.geomap.db import (get_data, get_cached_multiple_link_load,
                                get_cached_multiple_cpu_load)

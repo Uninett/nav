@@ -15,12 +15,12 @@
 #
 """Layer 2 traceroute web tool for NAV."""
 
+import datetime
 import socket
 from socket import gethostbyaddr, gethostbyname
 
 from django.db.models import Q
 from nav.models.manage import Netbox, SwPortVlan, GwPortPrefix, Prefix, Arp, Cam
-import datetime
 
 from nav.util import is_valid_ip
 

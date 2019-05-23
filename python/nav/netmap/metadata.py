@@ -16,7 +16,6 @@
 """Handles attaching and converting metadata in a netmap networkx toplogy
 graph"""
 from collections import defaultdict
-from nav.six import reverse, NoReverseMatch
 from django.utils import six
 
 from IPy import IP
@@ -24,6 +23,7 @@ from nav.netmap.config import NETMAP_CONFIG
 from nav.errors import GeneralException
 from nav.models.manage import GwPortPrefix, Interface
 from nav.netmap import stubs
+from nav.six import reverse, NoReverseMatch
 from nav.web.netmap.common import get_status_image_link
 
 

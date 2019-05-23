@@ -18,10 +18,6 @@
 from django.conf.urls import url
 from django.views.decorators.cache import never_cache
 
-from .views import (
-    IndexView,
-    NetmapAdminView,
-)
 from nav.web.netmap.api import (
     TrafficView,
     NetmapViewList,
@@ -33,6 +29,10 @@ from nav.web.netmap.api import (
 )
 
 from nav.models.profiles import Account
+from .views import (
+    IndexView,
+    NetmapAdminView,
+)
 
 
 urlpatterns = [

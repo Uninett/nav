@@ -41,12 +41,12 @@ Port nodes can have outgoing edges to other Port nodes, or to Netbox nodes
 
 from collections import defaultdict
 from itertools import chain
+import logging
 
 import networkx as nx
 from nav.models.manage import (AdjacencyCandidate, InterfaceAggregate,
                                InterfaceStack)
 
-import logging
 _logger = logging.getLogger(__name__)
 
 CDP = 'cdp'

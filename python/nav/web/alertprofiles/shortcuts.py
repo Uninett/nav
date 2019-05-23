@@ -16,8 +16,9 @@
 #
 """Shortcuts for Alert Profiles"""
 
-from nav.web.message import Messages, new_message
 from django.shortcuts import render
+
+from nav.web.message import Messages, new_message
 
 BASE_PATH = [
     ('Home', '/'),

@@ -15,11 +15,12 @@
 #
 """Domain Controller service checker"""
 
+import os
+import subprocess
+
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 from nav.util import which
-import os
-import subprocess
 
 
 class DcChecker(AbstractChecker):

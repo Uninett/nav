@@ -24,8 +24,9 @@ Generally, a phone number is a user and vice versa.
 """
 
 import logging
-import nav.db
 import sys
+
+import nav.db
 
 
 # pylint: disable=W0703

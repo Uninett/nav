@@ -20,8 +20,8 @@ Packages:
   plugins -- polling plugin system
 
 """
-from .log import ContextLogger, ContextFormatter
 from nav.models import manage
+from .log import ContextLogger, ContextFormatter
 
 
 class Plugin(object):

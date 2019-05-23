@@ -15,15 +15,15 @@
 #
 """RADIUS service checker"""
 
-# NAV ServiceMonitor-modules
-from nav.statemon.abstractchecker import AbstractChecker
-from nav.statemon.event import Event
-
 # Python-radius specific modules. pyrad found at
 # http://www.wiggy.net/code/pyrad/ by Wichert Akkermann
 import pyrad.packet
 from pyrad.client import Client
 from pyrad.dictionary import Dictionary
+
+# NAV ServiceMonitor-modules
+from nav.statemon.abstractchecker import AbstractChecker
+from nav.statemon.event import Event
 
 
 class RadiusChecker(AbstractChecker):

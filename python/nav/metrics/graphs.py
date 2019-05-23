@@ -15,9 +15,11 @@
 #
 """Getting graphs of NAV-collected data from Graphite"""
 import re
+
 from django.utils.six.moves.urllib.parse import urlencode
-from nav.six import reverse
 from django.utils import six
+
+from nav.six import reverse
 
 
 TIMETICKS_IN_DAY = 100 * 3600 * 24

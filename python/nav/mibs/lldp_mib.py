@@ -17,11 +17,10 @@
 import socket
 from collections import namedtuple
 
-from nav.ip import IP
-
 from django.utils import six
 from twisted.internet.defer import inlineCallbacks, returnValue
 
+from nav.ip import IP
 from nav.mibs.if_mib import IfMib
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index

@@ -26,11 +26,11 @@
 
 from django.http import HttpResponseRedirect
 from django.core.exceptions import ObjectDoesNotExist
-from nav.six import reverse
 from django.db.models import Q
 from django.shortcuts import render
 from django.utils import six
 
+from nav.six import reverse
 from nav.web.utils import SubListView
 
 from nav.models.profiles import (

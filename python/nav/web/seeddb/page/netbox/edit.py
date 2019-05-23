@@ -21,7 +21,6 @@
 import copy
 import socket
 from socket import error as SocketError
-from nav.six import reverse
 
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
@@ -33,6 +32,7 @@ from nav.models.manage import Netbox, NetboxCategory, NetboxType
 from nav.models.manage import NetboxInfo
 from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
+from nav.six import reverse
 from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname

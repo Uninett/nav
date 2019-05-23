@@ -16,6 +16,8 @@
 
 from __future__ import unicode_literals, absolute_import
 
+import logging
+
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import force_text
@@ -25,7 +27,6 @@ from nav.models.fields import VarcharField, LegacyGenericForeignKey
 
 from . import find_modelname
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

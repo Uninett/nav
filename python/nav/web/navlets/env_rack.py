@@ -17,8 +17,8 @@
 
 from django import forms
 
-from . import Navlet
 from nav.models.rack import Rack
+from . import Navlet
 
 
 class RackSearchForm(forms.Form):

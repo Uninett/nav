@@ -18,13 +18,13 @@ from calendar import HTMLCalendar
 from datetime import date, datetime, timedelta
 from time import strftime
 
-from nav.six import reverse
 from django.utils.html import conditional_escape
 from django.utils.six.moves import range
 
 from nav.models.manage import Netbox, Room, Location, NetboxGroup
 from nav.models.service import Service
 from nav.models.msgmaint import MaintenanceTask
+from nav.six import reverse
 
 PRIMARY_KEY_INTEGER = ('netbox', 'service')
 

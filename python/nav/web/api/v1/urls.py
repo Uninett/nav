@@ -16,11 +16,11 @@
 # pylint: disable=E1101
 """Urlconf for the NAV REST api"""
 
-from nav.web.api.v1 import views
 from django.conf.urls import url, include
 from rest_framework import routers
 
 from nav.auditlog import api as auditlogapi
+from nav.web.api.v1 import views
 
 router = routers.SimpleRouter()
 router.register(r'account', views.AccountViewSet)

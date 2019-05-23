@@ -20,15 +20,15 @@ from datetime import date, timedelta
 from django import forms
 from django.utils.encoding import force_text
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
+                                            Column, Field, HTML)
+
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
 from nav.models.api import APIToken
 from nav.web.api.v1.views import get_endpoints as get_api_endpoints
 from nav.util import auth_token
-
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
-                                            Column, Field, HTML)
 
 
 class AccountGroupForm(forms.ModelForm):

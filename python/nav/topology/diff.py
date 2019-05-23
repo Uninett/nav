@@ -18,11 +18,11 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from nav.models.manage import Interface
+
 from .analyze import (AdjacencyReducer, build_candidate_graph_from_db,
                       get_aggregate_mapping)
 from .analyze import Box, Port
-
-from nav.models.manage import Interface
 
 
 def printdiffs():
