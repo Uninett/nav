@@ -188,6 +188,7 @@ class NAVAPIMixin(APIView):
     filter_backends = (filters.SearchFilter, DjangoFilterBackend,
                        RelatedOrderingFilter)
     ordering_fields = '__all__'
+    ordering = ('id',)
 
 
 class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
