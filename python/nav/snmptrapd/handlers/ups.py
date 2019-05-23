@@ -158,10 +158,10 @@ def handleTrap(trap, config=None):
 def format_batterytime(timeunit, format):
     if isinstance(timeunit, int):
         seconds = timeunit
-        if 'MINUTES' == format:
+        if format == 'MINUTES':
             # UPS-MIB
             seconds = (timeunit * 60)
-        if 'TIMETICKS' == format:
+        if format == 'TIMETICKS':
             seconds = timeunit / 100
         return "%sh:%sm" % (int(seconds / 60 / 60), (seconds/60) % 60)
 
