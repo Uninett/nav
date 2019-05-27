@@ -16,15 +16,14 @@
 """Controllers for threshold app"""
 
 import datetime
-import json
-from nav.six import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import six
 
 from nav.metrics.names import raw_metric_query
 from nav.metrics.graphs import get_simple_graph_url, Graph
 from nav.models.thresholds import ThresholdRule
+from nav.six import reverse
 from nav.web.threshold.forms import ThresholdForm
 from nav.django.utils import get_account
 from nav.web.utils import create_title
@@ -141,7 +140,7 @@ def threshold_search(request):
                 'expandable': metric['expandable']
             })
 
-    return HttpResponse(json.dumps(result), content_type='application/json')
+    return JsonResponse(result)
 
 
 def enhance_term(term):

@@ -13,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+import logging
+
 from django.utils.six.moves.urllib.request import Request, urlopen
 from django.utils.six.moves.urllib.error import HTTPError
 from django.utils.six.moves.urllib.parse import urljoin
@@ -20,7 +22,6 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed
 from nav.metrics import CONFIG
 
-import logging
 _logger = logging.getLogger(__name__)
 
 
@@ -51,7 +52,7 @@ def index(request, uri):
         output = error.fp.read()
 
         _logger.error("%s error on graphite render request: "
-                     "%r with arguments: %r", status, url, data)
+                      "%r with arguments: %r", status, url, data)
 
     else:
         status = proxy.getcode()
@@ -78,9 +79,9 @@ def _inject_default_arguments(query):
     format_ = CONFIG.get('graphiteweb', 'format')
     query = query.copy()
 
-    if not 'format' in query:
+    if 'format' not in query:
         query['format'] = format_
-    if not 'tz' in query and settings.TIME_ZONE:
+    if 'tz' not in query and settings.TIME_ZONE:
         query['tz'] = settings.TIME_ZONE
 
     return query.urlencode()

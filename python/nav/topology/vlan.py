@@ -15,19 +15,21 @@
 #
 """Analysis of VLAN topology as subset of layer 2 topology"""
 
+from collections import defaultdict
+from itertools import groupby, chain
 import logging
+from operator import attrgetter
+
 import networkx as nx
 from IPy import IP
+
 from django.utils import six
+from django.db.models import Q
+from django.db import transaction
 
 from nav.models.manage import (GwPortPrefix, Interface, SwPortVlan,
                                SwPortBlocked, Prefix, Vlan)
 
-from django.db.models import Q
-from django.db import transaction
-from itertools import groupby, chain
-from operator import attrgetter
-from collections import defaultdict
 from nav.netmap import stubs
 
 _logger = logging.getLogger(__name__)
@@ -339,7 +341,7 @@ class UnroutedVlanTopologyAnalyzer(RoutedVlanTopologyAnalyzer):
     def analyze(self):
         start_edge = (self.seed_netbox, self.seed_netbox, None)
         self._examine_edge(start_edge)
-        return {ifc: 'undefined' for ifc in self.ifc_directions.keys()}
+        return {ifc: 'undefined' for ifc in self.ifc_directions}
 
 
 class VlanTopologyUpdater(object):

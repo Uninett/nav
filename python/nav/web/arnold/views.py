@@ -16,12 +16,12 @@
 
 """Views for Arnold"""
 
+from datetime import datetime, timedelta
 import logging
+
 from IPy import IP
 from django.shortcuts import render, redirect
 from django.db.models import Q
-
-from datetime import datetime, timedelta
 
 from nav.arnold import (open_port, disable, quarantine, GeneralException,
                         find_id_information, find_input_type, check_target)

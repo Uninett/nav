@@ -21,14 +21,11 @@
 from hashlib import md5
 import itertools
 import logging
-import os
 from datetime import datetime
 import re
 import json
 
-from django.utils import six
 from django.views.decorators.debug import sensitive_variables
-from nav.six import reverse
 from django.db import models, transaction
 from django.utils.encoding import python_2_unicode_compatible
 from django.forms.models import model_to_dict
@@ -46,6 +43,7 @@ from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
 from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
 from nav.models.fields import VarcharField, DictAsJsonField
+from nav.six import reverse
 
 
 # This should be the authorative source as to which models alertengine

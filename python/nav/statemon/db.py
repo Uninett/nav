@@ -120,14 +120,14 @@ class _DB(threading.Thread):
                     self.db.rollback()
                 else:
                     _logger.critical("PostgreSQL reported an internal error "
-                                    "I don't know how to handle: %s "
-                                    "(code=%s)", pg_err_lookup(err.pgcode),
-                                    err.pgcode)
+                                     "I don't know how to handle: %s "
+                                     "(code=%s)", pg_err_lookup(err.pgcode),
+                                     err.pgcode)
                     raise
         except Exception as err:
             if self.db is not None:
                 _logger.critical("Could not get cursor. Trying to reconnect...",
-                                exc_info=True)
+                                 exc_info=True)
             self.close()
             self.connect()
             cursor = self.db.cursor()
@@ -166,8 +166,8 @@ class _DB(threading.Thread):
             return cursor.fetchall()
         except Exception:
             _logger.critical("Failed to execute query: %s",
-                            cursor.query if cursor else statement,
-                            exc_info=True)
+                             cursor.query if cursor else statement,
+                             exc_info=True)
             if commit:
                 try:
                     self.db.rollback()
@@ -194,14 +194,14 @@ class _DB(threading.Thread):
                     _logger.critical("Failed to commit")
         except psycopg2.IntegrityError:
             _logger.critical("Database integrity error, throwing away update",
-                            exc_info=True)
+                             exc_info=True)
             _logger.debug("Tried to execute: %s", cursor.query)
             if commit:
                 self.db.rollback()
         except Exception:
             _logger.critical("Could not execute statement: %s",
-                            cursor.query if cursor else statement,
-                            exc_info=True)
+                             cursor.query if cursor else statement,
+                             exc_info=True)
             if commit:
                 self.db.rollback()
             raise DbError()
@@ -311,8 +311,8 @@ class _DB(threading.Thread):
                 new_checker = checker(service, **kwargs)
             except Exception:
                 _logger.critical("Checker %s (%s) failed to init. This checker "
-                                "will remain DISABLED:",  handler, checker,
-                                exc_info=True)
+                                 "will remain DISABLED:", handler, checker,
+                                 exc_info=True)
                 continue
 
             if onlyactive and not active:

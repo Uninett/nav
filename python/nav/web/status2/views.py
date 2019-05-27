@@ -16,10 +16,10 @@
 """NAV status app views"""
 import base64
 import datetime
+import logging
 import pickle
 
 from django.shortcuts import render
-from nav.six import reverse
 from django.views.generic import View
 from django.http import HttpResponse, Http404
 
@@ -28,9 +28,9 @@ from nav.models.event import AlertHistory
 from nav.models.manage import Netbox, NetboxEntity, Module
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.models.fields import INFINITY
+from nav.six import reverse
 from . import forms, STATELESS_THRESHOLD
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

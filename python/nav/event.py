@@ -16,11 +16,13 @@
 """Simple API to interface with NAVs event queue."""
 
 from __future__ import absolute_import
+
+from django.db import transaction
+
 import nav.db
 from nav.errors import GeneralException
 
 from nav.models.event import EventType, AlertType
-from django.db import transaction
 
 
 class Event(dict):

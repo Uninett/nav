@@ -18,12 +18,12 @@
 from datetime import datetime
 
 from django.db import models
-from nav.six import reverse
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav.adapters import HStoreField
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
+from nav.six import reverse
 
 
 @python_2_unicode_compatible

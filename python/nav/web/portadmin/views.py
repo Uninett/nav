@@ -24,7 +24,6 @@ from functools import reduce
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
-from nav.six import reverse
 from django.db.models import Q
 from django.views.decorators.http import require_POST
 
@@ -32,6 +31,7 @@ from nav.auditlog.models import LogEntry
 
 from nav.django.utils import get_account
 from nav.util import is_valid_ip
+from nav.six import reverse
 from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface
 from nav.web.portadmin.utils import (get_and_populate_livedata,

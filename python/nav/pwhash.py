@@ -21,8 +21,10 @@ import random
 import hashlib
 import base64
 import re
-from nav import errors
+
 from django.utils import crypto, six
+
+from nav import errors
 
 
 def sha1(password, salt):

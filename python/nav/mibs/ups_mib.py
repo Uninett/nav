@@ -119,7 +119,7 @@ class UpsMib(mibretriever.MibRetriever):
         """Returns a list of all the interesting sensors on this UPS."""
         result = []
 
-        for sensor in self.sensor_columns.keys():
+        for sensor in self.sensor_columns:
             sensor_params = yield self._get_named_column(sensor)
             result.extend(self._get_sensors(sensor, sensor_params))
 

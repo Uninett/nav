@@ -97,7 +97,6 @@ class QBridgeMib(mibretriever.MibRetriever):
         result = []
         for row in valid:
             index = row[0]
-            _fdb_id = index[0]
             mac = index[1:]
             mac = ':'.join("%02x" % o for o in mac[-6:])
             port = row['dot1qTpFdbPort']

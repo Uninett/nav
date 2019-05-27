@@ -60,7 +60,7 @@ def register_error_events(request, **kwargs):
     event_type = kwargs.pop('event_type', 'deviceNotice')
     alert_type = kwargs.pop('alert_type', 'deviceError')
 
-    for key in kwargs.keys():
+    for key in kwargs:
         raise TypeError('register_error_events() got an unexpected keyword '
                         'argument %s' % key)
 
@@ -124,7 +124,7 @@ def register_error_events(request, **kwargs):
 
             new_event = EventQueue.objects.create(**eventq_data)
             for key in eventqvar_data:
-                event_vars = EventQueueVar.objects.create(
+                EventQueueVar.objects.create(
                     event_queue=new_event,
                     variable=key,
                     value=eventqvar_data[key]

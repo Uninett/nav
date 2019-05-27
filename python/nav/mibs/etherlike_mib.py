@@ -31,6 +31,6 @@ class EtherLikeMib(mibretriever.MibRetriever):
         data = yield self.retrieve_columns(('dot3StatsDuplexStatus',))
         duplex = self.translate_result(data)
 
-        result = dict([(index[0], row['dot3StatsDuplexStatus'])
-                      for index, row in duplex.items()])
+        result = {index[0]: row['dot3StatsDuplexStatus']
+                  for index, row in duplex.items()}
         defer.returnValue(result)

@@ -16,21 +16,22 @@
 """View definitions for info/vlan"""
 
 import logging
-from IPy import IP
 from operator import methodcaller, attrgetter
 from functools import partial
 
-from nav.six import reverse
+from IPy import IP
+
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 
-from ..forms import SearchForm
 from nav.models.manage import Prefix, Vlan
+from nav.six import reverse
 from nav.web.utils import create_title
 from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import join_series
 from nav.metrics.templates import metric_path_for_prefix
+from ..forms import SearchForm
 
 _logger = logging.getLogger(__name__)
 ADDRESS_RESERVED_SPACE = 18

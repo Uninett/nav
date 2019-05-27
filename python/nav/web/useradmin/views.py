@@ -19,7 +19,6 @@ import copy
 from datetime import datetime
 
 from django.contrib import messages
-from nav.six import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import generic
@@ -32,6 +31,7 @@ from nav.models.manage import Organization
 from nav.models.api import APIToken
 
 from nav.django.auth import sudo
+from nav.six import reverse, reverse_lazy
 from nav.web.useradmin import forms
 
 
@@ -127,7 +127,8 @@ def save_account_org(request, account, org_form):
     try:
         account.organizations.get(id=organization.id)
         messages.warning(request,
-            'Organization was not added as it has already been added.')
+                         'Organization was not added as it has '
+                         'already been added.')
     except Organization.DoesNotExist:
         account.organizations.add(organization)
         log_add_account_to_org(request, organization, account)
@@ -153,7 +154,8 @@ def save_account_group(request, account, group_form):
         try:
             account.accountgroup_set.get(id=group.id)
             messages.warning(request,
-                'Group was not added as it has already been added.')
+                             'Group was not added as it has already '
+                             'been added.')
         except AccountGroup.DoesNotExist:
             account.accountgroup_set.add(group)
             messages.success(
@@ -220,16 +222,16 @@ def account_organization_remove(request, account_id, org_id):
         organization = account.organizations.get(id=org_id)
     except Organization.DoesNotExist:
         messages.error(request,
-                    'Organization %s does not exist or it is not associated '
-                    'with %s.' % (org_id, account))
+                       'Organization %s does not exist or it is not associated '
+                       'with %s.' % (org_id, account))
         return HttpResponseRedirect(reverse('useradmin-account_detail',
                                             args=[account.id]))
 
     if request.method == 'POST':
         account.organizations.remove(organization)
         messages.success(request,
-                    'Organization %s has been removed from account %s.' %
-                    (organization, account))
+                         'Organization %s has been removed from account %s.' %
+                         (organization, account))
 
         LogEntry.add_log_entry(
             request.account,
@@ -276,14 +278,14 @@ def account_group_remove(request, account_id, group_id, caller='account'):
         group = account.accountgroup_set.get(id=group_id)
     except AccountGroup.DoesNotExist:
         messages.warning(request,
-            'Group %s does not exist or it is not '
-            'associated with %s.' % (group_id, account))
+                         'Group %s does not exist or it is not '
+                         'associated with %s.' % (group_id, account))
         return detail_redirect
 
     if group.is_protected_group():
         messages.error(request,
-            '%s can not be removed from %s as it is a '
-            'protected group.' % (account, group))
+                       '%s can not be removed from %s as it is a '
+                       'protected group.' % (account, group))
         return detail_redirect
 
     if group.is_admin_group() and account.is_admin_account():
@@ -359,7 +361,8 @@ def group_detail(request, group_id=None):
                 try:
                     group.privilege_set.get(type=message_type, target=target)
                     messages.warning(request,
-                        'Privilege was not added as it already exists.')
+                                     'Privilege was not added as it '
+                                     'already exists.')
                 except Privilege.DoesNotExist:
                     group.privilege_set.create(type=message_type, target=target)
                     messages.success(request, 'Privilege has been added.')
@@ -374,8 +377,8 @@ def group_detail(request, group_id=None):
                     account = account_form.cleaned_data['account']
                     group.accounts.get(login=account.login)
                     messages.warning(request,
-                        'Account %s was not added as it is already '
-                        'a member of the group.' % account)
+                                     'Account %s was not added as it is '
+                                     'already a member of the group.' % account)
                 except Account.DoesNotExist:
                     group.accounts.add(account)
                     log_add_account_to_group(request, group, account)

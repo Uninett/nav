@@ -109,11 +109,11 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
             if vlans.intersection(limited_to_vlans):
                 self._logger.info("%s vlans %r intersects with list of "
                                   "limited vlans %r",
-                                   self.get_target(), vlans, limited_to_vlans)
+                                  self.get_target(), vlans, limited_to_vlans)
             elif vlans:
                 self._logger.info("%s vlans %r does not intersect with list "
                                   "of limited vlans %r",
-                                   self.get_target(), vlans, limited_to_vlans)
+                                  self.get_target(), vlans, limited_to_vlans)
                 return True
         return False
 
@@ -124,7 +124,7 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         """
         ifc = self.get_target()
         vlans = ifc.swportvlan_set.values('vlan__vlan')
-        vlans = set([row['vlan__vlan'] for row in vlans])
+        vlans = {row['vlan__vlan'] for row in vlans}
         return vlans
 
     #

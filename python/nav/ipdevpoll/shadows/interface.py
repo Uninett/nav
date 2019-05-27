@@ -18,16 +18,15 @@ import datetime
 import operator
 from itertools import groupby
 
-from nav.Snmp import safestring
+from django.db.models import Q
+from django.db import transaction
+
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 from nav.models.event import AlertHistory
 from nav import natsort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
-
-from django.db.models import Q
-from django.db import transaction
 
 from .netbox import Netbox
 

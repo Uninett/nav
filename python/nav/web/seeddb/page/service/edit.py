@@ -16,7 +16,6 @@
 #
 
 from django import forms
-from nav.six import reverse
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.db import transaction
@@ -25,6 +24,7 @@ from crispy_forms.helper import FormHelper
 
 from nav.models.service import Service, ServiceProperty
 from nav.models.manage import Netbox
+from nav.six import reverse
 from nav.web.servicecheckers import get_description, load_checker_classes
 from nav.web.message import new_message, Messages
 from nav.web.seeddb.page.service import ServiceInfo
@@ -135,8 +135,7 @@ def service_edit(request, service_id=None):
                 'netbox': netbox.pk,
                 'handler': handler,
             })
-            initial = dict(
-                [(prop.property, prop.value) for prop in service_prop])
+            initial = {prop.property: prop.value for prop in service_prop}
             property_form = ServicePropertyForm(
                 service_args=get_description(service.handler),
                 initial=initial)

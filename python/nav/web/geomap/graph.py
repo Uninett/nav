@@ -140,8 +140,8 @@ def area_filter(graph, bounds):
     edges = filter_dict(lambda edge: edge_connected_to(edge, nodes),
                         graph.edges)
     node_ids = (set(nodes.keys())
-                | set([e.source.id for e in edges.values()])
-                | set([e.target.id for e in edges.values()]))
+                | {e.source.id for e in edges.values()}
+                | {e.target.id for e in edges.values()})
     graph.nodes = subdict(graph.nodes, node_ids)
     graph.edges = edges
 
@@ -346,7 +346,7 @@ def combine_edges(graph, property_aggregators):
     """
     if property_aggregators is None:
         property_aggregators = {}
-    edges_by_node = dict([(node_id, set()) for node_id in graph.nodes])
+    edges_by_node = {node_id: set() for node_id in graph.nodes}
     for edge in graph.edges.values():
         edges_by_node[edge.source.id].add(edge)
         edges_by_node[edge.target.id].add(edge)
@@ -362,7 +362,7 @@ def combine_edges(graph, property_aggregators):
     edge_sets = map_dict(equalize_edge_orientation, edge_sets)
 
     edges = [create_edge(x, property_aggregators) for x in edge_sets.values()]
-    graph.edges = dict([(e.id, e) for e in edges])
+    graph.edges = {e.id: e for e in edges}
 
 
 def create_edge(eset, property_aggregators):

@@ -16,18 +16,18 @@
 """Database related functionality for ipdevpoll."""
 
 import gc
+import logging
 from pprint import pformat
-from twisted.internet import threads
 import threading
 from functools import wraps
 
+from twisted.internet import threads
 import django.db
 from django.db import transaction
 from django.db.utils import OperationalError as DjangoOperationalError
 from django.db.utils import InterfaceError as DjangoInterfaceError
 from psycopg2 import InterfaceError, OperationalError
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

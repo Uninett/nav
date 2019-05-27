@@ -19,7 +19,6 @@ import logging
 import time
 from datetime import datetime, date
 
-from nav.six import reverse
 from django.db import transaction, connection
 from django.db.models import Count, Q
 from django.shortcuts import render, get_object_or_404, redirect
@@ -29,6 +28,7 @@ from django.utils.safestring import mark_safe
 from nav.django.utils import get_account
 from nav.models.manage import Netbox
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
+from nav.six import reverse
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 
@@ -122,7 +122,7 @@ def active(request):
                     netbox = Netbox.objects.get(pk=int(netbox_id))
                 except Exception as get_ex:
                     _logger.error('Get netbox %s failed; Exception = %s',
-                                 netbox_id, get_ex.message)
+                                  netbox_id, get_ex.message)
                     continue
                 task.netbox = netbox
 
@@ -282,7 +282,7 @@ def edit(request, task_id=None, start_time=None, **_):
                 no_end_time = task_form.cleaned_data['no_end_time']
                 state = MaintenanceTask.STATE_SCHEDULED
                 if (start_time < datetime.now() and end_time
-                            and end_time <= datetime.now()):
+                        and end_time <= datetime.now()):
                     state = MaintenanceTask.STATE_SCHEDULED
 
                 new_task = MaintenanceTask()
@@ -377,11 +377,11 @@ def add_box_to_maintenance(request):
                 _logger.debug('Maintenance checker finished')
 
                 _logger.debug('Add netbox to maintenance finished in %.3fs',
-                             time.clock() - before)
+                              time.clock() - before)
             else:
                 # What should we do here?
                 _logger.error('Netbox %s (id=%d) is already on maintenance',
-                             netbox.sysname, netbox.id)
+                              netbox.sysname, netbox.id)
     return HttpResponseRedirect(reverse('status-index'))
 
 
@@ -398,7 +398,7 @@ def _add_neverending_maintenance_task(owner, netbox):
     maint_task.state = MaintenanceTask.STATE_SCHEDULED
     maint_task.save()
     _logger.debug("Maintenance task %d; Adding component %s (id=%d)",
-                 maint_task.id, netbox.sysname, netbox.id)
+                  maint_task.id, netbox.sysname, netbox.id)
     maint_component = MaintenanceComponent()
     maint_component.maintenance_task = maint_task
     maint_component.key = 'netbox'

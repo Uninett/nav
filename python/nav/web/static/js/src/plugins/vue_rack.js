@@ -43,7 +43,7 @@ define(function (require) {
             createGauge: function () {
                 var self = this;
                 return new LinearGauge({
-                    element: self.$el,
+                    element: $(self.$el).find('.pdu-gauge')[0],
                     precision: 2,
                     color: 'lightsteelblue',
                     height: 100,

@@ -103,7 +103,7 @@ class GammuDispatcher(Dispatcher):
                                                            error[0]['Code'],
                                                            error[0]['Text']))
 
-        if isinstance(smsid, (int, long)):
+        if isinstance(smsid, six.integer_types):
             result = True
         else:
             result = False

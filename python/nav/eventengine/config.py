@@ -14,16 +14,18 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """eventengine config"""
-from nav.config import NAVConfigParser
-from nav.util import parse_interval
+from __future__ import unicode_literals
 from configparser import NoSectionError, NoOptionError
 
 from django.utils import six
 
+from nav.config import NAVConfigParser
+from nav.util import parse_interval
+
 
 class EventEngineConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = ('eventengine.conf',)
-    DEFAULT_CONFIG = u"""
+    DEFAULT_CONFIG = """
 [timeouts]
 boxDown.warning = 1m
 boxDown.alert = 4m

@@ -26,11 +26,11 @@
 
 from django.http import HttpResponseRedirect
 from django.core.exceptions import ObjectDoesNotExist
-from nav.six import reverse
 from django.db.models import Q
 from django.shortcuts import render
 from django.utils import six
 
+from nav.six import reverse
 from nav.web.utils import SubListView
 
 from nav.models.profiles import (
@@ -123,8 +123,6 @@ def overview(request):
 def show_profile(request):
     """Shows a single profile"""
     account = get_account(request)
-
-    page = request.GET.get('page', 1)
 
     # Define valid options for ordering
     valid_ordering = ['name', '-name']
@@ -782,7 +780,7 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
         'title': 'NAV - Alert profiles',
         'profile': profile
     }
-    return render(request, 'alertprofiles/subscription_form.html',  info_dict)
+    return render(request, 'alertprofiles/subscription_form.html', info_dict)
 
 
 @requires_post('alertprofiles-profile')

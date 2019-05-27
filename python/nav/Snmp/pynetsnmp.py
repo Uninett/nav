@@ -29,7 +29,13 @@ from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
                                SNMP_MSG_GETBULK, SNMP_MSG_SET, SNMP_MSG_GET)
 
 from nav.oids import OID
-from .errors import *
+from .errors import (
+    EndOfMibViewError,
+    NoSuchObjectError,
+    SnmpError,
+    TimeOutException,
+    UnsupportedSnmpVersionError
+)
 
 PDUVarbind = namedtuple("PDUVarbind", ['oid', 'type', 'value'])
 
@@ -320,10 +326,10 @@ class _MySnmpSession(Session):
         else:
             _raise_on_error(self.sess.contents.s_snmp_errno)
 
-##
-## Functions for converting Python values to C data types suitable for ASN
-## and BER encoding in the NET-SNMP library.
-##
+#
+# Functions for converting Python values to C data types suitable for ASN
+# and BER encoding in the NET-SNMP library.
+#
 
 
 CONVERTER_MAP = {}
@@ -415,7 +421,7 @@ def _raise_on_error(err_code):
         raise TimeOutException(snmp_api_errstring(err_code))
     else:
         raise SnmpError("%s: %s" % (SNMPERR_MAP.get(err_code, ''),
-                                           snmp_api_errstring(err_code)))
+                                    snmp_api_errstring(err_code)))
 
 
 def _raise_on_protocol_error(response):

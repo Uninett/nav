@@ -16,6 +16,8 @@
 #
 """Module containing everything regarding patches in SeedDB"""
 
+import logging
+
 from django import forms
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -34,7 +36,6 @@ from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
 
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

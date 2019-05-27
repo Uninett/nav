@@ -78,7 +78,9 @@ class Identity(models.Model):
         'QuarantineVlan',
         on_delete=models.CASCADE,
         db_column='tovlan',
-        to_field='vlan',null=True,default=None
+        to_field='vlan',
+        null=True,
+        default=None
     )
     # If the interface does not exist any longer in the database, the user
     # needs a hint of what interface was blocked as information as ifname
@@ -188,7 +190,8 @@ class DetentionProfile(models.Model):
     quarantine_vlan = models.ForeignKey(
         'QuarantineVlan',
         on_delete=models.CASCADE,
-        db_column='quarantineid',null=True
+        db_column='quarantineid',
+        null=True
     )
 
     def __str__(self):

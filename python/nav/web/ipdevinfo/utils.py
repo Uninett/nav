@@ -14,11 +14,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utility methods to get extract extra characteristics from ports."""
-import networkx as nx
-import nav.util
 import logging
 from datetime import datetime
 from operator import attrgetter
+
+import networkx as nx
 
 from django.core.validators import validate_email, ValidationError
 
@@ -28,6 +28,7 @@ from nav.topology.vlan import build_layer2_graph
 
 from nav.metrics.graphs import get_metric_meta, get_simple_graph_url
 from nav.metrics.templates import metric_path_for_interface
+import nav.util
 
 _logger = logging.getLogger('nav.web.ipdevinfo.utils')
 
@@ -70,7 +71,7 @@ def get_module_view(module_object, perspective, activity_interval=None,
     elif perspective == 'physportstatus':
         if not module_object and netbox:
             ports = [p for p in netbox.get_physical_ports_sorted()
-                            if not p.module]
+                     if not p.module]
         else:
             ports = module_object.get_physical_ports_sorted()
 

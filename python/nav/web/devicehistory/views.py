@@ -17,7 +17,6 @@
 
 from operator import attrgetter
 
-from nav.six import reverse
 from django.db import connection, transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -25,6 +24,7 @@ from django.shortcuts import render
 from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Module
 from nav.models.event import AlertHistory
+from nav.six import reverse
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 from nav.web.devicehistory.utils.history import (

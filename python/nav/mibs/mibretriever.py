@@ -106,7 +106,7 @@ class MIBObject(object):
             # Build a two-way dictionary mapping enumerated names
             enums = [(k, int(val['number']))
                      for k, val in typ.items()
-                     if type(val) is dict and 'nodetype' in val and
+                     if isinstance(val, dict) and 'nodetype' in val and
                      val['nodetype'] == 'namednumber'
                      ]
             self.enum = dict(enums)

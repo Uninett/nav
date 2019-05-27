@@ -31,7 +31,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-from nav.six import reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import JSONField
 
@@ -54,6 +53,7 @@ import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 import nav.models.event
+from nav.six import reverse
 
 
 _logger = logging.getLogger(__name__)
@@ -1019,7 +1019,8 @@ class Organization(models.Model, TreeMixin):
         'self',
         on_delete=models.CASCADE,
         db_column='parent',
-        blank=True,null=True
+        blank=True,
+        null=True
     )
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)
@@ -1335,7 +1336,8 @@ class Vlan(models.Model):
         'Usage',
         on_delete=models.CASCADE,
         db_column='usageid',
-        null=True,blank=True
+        null=True,
+        blank=True
     )
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
     description = VarcharField(null=True, blank=True)
@@ -1343,7 +1345,8 @@ class Vlan(models.Model):
         'NetBox',
         on_delete=models.SET_NULL,
         db_column='netboxid',
-        null=True,blank=True
+        null=True,
+        blank=True
     )
 
     class Meta(object):
@@ -1829,8 +1832,10 @@ class Interface(models.Model):
         """List of VLAN numbers related to the port"""
 
         # XXX: This causes a DB query per port
-        vlans = [swpv.vlan.vlan
-            for swpv in self.swportvlan_set.select_related('vlan', 'interface')]
+        vlans = [
+            swpv.vlan.vlan
+            for swpv in self.swportvlan_set.select_related('vlan', 'interface')
+        ]
         if self.vlan is not None and self.vlan not in vlans:
             vlans.append(self.vlan)
         vlans.sort()
@@ -1922,11 +1927,11 @@ class Interface(models.Model):
         Ex: [1, 2, 3, 4, 7, 8, 10] -> "1-4,7-8,10"
         """
         def as_range(iterable):
-            l = list(iterable)
-            if len(l) > 1:
-                return '{0}-{1}'.format(l[0], l[-1])
+            list_ = list(iterable)
+            if len(list_) > 1:
+                return '{0}-{1}'.format(list_[0], list_[-1])
             else:
-                return '{0}'.format(l[0])
+                return '{0}'.format(list_[0])
 
         if self.trunk:
             return ",".join(as_range(y) for x, y in groupby(
@@ -2505,7 +2510,6 @@ class IpdevpollJobLog(models.Model):
 
 class Netbios(models.Model):
     """Model representing netbios names collected by the netbios tracker"""
-    import datetime
 
     id = models.AutoField(db_column='netbiosid', primary_key=True)
     ip = models.GenericIPAddressField()
@@ -2514,7 +2518,7 @@ class Netbios(models.Model):
     server = VarcharField()
     username = VarcharField()
     start_time = models.DateTimeField(auto_now_add=True)
-    end_time = DateTimeInfinityField(default=datetime.datetime.max)
+    end_time = DateTimeInfinityField(default=dt.datetime.max)
 
     class Meta(object):
         db_table = 'netbios'

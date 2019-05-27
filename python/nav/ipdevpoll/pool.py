@@ -57,7 +57,7 @@ class Job(amp.Command):
         (b'job', amp.Unicode()),
         (b'plugins', amp.ListOf(amp.Unicode())),
         (b'interval', amp.Integer()),  # Needs to be included in database record.
-                                      # Not used for scheduling
+                                       # Not used for scheduling
         (b'serial', amp.Integer()),  # Serial number needed for cancelling
     ]
     response = [(b'result', amp.Boolean()),

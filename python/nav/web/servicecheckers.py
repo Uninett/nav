@@ -15,7 +15,6 @@
 #
 """Utility functions to find available servicemon checker plugins"""
 
-from __future__ import with_statement
 import os
 import re
 from nav.statemon.abstractchecker import AbstractChecker

@@ -31,9 +31,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import json
 import logging
-from django.http import HttpResponse
+from django.http import JsonResponse
 from nav.models.manage import NetboxGroup, Netbox
 from nav.bulkparse import NetboxGroupBulkParser
 from nav.bulkimport import NetboxGroupImporter
@@ -123,4 +122,4 @@ def netbox_list(request):
             'text': netbox.sysname
         })
 
-    return HttpResponse(json.dumps(result), content_type='application/json')
+    return JsonResponse(result)

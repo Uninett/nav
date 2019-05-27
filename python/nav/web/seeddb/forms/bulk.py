@@ -14,11 +14,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms used for Bulk import of data"""
-from nav.bulkparse import BulkParseError, CommentStripper
-from nav.bulkimport import BulkImportError
 
 from django import forms
 from django.utils import six
+
+from nav.bulkparse import BulkParseError, CommentStripper
+from nav.bulkimport import BulkImportError
 
 
 class BulkImportForm(forms.Form):

@@ -18,7 +18,7 @@ tunnel_port=${3:-10000}
 
 remote_tunnel ()
 {
-    ssh -N -f -L${tunnel_port}:127.0.0.1:${tunnel_port} $hop_host socat -T10 TCP4-LISTEN:${tunnel_port},fork UDP4:${snmp_agent}:161
+    ssh -f -L${tunnel_port}:127.0.0.1:${tunnel_port} $hop_host socat -T10 TCP4-LISTEN:${tunnel_port},fork UDP4:${snmp_agent}:161
 }
 
 remote_tunnel

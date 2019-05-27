@@ -18,7 +18,10 @@
 from django.conf.urls import url
 from nav.web.graphite import views
 
-_dummy = lambda x: None
+
+def _dummy(x):
+    return None
+
 
 urlpatterns = [
     url(r'^(?P<uri>.*)$', views.index, name='graphite'),

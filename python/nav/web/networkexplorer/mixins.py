@@ -173,7 +173,7 @@ class ExpandGWPortMixin(object):
                 ).count():
                     continue
 
-                elif vlan and not vlan.pk in vlans_found:
+                elif vlan and vlan.pk not in vlans_found:
                     vlans_found.add(vlan.pk)
                     interface = vlan.interface
                     vlan_context = {

@@ -34,11 +34,12 @@ interfering with the daemon's asynchronous operations.
 """
 from collections import defaultdict
 
+import django.db
+
 from nav.models import manage, event
 from nav import ipdevpoll
-from . import storage
 from nav.ipdevpoll.db import django_debug_cleanup, run_in_thread
-import django.db
+from . import storage
 
 
 def load_netbox(netbox_id):

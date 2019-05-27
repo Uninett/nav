@@ -18,13 +18,13 @@ from calendar import HTMLCalendar
 from datetime import date, datetime, timedelta
 from time import strftime
 
-from nav.six import reverse
 from django.utils.html import conditional_escape
 from django.utils.six.moves import range
 
 from nav.models.manage import Netbox, Room, Location, NetboxGroup
 from nav.models.service import Service
 from nav.models.msgmaint import MaintenanceTask
+from nav.six import reverse
 
 PRIMARY_KEY_INTEGER = ('netbox', 'service')
 
@@ -80,7 +80,7 @@ def task_form_initial(task=None, start_time=None):
 
 def infodict_by_state(task):
     if (task.state == MaintenanceTask.STATE_SCHEDULED
-                and task.start_time > datetime.now()):
+            and task.start_time > datetime.now()):
         state = 'planned'
         navpath = NAVPATH + [
             ('Planned tasks', reverse('maintenance-planned'))
@@ -207,7 +207,7 @@ def task_component_trails(component_keys, components):
                                                  + "description"])
                     trail.append({
                         'url': reverse('report-room-location',
-                                            args=[location_id]),
+                                       args=[location_id]),
                         'title': location_description,
                         'name': location_id,
                     })
@@ -226,7 +226,7 @@ def task_component_trails(component_keys, components):
                     netbox_ip = comp[FIELD_KEYS[key]['netbox'] + "ip"]
                     trail.append({
                         'url': reverse('ipdevinfo-details-by-name',
-                                            args=[netbox_sysname]),
+                                       args=[netbox_sysname]),
                         'title': netbox_ip,
                         'name': netbox_sysname,
                     })
@@ -238,7 +238,8 @@ def task_component_trails(component_keys, components):
                     })
                 if key == 'netboxgroup':
                     trail.append({
-                        'url': reverse('netbox-group-detail', args=[comp['id']]),
+                        'url': reverse('netbox-group-detail',
+                                       args=[comp['id']]),
                         'title': '',
                         'name': comp['id'],
                     })
@@ -343,7 +344,7 @@ class MaintenanceCalendar(HTMLCalendar):
                 # Need to stop somewhere when tasks do not specify end date.
                 end_day = task.start_time.date() + timedelta(weeks=4)
             while day <= end_day:
-                if not day in grouped:
+                if day not in grouped:
                     grouped[day] = {}
                 if task.pk in task_index:
                     index = task_index[task.pk]

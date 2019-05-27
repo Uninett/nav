@@ -14,9 +14,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """netmap's topology functions"""
-import logging
-import networkx as nx
 from collections import defaultdict
+import logging
+
+import networkx as nx
 
 from django.utils import six
 
@@ -126,7 +127,7 @@ def build_netmap_layer2_graph(topology_without_metadata, vlan_by_interface,
         if node in vlan_by_netbox:
             data['metadata'] = {
                 'vlans': sorted(six.iteritems(vlan_by_netbox[node]),
-                        key=lambda x: x[1].vlan.vlan)}
+                                key=lambda x: x[1].vlan.vlan)}
 
     _logger.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")
 

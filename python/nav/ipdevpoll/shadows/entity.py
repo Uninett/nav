@@ -19,6 +19,10 @@ from __future__ import absolute_import
 from collections import defaultdict
 from datetime import datetime
 
+import networkx as nx
+from networkx.algorithms.traversal.depth_first_search import dfs_tree as subtree
+
+from django.db import transaction
 from django.utils import six
 from django.utils.six import iteritems, itervalues
 
@@ -28,10 +32,6 @@ from nav.ipdevpoll.storage import Shadow, DefaultManager
 from nav.models import manage
 from nav.event2 import EventFactory
 from .netbox import Netbox
-
-from django.db import transaction
-import networkx as nx
-from networkx.algorithms.traversal.depth_first_search import dfs_tree as subtree
 
 chassis_event = EventFactory('ipdevpoll', 'eventEngine',
                              'chassisState', 'chassisDown', 'chassisUp')

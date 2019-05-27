@@ -76,9 +76,7 @@ class ThresholdForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(ThresholdForm, self).clean()
-        try:
-            target = cleaned_data['target']
-        except KeyError:
+        if 'target' not in cleaned_data:
             raise forms.ValidationError('Target is required')
 
         period = cleaned_data.get('period')

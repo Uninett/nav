@@ -18,8 +18,7 @@ from __future__ import absolute_import
 from twisted.internet import defer
 
 from nav.smidumps import get_mib
-from . import mibretriever
-from nav.mibs import reduce_index
+from . import mibretriever, reduce_index
 
 
 class BridgeMib(mibretriever.MibRetriever):

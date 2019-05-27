@@ -15,14 +15,15 @@
 # pylint: disable=R0903, R0901, R0904
 """Views for the NAV API"""
 
+from datetime import datetime, timedelta
 import logging
+
 from IPy import IP
 from django.http import HttpResponse
 from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.fields.related import ManyToOneRel as _RelatedObject
 from django.db.models.fields import FieldDoesNotExist
-from datetime import datetime, timedelta
 import iso8601
 
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
@@ -36,18 +37,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView, get_object_or_404
+
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 from nav.util import auth_token
 
 from nav.web.api.v1 import serializers, alert_serializers
+from nav.web.status2 import STATELESS_THRESHOLD
+from nav.macaddress import MacPrefix
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
 from .filter_backends import (AlertHistoryFilterBackend, IfClassFilter,
                               NaturalIfnameFilter)
-from nav.web.status2 import STATELESS_THRESHOLD
-from nav.macaddress import MacPrefix
 
 EXPIRE_DELTA = timedelta(days=365)
 MINIMUMPREFIXLENGTH = 4
@@ -186,6 +188,7 @@ class NAVAPIMixin(APIView):
     filter_backends = (filters.SearchFilter, DjangoFilterBackend,
                        RelatedOrderingFilter)
     ordering_fields = '__all__'
+    ordering = ('id',)
 
 
 class ServiceHandlerViewSet(NAVAPIMixin, ViewSet):
@@ -871,7 +874,7 @@ class AlertFragmentRenderer(TemplateHTMLRenderer):
         :param dict data: The serialized alert
         """
 
-        if not 'id' in data:
+        if 'id' not in data:
             return RequestContext(request, data)
 
         # Put the alert object in the context

@@ -151,10 +151,11 @@ class SNMPHandler(object):
     def _get_read_only_handle(self):
         """Get a read only SNMP-handle."""
         if self.read_only_handle is None:
-            self.read_only_handle = Snmp.Snmp(self.netbox.ip, self.netbox.read_only,
-                                         self.netbox.snmp_version,
-                                         retries=self.retries,
-                                         timeout=self.timeout)
+            self.read_only_handle = Snmp.Snmp(self.netbox.ip,
+                                              self.netbox.read_only,
+                                              self.netbox.snmp_version,
+                                              retries=self.retries,
+                                              timeout=self.timeout)
         return self.read_only_handle
 
     def _query_netbox(self, oid, if_index):
@@ -351,7 +352,7 @@ class SNMPHandler(object):
         """Create Fantasyvlans for all vlans on this netbox"""
         numerical_vlans = self.get_available_vlans()
         vlan_objects = Vlan.objects.filter(
-            swportvlan__interface__netbox=self.netbox)
+            swportvlan__interface__netbox=self.netbox).distinct()
         vlans = []
         for numerical_vlan in numerical_vlans:
             try:

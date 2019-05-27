@@ -21,9 +21,10 @@ API and prefixes related utilities
 import ipaddress
 from itertools import islice
 
-from nav.models.manage import Prefix
-from django.db.models import Q
 from IPy import IP, IPSet
+from django.db.models import Q
+
+from nav.models.manage import Prefix
 
 
 class PrefixQuerysetBuilder(object):

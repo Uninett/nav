@@ -27,7 +27,6 @@ module of the physical entity is.
 """
 from twisted.internet import defer
 
-from nav.oids import OID
 from nav.mibs.entity_mib import EntityMib, EntityTable
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.timestamps import TimestampChecker

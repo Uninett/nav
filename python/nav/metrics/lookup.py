@@ -17,9 +17,9 @@
 
 import re
 
-from nav.models.manage import Netbox, Interface, Prefix, Sensor
 from django.utils.lru_cache import lru_cache
 from django.utils.six import iteritems
+from nav.models.manage import Netbox, Interface, Prefix, Sensor
 
 
 __all__ = ['reverses', 'lookup']
@@ -77,7 +77,7 @@ def _reverse_sensor(sysname, name):
 
 
 @reverses(r'\.devices\.(?P<sysname>[^.]+)\.cpu\.(?P<cpuname>[^.]+)')
-def _reverse_device(sysname, cpuname):
+def _reverse_device_cpu(sysname, cpuname):
     netbox = _single_like_match(Netbox, sysname=sysname)
     sysname = getattr(netbox, 'sysname', sysname)
     return "%s: %s" % (sysname, cpuname)

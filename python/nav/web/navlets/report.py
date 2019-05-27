@@ -14,13 +14,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Report widget"""
-import json
-
-from django.http import HttpResponse, QueryDict
+from django.http import HttpResponse, JsonResponse, QueryDict
 from nav.models.profiles import AccountNavlet
-from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 from nav.web.report.views import CONFIG_FILE_PACKAGE, make_report
 from nav.report.generator import ReportList
+from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 
 
 class ReportWidget(Navlet):
@@ -68,7 +66,7 @@ class ReportWidget(Navlet):
             navlet.preferences['query_string'] = request.POST.get(
                 'query_string')
             navlet.save()
-            return HttpResponse(json.dumps(navlet.preferences))
+            return JsonResponse(navlet.preferences)
 
 
 def get_report_names():

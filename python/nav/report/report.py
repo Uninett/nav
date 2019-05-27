@@ -210,17 +210,17 @@ class Report(object):
         """
         footers = Footers()
 
-        ## for each of the cols that will be displayed
+        # for each of the cols that will be displayed
         for footer in self.shown:
-            ## get the name of it
+            # get the name of it
             title = self.fields[footer]
 
             this_sum = Cell()
 
-            ## change if the name exist in the overrider hash
+            # change if the name exist in the overrider hash
             if title in sums:
 
-                ## Sum the results for a given title
+                # Sum the results for a given title
                 part_sum = 0
                 for fmt in self.formatted:
                     if fmt[footer] is not None:
@@ -275,8 +275,8 @@ class Report(object):
 
                 newfield = Cell()
 
-                ## the number of fields shown may be larger than the size
-                ## of the tuple returned from the database
+                # the number of fields shown may be larger than the size
+                # of the tuple returned from the database
                 try:
 
                     if self.extra.count(self.field_num_map[field]):
@@ -313,7 +313,7 @@ class Report(object):
 
         for num, field_name in self.field_num_map.items():
             field = None
-            ## does not use aggregate function elements
+            # does not use aggregate function elements
             if (not self.extra.count(field_name)
                 and not self.sql_fields[num].count("(")):
                 field = Field()

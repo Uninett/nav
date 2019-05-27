@@ -98,7 +98,7 @@ class ContextLogger(object):
         if target is obj:
             if self.context_vars:
                 extra = dict((k, getattr(target, k, None))
-                              for k in self.context_vars)
+                             for k in self.context_vars)
             elif hasattr(target, '_log_context'):
                 extra = getattr(target, '_log_context')
             else:

@@ -14,10 +14,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """netbox related shadow classes"""
-from nav.models import manage
 from django.db.models import Q
 from django.db import transaction
 
+from nav.models import manage
 from nav.ipdevpoll.storage import Shadow
 
 

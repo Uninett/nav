@@ -25,7 +25,8 @@ class GraphEditForm(forms.Form):
     url = forms.CharField(label='URL to image')
     target = forms.CharField(required=False,
                              label='Target URL when clicked')
-    refresh_interval = forms.IntegerField(min_value=10,
+    refresh_interval = forms.IntegerField(
+        min_value=10,
         label='Refresh interval in seconds (requires reload of page)')
     show_controls = forms.BooleanField(required=False,
                                        label='Show time interval controls')

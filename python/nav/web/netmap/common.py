@@ -143,7 +143,7 @@ def get_status_image_link(status):
     """
     try:
         return STATUS_IMAGE_MAP[status]
-    except:
+    except Exception:
         return STATUS_IMAGE_MAP[Netbox.UP_DOWN]
 
 

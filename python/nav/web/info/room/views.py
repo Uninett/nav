@@ -19,7 +19,6 @@ import datetime
 import logging
 import csv
 
-from nav.six import reverse
 from django.db import IntegrityError
 from django.db.models import Q, Max
 from django.http import HttpResponse
@@ -32,6 +31,7 @@ from nav.django.decorators import require_admin
 from nav.models.manage import Room, Sensor, Interface
 from nav.models.rack import (Rack, SensorRackItem, SensorsDiffRackItem,
                              SensorsSumRackItem)
+from nav.six import reverse
 from nav.web.info.forms import SearchForm
 from nav.web.info.images.upload import handle_image_upload
 from nav.web.utils import create_title
@@ -411,7 +411,7 @@ def save_rack_order(request, roomid):
 @require_admin
 def save_rack_color(request, roomid):
     """Saves the background color for the rack as a class"""
-    _room = get_object_or_404(Room, pk=roomid)
+    get_object_or_404(Room, pk=roomid)
     rackid = request.POST.get('rackid')
     rack = get_object_or_404(Rack, pk=rackid)
     rack.configuration['body_class'] = request.POST.get('class')
@@ -434,5 +434,5 @@ def remove_sensor(request, roomid):
     try:
         rack.save()
         return HttpResponse()
-    except:
+    except Exception:
         return HttpResponse(status=500)

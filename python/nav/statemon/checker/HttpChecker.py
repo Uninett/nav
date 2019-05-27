@@ -14,14 +14,15 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """HTTP Service Checker"""
-from nav import buildconf
 import contextlib
+import socket
 
-from nav.statemon.event import Event
-from nav.statemon.abstractchecker import AbstractChecker
 from django.utils.six.moves.urllib.parse import urlsplit
 from django.utils.six.moves import http_client
-import socket
+
+from nav import buildconf
+from nav.statemon.event import Event
+from nav.statemon.abstractchecker import AbstractChecker
 
 
 class HTTPConnection(http_client.HTTPConnection):

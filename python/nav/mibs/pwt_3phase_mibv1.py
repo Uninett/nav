@@ -91,10 +91,8 @@ class Pwt3PhaseV1Mib(mibretriever.MibRetriever):
 
         for sensor in itervalues(internal_sensors):
             serial = sensor.get('inletIndex', None)
-            """
-            The spesification says the value can be 0 - 3 but I am seeing 0 - 7
-            and only 0 has value
-            """
+            # The spesification says the value can be 0 - 3 but I am
+            # seeing 0 - 7 and only 0 has value
             if serial != 0:
                 continue
 

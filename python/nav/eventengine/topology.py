@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Topology evaluation functions for event processing"""
+import logging
 import socket
 import datetime
 
@@ -21,7 +22,6 @@ import networkx
 from networkx.exception import NetworkXException
 from nav.models.manage import SwPortVlan, Netbox, Prefix, Arp, Cam
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

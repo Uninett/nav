@@ -21,8 +21,6 @@ from nav.mibs import reduce_index
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
-from nav.mibs.entity_mib import EntityTable
-
 
 class IfMib(mibretriever.MibRetriever):
     mib = get_mib('IF-MIB')

@@ -16,9 +16,10 @@
 """Machine tracker forms"""
 from datetime import date, timedelta
 
+from django import forms
+
 from nav.macaddress import MacPrefix
 from nav.web.machinetracker import iprange
-from django import forms
 
 
 class MachineTrackerForm(forms.Form):

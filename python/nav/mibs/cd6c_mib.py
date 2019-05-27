@@ -1,5 +1,4 @@
 from twisted.internet import defer
-from nav.mibs import reduce_index
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor

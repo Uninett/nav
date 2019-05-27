@@ -15,9 +15,11 @@
 #
 """Getting graphs of NAV-collected data from Graphite"""
 import re
+
 from django.utils.six.moves.urllib.parse import urlencode
-from nav.six import reverse
 from django.utils import six
+
+from nav.six import reverse
 
 
 TIMETICKS_IN_DAY = 100 * 3600 * 24
@@ -254,14 +256,16 @@ def extract_series_name(series):
     """
     inwild = False
     buffer = ""
-    bufferok = lambda: len(buffer) > 3 and '.' in buffer
+
+    def bufferok(buffer):
+        return len(buffer) > 3 and '.' in buffer
 
     for tok in TARGET_TOKENS.finditer(series):
         tok = tok.group()
         if tok == '(':
             buffer = ""
         elif tok == ')':
-            if bufferok():
+            if bufferok(buffer):
                 return buffer
             else:
                 buffer = ""
@@ -271,7 +275,7 @@ def extract_series_name(series):
         elif tok == ',':
             if inwild:
                 buffer += tok
-            elif bufferok():
+            elif bufferok(buffer):
                 return buffer
             else:
                 buffer = ""
@@ -280,7 +284,7 @@ def extract_series_name(series):
             buffer += tok
         else:
             buffer += tok
-    return buffer if bufferok() else series
+    return buffer if bufferok(buffer) else series
 
 
 def translate_serieslist_to_regex(series):

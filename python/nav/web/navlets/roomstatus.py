@@ -16,9 +16,10 @@
 """Module containing RoomStatus"""
 
 from datetime import datetime
-from django import forms
 from itertools import groupby
 from operator import attrgetter
+
+from django import forms
 
 from nav.models.event import AlertHistory, STATE_START, STATE_STATELESS
 

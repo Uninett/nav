@@ -15,12 +15,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """syslogger view definitions"""
-from nav.six import reverse
-from django.db.models.aggregates import Count
 import json
 import datetime
 from configparser import ConfigParser
 
+from django.db.models.aggregates import Count
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 
@@ -30,6 +29,7 @@ from nav.django.utils import get_account
 
 from nav.models.logger import LogMessage
 from nav.models.logger import ErrorError
+from nav.six import reverse
 from nav.web.syslogger.forms import LoggerGroupSearchForm
 from nav.web.utils import create_title
 

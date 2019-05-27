@@ -244,9 +244,9 @@ class JobHandler(object):
         self._logger.debug("Job %r started with plugins: %r",
                            self.name, self.plugins)
         # Initialize netbox in container
-        nb = self._container_factory(shadows.Netbox, key=None,
-                                     id=self.netbox.id,
-                                     sysname=self.netbox.sysname)
+        self._container_factory(shadows.Netbox, key=None,
+                                id=self.netbox.id,
+                                sysname=self.netbox.sysname)
 
         self._create_agentproxy()
         plugins = yield self._find_plugins()

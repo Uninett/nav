@@ -19,7 +19,6 @@
 # pylint: disable=F0401
 
 import copy
-import json
 import socket
 from socket import error as SocketError
 import logging
@@ -35,6 +34,7 @@ from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
 from nav.models.manage import NetboxInfo, ManagementProfile
 from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
+from nav.six import reverse
 from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname
@@ -274,7 +274,7 @@ def get_address_info(request):
     address = request.GET.get('address')
     if address:
         if is_valid_ip(address):
-            return HttpResponse(json.dumps({'is_ip': True}))
+            return JsonResponse({'is_ip': True})
 
         try:
             address_tuples = socket.getaddrinfo(
@@ -292,6 +292,6 @@ def get_address_info(request):
                 'addresses': addresses,
             }
 
-        return HttpResponse(json.dumps(context))
+        return JsonResponse(context)
     else:
         return HttpResponse('No address given', status=400)

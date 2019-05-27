@@ -47,10 +47,11 @@ import datetime
 import logging
 from collections import namedtuple
 
-from nav.models import manage
-from nav.models.fields import INFINITY
 from django.db.models import Q
 from django.db import transaction
+
+from nav.models import manage
+from nav.models.fields import INFINITY
 from nav.ipdevpoll.storage import DefaultManager
 from .netbox import Netbox
 from .interface import Interface

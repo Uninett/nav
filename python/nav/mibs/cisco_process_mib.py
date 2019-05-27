@@ -16,7 +16,7 @@
 from django.utils.six import itervalues, iteritems
 from twisted.internet import defer
 from nav.smidumps import get_mib
-from nav.mibs import mibretriever, reduce_index
+from nav.mibs import mibretriever
 from nav.mibs.entity_mib import EntityMib
 from nav.oids import OID
 

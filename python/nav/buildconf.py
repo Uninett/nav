@@ -1,8 +1,8 @@
 """NAV build configuration variables."""
 # pylint: disable=invalid-name
 import os
-import pkg_resources
 import sysconfig
+import pkg_resources
 
 datadir = os.path.join(sysconfig.get_config_var('datarootdir'), 'nav')
 localstatedir = os.path.join(datadir, 'var')

@@ -15,13 +15,14 @@
 #
 """Serializers for status API data"""
 
-from nav.six import reverse
 from django.template.defaultfilters import urlize
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from rest_framework import serializers
+
 from nav.models import event, profiles
 from nav.models.fields import INFINITY
+from nav.six import reverse
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -150,7 +151,7 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         try:
             netbox = obj.netbox
             return netbox.groups.values_list('id', flat=True)
-        except:
+        except Exception:
             pass
 
     class Meta(object):

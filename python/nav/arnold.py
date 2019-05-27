@@ -32,6 +32,8 @@ from collections import namedtuple
 from smtplib import SMTPException
 
 from IPy import IP
+from django.db import connection
+from django.core.mail import EmailMessage
 
 import nav.Snmp
 from nav.Snmp.errors import AgentError
@@ -42,8 +44,6 @@ from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
 from nav.portadmin.snmputils import SNMPFactory
-from django.db import connection  # import this after any django models
-from django.core.mail import EmailMessage
 from nav.util import is_valid_ip
 
 CONFIGFILE = os.path.join("arnold", "arnold.conf")
@@ -270,7 +270,7 @@ def find_computer_info(ip_or_mac, trunk_ok=False):
 def disable(candidate, justification, username, comment="", autoenablestep=0):
     """Disable a target by blocking the port"""
     _logger.info('Disabling %s - %s on interface %s',
-                candidate.ip, candidate.mac, candidate.interface)
+                 candidate.ip, candidate.mac, candidate.interface)
 
     if not candidate.interface.netbox.read_write:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
@@ -281,14 +281,14 @@ def disable(candidate, justification, username, comment="", autoenablestep=0):
     create_event(identity, comment, username)
 
     _logger.info("Successfully %s %s (%s)",
-                identity.status, identity.ip, identity.mac)
+                 identity.status, identity.ip, identity.mac)
 
 
 def quarantine(candidate, qvlan, justification, username, comment="",
                autoenablestep=0):
     """Quarantine a target bu changing vlan on port"""
     _logger.info('Quarantining %s - %s on interface %s',
-                candidate.ip, candidate.mac, candidate.interface)
+                 candidate.ip, candidate.mac, candidate.interface)
 
     if not candidate.interface.netbox.read_write:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
@@ -300,7 +300,7 @@ def quarantine(candidate, qvlan, justification, username, comment="",
     create_event(identity, comment, username)
 
     _logger.info("Successfully %s %s (%s)",
-                identity.status, identity.ip, identity.mac)
+                 identity.status, identity.ip, identity.mac)
 
 
 def check_target(target, trunk_ok=False):
@@ -387,7 +387,7 @@ def open_port(identity, username, eventcomment=""):
         _logger.info("Interface did not exist, enabling in database only")
     else:
         _logger.info("Trying to lift detention for %s on %s",
-                    identity.mac, identity.interface)
+                     identity.mac, identity.interface)
         if identity.status == 'disabled':
             change_port_status('enable', identity)
         elif identity.status == 'quarantined':
@@ -431,11 +431,11 @@ def change_port_status(action, identity):
         if action == 'disable':
             agent.set(query, 'i', 2)
             _logger.info('Setting ifadminstatus down on interface %s',
-                        identity.interface)
+                         identity.interface)
         elif action == 'enable':
             agent.set(query, 'i', 1)
             _logger.info('Setting ifadminstatus up on interface %s',
-                        identity.interface)
+                         identity.interface)
     except AgentError as why:
         _logger.error("Error when executing snmpquery: %s", why)
         raise ChangePortStatusError(why)

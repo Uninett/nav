@@ -15,10 +15,11 @@
 #
 """Machine Tracker view functions"""
 
-from IPy import IP
 from datetime import date, timedelta
 from collections import OrderedDict
 import logging
+
+from IPy import IP
 
 from django.db.models import Q
 from django.shortcuts import render

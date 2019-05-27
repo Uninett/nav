@@ -15,13 +15,12 @@
 #
 """Layer 2 traceroute web tool for NAV."""
 
+import datetime
 import socket
 from socket import gethostbyaddr, gethostbyname
 
 from django.db.models import Q
 from nav.models.manage import Netbox, SwPortVlan, GwPortPrefix, Prefix, Arp, Cam
-import datetime
-from IPy import IP
 
 from nav.util import is_valid_ip
 
@@ -46,7 +45,7 @@ class L2TraceQuery(object):
             reverse_path(to_path)
 
             if are_hosts_on_same_vlan(self.host_from, self.host_to) and \
-                            PATH_NOT_FOUND not in (self.path + to_path):
+               PATH_NOT_FOUND not in (self.path + to_path):
                 self.path = join_at_junction(self.path, to_path)
             else:
                 self.path.append(LAYER_3_PATH)
@@ -65,7 +64,7 @@ class L2TraceQuery(object):
     def make_row_from_node(index, node):
         netboxid = hasattr(node.host, 'id') and node.host.id or None
         sysname = hasattr(node.host, 'sysname') and \
-                  node.host.sysname or node.host.hostname
+            node.host.sysname or node.host.hostname
         return ResultRow(index,
                          netboxid=netboxid,
                          ipaddr=node.host.ip,

@@ -2,19 +2,18 @@
 
 from collections import defaultdict
 from datetime import datetime
+import logging
 from operator import attrgetter
 
-from nav.six import reverse
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
 
-from nav.models.event import AlertHistory
 from nav.models.profiles import AlertAddress, ReportSubscription, AlertSender
+from nav.six import reverse
 from nav.web.business import utils
 from nav.web.utils import create_title
 
-import logging
 _logger = logging.getLogger(__name__)
 
 
@@ -119,7 +118,6 @@ def save_report_subscription(request):
     """Saves a report subscription"""
 
     new_address = request.POST.get('new_address')
-    address_id = request.POST.get('address')
     period = request.POST.get('period')
     report_type = request.POST.get('report_type')
     exclude_maintenance = bool(request.POST.get('exclude_maintenance'))

@@ -85,7 +85,7 @@ class Worker(threading.Thread):
             self._runqueue.workers.remove(self)
             _logger.info("%s is recycling.", self.getName())
         _logger.debug("%s finished checker number %i", self.getName(),
-                     self._runcount)
+                      self._runcount)
         self._time_start_execute = 0
 
 
@@ -143,7 +143,7 @@ class _RunQueue(object):
         # pylint: disable=protected-access, no-member
         num_waiters = len(self.await_work._Condition__waiters)
         _logger.debug("Number of workers: %i Waiting workers: %i",
-                     len(self.workers), num_waiters)
+                      len(self.workers), num_waiters)
         if num_waiters > 0:
             self.await_work.notify()
         elif len(self.workers) < self._max_threads:

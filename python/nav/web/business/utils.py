@@ -3,12 +3,12 @@
 import calendar
 from datetime import datetime, timedelta
 from collections import defaultdict, namedtuple
+import logging
 
 from nav.models.event import AlertHistory
 from nav.models.manage import Interface, Netbox
 from nav.models.profiles import ReportSubscription
 
-import logging
 _logger = logging.getLogger(__name__)
 
 AvailabilityRecord = namedtuple(

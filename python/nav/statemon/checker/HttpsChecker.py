@@ -15,10 +15,11 @@
 #
 """HTTPS Service checker"""
 
-from django.utils.six.moves import http_client
 import socket
 
 from ssl import wrap_socket
+
+from django.utils.six.moves import http_client
 
 from nav.statemon.checker.HttpChecker import HttpChecker
 

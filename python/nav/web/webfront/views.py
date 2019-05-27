@@ -22,7 +22,6 @@ import json
 import logging
 from operator import attrgetter
 
-from nav.six import reverse
 from django.http import (HttpResponseForbidden, HttpResponseRedirect,
                          HttpResponse, JsonResponse)
 from django.views.decorators.http import require_POST
@@ -37,6 +36,7 @@ from nav.auditlog.models import LogEntry
 from nav.django.auth import ACCOUNT_ID_VAR, desudo
 from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
+from nav.six import reverse
 from nav.web import ldapauth, auth
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list

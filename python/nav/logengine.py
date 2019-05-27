@@ -28,18 +28,18 @@ files, one of which this program will have exclusive access to.
 
 """
 
-## The structure of this code was a mess translated more or less
-## directly from perl code. Some refactoring attempts have been made
-## to make it more maintainable.  Feel free to refactor it further,
-## where it makes sense.
+# The structure of this code was a mess translated more or less
+# directly from perl code. Some refactoring attempts have been made
+# to make it more maintainable.  Feel free to refactor it further,
+# where it makes sense.
 
-## BUGS: This program has one glaring problem: All the log lines are
-## read into memory, and the logfile is subsequently truncated.  If
-## the program crashes before the lines are inserted into the
-## database, all the read log lines are lost.
+# BUGS: This program has one glaring problem: All the log lines are
+# read into memory, and the logfile is subsequently truncated.  If
+# the program crashes before the lines are inserted into the
+# database, all the read log lines are lost.
 
-## TODO: Possible future enhancement is the ability to tail a log file
-## continually, instead of reading and truncating as a cron job.
+# TODO: Possible future enhancement is the ability to tail a log file
+# continually, instead of reading and truncating as a cron job.
 
 from __future__ import absolute_import, print_function
 
@@ -303,7 +303,7 @@ def read_log_lines(config):
         charset = "ISO-8859-1"
 
     logfile = None
-    ## open log
+    # open log
     try:
         logfile = open(filename, "r+")
     except IOError as err:
@@ -312,21 +312,21 @@ def read_log_lines(config):
         if err.errno != errno.ENOENT:
             _logger.exception("Couldn't open logfile %s", filename)
 
-    ## if the file exists
+    # if the file exists
     if logfile:
 
-        ## lock logfile
+        # lock logfile
         fcntl.flock(logfile, fcntl.LOCK_EX)
 
-        ## read log
+        # read log
         fcon = logfile.readlines()
 
-        ## truncate logfile
+        # truncate logfile
         logfile.truncate(0)
 
-        ## unlock logfile
+        # unlock logfile
         fcntl.flock(logfile, fcntl.LOCK_UN)
-        ## close log
+        # close log
         logfile.close()
 
         for line in fcon:
@@ -364,21 +364,21 @@ def parse_and_insert(line, database,
 def insert_message(message, database,
                    categories, origins, types,
                    exceptionorigin, exceptiontype, exceptiontypeorigin):
-    ## check origin (host)
+    # check origin (host)
     if message.origin not in origins:
         if message.category not in categories:
             add_category(message.category, categories, database)
         add_origin(message.origin, message.category, origins, database)
     originid = origins[message.origin]
 
-    ## check type
+    # check type
     if (message.facility not in types or
             message.mnemonic not in types[message.facility]):
         add_type(message.facility, message.mnemonic, message.priorityid, types,
                  database)
     typeid = types[message.facility][message.mnemonic]
 
-    ## overload priority if exceptions are set
+    # overload priority if exceptions are set
     m_type = message.type.lower()
     origin = message.origin.lower()
     if (m_type in exceptiontypeorigin and
@@ -400,7 +400,7 @@ def insert_message(message, database,
         except ValueError:
             pass
 
-    ## insert message into database
+    # insert message into database
     database.execute("INSERT INTO log_message (time, origin, "
                      "newpriority, type, message) "
                      "VALUES (%s, %s, %s, %s, %s)",
@@ -418,7 +418,7 @@ def add_category(category, categories, database):
 def add_origin(origin, category, origins, database):
     database.execute("SELECT nextval('origin_origin_seq')")
     originid = database.fetchone()[0]
-    assert type(originid) in six.integer_types
+    assert isinstance(originid, six.integer_types)
     database.execute("INSERT INTO origin (origin, name, "
                      "category) VALUES (%s, %s, %s)",
                      (originid, origin, category))
@@ -429,7 +429,7 @@ def add_origin(origin, category, origins, database):
 def add_type(facility, mnemonic, priorityid, types, database):
     database.execute("SELECT nextval('log_message_type_type_seq')")
     typeid = int(database.fetchone()[0])
-    assert type(typeid) in six.integer_types
+    assert isinstance(typeid, six.integer_types)
 
     database.execute("INSERT INTO log_message_type (type, facility, "
                      "mnemonic, priority) "
@@ -446,18 +446,18 @@ def logengine(config, options):
     connection = db.getConnection('logger', 'logger')
     database = connection.cursor()
 
-    ## initial setup of dictionaries
+    # initial setup of dictionaries
 
     categories = get_categories(database)
     origins = get_origins(database)
     types = get_types(database)
 
-    ## parse priorityexceptions
+    # parse priorityexceptions
     (exceptionorigin,
      exceptiontype,
      exceptiontypeorigin) = get_exception_dicts(config)
 
-    ## add new records
+    # add new records
     _logger.debug("Reading new log entries")
     my_parse_and_insert = swallow_all_but_db_exceptions(parse_and_insert)
     for line in read_log_lines(config):

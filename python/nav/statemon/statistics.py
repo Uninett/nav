@@ -22,7 +22,7 @@ the statemon subsystem.
 
 """
 import time
-from . import event
+
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import (
     metric_path_for_packet_loss,
@@ -30,6 +30,8 @@ from nav.metrics.templates import (
     metric_path_for_service_availability,
     metric_path_for_service_response_time
 )
+
+from . import event
 
 
 def update(netboxid, sysname, timestamp, status, responsetime, serviceid=None,

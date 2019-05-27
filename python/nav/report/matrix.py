@@ -14,9 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Builds the prefix matrix."""
-import math
-import IPy
+
 from collections import namedtuple
+import logging
+import math
+
+import IPy
 
 from nav.six import reverse
 
@@ -25,7 +28,6 @@ from nav.metrics.graphs import get_simple_graph_url
 from nav.report import metaIP, IPtools, IPtree
 
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

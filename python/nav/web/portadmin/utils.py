@@ -14,9 +14,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Util functions for the PortAdmin"""
+from __future__ import unicode_literals
 import re
 import configparser
 import logging
+from operator import attrgetter
+from os.path import join
 
 from django.template import loader
 
@@ -24,8 +27,6 @@ from nav.config import find_configfile
 from nav.django.utils import is_admin
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
-from operator import attrgetter
-from os.path import join
 
 CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf")) or ''
 

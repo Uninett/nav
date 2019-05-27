@@ -168,7 +168,7 @@ class MacAddress(object):
         """
         if delim is None:
             return _int_to_delimited_hexstring(self._addr, '', 2)
-        if not delim in DELIMS_AND_STEPS:
+        if delim not in DELIMS_AND_STEPS:
             raise ValueError('Illegal delimiter')
         return _int_to_delimited_hexstring(self._addr, delim,
                                            DELIMS_AND_STEPS[delim])
