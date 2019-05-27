@@ -19,10 +19,10 @@ switch-ports by using SNMP-set commands. Arnold uses an IP- or MAC-address to
 locate the switch-port the address is operating from using the NAV-database, and
 then attempts to detain it.
 
-.. note:: It is important that the write community is set on your IP devices,
+.. note:: You **must** assign a *write-enabled* SNMP profile to your devices,
           otherwise Arnold will not be able to detain or enable ports on
-          them. You specifiy write community when you add or edit a new IP
-          device in the *Seed Database* tool.
+          them. You can select profiles for devices individually in the *Seed
+          Database* tool.
 
 Using Arnold
 ============
