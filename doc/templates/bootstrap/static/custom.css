@@ -100,3 +100,10 @@ p.versionadded {
     font-size: 1.3rem;
     padding: 0.2em 0.5em;
 }
+
+.guilabel {
+    background-color: #ECF0F1;
+    padding: 2px 4px;
+    font-size: 90%;
+    border-radius: 3px;
+}
