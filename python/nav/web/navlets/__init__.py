@@ -207,7 +207,7 @@ def get_user_navlets(request, dashboard_id=None):
     navlets = []
     for usernavlet in usernavlets:
         navlets.append(create_navlet_object(usernavlet))
-    return JsonResponse(navlets)
+    return JsonResponse({"items": navlets})
 
 
 def create_navlet_object(usernavlet):

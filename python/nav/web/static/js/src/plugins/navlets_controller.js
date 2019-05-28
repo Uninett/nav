@@ -75,11 +75,11 @@ define(['plugins/navlet_controller'], function (NavletController) {
 
             request.done(function (data) {
                 var i, l;
-                for (i = 0, l = data.length; i < l; i++) {
-                    that.addNavlet(data[i]);
+                for (i = 0, l = data.items.length; i < l; i++) {
+                    that.addNavlet(data.items[i]);
                 }
                 that.addNavletOrdering();
-                that.container.trigger('nav.navlets.fetched', {numNavlets: data.length});
+                that.container.trigger('nav.navlets.fetched', {numNavlets: data.items.length});
             });
         },
         addAddNavletListener: function () {
