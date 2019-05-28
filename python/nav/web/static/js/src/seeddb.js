@@ -83,19 +83,15 @@ function (datatables, CheckboxSelector, QuickSelect, FormFuck, ManagementProfile
         $searchField.select2({
             multiple: true,
             ajax: {
-                url: NAV.urls.seeddb_netboxgroup_devicelist,
+                url: NAV.urls.api_netbox_list,
                 dataType: 'json',
                 quietMillis: 250,
-                data: function (params) {
+                data: function(params) {
                     return {
-                        query: params
+                        search: params
                     };
                 },
-                results: function (data) {
-                    return {
-                        results: data
-                    };
-                }
+                results: netboxListSelect2
             },
             /**
              * Populates the selection with options from the form element.
@@ -195,6 +191,21 @@ function (datatables, CheckboxSelector, QuickSelect, FormFuck, ManagementProfile
         });
     }
 
+    function netboxListSelect2(data, page, query) {
+        var results = data.results;
+        data.results.sort(function(a, b) {
+            if (a.sysname.toLowerCase() < b.sysname.toLowerCase()) {
+                return -1;
+            } else {
+                return 1;
+            }
+        });
+        return {
+            results: data.results.map(function(obj) {
+                return { id: obj.id, text: obj.sysname };
+            })
+        };
+    }
 
     function initSearchForIpDevice() {
         $('#id_netbox').select2({
@@ -209,21 +220,7 @@ function (datatables, CheckboxSelector, QuickSelect, FormFuck, ManagementProfile
                         search: params
                     };
                 },
-                results: function(data, page, query) {
-                    var results = data.results;
-                    data.results.sort(function(a, b) {
-                        if (a.sysname.toLowerCase() < b.sysname.toLowerCase()) {
-                            return -1;
-                        } else {
-                            return 1;
-                        }
-                    });
-                    return {
-                        results: data.results.map(function(obj) {
-                            return { id: obj.id, text: obj.sysname };
-                        })
-                    };
-                }
+                results: netboxListSelect2
             }
         });
     }

@@ -190,9 +190,6 @@ urlpatterns = [
     url(r'^netboxgroup/bulk/$',
         netboxgroup.netboxgroup_bulk,
         name='seeddb-netboxgroup-bulk'),
-    url(r'^netboxgroup/devicelist/$',
-        netboxgroup.netbox_list,
-        name='seeddb-netboxgroup-devicelist'),
 
     # Vlan
     url(r'^vlan/$',
