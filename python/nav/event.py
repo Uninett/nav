@@ -113,7 +113,7 @@ class EventQ(object):
         values = []
         for attr in ('source', 'target', 'deviceid', 'netboxid', 'subid',
                      'time', 'eventtypeid', 'state', 'value', 'severity'):
-            if hasattr(event, attr) and getattr(event, attr):
+            if getattr(event, attr, None):
                 fields.append(attr)
                 values.append(getattr(event, attr))
         if not fields:

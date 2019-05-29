@@ -62,9 +62,9 @@ class L2TraceQuery(object):
 
     @staticmethod
     def make_row_from_node(index, node):
-        netboxid = hasattr(node.host, 'id') and node.host.id or None
-        sysname = hasattr(node.host, 'sysname') and \
-            node.host.sysname or node.host.hostname
+        netboxid = getattr(node.host, 'id', None)
+        sysname = node.host.sysname if hasattr(node.host, 'sysname') \
+            else node.host.hostname
         return ResultRow(index,
                          netboxid=netboxid,
                          ipaddr=node.host.ip,
