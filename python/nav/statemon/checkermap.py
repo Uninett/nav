@@ -50,8 +50,8 @@ def get(checker):
     try:
         module = importlib.import_module('.' + module_name,
                                          'nav.statemon.checker')
-    except Exception as e:
-        _logger.error("Failed to import %s, %s", module_name, e)
+    except Exception as ex:
+        _logger.error("Failed to import %s, %s", module_name, ex)
         dirty.append(checker)
         return
     return getattr(module, class_name)
