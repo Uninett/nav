@@ -471,7 +471,7 @@ def consecutive(seq):
     :param seq: A sequence of numbers.
     """
     data = ((y - x, y) for x, y in enumerate(sorted(seq)))
-    for key, group in groupby(data, itemgetter(0)):
+    for _key, group in groupby(data, itemgetter(0)):
         group = [item[1] for item in group]
         yield group[0], group[-1]
 

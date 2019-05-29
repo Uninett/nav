@@ -420,7 +420,7 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
         return IP(addr) if addr else addr
 
     # sorting the output based on prefix address
-    for key, value in six.iteritems(metadata_collection):
+    for value in six.itervalues(metadata_collection):
         value.sort(key=prefixaddress)
 
     json = {

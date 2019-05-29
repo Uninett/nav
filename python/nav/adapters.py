@@ -18,7 +18,7 @@ from __future__ import absolute_import
 try:
     from django.contrib.postgres.fields import HStoreField
     DictionaryField = HStoreField
-except ImportError as e:
+except ImportError:
     from django_hstore.hstore import DictionaryField
     HStoreField = DictionaryField
 

@@ -213,7 +213,7 @@ def init_generic_logging(logfile=None, stderr=True, stdout=False,
     if logfile:
         try:
             filehandler = logging.FileHandler(_get_logfile_path(logfile))
-        except IOError as err:
+        except IOError:
             pass
         else:
             formatter = formatter or DEFAULT_LOG_FORMATTER
