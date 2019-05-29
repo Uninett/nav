@@ -333,8 +333,6 @@ def read_log_lines(config):
             # Make sure the data is encoded as UTF-8 before we begin work on it
             line = line.decode(charset).encode("UTF-8")
             yield line
-    else:
-        raise StopIteration
 
 
 # pylint: disable=W0703
