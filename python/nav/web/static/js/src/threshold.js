@@ -56,7 +56,10 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
 
     function handleSelect(event, ui) {
         if (ui.item.expandable) {
-            $inputElement.autocomplete('search', ui.item.value + '.');
+            window.setTimeout(
+                function() {
+                    $inputElement.autocomplete('search', ui.item.value + '.');
+                }, 0);
         } else {
             displayMetricInfo(ui.item.value);
         }
