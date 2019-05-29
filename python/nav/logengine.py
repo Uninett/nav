@@ -470,6 +470,7 @@ def logengine(config, options):
 
 def swallow_all_but_db_exceptions(func):
     def _swallow(*args, **kwargs):
+        # pylint: disable=try-except-raise
         try:
             return func(*args, **kwargs)
         except db.driver.Error:

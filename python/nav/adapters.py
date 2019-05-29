@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 
+# pylint: disable=invalid-name
 try:
     from django.contrib.postgres.fields import HStoreField
     DictionaryField = HStoreField
