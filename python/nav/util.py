@@ -26,11 +26,6 @@ from functools import wraps
 from itertools import chain, tee, groupby
 from operator import itemgetter
 
-try:
-    from itertools import ifilter
-except ImportError:
-    ifilter = filter
-
 from django.utils import six
 from django.utils.six.moves import range
 
@@ -218,7 +213,7 @@ def first_true(iterable, default=None, pred=None):
     :param pred: Optional predicate function to evaluate the truthfulness of
                  elements.
     """
-    return next(ifilter(pred, iterable), default)
+    return next(six.filter(pred, iterable), default)
 
 
 class IPRange(object):
