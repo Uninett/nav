@@ -118,7 +118,7 @@ class Pinger(object):
         # Update netboxmap
         self.netboxmap = netboxmap
         _logger.debug("We now got %i hosts in our list to ping",
-                     len(self.netboxmap))
+                      len(self.netboxmap))
         # then update our pinger object
         self.pinger.set_hosts(self.ip_to_netboxid.keys())
 
