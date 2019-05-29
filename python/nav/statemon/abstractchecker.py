@@ -167,7 +167,6 @@ class AbstractChecker(object):
         """Send an updated metric to the Graphite backend"""
         try:
             statistics.update(
-                self.netboxid,
                 self.sysname,
                 'N',
                 self.status,

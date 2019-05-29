@@ -34,12 +34,10 @@ from nav.metrics.templates import (
 from . import event
 
 
-def update(netboxid, sysname, timestamp, status, responsetime, serviceid=None,
+def update(sysname, timestamp, status, responsetime, serviceid=None,
            handler=""):
     """Sends metric updates to graphite.
 
-    :param netboxid: Netboxid. Not actually used, but preserved for
-                     compatibility with old API.
     :param sysname: Sysname of the device in question.
     :param timestamp: Timestamp of the measurements. If None or 'N', the
                     current time will be used.
