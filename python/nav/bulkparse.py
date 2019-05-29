@@ -113,7 +113,7 @@ class BulkParser(six.Iterator):
         separator = ':'
         required = separator.join(cls.format[:cls.required])
         optional = separator.join(cls.format[cls.required:])
-        restkey_format = (cls.restkey_format and cls.restkey_format or
+        restkey_format = (cls.restkey_format if cls.restkey_format else
                           cls.restkey)
         rest = "%s%s..." % (restkey_format, separator)
 

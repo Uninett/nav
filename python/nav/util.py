@@ -40,7 +40,7 @@ def gradient(start, stop, steps):
     distance = (stop - start)
     # Reduce by 1 step to include both endpoints, but never reduce it
     # to zero (we always want at least to values)
-    steps = steps > 1 and steps-1 or 1
+    steps = steps - 1 if steps > 1 else 1
     increment = distance / float(steps)
     grad = []
     for i in range(steps):

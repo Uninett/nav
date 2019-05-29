@@ -244,7 +244,7 @@ def create_type_hierarchy(hierarchy):
         event_type_name, event_descr, stateful = event_type
         if stateful not in ('y', 'n'):
             # Parse the stateful var as a boolean
-            stateful = stateful and 'y' or 'n'
+            stateful = 'y' if stateful else 'n'
 
         try:
             etype = EventType.objects.get(id=event_type_name)

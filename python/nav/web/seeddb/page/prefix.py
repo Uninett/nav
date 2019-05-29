@@ -144,5 +144,5 @@ def prefix_edit(request, prefix_id=None):
 def get_prefix_and_vlan(prefix_id):
     """Gets the prefix object and vlan object for this prefix id"""
     prefix = _get_object(Prefix, prefix_id, 'pk')
-    vlan = prefix and prefix.vlan or None
+    vlan = prefix.vlan if prefix else None
     return prefix, vlan
