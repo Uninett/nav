@@ -140,7 +140,7 @@ def threshold_search(request):
                 'expandable': metric['expandable']
             })
 
-    return JsonResponse(result)
+    return JsonResponse({"items": result})
 
 
 def enhance_term(term):
