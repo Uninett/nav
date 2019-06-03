@@ -119,8 +119,16 @@ class ManagementProfile(models.Model):
 class NetboxProfile(models.Model):
     """Stores the relation between Netboxes and their management profiles"""
     id = models.AutoField(primary_key=True, db_column='netbox_profileid')
-    netbox = models.ForeignKey('Netbox', db_column='netboxid')
-    profile = models.ForeignKey('ManagementProfile', db_column='profileid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    profile = models.ForeignKey(
+        'ManagementProfile',
+        on_delete=models.CASCADE,
+        db_column='profileid'
+    )
 
     class Meta(object):
         db_table = 'netbox_profile'
