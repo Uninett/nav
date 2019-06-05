@@ -48,7 +48,7 @@ def authenticate(username, password):
                 )
                 account.set_password(password)
                 account.save()
-                _handle_admin_status(user, account)
+                _handle_ldap_admin_status(user, account)
                 # We're authenticated now
                 auth = True
 
@@ -69,7 +69,7 @@ def authenticate(username, password):
             if auth:
                 account.set_password(password)
                 account.save()
-                _handle_admin_status(auth, account)
+                _handle_ldap_admin_status(auth, account)
             else:
                 return
 
@@ -82,7 +82,7 @@ def authenticate(username, password):
         return None
 
 
-def _handle_admin_status(ldap_user, nav_account):
+def _handle_ldap_admin_status(ldap_user, nav_account):
     is_admin = ldap_user.is_admin()
     # Only modify admin status if an entitlement is configured in webfront.conf
     if is_admin is not None:
