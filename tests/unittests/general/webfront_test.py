@@ -135,6 +135,7 @@ class LdapUserTestCase(TestCase):
                       'uid_attr': 'uid',
                       'encoding': 'utf-8',
                       'require_entitlement': 'president',
+                      'admin_entitlement': 'boss',
                       'entitlement_attribute': 'eduPersonEntitlement',
                       },
              })
@@ -160,3 +161,49 @@ class TestLdapEntitlements(object):
         })
         u = nav.web.ldapauth.LDAPUser("marvin", conn)
         assert not u.has_entitlement('president')
+
+    def test_admin_entitlement_should_be_verified(self):
+        conn = Mock(**{
+            'search_s.return_value': [
+                (
+                    u'uid=zaphod,cn=users,dc=example,dc=org',
+                    {u'eduPersonEntitlement': [b'president', b'boss']}
+                )]
+        })
+        u = nav.web.ldapauth.LDAPUser("zaphod", conn)
+        assert u.is_admin()
+
+    def test_missing_admin_entitlement_should_be_verified(self):
+        conn = Mock(**{
+            'search_s.return_value': [
+                (
+                    u'uid=marvin,cn=users,dc=example,dc=org',
+                    {u'eduPersonEntitlement': [b'paranoid']}
+                )]
+        })
+        u = nav.web.ldapauth.LDAPUser("marvin", conn)
+        assert not u.is_admin()
+
+
+@patch.dict("nav.web.ldapauth._config._sections",
+            {'ldap': {'__name__': 'ldap',
+                      'basedn': 'cn=users,dc=example,dc=org',
+                      'lookupmethod': 'direct',
+                      'uid_attr': 'uid',
+                      'encoding': 'utf-8',
+                      'require_entitlement': 'president',
+                      'admin_entitlement': '',
+                      'entitlement_attribute': 'eduPersonEntitlement',
+                      },
+             })
+def test_no_admin_entitlement_option_should_make_no_admin_decision():
+    conn = Mock(**{
+        'search_s.return_value': [
+            (
+                u'uid=zaphod,cn=users,dc=example,dc=org',
+                {u'eduPersonEntitlement': [b'president', b'boss']}
+            )]
+    })
+    u = nav.web.ldapauth.LDAPUser("zaphod", conn)
+    assert u.is_admin() is None
+
