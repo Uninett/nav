@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010, 2011 Uninett AS
+# Copyright (C) 2010, 2011, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,7 +19,7 @@ Contains web authentication functionality for NAV.
 import logging
 
 from nav.web import ldapauth
-from nav.models.profiles import Account
+from nav.models.profiles import Account, AccountGroup
 
 logger = logging.getLogger("nav.web.auth")
 
@@ -48,6 +48,7 @@ def authenticate(username, password):
                 )
                 account.set_password(password)
                 account.save()
+                _handle_ldap_admin_status(user, account)
                 # We're authenticated now
                 auth = True
 
@@ -68,6 +69,7 @@ def authenticate(username, password):
             if auth:
                 account.set_password(password)
                 account.save()
+                _handle_ldap_admin_status(auth, account)
             else:
                 return
 
@@ -78,3 +80,14 @@ def authenticate(username, password):
         return account
     else:
         return None
+
+
+def _handle_ldap_admin_status(ldap_user, nav_account):
+    is_admin = ldap_user.is_admin()
+    # Only modify admin status if an entitlement is configured in webfront.conf
+    if is_admin is not None:
+        admin_group = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
+        if is_admin:
+            nav_account.accountgroup_set.add(admin_group)
+        else:
+            nav_account.accountgroup_set.remove(admin_group)

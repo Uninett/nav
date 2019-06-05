@@ -30,7 +30,9 @@ class LdapAuthenticateTest(TestCase):
         self.patched_get.stop()
 
     def test_authenticate_should_return_account_when_ldap_says_yes(self):
-        with patch("nav.web.ldapauth.authenticate", return_value=True):
+        ldap_user = Mock()
+        ldap_user.is_admin.return_value = None  # mock to avoid database access
+        with patch("nav.web.ldapauth.authenticate", return_value=ldap_user):
             self.assertEquals(auth.authenticate('knight', 'shrubbery'),
                               self.mock_account)
 
@@ -135,28 +137,66 @@ class LdapUserTestCase(TestCase):
                       'uid_attr': 'uid',
                       'encoding': 'utf-8',
                       'require_entitlement': 'president',
+                      'admin_entitlement': 'boss',
                       'entitlement_attribute': 'eduPersonEntitlement',
                       },
              })
 class TestLdapEntitlements(object):
-    def test_required_entitlement_should_be_verified(self):
-        conn = Mock(**{
-            'search_s.return_value': [
-                (
-                    u'uid=zaphod,cn=users,dc=example,dc=org',
-                    {u'eduPersonEntitlement': [b'president']}
-                )]
-        })
-        u = nav.web.ldapauth.LDAPUser("zaphod", conn)
+    def test_required_entitlement_should_be_verified(self, user_zaphod):
+        u = nav.web.ldapauth.LDAPUser("zaphod", user_zaphod)
         assert u.has_entitlement('president')
 
-    def test_missing_entitlement_should_not_be_verified(self):
-        conn = Mock(**{
-            'search_s.return_value': [
-                (
-                    u'uid=marvin,cn=users,dc=example,dc=org',
-                    {u'eduPersonEntitlement': [b'paranoid']}
-                )]
-        })
-        u = nav.web.ldapauth.LDAPUser("marvin", conn)
+    def test_missing_entitlement_should_not_be_verified(self, user_marvin):
+        u = nav.web.ldapauth.LDAPUser("marvin", user_marvin)
         assert not u.has_entitlement('president')
+
+    def test_admin_entitlement_should_be_verified(self, user_zaphod):
+        u = nav.web.ldapauth.LDAPUser("zaphod", user_zaphod)
+        assert u.is_admin()
+
+    def test_missing_admin_entitlement_should_be_verified(self, user_marvin):
+        u = nav.web.ldapauth.LDAPUser("marvin", user_marvin)
+        assert not u.is_admin()
+
+
+@patch.dict("nav.web.ldapauth._config._sections",
+            {'ldap': {'__name__': 'ldap',
+                      'basedn': 'cn=users,dc=example,dc=org',
+                      'lookupmethod': 'direct',
+                      'uid_attr': 'uid',
+                      'encoding': 'utf-8',
+                      'require_entitlement': 'president',
+                      'admin_entitlement': '',
+                      'entitlement_attribute': 'eduPersonEntitlement',
+                      },
+             })
+def test_no_admin_entitlement_option_should_make_no_admin_decision(user_zaphod):
+    u = nav.web.ldapauth.LDAPUser("zaphod", user_zaphod)
+    assert u.is_admin() is None
+
+
+#
+# Pytest fixtures
+#
+
+
+@pytest.fixture
+def user_zaphod():
+    return Mock(**{
+        'search_s.return_value': [
+            (
+                u'uid=zaphod,cn=users,dc=example,dc=org',
+                {u'eduPersonEntitlement': [b'president', b'boss']}
+            )]
+    })
+
+
+@pytest.fixture
+def user_marvin():
+    return Mock(**{
+        'search_s.return_value': [
+            (
+                u'uid=marvin,cn=users,dc=example,dc=org',
+                {u'eduPersonEntitlement': [b'paranoid']}
+            )]
+    })
