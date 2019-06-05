@@ -62,6 +62,14 @@ Available options:
   A string defining the name of an entitlement that the user object must have
   in order for the user to be allowed to log in to NAV.
 
+**admin_entitlement**
+  .. versionadded:: 4.9.7
+
+  If a user object has this entitlement, the user will be granted membership
+  in the NAV Administrators group. If the user object does not have this
+  entitlement, the user will be stripped of their Administrator privileges. If
+  unset, nothing happens.
+
 **entitlement_attribute**
   .. versionadded:: 4.9.6
 
