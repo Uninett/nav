@@ -49,6 +49,7 @@ manager=
 manager_password=
 group_search=(member=%%s)
 require_entitlement=
+admin_entitlement=
 entitlement_attribute=eduPersonEntitlement
 encoding=utf-8
 """
@@ -354,6 +355,17 @@ class LDAPUser(object):
     def has_entitlement(self, entitlement):
         """Verifies whether the user has a specific entitlement"""
         return entitlement in self.get_entitlements()
+
+    def is_admin(self):
+        """Verifies whether the user should have administrator privileges.
+
+        :returns: True if the user should be an administrator, False if not. If no admin
+        entitlement is configure, None is returned, as we cannot make such a decision.
+
+        """
+        admin_entitlement = _config.get('ldap', 'admin_entitlement')
+        if admin_entitlement:
+            return self.has_entitlement(admin_entitlement)
 
 
 #
