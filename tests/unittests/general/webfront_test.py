@@ -30,7 +30,9 @@ class LdapAuthenticateTest(TestCase):
         self.patched_get.stop()
 
     def test_authenticate_should_return_account_when_ldap_says_yes(self):
-        with patch("nav.web.ldapauth.authenticate", return_value=True):
+        ldap_user = Mock()
+        ldap_user.is_admin.return_value = None  # mock to avoid database access
+        with patch("nav.web.ldapauth.authenticate", return_value=ldap_user):
             self.assertEquals(auth.authenticate('knight', 'shrubbery'),
                               self.mock_account)
 
