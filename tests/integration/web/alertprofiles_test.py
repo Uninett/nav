@@ -112,6 +112,29 @@ def test_alertprofiles_deactivate_profile(db, client, activated_dummy_profile):
         account=activated_dummy_profile.account)
     assert preference.active_profile is None
 
+
+def test_alertprofiles_add_private_filter_should_succeed(client):
+    """Tests that an admin can POST a new private filter"""
+    url = reverse("alertprofiles-filters-save")
+    data = {
+        "id": "",
+        "name": "foobar",
+        "owner": "admin",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+
+
+def test_alertprofiles_add_public_filter_should_succeed(client):
+    """Tests that an admin can POST a new public filter"""
+    url = reverse("alertprofiles-filters-save")
+    data = {
+        "id": "",
+        "name": "foobar",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+
 #
 # fixtures and helpers
 #
