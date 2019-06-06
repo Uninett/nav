@@ -13,7 +13,7 @@ twisted>=16.6.0,<18 ; python_version >= '3'
 
 networkx>=1.7,<1.8
 xmpppy==0.5.0rc1  # optional, for alerting via Jabber
-Pillow==3.0.0
+Pillow==3.3.2
 pyrad==2.1
 python-ldap==3.0.0 # optional for LDAP authentication, requires libldap (OpenLDAP) to build
 sphinx>=1.8.0
