@@ -70,11 +70,11 @@ def resolve_account_admin_and_owner(request):
     account = get_account(request)
     admin = is_admin(account)
 
-    owner = Account()
+    owner = None
     if request.POST.get('owner') or not admin:
         owner = account
 
-    return (account, admin, owner)
+    return account, admin, owner
 
 
 @transaction.atomic()
