@@ -22,18 +22,22 @@ from django.utils.six.moves.urllib.parse import urlencode, urljoin
 from django.utils.six.moves.urllib.request import Request, urlopen
 from django.utils.six.moves.urllib.error import URLError
 from nav.metrics import CONFIG, errors
+import string
+
+LEGAL_METRIC_CHARACTERS = string.ascii_letters + string.digits + "-_"
 
 
-def escape_metric_name(string):
+def escape_metric_name(name):
     """
-    Escapes any character of string that may not be used in graphite metric
+    Escapes any character of `name` that may not be used in graphite metric
     names.
     """
-    if string is None:
-        return string
-    for char in "./ (),":
-        string = string.replace(char, "_")
-    return string.replace('\x00', '')  # some devices have crazy responses!
+    if name is None:
+        return name
+    name = name.replace('\x00', '')  # some devices have crazy responses!
+    name = ''.join([c if c in LEGAL_METRIC_CHARACTERS else "_"
+                    for c in name])
+    return name
 
 
 def join_series(names):
