@@ -24,6 +24,7 @@ from django.db.models import Q, Max
 from django.http import HttpResponse
 from django.shortcuts import (redirect, get_object_or_404,
                               render)
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from nav.django.decorators import require_admin
@@ -31,7 +32,6 @@ from nav.django.decorators import require_admin
 from nav.models.manage import Room, Sensor, Interface
 from nav.models.rack import (Rack, SensorRackItem, SensorsDiffRackItem,
                              SensorsSumRackItem)
-from nav.six import reverse
 from nav.web.info.forms import SearchForm
 from nav.web.info.images.upload import handle_image_upload
 from nav.web.utils import create_title

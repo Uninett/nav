@@ -17,7 +17,7 @@
 import datetime
 
 from django.contrib.syndication.views import Feed
-from nav.six import reverse
+from django.urls import reverse
 
 from nav.models.msgmaint import Message
 

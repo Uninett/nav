@@ -17,8 +17,8 @@
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
+from django.urls import reverse
 
-from nav.six import reverse
 from nav.web.info.forms import SearchForm
 from nav.web.info.views import get_path
 from nav.web.utils import create_title

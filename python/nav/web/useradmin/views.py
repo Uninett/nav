@@ -21,6 +21,7 @@ from datetime import datetime
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse, reverse_lazy
 from django.views import generic
 from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_post_parameters
@@ -31,7 +32,6 @@ from nav.models.manage import Organization
 from nav.models.api import APIToken
 
 from nav.django.auth import sudo
-from nav.six import reverse, reverse_lazy
 from nav.web.useradmin import forms
 
 

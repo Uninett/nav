@@ -17,11 +17,11 @@
 
 from django import forms
 from django.forms.models import modelformset_factory
+from django.urls import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
                                             HTML, Submit)
 from nav.models.profiles import NavbarLink, Account
-from nav.six import reverse
 from nav.web.crispyforms import CheckBox, NavSubmit
 
 

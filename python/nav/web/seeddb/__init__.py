@@ -15,7 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from nav.six import reverse
+from django.urls import reverse
 
 from nav.web.seeddb.constants import TITLE_DEFAULT, NAVPATH_DEFAULT
 

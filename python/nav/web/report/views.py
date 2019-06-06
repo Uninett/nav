@@ -33,6 +33,7 @@ from django.core.cache import cache
 from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render
 from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.urls import reverse
 from django.utils.six import PY2, iteritems, text_type
 
 from nav.models.manage import Prefix
@@ -44,7 +45,6 @@ from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
 from nav.config import find_configfile
 
-from nav.six import reverse
 from nav.web.navlets import add_navlet
 
 

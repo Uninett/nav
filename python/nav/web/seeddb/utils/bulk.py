@@ -17,10 +17,10 @@
 """Module for handling bulk import requests"""
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 from nav.bulkimport import reset_object_foreignkeys
 from nav.bulkparse import BulkParseError
-from nav.six import reverse
 from nav.web.message import Messages
 from nav.web.seeddb.forms.bulk import BulkImportForm
 

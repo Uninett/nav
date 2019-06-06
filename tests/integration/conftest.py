@@ -162,7 +162,7 @@ def localhost(management_profile):
 def client():
     """Provides a Django test Client object already logged in to the web UI as
     an admin"""
-    from nav.six import reverse
+    from django.urls import reverse
 
     client_ = Client()
     url = reverse('webfront-login')

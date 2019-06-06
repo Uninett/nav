@@ -6,7 +6,7 @@ from mock import MagicMock
 import pytest
 
 from django.test.client import RequestFactory
-from nav.six import reverse
+from django.urls import reverse
 from django.utils.encoding import smart_text
 
 from nav.models.profiles import AlertProfile, Account, AlertPreference

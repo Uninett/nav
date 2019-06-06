@@ -17,7 +17,7 @@
 
 import logging
 
-from nav.six import reverse
+from django.urls import reverse
 
 from nav.report import IPtools, metaIP
 from nav.report.matrix import Matrix, Link

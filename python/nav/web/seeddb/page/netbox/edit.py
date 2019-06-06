@@ -23,7 +23,7 @@ import socket
 from socket import error as SocketError
 import logging
 
-from nav.six import reverse
+from django.urls import reverse
 from django.http import HttpResponse, JsonResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
@@ -34,7 +34,6 @@ from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
 from nav.models.manage import NetboxInfo, ManagementProfile
 from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
-from nav.six import reverse
 from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname
