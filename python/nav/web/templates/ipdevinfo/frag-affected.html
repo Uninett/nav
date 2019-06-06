@@ -1,3 +1,4 @@
+{% load silent_include %}
 <h4>
     If this IP device stops working the following will likely be affected.
 </h4>
@@ -80,5 +81,8 @@
            value="Send mail to affected organizations"
            {% if not contacts %}disabled{% endif %}>
   </form>
+
+  {% try_to_include "ipdevinfo/custom-affected.html" %}
+
 
 </div>

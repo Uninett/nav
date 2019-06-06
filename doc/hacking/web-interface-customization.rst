@@ -97,6 +97,28 @@ example, adding a button that takes the user to a a third party web page:
        </a>
    </li>
 
+Adding custom information to the ipdevinfo "What if" tab
+--------------------------------------------------------
+
+The IP Device Info tab titled :guilabel:`"What if"`, shows a summary of other
+devices, organizations and users that may be affected if the viewed device goes
+down. The tab also provides functionality to send e-mail to the contact
+addresses of the affected organizations (if contacts have been added).
+
+A custom template named ``ipdevinfo/custom-affected.html`` can be used to
+insert information at the bottom of this tab:
+
+.. code-block:: html+django
+   :caption: ipdevinfo/custom-affects.html
+
+   <section>
+       <h4>Information from foobar</h4>
+       <a href="https://foobar.example.org/device/{{ netbox.sysname }}"
+          class="button small secondary">
+           Lookup affected links in Foobar
+       </a>
+   </section>
+
 
 Adding custom tabs to the room overview page
 --------------------------------------------
