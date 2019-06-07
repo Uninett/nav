@@ -105,7 +105,7 @@ class TimestampChecker(object):
                 return json.loads(info.value)
             except Exception:
                 try:
-                    return pickle.loads(info.value)
+                    return pickle.loads(info.value.encode('utf-8'))
                 except Exception:
                     return None
 
@@ -158,7 +158,7 @@ class TimestampChecker(object):
                                "old/new: %r/%r",
                                self.var_name, old_times, new_times)
             return True
-        if old_times != new_times:
+        if list(old_times) != list(new_times):
             self._logger.debug("%r: timestamps have changed: %r / %r",
                                self.var_name, old_times, new_times)
             return True
