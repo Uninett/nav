@@ -14,10 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """SNMP timestamps and sysUpTime comparisons"""
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 import json
 
 from twisted.internet import defer
@@ -89,27 +85,26 @@ class TimestampChecker(object):
         self.collected_times = tuple(tup)
         defer.returnValue(self.collected_times)
 
-    # We must ignore pickle load failures by catching the Exception base class
+    # We must ignore deserialization failures by catching the Exception base class
     # pylint: disable=W0703
     @defer.inlineCallbacks
     def load(self):
         """Loads existing timestamps from db"""
-        def _unpickle():
+        def _deserialize():
             try:
                 info = manage.NetboxInfo.objects.get(
                     netbox__id=self._get_netbox().id,
-                    key=INFO_KEY_NAME, variable=self.var_name)
+                    key=INFO_KEY_NAME,
+                    variable=self.var_name,
+                )
             except manage.NetboxInfo.DoesNotExist:
                 return None
             try:
                 return json.loads(info.value)
             except Exception:
-                try:
-                    return pickle.loads(info.value.encode('utf-8'))
-                except Exception:
-                    return None
+                return None
 
-        self.loaded_times = yield db.run_in_thread(_unpickle)
+        self.loaded_times = yield db.run_in_thread(_deserialize)
         defer.returnValue(self.loaded_times)
 
     def save(self):

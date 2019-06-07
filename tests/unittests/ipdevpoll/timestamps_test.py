@@ -9,7 +9,7 @@ from nav.ipdevpoll.timestamps import TimestampChecker
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
-def test_invalid_pickle_should_be_interpreted_as_change():
+def test_invalid_serialized_value_should_be_interpreted_as_change():
     ts = TimestampChecker(Mock(), Mock(), 'uptime')
     invalid_time_pickle = 'foobar'
     with patch(
@@ -18,25 +18,6 @@ def test_invalid_pickle_should_be_interpreted_as_change():
     ):
         yield ts.load()
         assert ts.is_changed()
-
-
-@pytest.mark.twisted
-@pytest_twisted.inlineCallbacks
-def test_legacy_pickle_should_be_supported():
-    ts = TimestampChecker(Mock(), Mock(), 'sometime')
-    legacy_pickle = """((F1559905335
-L535590341L
-tp1
-tp2
-."""
-    mock_info = Mock(value=legacy_pickle)
-    with patch('nav.models.manage.NetboxInfo.objects.get', return_value=mock_info):
-        times = yield ts.load()
-        assert times is not None, "failed to load pickle"
-        assert len(times) == 1
-        assert len(times[0]) == 2
-        assert int(times[0][0]) == 1559905335
-        assert int(times[0][1]) == 535590341
 
 
 @pytest.mark.twisted
