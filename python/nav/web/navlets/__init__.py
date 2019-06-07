@@ -52,6 +52,7 @@ from operator import attrgetter
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.generic.base import TemplateView
 
@@ -59,7 +60,6 @@ from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
 from nav.django.auth import get_sudoer
 from nav.django.utils import get_account
-from nav.six import reverse
 from nav.web.utils import require_param
 from nav.web.webfront import find_dashboard
 

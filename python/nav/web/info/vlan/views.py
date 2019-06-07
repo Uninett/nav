@@ -23,10 +23,10 @@ from IPy import IP
 
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.http import HttpResponse
 
 from nav.models.manage import Prefix, Vlan
-from nav.six import reverse
 from nav.web.utils import create_title
 from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import join_series

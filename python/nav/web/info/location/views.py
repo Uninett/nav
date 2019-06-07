@@ -19,9 +19,9 @@ import logging
 
 from django.db.models import Q
 from django.shortcuts import (redirect, render, get_object_or_404)
+from django.urls import reverse
 
 from nav.models.manage import Location
-from nav.six import reverse
 from nav.web.info.forms import SearchForm
 from nav.web.info.images.upload import handle_image_upload
 from nav.web.utils import create_title

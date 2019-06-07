@@ -18,12 +18,12 @@
 from collections import namedtuple
 
 from django.db.models import Q, Count
+from django.urls import reverse
 
 from IPy import IP
 
 from nav.models.manage import (Room, Location, Netbox, Interface, Vlan,
                                UnrecognizedNeighbor, NetboxGroup)
-from nav.six import reverse
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 from nav.web.info.prefix.views import get_query_results as get_prefix_results

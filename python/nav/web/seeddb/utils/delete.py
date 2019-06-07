@@ -21,10 +21,10 @@ import logging
 
 from django.db import connection, transaction, IntegrityError
 from django.shortcuts import render
+from django.urls import reverse
 from django.http import HttpResponseRedirect
 
 from nav.django.utils import get_model_and_name, get_all_related_objects
-from nav.six import reverse
 from nav.web.message import new_message, Messages
 from nav.auditlog.models import LogEntry
 

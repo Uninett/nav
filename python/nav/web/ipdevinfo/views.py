@@ -23,6 +23,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import (get_object_or_404, redirect,
                               render)
+from django.urls import reverse
 from django.utils import six
 
 from nav.django.templatetags.thresholds import find_rules
@@ -36,7 +37,6 @@ from nav.models.service import Service
 from nav.models.profiles import Account
 from nav.models.event import AlertHistory
 from nav.ipdevpoll.config import get_job_descriptions
-from nav.six import reverse
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
 from nav.web.utils import create_title, SubListView

@@ -21,7 +21,7 @@ import math
 
 import IPy
 
-from nav.six import reverse
+from django.urls import reverse
 
 from nav.metrics.templates import metric_path_for_prefix
 from nav.metrics.graphs import get_simple_graph_url

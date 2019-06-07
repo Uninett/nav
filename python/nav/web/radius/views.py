@@ -16,7 +16,7 @@
 #
 """radius accounting interface views"""
 from django.shortcuts import render
-from nav.six import reverse
+from django.urls import reverse
 from nav.web.utils import create_title
 from .forms import (AccountChartsForm,
                     AccountLogSearchForm,
