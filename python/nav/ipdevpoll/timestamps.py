@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2012-2015 Uninett AS
+# Copyright (C) 2012-2015, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"SNMP timestamps and sysUpTime comparisons"
+"""SNMP timestamps and sysUpTime comparisons"""
 try:
     import cPickle as pickle
 except ImportError:
@@ -93,7 +93,7 @@ class TimestampChecker(object):
     # pylint: disable=W0703
     @defer.inlineCallbacks
     def load(self):
-        "Loads existing timestamps from db"
+        """Loads existing timestamps from db"""
         def _unpickle():
             try:
                 info = manage.NetboxInfo.objects.get(
@@ -113,7 +113,7 @@ class TimestampChecker(object):
         defer.returnValue(self.loaded_times)
 
     def save(self):
-        "Saves timestamps to a ContainerRepository"
+        """Saves timestamps to a ContainerRepository"""
         netbox = self._get_netbox()
         info = self.containers.factory((INFO_KEY_NAME, self.var_name),
                                        shadows.NetboxInfo)
