@@ -436,6 +436,7 @@ class Vlan(Shadow):
         netbox = containers.get(None, Netbox)
         net_type = 'lan'
         router_count = self._get_router_count_for_prefix(prefix, netbox.id)
+        has_virtual_addrs = self._get_virtual_address_count(prefix) > 0
 
         if prefix.version() == 6 and prefix.prefixlen() == 128:
             net_type = 'loopback'
@@ -443,12 +444,17 @@ class Vlan(Shadow):
             if prefix.prefixlen() == 32:
                 net_type = 'loopback'
             elif prefix.prefixlen() in (30, 31):
-                net_type = router_count == 1 and 'elink' or 'link'
-        if router_count > 2:
-            net_type = 'core'
-        elif router_count == 2:
-            net_type = 'link'
+                net_type = 'elink' if router_count == 1 else 'link'
+        if not has_virtual_addrs:
+            if router_count > 2:
+                net_type = 'core'
+            elif router_count == 2:
+                net_type = 'link'
 
+        self._logger.debug(
+            "_guesstimate_net_type: %r -> %r (router_count=%r has_virtual_addrs=%r)",
+            prefix, net_type, router_count, has_virtual_addrs,
+        )
         return NetType.get(net_type)
 
     @staticmethod
@@ -472,6 +478,22 @@ class Vlan(Shadow):
             category__id__in=('GW', 'GSW')
         )
         return router_count.distinct().count()
+
+    @staticmethod
+    def _get_virtual_address_count(net_address):
+        """Returns the number of virtual router port addresses attached to a prefix.
+        If there are any virtual addresses, this indicates the network has some sort of
+        redundancy, either HSRP or VRRP.
+
+        :param net_address: a prefix network address
+        :returns: an integer count of virtual gwportprefixes
+
+        """
+        virtual_addresses = manage.GwPortPrefix.objects.filter(
+            prefix__net_address=str(net_address),
+            virtual=True,
+        )
+        return virtual_addresses.distinct().count()
 
 
 class GwPortPrefix(Shadow):
