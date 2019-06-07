@@ -1,3 +1,18 @@
+Version 4.9.7
+(released 07 Jun 2019)
+
+ Fixed GitHub issues in this release:
+
+  * #1882 (Invalid VLANs are generated from Juniper switches)
+  * #1920 (Provide a hook for adding extra information in the What-If
+           tab in the IP Device Info page)
+  * #1946 (Vlans are categorized as linknets on Cisco Nexus with HSRP)
+  * #1953 (Adding new public filter in Alert Profiles fails)
+  * #1958 (NAV creates Graphite metrics with illegal characters in name)
+  * #1960 (Add option to control user administrator privileges from
+           LDAP)
+
+
 Version 4.9.6
 (released 23 May 2019)
 
