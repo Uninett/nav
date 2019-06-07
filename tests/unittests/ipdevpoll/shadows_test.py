@@ -3,7 +3,7 @@ from __future__ import with_statement
 from unittest import TestCase
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.shadows import Vlan, Prefix, Netbox
-from mock import patch
+from mock import patch, Mock
 
 
 class MixedNetTypeTest(TestCase):
@@ -24,15 +24,21 @@ class MixedNetTypeTest(TestCase):
         self.repo = repo
 
     def test_link_net_with_big_ipv6_addr(self):
-        with patch.object(self.vlan, '_get_router_count_for_prefix') as rcount:
-            rcount.return_value = 2
+        with patch.multiple(
+            self.vlan,
+            _get_router_count_for_prefix=Mock(return_value=2),
+            _get_virtual_address_count=Mock(return_value=0),
+        ):
             net_type = self.vlan._guesstimate_net_type(self.repo)
             self.assertTrue(net_type is not None)
             self.assertEqual("link", net_type.id)
 
     def test_elink_net_with_big_ipv6_addr(self):
-        with patch.object(self.vlan, '_get_router_count_for_prefix') as rcount:
-            rcount.return_value = 1
+        with patch.multiple(
+            self.vlan,
+            _get_router_count_for_prefix=Mock(return_value=1),
+            _get_virtual_address_count=Mock(return_value=0),
+        ):
             net_type = self.vlan._guesstimate_net_type(self.repo)
             self.assertTrue(net_type is not None)
             self.assertEqual("elink", net_type.id)
@@ -57,15 +63,19 @@ class RFC3021NetTypeTest(TestCase):
         self.repo = repo
 
     def test_elink_net_with_subnet_31_rfc3021_router_count_as_1(self):
-        with patch.object(self.vlan, '_get_router_count_for_prefix') as rcount:
-            rcount.return_value = 1
-
+        with patch.multiple(
+            self.vlan,
+            _get_router_count_for_prefix=Mock(return_value=1),
+            _get_virtual_address_count=Mock(return_value=0),
+        ):
             net_type = self.vlan._guesstimate_net_type(self.repo)
             self.assertEqual("elink", net_type.id)
 
     def test_link_net_with_subnet_31_rfc3021_router_count_as_2(self):
-        with patch.object(self.vlan, '_get_router_count_for_prefix') as rcount:
-            rcount.return_value = 2
-
+        with patch.multiple(
+            self.vlan,
+            _get_router_count_for_prefix=Mock(return_value=2),
+            _get_virtual_address_count=Mock(return_value=0),
+        ):
             net_type = self.vlan._guesstimate_net_type(self.repo)
             self.assertEqual('link', net_type.id)
