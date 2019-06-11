@@ -31,7 +31,7 @@ from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
 from nav.models.api import APIToken
 
-from nav.django.auth import sudo
+from nav.web.auth import sudo
 from nav.web.useradmin import forms
 
 
