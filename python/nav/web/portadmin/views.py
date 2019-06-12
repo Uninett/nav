@@ -191,7 +191,7 @@ def populate_infodict(request, netbox, interfaces):
             else:
                 set_voice_vlan_attribute(voice_vlan, interfaces)
         mark_detained_interfaces(interfaces)
-        if is_dot1x_enabled:
+        if is_dot1x_enabled(config):
             add_dot1x_info(interfaces, fac)
     except TimeOutException:
         readonly = True
@@ -238,9 +238,9 @@ def populate_infodict(request, netbox, interfaces):
 
 
 def is_dot1x_enabled(config):
-    """Checks of dot1x config option is true"""
-    section = 'general'
-    option = 'enabledot1x'
+    """Checks if dot1x config option is true"""
+    section = 'dot1x'
+    option = 'enabled'
     try:
         return (config.has_option(section, option) and
                 config.getboolean(section, option))

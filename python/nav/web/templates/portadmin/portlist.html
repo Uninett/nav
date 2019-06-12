@@ -82,44 +82,57 @@
 
       {# Vlan / Trunk #}
       <div class="medium-2 small-4 column">
-        {% if interface.trunk and not interface.voice_activated %}
-          {% if trunk_edit %}
-            <a href="{% url 'portadmin-render-trunk-edit' interface.id %}">
-              Trunk
-            </a>
+        {% if interface.dot1xenabled %}
+          {% if interface.dot1x_external_url %}
+            <a class="button tiny" href="{{ interface.dot1x_external_url }}">Dot1x</a>
           {% else %}
-            Trunk
+            Dot1x
           {% endif %}
         {% else %}
-          {% if interface.iseditable %}
-            {% if interface.detained %}
-              {{ interface.vlan|default_if_none:'' }}
-              <a href="{% url 'arnold-detainedports' %}">
-                <img src="{{ STATIC_URL }}images/toolbox/arnold.png" width="24" height="24" title="Detained in Arnold">
+          {% if interface.trunk and not interface.voice_activated %}
+            {% if trunk_edit %}
+              <a href="{% url 'portadmin-render-trunk-edit' interface.id %}">
+                Trunk
               </a>
             {% else %}
-              <form class="custom">
-                <select class="vlanlist" name="{{ interface.ifname }}">
-                  {% for vlan in allowed_vlans %}
-                    {% if not interface.voice_activated or vlan.vlan != voice_vlan %}
-                      <option value="{{ vlan.vlan }}"
-                              {% if interface.vlan == vlan.vlan %}selected="selected"
-                              data-orig="{{ vlan.vlan }}"{% endif %}>
-                        {{ vlan }}
-                      </option>
-                    {% endif %}
-                  {% endfor %}
-                  {% if trunk_edit %}
-                    <option value="trunk"
-                            data-url="{% url 'portadmin-render-trunk-edit' interface.id %}">
-                      Trunk
-                    </option>
-                  {% endif %}
-                </select>
-              </form>
+              Trunk
             {% endif %}
           {% else %}
-            {{ interface.vlan|default_if_none:'' }}
+            {% if interface.iseditable %}
+              {% if interface.detained %}
+                {{ interface.vlan|default_if_none:'' }}
+                <a href="{% url 'arnold-detainedports' %}">
+                  <img src="{{ STATIC_URL }}images/toolbox/arnold.png" width="24" height="24" title="Detained in Arnold">
+                </a>
+              {% else %}
+                <form class="custom">
+                  <select class="vlanlist" name="{{ interface.ifname }}">
+                    {% for vlan in allowed_vlans %}
+                      {% if not interface.voice_activated or vlan.vlan != voice_vlan %}
+                        <option value="{{ vlan.vlan }}"
+                                {% if interface.vlan == vlan.vlan %}selected="selected"
+                                data-orig="{{ vlan.vlan }}"{% endif %}>
+                          {{ vlan }}
+                        </option>
+                      {% endif %}
+                    {% endfor %}
+                    {% if interface.dot1x_external_url %}
+                      <option value="trunk" data-url="{{ interface.dot1x_external_url }}">
+                        Dot1x
+                      </option>
+                    {% endif %}
+                    {% if trunk_edit %}
+                      <option value="trunk"
+                              data-url="{% url 'portadmin-render-trunk-edit' interface.id %}">
+                        Trunk
+                      </option>
+                    {% endif %}
+                  </select>
+                </form>
+              {% endif %}
+            {% else %}
+              {{ interface.vlan|default_if_none:'' }}
+            {% endif %}
           {% endif %}
         {% endif %}
       </div>
