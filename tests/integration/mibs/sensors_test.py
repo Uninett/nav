@@ -1,5 +1,7 @@
 from itertools import cycle
 import subprocess
+import time
+import io
 
 import pytest
 import pytest_twisted
@@ -19,8 +21,20 @@ def snmpsim():
         '--data-dir=/source/tests/integration/snmp_fixtures',
         '--log-level=error',
         '--agent-udpv4-endpoint=127.0.0.1:1024'], env={'HOME': '/source'})
+
+    while not _lookfor('0100007F:0400', '/proc/net/udp'):
+        print("Still waiting for snmpsimd to listen for queries")
+        proc.poll()
+        time.sleep(0.1)
+
     yield
     proc.kill()
+
+
+def _lookfor(string, filename):
+    """Very simple grep-like function"""
+    data = io.open(filename, 'r', encoding='utf-8').read()
+    return string in data
 
 
 @pytest.fixture()
@@ -31,7 +45,7 @@ def snmp_agent(snmpsim):
         community='placeholder',
         snmpVersion='v2c',
         protocol=port.protocol,
-        snmp_parameters=SNMPParameters(timeout=0.5, max_repetitions=5,
+        snmp_parameters=SNMPParameters(timeout=1, max_repetitions=5,
                                        throttle_delay=0)
     )
     return agent
