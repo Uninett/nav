@@ -2,6 +2,7 @@ from itertools import cycle
 import subprocess
 import time
 import io
+import os
 
 import pytest
 import pytest_twisted
@@ -16,11 +17,12 @@ ports = cycle(snmpprotocol.port() for i in range(50))
 
 @pytest.fixture(scope='session')
 def snmpsim():
+    workspace = os.getenv('WORKSPACE', os.getenv('HOME', '/source'))
     proc = subprocess.Popen([
         '/usr/local/bin/snmpsimd.py',
-        '--data-dir=/source/tests/integration/snmp_fixtures',
+        '--data-dir={}/tests/integration/snmp_fixtures'.format(workspace),
         '--log-level=error',
-        '--agent-udpv4-endpoint=127.0.0.1:1024'], env={'HOME': '/source'})
+        '--agent-udpv4-endpoint=127.0.0.1:1024'], env={'HOME': workspace})
 
     while not _lookfor('0100007F:0400', '/proc/net/udp'):
         print("Still waiting for snmpsimd to listen for queries")
