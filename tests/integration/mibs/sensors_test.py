@@ -11,7 +11,7 @@ from nav.ipdevpoll.snmp.common import SNMPParameters
 from nav.mibs import comet, pdu2_mib, powernet_mib
 
 
-ports = cycle([snmpprotocol.port() for i in range(50)])
+ports = cycle(snmpprotocol.port() for i in range(50))
 
 
 @pytest.fixture(scope='session')
