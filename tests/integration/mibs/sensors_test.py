@@ -38,7 +38,7 @@ def _lookfor(string, filename):
 
 
 @pytest.fixture()
-def snmp_agent(snmpsim):
+def snmp_agent_proxy(snmpsim):
     port = next(ports)
     agent = AgentProxy(
         '127.0.0.1', 1024,
@@ -53,10 +53,10 @@ def snmp_agent(snmpsim):
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
-def test_apc_pdu(snmp_agent):
-    snmp_agent.community = 'apc-pdu'
-    snmp_agent.open()
-    mib = powernet_mib.PowerNetMib(snmp_agent)
+def test_apc_pdu(snmp_agent_proxy):
+    snmp_agent_proxy.community = 'apc-pdu'
+    snmp_agent_proxy.open()
+    mib = powernet_mib.PowerNetMib(snmp_agent_proxy)
     res = yield mib.get_all_sensors()
     assert res == [
         {
@@ -94,10 +94,10 @@ def test_apc_pdu(snmp_agent):
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
-def test_P8652(snmp_agent):
-    snmp_agent.community = 'P8652'
-    snmp_agent.open()
-    mib = comet.Comet(snmp_agent)
+def test_P8652(snmp_agent_proxy):
+    snmp_agent_proxy.community = 'P8652'
+    snmp_agent_proxy.open()
+    mib = comet.Comet(snmp_agent_proxy)
     res = yield mib.get_all_sensors()
     assert res == [
         {
@@ -205,10 +205,10 @@ def test_P8652(snmp_agent):
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
-def test_raritan_pdu(snmp_agent):
-    snmp_agent.community = 'raritan'
-    snmp_agent.open()
-    mib = pdu2_mib.PDU2Mib(snmp_agent)
+def test_raritan_pdu(snmp_agent_proxy):
+    snmp_agent_proxy.community = 'raritan'
+    snmp_agent_proxy.open()
+    mib = pdu2_mib.PDU2Mib(snmp_agent_proxy)
     res = yield mib.get_all_sensors()
     res = sorted(res, key=lambda x: x['description'])
     assert res == [
