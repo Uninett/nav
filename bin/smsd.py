@@ -392,19 +392,21 @@ def backoffaction(error, retrylimitaction):
     queue = nav.smsd.navdbqueue.NAVDBQueue()
     msgs = queue.getmsgs('N')
 
-    # FIXME This needs a look-over for Python3/unicode issues
     if retrylimitaction == "ignore":
         # Queued messages are marked as ignored, logs a critical error with
         # message details, then resumes run.
         numbmsg = queue.cancel()
-        error_message = (u"Dispatch retry limit has been reached."
-            " Dispatching SMS has failed %s times. Ignoring %s message(s)." %
-            (failed, numbmsg))
+        error_message = (
+            u"Dispatch retry limit has been reached. Dispatching SMS has failed %s "
+            u"times. Ignoring %s message(s)."
+        ) % (failed, numbmsg)
 
         for index, msg in enumerate(msgs):
-            error_message += u"\n%s: \"%s\" --> %s" % (
+            error_message += u'\n%s: "%s" --> %s' % (
                 index+1,
-                smart_text(msg['msg']), smart_text(msg['name']))
+                smart_text(msg['msg']),
+                smart_text(msg['name']),
+            )
 
         error_message += u"\nError message: %s" % error
         _logger.critical(error_message)
@@ -414,16 +416,22 @@ def backoffaction(error, retrylimitaction):
     elif retrylimitaction == "shutdown":
         # Logs the number of unsent messages and time of the oldest in queue
         # before shutting down daemon.
-        _logger.critical("Dispatch retry limit has been reached. Dispatching "
-                        "SMS has failed %d times. %d unsent message(s), the "
-                        "oldest from %s. \nError message: %s \nShutting down "
-                        "daemon.\n",
-                        failed, len(msgs), msgs[0]["time"], error)
+        _logger.critical(
+            "Dispatch retry limit has been reached. Dispatching SMS has failed %d "
+            "times. %d unsent message(s), the oldest from %s. "
+            "\nError message: %s "
+            "\nShutting down daemon.\n",
+            failed,
+            len(msgs),
+            msgs[0]["time"],
+            error,
+        )
         sys.exit(0)
 
     else:
-        _logger.warning("No retry limit action is set or the configured option "
-                       "is not valid.")
+        _logger.warning(
+            "No retry limit action is set or the configured option is not valid."
+        )
 
 
 def signalhandler(signum, _):
