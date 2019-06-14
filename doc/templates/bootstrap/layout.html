@@ -1,51 +1,12 @@
 {% extends "basic/layout.html" %}
 
-{% set theme_css_files = [] %}
 {% if theme_bootstrap_version == "3" %}
-  {% set bootstrap_version, bootstrap_additional_css, navbar_version = "3.1.0", "theme", "" %}
+  {% set bootstrap_version, navbar_version = "3.3.7", "" %}
   {% set bs_span_prefix = "col-md-" %}
 {% else %}
-  {% set bootstrap_version, bootstrap_additional_css, navbar_version = "2.3.2", "responsive", "-2" %}
+  {% set bootstrap_version, navbar_version = "2.3.2", "-2" %}
   {% set bs_span_prefix = "span" %}
 {% endif %}
-
-{% if theme_bootswatch_theme %}
-  {# BS2 needs "bootstrap-responsive.css". BS3 doesn't. #}
-  {% if theme_bootstrap_version == "3" %}
-    {% set theme_css_files = theme_css_files + [
-        '_static/bootswatch-' + bootstrap_version + '/' + theme_bootswatch_theme + '/bootstrap.min.css',
-        '_static/bootstrap-sphinx.css'
-      ]
-    %}
-  {% else %}
-    {% set theme_css_files = theme_css_files + [
-        '_static/bootswatch-' + bootstrap_version + '/' + theme_bootswatch_theme + '/bootstrap.min.css',
-        '_static/bootstrap-' + bootstrap_version + '/css/bootstrap-' + bootstrap_additional_css + '.min.css',
-        '_static/bootstrap-sphinx.css'
-      ]
-    %}
-  {% endif %}
-{% else %}
-  {% set theme_css_files = theme_css_files + [
-      '_static/bootstrap-' + bootstrap_version + '/css/bootstrap.min.css',
-      '_static/bootstrap-' + bootstrap_version + '/css/bootstrap-' + bootstrap_additional_css + '.min.css',
-      '_static/bootstrap-sphinx.css'
-    ]
-  %}
-{% endif %}
-
-{% if not bootswatch_css_custom %}
-  {% set bootswatch_css_custom = [] %}
-{% endif %}
-{% set css_files = css_files + theme_css_files + bootswatch_css_custom + ['_static/custom.css'] %}
-
-{% set script_files = script_files + [
-    '_static/js/jquery-1.11.0.min.js',
-    '_static/js/jquery-fix.js',
-    '_static/bootstrap-' + bootstrap_version + '/js/bootstrap.min.js',
-    '_static/bootstrap-sphinx.js'
-  ]
-%}
 
 {%- set render_sidebar = (not embedded) and (not theme_nosidebar|tobool) and sidebars %}
 
@@ -91,6 +52,10 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="{{ pathto('_static/js/jquery-1.11.0.min.js', 1) }} "></script>
+<script type="text/javascript" src="{{ pathto('_static/js/jquery-fix.js', 1) }} "></script>
+<script type="text/javascript" src="{{ pathto('_static', 1) + '/bootstrap-' + bootstrap_version + '/js/bootstrap.min.js' }} "></script>
+<script type="text/javascript" src="{{ pathto('_static/bootstrap-sphinx.js', 1) }} "></script>
 {% endblock %}
 
 {# Silence the sidebar's, relbar's #}
@@ -104,7 +69,7 @@
 <div class="container">
   <div class="row">
     {%- block sidebar1 %}{{ bsidebar() }}{% endblock %}
-    <div class="{{ bs_span_prefix }}{{ bs_content_width }}">
+    <div class="body {{ bs_span_prefix }}{{ bs_content_width }} content" role="main">
       {% block body %}{% endblock %}
     </div>
     {% block sidebar2 %} {# possible location for sidebar #} {% endblock %}
@@ -134,7 +99,7 @@
       {% trans last_updated=last_updated|e %}Last updated on {{ last_updated }}.{% endtrans %}<br/>
     {%- endif %}
     {%- if show_sphinx %}
-      {% trans sphinx_version=sphinx_version|e %}Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> {{ sphinx_version }}.{% endtrans %}<br/>
+      {% trans sphinx_version=sphinx_version|e %}Created using <a href="http://sphinx-doc.org/">Sphinx</a> {{ sphinx_version }}.{% endtrans %}<br/>
     {%- endif %}
     </p>
   </div>
