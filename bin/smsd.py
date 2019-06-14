@@ -29,6 +29,8 @@ import socket
 import sys
 import time
 
+from django.utils.encoding import smart_text
+
 import nav.config
 import nav.daemon
 import nav.logs
@@ -402,10 +404,10 @@ def backoffaction(error, retrylimitaction):
         for index, msg in enumerate(msgs):
             error_message += u"\n%s: \"%s\" --> %s" % (
                 index+1,
-                msg['msg'].decode('utf-8'), msg['name'].decode('utf-8'))
+                smart_text(msg['msg']), smart_text(msg['name']))
 
         error_message += u"\nError message: %s" % error
-        _logger.critical(error_message.encode('utf-8'))
+        _logger.critical(error_message)
         failed = 0
         resetdelay()
 
