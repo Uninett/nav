@@ -32,6 +32,8 @@ from collections import namedtuple
 from smtplib import SMTPException
 
 from IPy import IP
+from django.db import connection
+from django.core.mail import EmailMessage
 
 import nav.Snmp
 from nav.Snmp.errors import AgentError
@@ -42,8 +44,6 @@ from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
 from nav.portadmin.snmputils import SNMPFactory
-from django.db import connection  # import this after any django models
-from django.core.mail import EmailMessage
 from nav.util import is_valid_ip
 
 CONFIGFILE = os.path.join("arnold", "arnold.conf")
@@ -60,27 +60,27 @@ class Memo(object):
         self.func = func
         self.cache = {}
 
-    def __call__(self, *args):
-        if args in self.cache:
-            if self.is_changed(*args):
-                return self.store(*args)
+    def __call__(self, filename):
+        if filename in self.cache:
+            if self.is_changed(filename):
+                return self.store(filename)
             else:
-                return self.cache[args][0]
+                return self.cache[filename][0]
         else:
-            return self.store(*args)
+            return self.store(filename)
 
-    def is_changed(self, *args):
+    def is_changed(self, filename):
         """Check if file is changed since last cache"""
-        mtime = os.path.getmtime(*args)
-        if mtime != self.cache[args][1]:
+        mtime = os.path.getmtime(filename)
+        if mtime != self.cache[filename][1]:
             return True
         return False
 
-    def store(self, *args):
+    def store(self, filename):
         """Run function, store result and modification time in cache"""
-        value = self.func(*args)
-        mtime = os.path.getmtime(*args)
-        self.cache[args] = (value, mtime)
+        value = self.func(filename)
+        mtime = os.path.getmtime(filename)
+        self.cache[filename] = (value, mtime)
         return value
 
 

@@ -14,11 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Submit, Field
-from . import L2TraceQuery
 from django.core.exceptions import MultipleObjectsReturned
+from django import forms
+
+from . import L2TraceQuery
 
 
 class L2TraceForm(forms.Form):

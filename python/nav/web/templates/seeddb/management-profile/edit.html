@@ -1,0 +1,71 @@
+{% extends "seeddb/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+  <p><a href="{{ back_url }}">Back to list</a></p>
+
+
+  {% for message in messages %}
+    <div class="alert-box with-icon {{ message.tags }}">
+      {{ message }}
+    </div>
+  {% endfor %}
+
+  <div class="row">
+    <div class="small-6 column">
+      {% if object %}
+          <h4>Edit {{ object }}</h4>
+      {% else %}
+        <h5>Add new management profile</h5>
+      {% endif %}
+    </div>
+
+    <div class="small-6 column">
+      {% if object %}
+        <form action="{% url 'seeddb-management-profile' %}" method="post" class="pull-right">
+          <input type="hidden" name="object" value="{{ object.pk }}"/>
+          <input type="submit" name="delete" value="Delete this management profile" class="button small secondary"/>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+    <form id="seeddb-management-profile-form" method="post">
+
+        <div class="row">
+            <div class="columns large-4">
+                <fieldset>
+                    <legend>Basic profile data</legend>
+                    {{ form | crispy }}
+                </fieldset>
+            </div>
+
+            <div class="columns large-8">
+                {% for form in protocol_forms %}
+                    <fieldset class="protocol-configuration" id="protocol-{{ form.PROTOCOL }}">
+                        <legend>{{ form.PROTOCOL_NAME }} configuration</legend>
+                        {{ form | crispy }}
+                    </fieldset>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if object %}
+            {% with object.netbox_set.all.distinct.count as netbox_count %}
+                <p>
+                {% if netbox_count > 0 %}
+                    <strong>{{ netbox_count }} IP device{{ netbox_count|pluralize:",s" }}</strong>
+                    will be affected by changes to this profile.
+                {% else %}
+                    No IP devices will currently be affected by changes to this profile.
+                {% endif %}
+                </p>
+            {% endwith %}
+        {% endif %}
+
+
+        <input type="submit" name="submit" value="Save management profile" class="submit button" id="submit-id-submit">
+
+    </form>
+
+{% endblock %}

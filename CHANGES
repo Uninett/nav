@@ -1,3 +1,35 @@
+Version 4.9.7
+(released 07 Jun 2019)
+
+ Fixed GitHub issues in this release:
+
+  * #1882 (Invalid VLANs are generated from Juniper switches)
+  * #1920 (Provide a hook for adding extra information in the What-If
+           tab in the IP Device Info page)
+  * #1946 (Vlans are categorized as linknets on Cisco Nexus with HSRP)
+  * #1953 (Adding new public filter in Alert Profiles fails)
+  * #1958 (NAV creates Graphite metrics with illegal characters in name)
+  * #1960 (Add option to control user administrator privileges from
+           LDAP)
+
+
+Version 4.9.6
+(released 23 May 2019)
+
+ Fixed GitHub issues in this release:
+
+  * #1782 (ipdevpoll snmpcheck algorithm no longer works as expected)
+    + #1952 ((snmpcheck) Store up/down state in NetboxInfo, so we can
+             properly sen…)
+  * #1931 (Support for HPE Metered PDUs)
+    + #1933 (Add support for HPE metered PDUs)
+  * #1935 (The VLAN dropdowns in PortAdmin needs to show the description
+           in addition to the id, if any)
+    + #1955 (Show net ident for vlans in the portadmin vlan dropdown box)
+  * #1944 (Sensor links in Environment Rack navlet does not work)
+  * #1948 (Verify LDAP entitlements)
+
+
 Version 4.9.5
 (released 02 May 2019)
 

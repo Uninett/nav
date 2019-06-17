@@ -17,6 +17,8 @@
 
 from datetime import datetime
 from collections import defaultdict
+import logging
+
 from django.shortcuts import get_object_or_404
 
 from nav.netmap.metadata import (
@@ -40,7 +42,6 @@ from nav.netmap.traffic import get_traffic_data, get_traffic_for
 from .common import get_traffic_rgb
 from .cache import cache_traffic, cache_topology
 
-import logging
 _logger = logging.getLogger(__name__)
 
 
@@ -175,13 +176,13 @@ def get_layer2_traffic(location_or_room_id=None):
         else:
             interfaces = interfaces.filter(netbox__room=room)
 
-    edges = set([
+    edges = {
         (
             interface.netbox_id,
             interface.to_netbox_id
         )
         for interface in interfaces
-    ])
+    }
 
     traffic = []
     traffic_cache = get_traffic_for(

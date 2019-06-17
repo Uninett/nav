@@ -54,7 +54,7 @@ class QuickSelect(object):
         self.service_multi = kwargs.pop('service_multiple', True)
         self.module_multi = kwargs.pop('module_multiple', True)
 
-        for key in kwargs.keys():
+        for key in kwargs:
             raise TypeError('__init__() got an unexpected keyword argument '
                             '%s' % key)
 

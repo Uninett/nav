@@ -2,18 +2,18 @@
 
 from collections import defaultdict
 from datetime import datetime
+import logging
 from operator import attrgetter
 
-from nav.six import reverse
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
+from django.urls import reverse
 
 from nav.models.profiles import AlertAddress, ReportSubscription, AlertSender
 from nav.web.business import utils
 from nav.web.utils import create_title
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

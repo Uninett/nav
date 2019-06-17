@@ -19,10 +19,10 @@ Forms and controllers for the prefix functionality in SeedDB
 """
 
 from django import forms
-from nav.six import reverse
 from django.db import transaction
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 from nav.web.message import new_message, Messages
 
@@ -144,5 +144,5 @@ def prefix_edit(request, prefix_id=None):
 def get_prefix_and_vlan(prefix_id):
     """Gets the prefix object and vlan object for this prefix id"""
     prefix = _get_object(Prefix, prefix_id, 'pk')
-    vlan = prefix and prefix.vlan or None
+    vlan = prefix.vlan if prefix else None
     return prefix, vlan

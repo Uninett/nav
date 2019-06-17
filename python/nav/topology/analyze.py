@@ -41,12 +41,12 @@ Port nodes can have outgoing edges to other Port nodes, or to Netbox nodes
 
 from collections import defaultdict
 from itertools import chain
+import logging
 
 import networkx as nx
 from nav.models.manage import (AdjacencyCandidate, InterfaceAggregate,
                                InterfaceStack)
 
-import logging
 _logger = logging.getLogger(__name__)
 
 CDP = 'cdp'
@@ -117,7 +117,7 @@ class AdjacencyAnalyzer(object):
         """
         result = [(self.graph.out_degree(n), n)
                   for n in self.graph.nodes()
-                  if type(n) is Port]
+                  if isinstance(n, Port)]
         return result
 
     def format_connections(self):
@@ -139,7 +139,7 @@ class AdjacencyAnalyzer(object):
     def get_ports_by_degree(self, degree):
         """Returns a list of port nodes with a given out_degree"""
         port_nodes = [n for n in self.graph.nodes()
-                      if type(n) is Port and self.graph.out_degree(n) == degree]
+                      if isinstance(n, Port) and self.graph.out_degree(n) == degree]
         return port_nodes
 
 
@@ -214,7 +214,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         while not done:
             done = True
             for source, dest, proto in self.graph.edges(keys=True):
-                if (not type(source) is Port or not type(dest) is Port or
+                if (not isinstance(source, Port) or not isinstance(dest, Port) or
                         proto != sourcetype):
                     continue
                 if source == dest:
@@ -263,9 +263,9 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         graph, as they are now completely processed
 
         """
-        if type(i) is Port:
+        if isinstance(i, Port):
             self.graph.remove_node(i)
-        if type(j) is Port:
+        if isinstance(j, Port):
             self.graph.remove_node(j)
 
         self.result.add_edge(i, j)

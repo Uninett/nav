@@ -20,9 +20,10 @@ All values from AIRESPACE-WIRELESS-MIB
 
 """
 
+import logging
+
 from nav.smidumps import get_mib
 from nav.event import Event
-import logging
 
 _logger = logging.getLogger(__name__)
 

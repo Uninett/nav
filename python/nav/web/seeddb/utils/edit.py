@@ -21,13 +21,14 @@
 """
 
 import logging
-from IPy import IP
 from socket import gethostbyaddr, gethostbyname, error as SocketError
 
-from nav.six import reverse, NoReverseMatch
+from IPy import IP
+
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
+from django.urls import reverse, NoReverseMatch
 from django.utils import six
 
 from nav.web.message import new_message, Messages

@@ -30,7 +30,7 @@ from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 try:
     from SOAPpy import SOAPProxy
-except ImportError as ie:
+except ImportError:
     raise DispatcherError(
      'SOAPpy not installed or misconfigured.')
 

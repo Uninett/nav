@@ -22,15 +22,13 @@ from __future__ import absolute_import
 
 from django.utils import six
 
-try:
-    from django.urls import reverse, NoReverseMatch, reverse_lazy
-except ImportError:
-    from django.core.urlresolvers import reverse, NoReverseMatch, reverse_lazy
-
-
 if six.PY3:
     def encode_array(array):
         return array.tobytes()
 else:
     def encode_array(array):
         return array.tostring()
+
+__all__ = [
+    'encode_array',
+]

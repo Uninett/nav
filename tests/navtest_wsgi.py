@@ -18,14 +18,9 @@ WSGI application definition for serving the NAV web application and static
 files under gunicorn for the CI test environment.
 
 """
-import os
-
 from whitenoise import WhiteNoise
 from nav.wsgi import application
 
 from nav import buildconf
 
 application = WhiteNoise(application, root=buildconf.webrootdir)
-# The NAV application links to the documentation static files, but
-# they aren't installed under the webroot, so link them in:
-application.add_files(buildconf.docdir, prefix='doc/')

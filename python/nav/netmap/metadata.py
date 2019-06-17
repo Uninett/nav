@@ -16,7 +16,7 @@
 """Handles attaching and converting metadata in a netmap networkx toplogy
 graph"""
 from collections import defaultdict
-from nav.six import reverse, NoReverseMatch
+from django.urls import reverse, NoReverseMatch
 from django.utils import six
 
 from IPy import IP
@@ -420,7 +420,7 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
         return IP(addr) if addr else addr
 
     # sorting the output based on prefix address
-    for key, value in six.iteritems(metadata_collection):
+    for value in six.itervalues(metadata_collection):
         value.sort(key=prefixaddress)
 
     json = {

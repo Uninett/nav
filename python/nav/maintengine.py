@@ -62,7 +62,7 @@ def check_tasks_without_end():
         currently_or_too_recently_down = []
         threshold = datetime.datetime.now() - MINIMUM_UPTIME
         for subject in task.get_event_subjects():
-            end_time = subject and subject.last_downtime_ended() or None
+            end_time = subject.last_downtime_ended() if subject else None
             if end_time and end_time > threshold:
                 currently_or_too_recently_down.append(subject)
 

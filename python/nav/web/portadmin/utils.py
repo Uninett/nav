@@ -14,9 +14,12 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Util functions for the PortAdmin"""
+from __future__ import unicode_literals
 import re
 import configparser
 import logging
+from operator import attrgetter
+from os.path import join
 
 from django.template import loader
 
@@ -24,8 +27,6 @@ from nav.config import find_configfile
 from nav.django.utils import is_admin
 from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
-from operator import attrgetter
-from os.path import join
 
 CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf")) or ''
 
@@ -135,6 +136,14 @@ def is_restart_interface_enabled():
         return config.getboolean("general", "restart_interface")
 
     return True
+
+
+def dot1x_external_url():
+    """Returns url for external config of dot1x for a interface"""
+    config = read_config()
+    section = 'dot1x'
+    option = 'port_url_template'
+    return config[section].get(option, None)
 
 
 def find_vlans_on_netbox(netbox, factory=None):
@@ -317,12 +326,14 @@ def add_dot1x_info(interfaces, handler):
         return
 
     dot1x_states = handler.get_dot1x_enabled_interfaces()
-    if not dot1x_states:
-        # Empty result
-        return
 
+    url_template = dot1x_external_url()
     for interface in interfaces:
         interface.dot1xenabled = dot1x_states.get(interface.ifindex)
+        if url_template:
+            interface.dot1x_external_url = url_template.format(
+                netbox=interface.netbox,
+                interface=interface)
 
 
 def is_cisco(netbox):

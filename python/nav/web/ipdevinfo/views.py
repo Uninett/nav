@@ -19,11 +19,11 @@ import logging
 import datetime as dt
 
 from django.conf import settings
-from nav.six import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import (get_object_or_404, redirect,
                               render)
+from django.urls import reverse
 from django.utils import six
 
 from nav.django.templatetags.thresholds import find_rules

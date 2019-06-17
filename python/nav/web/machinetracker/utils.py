@@ -17,16 +17,16 @@
 
 from datetime import datetime
 from socket import gethostbyaddr, herror
-from IPy import IP
 from collections import namedtuple, OrderedDict
 import logging
 
+from IPy import IP
+
+from django.db import DatabaseError, transaction
 from django.utils import six
 
 from nav import asyncdns
 from nav.models.manage import Prefix, Netbox, Interface
-
-from django.db import DatabaseError, transaction
 
 _cached_hostname = {}
 _logger = logging.getLogger(__name__)

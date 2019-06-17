@@ -21,6 +21,10 @@
 from django import forms
 from django.db.models import Q
 
+from crispy_forms.helper import FormHelper
+from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
+                                            HTML)
+
 from nav.alertengine.dispatchers.email_dispatcher import Email
 from nav.alertengine.dispatchers.jabber_dispatcher import Jabber
 from nav.alertengine.dispatchers.sms_dispatcher import Sms
@@ -29,10 +33,6 @@ from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress
 from nav.web.crispyforms import HelpField
-
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
-                                            HTML)
 
 _ = lambda a: a  # gettext variable (for future implementations)
 

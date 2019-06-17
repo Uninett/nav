@@ -16,12 +16,13 @@
 """NAV status app views"""
 import base64
 import datetime
+import logging
 import pickle
 
 from django.shortcuts import render
-from nav.six import reverse
 from django.views.generic import View
 from django.http import HttpResponse, Http404
+from django.urls import reverse
 
 from nav.maintengine import check_devices_on_maintenance
 from nav.models.event import AlertHistory
@@ -30,7 +31,6 @@ from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.models.fields import INFINITY
 from . import forms, STATELESS_THRESHOLD
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

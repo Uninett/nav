@@ -173,7 +173,7 @@ class TestDuplicateHostnameForIP(Test):
         ip_addresses = [n.ip for n in Netbox.objects.all()]
         reverse_names = reverse_lookup(ip_addresses)
         flatten = list(itertools.chain(*reverse_names.values()))
-        duplicates = set([x for x in flatten if flatten.count(x) > 1])
+        duplicates = {x for x in flatten if flatten.count(x) > 1}
         results = collections.defaultdict(list)
 
         for hostname in duplicates:

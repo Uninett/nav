@@ -15,9 +15,10 @@
 #
 """Sorts and does calculations on IP addresses/nets."""
 
+import logging
+
 from IPy import IP
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

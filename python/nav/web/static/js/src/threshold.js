@@ -15,7 +15,12 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             {
                 'delay': 300,
                 'minLength': 3,
-                'source': $dataElement.attr('data-url'),
+                'source': function(query, callback) {
+                    var url = $dataElement.attr('data-url');
+                    $.getJSON(url, query, function(data) {
+                        callback(data.items);
+                    });
+                },
                 'select': handleSelect
             }
         );
@@ -56,7 +61,10 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
 
     function handleSelect(event, ui) {
         if (ui.item.expandable) {
-            $inputElement.autocomplete('search', ui.item.value + '.');
+            window.setTimeout(
+                function() {
+                    $inputElement.autocomplete('search', ui.item.value + '.');
+                }, 0);
         } else {
             displayMetricInfo(ui.item.value);
         }

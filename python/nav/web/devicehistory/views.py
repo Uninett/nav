@@ -17,10 +17,10 @@
 
 from operator import attrgetter
 
-from nav.six import reverse
 from django.db import connection, transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
 
 from nav.models.fields import INFINITY
 from nav.models.manage import Netbox, Module

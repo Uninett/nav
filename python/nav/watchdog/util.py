@@ -16,10 +16,12 @@
 """Util functions for WatchDog"""
 
 import json
-from .tests import Test
+import logging
+
 from django.core.cache import cache
 
-import logging
+from .tests import Test
+
 _logger = logging.getLogger(__name__)
 
 

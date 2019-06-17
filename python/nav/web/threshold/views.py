@@ -16,9 +16,9 @@
 """Controllers for threshold app"""
 
 import datetime
-from nav.six import reverse
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils import six
 
 from nav.metrics.names import raw_metric_query
@@ -140,7 +140,7 @@ def threshold_search(request):
                 'expandable': metric['expandable']
             })
 
-    return JsonResponse(result)
+    return JsonResponse({"items": result})
 
 
 def enhance_term(term):

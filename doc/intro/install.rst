@@ -57,7 +57,7 @@ wheels for your platform). These include the ``psycopg2`` driver and the
 
 The current Python requirements are as follows:
 
-.. literalinclude:: ../../requirements/django18.txt
+.. literalinclude:: ../../requirements/django111.txt
    :language: text
 
 .. literalinclude:: ../../requirements/base.txt

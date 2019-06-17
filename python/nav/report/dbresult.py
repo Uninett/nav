@@ -15,8 +15,9 @@
 #
 """Represents the meta information and result from a database query."""
 
-from nav import db
 import psycopg2
+
+from nav import db
 
 
 class DatabaseResult(object):

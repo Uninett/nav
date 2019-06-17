@@ -16,8 +16,8 @@
 #
 
 from django import forms
-from nav.six import reverse
 from django.forms.models import modelformset_factory
+from django.urls import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column,
                                             HTML, Submit)

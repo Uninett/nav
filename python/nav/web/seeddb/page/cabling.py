@@ -15,8 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ..forms import CablingForm
-
 from nav.models.cabling import Cabling
 from nav.models.manage import Room
 from nav.bulkparse import CablingBulkParser
@@ -29,6 +27,8 @@ from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
+
+from ..forms import CablingForm
 
 
 class CablingInfo(SeeddbInfo):

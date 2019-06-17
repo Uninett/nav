@@ -100,7 +100,7 @@ def get_terminal_width():
     current curses screen.
     """
     try:
-        height, width = os.popen(
+        _height, width = os.popen(
             'stty size 2>/dev/null', 'r').read().strip().split(' ')
         return int(width)
     except Exception:

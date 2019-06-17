@@ -99,27 +99,3 @@ def netboxgroup_bulk(request):
         request, NetboxGroupBulkParser, NetboxGroupImporter,
         'seeddb-netboxgroup',
         extra_context=info.template_context)
-
-
-def netbox_list(request):
-    """
-    List all netboxes as tuples ready for searching in select2
-    :param django.http.HttpRequest request: The request
-    """
-
-    _logger.debug(request.GET)
-    query = request.GET.get('query')
-
-    if query:
-        netboxes = Netbox.objects.filter(sysname__icontains=query)
-    else:
-        netboxes = Netbox.objects.none()
-
-    result = []
-    for netbox in netboxes:
-        result.append({
-            'id': netbox.pk,
-            'text': netbox.sysname
-        })
-
-    return JsonResponse(result)

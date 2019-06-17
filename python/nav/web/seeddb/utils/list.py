@@ -19,10 +19,10 @@
 from collections import defaultdict
 from functools import reduce
 
-from nav.six import reverse
 from django.db.models import Model
 from django.shortcuts import render
 from django.db.models.fields import FieldDoesNotExist
+from django.urls import reverse
 from django.utils.six import iteritems
 
 from nav.django.utils import get_verbose_name

@@ -15,12 +15,13 @@
 #
 """This class serves as an interface for the prefix matrix."""
 
-from nav.six import reverse
+import logging
+
+from django.urls import reverse
 
 from nav.report import IPtools, metaIP
 from nav.report.matrix import Matrix, Link
 
-import logging
 _logger = logging.getLogger(__name__)
 
 

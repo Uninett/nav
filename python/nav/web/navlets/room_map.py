@@ -15,9 +15,10 @@
 #
 """Room map navlet"""
 
+from django.urls import reverse
+
 from nav.web.navlets import Navlet
 from nav.web.info.room.views import SearchForm
-from nav.six import reverse
 
 
 class RoomMapNavlet(Navlet):

@@ -47,6 +47,10 @@ class Dot1q(Plugin):
         self.bridgemib = BridgeMib(self.agent)
         self.qbridgemib = QBridgeMib(self.agent)
 
+    def _remap_vlan(self, vlan_ident):
+        """Hook-in for subclasses to remap VLAN numbers if necessary"""
+        return vlan_ident
+
     @inlineCallbacks
     def handle(self):
         """Collects VLAN configuration using Q-BRIDGE-MIB.
@@ -164,6 +168,7 @@ class Dot1q(Plugin):
         names = yield self.qbridgemib.get_vlan_static_names()
         if names:
             for vlannum, name in names.items():
+                vlannum = self._remap_vlan(vlannum)
                 suffix = '+{}'.format(vlannum)
                 if name.endswith(suffix):
                     name = name[:-len(suffix)]

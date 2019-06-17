@@ -14,9 +14,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """netmap's topology functions"""
-import logging
-import networkx as nx
 from collections import defaultdict
+import logging
+
+import networkx as nx
 
 from django.utils import six
 

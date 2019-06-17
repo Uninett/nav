@@ -22,7 +22,7 @@ the statemon subsystem.
 
 """
 import time
-from . import event
+
 from nav.metrics.carbon import send_metrics
 from nav.metrics.templates import (
     metric_path_for_packet_loss,
@@ -31,13 +31,13 @@ from nav.metrics.templates import (
     metric_path_for_service_response_time
 )
 
+from . import event
 
-def update(netboxid, sysname, timestamp, status, responsetime, serviceid=None,
+
+def update(sysname, timestamp, status, responsetime, serviceid=None,
            handler=""):
     """Sends metric updates to graphite.
 
-    :param netboxid: Netboxid. Not actually used, but preserved for
-                     compatibility with old API.
     :param sysname: Sysname of the device in question.
     :param timestamp: Timestamp of the measurements. If None or 'N', the
                     current time will be used.

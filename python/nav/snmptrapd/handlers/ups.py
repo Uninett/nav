@@ -78,8 +78,8 @@ def handleTrap(trap, config=None):
     eventtypeid = "upsPowerState"
 
     # Use the trap-object to access trap-variables and do stuff.
-    for vendor in ONBATTERY.keys():
-        if trap.snmpTrapOID in ONBATTERY[vendor]:
+    for vendor, oids in ONBATTERY.items():
+        if trap.snmpTrapOID in oids:
             _logger.debug("Got ups on battery trap (%s)", vendor)
 
             # Get time to live
@@ -122,8 +122,8 @@ def handleTrap(trap, config=None):
 
             return True
 
-    for vendor in OFFBATTERY.keys():
-        if trap.snmpTrapOID in OFFBATTERY[vendor]:
+    for vendor, oids in OFFBATTERY.items():
+        if trap.snmpTrapOID in oids:
             _logger.debug("Got ups on utility power trap (%s)", vendor)
 
             if not trap.netbox:
@@ -158,10 +158,10 @@ def handleTrap(trap, config=None):
 def format_batterytime(timeunit, format):
     if isinstance(timeunit, int):
         seconds = timeunit
-        if 'MINUTES' == format:
+        if format == 'MINUTES':
             # UPS-MIB
             seconds = (timeunit * 60)
-        if 'TIMETICKS' == format:
+        if format == 'TIMETICKS':
             seconds = timeunit / 100
         return "%sh:%sm" % (int(seconds / 60 / 60), (seconds/60) % 60)
 

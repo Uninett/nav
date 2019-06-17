@@ -31,7 +31,7 @@ class MultipleChoiceField(serializers.ChoiceField):
     widget = SelectMultiple
 
     def field_from_native(self, data, files, field_name, into):
-        if type(data) is dict:
+        if isinstance(data, dict):
             into[field_name] = data.get(field_name, [])
         else:
             # If using django rest frameworks api browser

@@ -1,5 +1,5 @@
 import pytest
-from nav.six import reverse
+from django.urls import reverse
 
 
 @pytest.mark.parametrize("layer", [2, 3])

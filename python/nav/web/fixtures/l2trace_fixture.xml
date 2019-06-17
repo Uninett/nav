@@ -18,10 +18,7 @@
         <field type="CharField" name="sysname">foo-gw.example.org</field>
         <field to="models.category" name="category" rel="ManyToOneRel">GSW</field>
         <field to="models.organization" name="organization" rel="ManyToOneRel">testorg</field>
-        <field type="CharField" name="read_only"></field>
-        <field type="CharField" name="read_write"></field>
         <field type="CharField" name="up">y</field>
-        <field type="IntegerField" name="snmp_version">2</field>
         <field type="DateTimeField" name="up_since">2010-10-06 11:40:36</field>
         <field type="BooleanField" name="up_to_date">False</field>
         <field type="DateTimeField" name="discovered"><None></None></field>
@@ -33,10 +30,7 @@
         <field type="CharField" name="sysname">foo-sw1.example.org</field>
         <field to="models.category" name="category" rel="ManyToOneRel">SW</field>
         <field to="models.organization" name="organization" rel="ManyToOneRel">testorg</field>
-        <field type="CharField" name="read_only"></field>
-        <field type="CharField" name="read_write"></field>
         <field type="CharField" name="up">y</field>
-        <field type="IntegerField" name="snmp_version">2</field>
         <field type="DateTimeField" name="up_since">2010-10-06 11:40:36</field>
         <field type="BooleanField" name="up_to_date">False</field>
         <field type="DateTimeField" name="discovered"><None></None></field>

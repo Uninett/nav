@@ -18,8 +18,8 @@
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder
-from nav.web.crispyforms import NavSubmit
 from django import forms
+from nav.web.crispyforms import NavSubmit
 from nav.web.macwatch.models import MacWatch
 from nav.web.macwatch.utils import MAC_ADDR_MAX_LEN
 from nav.web.macwatch.utils import MAC_ADDR_MIN_LEN

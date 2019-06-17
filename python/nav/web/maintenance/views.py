@@ -19,11 +19,11 @@ import logging
 import time
 from datetime import datetime, date
 
-from nav.six import reverse
 from django.db import transaction, connection
 from django.db.models import Count, Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from nav.django.utils import get_account

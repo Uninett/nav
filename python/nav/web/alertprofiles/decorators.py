@@ -15,7 +15,7 @@
 #
 """Alert Profiles helper decorators."""
 from django.http import HttpResponseRedirect
-from nav.six import reverse
+from django.urls import reverse
 from django.utils.functional import wraps
 
 from nav.web.message import new_message, Messages

@@ -352,7 +352,7 @@ class SNMPHandler(object):
         """Create Fantasyvlans for all vlans on this netbox"""
         numerical_vlans = self.get_available_vlans()
         vlan_objects = Vlan.objects.filter(
-            swportvlan__interface__netbox=self.netbox)
+            swportvlan__interface__netbox=self.netbox).distinct()
         vlans = []
         for numerical_vlan in numerical_vlans:
             try:
@@ -557,6 +557,7 @@ class Cisco(SNMPHandler):
     """A specialized class for handling ports in CISCO switches."""
 
     VTPNODES = get_mib('CISCO-VTP-MIB')['nodes']
+    PAENODES = get_mib('CISCO-PAE-MIB')['nodes']
 
     VTPVLANSTATE = VTPNODES['vtpVlanState']['oid']
     VTPVLANTYPE = VTPNODES['vtpVlanType']['oid']
@@ -574,6 +575,10 @@ class Cisco(SNMPHandler):
     TRUNKPORTENCAPSULATION = VTPNODES['vlanTrunkPortEncapsulationType']['oid']
     ENCAPSULATION_DOT1Q = 4
     ENCAPSULATION_NEGOTIATE = 5
+
+    dot1xPortAuth = PAENODES['cpaePortCapabilitiesEnabled']['oid']
+    DOT1X_AUTHENTICATOR = 0b10000000
+    DOT1X_SUPPLICANT = 0b01000000
 
     def __init__(self, netbox, **kwargs):
         super(Cisco, self).__init__(netbox, **kwargs)
@@ -759,6 +764,22 @@ class Cisco(SNMPHandler):
     def _is_trunk(self, interface):
         state = int(self._query_netbox(self.TRUNKPORTSTATE, interface.ifindex))
         return state in [1, 5]
+
+    def is_dot1x_enabled(self, interface):
+        """Returns True or False based on state of dot1x"""
+        return six.byte2int(self._query_netbox(
+            self.dot1xPortAuth, interface.ifindex)) & self.DOT1X_AUTHENTICATOR
+
+    def get_dot1x_enabled_interfaces(self):
+        """Fetches a dict mapping ifindex to enabled state
+
+        :returns: dict[ifindex, is_enabled]
+        :rtype: dict[int, bool]
+        """
+        _logger.error("Querying for dot1x enabled interfaces on Cisco")
+        return {self._get_last_number(oid):
+                six.byte2int(state) & self.DOT1X_AUTHENTICATOR
+                for oid, state in self._bulkwalk(self.dot1xPortAuth)}
 
 
 class HP(SNMPHandler):

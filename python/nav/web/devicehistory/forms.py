@@ -16,11 +16,12 @@
 """Module comment"""
 
 from datetime import date, timedelta
+import logging
+
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, Field
 from nav.web.devicehistory.utils import get_event_and_alert_types
-import logging
 
 _logger = logging.getLogger(__name__)
 

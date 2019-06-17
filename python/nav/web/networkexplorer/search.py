@@ -340,7 +340,7 @@ def mac_search(mac, exact=False):
     search = search_expand_mac(mac)
     gwport_matches = set(search[0])
     swport_matches = set(search[1])
-    router_matches = set([gwport.netbox for gwport in gwport_matches])
+    router_matches = {gwport.netbox for gwport in gwport_matches}
 
     return router_matches, gwport_matches, swport_matches
 

@@ -118,7 +118,7 @@ class Pinger(object):
         # Update netboxmap
         self.netboxmap = netboxmap
         _logger.debug("We now got %i hosts in our list to ping",
-                     len(self.netboxmap))
+                      len(self.netboxmap))
         # then update our pinger object
         self.pinger.set_hosts(self.ip_to_netboxid.keys())
 
@@ -134,12 +134,10 @@ class Pinger(object):
             self.replies[netboxid].push(rtt)
             netbox = self.netboxmap[netboxid]
             if rtt != -1:
-                statistics.update(netbox.netboxid, netbox.sysname, 'N', 'UP',
-                                  rtt)
+                statistics.update(netbox.sysname, 'N', 'UP', rtt)
             else:
                 # ugly...
-                statistics.update(netbox.netboxid, netbox.sysname, 'N', 'DOWN',
-                                  5)
+                statistics.update(netbox.sysname, 'N', 'DOWN', 5)
 
         down_now = []
         # Find out which netboxes to consider down

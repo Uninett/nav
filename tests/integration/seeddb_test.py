@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from nav.six import reverse
+from django.urls import reverse
 from django.http import Http404
 from django.test.client import RequestFactory
 from mock import MagicMock
@@ -30,10 +30,9 @@ def test_editing_deleted_netboxes_should_raise_404():
 
 
 @pytest.fixture()
-def netbox():
+def netbox(management_profile):
     box = Netbox(ip='10.254.254.254', sysname='downhost.example.org',
-                 organization_id='myorg', room_id='myroom', category_id='SRV',
-                 snmp_version=2)
+                 organization_id='myorg', room_id='myroom', category_id='SRV')
     box.save()
     yield box
     print("teardown test device")

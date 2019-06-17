@@ -16,9 +16,9 @@
 """Implements an EXTREME-VLAN-MIB MibRetriever"""
 from __future__ import absolute_import
 from nav.smidumps import get_mib
-from . import mibretriever
 from nav.mibs.qbridge_mib import portlist
 from nav.mibs import reduce_index
+from . import mibretriever
 
 
 class ExtremeVlanMib(mibretriever.MibRetriever):

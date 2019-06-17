@@ -15,14 +15,38 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from nav.models.manage import Netbox, NetboxType, Room, Location
-from nav.models.manage import Organization, Device, Usage, Vendor
-from nav.models.manage import NetboxGroup, Vlan, Prefix
+from nav.models.manage import (
+    Netbox,
+    NetboxType,
+    ManagementProfile,
+    NetboxProfile,
+    Room,
+    Location,
+    Organization,
+    Device,
+    Usage,
+    Vendor,
+    NetboxGroup,
+    Vlan,
+    Prefix,
+)
 from nav.models.service import Service
 
 TITLE_DEFAULT = 'NAV - Seed Database'
 NAVPATH_DEFAULT = [('Home', '/'), ('Seed DB', '/seeddb/')]
 SEEDDB_EDITABLE_MODELS = (
-    Netbox, NetboxType, Room, Location, Organization, Device, Usage, Vendor,
-    NetboxGroup, Vlan, Prefix, Service
+    Netbox,
+    NetboxType,
+    ManagementProfile,
+    NetboxProfile,
+    Room,
+    Location,
+    Organization,
+    Device,
+    Usage,
+    Vendor,
+    NetboxGroup,
+    Vlan,
+    Prefix,
+    Service,
 )

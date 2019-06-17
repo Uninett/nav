@@ -57,13 +57,21 @@ Available options:
   ``(member:1.2.840.113556.1.4.1941:=%%s)`` to enable this AD extension
 
 **require_entitlement**
-  .. versionadded:: 4.10
+  .. versionadded:: 4.9.6
 
   A string defining the name of an entitlement that the user object must have
   in order for the user to be allowed to log in to NAV.
 
+**admin_entitlement**
+  .. versionadded:: 4.9.7
+
+  If a user object has this entitlement, the user will be granted membership
+  in the NAV Administrators group. If the user object does not have this
+  entitlement, the user will be stripped of their Administrator privileges. If
+  unset, nothing happens.
+
 **entitlement_attribute**
-  .. versionadded:: 4.10
+  .. versionadded:: 4.9.6
 
   Can be used to customize the user object attribute used to verify entitlements.
   The default value is ``eduPersonEntitlement``.

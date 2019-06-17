@@ -1,4 +1,3 @@
-from __future__ import with_statement
 from unittest import TestCase
 from nav.ipdevpoll.neighbor import _get_netbox_macs, Neighbor
 from mock import patch, Mock

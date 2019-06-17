@@ -17,8 +17,8 @@ define(['libs/spin.min'], function (Spinner) {
         var form = $('#seeddb-netbox-form'),
             button = form.find('.check_connectivity');
 
-        var writeAlertBox = createAlertBox(),
-            readAlertBox = createAlertBox();
+        var errorAlertBox = createAlertBox('alert'),
+            successAlertBox = createAlertBox('success');
 
         var spinContainer = $('<span>&nbsp;</span>').css({ position: 'relative', left: '20px'}).insertAfter(button),
             spinner = new Spinner({ 'width': 3, length: 8, radius: 5, lines: 11 });
@@ -38,17 +38,15 @@ define(['libs/spin.min'], function (Spinner) {
 
         button.on('click', function () {
             hideAlertBoxes();
-            var ip_address = $('#id_ip').val().trim(),
-                read_community = $('#id_read_only').val(),
-                read_write_community = $('#id_read_write').val(),
-                snmp_version = $('[name=snmp_version]:checked').val();
+            var ip_address = $('#id_ip').val().trim();
+            var profiles = []
+            $.each($("#id_profiles option:selected"), function(){
+                profiles.push($(this).val());
+            });
 
-            if (!(ip_address && read_community)) {
-                var message = "We need an IP-address and a read community to talk to the device.";
-                if (read_write_community) {
-                    message += " The read write community is not used for reading in NAV.";
-                }
-                reportError(readAlertBox, message);
+            if (!(ip_address && profiles.length)) {
+                var message = "We need an IP-address and at least one management profile to talk to the device.";
+                reportError(message);
                 return;
             }
 
@@ -58,7 +56,7 @@ define(['libs/spin.min'], function (Spinner) {
             var checkHostname = ipchecker.getAddresses();
             checkHostname.done(function () {
                 if (ipchecker.isSingleAddress) {
-                    checkConnectivity(ip_address, read_community, read_write_community, snmp_version);
+                    checkConnectivity(ip_address, profiles);
                 } else {
                     onStop();
                 }
@@ -66,13 +64,11 @@ define(['libs/spin.min'], function (Spinner) {
 
         });
 
-        function checkConnectivity(ip_address, read_community, read_write_community, snmp_version) {
+        function checkConnectivity(ip_address, profiles) {
             console.log('Checking connectivity');
             var request = $.getJSON(NAV.urls.get_readonly, {
                 'ip_address': ip_address,
-                'read_community': read_community,
-                'read_write_community': read_write_community,
-                'snmp_version': snmp_version
+                'profiles': profiles,
             });
             request.done(onSuccess);
             request.error(onError);
@@ -87,11 +83,16 @@ define(['libs/spin.min'], function (Spinner) {
             form.css({'opacity': 'initial', 'pointer-events': 'initial'});
         }
 
-        function createAlertBox() {
-            var alertBox = $('<div class="alert-box"></div>').hide().insertAfter(button);
-            alertBox.on('click', function () {
+        function createAlertBox(addClass) {
+            var alertBox = $('<div class="alert-box"><ul></ul></div>').hide().insertAfter(button);
+            alertBox.reset = function() {
                 $(this).hide();
+                $(this).html('<ul></ul>');
+            }
+            alertBox.on('click', function () {
+                alertBox.reset();
             });
+            alertBox.addClass(addClass);
             return alertBox;
         }
 
@@ -108,36 +109,42 @@ define(['libs/spin.min'], function (Spinner) {
             $('#id_serial').val(data.serial);
         }
 
-        function reportWriteTest(write_test) {
-            if (write_test.status === true) {
-                reportSuccess(writeAlertBox, 'Write test was successful');
-            } else {
-                var failText = '<div>Write test failed';
-                if (write_test.custom_error === 'UnicodeDecodeError') {
-                    failText += ', perhaps because of non-ASCII characters in the system location field.';
-                    failText += '<br><br>sysLocation: ' + write_test.syslocation;
-                }
-                failText += '.</div>';
-                failText += '<div><br>Error message: ' + write_test.error_message + '</div>';
-                reportError(writeAlertBox, failText);
+        function reportErrorWithDetails(profile) {
+            var profile_link = profile.name;
+            if (profile.url) {
+                profile_link = '<a href="' + profile.url + '" title="View profile details" onclick="event.stopPropagation();">' + profile_link + '</a>'
             }
+            var failText = '<div><em>' + profile_link + '</em> failed'
+            if (profile.custom_error === 'UnicodeDecodeError') {
+                failText += ', perhaps because of non-ASCII characters in the sysLocation field.';
+                failText += '<br><br>sysLocation: ' + profile.syslocation;
+            }
+            failText += '.</div>';
+            failText += '<div><br>Error message: ' + profile.error_message + '</div>';
+            reportError(failText);
         }
 
         function onSuccess(data) {
-            if (data.snmp_read_test) {
-                reportSuccess(readAlertBox, 'Read test was successful');
-                if (data.snmp_write_test) {
-                    reportWriteTest(data.snmp_write_test);
-                }
-                setNewValues(data);
+            if (data.profiles) {
+                var profile_ids = Object.keys(data.profiles);
+                profile_ids.forEach(function(profile_id) {
+                    var profile = data.profiles[profile_id];
+
+                    if (profile.status) {
+                        reportSuccess('<em>' + profile.name + '</em>: <strong>OK</strong>');
+                    } else {
+                        reportErrorWithDetails(profile);
+                    }
+                    setNewValues(data);
+                });
             } else {
-                reportError(readAlertBox, 'Read test failed. Verify the community string or try another SNMP version');
+                reportError('NAV backend response was incomplete');
             }
 
         }
 
         function onError() {
-            reportError(readAlertBox, 'Error during SNMP-request');
+            reportError('Error during SNMP-request');
         }
 
         function onStop() {
@@ -145,19 +152,19 @@ define(['libs/spin.min'], function (Spinner) {
             enableForm();
         }
 
-        function reportError(alertBox, text) {
-            alertBox.addClass('alert').removeClass('success').html(text);
-            alertBox.show();
+        function reportError(text) {
+            errorAlertBox.contents("ul").append('<li>' + text + '</li>');
+            errorAlertBox.show();
         }
 
-        function reportSuccess(alertBox, text) {
-            alertBox.addClass('success').removeClass('alert').html(text);
-            alertBox.show();
+        function reportSuccess(text) {
+            successAlertBox.contents("ul").append('<li>' + text + '</li>');
+            successAlertBox.show();
         }
 
         function hideAlertBoxes() {
-            readAlertBox.hide();
-            writeAlertBox.hide();
+            errorAlertBox.reset();
+            successAlertBox.reset();
         }
 
     }

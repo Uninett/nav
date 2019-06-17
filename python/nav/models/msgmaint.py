@@ -16,11 +16,12 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
+from datetime import datetime, timedelta
+
 from django.db import models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
-from datetime import datetime, timedelta
 from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
                                DateTimeInfinityField, INFINITY)
 from nav.models import manage

@@ -1,2 +1,2 @@
--r requirements/django18.txt
+-r requirements/django111.txt
 -r requirements/base.txt

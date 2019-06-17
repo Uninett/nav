@@ -21,9 +21,10 @@ import json
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 
-from .models import LogEntry
 from nav.models.manage import Netbox
 from nav.web.utils import create_title, get_navpath_root
+
+from .models import LogEntry
 
 
 class AuditlogOverview(TemplateView):

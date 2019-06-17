@@ -21,6 +21,7 @@ Uses information from EXTREME-VLAN-MIB and BRIDGE-MIB.
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
+from nav.enterprise.ids import VENDOR_ID_EXTREME_NETWORKS
 from nav.mibs.extreme_vlan_mib import ExtremeVlanMib
 from nav.mibs.bridge_mib import BridgeMib
 
@@ -28,7 +29,6 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
 from .dot1q import vlan_list_to_hex
-from nav.enterprise.ids import VENDOR_ID_EXTREME_NETWORKS
 
 
 class ExtremeVlan(Plugin):

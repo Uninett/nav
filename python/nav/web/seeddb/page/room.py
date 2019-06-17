@@ -15,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms and view functions for SeedDB's Room view"""
-from ..forms import RoomForm, RoomFilterForm, RoomMoveForm
 
 from nav.models.manage import Room
 from nav.bulkparse import RoomBulkParser
@@ -29,6 +28,8 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
+
+from ..forms import RoomForm, RoomFilterForm, RoomMoveForm
 
 
 class RoomInfo(SeeddbInfo):

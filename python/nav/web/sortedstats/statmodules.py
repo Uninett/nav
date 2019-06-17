@@ -20,7 +20,7 @@ import logging
 from operator import itemgetter
 
 from django.utils.six.moves.urllib.parse import urlencode
-from nav.six import reverse
+from django.urls import reverse
 
 from nav.metrics.data import (get_metric_average, get_metric_max,
                               get_metric_data)

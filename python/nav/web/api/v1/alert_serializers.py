@@ -15,11 +15,12 @@
 #
 """Serializers for status API data"""
 
-from nav.six import reverse
 from django.template.defaultfilters import urlize
+from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from rest_framework import serializers
+
 from nav.models import event, profiles
 from nav.models.fields import INFINITY
 

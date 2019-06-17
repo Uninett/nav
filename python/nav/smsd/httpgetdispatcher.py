@@ -79,9 +79,9 @@ class HttpGetDispatcher(Dispatcher):
         try:
             urlopen(url)
             result = True
-        except HTTPError as e:
+        except HTTPError as ex:
             self.logger.error('HTTP error: <%s>: %s (%s).' %
-                              (e.url, e.msg, e.code))
+                              (ex.url, ex.msg, ex.code))
             result = False
 
         smsid = 0

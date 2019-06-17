@@ -22,11 +22,12 @@ netbox.
 """
 from twisted.internet import defer
 
+from django.db import connection
+
 from nav.ipdevpoll import Plugin, storage, shadows, signals, db
 from nav.oids import OID, get_enterprise_id
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
-from django.db import connection
 
 from nav.enterprise import ids
 CONSTANT_PREFIX = 'VENDOR_ID_'

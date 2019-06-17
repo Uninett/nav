@@ -1,11 +1,13 @@
 """Models for uploaded image information"""
 import os
 from os.path import exists, join
+
+from django.conf import settings
 from django.db import models
+
 from nav.models.profiles import Account
 from nav.models.manage import Location, Room
 from nav.models.fields import VarcharField
-from django.conf import settings
 
 
 class Image(models.Model):

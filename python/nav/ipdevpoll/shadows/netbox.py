@@ -14,10 +14,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """netbox related shadow classes"""
-from nav.models import manage
 from django.db.models import Q
 from django.db import transaction
 
+from nav.models import manage
 from nav.ipdevpoll.storage import Shadow
 
 
@@ -33,6 +33,8 @@ class Netbox(Shadow):
             self.snmp_up = getattr(obj, 'snmp_up', not obj.is_snmp_down())
             self.last_updated = getattr(obj, 'last_updated',
                                         self._translate_last_jobs(obj))
+            self.read_only = getattr(obj, 'read_only')
+            self.snmp_version = getattr(obj, 'snmp_version')
 
     @staticmethod
     def _translate_last_jobs(netbox):

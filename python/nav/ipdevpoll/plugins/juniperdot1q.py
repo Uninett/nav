@@ -51,8 +51,27 @@ class JuniperDot1q(dot1q.Dot1q):
 
     def __init__(self, *args, **kwargs):
         super(JuniperDot1q, self).__init__(*args, **kwargs)
+        self.jnx_vlan_map = {}
         if self.__is_a_moronic_juniper_device():
             self.qbridgemib.juniper_hack = True
+
+    @inlineCallbacks
+    def handle(self):
+        if self.__is_a_moronic_juniper_device():
+            self._logger.debug("Collecting Juniper VLAN mapping")
+            self.jnx_vlan_map = yield self.__get_jnx_ex_vlan_tag()
+
+        yield super(JuniperDot1q, self).handle()
+
+    def _remap_vlan(self, vlan_ident):
+        if self.jnx_vlan_map:
+            try:
+                return self.jnx_vlan_map[vlan_ident]
+            except KeyError:
+                self._logger.info("cannot map juniper vlan %s to a tag, using "
+                                  "raw value", vlan_ident)
+
+        return vlan_ident
 
     @inlineCallbacks
     def _retrieve_vlan_ports(self):
@@ -61,25 +80,12 @@ class JuniperDot1q(dot1q.Dot1q):
         tags on Juniper switches.
 
         """
-        (egress,
-         untagged) = yield super(JuniperDot1q, self)._retrieve_vlan_ports()
-        if not self.__is_a_moronic_juniper_device():
+        (egress, untagged) = yield super(JuniperDot1q, self)._retrieve_vlan_ports()
+        if not self.jnx_vlan_map:
             returnValue((egress, untagged))
 
-        # I am the shadow on the moon at night,
-        # filling your dreams to the brim with fright!
-        jnx_vlan_map = yield self.__get_jnx_ex_vlan_tag()
-
-        def _remap(ident):
-            try:
-                return jnx_vlan_map[ident]
-            except KeyError:
-                self._logger.info("cannot map juniper vlan %s to a tag, using "
-                                  "raw value", ident)
-                return ident
-
-        new_egress = {_remap(key): value for key, value in egress.items()}
-        new_untagged = {_remap(key): value for key, value in untagged.items()}
+        new_egress = {self._remap_vlan(key): value for key, value in egress.items()}
+        new_untagged = {self._remap_vlan(key): value for key, value in untagged.items()}
 
         returnValue((new_egress, new_untagged))
 

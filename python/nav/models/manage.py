@@ -19,6 +19,7 @@
 # pylint: disable=R0903
 
 import datetime as dt
+import warnings
 from functools import partial
 from itertools import count, groupby
 import logging
@@ -30,8 +31,9 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-from nav.six import reverse
+from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
+from django.contrib.postgres.fields import JSONField
 
 from nav import util
 from nav.adapters import HStoreField
@@ -67,6 +69,73 @@ class UpsManager(models.Manager):
         return super(UpsManager, self).get_queryset().filter(
             category='POWER',
             sensor__internal_name__startswith='ups').distinct()
+
+
+@python_2_unicode_compatible
+class ManagementProfile(models.Model):
+    """Management connection profiles shared between multiple netboxes. These
+    may include protocols, credentials etc.
+
+    """
+
+    id = models.AutoField(db_column='management_profileid', primary_key=True)
+    name = VarcharField(unique=True)
+    description = VarcharField(blank=True, null=True)
+
+    PROTOCOL_DEBUG = 0
+    PROTOCOL_SNMP = 1
+    PROTOCOL_CHOICES = [
+        (PROTOCOL_SNMP, "SNMP"),
+    ]
+    if settings.DEBUG:
+        PROTOCOL_CHOICES.insert(0, (PROTOCOL_DEBUG, 'debug'))
+
+    protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
+    configuration = JSONField(default=dict)
+
+    class Meta(object):
+        db_table = 'management_profile'
+        verbose_name = 'management profile'
+        verbose_name_plural = 'management profiles'
+        ordering = ('protocol', 'name')
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def is_snmp(self):
+        return self.protocol == self.PROTOCOL_SNMP
+
+    @property
+    def snmp_version(self):
+        if self.is_snmp:
+            return self.configuration['version']
+
+        raise ValueError("Getting snmp protocol version for non-snmp "
+                         "management profile")
+
+
+@python_2_unicode_compatible
+class NetboxProfile(models.Model):
+    """Stores the relation between Netboxes and their management profiles"""
+    id = models.AutoField(primary_key=True, db_column='netbox_profileid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid'
+    )
+    profile = models.ForeignKey(
+        'ManagementProfile',
+        on_delete=models.CASCADE,
+        db_column='profileid'
+    )
+
+    class Meta(object):
+        db_table = 'netbox_profile'
+        unique_together = (('netbox', 'profile'), )
+
+    def __str__(self):
+        return self.netbox.sysname
 
 
 @python_2_unicode_compatible
@@ -113,10 +182,12 @@ class Netbox(models.Model):
         on_delete=models.CASCADE,
         db_column='orgid'
     )
-    read_only = VarcharField(db_column='ro', blank=True, null=True)
-    read_write = VarcharField(db_column='rw', blank=True, null=True)
+
+    profiles = models.ManyToManyField(
+        'ManagementProfile', through='NetboxProfile', blank=True
+    )
+
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
-    snmp_version = models.IntegerField(verbose_name="SNMP version")
     up_since = models.DateTimeField(db_column='upsince', auto_now_add=True)
     up_to_date = models.BooleanField(db_column='uptodate', default=False)
     discovered = models.DateTimeField(auto_now_add=True)
@@ -163,6 +234,60 @@ class Netbox(models.Model):
         """
         for chassis in self.get_chassis().order_by('index'):
             return chassis.device
+
+    @property
+    def read_only(self):
+        """Returns the read-only SNMP community"""
+        warnings.warn(
+            "The Netbox.read_only attribute will be removed in the next "
+            "feature release",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._get_snmp_config('community', writeable=False)
+
+    @property
+    def read_write(self):
+        """Returns the read-write SNMP community"""
+        warnings.warn(
+            "The Netbox.read_write attribute will be removed in the next "
+            "feature release",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._get_snmp_config('community', writeable=True)
+
+    @property
+    def snmp_version(self):
+        """Returns the configured SNMP version"""
+        warnings.warn(
+            "The Netbox.snmp_version attribute will be removed in the next "
+            "feature release",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        return self._get_snmp_config('version')
+
+    def _get_snmp_config(self, variable='community', writeable=None):
+        """Returns SNMP profile configuration variables, preferring the profile
+        with the highest available SNMP version.
+        """
+        # TODO: This method can be removed when the SNMP properties above are removed
+        query = Q(protocol=ManagementProfile.PROTOCOL_SNMP)
+        if writeable:
+            query = query & Q(configuration__write=True)
+        elif writeable is not None:
+            query = query & (
+                Q(configuration__write=False)
+                | ~Q(configuration__has_key='write')
+            )
+        profiles = sorted(
+            self.profiles.filter(query),
+            key=lambda p: p.configuration.get('version'),
+            reverse=True,
+        )
+        if profiles:
+            return profiles[0].configuration.get(variable)
 
     def is_up(self):
         """Returns True if the Netbox isn't known to be down or in shadow"""

@@ -16,9 +16,9 @@
 """Report widget"""
 from django.http import HttpResponse, JsonResponse, QueryDict
 from nav.models.profiles import AccountNavlet
-from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 from nav.web.report.views import CONFIG_FILE_PACKAGE, make_report
 from nav.report.generator import ReportList
+from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
 
 
 class ReportWidget(Navlet):

@@ -93,17 +93,47 @@ adminstrator's password to something more sensible.
 Seeding your database
 =====================
 
-NAV will *not* autodiscover the routers and switches of your network.  You
-need to use the `SeedDB` tool to enter IP addresses to monitor.  The `SeedDB`
-tool is listed on NAV's `Toolbox` page, reachable from the grey navigation
-bar.
+NAV will *not* autodiscover the routers and switches of your network. The
+assumption is that you already have this information in some inventory
+system.
+
+The *SeedDB* tool enables to you add and edit a multitude of "seed" information
+in the NAV database, which tells NAV what and how to monitor. The essential bit
+here is the :term:`IP Device`, which represents your switches, routers and
+other networked devices.
+
+The *SeedDB* tool is listed on NAV's *Toolbox* page, reachable from the grey
+navigation bar.
+
+Adding your first management profile
+------------------------------------
+
+To manage IP devices using SNMP, you first need to add at least one *SNMP
+management profile*, to define your SNMP communication parameters. This is done
+in the :guilabel:`Management Profile` tab of *SeedDB*. Let's say most of your
+devices can be managed using SNMP v2c and a default community string of
+``public``:
+
+1. Click the :guilabel:`Management Profile` tab and then the sub-tab
+   :guilabel:`Add new management profile`.
+2. Choose and fill out a unique name for your profile, e.g. ``Default SNMP v2c
+   read-only profile``, and add an optional description of it.
+3. Select ``SNMP`` from the :guilabel:`Protocol` dropdown menu. An
+   :guilabel:`SNMP Configuration` form will appear to the right.
+4. Ensure ``v2c`` is selected from the :guilabel:`Version` dropdown, and put
+   ``public`` in the :guilabel:`Community` field.
+5. Click the :guilabel:`Save management profile` button to save your new
+   profile.
+
+.. image:: seeddb-add-profile.png
+
 
 Adding your first device to NAV
 -------------------------------
 
-The `SeedDB` tool enables to you add and edit a multitude of information in
-the NAV database, but the essential bit here is the :term:`IP Device`.  Begin,
-for example, by adding one of your switches:
+Now that you have added your first management profile, you can add your first
+device that uses this profile. Begin, for example, by adding one of your
+switches:
 
 1. Click the :guilabel:`IP device` tab and then the sub-tab :guilabel:`Add new
    IP device`
@@ -112,26 +142,31 @@ for example, by adding one of your switches:
    drop-downs.
 3. Select :guilabel:`SW` in the category dropdown.  Don't worry, we'll explain
    the categories later.
-4. Put your switch's SNMP community in the :guilabel:`Read only` field and click
-   the :guilabel:`Check connectivity` button.
+4. Click the :guilabel:`Profiles` field. The name of your newly created SNMP
+   profile should appear: Select it. The buttow below the profile selector
+   reads :guilabel:`Check connectivity`. Click this to have NAV verify that it
+   can communicate with this device using the selected profile.
 
 .. image:: seeddb-add-ipdevice.png
 
-NAV will now check if this IP address responds to SNMP (v2c or v1) queries using
-the entered community and, if possible, detect the device's type (from its
-`sysObjectID` value).  NAV does not require that the connectivity test is
+During the connectivity check, NAV will also try to detect the device's type (from its
+``sysObjectID`` value).  NAV does not require that the connectivity test is
 successful, or even that the test is run, to add the device. But if the test
-fails this means that NAV can not communicate with the device. If that happens
-you should verify that the information in the :guilabel:`IP` and :guilabel:`Read
-only` fields is correct.
+fails, this means that NAV can not communicate with the device. If that happens,
+you should verify that the IP address and the management profile details are correct.
 
-If you want you can add some free form text about the function of the device in
-the function field, put the device into one or more relevant groups and even
+If you want, you can add some free form text about the function of the device in
+the function field, put the device into one or more relevant groups, and even
 assign custom attributes to it. These attributes will be used when NAV presents
 information about the device.
 
 Click on :guilabel:`Save IP device` to finalize your entry of this device into
 NAV's database.
+
+.. note:: You can, in fact, add multiple management profiles to your devices,
+          but at the moment, this is only useful to distinguish between
+          profiles that will grant read-only SNMP access and profiles that will
+          grant read-write access.
 
 
 Verifying that collection is working
@@ -193,7 +228,7 @@ categories:
 `OTHER`
   Any other type of device not fitting neatly into the other categories.
 
-All categories will *require* an SNMP community to be configured, except for
+All categories will *require* a read-only SNMP profile to be assigned to the device, except for
 `SRV` and `OTHER`, where it is optional.
 
 .. _seeddb-bulk-import-intro:
@@ -207,24 +242,24 @@ where the :guilabel:`Bulk import` function comes into the picture:
 
 .. image:: seeddb-bulkimport-ipdevice.png
 
-Assuming you have a readily available list of IP addresses to monitor, you can
+Assuming you have a readily available list of IP addresses to monitor, e.g. from your inventory system, you can
 create a comma (or colon) separated text file with the required details and
 upload or paste it into the :guilabel:`bulk import` form.
 
 The format is pretty straightforward: The initial fields are required, while
 the fields listed in square brackets are optional. Optional fields can be
 omitted or left blank. A line beginning with a `#` sign will be regarded as a
-comment and ignored. Thus, for adding some switch with the SNMP community
-:kbd:`public` and a function description of :kbd:`Packet switching`, this line
-would do it::
+comment and ignored. Thus, for adding some switch using the default SNMP
+management profile you added earlier, and a function description of
+:kbd:`Packet switching`, this line would do it::
 
-  myroom:10.0.1.42:myorg:SW:public:::Packet switching
+  myroom:10.0.1.42:myorg:SW:Default SNMP v2c read-only profile::Packet switching
 
 Click :guilabel:`Preview import` to have NAV validate your input. Each line
-will be displayed with colored status dot.  A green dot indicates the line was
+will be displayed with a colored status dot.  A green dot indicates the line was
 found OK and will be imported once you submit.  A yellow or red dot indicates
 an error with the line; such a line will be ignored when you submit the
-preview form, unless you go back and fix it before trying again.
+preview form, unless you go back and fix it before submitting the form again.
 
 .. |URL| replace:: http://example.org/
 

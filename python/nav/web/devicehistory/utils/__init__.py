@@ -33,6 +33,5 @@ def get_event_and_alert_types():
     # Quick fix for use in django forms - create list of tuples to
     # create optgroups.
     result = [('all', 'All')]
-    for key in event_types.keys():
-        result.append((key, event_types[key]))
+    result.extend(event_types.items())
     return result

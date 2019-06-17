@@ -15,8 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ..forms import NetboxTypeFilterForm, NetboxTypeForm
-
 from nav.models.manage import NetboxType
 from nav.bulkparse import NetboxTypeBulkParser
 from nav.bulkimport import NetboxTypeImporter
@@ -28,6 +26,8 @@ from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.utils.delete import render_delete
+
+from ..forms import NetboxTypeFilterForm, NetboxTypeForm
 
 
 class NetboxTypeInfo(SeeddbInfo):

@@ -21,15 +21,13 @@
 
 import sys
 import argparse
+import json
 
 
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
-# required to register the hstore extension outside webapp environment
 import django
-if django.VERSION[:2] == (1, 7):
-    import django_hstore.apps  # pylint: disable=W0611
 
 from nav.models import manage
 import nav.models.service
@@ -128,21 +126,40 @@ class Handlers(object):
     @staticmethod
     def netbox():
         """Outputs a line for each netbox in the database"""
-        header("#roomid:ip:orgid:catid:[snmp_version:ro:rw:function:"
+        header("#roomid:ip:orgid:catid:[management_profiles:master:function:"
                "key1=value1|key2=value2:"
                "devicegroup1:devicegroup2..]")
         for box in manage.Netbox.objects.all():
-            line = [box.room_id, box.ip, box.organization_id, box.category_id,
-                    str(box.snmp_version) if box.snmp_version else "",
-                    box.read_only or "", box.read_write or "",
-                    box.master.sysname if box.master else ""]
-            line.append(box.get_function() or "")
+            profiles = u'|'.join(box.profiles.values_list('name', flat=True))
             data = u'|'.join(u"%s=%s" % (k, v) for k, v in box.data.items())
-            line.append(data)
-            categories = box.groups.all()
-            categories = [cat.id for cat in categories]
-            categories.sort()
+            line = [
+                box.room_id,
+                box.ip,
+                box.organization_id,
+                box.category_id,
+                profiles,
+                box.master.sysname if box.master else "",
+                box.get_function() or "",
+                data,
+            ]
+            categories = sorted(box.groups.values_list('id', flat=True))
             line.extend(categories)
+            lineout(line)
+
+    @staticmethod
+    def management_profile():
+        """Outputs a line for each management profile in the database"""
+        header("#name:protocol:option=value|option=value...")
+        for profile in manage.ManagementProfile.objects.all():
+            configuration = [
+                '{}={}'.format(key, value)
+                for key, value in profile.configuration.items()
+            ]
+            line = [
+                profile.name,
+                profile.get_protocol_display(),
+                json.dumps(profile.configuration).replace('"', '""'),
+            ]
             lineout(line)
 
     @staticmethod

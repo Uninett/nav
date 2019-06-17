@@ -88,7 +88,7 @@ table {
         &:nth-child(even) {
             background-color: #f9f9f9;
         }
-        input, button, form, .custom.dropdown {
+        input, button, form, .custom.dropdown, a.button {
             margin-bottom: 0;
         }
         > .column, .columns {

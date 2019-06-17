@@ -22,13 +22,13 @@ import json
 import logging
 from operator import attrgetter
 
-from nav.six import reverse
 from django.http import (HttpResponseForbidden, HttpResponseRedirect,
                          HttpResponse, JsonResponse)
 from django.views.decorators.http import require_POST
 from django.views.decorators.debug import (sensitive_variables,
                                            sensitive_post_parameters)
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils.http import urlquote
 
 from django.utils import six

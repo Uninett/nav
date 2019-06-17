@@ -50,9 +50,9 @@ import json
 from operator import attrgetter
 
 from django.conf import settings
-from nav.six import reverse
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.generic.base import TemplateView
 
@@ -207,7 +207,7 @@ def get_user_navlets(request, dashboard_id=None):
     navlets = []
     for usernavlet in usernavlets:
         navlets.append(create_navlet_object(usernavlet))
-    return JsonResponse(navlets)
+    return JsonResponse({"items": navlets})
 
 
 def create_navlet_object(usernavlet):

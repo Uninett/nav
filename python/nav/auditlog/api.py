@@ -127,3 +127,4 @@ class LogEntryViewSet(NAVDefaultsMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = LogEntrySerializer
     filter_fields = ('subsystem', 'object_pk', 'verb')
     search_fields = ('summary', )
+    ordering = ('timestamp',)

@@ -15,6 +15,8 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Models for racks and rack items"""
+from __future__ import unicode_literals
+
 import json
 from itertools import chain
 

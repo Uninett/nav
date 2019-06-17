@@ -364,7 +364,7 @@ def delete(api_client, endpoint, id):
 # Fixtures
 
 @pytest.fixture()
-def serializer_models():
+def serializer_models(localhost):
     """Fixture for testing API serializers
 
     - unrecognized_neighbor
@@ -372,11 +372,7 @@ def serializer_models():
     """
     from nav.models import cabling, event, manage, profiles, rack
     from nav.auditlog import models as auditlog
-    netbox = manage.Netbox(ip='127.0.0.1', sysname='localhost.example.org',
-                           organization_id='myorg', room_id='myroom', category_id='SRV',
-                           read_only='public', snmp_version=2)
-
-    netbox.save()
+    netbox = localhost
 
     group = manage.NetboxGroup.objects.all()[0]
     manage.NetboxCategory(netbox=netbox, category=group).save()

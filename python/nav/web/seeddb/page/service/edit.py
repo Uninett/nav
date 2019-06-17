@@ -16,10 +16,10 @@
 #
 
 from django import forms
-from nav.six import reverse
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.db import transaction
+from django.urls import reverse
 
 from crispy_forms.helper import FormHelper
 
@@ -135,8 +135,7 @@ def service_edit(request, service_id=None):
                 'netbox': netbox.pk,
                 'handler': handler,
             })
-            initial = dict(
-                [(prop.property, prop.value) for prop in service_prop])
+            initial = {prop.property: prop.value for prop in service_prop}
             property_form = ServicePropertyForm(
                 service_args=get_description(service.handler),
                 initial=initial)

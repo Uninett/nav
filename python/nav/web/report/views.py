@@ -18,8 +18,6 @@ import logging
 import hashlib
 from functools import wraps
 
-from IPy import IP
-
 from operator import itemgetter
 from collections import defaultdict, namedtuple
 from time import localtime, strftime
@@ -27,13 +25,15 @@ import csv
 import os
 import re
 
+from IPy import IP
+
 # this is just here to make sure Django finds NAV's settings file
 # pylint: disable=W0611
 from django.core.cache import cache
-from nav.six import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render
 from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.urls import reverse
 from django.utils.six import PY2, iteritems, text_type
 
 from nav.models.manage import Prefix

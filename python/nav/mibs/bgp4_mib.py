@@ -16,6 +16,7 @@
 """Implements a BGP4-MIB MibRetriever and associated functionality."""
 
 from __future__ import absolute_import
+from collections import namedtuple
 from pprint import pformat
 import logging
 
@@ -23,7 +24,6 @@ from django.utils.six import iteritems
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
 
-from collections import namedtuple
 from nav.oidparsers import oid_to_ipv4
 from nav.smidumps import get_mib
 from . import mibretriever

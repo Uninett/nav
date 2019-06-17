@@ -17,9 +17,9 @@
 import importlib
 import logging
 
-from nav.six import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
 from django.conf import settings
 
 from nav.web.info.forms import SearchForm

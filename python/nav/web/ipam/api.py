@@ -21,11 +21,10 @@ API specific code for the private IPAM API. Exports a router for easy mounting.
 
 
 from rest_framework import viewsets, status, routers
+from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from nav.ip import IP
-
-from .prefix_tree import make_tree, make_tree_from_ip
 
 from nav.models.manage import Prefix
 from nav.web.api.v1.serializers import PrefixSerializer
@@ -33,8 +32,9 @@ from nav.web.api.v1.helpers import prefix_collector
 from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets, \
     suggest_range
 
+from .prefix_tree import make_tree, make_tree_from_ip
 
-from rest_framework import serializers
+
 # from nav.models.fields import CIDRField
 
 

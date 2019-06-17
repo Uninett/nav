@@ -157,7 +157,7 @@ def subdict(dct, keys):
                 del newdct[k]
         return newdct
     else:
-        return dict([(k, dct[k]) for k in keys])
+        return {k: dct[k] for k in keys}
 
 
 def filter_dict(fun, dct):

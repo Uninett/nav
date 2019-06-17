@@ -18,15 +18,16 @@
 
 
 import logging
-import psycopg2.extras
 from decimal import Decimal
+
+import psycopg2.extras
 
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import Http404
-from nav.six import reverse
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils.six import itervalues
 
 import nav.db

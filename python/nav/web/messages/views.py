@@ -16,9 +16,9 @@
 import datetime
 
 from django.db.models import Q
-from nav.six import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 
 from nav.django.utils import get_account
 from nav.models.msgmaint import Message

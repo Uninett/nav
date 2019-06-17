@@ -53,10 +53,10 @@
 
   <ol class="joyride-list" data-joyride>
     <li>
-      <p>Use the Seed Database tool to enable NAV to gather information from
-        your network.</p>
+      <p>Use the Seed Database tool to enable NAV to collect information from
+        your managed network devices.</p>
       <p>
-        Lets take a look at the most important bit - adding IP Devices to NAV.
+        Let's take a look at the most important bit: Adding IP Devices to NAV.
       </p>
     </li>
     <li data-id="add-netbox-form" data-options="tip_location:top;">
@@ -64,12 +64,12 @@
         give some basic information about it.</p>
     </li>
     <li data-id="id_ip">
-      <p>The IP-address of the device is needed. Both IPv4 and IPv6 addresses
-        can be used.</p>
+      <p>The IP address of the device is needed. Both IPv4 and IPv6 addresses
+        are supported.</p>
     </li>
     <li data-id="id_room">
-      <p>The room is the physical location of the device. You can add more
-        rooms by clicking the "Room" tab.</p>
+      <p>The room is the physical location/wiring closet of the device. You can add more
+        rooms by clicking the <em>"Room"</em> tab.</p>
       <p>
         A room can be given a position that enables map placement in some of NAV's tools.
       </p>
@@ -84,21 +84,19 @@
     <li data-id="id_organization">
       <p>The organization indicates who is operationally responsible for the equipment.</p>
     </li>
-    <li data-id="id_read_only">
-      <p>The SNMP read only community is essential. Without the community
+    <li data-id="div_id_profiles">
+      <p>Selecting a management profile is essential. Without the correct profile,
         NAV has no means to collect information from the device.</p>
-      <p>Remember that the SNMP Agent on the device also has to be active.</p>
-    </li>
-    <li data-id="id_read_write">
-      <p>If you want to configure your device using the tools Arnold or
-        PortAdmin you need to set the read/write community.</p>
+      <p>Management profiles can be configured in a separate SeedDB tab. For example,
+        you can create an SNMP v2c management profile that can be shared among many
+        of your devices.</p>
     </li>
     <li>
       <p>
         If you have a big network with many devices you should check out the
         <a href="/doc/intro/getting-started.html#importing-multiple-devices-in-bulk" target="_blank"
            title="Link to bulk import information">bulk import</a> functionality
-        in NAV. Bulk import enables you to import all your devices in one big swoop.
+        in NAV. Bulk import enables you to import all your devices from comma (or colon) separated text files.
       </p>
     </li>
     <li data-button="End">

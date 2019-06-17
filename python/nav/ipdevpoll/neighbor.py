@@ -25,13 +25,13 @@ therefore be run in the threadpool instead of the main reactor thread.
 import re
 from datetime import timedelta
 import threading
-from IPy import IP
-from nav.util import cachedfor, synchronized
 
-from nav.models import manage
+from IPy import IP
 from django.db.models import Q
 from django.utils import six
 
+from nav.util import cachedfor, synchronized
+from nav.models import manage
 from nav.ipdevpoll.log import ContextLogger
 from nav.ipdevpoll import shadows
 from nav.ipdevpoll.utils import is_invalid_utf8

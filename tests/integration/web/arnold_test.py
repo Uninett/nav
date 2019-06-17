@@ -1,4 +1,4 @@
-from nav.six import reverse
+from django.urls import reverse
 
 
 def test_arnold_manualdetention_should_not_crash(client):

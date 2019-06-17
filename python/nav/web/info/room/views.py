@@ -19,12 +19,12 @@ import datetime
 import logging
 import csv
 
-from nav.six import reverse
 from django.db import IntegrityError
 from django.db.models import Q, Max
 from django.http import HttpResponse
 from django.shortcuts import (redirect, get_object_or_404,
                               render)
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from nav.django.decorators import require_admin

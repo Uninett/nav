@@ -35,6 +35,7 @@ from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.entity_mib import EntityMib, parse_dateandtime_tc
 from nav.mibs.snmpv2_mib import Snmpv2Mib
+from nav.mibs import (itw_mib, itw_mibv3, itw_mibv4)
 
 
 class TestIpMib(object):
@@ -181,3 +182,25 @@ def test_zero_dateandtime_parses_properly():
 
 def test_crazy_dateandtime_should_not_crash():
     assert parse_dateandtime_tc(b"FOOBAR") is None
+
+
+def is_col_of(mib, col, table):
+    return mib['nodes'][table]['oid'].is_a_prefix_of(mib['nodes'][col]['oid'])
+
+
+@pytest.mark.parametrize('cls', [itw_mib.ItWatchDogsMib,
+                                 itw_mibv3.ItWatchDogsMibV3,
+                                 itw_mibv4.ItWatchDogsMibV4])
+def test_itw_tables(cls):
+    mib = cls.mib
+    for table, groups in cls.TABLES.items():
+        for group in groups:
+            cols = ['serial', 'name']
+            if 'avail' in group:
+                cols.append('avail')
+            for col in cols:
+                assert group[col] in mib['nodes'], group[col]
+                assert is_col_of(mib, group[col], table)
+            for sensor in group['sensors']:
+                assert sensor in mib['nodes'], sensor
+                assert is_col_of(mib, sensor, table)

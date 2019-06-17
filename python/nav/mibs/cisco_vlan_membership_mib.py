@@ -29,6 +29,5 @@ class CiscoVlanMembershipMib(mibretriever.MibRetriever):
         """Get a mapping of access port ifindexes->VLAN"""
         vlans = yield self.retrieve_column('vmVlan')
 
-        result = dict([(index[0], vlan)
-                      for index, vlan in vlans.items()])
+        result = {index[0]: vlan for index, vlan in vlans.items()}
         defer.returnValue(result)

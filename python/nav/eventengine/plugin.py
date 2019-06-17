@@ -94,8 +94,6 @@ def _find_package_modules(package_name):
 def _get_recursive_subclasses(cls, subclasses=None):
     if subclasses is None:
         subclasses = set()
-    # hey mr. pylint, every class has __subclasses__, you idiot!
-    # pylint: disable=E1101
     new_classes = cls.__subclasses__()
     subclasses.update(new_classes)
     for cls in new_classes:

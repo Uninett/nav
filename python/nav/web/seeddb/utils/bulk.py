@@ -15,9 +15,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module for handling bulk import requests"""
-from nav.six import reverse
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 from nav.bulkimport import reset_object_foreignkeys
 from nav.bulkparse import BulkParseError

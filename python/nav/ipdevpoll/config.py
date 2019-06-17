@@ -73,13 +73,14 @@ RITTAL_WERK_RUDOLF_LOH_GMBH_COKG = RITTAL-CMC-III-MIB
 JUNIPER_NETWORKS_INC = ENTITY-SENSOR-MIB JUNIPER-DOM-MIB
 SUPERIOR_POWER_SOLUTIONS_HK_COLTD = Pwt3PhaseV1Mib
 ALCATEL_LUCENT_ENTERPRISE_FORMERLY_ALCATEL = ALCATEL-IND1-PORT-MIB
+COMPAQ = CPQPOWER-MIB
 """
 
 
 def get_job_descriptions(config=None):
     """Builds a dict of all job descriptions"""
-    return dict([(d.name.replace(JOB_PREFIX, ''), d.description)
-                 for d in get_jobs(config)])
+    return {d.name.replace(JOB_PREFIX, ''): d.description
+            for d in get_jobs(config)}
 
 
 def get_jobs(config=None):

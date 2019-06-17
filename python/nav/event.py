@@ -113,7 +113,7 @@ class EventQ(object):
         values = []
         for attr in ('source', 'target', 'deviceid', 'netboxid', 'subid',
                      'time', 'eventtypeid', 'state', 'value', 'severity'):
-            if hasattr(event, attr) and getattr(event, attr):
+            if getattr(event, attr, None):
                 fields.append(attr)
                 values.append(getattr(event, attr))
         if not fields:
@@ -244,7 +244,7 @@ def create_type_hierarchy(hierarchy):
         event_type_name, event_descr, stateful = event_type
         if stateful not in ('y', 'n'):
             # Parse the stateful var as a boolean
-            stateful = stateful and 'y' or 'n'
+            stateful = 'y' if stateful else 'n'
 
         try:
             etype = EventType.objects.get(id=event_type_name)
