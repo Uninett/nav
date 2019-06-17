@@ -83,7 +83,7 @@ _config = RemoteUserConfigParser()
 
 
 def get_login_url(request):
-    "Calculate which login_url to use"
+    """Calculate which login_url to use"""
     default_new_url = '{0}?origin={1}&noaccess'.format(
         LOGIN_URL,
         parse.quote(request.get_full_path()))
@@ -92,6 +92,10 @@ def get_login_url(request):
 
 
 def get_remote_loginurl(request):
+    """Return a url (if set) to a remote service for REMOTE_USER purposes
+
+    Return None if no suitable url is available or enabled.
+    """
     remote_login_url = None
     try:
         if not _config.getboolean('remote-user', 'enabled'):
@@ -106,6 +110,10 @@ def get_remote_loginurl(request):
 
 
 def get_remote_username(request):
+    """Return the username in REMOTE_USER if set and enabled
+
+    Return None otherwise.
+    """
     try:
         if not _config.getboolean('remote-user', 'enabled'):
             return None
@@ -123,6 +131,10 @@ def get_remote_username(request):
 
 
 def login_remote_user(request):
+    """Log in the user in REMOTE_USER, if any and enabled
+
+    Returns None otherwise
+    """
     remote_username = get_remote_username(request)
     if remote_username:
         # Get or create an account from the REMOTE_USER http header
@@ -204,14 +216,14 @@ def _handle_ldap_admin_status(ldap_user, nav_account):
 
 
 def authenticate_remote_user(request=None):
-    '''Authenticate username from http header REMOTE_USER
+    """Authenticate username from http header REMOTE_USER
 
     Returns:
 
     * account object if user was authenticated
     * False if authenticated but blocked from logging in
     * None in all other cases
-    '''
+    """
     username = get_remote_username(request)
     if not username:
         return None
@@ -328,7 +340,9 @@ def authorization_not_required(fullpath):
 
 
 def logout(request):
-    "Log out a user from a request"
+    """Log out a user from a request
+
+    Returns a safe, public path useful for callers building a redirect."""
     if request.method == 'POST' and 'submit_desudo' in request.POST:
         desudo(request)
         return reverse('webfront-index')
