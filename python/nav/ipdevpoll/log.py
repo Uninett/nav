@@ -20,6 +20,8 @@ from logging import Formatter
 import inspect
 from itertools import islice
 
+from django.utils import six
+
 
 class ContextFormatter(Formatter):
     """A log formatter that will add context data if available in the record.
@@ -49,9 +51,19 @@ class ContextFormatter(Formatter):
                    if hasattr(record, attr)]
         if context:
             record.__dict__['context'] = ' '.join(context)
-            self._fmt = self._context_fmt
+            self._set_format(self._context_fmt)
         else:
-            self._fmt = self._normal_fmt
+            self._set_format(self._normal_fmt)
+
+    if six.PY3:
+        # Under Python >= 3 we must also set the internal style's format, since
+        # formatting is actually delegated to the style object
+        def _set_format(self, fmt):
+            self._fmt = fmt
+            self._style._fmt = fmt
+    else:
+        def _set_format(self, fmt):
+            self._fmt = fmt
 
     def _strip_logger_prefix(self, record):
         if record.name.startswith(self.prefix):
