@@ -13,11 +13,9 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-Contains web authentication functionality for NAV.
-"""
-"""NAV authentication and authorization middleware for Django"""
-"""
-Authentication and authorization middleware for Django.
+Contains web authentication and login functionality for NAV.
+
+The "*Middleware" is Django-specific.
 """
 
 from datetime import datetime
