@@ -82,70 +82,6 @@ login-url=
 _config = RemoteUserConfigParser()
 
 
-def get_login_url(request):
-    """Calculate which login_url to use"""
-    default_new_url = '{0}?origin={1}&noaccess'.format(
-        LOGIN_URL,
-        parse.quote(request.get_full_path()))
-    remote_loginurl = get_remote_loginurl(request)
-    return remote_loginurl if remote_loginurl else default_new_url
-
-
-def get_remote_loginurl(request):
-    """Return a url (if set) to a remote service for REMOTE_USER purposes
-
-    Return None if no suitable url is available or enabled.
-    """
-    remote_login_url = None
-    try:
-        if not _config.getboolean('remote-user', 'enabled'):
-            return None
-        remote_login_url = _config.get('remote-user', 'login-url')
-    except ValueError:
-        return None
-    if remote_login_url:
-        nexthop = request.build_absolute_uri(request.get_full_path())
-        remote_login_url = remote_login_url.format(nexthop)
-    return remote_login_url
-
-
-def get_remote_username(request):
-    """Return the username in REMOTE_USER if set and enabled
-
-    Return None otherwise.
-    """
-    try:
-        if not _config.getboolean('remote-user', 'enabled'):
-            return None
-    except ValueError:
-        return None
-
-    if not request:
-        return None
-
-    username = request.META.get('REMOTE_USER', '').strip()
-    if not username:
-        return None
-
-    return username
-
-
-def login_remote_user(request):
-    """Log in the user in REMOTE_USER, if any and enabled
-
-    Returns None otherwise
-    """
-    remote_username = get_remote_username(request)
-    if remote_username:
-        # Get or create an account from the REMOTE_USER http header
-        account = authenticate_remote_user(request)
-        if account:
-            request.session[ACCOUNT_ID_VAR] = account.id
-            request.account = account
-            return account
-    return None
-
-
 def authenticate(username, password):
     '''Authenticate username and password against database.
     Returns account object if user was authenticated, else None.
@@ -256,6 +192,70 @@ def authenticate_remote_user(request=None):
         return False
 
     return account
+
+
+def get_login_url(request):
+    """Calculate which login_url to use"""
+    default_new_url = '{0}?origin={1}&noaccess'.format(
+        LOGIN_URL,
+        parse.quote(request.get_full_path()))
+    remote_loginurl = get_remote_loginurl(request)
+    return remote_loginurl if remote_loginurl else default_new_url
+
+
+def get_remote_loginurl(request):
+    """Return a url (if set) to a remote service for REMOTE_USER purposes
+
+    Return None if no suitable url is available or enabled.
+    """
+    remote_login_url = None
+    try:
+        if not _config.getboolean('remote-user', 'enabled'):
+            return None
+        remote_login_url = _config.get('remote-user', 'login-url')
+    except ValueError:
+        return None
+    if remote_login_url:
+        nexthop = request.build_absolute_uri(request.get_full_path())
+        remote_login_url = remote_login_url.format(nexthop)
+    return remote_login_url
+
+
+def get_remote_username(request):
+    """Return the username in REMOTE_USER if set and enabled
+
+    Return None otherwise.
+    """
+    try:
+        if not _config.getboolean('remote-user', 'enabled'):
+            return None
+    except ValueError:
+        return None
+
+    if not request:
+        return None
+
+    username = request.META.get('REMOTE_USER', '').strip()
+    if not username:
+        return None
+
+    return username
+
+
+def login_remote_user(request):
+    """Log in the user in REMOTE_USER, if any and enabled
+
+    Returns None otherwise
+    """
+    remote_username = get_remote_username(request)
+    if remote_username:
+        # Get or create an account from the REMOTE_USER http header
+        account = authenticate_remote_user(request)
+        if account:
+            request.session[ACCOUNT_ID_VAR] = account.id
+            request.account = account
+            return account
+    return None
 
 
 # Middleware
