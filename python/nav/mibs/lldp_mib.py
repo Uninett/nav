@@ -182,6 +182,19 @@ class IdType(str):
             return False
 
 
+class BinaryOrString(IdType):
+    def __new__(cls, *args, **_kwargs):
+        arg = args[0]
+        if isinstance(arg, six.binary_type):
+            try:
+                arg = arg.decode('utf-8')
+            except (ValueError, UnicodeDecodeError):
+                pass
+        elif isinstance(arg, cls):
+            return arg
+        return IdType.__new__(cls, arg)
+
+
 class MacAddress(IdType):
     def __new__(cls, *args, **_kwargs):
         arg = args[0]
@@ -235,7 +248,7 @@ class IdSubtypes(object):
     class chassisComponent(IdType):
         pass
 
-    class interfaceAlias(IdType):
+    class interfaceAlias(BinaryOrString):
         pass
 
     class portComponent(IdType):
@@ -247,10 +260,10 @@ class IdSubtypes(object):
     class networkAddress(NetworkAddress):
         pass
 
-    class interfaceName(IdType):
+    class interfaceName(BinaryOrString):
         pass
 
-    class local(IdType):
+    class local(BinaryOrString):
         pass
 
     class agentCircuitId(IdType):
