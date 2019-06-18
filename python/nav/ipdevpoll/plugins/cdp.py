@@ -133,7 +133,7 @@ class CDP(Plugin):
         ifc = self.containers.factory(record.ifindex, shadows.Interface)
         ifc.ifindex = record.ifindex
 
-        key = (record.ifindex, record.ip, SOURCE)
+        key = (record.ifindex, six.text_type(record.ip), SOURCE)
         neighbor = self.containers.factory(
             key, shadows.UnrecognizedNeighbor)
         neighbor.netbox = self.netbox
