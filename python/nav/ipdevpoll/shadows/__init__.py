@@ -145,7 +145,7 @@ class Module(Shadow):
     def _fix_binary_garbage(self):
         """Fixes string attributes that appear as binary garbage."""
 
-        if utils.is_invalid_utf8(self.model):
+        if utils.is_invalid_database_string(self.model):
             self._logger.warning("Invalid value for model: %r", self.model)
             self.model = repr(self.model)
 
@@ -242,7 +242,7 @@ class Device(Shadow):
                      'firmware_version',
                      'serial'):
             value = getattr(self, attr)
-            if utils.is_invalid_utf8(value):
+            if utils.is_invalid_database_string(value):
                 self._logger.warning("Invalid value for %s: %r",
                                      attr, value)
                 setattr(self, attr, repr(value))

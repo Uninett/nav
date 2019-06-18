@@ -34,7 +34,7 @@ from nav.util import cachedfor, synchronized
 from nav.models import manage
 from nav.ipdevpoll.log import ContextLogger
 from nav.ipdevpoll import shadows
-from nav.ipdevpoll.utils import is_invalid_utf8
+from nav.ipdevpoll.utils import is_invalid_database_string
 
 HSRP_MAC_PREFIXES = ('00:00:0c:07:ac',)
 VRRP_MAC_PREFIXES = ('00:00:5e:00:01', '00:00:5e:00:02')  # RFC5798
@@ -207,7 +207,7 @@ class Neighbor(object):
         if not (self.netbox and name):
             return
 
-        if is_invalid_utf8(name):
+        if is_invalid_database_string(name):
             self._logger.warning("cannot search database for malformed "
                                  "neighboring port name %r", name)
             return
