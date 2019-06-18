@@ -42,6 +42,9 @@ Updating changelog and release notes
 
     ./tools/buglog.py 4.8.3
 
+  ``buglog`` depends on the ``github`` library, install with
+  ``pip install github``.
+
 * Add a new entry to the CHANGES file for for the new release and paste the
   list produced by the above command. Commit the changes::
 
