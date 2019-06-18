@@ -89,7 +89,7 @@ class LLDP(Plugin):
         info = self.containers.factory((INFO_KEY_LLDP_INFO,
                                         INFO_VAR_CHASSIS_ID),
                                        shadows.NetboxInfo)
-        info.value = chassis_id
+        info.value = str(chassis_id)
         info.netbox = self.netbox
         info.key = INFO_KEY_LLDP_INFO
         info.variable = INFO_VAR_CHASSIS_ID
@@ -97,7 +97,7 @@ class LLDP(Plugin):
             info = self.containers.factory((INFO_KEY_LLDP_INFO,
                                             INFO_VAR_CHASSIS_MAC),
                                            shadows.NetboxInfo)
-            info.value = chassis_id
+            info.value = str(chassis_id)
             info.netbox = self.netbox
             info.key = INFO_KEY_LLDP_INFO
             info.variable = INFO_VAR_CHASSIS_MAC
@@ -193,12 +193,16 @@ class LLDPNeighbor(Neighbor):
         return netbox
 
     def _netbox_from_local(self, chassid):
-        netbox = self._netbox_query(info__key=INFO_KEY_LLDP_INFO,
-                                    info__variable=INFO_VAR_CHASSIS_ID,
-                                    value=chassid).first()
+        netbox = self._netbox_query(Q(
+            info_set__key=INFO_KEY_LLDP_INFO,
+            info_set__variable=INFO_VAR_CHASSIS_ID,
+            info_set__value=str(chassid),
+        ))
         if netbox:
-            self._logger.info("Found netbox through local type lookup")
-        return netbox
+            self._logger.debug("Found netbox through local type lookup")
+            return netbox
+        else:
+            return self._netbox_from_sysname(chassid)
 
     def _netbox_from_mac(self, mac):
         mac_map = get_netbox_macs()

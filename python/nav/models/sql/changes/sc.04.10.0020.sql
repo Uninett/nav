@@ -26,6 +26,6 @@ CREATE OR REPLACE VIEW manage.netboxmac as
          SELECT DISTINCT ON (netboxinfo.val) netboxinfo.netboxid, netboxinfo.val::macaddr
            FROM netboxinfo
            WHERE (netboxinfo.key = 'bridge_info' AND netboxinfo.var = 'base_address') or
-                 (netboxinfo.key = 'lldp' AND netboxinfo.var = 'lldp_mac')) foo
+                 (netboxinfo.key = 'lldp' AND netboxinfo.var = 'chassis_mac')) foo
   WHERE foo.mac <> '00:00:00:00:00:00'::macaddr
   ORDER BY foo.mac, foo.netboxid;
