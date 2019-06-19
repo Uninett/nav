@@ -126,9 +126,15 @@ def get_graph_for_vlan(vlan):
         target = swp.interface.to_netbox
         target_ifc = swp.interface.to_interface
         if target:
+            # ensure key ordering is always consistent:
             key = tuple(sorted(
-                (source_ifc.id, target_ifc.id if target_ifc else None)))
-            data = set([source_ifc, target_ifc])
+                (
+                    source_ifc.id,
+                    target_ifc.id if target_ifc else None,
+                ),
+                key=lambda x: x if x else 0,
+            ))
+            data = {source_ifc, target_ifc}
             graph.add_edge(source, target, key=key, data=data)
     return graph
 
