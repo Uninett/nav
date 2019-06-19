@@ -15,6 +15,9 @@
 #
 from django.utils.six import itervalues, iteritems
 from twisted.internet import defer
+
+from django.utils.encoding import smart_text
+
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 from nav.mibs.entity_mib import EntityMib
@@ -56,7 +59,11 @@ class CiscoProcessMib(mibretriever.MibRetriever):
         oids = [str(base_oid + (index,)) for index in indexes]
         names = yield self.agent_proxy.get(oids)
         self._logger.debug("cpu name result: %r", names)
-        names = {OID(oid)[-1]: value for oid, value in names.items() if value}
+        names = {
+            OID(oid)[-1]: smart_text(value)
+            for oid, value in names.items()
+            if value
+        }
         defer.returnValue(names)
 
     def get_cpu_utilization(self):
