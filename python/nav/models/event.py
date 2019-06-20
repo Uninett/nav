@@ -238,13 +238,19 @@ class EventMixIn(object):
 
         """
         if self.subid:
+            from django.apps import apps
+
             subid = self.subid
             if self.event_type_id in self.SUBID_MAP:
-                model = models.get_model('models',
-                                         self.SUBID_MAP[self.event_type_id])
-            elif (self.event_type_id == 'maintenanceState'
-                  and 'service' in self.varmap.get(EventQueue.STATE_START, {})):
-                model = models.get_model('models', 'Service')
+                model = apps.get_model(
+                    'models',
+                    self.SUBID_MAP[self.event_type_id]
+                )
+            elif (
+                self.event_type_id == 'maintenanceState'
+                and 'service' in self.varmap.get(EventQueue.STATE_START, {})
+            ):
+                model = apps.get_model('models', 'Service')
             elif self.event_type_id == 'thresholdState':
                 return ThresholdEvent(self)
             else:
@@ -254,8 +260,11 @@ class EventMixIn(object):
                 try:
                     return model.objects.get(pk=subid)
                 except model.DoesNotExist:
-                    _logger.warning("alert subid %s points to non-existant %s",
-                                    subid, model)
+                    _logger.warning(
+                        "alert subid %s points to non-existant %s",
+                        subid,
+                        model,
+                    )
                     return UnknownEventSubject(self)
 
         # catch-all
@@ -269,6 +278,8 @@ class ThresholdEvent(object):
     descriptions and relations to the event.
     """
     def __init__(self, event):
+        from django.apps import apps
+
         self.event = event
         try:
             ruleid, self.metric = event.subid.split(':', 1)
@@ -276,7 +287,7 @@ class ThresholdEvent(object):
             ruleid = event.subid
             self.metric = None
 
-        klass = models.get_model('models', 'ThresholdRule')
+        klass = apps.get_model('models', 'ThresholdRule')
         try:
             self.rule = klass.objects.get(pk=ruleid)
         except (klass.DoesNotExist, ValueError):
