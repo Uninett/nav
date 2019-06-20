@@ -421,7 +421,8 @@ class SNMPHandler(object):
             if vlan == native_vlan:
                 continue
             octet_string = self._query_netbox(
-                self.CURRENT_VLAN_EGRESS_PORTS, vlan)
+                self.CURRENT_VLAN_EGRESS_PORTS, vlan
+            ) or b''
             bitvector = BitVector(octet_string)
 
             try:
