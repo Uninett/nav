@@ -391,14 +391,6 @@ class ItWatchDogsMibV3(BaseITWatchDogsMib):
     mib = get_mib('IT-WATCHDOGS-MIB-V3')
     TABLES = TABLES
 
-    def _debug(self, msg, *args, **kwargs):
-        return self._logger.debug(self.__class__.__name__ + ":: " + msg,
-                                  *args, **kwargs)
-
-    def _error(self, msg, *args, **kwargs):
-        return self._logger.error(self.__class__.__name__ + ":: " + msg,
-                                  *args, **kwargs)
-
     def _get_power_dms_params(self, power_dms):
         sensors = []
         for power_dm in itervalues(power_dms):
@@ -483,10 +475,10 @@ class ItWatchDogsMibV3(BaseITWatchDogsMib):
             'ioExpanderTable': self._get_io_expanders_params,
         }
         for table, handler in custom_tables.items():
-            self._debug('get_all_sensors: table = %s', table)
+            self._logger.debug('get_all_sensors: table = %s', table)
             sensors = yield self.retrieve_table(
                                         table).addCallback(reduce_index)
-            self._debug('get_all_sensors: %s = %s', table, sensors)
+            self._logger.debug('get_all_sensors: %s = %s', table, sensors)
             result.extend(handler(sensors))
 
         defer.returnValue(result)
