@@ -414,13 +414,34 @@ def add_user_navlet_graph(request):
     return HttpResponse(status=400)
 
 
+ALERT_TYPES = {
+    Sensor.ALERT_TYPE_WARNING: 'warning',
+    Sensor.ALERT_TYPE_ALERT: 'alert',
+}
+
+
 def add_user_navlet_sensor(request):
     """Add a sensor widget with sensor id set"""
     if request.method == 'POST':
         sensor = get_object_or_404(
             Sensor, pk=int(request.GET.get('sensor_id')))
-        add_navlet(request.account, 'nav.web.navlets.sensor.SensorWidget',
-                   {'sensor_id': sensor.pk, 'title': sensor.netbox.sysname})
+        if sensor.unit_of_measurement == sensor.UNIT_TRUTHVALUE:
+            navlet = 'nav.web.navlets.alert.AlertWidget'
+            preferences = {
+                'sensor': sensor.pk,
+                'title': sensor.netbox.sysname,
+                'on_message': sensor.on_message,
+                'off_message': sensor.off_message,
+                'on_state': sensor.on_state,
+                'alert_type': ALERT_TYPES[sensor.alert_type],
+            }
+        else:
+            navlet = 'nav.web.navlets.sensor.SensorWidget'
+            preferences = {
+                'sensor_id': sensor.pk,
+                'title': sensor.netbox.sysname
+            }
+        add_navlet(request.account, navlet, preferences)
         return HttpResponse(status=200)
 
     return HttpResponse(status=400)

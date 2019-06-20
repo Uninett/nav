@@ -1,5 +1,6 @@
 {% extends "ipdevinfo/base.html" %}
 {% load thresholds %}
+{% load crispy_forms_tags %}
 
 
 {% block base_header_additional_head %}
@@ -17,38 +18,7 @@
 {% endblock %}
 
 {% block footer_scripts %}
-<script>
- require([
-     "plugins/graphfetcher_controller",
-     "plugins/gauge",
- ], function(graphfetcher_controller, Gauge) {
-     $(function() {
-         var $gauge = $('.sensor-gauge');
-         var thresholds = $gauge.data('thresholds') ? $gauge.data('thresholds').split(',') : [];
-         var _gauge = new Gauge({
-             node: $gauge[0],
-             min: {{sensor.get_display_range.0}},
-             max: {{sensor.get_display_range.1}},
-             url: "{{sensor.get_graph_url}}&format=json",
-             symbol: ' ',
-             unit: "{{sensor.unit_of_measurement}}",
-             thresholds: thresholds,
-         });
-
-         $('#add-to-dashboard-button').on('click', function (event) {
-             event.preventDefault();
-             var $button = $(this);
-             var request = $.post($button.data('dashboardUrl'));
-             request.done(function() {
-                 $button.removeClass('secondary').addClass('success');
-             });
-             request.fail(function() {
-                 $button.removeClass('secondary').addClass('failure');
-             });
-         });
-     });
- });
-</script>
+<script>require(["src/sensor_details"]);</script>
 {% endblock %}
 
 {% block content %}
@@ -96,37 +66,74 @@
             {% include "threshold/frag-thresholdlist.html" %}
           </td>
         </tr>
-        <tr>
-          <th>Detected minimum value for graphs</th>
-          <td>{{sensor.display_minimum_sys}}</td>
-        </tr>
-        <tr>
-          <th>Detected maximum value for display</th>
-          <td>{{sensor.display_maximum_sys}}</td>
-        </tr>
+        {% if sensor.unit_of_measurement == 'boolean' %}
+          <tr>
+            <th>Detected alert active message</th>
+            <td>{{sensor.on_message_sys}}</td>
+          </tr>
+          <tr>
+            <th>Detected alert inactive message</th>
+            <td>{{sensor.off_message_sys}}</td>
+          </tr>
+          <tr>
+            <th>Detected alert active value</th>
+            <td>{{sensor.on_state_sys}}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <th>Detected minimum value for graphs</th>
+            <td>{{sensor.display_minimum_sys}}</td>
+          </tr>
+          <tr>
+            <th>Detected maximum value for display</th>
+            <td>{{sensor.display_maximum_sys}}</td>
+          </tr>
+        {% endif %}
       </table>
     </div>
     <div class="large-6 column">
-      <h4>Gauge display ranges</h4>
-      <div id="gauge-wrapper">
-        <div class="sensor-gauge"
-             data-url="{{ sensor.get_graph_url }}"
-             data-unit="{{ sensor.normalized_unit }}"
-             data-sensorid="{{ sensor.id }}"
-             data-sensorname="{{ sensor.human_readable }}"
-             data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
-        ></div>
-        <button id="add-to-dashboard-button"
-                class="tiny secondary"
-                data-dashboard-url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}">
-          Add to dashboard
-        </button>
-      </div>
-      <form method="post">
-        {% csrf_token %}
-        {{ form }}
-        <button type="submit" class="button small">Update range</button>
-      </form>
+        {% if sensor.unit_of_measurement == 'boolean' %}
+          <h4>Display values</h4>
+          <div class="sensor"
+               data-url="{{ data_url }}"
+               data-on-state="{{ sensor.on_state }}"/>
+          <div class="on alert-box with-icon {{ sensor.alert_type_class }} hidden">{{ sensor.on_message }}</div>
+          <div class="off alert-box with-icon success hidden">{{ sensor.off_message }}</div>
+          <button id="add-to-dashboard-button"
+                  class="tiny secondary"
+                  data-dashboard-url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}">
+            Add to dashboard
+          </button>
+          <form method="post">
+            {% csrf_token %}
+            {% crispy form %}
+            <button type="submit" class="button small">Update settings</button>
+          </form>
+        {% else %}
+          <h4>Gauge display ranges</h4>
+          <div id="gauge-wrapper">
+            <div class="sensor-gauge"
+                 data-url="{{ sensor.get_graph_url }}&format=json"
+                 data-unit="{{ sensor.normalized_unit }}"
+                 data-sensorid="{{ sensor.id }}"
+                 data-sensorname="{{ sensor.human_readable }}"
+                 data-thresholds="{{ sensor.get_metric_name|find_thresholds }}"
+                 data-unit="{{sensor.unit_of_measurement}}"
+                 data-min="{{sensor.get_display_range.0}}"
+                 data-max="{{sensor.get_display_range.1}}"
+            ></div>
+            <button id="add-to-dashboard-button"
+                    class="tiny secondary"
+                    data-dashboard-url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}">
+              Add to dashboard
+            </button>
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            {{ form }}
+            <button type="submit" class="button small">Update range</button>
+          </form>
+        {% endif %}
     </div>
   </div>
   <div class="row">

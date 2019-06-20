@@ -228,6 +228,10 @@ class BaseRackItem(object):
         """
         raise NotImplementedError
 
+    def get_display_configuration(self):
+        """Return any other configuration required to display this rack item"""
+        return {}
+
 
 class SensorRackItem(BaseRackItem):
     """A rackitem that display the value of a sensor"""
@@ -273,6 +277,11 @@ class SensorRackItem(BaseRackItem):
             return list(self.sensor.get_display_range())
         else:
             return []
+
+    def get_display_configuration(self):
+        if self.sensor_exists():
+            return self.sensor.get_display_configuration()
+        return {}
 
     def sensor_exists(self):
         return isinstance(self.sensor, Sensor)

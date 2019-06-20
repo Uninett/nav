@@ -236,6 +236,8 @@ class RackItemSerializer(serializers.Serializer):
     human_readable = serializers.ReadOnlyField()
     absolute_url = serializers.ReadOnlyField(source='get_absolute_url')
     display_range = serializers.ReadOnlyField(source='get_display_range')
+    display_configuration = serializers.ReadOnlyField(
+        source='get_display_configuration')
 
     class Meta(object):
         fields = '__all__'

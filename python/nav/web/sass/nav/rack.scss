@@ -101,7 +101,7 @@
 
     .rack-center {
         height: 100%;
-        max-width: 130px;
+        max-width: 150px;
         margin: 0 .5rem;
         .rack-sensor {
             padding-bottom: .3rem;
@@ -114,6 +114,9 @@
     }
 
     .rack-sensor {
+        .alert-box {
+            padding: 0.4rem 0.8rem;
+        }
         .heading {
             font-size: 0.8rem;
         }

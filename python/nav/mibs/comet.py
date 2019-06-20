@@ -113,13 +113,16 @@ class Comet(MibRetriever):
             ))
             result.append(dict(
                 oid=str(alarm_oid) + '.0',
-                unit_of_measurement="boolean",
+                unit_of_measurement=Sensor.UNIT_TRUTHVALUE,
                 precision=0,
                 scale=None,
                 description="%s alarm" % name,
                 name="BIN %s Alarm" % binary,
                 internal_name="bin%sAlarm" % binary,
                 mib=self.get_module_name(),
+                on_message='%s alarm triggered' % name,
+                off_message='%s alarm not triggered' % name,
+                on_state=1,
             ))
         returnValue(result)
 

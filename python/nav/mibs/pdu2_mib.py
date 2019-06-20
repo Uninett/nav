@@ -184,6 +184,6 @@ class PDU2Mib(MibRetriever):
             sensor = self.get_sensor(table, index, row, name, name,
                                      internal_name)
             if sensor_type == 'trip':
-                sensor['unit_of_measurement'] = 'boolean'
+                sensor['unit_of_measurement'] = Sensor.UNIT_TRUTHVALUE
             result.append(sensor)
         returnValue(result)

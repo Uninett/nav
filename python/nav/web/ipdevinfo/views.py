@@ -28,6 +28,7 @@ from django.utils import six
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
+from nav.metrics.graphs import get_simple_graph_url
 
 from nav.models.manage import (Netbox, Module, Interface, Prefix, Arp, Cam,
                                Sensor, POEGroup, Category)
@@ -43,7 +44,7 @@ from nav.web.utils import create_title, SubListView
 from nav.metrics.graphs import Graph
 
 from nav.web.ipdevinfo.forms import (SearchForm, ActivityIntervalForm,
-                                     SensorRangesForm)
+                                     SensorRangesForm, BooleanSensorForm)
 from nav.web.ipdevinfo import utils
 from .host_information import get_host_info
 
@@ -766,12 +767,23 @@ def sensor_details(request, identifier):
     sensor = get_object_or_404(Sensor, pk=identifier)
 
     if request.method == 'POST':
-        form = SensorRangesForm(request.POST)
-        if form.is_valid():
-            sensor.display_minimum_user = form.cleaned_data['minimum']
-            sensor.display_maximum_user = form.cleaned_data['maximum']
-            sensor.save()
-            return redirect(request.path)
+        if sensor.unit_of_measurement == sensor.UNIT_TRUTHVALUE:
+            form = BooleanSensorForm(request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                sensor.on_message_user = data['on_message']
+                sensor.off_message_user = data['off_message']
+                sensor.on_state_user = data['on_state']
+                sensor.alert_type = data['alert_type']
+                sensor.save()
+                return redirect(request.path)
+        else:
+            form = SensorRangesForm(request.POST)
+            if form.is_valid():
+                sensor.display_minimum_user = form.cleaned_data['minimum']
+                sensor.display_maximum_user = form.cleaned_data['maximum']
+                sensor.save()
+                return redirect(request.path)
 
     netbox_sysname = sensor.netbox.sysname
 
@@ -784,11 +796,21 @@ def sensor_details(request, identifier):
     metric = dict(id=sensor.get_metric_name())
     find_rules([metric])
 
-    form = SensorRangesForm(initial={
-        'minimum': sensor.get_display_range()[0],
-        'maximum': sensor.get_display_range()[1],
-    })
+    if sensor.unit_of_measurement == sensor.UNIT_TRUTHVALUE:
+        form = BooleanSensorForm(initial={
+            'on_message': sensor.on_message,
+            'off_message': sensor.off_message,
+            'on_state': sensor.on_state,
+            'alert_type': sensor.alert_type,
+        })
+    else:
+        form = SensorRangesForm(initial={
+            'minimum': sensor.get_display_range()[0],
+            'maximum': sensor.get_display_range()[1],
+        })
     return render(request, 'ipdevinfo/sensor-details.html', {
+        'data_url': get_simple_graph_url(
+            sensor.get_metric_name(), time_frame='10minutes', format='json'),
         'sensor': sensor,
         'navpath': navpath,
         'heading': heading,
