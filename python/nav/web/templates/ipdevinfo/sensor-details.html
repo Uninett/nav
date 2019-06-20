@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block footer_scripts %}
-<script src="{{ STATIC_URL }}js/src/sensor_details.js"></script>
+<script>require(["src/sensor_details"]);</script>
 {% endblock %}
 
 {% block content %}
