@@ -16,12 +16,14 @@
 "ipdevpoll plugin to collect LLDP neighbors"
 from pprint import pformat
 
+from django.db.models import Q
+from django.utils import six
 from twisted.internet import defer
 
 from nav.models import manage
-from nav.mibs.lldp_mib import LLDPMib
+from nav.mibs.lldp_mib import IdSubtypes, LLDPMib
 from nav.ipdevpoll import Plugin, shadows
-from nav.ipdevpoll.neighbor import LLDPNeighbor
+from nav.ipdevpoll.neighbor import Neighbor, get_netbox_macs
 from nav.ipdevpoll.db import run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
@@ -137,3 +139,82 @@ class LLDP(Plugin):
         neighbor.remote_id = record.chassis_id
         neighbor.remote_name = record.sysname
         neighbor.source = SOURCE
+
+
+class LLDPNeighbor(Neighbor):
+    "Parses an LLDP tuple from nav.mibs.lldp_mib to identify a neighbor"
+
+    def _identify_netbox(self):
+        chassid = self.record.chassis_id
+        netbox = None
+        if chassid:
+            lookup = None
+            if isinstance(chassid, IdSubtypes.macAddress):
+                lookup = self._netbox_from_mac
+            elif isinstance(chassid, IdSubtypes.networkAddress):
+                lookup = self._netbox_from_ip
+            elif isinstance(chassid, IdSubtypes.local):
+                lookup = self._netbox_from_sysname
+
+            if lookup:
+                netbox = lookup(str(chassid))
+
+        if not netbox and self.record.sysname:
+            netbox = self._netbox_from_sysname(self.record.sysname)
+
+        return netbox
+
+    def _netbox_from_mac(self, mac):
+        mac_map = get_netbox_macs()
+        if mac in mac_map:
+            return self._netbox_query(Q(id=mac_map[mac]))
+
+    def _identify_interfaces(self):
+        portid = self.record.port_id
+        if self.netbox and portid:
+            lookup = None
+            if isinstance(portid, (IdSubtypes.interfaceAlias,
+                                   IdSubtypes.interfaceName)):
+                lookup = self._interfaces_from_name
+            elif isinstance(portid, (IdSubtypes.local)):
+                lookup = self._interfaces_from_local
+            elif isinstance(portid, (IdSubtypes.macAddress)):
+                lookup = self._interfaces_from_mac
+            elif isinstance(portid, (IdSubtypes.networkAddress)):
+                lookup = self._interfaces_from_ip
+
+            if lookup:
+                result = lookup(str(portid))
+                if not result:
+                    # IEEE 802.1AB-2005 9.5.5.2
+                    portdesc = self.record.port_desc
+                    if portdesc:
+                        return self._interfaces_from_name(str(portdesc))
+                else:
+                    return result
+
+    def _interfaces_from_local(self, portid):
+        """Implements a heuristic seen on Juniper, where the port id is an
+        ifIndex and the remote port description is the port's ifAlias value.
+        If no match can be made this way, just revert to the regular "portid
+        interpreted as name" lookup
+
+        """
+        portdesc = self.record.port_desc
+        if portdesc and portid.isdigit():
+            query = Q(ifindex=int(portid)) & Q(ifalias=portdesc)
+            ifc = self._interface_query(query)
+            if ifc:
+                return ifc
+        return self._interfaces_from_name(portid)
+
+    def _interfaces_from_mac(self, mac):
+        assert mac
+        return self._interface_query(Q(ifphysaddress=mac))
+
+    def _interfaces_from_ip(self, ip):
+        ip = six.text_type(ip)
+        assert ip
+        if ip in self._invalid_neighbor_ips:
+            return
+        return self._interface_query(Q(gwportprefix__gw_ip=ip))

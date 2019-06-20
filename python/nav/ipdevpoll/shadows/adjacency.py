@@ -46,7 +46,7 @@ from django.utils import six
 
 from nav.models import manage
 from nav.ipdevpoll.storage import Shadow, DefaultManager
-from nav.ipdevpoll.utils import is_invalid_utf8
+from nav.ipdevpoll.utils import is_invalid_database_string
 from .netbox import Netbox
 
 MAX_MISS_COUNT = 3
@@ -213,7 +213,7 @@ class UnrecognizedNeighbor(Shadow):
 
     def prepare(self, _=None):
         for attr in ('remote_id', 'remote_name'):
-            if getattr(self, attr) and is_invalid_utf8(getattr(self, attr)):
+            if getattr(self, attr) and is_invalid_database_string(getattr(self, attr)):
                 self._logger.debug("converting invalid %s: %r",
                                    attr, getattr(self, attr))
                 setattr(self, attr, repr(getattr(self, attr)))

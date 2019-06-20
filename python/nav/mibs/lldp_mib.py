@@ -24,7 +24,7 @@ from nav.ip import IP
 from nav.mibs.if_mib import IfMib
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
-from nav.ipdevpoll.utils import binary_mac_to_hex
+from nav import macaddress
 
 
 class LLDPMib(mibretriever.MibRetriever):
@@ -182,11 +182,27 @@ class IdType(str):
             return False
 
 
+class BinaryOrString(IdType):
+    def __new__(cls, *args, **_kwargs):
+        arg = args[0]
+        if isinstance(arg, six.binary_type):
+            try:
+                arg = arg.decode('utf-8')
+            except (ValueError, UnicodeDecodeError):
+                pass
+        elif isinstance(arg, cls):
+            return arg
+        return IdType.__new__(cls, arg)
+
+
 class MacAddress(IdType):
     def __new__(cls, *args, **_kwargs):
         arg = args[0]
-        if isinstance(arg, six.string_types):
-            arg = binary_mac_to_hex(arg)
+        if isinstance(arg, six.binary_type):
+            try:
+                arg = macaddress.MacAddress.from_octets(arg)
+            except ValueError:
+                arg = macaddress.MacAddress(arg.decode('utf-8'))
         elif isinstance(arg, cls):
             return arg
         return IdType.__new__(cls, arg)
@@ -197,13 +213,15 @@ class NetworkAddress(IdType):
     IPV6 = 2
     ADDR_FAMILY = {
         IPV4: socket.AF_INET,
-        IPV6: socket.AF_INET6
-        }
+        IPV6: socket.AF_INET6,
+        bytes(IPV4): socket.AF_INET,
+        bytes(IPV6): socket.AF_INET6,
+    }
 
     def __new__(cls, *args, **_kwargs):
         arg = args[0]
-        if arg and isinstance(arg, six.string_types):
-            addr_type = ord(arg[0])
+        if arg and isinstance(arg, six.binary_type):
+            addr_type = arg[0]
             addr_string = arg[1:]
             if addr_type in cls.ADDR_FAMILY:
                 try:
@@ -230,7 +248,7 @@ class IdSubtypes(object):
     class chassisComponent(IdType):
         pass
 
-    class interfaceAlias(IdType):
+    class interfaceAlias(BinaryOrString):
         pass
 
     class portComponent(IdType):
@@ -242,10 +260,10 @@ class IdSubtypes(object):
     class networkAddress(NetworkAddress):
         pass
 
-    class interfaceName(IdType):
+    class interfaceName(BinaryOrString):
         pass
 
-    class local(IdType):
+    class local(BinaryOrString):
         pass
 
     class agentCircuitId(IdType):
