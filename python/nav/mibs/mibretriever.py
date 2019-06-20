@@ -368,7 +368,7 @@ class MibRetriever(object):
         return self.mib.get('moduleName', None)
 
     @defer.inlineCallbacks
-    def get_next(self, object_name):
+    def get_next(self, object_name, translate_result=False):
         """Gets next sub-object of the named object"""
         oid = self.nodes[object_name].oid
         result = yield self.agent_proxy.walk(str(oid))
@@ -376,6 +376,8 @@ class MibRetriever(object):
             result = result.items()
         for key, value in result:
             if oid.is_a_prefix_of(key):
+                if translate_result:
+                    value = self.nodes[object_name].to_python(value)
                 defer.returnValue(value)
 
     def retrieve_column(self, column_name):
