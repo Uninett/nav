@@ -55,7 +55,7 @@ define([], function() {
     function createTooltip($target) {
         Foundation.libs.tooltip.create($target);
         Foundation.libs.tooltip.showTip($target);
-        $target.on('mouseleave', function (event) {
+        $target.on('mouseleave remove', function (event) {
             Foundation.libs.tooltip.hide($target);
         });
     }
