@@ -20,6 +20,13 @@ from rest_framework import serializers
 
 from nav.models import manage, cabling, rack, profiles
 
+class ManagementProfileSerializer(serializers.ModelSerializer):
+    """Serializer for management profiles"""
+    protocol =  serializers.CharField(source="get_protocol_display")
+    class Meta(object):
+        model = manage.ManagementProfile
+        fields = "__all__"
+
 
 class AccountSerializer(serializers.ModelSerializer):
     """Serializer for accounts"""

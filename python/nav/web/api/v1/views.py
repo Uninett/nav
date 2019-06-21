@@ -129,6 +129,8 @@ def get_endpoints(request=None, version=1):
         'interface': reverse_lazy('{}interface-list'.format(prefix),
                                   **kwargs),
         'location': reverse_lazy('{}location-list'.format(prefix), **kwargs),
+        'management_profile': reverse_lazy('{}management-profile-list'.format(prefix),
+                                           **kwargs),
         'netbox': reverse_lazy('{}netbox-list'.format(prefix), **kwargs),
         'patch': reverse_lazy('{}patch-list'.format(prefix), **kwargs),
         'prefix': reverse_lazy('{}prefix-list'.format(prefix), **kwargs),
@@ -339,6 +341,10 @@ class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filter_fields = ('netbox', 'source')
     search_fields = ('remote_name', )
 
+class ManagementProfileViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
+    """Lists all management profiles"""
+    queryset = manage.ManagementProfile.objects.all()
+    serializer_class = serializers.ManagementProfileSerializer
 
 class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     """Lists all netboxes.
