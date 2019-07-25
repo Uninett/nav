@@ -108,7 +108,6 @@ def create_database():
                  check_call, ["createdb",
                               "--owner=%s" % nav_opts.user,
                               "--encoding=utf-8", nav_opts.dbname])
-    install_pl_pgsql(nav_opts.dbname)
 
 
 def drop_database():
@@ -177,23 +176,6 @@ def create_user(username, password):
                  ["psql", "--quiet", "-c",
                   "ALTER USER %s WITH PASSWORD '%s';" % (username, password),
                   "template1"])
-
-
-def install_pl_pgsql(dbname):
-    "Installs PL/pgSQL to dbname if not already present"
-    process = trap_and_die(
-        subprocess.CalledProcessError,
-        "Failed checking for PL/pgSQL language in database %s" % dbname,
-        popen, ["createlang", "-l", dbname],
-        stdout=subprocess.PIPE)
-
-    output = process.communicate()[0].decode('UTF-8')
-    if 'plpgsql' not in output.lower():
-        trap_and_die(
-            subprocess.CalledProcessError,
-            "Failed installing PL/pgSQL language in database %s" % dbname,
-            check_call,
-            ["createlang", "plpgsql", dbname])
 
 
 def handle_missing_binaries(func):
