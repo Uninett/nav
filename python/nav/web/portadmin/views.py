@@ -466,6 +466,7 @@ def set_voice_vlan(fac, interface, request):
             if turn_on_voice_vlan:
                 if use_cisco_voice_vlan:
                     fac.set_cisco_voice_vlan(interface, voice_vlan)
+                    fac.set_cisco_cdp(interface)
                 else:
                     fac.set_voice_vlan(interface, voice_vlan)
                 _logger.info('%s: %s:%s - %s', account.login,
@@ -474,6 +475,7 @@ def set_voice_vlan(fac, interface, request):
             else:
                 if use_cisco_voice_vlan:
                     fac.disable_cisco_voice_vlan(interface)
+                    fac.disable_cisco_cdp(interface)
                 else:
                     fac.set_access(interface, interface.vlan)
                 _logger.info('%s: %s:%s - %s', account.login,
