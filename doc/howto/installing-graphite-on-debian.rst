@@ -3,7 +3,8 @@ Installing Graphite for use with NAV on Debian
 ==============================================
 
 This is a short how-to guide for installing and configuring a simple Graphite
-installation, dedicated to NAV, on a **Debian 9 (Stretch)** server.
+installation, dedicated to NAV, on a **Debian 9 (Stretch)** or **Debian 10
+(Buster)** server.
 
 .. warning:: **Do not start NAV** until you have properly configured your
              carbon-cache's storage schemas with NAV's provided storage schema
@@ -22,10 +23,14 @@ send to the former, while utilizing the latter to retrieve metrics and render
 graphs.
 
 Assuming you will be running Graphite on the same Debian server as you are
-running NAV, all you need to do to install Graphite is::
+running NAV, all you need to do to install Graphite on **Debian 9** is::
 
   apt-get install python-psycopg2 graphite-carbon \
     python-whisper/stretch-backports graphite-web/stretch-backports
+
+For **Debian 10**, this would instead be::
+
+  apt-get install python3-psycopg2 graphite-carbon graphite-web
 
 
 Configuring Carbon
@@ -133,14 +138,35 @@ Now make ``graphite-web`` initialize its database schema::
 Configure Apache to serve the Graphite web app
 ----------------------------------------------
 
-In principle, you can use any web server that supports the WSGI interface, but
-you already have Apache because of NAV, so lets use that. Graphite-web will
-need its own virtualhost, so let's add a new site config for Apache in
-:file:`/etc/apache2/sites-available/graphite-web.conf` (this example is
-inspired by the one supplied by the ``graphite-web`` package in
-:file:`/usr/share/graphite-web/apache2-graphite.conf`):
+In principle, you can use any web server that supports the WSGI interface. You
+already have Apache with ``mod_wsgi``, so you could use that. However, if
+you're on **Debian 10**, the ``graphite-web`` package will run on Python 3,
+whereas the current NAV release runs on Python 2. ``mod_wsgi`` can only support
+one version of Python on the same server.
+
+The two following examples will define an Apache virtual host that will serve
+the Graphite web app on port **8000**. Adding SSL encryption is left as an
+excercise for the reader (but should be unnecessary if you wisely choose to set
+up the server to listen only to the localhost interface).
+
+.. warning:: All graphite statistics will become browseable for anyone who can
+             access your server on port 8000. You will probably want to
+             restrict access to this port, either by using iptables or ACLs in
+             your routers. Or, if you do not care about browsing the web app
+             yourself, change the ``Listen`` statement into ``Listen
+             127.0.0.1:8000``, so that only the NAV installation on
+             ``localhost`` will be able to access it.
+
+
+On Debian 9 (Stretch)
+~~~~~~~~~~~~~~~~~~~~~
+
+Graphite-web will need its own virtualhost, so let's add a new site config for
+Apache (this example is inspired by the one supplied by the ``graphite-web``
+package in :file:`/usr/share/graphite-web/apache2-graphite.conf`):
 
 .. code-block:: apacheconf
+   :caption: /etc/apache2/sites-available/graphite-web.conf
 
    Listen 8000
    <VirtualHost *:8000>
@@ -156,28 +182,90 @@ inspired by the one supplied by the ``graphite-web`` package in
            </Location>
 
            ErrorLog ${APACHE_LOG_DIR}/graphite-web_error.log
-
-           # Possible values include: debug, info, notice, warn, error, crit,
-           # alert, emerg.
            LogLevel warn
-
            CustomLog ${APACHE_LOG_DIR}/graphite-web_access.log combined
 
    </VirtualHost>
 
 
-This defines a virtual host that will serve the Graphite web app on port
-**8000**. Adding SSL encryption is left as an excercise for the reader.
+On Debian 10 (Buster)
+~~~~~~~~~~~~~~~~~~~~~
 
-.. warning:: All graphite statistics will become browseable for anyone who can
-             access your server on port 8000. You will probably want to
-             restrict access to this port, either by using iptables or ACLs in
-             your routers. Or, if you do not care about browsing the web app
-             yourself, change the ``Listen`` statement into ``Listen
-             127.0.0.1:8000``, so that only the NAV installation on
-             ``localhost`` will be able to access it.
+Graphite-web will still need its own virtualhost, but on this version of Debian
+we will run the app using a uWSGI container, and define an Apache virtual host
+to proxy requests to this container.
 
-Now, enable the new site on port 8000::
+First, install uWSGI and the necessary Apache modules to set up a uWSGI request
+proxy::
+
+  apt-get install uwsgi uwsgi-plugin-python3 libapache2-mod-proxy-uwsgi libapache2-mod-uwsgi
+
+Then proceed to add a new uWSGI application definition:
+
+.. code-block:: ini
+   :caption: /etc/uwsgi/apps-enabled/graphite.ini
+
+   [uwsgi]
+   uid = _graphite
+   gid = _graphite
+   buffer-size = 32768
+   chdir = /usr/share/graphite-web
+   env = DJANGO_SETTINGS_MODULE=graphite.settings
+   max-requests = 100
+   module = graphite.wsgi:application
+   plugins = python3
+   processes = 5
+   socket = 127.0.0.1:7999
+   touch-reload = /usr/lib/python3/dist-packages/graphite/wsgi.py
+
+To start an application container that will listen for requests on
+``localhost:7999``, just run::
+
+  systemctl restart uwsgi
+
+Now you're ready to add an Apache site definition for this app:
+
+.. code-block:: apacheconf
+   :caption: /etc/apache2/sites-available/graphite-web.conf
+
+   Listen 8000
+   <VirtualHost *:8000>
+	   Alias /static/ /usr/share/graphite-web/static/
+	   <Location "/static/">
+		   SetHandler None
+		   Require all granted
+	   </Location>
+	   <Location "/">
+		   Options FollowSymlinks Indexes
+		   Require all granted
+	   </Location>
+
+	   ErrorLog \${APACHE_LOG_DIR}/graphite-web_error.log
+	   LogLevel warn
+	   CustomLog \${APACHE_LOG_DIR}/graphite-web_access.log combined
+
+	   ProxyRequests Off
+	   ProxyPreserveHost Off
+
+	   # Let Apache serve static files
+	   ProxyPass /static/ !
+	   ProxyPassReverse /static/ !
+	   # Give the rest to our uWSGI instance
+	   ProxyPass / uwsgi://127.0.0.1:7999/
+	   ProxyPassReverse / uwsgi://127.0.0.1:7999/
+
+	   ProxyTimeout 300
+   </VirtualHost>
+
+Then make sure to enable the required Apache modules to use this site config::
+
+  a2enmod uwsgi proxy proxy_uwsgi
+
+
+Finally, on both Debian versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enable the new site on port 8000::
 
   a2ensite graphite-web
   systemctl restart apache2
