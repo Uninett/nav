@@ -43,6 +43,13 @@ def handleTrap(trap, config=None):
         return False
     (interfaceid, deviceid, modulename, ifname,
      ifalias) = get_interface_details(trap.netbox.netboxid, ifindex)
+    if not interfaceid:
+        _logger.error(
+            "Ignoring link trap from %s. Could not identify interface with ifindex=%s.",
+            trap.netbox.sysname,
+            ifindex,
+        )
+        return False
 
     # Check for traptype, post event on queue
     down = trap.genericType == 'LINKDOWN'
