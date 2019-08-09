@@ -57,8 +57,13 @@ def handleTrap(trap, config=None):
                               trap.netbox.netboxid, deviceid, interfaceid,
                               modulename, ifname, ifalias)
     if success:
-        _logger.info("Interface %s (%s) on %s is %s.",
-                     ifname, ifalias, trap.agent, 'down' if down else 'up')
+        _logger.info(
+            "Interface %s (%s) on %s is %s.",
+            ifname,
+            ifalias,
+            trap.netbox.sysname,
+            'down' if down else 'up',
+        )
     return success
 
 
