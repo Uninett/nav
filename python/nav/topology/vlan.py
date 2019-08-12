@@ -243,7 +243,7 @@ class RoutedVlanTopologyAnalyzer(object):
                 return dest, source, dest_ifc
             else:
                 # pick first available return edge when any exist
-                return dest, source, self.layer2[dest][source].keys()[0]
+                return dest, source, list(self.layer2[dest][source].keys())[0]
 
     def _interface_has_been_seen_before(self, ifc):
         return ifc in self.ifc_directions
