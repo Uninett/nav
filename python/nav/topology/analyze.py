@@ -213,7 +213,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         done = False
         while not done:
             done = True
-            for source, dest, proto in self.graph.edges(keys=True):
+            for source, dest, proto in list(self.graph.edges(keys=True)):
                 if (not isinstance(source, Port) or not isinstance(dest, Port) or
                         proto != sourcetype):
                     continue
