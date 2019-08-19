@@ -240,6 +240,7 @@ class EntityTable(dict):
 
     def clean(self):
         """Cleans the table data"""
+        self._clean_unicode()
         self._parse_mfg_date()
         self._strip_whitespace()
         self._fix_broken_chassis_relative_positions()
@@ -308,7 +309,7 @@ class EntityTable(dict):
                      if len(value) > 1)
         return dupes
 
-    def clean_unicode(self, encoding="utf-8"):
+    def _clean_unicode(self, encoding="utf-8"):
         """Decodes every string attribute of every entity as UTF-8.
 
         Strings that cannot be successfully decoded as UTF-8 will instead be
