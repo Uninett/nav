@@ -10,6 +10,7 @@ import importlib
 
 from django.utils import six
 
+from nav.config import NAV_CONFIG
 from nav.oids import OID
 
 _mib_map = {}
@@ -24,14 +25,25 @@ def get_mib(mib_module):
         return None
 
     if mib_module not in _mib_map:
-        try:
-            module = importlib.import_module('.' + mib_module, 'nav.smidumps')
-            convert_oids(module.MIB)
-            _mib_map[mib_module] = module
-        except ImportError:
+        for path in get_search_path():
+            try:
+                name = '.' + mib_module if path else mib_module  # support top namespace
+                module = importlib.import_module(name, path)
+            except ImportError:
+                continue
+            else:
+                convert_oids(module.MIB)
+                _mib_map[mib_module] = module
+                break
+        else:
             return None
 
     return _mib_map[mib_module].MIB
+
+
+def get_search_path():
+    """Returns the configured smidumps search path"""
+    return NAV_CONFIG.get("SMIDUMPS", "nav.smidumps").split(':')
 
 
 def convert_oids(mib):
