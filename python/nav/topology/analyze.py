@@ -239,7 +239,6 @@ class AdjacencyReducer(AdjacencyAnalyzer):
     def _visit_unvisited(self, unvisited):
         for port in unvisited:
             for source, dest, proto in list(self.graph.edges(port, keys=True)):
-            for source, dest, proto in list(self.graph.edges(port, keys=True)):
                 _logger.debug("Considering %s -> %s, source %s", source, dest, proto)
                 if dest == source[0]:
                     _logger.warning(
