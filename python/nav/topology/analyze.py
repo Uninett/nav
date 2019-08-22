@@ -247,6 +247,13 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                     self.graph.remove_edge(source, dest)
                     continue
 
+                if self.graph.out_degree(dest) == 0:
+                    _logger.debug(
+                        "No data from %s, trusting data from %s", dest, source
+                    )
+                    self.connect_ports(source, dest)
+                    return True
+
                 remote_port = self.find_return_port(source, dest)
                 if remote_port:
                     _logger.debug("Found connection %s -> %s because of good return path",
