@@ -75,7 +75,7 @@ class NetmapViewSerializer(serializers.Serializer):
     viewid = serializers.IntegerField(required=False, read_only=True)
     owner = serializers.StringRelatedField(read_only=True)
     title = serializers.CharField()
-    description = serializers.CharField(required=False)
+    description = serializers.CharField(required=False, allow_blank=True)
     topology = serializers.ChoiceField(choices=profiles.LINK_TYPES)
     zoom = serializers.CharField(required=False)
     last_modified = serializers.DateTimeField()
