@@ -1,3 +1,27 @@
+Version 4.9.8
+(released 22 Aug 2019)
+
+ Fixed GitHub issues in this release:
+
+  * #1753 (SNMP-less servers are no longer connected in the NAV
+           topology)
+  * #1941 (Interface information pop-ups in the status widget tends to
+           hang)
+  * #1942 (get_mib() should be able to load MIB modules from outside the
+           nav.smidumps package)
+  * #1962 (Environment rack widget edit mode crashes if there are racks
+           in rooms with non-ascii characters in their name)
+  * #1964 (smsd crashes when discarding non-dispatchable messages with
+           non-ASCII chars (or for users with non-ASCII chars in their
+           name))
+  * #1972 (Ensure PostgreSQL unique constraints are consistently named)
+  * #1973 (Stop explicitly installing pl/pgSQL during db init.)
+  * #1975 (Unhandled ValueError in eventengine when snmptrapd posts
+           invalid linkState events)
+  * #1976 (Properly display sensor data scale on sensor details page.)
+  * #1977 (Use Juniper 802.1X VLAN workaround in default configuration)
+
+
 Version 4.9.7
 (released 07 Jun 2019)
 
