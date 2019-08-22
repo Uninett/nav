@@ -247,10 +247,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                     self.graph.remove_edge(source, dest)
                     continue
 
-                if self.graph.out_degree(dest) == 0:
-                    _logger.debug(
-                        "No data from %s, trusting data from %s", dest, source
-                    )
+                if self._is_single_dataless_destination(source, dest):
                     self.connect_ports(source, dest)
                     return True
 
@@ -265,6 +262,23 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                     return True
             _logger.debug("Found no connection for %s", port)
         return False
+
+    def _is_single_dataless_destination(self, source, dest):
+        """Returns True if dest has no candidate data and is the single distinct
+        candidate from source's data.
+        """
+        if self.graph.out_degree(dest) > 0:
+            return False
+        distinct_edges = set(self.graph.edges(source))
+        if len(distinct_edges) == 1:
+            _logger.debug(
+                "No data from %s, trusting single distinct candidate from %s",
+                dest,
+                source,
+            )
+            return True
+        else:
+            return False
 
     def connect_ports(self, i, j):
         """Add connection between a and b to result.
