@@ -174,15 +174,6 @@ def _fetch_data(interface, cache=None):
 def get_interface_data(interface):
     """Get ifin/outoctets for an interface using a single request"""
     _logger.debug("getting traffic data for single interface %r", interface)
-    in_bps = out_bps = None
-    targets = [metric_path_for_interface(interface.netbox.sysname,
-                                         interface.ifname, counter)
-               for counter in (INOCTETS, OUTOCTETS)]
-    targets = [get_metric_meta(t)['target'] for t in targets]
-    data = get_metric_average(targets, start=TRAFFIC_TIMEPERIOD)
-    for key, value in iteritems(data):
-        if 'ifInOctets' in key:
-            in_bps = value
-        elif 'ifOutOctets' in key:
-            out_bps = value
+    data = get_traffic_for([interface])[interface]
+    in_bps, out_bps = data.get(INOCTETS), data.get(OUTOCTETS)
     return in_bps, out_bps
