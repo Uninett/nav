@@ -100,12 +100,9 @@ def get_traffic_for(interfaces):
     _logger.debug("preparing to get traffic data for %d interfaces", len(interfaces))
 
     for interface in interfaces:
-        metrics = [m for m in interface.get_port_metrics()
-                   if m['suffix'] in [INOCTETS, OUTOCTETS]]
-        for metric in metrics:
-            target = get_metric_meta(metric['id'])['target']
-            metric_mapping[target] = interface
-            targets.append(target)
+        ifc_targets = _get_traffic_counter_targets_for(interface)
+        metric_mapping.update({target: interface for target in ifc_targets})
+        targets.extend(ifc_targets)
 
     _logger.debug("getting data for %d targets", len(targets))
 
@@ -118,6 +115,16 @@ def get_traffic_for(interfaces):
             traffic[interface].update({OUTOCTETS: value})
 
     return traffic
+
+
+def _get_traffic_counter_targets_for(interface):
+    metric_metas = (
+        get_metric_meta(
+            metric_path_for_interface(interface.netbox, interface.ifname, counter)
+        )
+        for counter in (INOCTETS, OUTOCTETS)
+    )
+    return [m['target'] for m in metric_metas]
 
 
 def get_traffic_data(port_pair, cache=None):
