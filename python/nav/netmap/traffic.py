@@ -96,15 +96,23 @@ def get_traffic_for(interfaces):
     :returns: A dict of {interface: { suffix: value, suffix: value}}
     """
     metric_mapping = {}  # Store metric_name -> interface
-    targets = []
+    metrics = []
     traffic = defaultdict(dict)
 
     _logger.debug("preparing to get traffic data for %d interfaces", len(interfaces))
 
+    # assume transform is the same for all octet counters
+    transform = get_metric_meta("." + INOCTETS)["transform"]
+
     for interface in interfaces:
-        ifc_targets = _get_traffic_counter_targets_for(interface)
-        metric_mapping.update({target: interface for target in ifc_targets})
-        targets.extend(ifc_targets)
+        # what we need
+        ifc_metrics = _get_traffic_counter_metrics_for(interface)
+        metrics.extend(ifc_metrics)
+        # what to look for in the response
+        transformed = [transform.format(id=m) for m in ifc_metrics]
+        metric_mapping.update({target: interface for target in transformed})
+
+    targets = [transform.format(id=m) for m in _merge_metrics(sorted(metrics))]
 
     _logger.debug(
         "getting data for %d targets in chunks of %d",
@@ -113,8 +121,10 @@ def get_traffic_for(interfaces):
     )
 
     data = {}
-    for request in chunks(sorted(targets), MAX_TARGETS_PER_REQUEST):
+    for request in chunks(targets, MAX_TARGETS_PER_REQUEST):
         data.update(get_metric_average(request, start=TRAFFIC_TIMEPERIOD))
+
+    _logger.debug("received %d metrics in response", len(data))
 
     for metric, value in iteritems(data):
         interface = metric_mapping[metric]
@@ -126,14 +136,38 @@ def get_traffic_for(interfaces):
     return traffic
 
 
-def _get_traffic_counter_targets_for(interface):
-    metric_metas = (
-        get_metric_meta(
-            metric_path_for_interface(interface.netbox, interface.ifname, counter)
-        )
+def _get_traffic_counter_metrics_for(interface):
+    return [
+        metric_path_for_interface(interface.netbox, interface.ifname, counter)
         for counter in (INOCTETS, OUTOCTETS)
-    )
-    return [m['target'] for m in metric_metas]
+    ]
+
+
+def _merge_metrics(metrics):
+    """Merge a pre-sorted list of metrics using Graphite wildcard expressions, to
+    enable the smallest possible list of targets to ask for in a single request.
+    """
+    current_prefix = None
+    interfaces = set()
+
+    for metric, remaining in zip(metrics, reversed(range(len(metrics)))):
+        items = metric.split(".")
+        prefix = items[:-2]
+        if current_prefix is None:
+            current_prefix = prefix
+
+        if prefix == current_prefix:
+            interface = items[-2]
+            interfaces.add(interface)
+        if prefix != current_prefix or remaining == 0:
+            emit = "%s.{%s}.{%s}" % (
+                ".".join(current_prefix),
+                ",".join(interfaces),
+                ",".join((INOCTETS, OUTOCTETS))
+            )
+            current_prefix = prefix
+            interfaces.clear()
+            yield emit
 
 
 def get_traffic_data(port_pair, cache=None):
