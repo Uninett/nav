@@ -221,6 +221,14 @@ def first_true(iterable, default=None, pred=None):
     return next(ifilter(pred, iterable), default)
 
 
+def chunks(lst, size):
+    """
+    Yields successive `size`-sized chunks from lst.
+    """
+    for i in range(0, len(lst), size):
+        yield lst[i:i+size]
+
+
 class IPRange(object):
     """An IP range representation.
 
