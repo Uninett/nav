@@ -160,7 +160,7 @@ def _fetch_data(interface, cache=None):
     in_bps = out_bps = speed = None
     if isinstance(interface, Interface):
         speed = interface.speed
-        if cache:
+        if cache is not None:
             interface_data = cache[interface]
             if interface_data:
                 in_bps = interface_data.get(INOCTETS)
