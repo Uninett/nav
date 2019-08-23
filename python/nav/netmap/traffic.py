@@ -23,11 +23,13 @@ from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta
 from nav.metrics.templates import metric_path_for_interface
 from nav.models.manage import Interface
+from nav.util import chunks
 from nav.web.netmap.common import get_traffic_rgb, get_traffic_load_in_percent
 
 TRAFFIC_TIMEPERIOD = '-15min'
 INOCTETS = 'ifInOctets'
 OUTOCTETS = 'ifOutOctets'
+MAX_TARGETS_PER_REQUEST = 500
 
 _logger = logging.getLogger(__name__)
 
@@ -104,9 +106,16 @@ def get_traffic_for(interfaces):
         metric_mapping.update({target: interface for target in ifc_targets})
         targets.extend(ifc_targets)
 
-    _logger.debug("getting data for %d targets", len(targets))
+    _logger.debug(
+        "getting data for %d targets in chunks of %d",
+        len(targets),
+        MAX_TARGETS_PER_REQUEST,
+    )
 
-    data = get_metric_average(sorted(targets), start=TRAFFIC_TIMEPERIOD)
+    data = {}
+    for request in chunks(sorted(targets), MAX_TARGETS_PER_REQUEST):
+        data.update(get_metric_average(request, start=TRAFFIC_TIMEPERIOD))
+
     for metric, value in iteritems(data):
         interface = metric_mapping[metric]
         if INOCTETS in metric:
