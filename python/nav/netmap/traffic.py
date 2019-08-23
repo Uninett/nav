@@ -96,6 +96,9 @@ def get_traffic_for(interfaces):
     metric_mapping = {}  # Store metric_name -> interface
     targets = []
     traffic = defaultdict(dict)
+
+    _logger.debug("preparing to get traffic data for %d interfaces", len(interfaces))
+
     for interface in interfaces:
         metrics = [m for m in interface.get_port_metrics()
                    if m['suffix'] in [INOCTETS, OUTOCTETS]]
@@ -103,6 +106,8 @@ def get_traffic_for(interfaces):
             target = get_metric_meta(metric['id'])['target']
             metric_mapping[target] = interface
             targets.append(target)
+
+    _logger.debug("getting data for %d targets", len(targets))
 
     data = get_metric_average(sorted(targets), start=TRAFFIC_TIMEPERIOD)
     for metric, value in iteritems(data):
@@ -152,6 +157,7 @@ def _fetch_data(interface, cache=None):
 
 def get_interface_data(interface):
     """Get ifin/outoctets for an interface using a single request"""
+    _logger.debug("getting traffic data for single interface %r", interface)
     in_bps = out_bps = None
     targets = [metric_path_for_interface(interface.netbox.sysname,
                                          interface.ifname, counter)
