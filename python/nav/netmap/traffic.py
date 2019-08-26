@@ -130,7 +130,7 @@ def get_traffic_for(interfaces):
         interface = metric_mapping[metric]
         if INOCTETS in metric:
             traffic[interface].update({INOCTETS: value})
-        elif OUTOCTETS:
+        elif OUTOCTETS in metric:
             traffic[interface].update({OUTOCTETS: value})
 
     return traffic
