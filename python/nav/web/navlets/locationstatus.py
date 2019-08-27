@@ -19,7 +19,7 @@ from datetime import datetime
 from itertools import groupby
 from operator import attrgetter
 
-from nav.models.event import AlertHistory
+from nav.models.event import AlertHistory, STATE_START, STATE_STATELESS
 
 from nav.web.navlets.roomstatus import RoomStatus
 
@@ -47,8 +47,12 @@ class LocationStatus(RoomStatus):
         for location, alertlist in groupby(alerts, attrgetter('netbox.room.location')):
             location.alerts = sorted(alertlist, key=attrgetter('start_time'))
             for alert in location.alerts:
-                alert.sms_message = alert.messages.get(type='sms',
-                                                       language='en')
+                state = STATE_START if alert.end_time is not None else STATE_STATELESS
+                alert.sms_message = alert.messages.get(
+                    type='sms',
+                    language='en',
+                    state=state,
+                )
             locations.append(location)
 
         context['items'] = locations
