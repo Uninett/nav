@@ -127,28 +127,6 @@ def get_traffic_gradient():
     ]
 
 
-def get_traffic_interfaces(edges, interfaces):
-    """Gives list of edges and interfaces, filter out the interfaces we are to
-    fetch traffic for
-
-    :param set edges: a set of edges represented by netbox pairs
-    :param QuerySet interfaces: all interfaces
-    :returns: The list of interfaces we have to fetch traffic for.
-    """
-    storage = {}
-    for source, target in edges:
-        edge_interfaces = interfaces.filter(
-            netbox_id=source,
-            to_netbox_id=target
-        )
-        for interface in edge_interfaces:
-            storage[interface.pk] = interface
-            if interface.to_interface:
-                storage[interface.to_interface.pk] = interface.to_interface
-
-    return storage.values()
-
-
 @cache_traffic("layer 2")
 def get_layer2_traffic(location_or_room_id=None):
     """Fetches traffic data for layer 2"""
@@ -176,23 +154,25 @@ def get_layer2_traffic(location_or_room_id=None):
         else:
             interfaces = interfaces.filter(netbox__room=room)
 
-    edges = {
-        (
-            interface.netbox_id,
-            interface.to_netbox_id
-        )
-        for interface in interfaces
-    }
+    edges = defaultdict(set)
+    for interface in interfaces:
+        edges[(interface.netbox_id, interface.to_netbox_id)].add(interface)
+
+    _logger.debug(
+        "Produced %d edges from %d interfaces in %s",
+        len(edges),
+        len(interfaces),
+        datetime.now() - start,
+    )
+
+    complete_interface_set = set(interfaces) | set(
+        ifc.to_interface for ifc in interfaces if ifc.to_interface
+    )
+    traffic_cache = get_traffic_for(complete_interface_set)
+    _logger.debug('Traffic cache built. Time used so far: %s', datetime.now() - start)
 
     traffic = []
-    traffic_cache = get_traffic_for(
-        get_traffic_interfaces(edges, interfaces))
-
-    for source, target in edges:
-        edge_interfaces = interfaces.filter(
-            netbox_id=source,
-            to_netbox_id=target
-        )
+    for (source, target), edge_interfaces in edges.items():
         edge_traffic = []
         for interface in edge_interfaces:
             to_interface = interface.to_interface
@@ -209,7 +189,7 @@ def get_layer2_traffic(location_or_room_id=None):
             'edges': edge_traffic,
         })
 
-    _logger.debug('Time used: %s', datetime.now() - start)
+    _logger.debug('Total time used: %s', datetime.now() - start)
     return traffic
 
 

@@ -40,7 +40,8 @@ from nav.metrics.names import escape_metric_name
 from nav.metrics.templates import (metric_path_for_interface,
                                    metric_path_for_cpu_load,
                                    metric_path_for_cpu_utilization)
-from nav.web.geomap.utils import lazy_dict, subdict, is_nan, chunks
+from nav.web.geomap.utils import lazy_dict, subdict, is_nan
+from nav.util import chunks
 
 _logger = logging.getLogger(__name__)
 
