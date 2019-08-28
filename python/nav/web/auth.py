@@ -280,6 +280,8 @@ class AuthenticationMiddleware(MiddlewareMixin):
         remote_username = get_remote_username(request)
         if remote_username and remote_username != account.login:
             # REMOTE_USER has changed behind your back
+            # Make sure request is correct, for logout's sake
+            request.account = account
             # Log out current user, log in new user
             logout(request)
             login_remote_user(request)
@@ -341,6 +343,9 @@ def logout(request):
     """Log out a user from a request
 
     Returns a safe, public path useful for callers building a redirect."""
+    # Ensure that logout can safely be called whenever
+    if not (hasattr(request, 'session') and hasattr(request, 'account')):
+        return None
     if request.method == 'POST' and 'submit_desudo' in request.POST:
         desudo(request)
         return reverse('webfront-index')

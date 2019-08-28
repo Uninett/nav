@@ -113,20 +113,25 @@ class TestAuthorizationMiddleware(object):
 
 
 class TestLogout(object):
+    class FakeSession(dict):
 
-    def test_non_sudo_logout(self):
+        def set_expiry(self, *_):
+            pass
 
-        class FakeSession(dict):
+        def save(self, *_):
+            pass
 
-            def set_expiry(self, *_):
-                pass
-
-            def save(self, *_):
-                pass
-
+    def test_logout_before_login(self):
         r = RequestFactory()
         fake_request = r.get('/anyurl')
-        session = FakeSession(**{ACCOUNT_ID_VAR: PLAIN_ACCOUNT.id})
+        with patch('nav.web.auth.LogEntry.add_log_entry'):
+            result = logout(fake_request)
+            assert result == None
+
+    def test_non_sudo_logout(self):
+        r = RequestFactory()
+        fake_request = r.get('/anyurl')
+        session = self.FakeSession(**{ACCOUNT_ID_VAR: PLAIN_ACCOUNT.id})
         fake_request.session = session
         fake_request.account = PLAIN_ACCOUNT
         with patch('nav.web.auth.LogEntry.add_log_entry'):
@@ -138,6 +143,9 @@ class TestLogout(object):
     def test_sudo_logout(self):
         r = RequestFactory()
         fake_request = r.post('/anyurl', data={'submit_desudo': True})
+        session = self.FakeSession(**{ACCOUNT_ID_VAR: PLAIN_ACCOUNT.id})
+        fake_request.session = session
+        fake_request.account = PLAIN_ACCOUNT
         with patch('nav.web.auth.desudo'):
             with patch('nav.web.auth.reverse', return_value='parrot'):
                 result = logout(fake_request)
