@@ -149,7 +149,7 @@ def _handle_ldap_admin_status(ldap_user, nav_account):
             nav_account.accountgroup_set.remove(admin_group)
 
 
-def authenticate_remote_user(request=None):
+def authenticate_remote_user(request):
     """Authenticate username from http header REMOTE_USER
 
     Returns:
@@ -260,41 +260,50 @@ def login_remote_user(request):
     return None
 
 
+def ensure_account(request):
+    """Guarantee that request.account is set"""
+    session = request.session
+    account = getattr(request, 'account', None)
+
+    # Should only be the case before first page request
+    if ACCOUNT_ID_VAR not in session:
+        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
+
+    if account is None or account.id != session[ACCOUNT_ID_VAR]:
+        print('here 1', account, session)
+        account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+        print('here 2', account, session)
+
+    # Called if session[ACCOUNT_ID_VAR] != Account.DEFAULT_ACCOUNT,
+    # since Account.DEFAULT_ACCOUNT should never be locked
+    if account.locked:
+        print('here 3')
+        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
+        account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+
+    request.account = account
+
+
 # Middleware
 
 
 class AuthenticationMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        session = request.session
-        account = getattr(request, 'account', None)
-
-        if ACCOUNT_ID_VAR not in session:  # Not logged in
-            # Fallback: Set account id to anonymous user
-            session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
-            # Try remote user
-            login_remote_user(request)
-            account = getattr(request, 'account', None)
-
-        if not account or account.id != session[ACCOUNT_ID_VAR]:
-            # Reget account if:
-            # * account not set
-            # * account.id different from session[ACCOUNT_ID_VAR]
-            account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+        # Now we have some valid account
+        ensure_account(request)
+        account = request.account
 
         remote_username = get_remote_username(request)
-        if remote_username and remote_username != account.login:
-            # REMOTE_USER has changed behind your back
-            # Make sure request is correct, for logout's sake
-            request.account = account
-            # Log out current user, log in new user
+        # REMOTE_USER has changed behind our backs
+        if remote_username and remote_username != request.account.login:
             logout(request)
-            login_remote_user(request)
-            account = getattr(request, 'account', None)
+            # Now we have another account, if valid
+            account_switched_to = login_remote_user(request)
+            if switched_account is not None:
+                # To allow reporting on account switched to
+                account = account_switched_to
 
-        # Now we have an account
-        request.account = account
-
-        if SUDOER_ID_VAR in session:
+        if SUDOER_ID_VAR in request.session:
             account.sudo_operator = get_sudoer(request)
 
         _logger.debug("Request for %s authenticated as user=%s",

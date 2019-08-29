@@ -11,9 +11,55 @@ from nav.web.auth import logout
 from nav.web import auth
 
 
-PLAIN_ACCOUNT = auth.Account(id=101, login='tim', password='wizard')
-SUDO_ACCOUNT = auth.Account(id=1337, login='bofh', password='alakazam')
-DEFAULT_ACCOUNT = auth.Account(id=0, login='anonymous', password='bah')
+PLAIN_ACCOUNT = auth.Account(id=101, login='tim', password='wizard', locked=False)
+ANOTHER_PLAIN_ACCOUNT = auth.Account(id=102, login='tom', password='pa$$w0rd', locked=False)
+SUDO_ACCOUNT = auth.Account(id=1337, login='bofh', password='alakazam', locked=False)
+LOCKED_ACCOUNT = auth.Account(id=42, login='evil', password='haxxor', locked=True)
+DEFAULT_ACCOUNT = auth.Account(id=auth.Account.DEFAULT_ACCOUNT,
+                               login='anonymous', password='bah',
+                               locked=False)
+
+
+class TestEnsureAccount(object):
+
+    def test_account_is_set_if_missing(self):
+        r = RequestFactory()
+        request = r.get('/')
+        request.session = {}
+        with patch("nav.web.auth.Account.objects.get", return_value=DEFAULT_ACCOUNT):
+            auth.ensure_account(request)
+            assert auth.ACCOUNT_ID_VAR in request.session, 'Account id is not in the session'
+            assert hasattr(request, 'account'), 'Account not set'
+            assert request.account.id == request.session[auth.ACCOUNT_ID_VAR], 'Correct user not set'
+
+    def test_account_is_switched_if_wrong(self):
+        r = RequestFactory()
+        request = r.get('/')
+        request.session = {auth.ACCOUNT_ID_VAR: SUDO_ACCOUNT.id}
+        request.account = PLAIN_ACCOUNT
+        with patch("nav.web.auth.Account.objects.get", return_value=SUDO_ACCOUNT):
+            auth.ensure_account(request)
+            assert request.session[auth.ACCOUNT_ID_VAR] == SUDO_ACCOUNT.id
+            assert request.account == SUDO_ACCOUNT, 'Correct user not set'
+
+    def test_account_is_switched_to_default_if_locked(self):
+        r = RequestFactory()
+        request = r.get('/')
+        request.session = {auth.ACCOUNT_ID_VAR: LOCKED_ACCOUNT.id}
+        request.account = LOCKED_ACCOUNT
+        with patch("nav.web.auth.Account.objects.get", return_value=DEFAULT_ACCOUNT):
+            auth.ensure_account(request)
+            assert request.session[auth.ACCOUNT_ID_VAR] == DEFAULT_ACCOUNT.id
+            assert request.account == DEFAULT_ACCOUNT, 'Correct user not set'
+
+    def test_account_is_left_alone_if_ok(self):
+        r = RequestFactory()
+        request = r.get('/')
+        request.session = {auth.ACCOUNT_ID_VAR: PLAIN_ACCOUNT.id}
+        request.account = PLAIN_ACCOUNT
+        auth.ensure_account(request)
+        assert request.account == PLAIN_ACCOUNT
+        assert request.session[auth.ACCOUNT_ID_VAR] == PLAIN_ACCOUNT.id
 
 
 class TestAuthenticationMiddleware(object):
@@ -21,13 +67,15 @@ class TestAuthenticationMiddleware(object):
     @classmethod
     def set_request(cls, request, account):
         request.account = account
+        if not hasattr(request, 'session'):
+            request.session = {}
         request.session[ACCOUNT_ID_VAR] = account.id
 
     def test_process_request_logged_in(self):
         r = RequestFactory()
         fake_request = r.get('/')
         fake_request.session = {ACCOUNT_ID_VAR: 101}
-        with patch('nav.web.auth.Account.objects.get', return_value=PLAIN_ACCOUNT):
+        with patch('nav.web.auth.ensure_account', side_effect=self.set_request(fake_request, PLAIN_ACCOUNT)):
             AuthenticationMiddleware().process_request(fake_request)
             assert fake_request.account == PLAIN_ACCOUNT
             assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
@@ -39,7 +87,7 @@ class TestAuthenticationMiddleware(object):
             ACCOUNT_ID_VAR: 101,
             SUDOER_ID_VAR: True,
         }
-        with patch('nav.web.auth.Account.objects.get'):
+        with patch('nav.web.auth.ensure_account', side_effect=self.set_request(fake_request, PLAIN_ACCOUNT)):
             with patch('nav.web.auth.get_sudoer', return_value='foo'):
                 AuthenticationMiddleware().process_request(fake_request)
                 assert getattr(fake_request.account, 'sudo_operator', None) == 'foo'
@@ -48,17 +96,16 @@ class TestAuthenticationMiddleware(object):
         r = RequestFactory()
         fake_request = r.get('/')
         fake_request.session = {}
-        with patch('nav.web.auth.login_remote_user', return_value=None):
+        with patch('nav.web.auth.ensure_account', side_effect=self.set_request(fake_request, DEFAULT_ACCOUNT)):
             with patch('nav.web.auth.get_remote_username', return_value=None):
-                with patch('nav.web.auth.Account.objects.get', return_value=DEFAULT_ACCOUNT):
-                    AuthenticationMiddleware().process_request(fake_request)
-                    assert fake_request.account == DEFAULT_ACCOUNT
-                    assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
+                AuthenticationMiddleware().process_request(fake_request)
+                assert fake_request.account == DEFAULT_ACCOUNT
+                assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
 
     def test_process_request_log_in_remote_user(self):
         r = RequestFactory()
         fake_request = r.get('/')
-        fake_request.session = {}
+        self.set_request(fake_request, DEFAULT_ACCOUNT)
         with patch('nav.web.auth.login_remote_user', side_effect=self.set_request(fake_request, PLAIN_ACCOUNT)):
             with patch('nav.web.auth.get_remote_username', return_value=PLAIN_ACCOUNT.login):
                 AuthenticationMiddleware().process_request(fake_request)
@@ -68,14 +115,13 @@ class TestAuthenticationMiddleware(object):
     def test_process_request_switch_users(self):
         r = RequestFactory()
         fake_request = r.get('/')
-        fake_request.session = {ACCOUNT_ID_VAR: PLAIN_ACCOUNT.id}
-        fake_request.account = PLAIN_ACCOUNT
-        with patch('nav.web.auth.get_remote_username', return_value=SUDO_ACCOUNT.login):
-            with patch('nav.web.auth.login_remote_user', side_effect=self.set_request(fake_request, SUDO_ACCOUNT)):
+        self.set_request(fake_request, PLAIN_ACCOUNT)
+        with patch('nav.web.auth.get_remote_username', return_value=ANOTHER_PLAIN_ACCOUNT.login):
+            with patch('nav.web.auth.login_remote_user', side_effect=self.set_request(fake_request, ANOTHER_PLAIN_ACCOUNT)):
                 with patch('nav.web.auth.logout'):
                     AuthenticationMiddleware().process_request(fake_request)
-                    assert fake_request.account == SUDO_ACCOUNT
-                    assert ACCOUNT_ID_VAR in fake_request.session and fake_request.session[ACCOUNT_ID_VAR] == SUDO_ACCOUNT.id
+                    assert fake_request.account == ANOTHER_PLAIN_ACCOUNT
+                    assert ACCOUNT_ID_VAR in fake_request.session and fake_request.session[ACCOUNT_ID_VAR] == ANOTHER_PLAIN_ACCOUNT.id
 
 
 class TestAuthorizationMiddleware(object):

@@ -2,7 +2,7 @@
 
 # MAIN EXECUTION POINT
 cd "$WORKSPACE"
-tox
+tox -e unit-py35-django111 -- tests/unittests/general/web_middleware_test.py::TestEnsureAccount
 
 # Code analysis steps
 tox -e pylint
