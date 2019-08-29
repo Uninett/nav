@@ -52,8 +52,7 @@ def listusers(args):
         if account.locked:
             attrs.append('locked')
         attrs = u'[%s]' % ','.join(attrs) if attrs else ''
-        print(msg.format(login=account.login, name=account.name,
-                         attrs=attrs).strip().encode('utf-8'))
+        print(msg.format(login=account.login, name=account.name, attrs=attrs).strip())
 
 
 def adduser(args):
