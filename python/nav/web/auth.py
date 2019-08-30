@@ -243,47 +243,6 @@ def get_remote_username(request):
     return username
 
 
-def login_remote_user(request):
-    """Log in the user in REMOTE_USER, if any and enabled
-
-    :return: Account for remote user, or None
-    :rtype: Account, None
-    """
-    remote_username = get_remote_username(request)
-    if remote_username:
-        # Get or create an account from the REMOTE_USER http header
-        account = authenticate_remote_user(request)
-        if account:
-            request.session[ACCOUNT_ID_VAR] = account.id
-            request.account = account
-            return account
-    return None
-
-
-def ensure_account(request):
-    """Guarantee that request.account is set"""
-    session = request.session
-    account = getattr(request, 'account', None)
-
-    # Should only be the case before first page request
-    if ACCOUNT_ID_VAR not in session:
-        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
-
-    if account is None or account.id != session[ACCOUNT_ID_VAR]:
-        print('here 1', account, session)
-        account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
-        print('here 2', account, session)
-
-    # Called if session[ACCOUNT_ID_VAR] != Account.DEFAULT_ACCOUNT,
-    # since Account.DEFAULT_ACCOUNT should never be locked
-    if account.locked:
-        print('here 3')
-        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
-        account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
-
-    request.account = account
-
-
 # Middleware
 
 
@@ -311,6 +270,44 @@ class AuthenticationMiddleware(MiddlewareMixin):
 
         _logger.debug("Request for %s authenticated as user=%s",
                       request.get_full_path(), account.login)
+
+
+def ensure_account(request):
+    """Guarantee that request.account is set"""
+    session = request.session
+    account = getattr(request, 'account', None)
+
+    # Should only be the case before first page request
+    if ACCOUNT_ID_VAR not in session:
+        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
+
+    if account is None or account.id != session[ACCOUNT_ID_VAR]:
+        account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+
+    # Called if session[ACCOUNT_ID_VAR] != Account.DEFAULT_ACCOUNT,
+    # since Account.DEFAULT_ACCOUNT should never be locked
+    if account.locked:
+        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
+        account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+
+    request.account = account
+
+
+def login_remote_user(request):
+    """Log in the user in REMOTE_USER, if any and enabled
+
+    :return: Account for remote user, or None
+    :rtype: Account, None
+    """
+    remote_username = get_remote_username(request)
+    if remote_username:
+        # Get or create an account from the REMOTE_USER http header
+        account = authenticate_remote_user(request)
+        if account:
+            request.session[ACCOUNT_ID_VAR] = account.id
+            request.account = account
+            return account
+    return None
 
 
 class AuthorizationMiddleware(MiddlewareMixin):
