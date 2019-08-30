@@ -292,19 +292,22 @@ class AuthenticationMiddleware(MiddlewareMixin):
         # Now we have some valid account
         ensure_account(request)
         account = request.account
+        sudo_operator = get_sudoer(request)
 
         remote_username = get_remote_username(request)
         # REMOTE_USER has changed behind our backs
-        if remote_username and remote_username != request.account.login:
-            logout(request)
-            # Now we have another account, if valid
-            account_switched_to = login_remote_user(request)
-            if switched_account is not None:
-                # To allow reporting on account switched to
-                account = account_switched_to
+        if remote_username:
+            if ((sudo_operator and remote_username != sudo_operator.login)
+                    or (remote_username != request.account.login)):
+                logout(request)
+                # Now we have another account, if valid
+                account_switched_to = login_remote_user(request)
+                if switched_account is not None:
+                    # To allow reporting on account switched to
+                    account = account_switched_to
 
-        if SUDOER_ID_VAR in request.session:
-            account.sudo_operator = get_sudoer(request)
+        if sudo_operator:
+            account.sudo_operator = sudo_operator
 
         _logger.debug("Request for %s authenticated as user=%s",
                       request.get_full_path(), account.login)
