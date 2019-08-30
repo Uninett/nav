@@ -302,7 +302,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
                 logout(request)
                 # Now we have another account, if valid
                 account_switched_to = login_remote_user(request)
-                if switched_account is not None:
+                if account_switched_to is not None:
                     # To allow reporting on account switched to
                     account = account_switched_to
 
