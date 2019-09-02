@@ -40,8 +40,9 @@ Using the container(s)
 The default Docker Compose setup will expose the NAV web frontend on
 http://localhost/ and the Graphite-web frontend on http://localhost:8000 .
 
-You can access the inside of the NAV container (to control NAV daemons, adjust
-the running config, or whatever) by running a bash shell inside it, like so::
+You can access the inside of the NAV container (to control NAV daemons using
+the ``nav`` command, adjust the running config, or whatever) by running a bash
+shell inside it, like so::
 
   docker-compose exec nav /bin/bash
 
@@ -49,7 +50,7 @@ the running config, or whatever) by running a bash shell inside it, like so::
 Controlling processes inside the nav container
 ----------------------------------------------
 
-The main ``nav`` container uses :program:`supervisord` to controll multiple
+The main ``nav`` container uses :program:`supervisord` to control multiple
 processes. While the ``nav`` command can be used to control individual NAV
 services, :program:`supervisorctl` can be used to control other processes used
 within the development environment:
@@ -62,21 +63,23 @@ nav
   This is a one-time supervisor task to start all of NAV when the container
   starts.
 
-python-watcher
-  This is a process that monitors the :file:`python/` subdirectory for changes,
-  and restarts the web server if anything changes.
-
 sass-watcher
   This is a process that monitors the :file:`python/nav/web/sass/` subdirectory
   for changes, and re-runs ``python setup.py build_sass`` (i.e. rebuilding all
   the SASS-based stylesheets) on changes.
 
-web
-  This is a simple Django development web server (``django runserver``),
-  serving the NAV web interface.
+The individual logs of these program are typically found inside the ``nav``
+container in the :file:`/var/log/supervisor/` directory. The NAV process logs
+themselves are placed inside the :file:`/tmp/` directory inside the ``nav``
+container.
 
-The individual process logs are typically found inside the ``nav`` container in
-the :file:`/var/log/supervisor/` directory.
+Controlling log levels
+----------------------
+
+The log levels of various parts of NAV are controlled through the config file
+:file:`/etc/nav/logging.conf` inside the containers. Please be aware that the
+``nav`` and ``web`` containers do not share a configuration volume, so you may
+need to make adjustments in either container, depending on your needs.
 
 
 Happy hacking!
