@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """RADIUS service checker"""
+from pkg_resources import resource_filename
 
 # Python-radius specific modules. pyrad found at
 # http://www.wiggy.net/code/pyrad/ by Wichert Akkermann
@@ -24,6 +25,11 @@ from pyrad.dictionary import Dictionary
 # NAV ServiceMonitor-modules
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
+
+
+DEFAULT_DICTIONARY = resource_filename(
+    'nav.statemon.checker', 'radius/dictionary.rfc2865'
+)
 
 
 class RadiusChecker(AbstractChecker):
@@ -61,15 +67,14 @@ class RadiusChecker(AbstractChecker):
     """
     # TODO: Check for IPv6 compatibility in pyrad
     DESCRIPTION = "RADIUS"
-    ARGS = (
-        ('dictionary', 'Full path to a file containing the dictionary for '
-                       'this radius server'),
-    )
+    ARGS = ()
     OPTARGS = (
         ('username', 'A valid RADIUS username'),
         ('password', 'Clear-text password for username'),
         ('identifier', "This client's RADIUS identifier"),
         ('secret', 'A RADIUS secret for this client'),
+        ('dictionary', 'Full path to a file containing an optional dictionary file for '
+                       'this radius server'),
     )
 
     def __init__(self, service, **kwargs):
@@ -83,7 +88,7 @@ class RadiusChecker(AbstractChecker):
             password = args.get("password", "")
             rad_secret = args.get("secret", "")
             identifier = args.get("identifier", "")
-            dictionary = args.get("dictionary", "")  # or "dictionary"
+            dictionary = args.get("dictionary", DEFAULT_DICTIONARY)
             ip, _port = self.get_address()
             srv = Client(server=ip, secret=rad_secret,
                          dict=Dictionary(dictionary))
