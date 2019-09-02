@@ -24,14 +24,24 @@ services:
       - PGHOST=postgres
       - PGDATABASE=nav
       - PGUSER=postgres
-    ports:
-      - "80:80"
     volumes:
       - .:/source
     depends_on:
       - postgres
+
+  web:
+    build: .
+    command: ["/source/tools/docker/web.sh"]
+    ports:
+      - "80:80"
+    volumes_from:
+      - nav
+    depends_on:
+      - nav
+
   postgres:
     image: "postgres:9.4"
+
   graphite:
     build: ./tools/docker/graphite
     ports:
