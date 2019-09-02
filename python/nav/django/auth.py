@@ -27,6 +27,7 @@ try:
 except ImportError:  # Django <= 1.9
     MiddlewareMixin = object
 
+from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account
 from nav.django.utils import is_admin, get_account
 
@@ -42,8 +43,21 @@ SUDOER_ID_VAR = 'sudoer'
 LOGIN_URL = '/index/login/'
 
 
+def _set_account(request, account, save=True):
+    request.session[ACCOUNT_ID_VAR] = account.id
+    request.account = account
+    _logger.debug('Set active account to "%s"', account.login)
+    if save:
+        request.session.save()
+
+
 class AuthenticationMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        _logger.debug(
+            'AuthenticationMiddleware < (session: %s, account: %s)',
+            dict(request.session),
+            getattr(request, 'account', 'NOT SET')
+        )
         session = request.session
 
         if ACCOUNT_ID_VAR not in session:
@@ -56,6 +70,11 @@ class AuthenticationMiddleware(MiddlewareMixin):
 
         _logger.debug("Request for %s authenticated as user=%s",
                       request.get_full_path(), account.login)
+        _logger.debug(
+            'AuthenticationMiddleware > (session: %s, account: %s)',
+            dict(request.session),
+            getattr(request, 'account', 'NOT SET')
+        )
 
 
 class AuthorizationMiddleware(MiddlewareMixin):
@@ -114,10 +133,17 @@ def sudo(request, other_user):
     if not is_admin(get_account(request)):
         # Check if sudoer is acctually admin
         raise SudoNotAdminError()
-    request.session[SUDOER_ID_VAR] = request.account.id
-    request.session[ACCOUNT_ID_VAR] = other_user.id
-    request.session.save()
-    request.account = other_user
+    original_user = request.account
+    request.session[SUDOER_ID_VAR] = original_user.id
+    _set_account(request, other_user)
+    _logger.info('Sudo: "%s" acting as "%s"', original_user, other_user)
+    LogEntry.add_log_entry(
+        original_user,
+        'sudo',
+        '{actor} sudoed to {target}',
+        subsystem='auth',
+        target=other_user
+    )
 
 
 def desudo(request):
@@ -129,14 +155,23 @@ def desudo(request):
         # We are not sudoing
         return
 
+    other_user = request.account
+
     original_user_id = request.session[SUDOER_ID_VAR]
     original_user = Account.objects.get(id=original_user_id)
 
     del request.session[ACCOUNT_ID_VAR]
     del request.session[SUDOER_ID_VAR]
-    request.session[ACCOUNT_ID_VAR] = original_user_id
-    request.session.save()
-    request.account = original_user
+    _set_account(request, original_user)
+    _logger.info('DeSudo: "%s" no longer acting as "%s"',
+                  original_user, request.account)
+    LogEntry.add_log_entry(
+        original_user,
+        'desudo',
+        '{actor} no longer sudoed as {target}',
+        subsystem='auth',
+        target=other_user
+    )
 
 
 def get_sudoer(request):

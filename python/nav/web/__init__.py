@@ -27,6 +27,9 @@ from django.http import HttpResponse
 import nav.logs
 from nav.config import find_configfile
 
+
+_logger = logging.getLogger(__name__)
+
 default_app_config = 'nav.web.apps.NAVWebAppConfig'
 
 webfrontConfig = configparser.ConfigParser()
@@ -38,6 +41,7 @@ if _configfile:
 def refresh_session(request):
     """Forces a refresh of the session by setting the modified flag"""
     request.session.modified = True
+    _logger.debug('Session refreshed in "refresh_session"')
     return HttpResponse()
 
 
