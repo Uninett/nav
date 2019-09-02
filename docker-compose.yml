@@ -1,14 +1,7 @@
 # This sets up a live NAV development environment in Docker containers.
 #
-# Defaults NAV to a container with Python 2. If you want to work with NAV in a
-# Python 3 environment, add a `docker-compose.override.yml` that sets the
-# dockerfile to Dockerfile3, like so:
+# Defaults NAV to a container with Python 3.
 #
-# version: '2'
-# services:
-#   nav:
-#     build:
-#       dockerfile: Dockerfile3
 version: '2'
 
 # x-forwarder:
