@@ -44,20 +44,18 @@ draws is not consistent with NAV data.
 
 1. Search for one of the two devices in the NAVbar and click on it to open its
    information page.
-2. The "device info" box should mention a number of switch ports found on the
-   device. *Click the number* to go to the switch port report for this device.
-3. The report lists the detected switch ports on the device. In the two
-   rightmost columns of this report, the detected neighbor and it's connected
-   port is listed.
-4. You can click the *Connected to* column twice to sort the ports beginning
+2. Click on the :guilabel:`Ports` tab to see the port listing for this device.
+3. In the two rightmost columns of this report, the detected neighbor and it's
+   connected port (if detected) is listed.
+4. You can click the :guilabel:`To Device` column twice to sort the ports beginning
    with the ones that NAV has detected a neighboring device on.
 
 You should see something that looks like this:
 
 .. image:: swport-connected-to.png
 
-As you can see, `example-sw` is connected to `banana-sw`, `apple-sw`,
-`pineapple-gw`, `dinky-sw` and `parrot`. If there are devices you expect to be
+As you can see, this device is connected to `palin-sw`, `idle-gsw`,
+`gilliam-sw`, `cleese-sw` and `chapman-sw`. If there are devices you expect to be
 listed as neighbors here that are not, your problem is **not** with *Netmap*.
 
 Looking for the missing link
@@ -73,19 +71,21 @@ Before asking questions, you should now dig up at least some debugging
 information to provide with your questions. You must get the list of neighbor
 candidates that NAV considered for the involved ports.
 
-Given that you already know that switch `A`'s port 52 is connected to switch
-`B`'s port 13, do the following:
+Let's say that you know for a fact that ``parrot-sw``'s port *26* is connected
+to ``cleese-sw``'s port *Gi2/1*. Do the following:
 
-1. Go to the report tool and open the `Direct neighborship candidates` report:
-   `Report` → `Report List` → `Direct neighborship candidates`
-2. Click on `Advanced Options` to open the report search form. Search for
-   sysname `A` and interface `52`.
+1. Browse ``parrot-sw`` in ipdevinfo, click on the :guilabel:`Ports` tab, then
+   click on port :guilabel:`26` to see the details of it.
+2. Under the :guilabel:`Connection` table, in the row titled :guilabel:`To IP
+   device` there should be a small, clickable icon to browse the *Neighbor
+   candidates* report for port 26. Click on it:
+.. image:: link-to-neighbor-candidates.png
 
 You might then see something like this:
 
 .. image:: neighbor-candidates.png
 
-3. Do the same search for interface `13` on switch `B`.
+3. Do the same for the *Gi2/1* interface on ``cleese-sw``.
 4. Attach the results of the two report listings when posting a question to a
    developer.
 
