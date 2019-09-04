@@ -37,19 +37,74 @@ command to build and run everything::
 Using the container(s)
 ----------------------
 
-The default Docker Compose setup will expose the NAV web frontend on
-http://localhost/ and the Graphite-web frontend on http://localhost:8000 .
+The Docker Compose specificiation creates these containers (called "services"
+in Docker Compose lingo):
 
-You can access the inside of the NAV container (to control NAV daemons, adjust
-the running config, or whatever) by running a bash shell inside it, like so::
+nav
+  This container runs the NAV backend processes and cron jobs. It also runs the
+  "sass-watcher" job, which will watch *.scss files for modifications and
+  recompile NAV's CSS when changes do occur.
+
+web
+  This container runs the Django development server to serve NAV's web-based
+  user interface. By default, Docker Compose will expose this web service on
+  port 80 on the host system, i.e. at http://localhost/
+
+postgres
+  This runs a bog standard Postgres image from the Docker Hub, to serve as
+  NAV's main data store.
+
+graphite
+  This runs both carbon-cache backend and a graphite-web frontend, for NAV's
+  storage and retrieval of time-series data. By default, Docker Compose will
+  expose the web service on port 8000 on the host system,
+  i.e. http://localhost:8000/
+
+docbuild
+  This container will watch the :file:`doc/` directory for changes and initiate
+  a rebuild of the NAV documentation whenever the documentation source files
+  are modified. The built documentation should normally be browseable via the web
+  service at http://localhost/doc/
+
+Accessing internals of running containers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If need be, you can access the internals of the running containers (to control
+NAV daemons using the ``nav`` command, adjust the running config, or whatever)
+by running a bash shell inside the container, like so (for the ``nav``
+container)::
 
   docker-compose exec nav /bin/bash
+
+Manually restarting the web server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To manually restart the web server, all you need is::
+
+  docker-compose restart web
+
+Rebuilding the NAV code from scratch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A complete rebuild of the NAV code can be initiated by::
+
+  docker-compose restart nav
+
+Rebuilding the containers
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are switching between branches, though, you may need to rebuild the
+images the containers are based on (as different development branches may have
+different requirements, and therefore different Dockerfiles). Stop the existing
+containers and run this::
+
+  docker-compose build
 
 
 Controlling processes inside the nav container
 ----------------------------------------------
 
-The main ``nav`` container uses :program:`supervisord` to controll multiple
+The main ``nav`` container uses :program:`supervisord` to control multiple
 processes. While the ``nav`` command can be used to control individual NAV
 services, :program:`supervisorctl` can be used to control other processes used
 within the development environment:
@@ -62,27 +117,60 @@ nav
   This is a one-time supervisor task to start all of NAV when the container
   starts.
 
-python-watcher
-  This is a process that monitors the :file:`python/` subdirectory for changes,
-  and restarts the web server if anything changes.
-
 sass-watcher
   This is a process that monitors the :file:`python/nav/web/sass/` subdirectory
   for changes, and re-runs ``python setup.py build_sass`` (i.e. rebuilding all
   the SASS-based stylesheets) on changes.
 
-web
-  This is a simple Django development web server (``django runserver``),
-  serving the NAV web interface.
+The individual logs of these program are typically found inside the ``nav``
+container in the :file:`/var/log/supervisor/` directory. The NAV process logs
+themselves are placed inside the :file:`/tmp/` directory inside the ``nav``
+container.
 
-The individual process logs are typically found inside the ``nav`` container in
-the :file:`/var/log/supervisor/` directory.
+Controlling log levels
+----------------------
+
+The log levels of various parts of NAV are controlled through the config file
+:file:`/etc/nav/logging.conf` inside the containers. Please be aware that the
+``nav`` and ``web`` containers do not share a configuration volume, so you may
+need to make adjustments in either container, depending on your needs.
+
+
+Overriding the compose services
+-------------------------------
+
+If you need to override certain aspects of the Docker Compose service
+definitions for your own purposes during development, you can usually do so
+without patching the :file:`docker-compose.yml` file. You can "patch" the
+definitions via `Docker Compose's override mechanism`_: Simply add a
+:file:`docker-compose.override.yml` to the top-level source directory.
+
+Preventing NAV backend services from starting at container startup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can add the environment variable ``NONAVSTART=1`` to prevent the backend
+daemons from being started at the ``nav`` container startup time (allowing for
+complete manual control of daemons, by entering the container using ``exec``,
+as documented above). This can be done by adding something akin to this:
+
+.. code-block:: yaml
+   :caption: docker-compose.override.yml
+
+   version: '2'
+   services:
+     nav:
+       environment:
+         - NONAVSTART=1
+
+The same technique can be used to insert your own environment into the ``web``
+container.
 
 
 Happy hacking!
 
 
-.. [*] See http://docs.docker.io/installation/#installation.
-.. _homepage: http://docker.io
-.. _documentation: http://docs.docker.io
+.. [*] See https://docs.docker.com/install/
+.. _homepage: https://docker.com
+.. _documentation: https://docs.docker.com/
 .. _Docker Compose: https://docs.docker.com/compose/gettingstarted/
+.. _Docker Compose's override mechanism: https://docs.docker.com/compose/extends/
