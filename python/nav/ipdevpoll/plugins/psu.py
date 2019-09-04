@@ -38,13 +38,12 @@ from nav.mibs.entity_mib import EntityMib, EntityTable
 
 from nav.mibs.cisco_entity_fru_control_mib import CiscoEntityFruControlMib
 from nav.mibs.hp_entity_fru_control_mib import HpEntityFruControlMib
-from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
-                                VENDOR_ID_HEWLETT_PACKARD,
-                                )
+from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS, VENDOR_ID_HEWLETT_PACKARD
 
 
 class PowerSupplyUnit(Plugin):
     """Plugin that collect PSUs and FANs,- and their status from netboxes."""
+
     vendor_id = None
 
     def __init__(self, *args, **kwargs):
@@ -71,7 +70,7 @@ class PowerSupplyUnit(Plugin):
         """
         entities.sort(key=itemgetter(0))
         for index, ent in enumerate(entities, start=1):
-            ent['_internal_index'] = index
+            ent["_internal_index"] = index
         return entities
 
     def _get_psus_and_fans(self, to_filter):
@@ -100,12 +99,12 @@ class PowerSupplyUnit(Plugin):
     @staticmethod
     def is_fan(pwr):
         """Determine if this unit is a fan"""
-        return pwr.get('entPhysicalClass', None) == 'fan'
+        return pwr.get("entPhysicalClass", None) == "fan"
 
     @staticmethod
     def is_psu(pwr):
         """Determine if this unit is a powersupply"""
-        return pwr.get('entPhysicalClass', None) == 'powerSupply'
+        return pwr.get("entPhysicalClass", None) == "powerSupply"
 
     @defer.inlineCallbacks
     def handle(self):
@@ -122,9 +121,9 @@ class PowerSupplyUnit(Plugin):
 
     @defer.inlineCallbacks
     def _handle_unit(self, psu_or_fan):
-        self._logger.debug('PSU:FAN: %s', psu_or_fan)
-        internal_index = psu_or_fan.get('_internal_index', psu_or_fan.get(0))
-        is_up = 'u'
+        self._logger.debug("PSU:FAN: %s", psu_or_fan)
+        internal_index = psu_or_fan.get("_internal_index", psu_or_fan.get(0))
+        is_up = "u"
         sensor_oid = None
         control = self.entity_fru_control
         if not control:
@@ -136,34 +135,30 @@ class PowerSupplyUnit(Plugin):
             if ret:
                 is_up = ret
                 sensor_oid = control.get_oid_for_fan_status(internal_index)
-            self._logger.debug('FAN: %s: %s', ret, sensor_oid)
+            self._logger.debug("FAN: %s: %s", ret, sensor_oid)
         elif self.is_psu(psu_or_fan):
             ret = yield control.is_psu_up(internal_index)
             if ret:
                 is_up = ret
                 sensor_oid = control.get_oid_for_psu_status(internal_index)
-            self._logger.debug('PSU: %s: %s', ret, sensor_oid)
-        phys_name = psu_or_fan.get('entPhysicalName', None)
+            self._logger.debug("PSU: %s: %s", ret, sensor_oid)
+        phys_name = psu_or_fan.get("entPhysicalName", None)
 
-        power_supply = self.containers.factory(phys_name,
-                                               shadows.PowerSupplyOrFan)
+        power_supply = self.containers.factory(phys_name, shadows.PowerSupplyOrFan)
         # psu info
         power_supply.netbox = self.netbox
         power_supply.name = phys_name
-        power_supply.model = psu_or_fan.get('entPhysicalModelName', None)
-        power_supply.descr = psu_or_fan.get('entPhysicalDescr', None)
-        power_supply.physical_class = psu_or_fan.get('entPhysicalClass', None)
+        power_supply.model = psu_or_fan.get("entPhysicalModelName", None)
+        power_supply.descr = psu_or_fan.get("entPhysicalDescr", None)
+        power_supply.physical_class = psu_or_fan.get("entPhysicalClass", None)
         power_supply.sensor_oid = sensor_oid
         power_supply.up = is_up
         # device info
-        serial = psu_or_fan.get('entPhysicalSerialNum', None)
+        serial = psu_or_fan.get("entPhysicalSerialNum", None)
         if serial:
             device = self.containers.factory(serial, shadows.Device)
             device.serial = serial
-            device.hardware_version = psu_or_fan.get('entPhysicalHardwareRev',
-                                                     None)
-            device.firmware_version = psu_or_fan.get('entPhysicalFirmwareRev',
-                                                     None)
-            device.software_version = psu_or_fan.get('entPhysicalSoftwareRev',
-                                                     None)
+            device.hardware_version = psu_or_fan.get("entPhysicalHardwareRev", None)
+            device.firmware_version = psu_or_fan.get("entPhysicalFirmwareRev", None)
+            device.software_version = psu_or_fan.get("entPhysicalSoftwareRev", None)
             power_supply.device = device
