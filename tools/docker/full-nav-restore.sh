@@ -11,9 +11,16 @@ if ! which navsyncdb 2>/dev/null; then
     exit 1
 fi
 nav stop
-supervisorctl stop web
 export PGHOST=postgres
 export PGUSER=postgres
+
+echo "Forcefully terminating all other connections to the database:"
+psql -c "
+SELECT pg_terminate_backend(pg_stat_activity.pid)
+FROM pg_stat_activity
+WHERE pg_stat_activity.datname = 'nav'
+  AND pid <> pg_backend_pid();
+"
+
 navsyncdb --drop-database --create --restore -
-supervisorctl start web
 echo "NOT starting NAV after db restore, please do it manually!"
