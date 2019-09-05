@@ -211,23 +211,41 @@ def get_login_url(request):
     return remote_loginurl if remote_loginurl else default_new_url
 
 
-def get_remote_loginurl(request):
+def get_remote_url(request, urltype):
     """Return a url (if set) to a remote service for REMOTE_USER purposes
 
     :return: Either a string with an url, or None.
     :rtype: str, None
     """
-    remote_login_url = None
+    remote_url = None
     try:
         if not _config.getboolean('remote-user', 'enabled'):
             return None
-        remote_login_url = _config.get('remote-user', 'login-url')
+        remote_url = _config.get('remote-user', urltype)
     except ValueError:
         return None
-    if remote_login_url:
+    if remote_url:
         nexthop = request.build_absolute_uri(request.get_full_path())
-        remote_login_url = remote_login_url.format(nexthop)
-    return remote_login_url
+        remote_url = remote_url.format(nexthop)
+    return remote_url
+
+
+def get_remote_loginurl(request):
+    """Return a url (if set) to log in to/via a remote service
+
+    :return: Either a string with an url, or None.
+    :rtype: str, None
+    """
+    return get_remote_url(request, 'login-url')
+
+
+def get_remote_logout_url(request):
+    """Return a url (if set) to log out to/via a remote service
+
+    :return: Either a string with an url, or None.
+    :rtype: str, None
+    """
+    return get_remote_url(request, 'logout-url')
 
 
 def get_remote_username(request):
