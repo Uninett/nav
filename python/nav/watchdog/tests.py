@@ -170,7 +170,7 @@ class TestDuplicateHostnameForIP(Test):
 
     def _get_errors(self):
         """Fetches duplicate hostnames"""
-        ip_addresses = [n.ip for n in Netbox.objects.all()]
+        ip_addresses = Netbox.objects.values_list("ip", flat=True)
         reverse_names = {
             _key: _value
             for _key, _value in reverse_lookup(ip_addresses).items()
