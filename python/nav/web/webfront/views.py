@@ -38,6 +38,7 @@ from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web.auth import ACCOUNT_ID_VAR
 from nav.web.auth import logout as auth_logout
+from nav.web.auth import get_remote_logout_url
 from nav.web import ldapauth, auth
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
@@ -246,6 +247,9 @@ def do_login(request):
 def logout(request):
     """Controller for doing a logout"""
     nexthop = auth_logout(request)
+    remote_url = get_remote_logout_url(request)
+    if remote_url:
+        nexthop = remote_url
     return HttpResponseRedirect(nexthop)
 
 
