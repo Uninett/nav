@@ -39,6 +39,7 @@ def netboxes():
        new=Mock(return_value={
             '129.241.23.23': ['netbox1'],
             '129.241.23.24': ['netbox1'],
+            "10.0.0.42": ValueError("DNS Error when looking up 10.0.0.42"),
        }))
 class TestDuplicateHostname(object):
 

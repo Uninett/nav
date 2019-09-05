@@ -171,7 +171,11 @@ class TestDuplicateHostnameForIP(Test):
     def _get_errors(self):
         """Fetches duplicate hostnames"""
         ip_addresses = [n.ip for n in Netbox.objects.all()]
-        reverse_names = reverse_lookup(ip_addresses)
+        reverse_names = {
+            _key: _value
+            for _key, _value in reverse_lookup(ip_addresses).items()
+            if not isinstance(_value, Exception)  # Ignore DNS lookup failures
+        }
         flatten = list(itertools.chain(*reverse_names.values()))
         duplicates = {x for x in flatten if flatten.count(x) > 1}
         results = collections.defaultdict(list)
