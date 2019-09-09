@@ -18,11 +18,15 @@
 
 from rest_framework import serializers
 
+from nav.web.api.v1.fields import DisplayNameWritableField
 from nav.models import manage, cabling, rack, profiles
+
 
 class ManagementProfileSerializer(serializers.ModelSerializer):
     """Serializer for management profiles"""
-    protocol =  serializers.CharField(source="get_protocol_display")
+
+    protocol = DisplayNameWritableField()
+
     class Meta(object):
         model = manage.ManagementProfile
         fields = "__all__"
