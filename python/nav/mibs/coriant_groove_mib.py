@@ -25,69 +25,96 @@ UNIT_DECIBEL = "dB"  # This is actually not defined in Sensor
 UNIT_PS = "ps"
 UNIT_PS_PER_NM = "ps/nm"
 
-OPTICAL_CHANNEL_COLUMNS = {
-    "ochOsActualTxOpticalPower": {
-        "unit_of_measurement": Sensor.UNIT_DBM,
-        "type": "string",
-        "name": "{port} TX Optical Power",
+SENSOR_GROUPS = [
+    {
+        "name_from": "ochOsAliasName",
+        "columns": {
+            "ochOsActualTxOpticalPower": {
+                "unit_of_measurement": Sensor.UNIT_DBM,
+                "type": "string",
+                "name": "{name} TX Optical Power",
+            },
+            "ochOsActualFrequency": {
+                "unit_of_measurement": Sensor.UNIT_HERTZ,
+                "scale": Sensor.SCALE_MEGA,
+                "type": "string",
+                "name": "{name} actual laser frequency",
+            },
+            "ochOsDGD": {
+                "unit_of_measurement": Sensor.UNIT_SECONDS,
+                "scale": Sensor.SCALE_PICO,
+                "name": "{name} differential group delay",
+            },
+            "ochOsCD": {
+                "unit_of_measurement": UNIT_PS_PER_NM,
+                "name": "{name} chromatic dispersion",
+            },
+            "ochOsOSNR": {
+                "unit_of_measurement": UNIT_DECIBEL,
+                "type": "string",
+                "name": "{name} OSNR",
+            },
+            "ochOsQFactor": {
+                "unit_of_measurement": UNIT_DECIBEL,
+                "type": "string",
+                "name": "{name} Q-factor",
+            },
+            "ochOsPreFecBer": {
+                "unit_of_measurement": Sensor.UNIT_OTHER,
+                "type": "string",
+                "name": "{name} PreFEC bit error ratio",
+            },
+        },
     },
-    "ochOsActualFrequency": {
-        "unit_of_measurement": Sensor.UNIT_HERTZ,
-        "scale": Sensor.SCALE_MEGA,
-        "type": "string",
-        "name": "{port} actual laser frequency",
+    {
+        "name_from": "portName",
+        # lookup portName using the first 4 items of the oid index
+        "index_translation": lambda x: x[:4],
+        "columns": {
+            "inOpticalPowerInstant": {
+                "unit_of_measurement": Sensor.UNIT_DBM,
+                "type": "string",
+                "name": "{name} RX instant optical power",
+                "description": "{name} RX optical power",
+            },
+            "outOpticalPowerInstant": {
+                "unit_of_measurement": Sensor.UNIT_DBM,
+                "type": "string",
+                "name": "{name} TX instant optical power",
+                "description": "{name} TX optical power",
+            },
+        },
     },
-    "ochOsFrequency": {
-        "unit_of_measurement": Sensor.UNIT_HERTZ,
-        "scale": Sensor.SCALE_MEGA,
-        "type": "string",
-        "name": "{port} laser frequency",
+    {
+        "name_from": "portName",
+        "columns": {
+            "inOpticalPowerLaneTotalInstant": {
+                "unit_of_measurement": Sensor.UNIT_DBM,
+                "type": "string",
+                "name": "{name} RX Lane total optical power",
+                "description": "{name} total value of RX lane optical power",
+            },
+            "outOpticalPowerLaneTotalInstant": {
+                "unit_of_measurement": Sensor.UNIT_DBM,
+                "type": "string",
+                "name": "{name} TX Lane total optical power",
+                "description": "{name} total value of TX lane optical power",
+            },
+        },
     },
-    "ochOsRequiredTxOpticalPower": {
-        "unit_of_measurement": Sensor.UNIT_DBM,
-        "type": "string",
-        "name": "{port} required TX Optical Power",
+    {
+        "name_from": "oduAliasName",
+        "columns": {
+            "oduDelayInstant": {
+                "unit_of_measurement": Sensor.UNIT_SECONDS,
+                "scale": Sensor.SCALE_MICRO,
+                "type": "string",
+                "name": "{name} odu signal delay",
+                "description": "{name} ODU signal delay",
+            }
+        },
     },
-    "ochOsRxAttenuation": {
-        "unit_of_measurement": UNIT_DECIBEL,
-        "type": "string",
-        "name": "{port} RX attenuation",
-    },
-    "ochOsTxFilterRollOff": {
-        "unit_of_measurement": Sensor.UNIT_OTHER,
-        "type": "string",
-        "name": "{port} TX filter roll off",
-    },
-    "ochOsPreemphasisValue": {
-        "unit_of_measurement": Sensor.UNIT_OTHER,
-        "type": "string",
-        "name": "{port} Preemphasis",
-    },
-    "ochOsDGD": {
-        "unit_of_measurement": Sensor.UNIT_SECONDS,
-        "scale": Sensor.SCALE_PICO,
-        "name": "{port} differential group delay",
-    },
-    "ochOsCD": {
-        "unit_of_measurement": UNIT_PS_PER_NM,
-        "name": "{port} chromatic dispersion",
-    },
-    "ochOsOSNR": {
-        "unit_of_measurement": UNIT_DECIBEL,
-        "type": "string",
-        "name": "{port} OSNR",
-    },
-    "ochOsQFactor": {
-        "unit_of_measurement": UNIT_DECIBEL,
-        "type": "string",
-        "name": "{port} Q-factor",
-    },
-    "ochOsPreFecBer": {
-        "unit_of_measurement": Sensor.UNIT_OTHER,
-        "type": "string",
-        "name": "{port} PreFEC bit error ratio",
-    },
-}
+]
 
 
 class CoriantGrooveMib(MibRetriever):
@@ -98,42 +125,61 @@ class CoriantGrooveMib(MibRetriever):
     @defer.inlineCallbacks
     def get_all_sensors(self):
         """Discovers and returns all eligible optical channel sensors"""
-        sensors = yield self.get_optical_channel_sensors()
+        sensors = []
+        for group in SENSOR_GROUPS:
+            response = yield self._discover_sensors(
+                group["columns"],
+                group["name_from"],
+                index_translator=group.get("index_translation", lambda x: x),
+            )
+            sensors.extend(response)
         returnValue(sensors)
 
     @defer.inlineCallbacks
-    def get_optical_channel_sensors(self):
-        """Returns sensor definitions for the optical channel measurements that were found"""
-        column_names = ["ochOsAliasName"] + list(OPTICAL_CHANNEL_COLUMNS.keys())
-        response = yield self.retrieve_columns(column_names)
-        self._logger.debug("Found ochOsTable columns: %r", response)
+    def _discover_sensors(self, config, subject_names_from, index_translator):
+        """Returns sensor definitions for a given set of statistics values.
+
+        :param config: A dict of measurement columns to produce sensors from.
+        :param subject_names_from: The OID object from which to get a name for the
+                                   subjects whose measurements are found in the column
+                                   dict.
+        :param index_translator: A function to translate column indexes into a index
+                                 that can be used to look up the subject name from the
+                                 subject_names_from object.
+
+        """
+        name_map = yield self.retrieve_column(subject_names_from)
+        self._logger.debug("name map %s: %r", subject_names_from, name_map)
+        response = yield self.retrieve_columns(list(config.keys()))
+        self._logger.debug("Found columns: %r", response)
 
         sensors = []
-        for row, columns in response.items():
-            alias = columns.get("ochOsAliasName", str(row))
+        for index, columns in response.items():
+            name = name_map.get(index_translator(index), str(index))
             sensors.extend(
                 [
-                    self._make_och_sensor(index=row, port=alias, column=column)
-                    for column in OPTICAL_CHANNEL_COLUMNS
+                    self._make_sensor(
+                        index=index, name=name, column=column, config=config.get(column)
+                    )
+                    for column in config
                     if column in columns
                 ]
             )
         self._logger.debug("Returning sensor list: %r", sensors)
         returnValue(sensors)
 
-    def _make_och_sensor(self, index, port, column):
+    def _make_sensor(self, index, name, column, config):
         value_oid = self.nodes[column].oid
-        config = OPTICAL_CHANNEL_COLUMNS.get(column)
         sensor = dict(
             oid=str(value_oid + index),
             scale=None,
             mib=self.get_module_name(),
-            internal_name="{port}.{column}".format(port=port, column=column),
-            description="{port}: " + self._get_sensor_description(column),
+            internal_name="{name}.{column}".format(name=name, column=column),
+            description="{name}: " + self._get_sensor_description(column),
         )
         sensor.update(config)
-        sensor["name"] = sensor["name"].format(port=port)
-        sensor["description"] = sensor["description"].format(port=port)
+        sensor["name"] = sensor["name"].format(name=name)
+        sensor["description"] = sensor["description"].format(name=name)
         return sensor
 
     def _get_sensor_description(self, column):
