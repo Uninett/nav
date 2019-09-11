@@ -147,7 +147,19 @@ we may consider including it in the :file:`contrib/` directory.
 Coding style
 ============
 
-NAV code adheres to the Python style guide documented in :pep:`8`.
+NAV code adheres to the Python style guide documented in :pep:`8`, with a local
+convention of a maximum line length of **88** characters. PyLint_ is used to
+automatically validate much of these coding styles in our CI system. However, a
+good tip is to format your code using Black_, a great tool for automatically
+formatting your code, obviating the need for discussing coding style issues in
+code reviews.
+
+.. note:: If you are contributing some code to a file that isn't already
+          formatted using Black_, please don't format the entire file as part
+          of your changes. May we instead suggest using black-macchiato_, which
+          can be used by your editor to format selected blocks of code using
+          Black.
+
 Conventions for writing good documentation strings (a.k.a. "docstrings")
 are immortalized in :pep:`257`.
 
@@ -447,3 +459,5 @@ __ Github_
 .. _Karma: https://github.com/karma-runner/karma-mocha
 .. _Mocha: http://mochajs.org/
 .. _Chai: http://chaijs.com/
+.. _Black: https://black.readthedocs.io/
+.. _black-macchiato: https://github.com/wbolster/black-macchiato
