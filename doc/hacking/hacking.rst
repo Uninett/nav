@@ -43,8 +43,8 @@ Go to https://nav.uninett.no/ and
 
 .. _submitting_patches:
 
-Submitting patches
-------------------
+Submitting pull requests / patches
+----------------------------------
 
 Unless you are submitting one-off fixes for bugs and small issues,
 please take the time to discuss your change proposals on the
@@ -52,11 +52,11 @@ please take the time to discuss your change proposals on the
 your patches accepted.
 
 Base your patches on the relevant Git branches. If you are submitting
-a patch for an issue that affects the latest stable series, base your patch
+a patch for an issue that affects the *latest stable series*, base your patch
 on that series branch (``<major>.<minor>.x``). If you are submitting
-patches containing new features, base them on the ``master`` branch.
+patches containing *new features*, base them on the ``master`` branch.
 
-Please submit your changes in the form of a *pull request* against the
+Please submit your changes in the form of a **pull request** against the
 `official NAV Github repository`__. From there, we can review and
 comment on your changes. The entire CI test suite will be automatically
 run against your pull request, and the automatic CLA signing process is
@@ -175,7 +175,7 @@ We will only accept code into NAV if it can be licensed under GPL v3.  Each
 Python source code file should contain the following boilerplate at the top::
 
     #
-    # Copyright (C) 2008,2009 Somebody
+    # Copyright (C) 2018,2019 You or your employer
     #
     # This file is part of Network Administration Visualized (NAV).
     #
@@ -445,7 +445,7 @@ See https://docs.djangoproject.com/en/1.8/topics/serialization/
    <https://docs.djangoproject.com/en/dev/ref/django-admin/#dumpdata-appname-appname-appname-model>`_
    to create fixtures.
 
-.. _GitHub: https://github.com/UNINETT/nav
+.. _GitHub: https://github.com/Uninett/nav
 __ Github_
 .. _RequireJS: http://requirejs.org/
 .. _Git: https://git-scm.com/
