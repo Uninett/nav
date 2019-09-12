@@ -52,14 +52,15 @@
 
         {% if object %}
             {% with object.netbox_set.all.distinct.count as netbox_count %}
-                <p>
                 {% if netbox_count > 0 %}
+                    <div class="alert-box warning">
                     <strong>{{ netbox_count }} IP device{{ netbox_count|pluralize:",s" }}</strong>
                     will be affected by changes to this profile.
                 {% else %}
+                    <div class="alert-box info">
                     No IP devices will currently be affected by changes to this profile.
                 {% endif %}
-                </p>
+                </div>
             {% endwith %}
         {% endif %}
 
