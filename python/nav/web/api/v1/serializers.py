@@ -20,6 +20,8 @@ from rest_framework import serializers
 
 from nav.web.api.v1.fields import DisplayNameWritableField
 from nav.models import manage, cabling, rack, profiles
+from nav.web.seeddb.page.netbox.edit import get_sysname
+
 
 
 class ManagementProfileSerializer(serializers.ModelSerializer):
@@ -159,6 +161,11 @@ class NetboxSerializer(serializers.ModelSerializer):
         model = manage.Netbox
         depth = 1
         fields = '__all__'
+
+    def validate(self, attrs):
+        if attrs.get("ip") and not attrs.get("sysname"):
+            attrs["sysname"] = get_sysname(attrs.get("ip")) or attrs.get("ip")
+        return attrs
 
     def create(self, validated_data):
         profile_list = validated_data.pop("profiles", None)
