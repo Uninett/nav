@@ -17,6 +17,7 @@
 """Serializers for the NAV REST api"""
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from nav.web.api.v1.fields import DisplayNameWritableField
 from nav.models import manage, cabling, rack, profiles
@@ -165,6 +166,16 @@ class NetboxSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs.get("ip") and not attrs.get("sysname"):
             attrs["sysname"] = get_sysname(attrs.get("ip")) or attrs.get("ip")
+        try:
+            duplicate = manage.Netbox.objects.get(sysname=attrs.get("sysname"))
+        except manage.Netbox.DoesNotExist:
+            pass
+        else:
+            if duplicate != self.instance:
+                raise ValidationError(
+                    "{} already exists in the database".format(attrs.get("sysname")),
+                    code="unique",
+                )
         return attrs
 
     def create(self, validated_data):
