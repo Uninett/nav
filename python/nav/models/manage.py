@@ -168,7 +168,7 @@ class Netbox(models.Model):
         blank=True,
         null=True
     )
-    sysname = VarcharField(unique=True, blank=True)
+    sysname = VarcharField(unique=True, blank=False)
     category = models.ForeignKey(
         'Category',
         on_delete=models.CASCADE,
