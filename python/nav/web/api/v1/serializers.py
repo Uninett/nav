@@ -149,7 +149,10 @@ class NetboxSerializer(serializers.ModelSerializer):
     type = NetboxTypeSerializer(read_only=True)
 
     profiles = serializers.PrimaryKeyRelatedField(
-        many=True, write_only=False, queryset=manage.ManagementProfile.objects
+        required=False,
+        many=True,
+        write_only=False,
+        queryset=manage.ManagementProfile.objects,
     )
 
     class Meta(object):
