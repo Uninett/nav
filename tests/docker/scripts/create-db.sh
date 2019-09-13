@@ -35,7 +35,12 @@ create_nav_db() {
 
 PGVERSION=$(gosu root pg_lsclusters -h|awk '{print $1}')
 gosu root pg_dropcluster --stop ${PGVERSION} main || true
-gosu root pg_createcluster --locale=C.UTF-8 --start ${PGVERSION} main -- --nosync
+gosu root pg_createcluster --locale=C.UTF-8 ${PGVERSION} main -- --nosync
+echo "fsync=off
+synchronous_commit=off
+full_page_writes=off
+" | gosu root tee -a "/etc/postgresql/${PGVERSION}/main/postgresql.conf"
+gosu root pg_ctlcluster ${PGVERSION} main start
 
 update_nav_db_conf
 create_nav_db
