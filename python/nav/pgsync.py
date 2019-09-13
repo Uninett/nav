@@ -33,6 +33,9 @@ from nav.colors import colorize, print_color
 from nav.colors import COLOR_CYAN, COLOR_YELLOW, COLOR_RED, COLOR_GREEN
 
 
+CREATE_TABLE_PATTERN = re.compile(r"CREATE\s+TABLE", re.IGNORECASE)
+
+
 def main():
     """Main program"""
     (options, _args) = parse_args()
@@ -46,7 +49,9 @@ def main():
     if options.restore_file:
         restore_from_dump(options.restore_file)
 
-    sync = Synchronizer('nav.models', options.apply_out_of_order_changes)
+    sync = Synchronizer(
+        "nav.models", options.apply_out_of_order_changes, options.create_unlogged_tables
+    )
     try:
         sync.connect()
     except psycopg2.OperationalError as err:
@@ -83,6 +88,11 @@ def parse_args():
                       action="store_true", dest="apply_out_of_order_changes",
                       help="Apply missing schema changes even when they are "
                            "older than the newest applied change")
+    parser.add_option("--create-unlogged-tables", default=False,
+                      action="store_true",
+                      help="Modify CREATE TABLE statements to create unlogged "
+                           "PostgreSQL table. This is DANGEROUS and should NEVER be "
+                           "used in a production setting")
     return parser.parse_args()
 
 
@@ -248,12 +258,18 @@ class Synchronizer(object):
         (None, 'indexes.sql'),
         ]
 
-    def __init__(self, resource_module, apply_out_of_order_changes=False):
+    def __init__(
+        self,
+        resource_module,
+        apply_out_of_order_changes=False,
+        create_unlogged_tables=False,
+    ):
         self.resource_module = resource_module
         self.connection = None
         self.cursor = None
         self.connect_options = ConnectionParameters.from_config()
         self.apply_out_of_order_changes = apply_out_of_order_changes
+        self.create_unlogged_tables = create_unlogged_tables
         self.finder = ChangeScriptFinder(self.resource_module)
 
     def connect(self):
@@ -472,6 +488,8 @@ class Synchronizer(object):
 
         """
         sql = resource_string(self.resource_module, filename)
+        if self.create_unlogged_tables:
+            sql = _unlogged_table_filter(sql.decode('utf-8'))
         print_color("%-20s " % (filename + ":"), COLOR_CYAN, newline=False)
         try:
             self.cursor.execute(sql)
@@ -480,6 +498,10 @@ class Synchronizer(object):
             sys.exit(2)
         else:
             print_color("OK", COLOR_GREEN)
+
+
+def _unlogged_table_filter(sql):
+    return CREATE_TABLE_PATTERN.sub("CREATE UNLOGGED TABLE", sql)
 
 
 class ChangeScriptFinder(list):

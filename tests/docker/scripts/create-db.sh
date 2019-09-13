@@ -17,7 +17,7 @@ create_nav_db() {
 
     # Create and populate database
     echo Creating and populating initial database
-    gosu postgres:postgres "${BUILDDIR}/bin/navsyncdb" -c
+    gosu postgres:postgres "${BUILDDIR}/bin/navsyncdb" -c --create-unlogged-tables
 
     if [ -n "$ADMINPASSWORD" ]; then
       gosu postgres:postgres psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'" nav
