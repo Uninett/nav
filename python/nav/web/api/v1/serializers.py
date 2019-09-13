@@ -18,7 +18,18 @@
 
 from rest_framework import serializers
 
+from nav.web.api.v1.fields import DisplayNameWritableField
 from nav.models import manage, cabling, rack, profiles
+
+
+class ManagementProfileSerializer(serializers.ModelSerializer):
+    """Serializer for management profiles"""
+
+    protocol = DisplayNameWritableField()
+
+    class Meta(object):
+        model = manage.ManagementProfile
+        fields = "__all__"
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -137,10 +148,43 @@ class NetboxSerializer(serializers.ModelSerializer):
                                                 queryset=manage.NetboxType.objects.all())
     type = NetboxTypeSerializer(read_only=True)
 
+    profiles = serializers.PrimaryKeyRelatedField(
+        required=False,
+        many=True,
+        write_only=False,
+        queryset=manage.ManagementProfile.objects,
+    )
+
     class Meta(object):
         model = manage.Netbox
         depth = 1
         fields = '__all__'
+
+    def create(self, validated_data):
+        profile_list = validated_data.pop("profiles", None)
+        netbox = manage.Netbox.objects.create(**validated_data)
+        self._update_profiles(netbox, profile_list)
+        return netbox
+
+    def update(self, instance, validated_data):
+        profile_list = validated_data.pop("profiles", None)
+        instance = super(NetboxSerializer, self).update(instance, validated_data)
+        self._update_profiles(instance, profile_list)
+        return instance
+
+    @staticmethod
+    def _update_profiles(instance, profile_list):
+        if profile_list is None:
+            return
+
+        profile_set = set(profile_list)
+        old_profiles = set(instance.profiles.all())
+        to_add = profile_set.difference(old_profiles)
+        to_remove = old_profiles.difference(profile_set)
+        for profile in to_remove:
+            manage.NetboxProfile.objects.get(netbox=instance, profile=profile).delete()
+        for profile in to_add:
+            manage.NetboxProfile(netbox=instance, profile=profile).save()
 
 
 class PatchSerializer(serializers.ModelSerializer):
