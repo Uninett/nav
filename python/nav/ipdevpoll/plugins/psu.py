@@ -13,19 +13,17 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""
-ipdevpolld-plugin to collect powersupply units and fans,- and their
-corresponding status.  For the time beeing this plugin is only able
-to collect powersupplies and fans from Cisco- and HP-netboxes.
+"""This ipdevpoll plugin collects the inventory of power supplies and fans from
+devices.
 
-This plugin uses ENTITY-MIB to retrieve all possible PSUs in network-
-equipment.
+The inventory record of a PSU or FAN includes an SNMP OID that can be used to monitor
+the status of the entity by the powersupplywatch program. Normally, this status
+information is not available in the ENTITY-MIB itself, but from some proprietary MIB.
+This plugin tries to discover the relationship between PSU/FAN entities found in
+ENTITY-MIB and entities found in the proprietary MIBs.
 
-Status for PSUs and FANs in Cisco-equipment are collected with
-CISCO-ENTITY-FRU-CONTROL-MIB.
+At the moment, only Cisco and Hewlett-Packard devices are supported.
 
-Status for PSUs and FANs in HP-equipment are collected with POWERSUPPLY-MIB
-and FAN-MIB from HP's support pages.
 """
 from operator import itemgetter
 
