@@ -1,5 +1,4 @@
-# encoding: utf-8
-# Copyright 2008 - 2011 (C) Uninett AS
+# Copyright 2008 - 2011, 2019 (C) Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,68 +12,106 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-""" Implements a MibRetriever for the FAN-MIB, as well as helper classes.
-FAN-MIB is a mib that can be downloaded from HP's support pages.
-"""
+"""Implements a MibRetriever for Hewlett Packard's FAN-MIB."""
+from operator import attrgetter
+
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
+from nav.mibs.entity_mib import EntityMib
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever
 
+from nav.models.manage import PowerSupplyOrFan as FAN
+from .hpicf_powersupply_mib import (
+    _psu_index_from_internal_id as _fan_index_from_internal_id,
+)
+
+
+FAN_STATUS_MAP = {
+    "failed": FAN.STATE_DOWN,
+    "removed": FAN.STATE_UNKNOWN,
+    "off": FAN.STATE_UNKNOWN,
+    "underspeed": FAN.STATE_WARNING,
+    "overspeed": FAN.STATE_WARNING,
+    "ok": FAN.STATE_UP,
+    "maxstate": FAN.STATE_WARNING,
+}
+
 
 class HpIcfFanMib(mibretriever.MibRetriever):
-    """ A class for collecting fan states from HP netboxes."""
-    mib = get_mib('FAN-MIB')
+    """A MibRetriever for collecting fan states from HP netboxes."""
+
+    mib = get_mib("FAN-MIB")
 
     def __init__(self, agent_proxy):
-        """Just a constructor..."""
         super(HpIcfFanMib, self).__init__(agent_proxy)
+        self.entity_mib = EntityMib(agent_proxy)
         self.fan_status_table = None
 
     @defer.inlineCallbacks
     def _get_fan_status_table(self):
-        """Get the fan-status table from netbox."""
-        df = self.retrieve_table('hpicfFanTable')
+        """Returns the fan status from this netbox."""
+        df = self.retrieve_table("hpicfFanTable")
         df.addCallback(self.translate_result)
         df.addCallback(reduce_index)
         fan_table = yield df
-        self._logger.debug('fan_table: %s' % fan_table)
+        self._logger.debug("fan_table: %r", fan_table)
         defer.returnValue(fan_table)
 
-    def _get_fan_status(self, fan_status):
-        """Return the status for a fan,- represented as a single character.
-        Return-values: u = unknown, n = failed, y = ok, w = warning."""
-        status = 'u'
-        if fan_status == 'failed':
-            status = 'n'
-        elif fan_status == 'removed' or fan_status == 'off':
-            status = 'u'
-        elif (fan_status == 'underspeeed'
-              or fan_status == 'overspeed'
-              or fan_status == 'maxstate'):
-            status = 'w'
-        elif fan_status == 'ok':
-            status = 'y'
-        return status
+    @staticmethod
+    def _translate_fan_status(psu_status):
+        """Translates the PSU status value from the MIB to a NAV PSU status value.
+
+        :returns: A state value from nav.models.manage.PowerSupplyOrFan.STATE_CHOICES
+
+        """
+        return FAN_STATUS_MAP.get(psu_status, FAN.STATE_UNKNOWN)
 
     @defer.inlineCallbacks
-    def is_fan_up(self, idx):
-        """Return the status of the fan with the given index."""
-        is_up = None
+    def get_fan_status(self, internal_id):
+        """Returns the status of the fan with the given internal id."""
         if not self.fan_status_table:
             self.fan_status_table = yield self._get_fan_status_table()
-        fan_status_row = self.fan_status_table.get(idx, None)
-        if fan_status_row:
-            fan_status = fan_status_row.get('hpicfFanState', None)
-            if fan_status:
-                is_up = self._get_fan_status(fan_status)
-        defer.returnValue(is_up)
 
-    def get_oid_for_fan_status(self, idx):
-        """Return the full OID for the fan with the given index."""
-        oid = None
-        fan_state_oid = self.nodes.get('hpicfFanState', None)
-        if fan_state_oid:
-            oid = '%s.%d' % (str(fan_state_oid.oid), idx)
-        return oid
+        index = _fan_index_from_internal_id(internal_id)
+        fan_status_row = self.fan_status_table.get(index, {})
+        fan_status = fan_status_row.get("hpicfFanState")
+
+        self._logger.debug("hpicfFanState.%s = %r", index, fan_status)
+        defer.returnValue(self._translate_fan_status(fan_status))
+
+    # Left here for compatibility with old API:
+    is_fan_up = get_fan_status
+
+    def get_oid_for_fan_status(self, internal_id):
+        """Return the full OID for the status object of the fan with the given
+        internal_id.
+
+        """
+        index = _fan_index_from_internal_id(internal_id)
+        fan_state_oid = self.nodes.get("hpicfFanState")
+        return fan_state_oid.oid + (index,)
+
+    @defer.inlineCallbacks
+    def get_fans(self):
+        """Retrieves a list of fan objects"""
+        hp_fans = yield self._get_fan_status_table()
+        entities = yield self.entity_mib.get_fans()
+        if len(hp_fans) != len(entities):
+            self._logger.warning(
+                "Number of fans in ENTITY-MIB (%d) and FAN-MIB (%d) do not match",
+                len(entities),
+                len(hp_fans),
+            )
+
+        # Fans always numbered from 1 and up in FAN-MIB,
+        # and there is no official way to map their IDs to
+        # ENTITY-MIB::entPhysicalTable - therefore, this code naively assumes they at
+        # least appear in the same order in the two MIBS
+        for index, ent in enumerate(
+            sorted(entities, key=attrgetter("internal_id")), start=1
+        ):
+            ent.internal_id = "{}:{}".format(ent.internal_id, index)
+
+        defer.returnValue(entities)
