@@ -2429,7 +2429,7 @@ class PowerSupplyOrFan(models.Model):
     descr = VarcharField(db_column='descr', null=True)
     downsince = models.DateTimeField(db_column='downsince', null=True)
     physical_class = VarcharField(db_column='physical_class')
-    sensor_oid = VarcharField(db_column='sensor_oid', null=True)
+    internal_id = VarcharField(db_column='sensor_oid', null=True)
     up = VarcharField(db_column='up', choices=STATE_CHOICES)
 
     class Meta(object):

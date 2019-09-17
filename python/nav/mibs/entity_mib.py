@@ -394,6 +394,7 @@ def _entity_to_powersupply_or_fan(entity):
         model=entity.get("entPhysicalModelName"),
         descr=entity.get("entPhysicalDescr"),
         physical_class=entity.get("entPhysicalClass"),
+        internal_id=entity.get(0),
     )
     serial = entity.get("entPhysicalSerialNum")
     if serial:
