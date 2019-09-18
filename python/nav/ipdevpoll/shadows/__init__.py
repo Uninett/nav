@@ -664,6 +664,13 @@ class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
     __lookups__ = [('netbox', 'name')]
 
+
+    def prepare(self, containers):
+        existing = self.get_existing_model(containers)
+        # Set a default value of UNKNOWN if this is a new object
+        if not existing and self.up is None:
+            self.up = manage.PowerSupplyOrFan.STATE_UNKNOWN
+
     @classmethod
     def cleanup_after_save(cls, containers):
         cls._delete_missing_psus_and_fans(containers)
