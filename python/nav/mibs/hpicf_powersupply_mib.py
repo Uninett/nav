@@ -79,18 +79,6 @@ class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
         self._logger.debug("hpicfPsState.%s = %r", index, psu_status)
         defer.returnValue(self._translate_psu_status(psu_status))
 
-    # Left here for compatibility with old API:
-    is_psu_up = get_power_supply_status
-
-    def get_oid_for_psu_status(self, internal_id):
-        """Return the full OID for the status object of the powersupply with the given
-        internal_id.
-
-        """
-        index = _psu_index_from_internal_id(internal_id)
-        psu_state_oid = self.nodes.get("hpicfPsState")
-        return psu_state_oid.oid + (index,)
-
     @defer.inlineCallbacks
     def get_power_supplies(self):
         """Retrieves a list of power supply objects"""

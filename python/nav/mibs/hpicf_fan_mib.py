@@ -81,18 +81,6 @@ class HpIcfFanMib(mibretriever.MibRetriever):
         self._logger.debug("hpicfFanState.%s = %r", index, fan_status)
         defer.returnValue(self._translate_fan_status(fan_status))
 
-    # Left here for compatibility with old API:
-    is_fan_up = get_fan_status
-
-    def get_oid_for_fan_status(self, internal_id):
-        """Return the full OID for the status object of the fan with the given
-        internal_id.
-
-        """
-        index = _fan_index_from_internal_id(internal_id)
-        fan_state_oid = self.nodes.get("hpicfFanState")
-        return fan_state_oid.oid + (index,)
-
     @defer.inlineCallbacks
     def get_fans(self):
         """Retrieves a list of fan objects"""

@@ -112,10 +112,6 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         self._logger.debug("cefcFRUPowerOperStatus.%s = %r", internal_id, oper_status)
         defer.returnValue(self._translate_power_supply_status_value(oper_status))
 
-    # Left here for compatibility with old API:
-    is_fan_up = get_fan_status
-    is_psu_up = get_power_supply_status
-
     @defer.inlineCallbacks
     def get_fan_status_table(self):
         """Retrieve the whole table of fan-sensors and cache the result."""
@@ -129,16 +125,6 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
         if not self.psu_status_table:
             self.psu_status_table = yield self._get_power_status_table()
         defer.returnValue(self.psu_status_table)
-
-    def get_oid_for_fan_status(self, internal_id):
-        """Get the OID for the fan sensor with the given index."""
-        oper_status = self.nodes.get("cefcFanTrayOperStatus")
-        return oper_status.oid + (internal_id,)
-
-    def get_oid_for_psu_status(self, internal_id):
-        """Get the OID for the PSU sensor with the given internal id."""
-        oper_status = self.nodes.get("cefcFRUPowerOperStatus")
-        return oper_status.oid + (internal_id,)
 
     def get_power_supplies(self):
         """Retrieves a list of power supply objects"""
