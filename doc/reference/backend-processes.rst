@@ -25,7 +25,6 @@ relevant section in this document:
 - `maintengine`_
 - `netbiostracker`_
 - `pping`_
-- `psuwatch`_
 - `servicemon`_
 - `smsd`_
 - `snmptrapd`_
@@ -222,25 +221,6 @@ posted on the event queue.
   :file:`pping.conf`
 :Logs:
   :file:`pping.log` (configurable)
-
-
-psuwatch
---------
-
-Monitors the state of redundant PSUs and fans.
-
-Uses SNMP to query for current state and compares it with the state stored in
-the database. Results are posted on the event queue. The event- and alert system
-takes care of messaging.
-
-:Dependencies:
-  Supports only HP and Cisco devices
-:Run mode:
-  cron
-:Configuration:
-  None
-:Logs:
-  :file:`powersupplywatch.log`
 
 
 servicemon

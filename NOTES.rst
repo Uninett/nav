@@ -11,13 +11,6 @@ please go to https://github.com/uninett/nav/milestones .
 UNRELEASED
 ==========
 
-Changed command line options
-----------------------------
-
-The ``--verify`` option has been removed from :program:`powersupplywatch.py`.
-All logging settings are controlled in :file:`logging.conf`, as with any
-other NAV program.
-
 Dependency changes
 ------------------
 
@@ -45,6 +38,13 @@ receive optical power values.
 The implementation was contributed by Pär Stolpe of Linköping University, and
 has been specifically tested on Alcatel Lucent Enterprise OmniSwitch AOS 8.
 
+psuwatch ipdevpoll plugin replaces powersupplywatch program
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :program:`powersupplywatch` program (run periodically in the ``psuwatch``
+cronjob) has been replaced by the new ``psuwatch`` plugin, as part of the
+:program:`ipdevpoll` ``statuscheck`` job. Please ensure your
+:file:`ipdevpoll.conf` is properly updated.
 
 
 NAV 4.9
