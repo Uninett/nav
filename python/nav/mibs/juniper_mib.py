@@ -18,21 +18,22 @@ from twisted.internet import defer
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 
-OPERATING_DESCR = 'jnxOperatingDescr'
-OPERATING_CPU = 'jnxOperatingCPU'
-LOAD_AVG_1MIN = 'jnxOperating1MinLoadAvg'
-LOAD_AVG_5MIN = 'jnxOperating1MinLoadAvg'
-LOAD_AVG_15MIN = 'jnxOperating1MinLoadAvg'
+OPERATING_DESCR = "jnxOperatingDescr"
+OPERATING_CPU = "jnxOperatingCPU"
+LOAD_AVG_1MIN = "jnxOperating1MinLoadAvg"
+LOAD_AVG_5MIN = "jnxOperating1MinLoadAvg"
+LOAD_AVG_15MIN = "jnxOperating1MinLoadAvg"
 
 
 class JuniperMib(MibRetriever):
     """JUNIPER-MIB MibRetriever"""
-    mib = get_mib('JUNIPER-MIB')
+
+    mib = get_mib("JUNIPER-MIB")
 
     @defer.inlineCallbacks
     def get_serial_number(self):
         """Tries to get a serial number from a Juniper device"""
-        serial = yield self.get_next('jnxBoxSerialNo')
+        serial = yield self.get_next("jnxBoxSerialNo")
         if serial:
             defer.returnValue(serial)
 
@@ -47,23 +48,19 @@ class JuniperMib(MibRetriever):
         of 0.
 
         """
-        load = yield self.retrieve_columns([
-            OPERATING_DESCR,
-            LOAD_AVG_1MIN,
-            LOAD_AVG_5MIN,
-            LOAD_AVG_15MIN,
-        ])
+        load = yield self.retrieve_columns(
+            [OPERATING_DESCR, LOAD_AVG_1MIN, LOAD_AVG_5MIN, LOAD_AVG_15MIN]
+        )
 
         if load:
             result = dict()
             for row in load.values():
-                if (row[LOAD_AVG_15MIN] or row[LOAD_AVG_5MIN] or
-                        row[LOAD_AVG_1MIN]):
+                if row[LOAD_AVG_15MIN] or row[LOAD_AVG_5MIN] or row[LOAD_AVG_1MIN]:
                     name = row[OPERATING_DESCR]
                     values = [
                         (15, row[LOAD_AVG_15MIN]),
                         (5, row[LOAD_AVG_5MIN]),
-                        (1, row[LOAD_AVG_1MIN])
+                        (1, row[LOAD_AVG_1MIN]),
                     ]
                     result[name] = values
             defer.returnValue(result)
@@ -79,10 +76,7 @@ class JuniperMib(MibRetriever):
         of 0.
 
         """
-        util = yield self.retrieve_columns([
-            OPERATING_DESCR,
-            OPERATING_CPU,
-        ])
+        util = yield self.retrieve_columns([OPERATING_DESCR, OPERATING_CPU])
 
         if util:
             result = dict()
