@@ -45,12 +45,17 @@ from nav.mibs.entity_mib import EntityMib
 from nav.mibs.cisco_entity_fru_control_mib import CiscoEntityFruControlMib
 from nav.mibs.hpicf_fan_mib import HpIcfFanMib
 from nav.mibs.hpicf_powersupply_mib import HpIcfPowerSupplyMib
-from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS, VENDOR_ID_HEWLETT_PACKARD
-
+from nav.mibs.juniper_mib import JuniperMib
+from nav.enterprise.ids import (
+    VENDOR_ID_CISCOSYSTEMS,
+    VENDOR_ID_HEWLETT_PACKARD,
+    VENDOR_ID_JUNIPER_NETWORKS_INC,
+)
 
 VENDOR_MIB_MAP = {
     VENDOR_ID_CISCOSYSTEMS: [CiscoEntityFruControlMib],
     VENDOR_ID_HEWLETT_PACKARD: [HpIcfPowerSupplyMib, HpIcfFanMib],
+    VENDOR_ID_JUNIPER_NETWORKS_INC: [JuniperMib],
 }
 FALLBACK_MIBS = [EntityMib]
 

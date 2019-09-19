@@ -17,6 +17,8 @@
 from twisted.internet import defer
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
+from nav.ipdevpoll.shadows import PowerSupplyOrFan, Device
+
 
 OPERATING_DESCR = "jnxOperatingDescr"
 OPERATING_CPU = "jnxOperatingCPU"
@@ -85,3 +87,50 @@ class JuniperMib(MibRetriever):
                     name = row[OPERATING_DESCR]
                     result[name] = row[OPERATING_CPU]
             defer.returnValue(result)
+
+    def get_power_supplies(self):
+        """Retrieves a list of field-replaceable power supply units"""
+        return self._get_fru_by_type("powerEntryModule")
+
+    def get_fans(self):
+        """Retrieves a list of field-replaceable fan units"""
+        return self._get_fru_by_type("fan")
+
+    @defer.inlineCallbacks
+    def _get_fru_by_type(self, fru_type):
+        # Columns from two different, but related tables:
+        response = yield self.retrieve_columns(
+            [
+                "jnxFruName",
+                "jnxFruType",
+                "jnxFruState",
+                "jnxContentsSerialNo",
+                "jnxContentsModel",
+            ]
+        ).addCallback(self.translate_result)
+        self._logger.warning("jnxFru results: %r", response)
+        units = [
+            _fru_row_to_powersupply_or_fan(row)
+            for row in response.values()
+            if row.get("jnxFruState") != "empty" and row.get("jnxFruType") == fru_type
+        ]
+        defer.returnValue(units)
+
+
+def _fru_row_to_powersupply_or_fan(fru_row):
+    model = fru_row.get("jnxContentsModel")
+    psu_or_fan = PowerSupplyOrFan(
+        name=fru_row.get("jnxFruName"),
+        physical_class="powerSupply"
+        if fru_row.get("jnxFruType") == "powerEntryModule"
+        else "fan",
+        descr=model,
+        internal_id=fru_row.get(0),
+    )
+    serial = fru_row.get("jnxContentsSerialNo")
+    if serial:
+        device = Device(serial=serial)
+        if model:
+            device.model = model
+        psu_or_fan.device = device
+    return psu_or_fan
