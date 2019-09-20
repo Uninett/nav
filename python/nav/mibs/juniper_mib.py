@@ -15,8 +15,11 @@
 #
 """JUNIPER-MIB MibRetriever"""
 from twisted.internet import defer
+
+from nav.oids import OID
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
+from nav.models.manage import PowerSupplyOrFan as FRU
 from nav.ipdevpoll.shadows import PowerSupplyOrFan, Device
 
 
@@ -25,6 +28,19 @@ OPERATING_CPU = "jnxOperatingCPU"
 LOAD_AVG_1MIN = "jnxOperating1MinLoadAvg"
 LOAD_AVG_5MIN = "jnxOperating1MinLoadAvg"
 LOAD_AVG_15MIN = "jnxOperating1MinLoadAvg"
+
+FRU_STATUS_MAP = {
+    "unknown": FRU.STATE_UNKNOWN,
+    "empty": FRU.STATE_UNKNOWN,
+    "present": FRU.STATE_UNKNOWN,
+    "ready": FRU.STATE_UNKNOWN,
+    "announceOnline": FRU.STATE_UNKNOWN,
+    "online": FRU.STATE_UP,
+    "anounceOffline": FRU.STATE_WARNING,
+    "offline": FRU.STATE_DOWN,
+    "diagnostic": FRU.STATE_WARNING,
+    "standby": FRU.STATE_WARNING,
+}
 
 
 class JuniperMib(MibRetriever):
@@ -115,6 +131,27 @@ class JuniperMib(MibRetriever):
             if row.get("jnxFruState") != "empty" and row.get("jnxFruType") == fru_type
         ]
         defer.returnValue(units)
+
+    @defer.inlineCallbacks
+    def get_fru_status(self, internal_id):
+        """Returns the operational status for a FRU with the given internal id."""
+        oper_status = yield self.retrieve_column_by_index(
+            "jnxFruState", OID(internal_id)
+        )
+        self._logger.debug("jnxFruState.%s = %r", internal_id, oper_status)
+        defer.returnValue(self._translate_fru_status_value(oper_status))
+
+    get_fan_status = get_fru_status
+    get_power_supply_status = get_fru_status
+
+    @staticmethod
+    def _translate_fru_status_value(oper_status):
+        """Translates the FRU status value from the MIB to a NAV PSU status value.
+
+        :returns: A state value from nav.models.manage.PowerSupplyOrFan.STATE_CHOICES
+
+        """
+        return FRU_STATUS_MAP.get(oper_status, FRU.STATE_UNKNOWN)
 
 
 def _fru_row_to_powersupply_or_fan(fru_row):
