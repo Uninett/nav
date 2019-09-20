@@ -17,7 +17,7 @@ MIB = {
         "contact" : 
             """        Juniper Technical Assistance Center
 Juniper Networks, Inc.
-1194 N. Mathilda Avenue
+1133 Innovation Way
 Sunnyvale, CA 94089
 E-mail: support@juniper.net""",
         "description" :
@@ -25,6 +25,136 @@ E-mail: support@juniper.net""",
 implementation of enterprise specific MIBs 
 supported by a single SNMP agent.""",
         "revisions" : (
+            {
+                "date" : "2016-05-16 00:00",
+                "description" :
+                    """Added new trap: jnxFmHealthChkErr.""",
+            },
+            {
+                "date" : "2016-02-02 00:00",
+                "description" :
+                    """Added new offline reason fruFpcHFanTrayIncompatible and
+missing entries mixedSwitchFabric, unsupportedFabric,
+jamConfigError.""",
+            },
+            {
+                "date" : "2015-04-28 00:00",
+                "description" :
+                    """Added new MIB jnxContentsModel.""",
+            },
+            {
+                "date" : "2015-04-01 00:00",
+                "description" :
+                    """Added new FRU Power consumption variable.""",
+            },
+            {
+                "date" : "2015-01-14 00:00",
+                "description" :
+                    """Added new color types for jnxLEDState and jnxLEDStateOrdered.""",
+            },
+            {
+                "date" : "2014-12-04 00:00",
+                "description" :
+                    """Added new trap: jnxFmAsicErr.""",
+            },
+            {
+                "date" : "2014-07-30 00:00",
+                "description" :
+                    """Added new offline reasons fruFpcFanTrayIncompatible &
+fruFpcPEMIncompatible to jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2014-05-20 00:00",
+                "description" :
+                    """Added MIBs for 1, 5 and 15 min average CPU util""",
+            },
+            {
+                "date" : "2014-04-08 00:00",
+                "description" :
+                    """Added new offline reason vpnLocalizationRoleChange to
+jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2013-11-19 00:00",
+                "description" :
+                    """Added new offline reason fruPfeErrors to
+jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2013-10-15 00:00",
+                "description" :
+                    """Added new offline reason fruIncompatibleWithPEM,
+fruIncompatibleWithSIB, and sibIncompatibleWithOtherSIB
+to jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2013-09-24 00:00",
+                "description" :
+                    """Added new offline reason hwError
+to jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2013-07-17 00:00",
+                "description" :
+                    """Added new Fabric plane offline/online/check traps
+to trap fabric plane offline/online/fault events.""",
+            },
+            {
+                "date" : "2013-05-22 00:00",
+                "description" :
+                    """Added new offline reasons fruReUnresponsive to
+jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2013-03-22 00:00",
+                "description" :
+                    """Added new offline reason hwError
+to jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2013-02-28 00:00",
+                "description" :
+                    """Added new offline reasons fruFpcScbIncompatible to
+jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2013-01-07 00:00",
+                "description" :
+                    """Added new offline reason openflowConfigChange to
+jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2012-12-10 00:00",
+                "description" :
+                    """Added new OIDs to get control plane memory 
+allocation (jnxOperatingMemoryCP)
+and utilization(jnxOperatingBufferCP) in RE.""",
+            },
+            {
+                "date" : "2012-11-07 00:00",
+                "description" :
+                    """Added new offline reasons fruFpcIncompatible and
+fruFpcFanTrayPEMIncompatible to
+jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2012-10-12 00:00",
+                "description" :
+                    """Added new offline reason fruPICOfflineOnEccErrors to
+jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2012-08-24 00:00",
+                "description" :
+                    """Added new offline reason fruTypeConfigMismatch to
+jnxFruOfflineReason enumeration.""",
+            },
+            {
+                "date" : "2012-08-24 00:00",
+                "description" :
+                    """Added new offline reason fruTypeConfigMismatch to
+jnxFruOfflineReason enumeration.""",
+            },
             {
                 "date" : "2012-02-21 00:00",
                 "description" :
@@ -281,6 +411,62 @@ and jnxFruOnline.""",
             "member7" : {
                 "nodetype" : "namednumber",
                 "number" : "38"
+            },
+            "nodeDevice" : {
+                "nodetype" : "namednumber",
+                "number" : "39"
+            },
+            "interconnectDevice" : {
+                "nodetype" : "namednumber",
+                "number" : "40"
+            },
+            "controlPlaneDevice" : {
+                "nodetype" : "namednumber",
+                "number" : "41"
+            },
+            "directorDevice" : {
+                "nodetype" : "namednumber",
+                "number" : "42"
+            },
+            "gnf1" : {
+                "nodetype" : "namednumber",
+                "number" : "43"
+            },
+            "gnf2" : {
+                "nodetype" : "namednumber",
+                "number" : "44"
+            },
+            "gnf3" : {
+                "nodetype" : "namednumber",
+                "number" : "45"
+            },
+            "gnf4" : {
+                "nodetype" : "namednumber",
+                "number" : "46"
+            },
+            "gnf5" : {
+                "nodetype" : "namednumber",
+                "number" : "47"
+            },
+            "gnf6" : {
+                "nodetype" : "namednumber",
+                "number" : "48"
+            },
+            "gnf7" : {
+                "nodetype" : "namednumber",
+                "number" : "49"
+            },
+            "gnf8" : {
+                "nodetype" : "namednumber",
+                "number" : "50"
+            },
+            "gnf9" : {
+                "nodetype" : "namednumber",
+                "number" : "51"
+            },
+            "gnf10" : {
+                "nodetype" : "namednumber",
+                "number" : "52"
             },
             "description" :
                 """Identifies a specific router chassis.""",
@@ -976,6 +1162,35 @@ Technologies, is responsible for assigning certain equipment and
 other identifiers (e.g., location, manufacturer/supplier) for the
 telecommunications industry.""",
         }, # column
+        "jnxContentsModel" : {
+            "nodetype" : "column",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.3.1.8.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "OctetString",
+                    "parent module" : {
+                        "name" : "SNMPv2-TC",
+                        "type" : "DisplayString",
+                    },
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The FRU model name of this subject, blank if unknown
+or unavailable.""",
+        }, # column
         "jnxLEDLastChange" : {
             "nodetype" : "scalar",
             "moduleName" : "JUNIPER-MIB",
@@ -1215,6 +1430,30 @@ if unavailable or inapplicable.""",
                         "nodetype" : "namednumber",
                         "number" : "6"
                     },
+                    "off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "blinkingGreen" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "blinkingYellow" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                    "blinkingRed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "10"
+                    },
+                    "blinkingBlue" : {
+                        "nodetype" : "namednumber",
+                        "number" : "11"
+                    },
+                    "blinkingAmber" : {
+                        "nodetype" : "namednumber",
+                        "number" : "12"
+                    },
                 },
             },
             "access" : "readonly",
@@ -1252,6 +1491,30 @@ if unavailable or inapplicable.""",
                     "other" : {
                         "nodetype" : "namednumber",
                         "number" : "6"
+                    },
+                    "off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "blinkingBlue" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "blinkingGreen" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                    "blinkingAmber" : {
+                        "nodetype" : "namednumber",
+                        "number" : "10"
+                    },
+                    "blinkingYellow" : {
+                        "nodetype" : "namednumber",
+                        "number" : "11"
+                    },
+                    "blinkingRed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "12"
                     },
                 },
             },
@@ -1953,6 +2216,90 @@ Zero if unavailable or inapplicable.""",
 Here it will be shown as percentage value
 Zero if unavailable or inapplicable.""",
         }, # column
+        "jnxOperating1MinAvgCPU" : {
+            "nodetype" : "column",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.3.1.13.1.23",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The CPU utilization in percentage of this
+subject averaged over last 1 minutes. Zero if
+unavailable or inapplicable.""",
+        }, # column
+        "jnxOperating5MinAvgCPU" : {
+            "nodetype" : "column",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.3.1.13.1.24",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The CPU utilization in percentage of this
+subject averaged over last 5 minutes.  Zero if
+unavailable or inapplicable.""",
+        }, # column
+        "jnxOperating15MinAvgCPU" : {
+            "nodetype" : "column",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.3.1.13.1.25",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The CPU utilization in percentage of this
+subject averaged over last 15 minutes.  Zero
+if unavailable or inapplicable.""",
+        }, # column
+        "jnxOperatingFRUPower" : {
+            "nodetype" : "column",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.3.1.13.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The present power of each FRU. Here it will
+be shown in terms of voltage. Zero if unavailable
+or inapplicable""",
+        }, # column
+        "jnxOperatingBufferCP" : {
+            "nodetype" : "column",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.3.1.13.1.27",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The buffer pool utilization in percentage
+of this subject in control plane.  Zero if 
+unavailable or inapplicable.""",
+        }, # column
+        "jnxOperatingMemoryCP" : {
+            "nodetype" : "column",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.3.1.13.1.28",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Allocated memory size for control plane
+in Megabytes. Zero if unavailable or
+	inapplicable.""",
+        }, # column
         "jnxRedundancyTable" : {
             "nodetype" : "table",
             "moduleName" : "JUNIPER-MIB",
@@ -2565,6 +2912,14 @@ subject.  Zero if unavailable or inapplicable.""",
                         "nodetype" : "namednumber",
                         "number" : "18"
                     },
+                    "switchFabricBoard" : {
+                        "nodetype" : "namednumber",
+                        "number" : "19"
+                    },
+                    "adapterCard" : {
+                        "nodetype" : "namednumber",
+                        "number" : "20"
+                    },
                 },
             },
             "access" : "readonly",
@@ -2979,6 +3334,130 @@ subject.  Zero if unavailable or inapplicable.""",
                     "builtinPicBounce" : {
                         "nodetype" : "namednumber",
                         "number" : "77"
+                    },
+                    "fruFabricDegraded" : {
+                        "nodetype" : "namednumber",
+                        "number" : "78"
+                    },
+                    "fruFPCFabricDegradedOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "79"
+                    },
+                    "fruUnsupportedSlot" : {
+                        "nodetype" : "namednumber",
+                        "number" : "80"
+                    },
+                    "fruRouteLocalizationMisCfg" : {
+                        "nodetype" : "namednumber",
+                        "number" : "81"
+                    },
+                    "fruTypeConfigMismatch" : {
+                        "nodetype" : "namednumber",
+                        "number" : "82"
+                    },
+                    "lccModeChanged" : {
+                        "nodetype" : "namednumber",
+                        "number" : "83"
+                    },
+                    "hwFault" : {
+                        "nodetype" : "namednumber",
+                        "number" : "84"
+                    },
+                    "fruPICOfflineOnEccErrors" : {
+                        "nodetype" : "namednumber",
+                        "number" : "85"
+                    },
+                    "fruFpcIncompatible" : {
+                        "nodetype" : "namednumber",
+                        "number" : "86"
+                    },
+                    "fruFpcFanTrayPEMIncompatible" : {
+                        "nodetype" : "namednumber",
+                        "number" : "87"
+                    },
+                    "fruUnsupportedFirmware" : {
+                        "nodetype" : "namednumber",
+                        "number" : "88"
+                    },
+                    "openflowConfigChange" : {
+                        "nodetype" : "namednumber",
+                        "number" : "89"
+                    },
+                    "fruFpcScbIncompatible" : {
+                        "nodetype" : "namednumber",
+                        "number" : "90"
+                    },
+                    "fruReUnresponsive" : {
+                        "nodetype" : "namednumber",
+                        "number" : "91"
+                    },
+                    "hwError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "92"
+                    },
+                    "fruErrorManagerReqFPCReset" : {
+                        "nodetype" : "namednumber",
+                        "number" : "93"
+                    },
+                    "fruIncompatibleWithPEM" : {
+                        "nodetype" : "namednumber",
+                        "number" : "94"
+                    },
+                    "fruIncompatibleWithSIB" : {
+                        "nodetype" : "namednumber",
+                        "number" : "95"
+                    },
+                    "sibIncompatibleWithOtherSIB" : {
+                        "nodetype" : "namednumber",
+                        "number" : "96"
+                    },
+                    "fruPfeErrors" : {
+                        "nodetype" : "namednumber",
+                        "number" : "97"
+                    },
+                    "vpnLocalizationRoleChange" : {
+                        "nodetype" : "namednumber",
+                        "number" : "98"
+                    },
+                    "fruFpcFanTrayIncompatible" : {
+                        "nodetype" : "namednumber",
+                        "number" : "99"
+                    },
+                    "fruFpcPEMIncompatible" : {
+                        "nodetype" : "namednumber",
+                        "number" : "100"
+                    },
+                    "mixedSwitchFabric" : {
+                        "nodetype" : "namednumber",
+                        "number" : "101"
+                    },
+                    "unsupportedFabric" : {
+                        "nodetype" : "namednumber",
+                        "number" : "102"
+                    },
+                    "jamConfigError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "103"
+                    },
+                    "fruFpcHFanTrayIncompatible" : {
+                        "nodetype" : "namednumber",
+                        "number" : "104"
+                    },
+                    "gnfIsOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "105"
+                    },
+                    "gnfdisconnected" : {
+                        "nodetype" : "namednumber",
+                        "number" : "106"
+                    },
+                    "fruIncompatibleWithVersion" : {
+                        "nodetype" : "namednumber",
+                        "number" : "107"
+                    },
+                    "reasonOfflineEnd" : {
+                        "nodetype" : "namednumber",
+                        "number" : "108"
                     },
                 },
             },
@@ -3971,6 +4450,341 @@ cell drop errors.""",
 entity, acting in an agent role, has detected that
 a lock for an external clock source has been lost.""",
         }, # notification
+        "jnxPlaneOffline" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.1.20",
+            "status" : "current",
+            "objects" : {
+                "jnxFruContentsIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruName" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruType" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruSlot" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruOfflineReason" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruLastPowerOff" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruLastPowerOn" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A jnxPlaneOffline trap signifies that the SNMP
+entity, acting in an agent role, has detected
+that the specified Fabric plane
+has gone offline in the chassis.""",
+        }, # notification
+        "jnxPlaneOnline" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.1.21",
+            "status" : "current",
+            "objects" : {
+                "jnxFruContentsIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruName" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruType" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruSlot" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A jnxPlaneOnline trap signifies that the SNMP
+entity, acting in an agent role, has detected that
+the specified Fabric Plane has
+gone online in the chassis.""",
+        }, # notification
+        "jnxPlaneCheck" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.1.22",
+            "status" : "current",
+            "objects" : {
+                "jnxFruContentsIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruName" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruType" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruSlot" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A jnxPlaneCheck trap signifies that the SNMP
+entity, acting in an agent role, has detected that
+the specified Fabric plane has
+encountered some operational errors and gone into
+check state in the chassis.""",
+        }, # notification
+        "jnxPlaneFault" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.1.23",
+            "status" : "current",
+            "objects" : {
+                "jnxFruContentsIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruName" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruType" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruSlot" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A jnxPlaneCheck trap signifies that the SNMP
+entity, acting in an agent role, has detected that
+the specified Fabric plane has
+encountered some operational errors and gone into
+fault state in the chassis.""",
+        }, # notification
+        "jnxPowerSupplyInputFailure" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.1.24",
+            "status" : "current",
+            "objects" : {
+                "jnxContentsContainerIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxContentsL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxContentsL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxContentsL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxContentsDescr" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxOperatingState" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A jnxPowerSupplyInputFailure trap signifies that
+the SNMP entity, acting in an agent role, has
+detected that the specified power supply's input feed 
+in the chassis has been in the failure condition.""",
+        }, # notification
+        "jnxFmAsicErr" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.1.25",
+            "status" : "current",
+            "objects" : {
+                "jnxFruContentsIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruName" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruType" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruSlot" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A jnxFmAsicErr trap signifies that the SNMP
+entity, acting in an agent role, has detected 
+errors in a switching device within the fabric.""",
+        }, # notification
+        "jnxMountVarOffHardDiskFailed" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.1.26",
+            "status" : "current",
+            "objects" : {
+                "jnxFruContentsIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruName" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruType" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruSlot" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A jnxMountVarOffHardDiskFailed signifies that the SNMP
+entity, acting in an agent role, has detected that
+mount of /var failed off harddisk, emergency /var created.""",
+        }, # notification
+        "jnxFmHealthChkErr" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.1.27",
+            "status" : "current",
+            "objects" : {
+                "jnxFruContentsIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruName" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruType" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruSlot" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A HealthChkErr trap signifies that the SNMP
+entity, acting in an agent role, has detected 
+health check errors.""",
+        }, # notification
         "jnxPowerSupplyOK" : {
             "nodetype" : "notification",
             "moduleName" : "JUNIPER-MIB",
@@ -4165,6 +4979,84 @@ is in ok state in the chassis.""",
                 """A ExtSrcLockAcquired trap signifies that the SNMP
 entity, acting in an agent role, has detected that
 a lock for an external clock source has been acquired.""",
+        }, # notification
+        "jnxHardDiskOK" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.2.6",
+            "status" : "current",
+            "objects" : {
+                "jnxFruContentsIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruName" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruType" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxFruSlot" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A jnxHardDiskOK trap signifies that the SNMP
+entity, acting in an agent role, has detected that
+the Disk in the specified Routing Engine has
+recovered from the failure condition.""",
+        }, # notification
+        "jnxPowerSupplyInputOK" : {
+            "nodetype" : "notification",
+            "moduleName" : "JUNIPER-MIB",
+            "oid" : "1.3.6.1.4.1.2636.4.2.7",
+            "status" : "current",
+            "objects" : {
+                "jnxContentsContainerIndex" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxContentsL1Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxContentsL2Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxContentsL3Index" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxContentsDescr" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+                "jnxOperatingState" : {
+                    "nodetype" : "object",
+                    "module" : "JUNIPER-MIB"
+                },
+            },
+            "description" :
+                """A jnxPowerSupplyInputOK trap signifies that the 
+SNMP entity, acting in an agent role, has detected 
+that the specified power supply's input feed in the
+chassis has recovered from the failure condition.""",
         }, # notification
     }, # notifications
 
