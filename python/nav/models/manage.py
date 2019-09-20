@@ -283,7 +283,7 @@ class Netbox(models.Model):
             )
         profiles = sorted(
             self.profiles.filter(query),
-            key=lambda p: p.configuration.get('version'),
+            key=lambda p: str(p.configuration.get('version') or 0),
             reverse=True,
         )
         if profiles:
