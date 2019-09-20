@@ -18,6 +18,8 @@ import re
 
 from twisted.internet import defer
 
+from django.utils import six
+
 import nav.bitvector
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
@@ -136,6 +138,13 @@ def portlist_juniper(data):
     interpreted in junipers strange notion of the spec or None if data
     does not match this format
     """
+    # data would normally be binary, but since Juniper ignores the spec, it's a comma
+    # separated ASCII string:
+    if isinstance(data, six.binary_type):
+        try:
+            data = data.decode('ascii')
+        except UnicodeDecodeError:
+            return None
     if re.match("^[0-9,]+$", data):
         return {int(x) for x in data.split(",")}
     return None
