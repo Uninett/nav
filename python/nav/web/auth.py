@@ -76,6 +76,7 @@ class RemoteUserConfigParser(NAVConfigParser):
 [remote-user]
 enabled=no
 login-url=
+varname=REMOTE_USER
 """
 _config = RemoteUserConfigParser()
 
@@ -243,11 +244,22 @@ def get_remote_username(request):
     if not request:
         return None
 
-    username = request.META.get('REMOTE_USER', '').strip()
+    varname = _get_remote_user_varname()
+    username = request.META.get(varname, '').strip()
+
     if not username:
         return None
 
     return username
+
+
+def _get_remote_user_varname():
+    varname = 'REMOTE_USER'
+    try:
+        varname = _config.get('remote-user', 'varname')
+    except ValueError:
+        pass
+    return varname
 
 
 # Middleware
