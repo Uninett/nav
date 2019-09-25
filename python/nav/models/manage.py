@@ -1058,7 +1058,7 @@ class Category(models.Model):
 
     id = models.CharField(db_column='catid', max_length=8, primary_key=True)
     description = VarcharField(db_column='descr')
-    req_snmp = models.BooleanField(default=False)
+    req_mgmt = models.BooleanField(default=False)
 
     class Meta(object):
         db_table = 'cat'

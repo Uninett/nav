@@ -191,7 +191,7 @@ class NetboxModelForm(forms.ModelForm):
                 self._errors['ip'] = self.error_class(ex.message)
                 del cleaned_data['ip']
 
-        if cat and cat.req_snmp and not profiles:
+        if cat and cat.req_mgmt and not profiles:
             self._errors['profiles'] = self.error_class(
                 ["Category %s requires a management profile." % cat.id])
             del cleaned_data['profiles']
