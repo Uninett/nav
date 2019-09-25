@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2013 Uninett AS
+# Copyright (C) 2013, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,9 +17,12 @@
 """Serializers for the NAV REST api"""
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from nav.web.api.v1.fields import DisplayNameWritableField
 from nav.models import manage, cabling, rack, profiles
+from nav.web.seeddb.page.netbox.edit import get_sysname
+
 
 
 class ManagementProfileSerializer(serializers.ModelSerializer):
@@ -159,6 +162,21 @@ class NetboxSerializer(serializers.ModelSerializer):
         model = manage.Netbox
         depth = 1
         fields = '__all__'
+
+    def validate(self, attrs):
+        if attrs.get("ip") and not attrs.get("sysname"):
+            attrs["sysname"] = get_sysname(attrs.get("ip")) or attrs.get("ip")
+        try:
+            duplicate = manage.Netbox.objects.get(sysname=attrs.get("sysname"))
+        except manage.Netbox.DoesNotExist:
+            pass
+        else:
+            if duplicate != self.instance:
+                raise ValidationError(
+                    "{} already exists in the database".format(attrs.get("sysname")),
+                    code="unique",
+                )
+        return attrs
 
     def create(self, validated_data):
         profile_list = validated_data.pop("profiles", None)
