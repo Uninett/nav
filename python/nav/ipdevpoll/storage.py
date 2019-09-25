@@ -140,6 +140,7 @@ class Shadow(object):
         inside the object hierarchy.
 
         """
+        self._touched = set()
         if args:
             obj = args[0]
             if isinstance(obj, self.__class__.__shadowclass__):
@@ -154,7 +155,6 @@ class Shadow(object):
                     raise AttributeError("Invalid keyword argument %s" % key)
                 setattr(self, key, val)
 
-        self._touched = set()
         self.delete = False
         self.update_only = False
         self._cached_converted_model = None
@@ -233,9 +233,9 @@ class Shadow(object):
         return attr in cls._fields
 
     def copy(self, other):
-        """Copies the attributes of another instance (shallow)"""
+        """Copies (only the touched) attributes of another instance (shallow)"""
         if isinstance(other, self.__class__):
-            for field in self._fields:
+            for field in other.get_touched():
                 setattr(self, field, getattr(other, field))
         else:
             raise ValueError("First argument is not a %s instance" %
