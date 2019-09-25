@@ -2,7 +2,7 @@
  Network Administration Visualized release notes
 =================================================
 
-Please report bugs at https://github.com/uninett/nav/issues/new . To browse
+Please report bugs at https://github.com/uninett/nav/issues/new/choose . To browse
 existing bug reports, go to https://github.com/uninett/nav/issues .
 
 To see an overview of upcoming release milestones and the issues they resolve,
