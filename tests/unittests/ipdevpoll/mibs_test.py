@@ -24,13 +24,19 @@ from twisted.python import failure
 from mock import Mock
 import pytest
 
+from nav.ipdevpoll.shadows import PowerSupplyOrFan, Device
 from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
+from nav.models.manage import NetboxEntity
 from nav.oids import OID
 from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
-from nav.mibs.entity_mib import EntityMib, parse_dateandtime_tc
+from nav.mibs.entity_mib import (
+    EntityMib,
+    parse_dateandtime_tc,
+    _entity_to_powersupply_or_fan,
+)
 from nav.mibs.snmpv2_mib import Snmpv2Mib
-from nav.mibs import (itw_mib, itw_mibv3, itw_mibv4)
+from nav.mibs import itw_mib, itw_mibv3, itw_mibv4
 
 
 class TestIpMib(object):
@@ -123,6 +129,54 @@ class TestEntityMib(object):
         if isinstance(df.result, failure.Failure):
             df.result.raiseException()
 
+    def test_entity_to_powersupply_or_fan(self):
+        entity = {
+            "entPhysicalName": "PSU 1",
+            "entPhysicalModelName": "ABCDEF 720",
+            "entPhysicalDescr": "Next-gen PSU Power fidelity foobar",
+            "entPhysicalClass": NetboxEntity.CLASS_POWERSUPPLY,
+            "entPhysicalSerialNum": "123ABC",
+            0: OID('.1'),
+        }
+        unit = _entity_to_powersupply_or_fan(entity)
+        assert isinstance(unit, PowerSupplyOrFan)
+        assert isinstance(unit.device, Device)
+
+    @pytest.mark.parametrize(
+        "func,expected_count", [("get_power_supplies", 2), ("get_fans", 1)]
+    )
+    def test_get_power_supplies_or_fans_should_return_correct_number_of_units(
+        self, entity_physical_table, func, expected_count
+    ):
+        """Tests that the correct number of fans or psus are filtered from an
+        entPhysicalTable result.
+
+        """
+        result = self._get_units(func, entity_physical_table)
+        assert len(result) == expected_count
+
+    @pytest.mark.parametrize("func", ["get_power_supplies", "get_fans"])
+    def test_get_power_supplies_or_fans_should_return_lists_of_correct_type(
+        self, entity_physical_table, func
+    ):
+        result = self._get_units(func, entity_physical_table)
+        assert result
+        assert all(isinstance(unit, PowerSupplyOrFan) for unit in result)
+
+    @staticmethod
+    def _get_units(func, entity_physical_table):
+        mib = EntityMib(Mock("AgentProxy"))
+
+        def mock_retrieve(columns):
+            return defer.succeed(entity_physical_table)
+
+        mib.retrieve_columns = mock_retrieve
+        df = getattr(mib, func)()
+        assert df.called
+        if isinstance(df.result, failure.Failure):
+            df.result.raiseException()
+        return df.result
+
 
 class TestSnmpv2Mib(object):
     def test_simple_uptime_deviation_should_be_correct(self):
@@ -199,3 +253,66 @@ def test_itw_tables(cls):
             for sensor in group['sensors']:
                 assert sensor in mib['nodes'], sensor
                 assert is_col_of(mib, sensor, table)
+
+
+@pytest.fixture
+def entity_physical_table(scope="session"):
+    """Returns a sample entPhysicalTable response"""
+    return {
+        OID(".1"): {
+            0: OID(".1"),
+            "entPhysicalDescr": "Chassis",
+            "entPhysicalContainedIn": 0,
+            "entPhysicalClass": NetboxEntity.CLASS_CHASSIS,
+            "entPhysicalParentRelPos": 0,
+            "entPhysicalName": "My Chassis",
+            "entPhysicalHardwareRev": None,
+            "entPhysicalFirmwareRev": None,
+            "entPhysicalSoftwareRev": None,
+            "entPhysicalSerialNum": None,
+            "entPhysicalModelName": None,
+            "entPhysicalIsFRU": 0,
+        },
+        OID(".2"): {
+            0: OID(".2"),
+            "entPhysicalDescr": "A power supply",
+            "entPhysicalContainedIn": 1,
+            "entPhysicalClass": NetboxEntity.CLASS_POWERSUPPLY,
+            "entPhysicalParentRelPos": 0,
+            "entPhysicalName": "PSU 1",
+            "entPhysicalHardwareRev": None,
+            "entPhysicalFirmwareRev": None,
+            "entPhysicalSoftwareRev": None,
+            "entPhysicalSerialNum": None,
+            "entPhysicalModelName": None,
+            "entPhysicalIsFRU": 1,
+        },
+        OID(".3"): {
+            0: OID(".3"),
+            "entPhysicalDescr": "Another power supply",
+            "entPhysicalContainedIn": 1,
+            "entPhysicalClass": NetboxEntity.CLASS_POWERSUPPLY,
+            "entPhysicalParentRelPos": 1,
+            "entPhysicalName": "PSU 2",
+            "entPhysicalHardwareRev": None,
+            "entPhysicalFirmwareRev": None,
+            "entPhysicalSoftwareRev": None,
+            "entPhysicalSerialNum": None,
+            "entPhysicalModelName": None,
+            "entPhysicalIsFRU": 1,
+        },
+        OID(".4"): {
+            0: OID(".4"),
+            "entPhysicalDescr": "A fan",
+            "entPhysicalContainedIn": 1,
+            "entPhysicalClass": NetboxEntity.CLASS_FAN,
+            "entPhysicalParentRelPos": 0,
+            "entPhysicalName": "FAN 1",
+            "entPhysicalHardwareRev": None,
+            "entPhysicalFirmwareRev": None,
+            "entPhysicalSoftwareRev": None,
+            "entPhysicalSerialNum": None,
+            "entPhysicalModelName": None,
+            "entPhysicalIsFRU": 1,
+        },
+    }
