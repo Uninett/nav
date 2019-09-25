@@ -15,6 +15,11 @@ username.
 and is a simple way of supporting federated logins via eg. Kerberors or SAML,
 provided the web server has the necessary support/modules/plugins.
 
+If the value set in the header is not sufficiently username-like, it can be
+converted via a workaround as set in the ``workaround`` header. The only
+workaround supported so far is for Feide via OpenId Connect, and you turn this
+on by adding ``workaround = feide-oidc`` in the config.
+
 Since the password is controlled from a system externally to NAV, the user does
 not have access to change the password from inside NAV. If an account is set to
 invalid in NAV, the user will not be logged in, even if the header is set.

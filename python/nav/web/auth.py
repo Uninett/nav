@@ -77,6 +77,7 @@ class RemoteUserConfigParser(NAVConfigParser):
 enabled=no
 login-url=
 varname=REMOTE_USER
+workaround=default
 """
 _config = RemoteUserConfigParser()
 
@@ -244,8 +245,16 @@ def get_remote_username(request):
     if not request:
         return None
 
-    varname = _get_remote_user_varname()
-    username = request.META.get(varname, '').strip()
+    workaround = 'default'
+    try:
+        workaround_config = _config.get('remote-user', 'workaround')
+    except ValueError:
+        pass
+    else:
+        if workaround_config in REMOTE_USER_WORKAROUNDS:
+            workaround = workaround_config
+
+    username = REMOTE_USER_WORKAROUNDS[workaround](request)
 
     if not username:
         return None
@@ -260,6 +269,26 @@ def _get_remote_user_varname():
     except ValueError:
         pass
     return varname
+
+
+def _workaround_default(request):
+    varname = _get_remote_user_varname()
+    username = request.META.get(varname, '').strip()
+    return username
+
+
+def _workaround_feide_oidc(request):
+    varname = _get_remote_user_varname()
+    username = request.META.get(varname, '').strip()
+    if ':' in username:
+        username = username.split(':', 1)[1]
+    return username
+
+
+REMOTE_USER_WORKAROUNDS = {
+    'default': _workaround_default,
+    'feide-oidc': _workaround_feide_oidc,
+}
 
 
 # Middleware
