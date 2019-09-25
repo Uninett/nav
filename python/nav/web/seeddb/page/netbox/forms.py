@@ -192,9 +192,9 @@ class NetboxModelForm(forms.ModelForm):
                 del cleaned_data['ip']
 
         if cat and cat.req_snmp and not profiles:
-            self._errors['readonly_connection_profile'] = self.error_class(
-                ["Category %s requires SNMP access." % cat.id])
-            del cleaned_data['readonly_connection_profile']
+            self._errors['profiles'] = self.error_class(
+                ["Category %s requires a management profile." % cat.id])
+            del cleaned_data['profiles']
 
         return cleaned_data
 
