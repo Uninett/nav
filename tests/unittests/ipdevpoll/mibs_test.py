@@ -25,11 +25,6 @@ from mock import Mock
 import pytest
 
 from nav.mibs.cisco_hsrp_mib import CiscoHSRPMib
-
-import django
-django.setup()
-os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
-
 from nav.oids import OID
 from nav.mibs.ip_mib import IpMib, IndexToIpException
 from nav.mibs.ipv6_mib import Ipv6Mib
