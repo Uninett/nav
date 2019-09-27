@@ -28,6 +28,7 @@ from twisted.internet import defer
 from nav.oids import OID
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever
+from nav.ipdevpoll.shadows import PowerSupplyOrFan, Device
 
 _logger = logging.getLogger(__name__)
 
@@ -129,6 +130,25 @@ class EntityMib(mibretriever.MibRetriever):
         self._logger.debug("alias mapping: %r", mapping)
         return mapping
 
+    def get_power_supplies(self):
+        """Retrieves a list of power supply objects"""
+        return self.__filter_psu_or_fan(EntityTable.is_power_supply)
+
+    def get_fans(self):
+        """Retrieves a list of fan objects"""
+        return self.__filter_psu_or_fan(EntityTable.is_fan)
+
+    @defer.inlineCallbacks
+    def __filter_psu_or_fan(self, filter_function):
+        response = yield self.get_useful_physical_table_columns()
+        table = EntityTable(response)
+        objects = [
+            _entity_to_powersupply_or_fan(e)
+            for e in table.values()
+            if filter_function(e)
+        ]
+        defer.returnValue(objects)
+
 
 class EntityTable(dict):
     """Represent the contents of the entPhysicalTable as a dictionary"""
@@ -159,6 +179,14 @@ class EntityTable(dict):
     @staticmethod
     def is_chassis(entity):
         return entity['entPhysicalClass'] == 'chassis'
+
+    @staticmethod
+    def is_power_supply(entity):
+        return entity["entPhysicalClass"] == "powerSupply"
+
+    @staticmethod
+    def is_fan(entity):
+        return entity["entPhysicalClass"] == "fan"
 
     def get_modules(self):
         """Return the subset of entities that are modules.
@@ -358,3 +386,23 @@ def parse_dateandtime_tc(value):
         _logger.debug("invalid value parsed from DateAndTime TC %r: %s",
                       value, err)
         return
+
+
+def _entity_to_powersupply_or_fan(entity):
+    psu_or_fan = PowerSupplyOrFan(
+        name=entity.get("entPhysicalName"),
+        model=entity.get("entPhysicalModelName"),
+        descr=entity.get("entPhysicalDescr"),
+        physical_class=entity.get("entPhysicalClass"),
+        internal_id=entity.get(0),
+    )
+    serial = entity.get("entPhysicalSerialNum")
+    if serial:
+        device = Device(
+            serial=serial,
+            hardware_version=entity.get("entPhysicalHardwareRev"),
+            firmware_version=entity.get("entPhysicalFirmwareRev"),
+            software_version=entity.get("entPhysicalSoftwareRev"),
+        )
+        psu_or_fan.device = device
+    return psu_or_fan

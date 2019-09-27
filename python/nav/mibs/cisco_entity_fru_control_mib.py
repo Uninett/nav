@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright 2008 - 2011 (C) Uninett AS
+# Copyright 2008 - 2011, 2019 (C) Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -24,98 +23,94 @@ CISCO-ENTITY-FRU-CONTROL-MIB to collect sensor-oids and read statuses.
 
 from twisted.internet import defer
 
+from nav.mibs.entity_mib import EntityMib
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
 
+from nav.models.manage import PowerSupplyOrFan
+
+
+FAN_STATUS_MAP = {
+    "unknown": PowerSupplyOrFan.STATE_UNKNOWN,
+    "up": PowerSupplyOrFan.STATE_UP,
+    "down": PowerSupplyOrFan.STATE_DOWN,
+    "warning": PowerSupplyOrFan.STATE_WARNING,
+}
+
+
+PSU_STATUS_MAP = {
+    "offEnvOther": PowerSupplyOrFan.STATE_DOWN,
+    "on": PowerSupplyOrFan.STATE_UP,
+    "offAdmin": PowerSupplyOrFan.STATE_DOWN,
+    "offDenied": PowerSupplyOrFan.STATE_DOWN,
+    "offEnvPower": PowerSupplyOrFan.STATE_DOWN,
+    "offEnvTemp": PowerSupplyOrFan.STATE_DOWN,
+    "offEnvFan": PowerSupplyOrFan.STATE_DOWN,
+    "failed": PowerSupplyOrFan.STATE_DOWN,
+    "onButFanFail": PowerSupplyOrFan.STATE_WARNING,
+    "offCooling": PowerSupplyOrFan.STATE_DOWN,
+    "offConnectorRating": PowerSupplyOrFan.STATE_DOWN,
+    "onButInlinePowerFail": PowerSupplyOrFan.STATE_DOWN,
+}
+
 
 class CiscoEntityFruControlMib(mibretriever.MibRetriever):
+    """A MibRetriever to collect inventory and status information for
+    field-replaceable units (such as power supplies and fans) on Cisco netboxes.
+
     """
-    A class that collects the oids for fan- and psu-sensors,- and their
-    corresponding fan and psu-status.
-    """
-    mib = get_mib('CISCO-ENTITY-FRU-CONTROL-MIB')
+
+    mib = get_mib("CISCO-ENTITY-FRU-CONTROL-MIB")
 
     def __init__(self, agent_proxy):
-        """Good old constructor..."""
         super(CiscoEntityFruControlMib, self).__init__(agent_proxy)
+        self.entity_mib = EntityMib(self.agent_proxy)
         self.fan_status_table = None
         self.psu_status_table = None
 
-    @defer.inlineCallbacks
-    def _get_named_table(self, table_name):
-        """Retrive table with the given name. """
-        df = self.retrieve_table(table_name)
-        df.addCallback(self.translate_result)
-        named_table = yield df.addCallback(reduce_index)
-        defer.returnValue(named_table)
-
-    @defer.inlineCallbacks
     def _get_fantray_status_table(self):
         """Retrieve the whole table of fan-sensors."""
-        table = yield self._get_named_table('cefcFanTrayStatusTable')
-        defer.returnValue(table)
+        return self.retrieve_table("cefcFanTrayStatusTable").addCallback(reduce_index)
 
-    @defer.inlineCallbacks
     def _get_power_status_table(self):
         """Retrieve the whole table of PSU-sensors."""
-        table = yield self._get_named_table('cefcFRUPowerStatusTable')
-        defer.returnValue(table)
+        self.retrieve_table("cefcFRUPowerStatusTable").addCallback(reduce_index)
 
-    def _get_fan_status_value(self, oper_status):
-        status = 'u'
-        self._logger.debug('_get_fan_status_value: %s' % oper_status)
-        if oper_status == 'up':
-            status = 'y'
-        elif oper_status == 'down':
-            status = 'n'
-        elif oper_status == 'warning':
-            status = 'w'
-        return status
+    @staticmethod
+    def _translate_fan_status(oper_status):
+        """Translates the fan status value from the MIB to a NAV PSU status value.
 
-    def _get_psu_status_value(self, oper_status):
-        status = 'u'
-        self._logger.debug('_get_psu_status_value: %s' % oper_status)
-        if oper_status == 'on':
-            status = 'y'
-        elif oper_status == 'onButFanFail':
-            status = 'w'
-        elif oper_status == 'offAdmin':
-            status = 'u'
-        if oper_status in ('offEnvOther', 'offDenied', 'offEnvPower',
-                           'offEnvTemp', 'offEnvFan', 'failed', 'offCooling',
-                           'offConnectorRating', 'onButInlinePowerFail'):
-            status = 'n'
-        return status
+        :returns: A state value from nav.models.manage.PowerSupplyOrFan.STATE_CHOICES
+
+        """
+        return FAN_STATUS_MAP.get(oper_status, PowerSupplyOrFan.STATE_UNKNOWN)
+
+    @staticmethod
+    def _translate_power_supply_status_value(oper_status):
+        """Translates the PSU status value from the MIB to a NAV PSU status value.
+
+        :returns: A state value from nav.models.manage.PowerSupplyOrFan.STATE_CHOICES
+
+        """
+        return PSU_STATUS_MAP.get(oper_status, PowerSupplyOrFan.STATE_UNKNOWN)
 
     @defer.inlineCallbacks
-    def is_fan_up(self, idx):
-        """Return operation-status for fan with the given index."""
-        # Return status undecided if not able to extract status.
-        is_up = None
-        if not self.fan_status_table:
-            self.fan_status_table = yield self._get_fantray_status_table()
-        self._logger.debug('fan_status_table: %s' % self.fan_status_table)
-        fan_status_row = self.fan_status_table.get(idx, None)
-        if fan_status_row:
-            fan_status = fan_status_row.get('cefcFanTrayOperStatus', None)
-            if fan_status:
-                is_up = self._get_fan_status_value(fan_status)
-        defer.returnValue(is_up)
+    def get_fan_status(self, internal_id):
+        """Returns the operational status for a fan with the given internal id."""
+        oper_status = yield self.retrieve_column_by_index(
+            "cefcFanTrayOperStatus", (int(internal_id),)
+        )
+        self._logger.debug("cefcFanTrayOperStatus.%s = %r", internal_id, oper_status)
+        defer.returnValue(self._translate_fan_status(oper_status))
 
     @defer.inlineCallbacks
-    def is_psu_up(self, idx):
-        """Return operation-status for PSU with the given index."""
-        # Return status undecided if not able to extract status.
-        is_up = None
-        if not self.psu_status_table:
-            self.psu_status_table = yield self._get_power_status_table()
-        self._logger.debug('psu_status_table: %s' % self.psu_status_table)
-        psu_status_row = self.psu_status_table.get(idx, None)
-        if psu_status_row:
-            psu_status = psu_status_row.get('cefcFRUPowerOperStatus', None)
-            if psu_status:
-                is_up = self._get_psu_status_value(psu_status)
-        defer.returnValue(is_up)
+    def get_power_supply_status(self, internal_id):
+        """Returns the operational status for a PSU with the given internal id."""
+        oper_status = yield self.retrieve_column_by_index(
+            "cefcFRUPowerOperStatus", (int(internal_id),)
+        )
+        self._logger.debug("cefcFRUPowerOperStatus.%s = %r", internal_id, oper_status)
+        defer.returnValue(self._translate_power_supply_status_value(oper_status))
 
     @defer.inlineCallbacks
     def get_fan_status_table(self):
@@ -131,18 +126,22 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
             self.psu_status_table = yield self._get_power_status_table()
         defer.returnValue(self.psu_status_table)
 
-    def get_oid_for_fan_status(self, idx):
-        """Get the OID for the fan sensor with the given index."""
-        oid = None
-        oper_status_oid = self.nodes.get('cefcFanTrayOperStatus', None)
-        if oper_status_oid:
-            oid = '%s.%d' % (str(oper_status_oid.oid), idx)
-        return oid
+    def get_power_supplies(self):
+        """Retrieves a list of power supply objects"""
+        return self.entity_mib.get_power_supplies()
 
-    def get_oid_for_psu_status(self, idx):
-        """Get the OID for the PSU sensor with the given index."""
-        oid = None
-        oper_status_oid = self.nodes.get('cefcFRUPowerOperStatus', None)
-        if oper_status_oid:
-            oid = '%s.%d' % (str(oper_status_oid.oid), idx)
-        return oid
+    @defer.inlineCallbacks
+    def get_fans(self):
+        """Retrieves a list of fan objects.
+
+        A Cisco device reports fan trays and individual fans in entPhysicalTable,
+        but only the status of entire fan trays can be queried from this MIB,
+        so this filters away any non-FRU units.
+        """
+        fans = yield self.entity_mib.get_fans()
+        status = yield self.get_fan_status_table()
+        self._logger.debug(
+            "found %d/%d field-replaceable fan entities", len(status), len(fans)
+        )
+        fans = [fan for fan in fans if fan.internal_id in status]
+        defer.returnValue(fans)
