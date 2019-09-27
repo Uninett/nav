@@ -108,8 +108,8 @@
             {% for cell in row.cells %}
               <td>
 
-                {% if cell.uri %}
-                  <a href="{{ cell.uri }}">{{ cell.text|default:"" }}</a>
+                {% if cell.text and cell.uri %}
+                  <a href="{{ cell.uri }}">{{ cell.text }}</a>
                 {% else %}
                   {{ cell.text|deep_urlize|default:""|safe }}
                 {% endif %}
