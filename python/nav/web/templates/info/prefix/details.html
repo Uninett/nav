@@ -1,4 +1,5 @@
 {% extends "info/prefix/base.html" %}
+{% load report %}
 
 {% block base_header_additional_head %}
   <style>
@@ -62,7 +63,7 @@
 
   <h3>Prefix details for {{ prefix.net_address }}</h3>
 
-  <a href="{% url 'report-prefix-prefix' prefix.pk %}" class="button small">
+  <a href="{% report 'prefix' prefixid=prefix.pk %}" class="button small">
     View prefix report
   </a>
   {% if prefix.vlan.net_type.edit %}

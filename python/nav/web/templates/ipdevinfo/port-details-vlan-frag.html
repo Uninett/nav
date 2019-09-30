@@ -1,4 +1,5 @@
 {% load port_info %}
+{% load report %}
 <table class="vertitable full-width">
   <caption>Connection</caption>
 
@@ -40,7 +41,7 @@
               <li>
                 <i class="fa {{ swportvlan.get_direction_display|get_direction_class }}"
                    title="Direction {{ swportvlan.get_direction_display }}"></i>&nbsp;
-                <a href="{% url 'report-swporttrunk-vlanid' swportvlan.vlan.id %}">
+                <a href="{% report 'swporttrunk' vlanid=swportvlan.vlan.id %}">
                   {{ swportvlan.vlan }}
                 </a>
 
@@ -64,7 +65,7 @@
         N/A
       {% endif %}
 
-      <a href="{% url 'report-topology-candidates-port' port.netbox.sysname port.ifname %}"
+      <a href="{% report 'topology_candidates' from_device=port.netbox.sysname from_interface=port.ifname %}"
          title="Show the collected candidate neighbor information that was used to arrive at this value">
           <i class="fa fa-external-link right"></i>
       </a>
@@ -91,7 +92,7 @@
           <ul class="no-bullet">
             {% for patch in port.patches.all %}
               <li>{{ patch.cabling.verbose|capfirst }}, in room
-                <a href="{% url 'report-netbox-room' patch.cabling.room.id %}">
+                <a href="{% report 'netbox' roomid=patch.cabling.room.id %}">
                   {{ patch.cabling.room.id }}</a></li>
             {% endfor %}
           </ul>

@@ -1,4 +1,5 @@
 {% extends "ipdevinfo/base.html" %}
+{% load report %}
 
 {% block content %}
 
@@ -56,12 +57,12 @@
             </tr>
             <tr>
               <th>Switch ports</th>
-              <td><a href="{% url 'report-swport-module' netbox_id=module.netbox.id module_name=module.name %}">
+              <td><a href="{% report 'swport' netboxid=module.netbox.id module=module.name %}">
                 {{ module.get_swports.count }}</a></td>
             </tr>
             <tr>
               <th>Router ports</th>
-              <td><a href="{% url 'report-gwport-module' netbox_id=module.netbox.id module_name=module.name %}">
+              <td><a href="{% report 'gwport' netboxid=module.netbox.id module=module.name %}">
                 {{ module.get_gwports.count }}</a></td>
             </tr>
             {% if module.poegroup_set.all|length == 1 %}
