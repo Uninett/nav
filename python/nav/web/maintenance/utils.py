@@ -206,8 +206,7 @@ def task_component_trails(component_keys, components):
                     location_description = (comp[FIELD_KEYS[key]['location']
                                                  + "description"])
                     trail.append({
-                        'url': reverse('report-room-location',
-                                       args=[location_id]),
+                        'url': reverse('location-info', args=[location_id]),
                         'title': location_description,
                         'name': location_id,
                     })
@@ -216,7 +215,7 @@ def task_component_trails(component_keys, components):
                     room_description = (comp[FIELD_KEYS[key]['room']
                                              + "description"])
                     trail.append({
-                        'url': reverse('report-netbox-room', args=[room_id]),
+                        'url': reverse('room-info', args=[room_id]),
                         'title': room_description,
                         'name': room_id,
                     })
