@@ -71,6 +71,23 @@ class UpsManager(models.Manager):
             sensor__internal_name__startswith='ups').distinct()
 
 
+class NetboxQuerySet(models.QuerySet):
+
+    def on_maintenance(self, on_maintenance):
+        """Filter on whether a netbox is in maintenance mode or not"""
+        on_maintenance = bool(on_maintenance)
+        alerts = (nav.models.event.AlertHistory.objects
+                  .unresolved('maintenanceState')
+                  .filter(variables__variable='netbox'))
+        netboxes = self.filter(id__in=(alerts
+            .filter(netbox__isnull=False)
+            .values_list('netbox_id', flat=True))
+        )
+        if on_maintenance:
+            return netboxes
+        return self.difference(netboxes)
+
+
 @python_2_unicode_compatible
 class ManagementProfile(models.Model):
     """Management connection profiles shared between multiple netboxes. These
@@ -203,7 +220,7 @@ class Netbox(models.Model):
     )
     data = HStoreField(blank=True, null=True, default=dict)
 
-    objects = models.Manager()
+    objects = NetboxQuerySet.as_manager()
     ups_objects = UpsManager()
 
     class Meta(object):
