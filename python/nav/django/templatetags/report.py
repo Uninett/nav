@@ -6,7 +6,7 @@ from django.template.defaultfilters import stringfilter
 register = template.Library()
 
 
-@register.filter
+@register.filter(is_safe=True)
 def get_item(value, arg):
     return value.get(arg)
 
@@ -14,7 +14,4 @@ def get_item(value, arg):
 @register.filter
 @stringfilter
 def escapeslash(value):
-    return value.replace('/', '%2F')
-
-
-get_item.is_safe = True
+    return value.replace("/", "%2F")
