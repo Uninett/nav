@@ -28,6 +28,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from nav.django.decorators import require_admin
+from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import Room, Sensor, Interface
 from nav.models.rack import (Rack, SensorRackItem, SensorsDiffRackItem,
@@ -145,13 +146,21 @@ def render_deviceinfo(request, roomid):
     """Controller for rendering device info"""
     room = get_object_or_404(Room, id=roomid)
     all_netboxes = room.netbox_set.select_related(
-        'type', 'category', 'organization').order_by('sysname')
-    return render(request, 'info/room/roominfo_devices.html', {
-        'netboxes': all_netboxes,
-        'availabilities': get_netboxes_availability(
-            all_netboxes, data_sources=['availability'],
-            time_frames=['week', 'month'])
-    })
+        "type", "category", "organization"
+    ).order_by("sysname")
+
+    try:
+        availabilities = get_netboxes_availability(
+            all_netboxes, data_sources=["availability"], time_frames=["week", "month"]
+        )
+    except GraphiteUnreachableError:
+        availabilities = None
+
+    return render(
+        request,
+        "info/room/roominfo_devices.html",
+        {"netboxes": all_netboxes, "availabilities": availabilities},
+    )
 
 
 def upload_image(request, roomid):
