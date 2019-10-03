@@ -68,12 +68,14 @@ class AlertGenerator(dict):
         return u"<AlertGenerator: {0} varmap={1}>".format(u" ".join(attribs),
                                                           dictrepr)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """AlertGenerator inherits from dict, but must always be
-        considered non-zero.
+        considered True
 
         """
         return True
+
+    __nonzero__ = __bool__  # For PY2 compatibility
 
     def make_alert(self):
         """Generates an alert object based on the current attributes"""
