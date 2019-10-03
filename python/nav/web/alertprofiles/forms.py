@@ -30,7 +30,7 @@ from nav.alertengine.dispatchers.sms_dispatcher import Sms
 
 from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
-from nav.models.profiles import AlertAddress
+from nav.models.profiles import AlertAddress, AlertSender
 from nav.web.crispyforms import HelpField
 
 _ = lambda a: a  # gettext variable (for future implementations)
@@ -83,6 +83,7 @@ class AlertAddressForm(forms.ModelForm):
     """
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     address = forms.CharField(required=True)
+    type = forms.ModelChoiceField(queryset=AlertSender.objects.filter(supported=True))
 
     def __init__(self, *args, **kwargs):
         super(AlertAddressForm, self).__init__(*args, **kwargs)
@@ -104,14 +105,16 @@ class AlertAddressForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = self.cleaned_data
-        type = cleaned_data.get('type')
+        type_ = cleaned_data.get('type')
         address = cleaned_data.get('address')
-        if type and address:
+        if type_ and address:
             error = None
-            if type.handler == 'sms':
+            if not type_.supported:
+                error = "{} is no longer supported by NAV".format(type_.name)
+            elif type_.handler == 'sms':
                 if not Sms.is_valid_address(address):
                     error = 'Not a valid phone number.'
-            elif type.handler == 'email':
+            elif type_.handler == 'email':
                 if not Email.is_valid_address(address):
                     error = 'Not a valid email address.'
 
@@ -196,6 +199,9 @@ class TimePeriodForm(forms.ModelForm):
 class AlertSubscriptionForm(forms.ModelForm):
     """Form for editing an alert subscription"""
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    alert_address = forms.ModelChoiceField(
+        queryset=AlertAddress.objects.filter(type__supported=True)
+    )
 
     class Meta(object):
         model = AlertSubscription
@@ -215,7 +221,7 @@ class AlertSubscriptionForm(forms.ModelForm):
             account = time_period.profile.account
 
             addresses = AlertAddress.objects.filter(
-                account=account).order_by('type', 'address')
+                account=account, type__supported=True).order_by('type', 'address')
             filter_groups = FilterGroup.objects.filter(
                 Q(owner__isnull=True) |
                 Q(owner__exact=account)).order_by('owner', 'name')
