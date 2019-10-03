@@ -105,6 +105,7 @@ class EventEngine(object):
         """
         conn = connection.connection
         if conn:
+            self._logger.debug("select sleep for %ss", delay)
             try:
                 select.select([conn], [], [], delay)
             except select.error as err:
@@ -121,6 +122,7 @@ class EventEngine(object):
                 self._schedule_next_queuecheck()
                 del conn.notifies[:]
         else:
+            self._logger.debug("regular sleep for %ss", delay)
             time.sleep(delay)
 
     def start(self):
@@ -129,6 +131,7 @@ class EventEngine(object):
         self._listen()
         self._load_new_events_and_reschedule()
         self._scheduler.run()
+        self._logger.debug("scheduler exited")
 
     @staticmethod
     @retry_on_db_loss()
@@ -182,6 +185,7 @@ class EventEngine(object):
 
     def _log_task_queue(self):
         _logger = logging.getLogger(__name__ + '.queue')
+        _logger.debug("about to log task queue: %d", len(self._scheduler.queue))
         if not _logger.isEnabledFor(logging.DEBUG):
             return
 
@@ -258,6 +262,9 @@ class EventEngine(object):
 
     def schedule(self, delay, action, args=()):
         """Schedule running action after a given delay"""
+        self._logger.debug(
+            "scheduling delayed task in %s seconds: %r (args=%r)", delay, action, args
+        )
         return self._scheduler.enter(delay, self.PLUGIN_TASKS_PRIORITY,
                                      swallow_unhandled_exceptions(action),
                                      args)

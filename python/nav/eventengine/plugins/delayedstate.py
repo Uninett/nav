@@ -188,6 +188,8 @@ class DelayedStateHandler(EventHandler):
                 alert.post_alert_history()
             else:
                 alert.post()
+        else:
+            self._logger.error("could not find a down alert, doing nothing (%r)", alert)
 
         del self.__waiting_for_resolve[(type(self), self.get_target())]
         self.task = None
