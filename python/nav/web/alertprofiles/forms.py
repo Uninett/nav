@@ -118,7 +118,6 @@ class AlertAddressForm(forms.ModelForm):
             if error:
                 self._errors['address'] = self.error_class([error])
                 del cleaned_data['address']
-                del cleaned_data['type']
 
         return cleaned_data
 
