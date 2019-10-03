@@ -444,6 +444,8 @@ class AlertSender(models.Model):
     @transaction.atomic
     def send(self, *args, **kwargs):
         """Sends an alert via this medium."""
+        if not self.supported:
+            raise FatalDispatcherException("{} is not supported".format(self.name))
         if self.handler not in self._handlers:
             dispatcher_class = self._load_dispatcher_class()
             dispatcher = dispatcher_class(
