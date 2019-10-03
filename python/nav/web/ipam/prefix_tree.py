@@ -407,7 +407,7 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
     heap = PrefixHeap(initial_children)
     filtered = (prefix for prefix in prefixes if accept(prefix))
     nodes = (PrefixNode(prefix, sort_fn=sort_fn) for prefix in filtered)
-    for node in nodes:
+    for node in sorted(nodes, reverse=False):
         heap.add(node)
     # Add marker nodes for available ranges/prefixes
     if show_available:
