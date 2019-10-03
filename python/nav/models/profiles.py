@@ -423,6 +423,7 @@ class AlertSender(models.Model):
     """A registered alert sender/medium."""
     name = models.CharField(max_length=100)
     handler = models.CharField(max_length=100)
+    supported = models.BooleanField(default=True)
 
     _blacklist = {}
     _handlers = {}
