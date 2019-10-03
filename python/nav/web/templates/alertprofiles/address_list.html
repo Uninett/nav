@@ -51,10 +51,20 @@
         <tr>
             <td><input type="checkbox" name="address" value="{{ a.id }}" /></td>
             <td>
-                <a href="{% url 'alertprofiles-address-detail' a.id %}">{{ a.address }}</a>
+                <a href="{% url 'alertprofiles-address-detail' a.id %}">
+                    {% if not a.type.supported %}
+                    <del>{{ a.address }}</del>
+                    {% else %}
+                    {{ a.address }}
+                    {% endif %}
+                </a>
             </td>
             <td>
-                {{ a.type.name }}
+                {% if not a.type.supported %}
+                    <div class="alert-box error with-icon inside-table">{{ a.type.name }}: No longer supported</div>
+                {% else %}
+                    {{ a.type.name }}
+                {% endif %}
             </td>
         </tr>
     {% endfor %}
