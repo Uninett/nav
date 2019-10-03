@@ -160,7 +160,10 @@ def test_P8652(snmp_agent_proxy):
             'oid': '.1.3.6.1.4.1.22626.1.5.2.6.5.0',
             'precision': 0,
             'scale': None,
-            'unit_of_measurement': 'boolean'
+            'unit_of_measurement': 'boolean',
+            'on_message': 'vann-gulv-gang alarm triggered',
+            'off_message': 'vann-gulv-gang alarm not triggered',
+            'on_state': 1,
         },
         {
             'description': u'vann-gulv-A',
@@ -180,7 +183,10 @@ def test_P8652(snmp_agent_proxy):
             'oid': '.1.3.6.1.4.1.22626.1.5.2.7.5.0',
             'precision': 0,
             'scale': None,
-            'unit_of_measurement': 'boolean'
+            'unit_of_measurement': 'boolean',
+            'on_message': 'vann-gulv-A alarm triggered',
+            'off_message': 'vann-gulv-A alarm not triggered',
+            'on_state': 1,
         },
         {
             'description': u'vann-lagerrom',
@@ -200,7 +206,10 @@ def test_P8652(snmp_agent_proxy):
             'oid': '.1.3.6.1.4.1.22626.1.5.2.8.5.0',
             'precision': 0,
             'scale': None,
-            'unit_of_measurement': 'boolean'
+            'unit_of_measurement': 'boolean',
+            'on_message': 'vann-lagerrom alarm triggered',
+            'off_message': 'vann-lagerrom alarm not triggered',
+            'on_state': 1,
         },
     ]
 
