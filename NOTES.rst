@@ -14,6 +14,18 @@ UNRELEASED
 Dependency changes
 ------------------
 
+.. warning:: `Python 2 reaches its end-of-life`_ on **January 1, 2020**. NAV
+             5.0 therefore moves to Python 3, and as such, you will need at
+             least Python 3.5 to run NAV.
+
+	     Most of NAV will still run on Python 2 as of the 5.0 release, but
+             from this point, Python 2 will be deprecated and we will start
+             removing code that exists solely to keep compatibility with
+             Python 2.
+
+.. _Python 2 reaches its end-of-life: https://www.python.org/doc/sunset-python-2/
+
+
 Upgraded dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
