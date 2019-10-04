@@ -41,6 +41,35 @@ The version requirements have changed for these dependencies:
 New features
 ------------
 
+Management profiles
+~~~~~~~~~~~~~~~~~~~
+
+NAV 5.0 introduces the concept of **management profiles** to facilitate future
+support for *other management protocols than SNMP*. This means that individual
+devices are no longer configured with read-only and read-write communities
+directly on their SeedDB entries. Instead, you will need to create one or more
+management profiles (also in SeedDB), that you assign to each device.
+
+Each profile configures the options needed to communicate with a device using a
+specific management protocol, such as SNMP.  If all your devices use SNMP v2c
+with a read community of ``public``, you will only need a single profile, and
+can assign this to all your devices (you will need another profile for
+read-write access, if applicable). Conversely, if you change the community of
+all your devices, you only need to change the single profile.
+
+When upgrading from previous NAV versions, all the pre-existing and distinct
+read-only and read-write communities configured on your IP devices will be
+automatically converted into management profiles and assigned to those devices
+that match.
+
+The API has been updated to include an endpoint for management profiles, and
+the ``netbox`` endpoint can be used to manipulate the set of profiles assigned
+to an IP device.
+
+See the updated :doc:`Getting Started Guide </intro/getting-started>` for a
+simple introduction to adding a management profile.
+
+
 Support for Alcatel DDM sensors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
