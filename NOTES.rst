@@ -31,6 +31,7 @@ Upgraded dependencies
 
 The version requirements have changed for these dependencies:
 
+* :mod:`Django` must be any version from the *1.11* series.
 * :mod:`feedparser` must be any version from the *5.2* series.
 * :mod:`networkx` must be any version from the *2.2* series.
 * :mod:`IPy` must be at least version *1.00*.
