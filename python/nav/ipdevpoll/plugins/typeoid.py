@@ -133,21 +133,21 @@ class TypeOid(Plugin):
     @classmethod
     def _get_vendor(cls, sysobjectid):
         """Looks up the most likely vendor based on a sysObjectID"""
-        enterprise = get_enterprise_id(sysobjectid)
+        enterprise_id = get_enterprise_id(sysobjectid)
         query = (
             "vendorid IN (SELECT vendorid FROM enterprise_number WHERE enterprise=%s)"
         )
         try:
-            return manage.Vendor.objects.extra(where=[query], params=[enterprise])[0]
+            return manage.Vendor.objects.extra(where=[query], params=[enterprise_id])[0]
         except IndexError:
             return cls._make_new_vendor(sysobjectid)
 
     @classmethod
     def _make_new_vendor(cls, sysobjectid):
         """Makes up a new Vendor based on a sysObjectID"""
-        enterprise = get_enterprise_id(sysobjectid)
-        if enterprise in _enterprise_map:
-            name = _enterprise_map[enterprise]
+        enterprise_id = get_enterprise_id(sysobjectid)
+        if enterprise_id in _enterprise_map:
+            name = _enterprise_map[enterprise_id]
             name = name.replace(CONSTANT_PREFIX, "").replace("_", "").lower()[:15]
         else:
             name = UNKNOWN_VENDOR_ID
