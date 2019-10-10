@@ -76,6 +76,27 @@ def adduser(args):
     print(msg % args.login, file=sys.stderr)
 
 
+def adminify(args):
+    action = args.action
+    try:
+        account = Account.objects.get(login=args.login)
+    except Account.DoesNotExist:
+        print("User %s does not exist" % args.login, file=sys.stderr)
+        sys.exit(1)
+
+    if action == 'make':
+        admin = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
+        admin.accounts.add(account)
+        msg = "User %s was made an admin" % args.login
+    elif action == 'unmake':
+        admin = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
+        admin.accounts.add(account)
+        msg = "User %s is no longer an admin" % args.login
+    else:
+        msg = "Unknown argument %s" % action
+    print(msg, file=sys.stderr)
+
+
 def passwd(args):
     account = args.login
     if sys.stdin.isatty():
@@ -186,6 +207,22 @@ def parse_args():
     addparser.add_argument('--admin', action='store_true',
                            help="Give the user full admin access")
     addparser.set_defaults(func=adduser)
+
+    adminifyparser = subparsers.add_parser(
+        'admin',
+        help='Sets whether an existing user belongs to the admin group'
+    )
+    adminifyparser.add_argument('login', help="The login name of the user")
+    adminifyparser.set_defaults(func=adminify)
+    adminifygroupparser = adminifyparser.add_mutually_exclusive_group(
+        required=True
+    )
+    adminifygroupparser.add_argument('-a', '--add', dest='action',
+                                     help='Add the user to the admin group',
+                                     action='store_const', const='add')
+    adminifygroupparser.add_argument('-r', '--remove', dest='action',
+                                     help='Remove the user from the admin group',
+                                     action='store_const', const='remove')
 
     lockparser = subparsers.add_parser('lock', help='Locks a user')
     lockparser.set_defaults(func=lock)
