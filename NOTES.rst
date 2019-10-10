@@ -97,6 +97,27 @@ cronjob) has been replaced by the new ``psuwatch`` plugin, as part of the
 :program:`ipdevpoll` ``statuscheck`` job. Please ensure your
 :file:`ipdevpoll.conf` is properly updated.
 
+Support for Coriant Groove devices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NAV now supports collecting various optic measurements (as sensors) from
+Coriant Groove devices, using ``CORIANT-GROOVE-MIB``. These devices are used
+for disaggregation of DWDM systems. These sensors are registered and polled:
+
+* Optical channels
+  * Frequency
+  * Power
+  * Differential group delay
+  * Chromatic dispersion
+  * S/N ratio
+  * Q-factor
+  * PreFEC bit error ratio
+* Client ports
+  * TX/RX optical power
+  * TX/RX lane optical power
+* ODU
+  * Signal delay
+
 
 NAV 4.9
 =======
