@@ -25,6 +25,7 @@ Dependency changes
 
 .. _Python 2 reaches its end-of-life: https://www.python.org/doc/sunset-python-2/
 
+* :mod:`xmpppy` is no longer needed.
 
 Upgraded dependencies
 ~~~~~~~~~~~~~~~~~~~~~
@@ -37,6 +38,14 @@ The version requirements have changed for these dependencies:
 * :mod:`IPy` must be at least version *1.00*.
 * :mod:`pynetsnmp-2` must be version *0.1.5*.
 * :mod:`psycopg2` must be version *2.7.7*.
+
+Removed features
+----------------
+
+The ability to send Jabber notifications has been removed from the alert
+profiles system, due to lack of demand and the no-longer maintained
+:mod:`xmpppy` library.
+
 
 New features
 ------------
