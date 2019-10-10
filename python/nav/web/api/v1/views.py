@@ -49,7 +49,8 @@ from nav.macaddress import MacPrefix
 from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
 from .helpers import prefix_collector
 from .filter_backends import (AlertHistoryFilterBackend, IfClassFilter,
-                              NaturalIfnameFilter)
+                              NaturalIfnameFilter,
+                              NetboxIsOnMaintenanceFilterBackend,)
 
 EXPIRE_DELTA = timedelta(days=365)
 MINIMUMPREFIXLENGTH = 4
@@ -357,6 +358,8 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     -------
     - category
     - ip
+    - maintenance: "yes" for netboxes on maintenance, "no" for the opposite,
+      unset for everything
     - organization
     - room
     - sysname
@@ -368,6 +371,9 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     serializer_class = serializers.NetboxSerializer
     filter_fields = ('ip', 'sysname', 'room', 'organization', 'category',
                      'room__location')
+    filter_backends = (
+        NAVAPIMixin.filter_backends + (NetboxIsOnMaintenanceFilterBackend,)
+    )
     search_fields = ('sysname', )
 
     def destroy(self, request, *args, **kwargs):
