@@ -77,7 +77,7 @@ define(function(require, exports, module) {
   // Calls to the total usage API
   var Usage = Backbone.Model.extend({
     debug: debug.new("models:usage"),
-    urlTemplate: _.template("/ipam/api/<%= pk %>/usage"),
+    urlTemplate: _.template("/ipam/api/<%= pk %>/usage/"),
     defaults: {
       pk: null,
       usage: 0,

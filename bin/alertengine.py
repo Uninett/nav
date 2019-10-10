@@ -86,7 +86,11 @@ def main():
     # Set variables based on config
     username = config['main']['username']
     delay = int(config['main']['delay'])
-    mailwarnlevel = eval('logging.' + config['main']['mailwarnlevel'])
+    mailwarnlevel = config['main']['mailwarnlevel']
+    if mailwarnlevel.isdigit():
+        mailwarnlevel = int(mailwarnlevel)
+    else:
+        mailwarnlevel = getattr(logging, mailwarnlevel)
     mailserver = config['main']['mailserver']
     mailaddr = config['main']['mailaddr']
     fromaddr = config['main']['fromaddr']

@@ -37,6 +37,7 @@ class PrefixQuerysetBuilder(object):
         if queryset is None:
             queryset = Prefix.objects.all()
         self.queryset = queryset
+        self.queryset = self.queryset.select_related('vlan', 'vlan__net_type', 'vlan__organization')
         self.is_realized = False
         self.post_hooks = [lambda x: x]
 

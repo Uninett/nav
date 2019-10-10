@@ -29,8 +29,8 @@ from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
-DEGREES_CELSIUS = "\xb0C"
-DEGREES_FAHRENHEIT = "\xb0F"
+DEGREES_CELSIUS = u"\xb0C"
+DEGREES_FAHRENHEIT = u"\xb0F"
 UNIT_MAP = {
     DEGREES_CELSIUS: Sensor.UNIT_CELSIUS,
     DEGREES_FAHRENHEIT: Sensor.UNIT_FAHRENHEIT,
