@@ -78,6 +78,11 @@ to an IP device.
 See the updated :doc:`Getting Started Guide </intro/getting-started>` for a
 simple introduction to adding a management profile.
 
+Status monitoring of power supplies and fans on Juniper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Power supply and fan units on Juniper devices are now discovered and monitored
+using the proprietary ``JUNIPER-MIB``.
 
 Support for Alcatel DDM sensors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
