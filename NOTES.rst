@@ -14,19 +14,69 @@ UNRELEASED
 Dependency changes
 ------------------
 
+.. warning:: `Python 2 reaches its end-of-life`_ on **January 1, 2020**. NAV
+             5.0 therefore moves to Python 3, and as such, you will need at
+             least Python 3.5 to run NAV.
+
+	     Most of NAV will still run on Python 2 as of the 5.0 release, but
+             from this point, Python 2 will be deprecated and we will start
+             removing code that exists solely to keep compatibility with
+             Python 2.
+
+.. _Python 2 reaches its end-of-life: https://www.python.org/doc/sunset-python-2/
+
+* :mod:`xmpppy` is no longer needed.
+
 Upgraded dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
 The version requirements have changed for these dependencies:
 
+* :mod:`Django` must be any version from the *1.11* series.
 * :mod:`feedparser` must be any version from the *5.2* series.
 * :mod:`networkx` must be any version from the *2.2* series.
 * :mod:`IPy` must be at least version *1.00*.
 * :mod:`pynetsnmp-2` must be version *0.1.5*.
 * :mod:`psycopg2` must be version *2.7.7*.
 
+Removed features
+----------------
+
+The ability to send Jabber notifications has been removed from the alert
+profiles system, due to lack of demand and the no-longer maintained
+:mod:`xmpppy` library.
+
+
 New features
 ------------
+
+Management profiles
+~~~~~~~~~~~~~~~~~~~
+
+NAV 5.0 introduces the concept of **management profiles** to facilitate future
+support for *other management protocols than SNMP*. This means that individual
+devices are no longer configured with read-only and read-write communities
+directly on their SeedDB entries. Instead, you will need to create one or more
+management profiles (also in SeedDB), that you assign to each device.
+
+Each profile configures the options needed to communicate with a device using a
+specific management protocol, such as SNMP.  If all your devices use SNMP v2c
+with a read community of ``public``, you will only need a single profile, and
+can assign this to all your devices (you will need another profile for
+read-write access, if applicable). Conversely, if you change the community of
+all your devices, you only need to change the single profile.
+
+When upgrading from previous NAV versions, all the pre-existing and distinct
+read-only and read-write communities configured on your IP devices will be
+automatically converted into management profiles and assigned to those devices
+that match.
+
+The API has been updated to include an endpoint for management profiles, and
+the ``netbox`` endpoint can be used to manipulate the set of profiles assigned
+to an IP device.
+
+See the updated :doc:`Getting Started Guide </intro/getting-started>` for a
+simple introduction to adding a management profile.
 
 Status monitoring of power supplies and fans on Juniper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,6 +101,27 @@ The :program:`powersupplywatch` program (run periodically in the ``psuwatch``
 cronjob) has been replaced by the new ``psuwatch`` plugin, as part of the
 :program:`ipdevpoll` ``statuscheck`` job. Please ensure your
 :file:`ipdevpoll.conf` is properly updated.
+
+Support for Coriant Groove devices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NAV now supports collecting various optic measurements (as sensors) from
+Coriant Groove devices, using ``CORIANT-GROOVE-MIB``. These devices are used
+for disaggregation of DWDM systems. These sensors are registered and polled:
+
+* Optical channels
+  * Frequency
+  * Power
+  * Differential group delay
+  * Chromatic dispersion
+  * S/N ratio
+  * Q-factor
+  * PreFEC bit error ratio
+* Client ports
+  * TX/RX optical power
+  * TX/RX lane optical power
+* ODU
+  * Signal delay
 
 
 NAV 4.9

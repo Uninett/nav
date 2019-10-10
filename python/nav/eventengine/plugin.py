@@ -41,6 +41,11 @@ class EventHandler(object):
                 if cls.handled_types else True)
 
     def __init__(self, event, engine):
+        """Initializes an event plugin instance.
+
+        :type event: nav.models.event.EventQueue
+        :type engine: nav.eventengine.engine.EventEngine
+        """
         if not self.can_handle(event):
             raise UnsupportedEvent("%s can't handle %s" % (
                     self.__class__.__name__, event.event_type_id))

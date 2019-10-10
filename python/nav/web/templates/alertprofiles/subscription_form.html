@@ -42,7 +42,11 @@
                 <td><input type="checkbox" name="subscription"
                 id="id_subscription_{{ s.id }}" value="{{ s.id }}" /></td>
                 <td><a href="{% url 'alertprofiles-filter_groups-detail' s.filter_group.id %}">{{ s.filter_group.name }}</a></td>
-                <td><a href="{% url 'alertprofiles-address-detail' s.alert_address.id %}">{{ s.alert_address }}</a></td>
+                <td>
+                    {% if not s.alert_address.type.supported %}<div class="alert-box error with-icon inside-table" title="{{ s.alert_address.type.name }} is no longer supported">{% endif %}
+                    <a href="{% url 'alertprofiles-address-detail' s.alert_address.id %}">{{ s.alert_address }}</a>
+                    {% if not s.alert_address.type.supported %}</div>{% endif %}
+                </td>
                 <td>{{ s.get_type_display|capfirst }}</td>
                 <td>{{ s.ignore_resolved_alerts|yesno:"Yes,No" }}</td>
                 <td><a href="{% url 'alertprofiles-profile-timeperiod-subscription' s.id %}">

@@ -17,7 +17,7 @@ NAV gives you:
 
 * An overview of your deployed network infrastructure inventory, topology and
   address space allocation/utilization.
-* Alerts via e-mail, SMS and/or Jabber when stuff stops working.
+* Alerts via e-mail, Slack and/or SMS when stuff stops working.
 * Traffic, CPU load and environmental sensor statistics.
 * The ability to find the access port of any client machine in your network.
 * The ability to block or quarantine access ports of network abusers.

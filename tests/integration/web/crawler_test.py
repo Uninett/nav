@@ -63,6 +63,7 @@ BLACKLISTED_PATHS = [
     # getting these endpoints without args results in 400 bad request
     '/api/1/cam',
     '/api/1/arp',
+    '/graphite',
 ]
 
 #

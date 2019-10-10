@@ -42,7 +42,7 @@ class UsageResult(object):
         self.endtime = endtime if self.starttime else None
         self.url_machinetracker = reverse(
             'machinetracker-prefixid_search_active', args=[prefix.pk])
-        self.url_report = reverse('report-prefix-prefix', args=[prefix.pk])
+        self.url_report = prefix.get_absolute_url()
         self.url_vlan = reverse('vlan-details', args=[prefix.vlan.pk])
 
 

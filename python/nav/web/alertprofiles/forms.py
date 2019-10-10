@@ -26,12 +26,11 @@ from crispy_forms_foundation.layout import (Layout, Row, Column, Field, Submit,
                                             HTML)
 
 from nav.alertengine.dispatchers.email_dispatcher import Email
-from nav.alertengine.dispatchers.jabber_dispatcher import Jabber
 from nav.alertengine.dispatchers.sms_dispatcher import Sms
 
 from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
-from nav.models.profiles import AlertAddress
+from nav.models.profiles import AlertAddress, AlertSender
 from nav.web.crispyforms import HelpField
 
 _ = lambda a: a  # gettext variable (for future implementations)
@@ -78,11 +77,13 @@ class AlertProfileForm(forms.ModelForm):
 class AlertAddressForm(forms.ModelForm):
     """Form for editing and creating alert addresses
 
-    An alert address is where the alert is sent, and can be either email, slack
-    or jabber in addition to sms.
+    An alert address is where the alert is sent, and can be either
+    email or slack in addition to sms.
+
     """
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     address = forms.CharField(required=True)
+    type = forms.ModelChoiceField(queryset=AlertSender.objects.filter(supported=True))
 
     def __init__(self, *args, **kwargs):
         super(AlertAddressForm, self).__init__(*args, **kwargs)
@@ -104,24 +105,22 @@ class AlertAddressForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = self.cleaned_data
-        type = cleaned_data.get('type')
+        type_ = cleaned_data.get('type')
         address = cleaned_data.get('address')
-        if type and address:
+        if type_ and address:
             error = None
-            if type.handler == 'sms':
+            if not type_.supported:
+                error = "{} is no longer supported by NAV".format(type_.name)
+            elif type_.handler == 'sms':
                 if not Sms.is_valid_address(address):
                     error = 'Not a valid phone number.'
-            elif type.handler == 'jabber':
-                if not Jabber.is_valid_address(address):
-                    error = 'Not a valid jabber address.'
-            elif type.handler == 'email':
+            elif type_.handler == 'email':
                 if not Email.is_valid_address(address):
                     error = 'Not a valid email address.'
 
             if error:
                 self._errors['address'] = self.error_class([error])
                 del cleaned_data['address']
-                del cleaned_data['type']
 
         return cleaned_data
 
@@ -200,6 +199,9 @@ class TimePeriodForm(forms.ModelForm):
 class AlertSubscriptionForm(forms.ModelForm):
     """Form for editing an alert subscription"""
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
+    alert_address = forms.ModelChoiceField(
+        queryset=AlertAddress.objects.filter(type__supported=True)
+    )
 
     class Meta(object):
         model = AlertSubscription
@@ -219,7 +221,7 @@ class AlertSubscriptionForm(forms.ModelForm):
             account = time_period.profile.account
 
             addresses = AlertAddress.objects.filter(
-                account=account).order_by('type', 'address')
+                account=account, type__supported=True).order_by('type', 'address')
             filter_groups = FilterGroup.objects.filter(
                 Q(owner__isnull=True) |
                 Q(owner__exact=account)).order_by('owner', 'name')

@@ -9,6 +9,6 @@ def test_binary_runs(binary):
     (done, fail) = proc.communicate()
     retcode = proc.wait()
 
-    sys.stdout.write(done)
+    print(done.decode('utf-8'))
 
     assert retcode == 0

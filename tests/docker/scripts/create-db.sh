@@ -23,14 +23,9 @@ create_nav_db() {
       gosu postgres:postgres psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'" nav
     fi
 
-    # Add non-ASCII chars to the admin user's login name to test encoding
-    # compliance for all Cheetah based web pages.
-    gosu postgres:postgres psql -c "UPDATE account SET name = 'Administrator ÆØÅ' WHERE login = 'admin'" nav
+    # Add generic test data set
+    gosu postgres:postgres psql -f "$(dirname $0)/test-data.sql" nav
 
-    # Add some non-ASCII test data to reveal more potential problems during
-    # the shift to Python 3
-    gosu postgres:postgres psql -c "INSERT INTO location (locationid) VALUES ('bø');" nav
-    gosu postgres:postgres psql -c "INSERT INTO room (roomid, locationid) VALUES ('bø-123', 'bø');" nav
 }
 
 PGVERSION=$(gosu root pg_lsclusters -h|awk '{print $1}')

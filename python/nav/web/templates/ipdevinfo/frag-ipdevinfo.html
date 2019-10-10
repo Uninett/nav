@@ -1,5 +1,5 @@
 {% load info %}
-
+{% load report %}
 <div id="deviceinfo">
 
   <div class="row">
@@ -39,7 +39,7 @@
               <th>Type</th>
               <td>
                 {% if netbox.type %}
-                  <a href="{% url 'report-type-type' netbox.type.id %}">
+                  <a href="{% report 'type' typeid=netbox.type.id %}">
                     {{ netbox.type }}</a>
                 {% else %}
                   N/A
@@ -50,7 +50,7 @@
             <tr>
               <th>Category</th>
               <td>
-                <a href="{% url 'report-netbox-category' netbox.category.id %}">
+                <a href="{% report 'netbox' catid=netbox.category.id %}">
                   {{ netbox.category }}
                 </a>
               </td>
@@ -79,7 +79,7 @@
             <tr>
               <th>Organization</th>
               <td>
-                <a href="{% url 'report-organization-organization' netbox.organization.id|urlencode %}">
+                <a href="{% report 'org' orgid=netbox.organization.id %}">
                   {{ netbox.organization }}</a></td>
             </tr>
 
@@ -186,25 +186,25 @@
 
             <tr>
               <th>Modules</th>
-              <td><a href="{% url 'report-modules-netbox' netbox.id %}">
+              <td><a href="{% report 'modules' netboxid=netbox.id %}">
                 {{ netbox.module_set.count }}</a></td>
             </tr>
 
             <tr>
               <th>Interfaces</th>
-              <td><a href="{% url 'report-interfaces-netbox' netbox.id %}">
+              <td><a href="{% report 'interfaces' netboxid=netbox.id %}">
                 {{ netbox.interface_set.count }}</a></td>
             </tr>
 
             <tr>
               <th>Switch ports</th>
-              <td><a href="{% url 'report-swport-netbox' netbox.id %}">
+              <td><a href="{% report 'swport' netboxid=netbox.id %}">
                 {{ netbox.get_swports.count }}</a></td>
             </tr>
 
             <tr>
               <th>Router ports</th>
-              <td><a href="{% url 'report-gwport-netbox' netbox.id %}">
+              <td><a href="{% report 'gwport' netboxid=netbox.id %}">
                 {{ netbox.get_gwports.count }}</a></td>
             </tr>
 
@@ -525,7 +525,7 @@
               <th>VLAN</th>
               <td>
                 {% if vlan %}
-                  <a href="{% url 'report-swporttrunk-vlanid' vlan.id %}">
+                  <a href="{% report 'swporttrunk' vlanid=vlan.id %}">
                     {{ vlan }}
                   </a>
                 {% else %}
@@ -548,7 +548,7 @@
               <th class="indent">Organization</th>
               <td>
                 {% if vlan.organization %}
-                  <a href="{% url 'report-organization-organization' vlan.organization.id|urlencode %}">
+                  <a href="{% report 'org' orgid=vlan.organization.id %}">
                     {{ vlan.organization|default:"N/A" }}
                   </a>
                 {% else %}

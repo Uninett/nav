@@ -19,6 +19,7 @@ import logging
 
 from django.urls import reverse
 
+from nav.django.templatetags.report import report
 from nav.report import IPtools, metaIP
 from nav.report.matrix import Matrix, Link, Cell
 
@@ -161,8 +162,7 @@ class MatrixIPv4(Matrix):
                 kwargs={'scope': ip.strNormal().replace('/', '%2F')})
             text = ip.strNormal()
         else:
-            url = reverse('report-prefix-netaddr',
-                          kwargs={'netaddr': nip + '.%'})
+            url = report("prefix", netaddr=nip + ".*", op_netaddr="like")
             text = nip
         return Link(url, text, 'Go to prefix report')
 
