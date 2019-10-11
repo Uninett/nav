@@ -25,7 +25,7 @@ Build requirements
 
 To build NAV, you need at least the following:
 
- * Python >= 2.7.0 < 3
+ * Python >= 3.5.0
  * Sphinx >= 1.0 (for building this documentation)
 
 Runtime requirements
@@ -36,7 +36,7 @@ To run NAV, these software packages are required:
  * Apache2 + mod_wsgi (or, really, any web server that supports the WSGI interface)
  * PostgreSQL >= 9.4 (With the ``hstore`` extension available)
  * Graphite_
- * Python >= 2.7.0
+ * Python >= 3.5.0
  * nbtscan = 1.5.1
  * dhcping (only needed if using DHCP service monitor)
 
