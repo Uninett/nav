@@ -6,7 +6,7 @@
 
 There are two main options for installing NAV: Either from source code, or from
 a pre-packaged version. Some of these options will require manually installing
-and/or configuring 3rd party software that NAV depends on, mainly PostgreSQL_
+and/or configuring 3rd party software that NAV depends on, mainly :xref:`PostgreSQL`
 and :xref:`Graphite`.
 
 
@@ -97,5 +97,3 @@ For you, we provide two guides:
 2. :doc:`A step-by-step, detailed guide on installing NAV from source on a
    Debian GNU/Linux operating system </howto/manual-install-on-debian>`.
 
-
-.. _PostgreSQL: https://www.postgresql.org/	      

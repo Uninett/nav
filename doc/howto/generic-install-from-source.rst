@@ -4,7 +4,7 @@
 
 This is a generic guide to installing NAV from source code on a \*NIX flavored
 operating system. The specifics of how to install NAV's dependencies, such as
-PostgreSQL_ or :xref:`Graphite` will be entirely up to you and your choice of OS.
+:xref:`PostgreSQL` or :xref:`Graphite` will be entirely up to you and your choice of OS.
 
 
 Dependencies
@@ -56,7 +56,6 @@ The current Python requirements are as follows:
 .. literalinclude:: ../../requirements/base.txt
    :language: text
 
-.. _PostgreSQL: https://www.postgresql.org/
 .. _pip: https://pip.pypa.io/en/stable/
 .. _PyPi: https://pypi.org/
 
