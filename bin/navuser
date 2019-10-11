@@ -79,7 +79,7 @@ def adduser(args):
 def adminify(args):
     action = args.action
     try:
-        user = Account.objects.get(login=args.login)
+        account = Account.objects.get(login=args.login)
     except Account.DoesNotExist:
         print("User %s does not exist" % args.login, file=sys.stderr)
         sys.exit(1)
@@ -91,10 +91,10 @@ def adminify(args):
     elif action == 'unmake':
         admin = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
         admin.accounts.add(account)
-        msg = "User %s is no longer an admin"
+        msg = "User %s is no longer an admin" % args.login
     else:
         msg = "Unknown argument %s" % action
-    print(msg % args.login, file=sys.stderr)
+    print(msg, file=sys.stderr)
 
 
 def passwd(args):
