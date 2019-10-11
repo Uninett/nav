@@ -115,6 +115,7 @@ TEMPLATES = [
                 'nav.django.context_processors.nav_version',
                 'nav.django.context_processors.graphite_base',
                 'nav.django.context_processors.footer_info',
+                'nav.django.context_processors.auth',
                 'django.template.context_processors.static',
             ],
             'debug': DEBUG,
