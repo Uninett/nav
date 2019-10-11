@@ -86,7 +86,7 @@ class TestRemoteUserAuthenticate(object):
                         assert auth.authenticate_remote_user(request) == False
 
 
-class TestGetLoginUrl(object):
+class TestGetStandardUrls(object):
 
     def test_get_login_url_default(self):
         r = RequestFactory()
@@ -102,6 +102,21 @@ class TestGetLoginUrl(object):
         with patch("nav.web.auth._config.getboolean", return_value=True):
             with patch("nav.web.auth._config.get", return_value='foo'):
                 result = auth.get_login_url(request)
+                assert result == 'foo'
+
+    def test_get_logout_url_default(self):
+        r = RequestFactory()
+        request = r.get('/')
+        result = auth.get_logout_url(request)
+        assert result == auth.LOGOUT_URL
+
+    def test_get_logout_url_remote_logout_url(self):
+        r = RequestFactory()
+        request = r.get('/')
+        request.META['REMOTE_USER'] = 'knight'
+        with patch("nav.web.auth._config.getboolean", return_value=True):
+            with patch("nav.web.auth._config.get", return_value='foo'):
+                result = auth.get_logout_url(request)
                 assert result == 'foo'
 
 

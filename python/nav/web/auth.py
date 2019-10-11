@@ -68,6 +68,10 @@ SUDOER_ID_VAR = 'sudoer'
 # will hang under some usages of these middleware classes - so until we figure
 # out what's going on, we'll hardcode this here.
 LOGIN_URL = '/index/login/'
+# The local logout url, redirects to '/' after logout
+# If the entire site is protected via remote_user, this link must be outside
+# that protection!
+LOGOUT_URL = '/index/logout/'
 
 
 class RemoteUserConfigParser(NAVConfigParser):
@@ -76,6 +80,7 @@ class RemoteUserConfigParser(NAVConfigParser):
 [remote-user]
 enabled=no
 login-url=
+logout-url=
 varname=REMOTE_USER
 workaround=default
 """
@@ -211,6 +216,14 @@ def get_login_url(request):
     return remote_loginurl if remote_loginurl else default_new_url
 
 
+def get_logout_url(request):
+    """Calculate which logout_url to use"""
+    remote_logouturl = get_remote_logouturl(request)
+    if remote_logouturl and remote_logouturl.endswith('='):
+        remote_logouturl += LOGOUT_URL
+    return remote_logouturl if remote_logouturl else LOGOUT_URL
+
+
 def get_remote_url(request, urltype):
     """Return a url (if set) to a remote service for REMOTE_USER purposes
 
@@ -239,7 +252,7 @@ def get_remote_loginurl(request):
     return get_remote_url(request, 'login-url')
 
 
-def get_remote_logout_url(request):
+def get_remote_logouturl(request):
     """Return a url (if set) to log out to/via a remote service
 
     :return: Either a string with an url, or None.

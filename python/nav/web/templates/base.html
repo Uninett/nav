@@ -105,11 +105,11 @@
       {% endif %}
       {% if current_user_data.account.is_default_account %}
         <li>
-          <a class="navbar login button secondary" href="/index/login">Login</a>
+            <a class="navbar login button secondary" href="{{ login_url }}">Login</a>
         </li>
       {% else %}
         <li>
-          <a class="navbar logout button secondary" href="/index/logout">Logout {{ current_user_data.account.login }}</a>
+            <a class="navbar logout button secondary" href="{{ logout_url }}">Logout {{ current_user_data.account.login }}</a>
         </li>
       {% endif %}
     </ul>
