@@ -5,7 +5,7 @@ Integrating Graphite with NAV
 
 .. highlight:: ini
 
-NAV uses Graphite_ to store and retrieve/graph time-series data. Installing
+NAV uses :xref:`Graphite` to store and retrieve/graph time-series data. Installing
 Graphite itself is out of scope for this guide, but assuming you already have *a
 complete installation of Graphite*, you need to change some configuration
 options in both Graphite and NAV to ensure your time-series data is stored and
@@ -84,4 +84,3 @@ Ensure :program:`carbon-cache` is restarted to make these changes take effect,
 before adding devices to monitor in your NAV installation.
 
 .. _PostgreSQL: https://www.postgresql.org/
-.. _Graphite: http://graphiteapp.org/

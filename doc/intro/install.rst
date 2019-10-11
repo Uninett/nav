@@ -7,7 +7,7 @@
 There are two main options for installing NAV: Either from source code, or from
 a pre-packaged version. Some of these options will require manually installing
 and/or configuring 3rd party software that NAV depends on, mainly PostgreSQL_
-and Graphite_.
+and :xref:`Graphite`.
 
 
 Installing a pre-packaged version of NAV
@@ -99,4 +99,3 @@ For you, we provide two guides:
 
 
 .. _PostgreSQL: https://www.postgresql.org/	      
-.. _Graphite: http://graphiteapp.org/
