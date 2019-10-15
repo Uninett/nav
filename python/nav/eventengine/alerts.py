@@ -28,6 +28,7 @@ from nav.models.fields import INFINITY
 
 import nav.config
 from . import unresolved
+from . import export
 
 ALERT_TEMPLATE_DIR = nav.config.find_configfile('alertmsg')
 _logger = logging.getLogger(__name__)
@@ -133,6 +134,8 @@ class AlertGenerator(dict):
         alert.history = history
         alert.save()
         self._post_alert_messages(alert)
+        if export.exporter:
+            export.exporter.export(alert)
         return alert
 
     def post_alert_history(self):
