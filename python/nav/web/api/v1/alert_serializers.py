@@ -67,24 +67,23 @@ class EventTypeSerializer(serializers.ModelSerializer):
         fields = ('id', 'description')
 
 
-class AlertHistorySerializer(serializers.ModelSerializer):
-    """Serializer for the AlertHistory model"""
+class AlertSerializerBase(serializers.ModelSerializer):
+    """Serializer mix-in for the common parts of the AlertQueue and AlertHistory
+    models.
+    """
+
     subject = serializers.SerializerMethodField(source='get_subject')
     subject_url = serializers.SerializerMethodField()
     subject_type = serializers.SerializerMethodField()
 
     on_maintenance = serializers.SerializerMethodField('is_on_maintenance')
-    acknowledgement = AcknowledgementSerializer()
 
     event_history_url = serializers.SerializerMethodField()
     netbox_history_url = serializers.SerializerMethodField()
-    event_details_url = serializers.SerializerMethodField()
     device_groups = serializers.SerializerMethodField()
 
     alert_type = AlertTypeSerializer()
     event_type = EventTypeSerializer()
-    start_time = serializers.DateTimeField()
-    end_time = serializers.SerializerMethodField()
 
     @staticmethod
     def get_subject(obj):
@@ -128,22 +127,9 @@ class AlertHistorySerializer(serializers.ModelSerializer):
                            kwargs={'netbox_id': obj.get_subject().id})
 
     @staticmethod
-    def get_event_details_url(obj):
-        """Returns the url to the details page for this event"""
-        return reverse('event-details', kwargs={'event_id': obj.pk})
-
-    @staticmethod
     def get_subject_type(obj):
         """Returns the class name of the subject"""
         return obj.get_subject().__class__.__name__
-
-    @staticmethod
-    def get_end_time(obj):
-        """
-        Returns the alert endtime, complete with translation of 'infinite'
-        values to the string 'infinity'
-        """
-        return obj.end_time if obj.end_time != INFINITY else "infinity"
 
     @staticmethod
     def get_device_groups(obj):
@@ -154,6 +140,42 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         except Exception:
             pass
 
+
+class AlertQueueSerializer(AlertSerializerBase):
+    """Serializer for the AlertQueue model"""
+
+    time = serializers.DateTimeField()
+
+    class Meta(object):
+        model = event.AlertQueue
+        fields = "__all__"
+
+
+class AlertHistorySerializer(AlertSerializerBase):
+    """Serializer for the AlertHistory model"""
+
+    acknowledgement = AcknowledgementSerializer()
+    start_time = serializers.DateTimeField()
+    end_time = serializers.SerializerMethodField()
+    event_details_url = serializers.SerializerMethodField()
+
     class Meta(object):
         model = event.AlertHistory
-        fields = '__all__'
+        fields = "__all__"
+
+    @staticmethod
+    def get_end_time(obj):
+        """
+        Returns the alert endtime, complete with translation of 'infinite'
+        values to the string 'infinity'
+        """
+        return obj.end_time if obj.end_time != INFINITY else "infinity"
+
+    @staticmethod
+    def get_event_details_url(obj):
+        """Returns the url to the details page for this alert. And yes, even though
+        all the functions and views involved have the word "event" in their names,
+        these are in fact alerts.
+
+        """
+        return reverse('event-details', kwargs={'event_id': obj.pk})
