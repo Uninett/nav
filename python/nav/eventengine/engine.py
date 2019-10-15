@@ -32,6 +32,7 @@ import errno
 from psycopg2 import OperationalError
 from django.db import connection, DatabaseError, transaction
 
+from nav.eventengine import export
 from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.config import EVENTENGINE_CONF
@@ -128,10 +129,22 @@ class EventEngine(object):
     def start(self):
         "Starts the event engine"
         self._logger.info("--- starting event engine ---")
+        self._start_export_script()
         self._listen()
         self._load_new_events_and_reschedule()
         self._scheduler.run()
         self._logger.debug("scheduler exited")
+
+    def _start_export_script(self):
+        if self.config.has_option("export", "script"):
+            script = self.config.get("export", "script")
+            self._logger.info("Starting export script: %r", script)
+            try:
+                export.exporter = export.StreamExporter(script)
+            except OSError as error:
+                self._logger.error("Cannot start export script: %s", error)
+        else:
+            export.exporter = None
 
     @staticmethod
     @retry_on_db_loss()
