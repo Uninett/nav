@@ -15,7 +15,8 @@ Minimal configuration
 If installing from source, you should have installed a copy of the default set
 of NAV configuration files to a global directory, typically :file:`/etc/nav/`,
 :ref:`as documented in the installation guide
-<initializing-the-configuration-files>`.
+<initializing-the-configuration-files>`. The pre-packaged installation options
+should already have done this for you.
 
 Most of the configuration files are documented with comments, so if you want to
 get advanced you can check each config file to see if there are any defaults
@@ -61,7 +62,15 @@ you will also want to change the directory paths used by NAV to store various
 state files, log files and files uploaded through the web interface:
 ``PID_DIR``, ``LOG_DIR`` and ``UPLOAD_DIR``.
 
-  
+
+.. warning:: **Before adding stuff to monitor into your NAV**, you need to
+             ensure you have :ref:`properly integrated your Graphite
+             installation with your NAV installation
+             <integrating-graphite-with-nav>`, or you *will* have issues with
+             :doc:`blank areas in your graphs </faq/graph_gaps>`, which you
+             will need to resolve manually after-the-fact.
+
+
 
 Starting NAV
 ============

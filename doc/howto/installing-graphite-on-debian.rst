@@ -12,6 +12,9 @@ installation, dedicated to NAV, on a **Debian 9 (Stretch)** or **Debian 10
              graphs </faq/graph_gaps>`, which you will need to resolve
              manually after-the-fact.
 
+A more `generic and up-to-date installation guide for Graphite
+<https://graphite.readthedocs.io/en/latest/install.html>`_ can be found in the
+Graphite project's own documentation.
 
 Getting Graphite
 ================

@@ -14,6 +14,7 @@ NAV documentation contents
 
     overview
     intro/install
+    howto/integrating-graphite-with-nav
     intro/getting-started
     intro/getting-organized
     howto/debugging-topology
