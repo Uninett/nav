@@ -658,7 +658,7 @@ class Cisco(SNMPHandler):
         return status
         
     def enable_cisco_cdp(self, interface):
-        """Set CDP using Cisco specific oid"""
+        """Enable CDP using Cisco specific oid"""
         status = None
         try:
             status = self._set_netbox_value(
@@ -682,7 +682,7 @@ class Cisco(SNMPHandler):
         return status
         
     def disable_cisco_cdp(self, interface):
-        """Set CDP using Cisco specific oid"""
+        """Disable CDP using Cisco specific oid"""
         status = None
         try:
             status = self._set_netbox_value(
