@@ -690,7 +690,7 @@ class Cisco(SNMPHandler):
         except SnmpError as error:
             _logger.error('Error setting cdp on interface: %s', error)
         except ValueError as error:
-            _logger.error('%s is not a valid option for cdp', Integer32(2))
+            _logger.error('%s is not a valid option for cdp', 2)
 
         return status
 
