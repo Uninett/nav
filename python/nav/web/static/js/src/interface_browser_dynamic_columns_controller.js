@@ -116,7 +116,7 @@ define(function(require) {
                     if ((timestamp && timestamp.year() === 9999) || hasLink) {
                         cell.node().innerHTML = 'In use';
                     } else if (timestamp) {
-                        cell.node().innerHTML = Moment().format('YYYY-MM-DD HH:mm:ss');
+                        cell.node().innerHTML = timestamp.format('YYYY-MM-DD HH:mm:ss');
                     } else {
                         cell.node().innerHTML = "N/A"
                     }
