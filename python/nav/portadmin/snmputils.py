@@ -396,7 +396,7 @@ class SNMPHandler(object):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
         
-    def set_cisco_cdp(self, interface, action):
+    def enable_cisco_cdp(self, interface, action):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
 
@@ -657,7 +657,7 @@ class Cisco(SNMPHandler):
 
         return status
         
-    def set_cisco_cdp(self, interface):
+    def enable_cisco_cdp(self, interface):
         """Set CDP using Cisco specific oid"""
         status = None
         try:
