@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2008-2012 Uninett AS
+# Copyright (C) 2008-2012, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,18 +21,20 @@ netbox.
 """
 from twisted.internet import defer
 
-from django.db import connection
-
-from nav.ipdevpoll import Plugin, storage, shadows, signals, db
+from nav.ipdevpoll import Plugin, shadows, signals, db
 from nav.oids import OID, get_enterprise_id
 from nav.mibs.snmpv2_mib import Snmpv2Mib
 from nav.models import manage
 
 from nav.enterprise import ids
-CONSTANT_PREFIX = 'VENDOR_ID_'
-_enterprise_map = {value: constant
-                   for constant, value in vars(ids).items()
-                   if constant.startswith(CONSTANT_PREFIX)}
+
+UNKNOWN_VENDOR_ID = UNKNOWN_TYPE_ID = "unknown"
+CONSTANT_PREFIX = "VENDOR_ID_"
+_enterprise_map = {
+    value: constant
+    for constant, value in vars(ids).items()
+    if constant.startswith(CONSTANT_PREFIX)
+}
 
 
 class InvalidResponseError(Exception):
@@ -41,114 +42,126 @@ class InvalidResponseError(Exception):
 
 
 class TypeOid(Plugin):
+    """SNMP Agent type detector plugin"""
+
+    def __init__(self, *args, **kwargs):
+        super(TypeOid, self).__init__(*args, **kwargs)
+        self.snmpv2_mib = Snmpv2Mib(self.agent)
+        self.sysobjectid = None
+
+    @defer.inlineCallbacks
     def handle(self):
         """Collects sysObjectID and looks for type changes."""
         self._logger.debug("Collecting sysObjectId")
-        self.snmpv2_mib = Snmpv2Mib(self.agent)
-        df = self.snmpv2_mib.get_sysObjectID()
-        df.addCallback(self._response_handler)
-        return df
 
-    def _response_handler(self, result):
-        """Handles a sysObjectID response."""
+        oid = yield self._fetch_sysobjectid()
+        if self._is_sysobjectid_changed(oid):
+            yield self._switch_type(oid)
+
+    @defer.inlineCallbacks
+    def _fetch_sysobjectid(self):
+        result = yield self.snmpv2_mib.get_sysObjectID()
         if not result:
-            raise InvalidResponseError("No response on sysObjectID query.",
-                                       result, self.agent)
-        # Just pick the first result, there should never really be multiple
-        self.sysobjectid = str(OID(result))
-        # ObjectIDs in the database are stored without the preceding dot.
-        if self.sysobjectid[0] == '.':
-            self.sysobjectid = self.sysobjectid[1:]
+            raise InvalidResponseError(
+                "No response on sysObjectID query.", result, self.agent
+            )
+        oid = OID(result)
+        self._logger.debug("sysObjectID is %s", oid)
+        defer.returnValue(oid)
 
-        self._logger.debug("sysObjectID is %s", self.sysobjectid)
+    def _is_sysobjectid_changed(self, oid):
+        current_oid = OID(self.netbox.type.sysobjectid) if self.netbox.type else None
+        return current_oid != OID(oid)
 
-        df = self._get_type_from_db()
-        df.addCallback(self._check_for_typechange)
-        df.addCallback(self._set_type)
-        return df
+    @defer.inlineCallbacks
+    def _switch_type(self, oid):
+        new_type = yield self._get_type_from_oid(oid)
+        if not new_type:
+            new_type = yield self._create_new_type(oid)
+        self._set_type(shadows.NetboxType(new_type))
 
-    def has_type_changed(self):
-        """Returns True if the netbox' type has changed."""
-        return (self.netbox.type is None and self.sysobjectid) or \
-            self.netbox.type.sysobjectid != self.sysobjectid
-
-    def _get_type_from_db(self):
+    @staticmethod
+    def _get_type_from_oid(oid):
         """Loads from db a type object matching the sysobjectid."""
-        def _single_result(result):
-            if result:
-                return result[0]
-
-        # Look up existing type entry
-        types = manage.NetboxType.objects.filter(sysobjectid=self.sysobjectid)
-        df = db.run_in_thread(storage.shadowify_queryset_and_commit,
-                              types)
-        df.addCallback(_single_result)
-        return df
+        term = str(oid).strip(".")
+        try:
+            return manage.NetboxType.objects.get(sysobjectid=term)
+        except manage.NetboxType.DoesNotExist:
+            return None
 
     def _set_type(self, new_type):
         """Sets the netbox type to type_."""
         netbox_container = self.containers.factory(None, shadows.Netbox)
         netbox_container.type = new_type
+
         self._send_signal_if_changed_from_known_to_new_type(new_type)
+        self._logger.info(
+            "%s has changed type from %s to %s",
+            self.netbox.sysname,
+            type_to_string(self.netbox.type),
+            type_to_string(new_type),
+        )
+
+        self.netbox.type = new_type
 
     def _send_signal_if_changed_from_known_to_new_type(self, new_type):
-        if self.netbox.type and self.has_type_changed():
+        if self.netbox.type is not None:
             signals.netbox_type_changed.send(
-                sender=self, netbox_id=self.netbox.id, new_type=new_type)
-
-    def _check_for_typechange(self, type_):
-        if self.has_type_changed():
-            oldname = self.netbox.type and self.netbox.type.name or 'unknown'
-            newname = type_ and type_.name or \
-                'unknown (sysObjectID %s)' % self.sysobjectid
-            self._logger.warning("Netbox has changed type from %s to %s",
-                                 oldname, newname)
-            self._logger.debug("old=%r new=%r", self.netbox.type, type_)
-
-            if not type_:
-                return self.create_new_type()
-        return type_
+                sender=self, netbox_id=self.netbox.id, new_type=new_type
+            )
 
     @defer.inlineCallbacks
-    def create_new_type(self):
-        """Creates a new NetboxType from the collected sysObjectID."""
-        vendor_id = yield db.run_in_thread(get_vendor_id, self.sysobjectid)
-        vendor = self.containers.factory(vendor_id, shadows.Vendor)
-        vendor.id = vendor_id
+    def _create_new_type(self, oid):
+        """Creates a new NetboxType from the given sysobjectid."""
+        self._logger.debug("Creating a new type from %r", oid)
+        description = yield self.snmpv2_mib.get_sysDescr()
 
-        type_ = self.containers.factory(self.sysobjectid, shadows.NetboxType)
-        type_.vendor = vendor
-        type_.name = self.sysobjectid
-        type_.sysobjectid = self.sysobjectid
-
-        def _set_sysdescr(descr):
-            self._logger.debug("Creating new type with descr=%r", descr)
-            type_.description = descr
+        def _create():
+            vendor = self._get_vendor(oid)
+            type_ = manage.NetboxType(
+                vendor=vendor,
+                name=str(oid),
+                sysobjectid=str(oid).strip("."),
+                description=description,
+            )
+            type_.save()
             return type_
 
-        yield self.snmpv2_mib.get_sysDescr().addCallback(_set_sysdescr)
+        new_type = yield db.run_in_thread(_create)
+        defer.returnValue(new_type)
 
-#
-# Helper functions
-#
+    @classmethod
+    def _get_vendor(cls, sysobjectid):
+        """Looks up the most likely vendor based on a sysObjectID"""
+        enterprise_id = get_enterprise_id(sysobjectid)
+        query = (
+            "vendorid IN (SELECT vendorid FROM enterprise_number WHERE enterprise=%s)"
+        )
+        try:
+            return manage.Vendor.objects.extra(where=[query], params=[enterprise_id])[0]
+        except IndexError:
+            return cls._make_new_vendor(sysobjectid)
+
+    @classmethod
+    def _make_new_vendor(cls, sysobjectid):
+        """Makes up a new Vendor based on a sysObjectID"""
+        enterprise_id = get_enterprise_id(sysobjectid)
+        if enterprise_id in _enterprise_map:
+            name = _enterprise_map[enterprise_id]
+            name = name.replace(CONSTANT_PREFIX, "").replace("_", "").lower()[:15]
+        else:
+            name = UNKNOWN_VENDOR_ID
+
+        cls._logger.debug("Making new vendor %r from %r", name, sysobjectid)
+        vendor, _created = manage.Vendor.objects.get_or_create(id=name)
+        return vendor
 
 
-def get_vendor_id(sysobjectid):
-    """Looks up the most likely vendorid based on a sysObjectID"""
-    enterprise = get_enterprise_id(sysobjectid)
-    cx = connection.cursor()
-    cx.execute("SELECT vendorid FROM enterprise_number "
-               "WHERE enterprise = %s LIMIT 1", (enterprise,))
-    vendorid = cx.fetchone()
-    return vendorid[0] if vendorid else make_new_vendor_id(sysobjectid)
-
-
-def make_new_vendor_id(sysobjectid):
-    """Makes up a new vendorid based on a sysObjectID"""
-    enterprise = get_enterprise_id(sysobjectid)
-    if enterprise in _enterprise_map:
-        name = _enterprise_map[enterprise]
-        name = name.replace(CONSTANT_PREFIX, '').replace('_', '').lower()[:15]
-        return name
+def type_to_string(type_):
+    """Returns a string representation of a NetboxType for logging use. Should work
+    with both ORM models and Shadow instances, as well as None values.
+    """
+    if not type_:
+        return UNKNOWN_TYPE_ID
     else:
-        return u'unknown'
+        return "{} ({})".format(type_.name, type_.vendor.id)
