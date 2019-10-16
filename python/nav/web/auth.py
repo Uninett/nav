@@ -443,9 +443,11 @@ def authorization_not_required(fullpath):
     Should the user be able to decide this? Currently not.
 
     """
-    auth_not_required = ['/api/', '/doc/']
+    auth_not_required = ['/api/', '/doc/',  # No auth/different auth system
+                         '/about/', '/index/login/', '/refresh_session']
     for url in auth_not_required:
         if fullpath.startswith(url):
+            _logger.debug('authorization_not_required: %s', url)
             return True
 
 
