@@ -220,7 +220,7 @@ def get_logout_url(request):
     """Calculate which logout_url to use"""
     remote_logouturl = get_remote_logouturl(request)
     if remote_logouturl and remote_logouturl.endswith('='):
-        remote_logouturl += LOGOUT_URL
+        remote_logouturl += request.build_absolute_uri(LOGOUT_URL)
     return remote_logouturl if remote_logouturl else LOGOUT_URL
 
 
