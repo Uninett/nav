@@ -41,7 +41,7 @@ if _configfile:
 def refresh_session(request):
     """Forces a refresh of the session by setting the modified flag"""
     request.session.modified = True
-    _logger.debug('Session refreshed in "refresh_session"')
+    _logger.debug('refresh_session: refreshed')
     return HttpResponse()
 
 

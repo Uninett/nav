@@ -457,6 +457,7 @@ def logout(request, sudo=False):
     Returns a safe, public path useful for callers building a redirect."""
     # Ensure that logout can safely be called whenever
     if not (hasattr(request, 'session') and hasattr(request, 'account')):
+        _logger.debug('logout: not logged in')
         return None
     if sudo or request.method == 'POST' and 'submit_desudo' in request.POST:
         desudo(request)
@@ -467,8 +468,10 @@ def logout(request, sudo=False):
         del request.account
         request.session.set_expiry(datetime.now())
         request.session.save()
+        _logger.debug('logout: logout %s', account.login)
         LogEntry.add_log_entry(account, 'log-out', '{actor} logged out',
                                before=account)
+    _logger.debug('logout: redirect to "/" after logout')
     return u'/'
 
 
