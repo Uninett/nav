@@ -259,6 +259,14 @@ def is_cisco_voice_enabled(config):
             return config.getboolean(section, option)
     return False
 
+def is_cisco_voice_cdp_enabled(config):
+    """Checks if the CDP config option is enabled"""
+    section = 'general'
+    option = 'cisco_voice_cdp'
+    if config.has_section(section):
+        if config.has_option(section, option):
+            return config.getboolean(section, option)
+    return False
 
 def fetch_voice_vlan_for_netbox(request, factory, config=None):
     """Fetch the voice vlan for this netbox
@@ -458,6 +466,7 @@ def set_voice_vlan(fac, interface, request):
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac, config)
         use_cisco_voice_vlan = (is_cisco_voice_enabled(config) and
                                 is_cisco(interface.netbox))
+        enable_cdp_for_cisco_voice_port = is_cisco_voice_cdp_enabled(config)
 
         # Either the voicevlan is turned off or turned on
         turn_on_voice_vlan = request.POST.get('voicevlan') == 'true'
@@ -466,7 +475,8 @@ def set_voice_vlan(fac, interface, request):
             if turn_on_voice_vlan:
                 if use_cisco_voice_vlan:
                     fac.set_cisco_voice_vlan(interface, voice_vlan)
-                    fac.enable_cisco_cdp(interface)
+                    if enable_cdp_for_cisco_voice_port:
+                        fac.enable_cisco_cdp(interface)
                 else:
                     fac.set_voice_vlan(interface, voice_vlan)
                 _logger.info('%s: %s:%s - %s', account.login,
@@ -475,7 +485,8 @@ def set_voice_vlan(fac, interface, request):
             else:
                 if use_cisco_voice_vlan:
                     fac.disable_cisco_voice_vlan(interface)
-                    fac.disable_cisco_cdp(interface)
+                    if enable_cdp_for_cisco_voice_port:
+                        fac.disable_cisco_cdp(interface)
                 else:
                     fac.set_access(interface, interface.vlan)
                 _logger.info('%s: %s:%s - %s', account.login,
