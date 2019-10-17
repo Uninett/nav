@@ -23,3 +23,9 @@ on by adding ``workaround = feide-oidc`` in the config.
 Since the password is controlled from a system externally to NAV, the user does
 not have access to change the password from inside NAV. If an account is set to
 invalid in NAV, the user will not be logged in, even if the header is set.
+
+Relevant How To:
+
+.. toctree::
+
+  ../howto/mod_auth_openidc_feide

@@ -16,8 +16,7 @@ This section contains reference material for end-users.
    geomap
    ipam
    ipdevpoll
-   ldap
-   web_authentication
+   external_authentication
    mailin
    navstats
    portadmin
