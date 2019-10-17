@@ -4,7 +4,7 @@
 
 This is a generic guide to installing NAV from source code on a \*NIX flavored
 operating system. The specifics of how to install NAV's dependencies, such as
-PostgreSQL_ or Graphite_ will be entirely up to you and your choice of OS.
+:xref:`PostgreSQL` or :xref:`Graphite` will be entirely up to you and your choice of OS.
 
 
 Dependencies
@@ -28,7 +28,7 @@ To run NAV, these software packages are required:
 
  * Apache2 + mod_wsgi (or, really, any web server that supports the WSGI interface)
  * PostgreSQL >= 9.4 (With the ``hstore`` extension available)
- * Graphite_
+ * :xref:`Graphite`
  * Python >= 3.5.0
  * nbtscan = 1.5.1
  * dhcping (only needed if using DHCP service monitor)
@@ -56,8 +56,6 @@ The current Python requirements are as follows:
 .. literalinclude:: ../../requirements/base.txt
    :language: text
 
-.. _PostgreSQL: https://www.postgresql.org/
-.. _Graphite: http://graphiteapp.org/
 .. _pip: https://pip.pypa.io/en/stable/
 .. _PyPi: https://pypi.org/
 
