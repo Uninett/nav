@@ -396,7 +396,7 @@ class SNMPHandler(object):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
         
-    def enable_cisco_cdp(self, interface, action):
+    def enable_cisco_cdp(self, interface):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
 
