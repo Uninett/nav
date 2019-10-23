@@ -462,6 +462,7 @@ def set_voice_vlan(fac, interface, request):
 
     """
     if 'voicevlan' in request.POST:
+        cdp_changed = False
         config = read_config()
         voice_vlan = fetch_voice_vlan_for_netbox(request, fac, config)
         use_cisco_voice_vlan = (is_cisco_voice_enabled(config) and
@@ -477,21 +478,25 @@ def set_voice_vlan(fac, interface, request):
                     fac.set_cisco_voice_vlan(interface, voice_vlan)
                     if enable_cdp_for_cisco_voice_port:
                         fac.enable_cisco_cdp(interface)
+                        cdp_changed = True
                 else:
                     fac.set_voice_vlan(interface, voice_vlan)
-                _logger.info('%s: %s:%s - %s', account.login,
+                _logger.info('%s: %s:%s - %s%s', account.login,
                              interface.netbox.get_short_sysname(),
-                             interface.ifname, 'voice vlan enabled')
+                             interface.ifname, 'voice vlan enabled',
+                             ', CDP enabled' if cdp_changed else '')
             else:
                 if use_cisco_voice_vlan:
                     fac.disable_cisco_voice_vlan(interface)
                     if enable_cdp_for_cisco_voice_port:
                         fac.disable_cisco_cdp(interface)
+                        cdp_changed = True
                 else:
                     fac.set_access(interface, interface.vlan)
-                _logger.info('%s: %s:%s - %s', account.login,
+                _logger.info('%s: %s:%s - %s%s', account.login,
                              interface.netbox.get_short_sysname(),
-                             interface.ifname, 'voice vlan disabled')
+                             interface.ifname, 'voice vlan disabled',
+                             ', CDP disabled' if cdp_changed else '')
         except (SnmpError, ValueError, NotImplementedError) as error:
             messages.error(request, "Error setting voicevlan: %s" % error)
 
