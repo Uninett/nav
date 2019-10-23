@@ -64,48 +64,48 @@ def get_cam_and_arp(_request):
 
 
 def get_cam(cursor):
-    query = """SELECT n_live_tup
-               FROM pg_stat_all_tables
-               WHERE relname = 'cam'"""
-    cursor.execute(query)
-    row = cursor.fetchone()
-    return row[0]
+    """Gets number of cam records"""
+    return get_tuple_count_estimate(cursor, "cam")
 
 
 def get_oldest_cam_date(cursor):
     """Returns the date of the oldest closed CAM record"""
-    query = """SELECT start_time::DATE
-                FROM
-                 (SELECT start_time
-                  FROM cam
-                  WHERE end_time < 'infinity'
-                  ORDER BY start_time ASC
-                  LIMIT 1) AS foo"""
-    cursor.execute(query)
-    row = cursor.fetchone()
-    return row[0] if row else None
+    return get_oldest_start_time_date(cursor, "cam")
 
 
 def get_arp(cursor):
     """Gets number of arp records"""
-    query = """SELECT n_live_tup
-               FROM pg_stat_all_tables
-               WHERE relname = 'arp'"""
-    cursor.execute(query)
-    row = cursor.fetchone()
-    return row[0]
+    return get_tuple_count_estimate(cursor, "arp")
 
 
 def get_oldest_arp_date(cursor):
     """Returns the date of the oldest closed ARP record"""
+    return get_oldest_start_time_date(cursor, "arp")
+
+
+def get_tuple_count_estimate(cursor, table):
+    """Returns PostgreSQL's estimate number of live tuples in table"""
+    query = """SELECT n_live_tup
+               FROM pg_stat_all_tables
+               WHERE relname = %s"""
+    cursor.execute(query, (table,))
+    row = cursor.fetchone()
+    return row[0]
+
+
+def get_oldest_start_time_date(cursor, table):
+    """Returns the date of the oldest closed ARP/CAM record (or from any log table
+    using the same start_time/end_time principle as the arp/cam tables
+
+    """
     query = """SELECT start_time::DATE
                 FROM
                  (SELECT start_time
-                  FROM arp
+                  FROM {table}
                   WHERE end_time < 'infinity'
                   ORDER BY start_time ASC
                   LIMIT 1) AS foo"""
-    cursor.execute(query)
+    cursor.execute(query.format(table=table))
     row = cursor.fetchone()
     return row[0] if row else None
 
