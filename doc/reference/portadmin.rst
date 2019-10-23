@@ -149,6 +149,11 @@ are:
     also supports this. To make NAV use Cisco Voice VLANs, set this option to
     true. The default is false.
 
+**cisco_voice_cdp**
+    If using Cisco Voice VLANs, set this option to ``true`` to explicitly
+    enable CDP on a port when its voice vlan is configured (and consequently,
+    disable CDP when voice vlan is de-configured). The default is ``false``.
+
 **vlan_auth**
     If you want to limit what users can do in PortAdmin you activate
     this option. What this does is limit the choice of VLANs to the
