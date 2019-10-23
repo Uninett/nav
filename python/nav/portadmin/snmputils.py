@@ -716,13 +716,13 @@ class Cisco(SNMPHandler):
         native_vlan = self._query_netbox(self.TRUNKPORTNATIVEVLAN, ifindex)
 
         blocks = [
-            self._query_netbox(oid, ifindex) or ''
+            self._query_netbox(oid, ifindex) or b''
             for oid in (self.TRUNKPORTVLANSENABLED,
                         self.TRUNKPORTVLANSENABLED2K,
                         self.TRUNKPORTVLANSENABLED3K,
                         self.TRUNKPORTVLANSENABLED4K)]
-        bitstring = "".join(value.ljust(CHARS_IN_1024_BITS, '\x00')
-                            for value in blocks)
+        bitstring = b"".join(value.ljust(CHARS_IN_1024_BITS, b'\x00')
+                             for value in blocks)
 
         bitvector = BitVector(bitstring)
         return native_vlan, bitvector.get_set_bits()
@@ -778,7 +778,7 @@ class Cisco(SNMPHandler):
 
         """
         ifindex = interface.ifindex
-        bitvector = BitVector(512 * '\000')  # initialize all-zero bitstring
+        bitvector = BitVector(512 * b'\x00')  # initialize all-zero bitstring
         for vlan in vlans:
             bitvector[int(vlan)] = 1
 
