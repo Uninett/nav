@@ -147,7 +147,7 @@ are:
 **cisco_voice_vlan**
     Cisco has its own terminology and configuration regarding voice VLANs. NAV
     also supports this. To make NAV use Cisco Voice VLANs, set this option to
-    true. The default is false.
+    ``true``. The default is ``false``.
 
 **cisco_voice_cdp**
     If using Cisco Voice VLANs, set this option to ``true`` to explicitly
