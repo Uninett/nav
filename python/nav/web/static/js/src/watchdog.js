@@ -18,7 +18,13 @@ require([], function () {
 
         doRequest(arpElement, '/watchdog/cam_and_arp', function(data) {
             arpElement.innerHTML = '~' + intComma(data.arp);
+            if (data.oldest_arp) {
+                arpElement.innerHTML += ' <em>(Since ' + data.oldest_arp + ')</em>'
+            }
             camElement.innerHTML = '~' + intComma(data.cam);
+            if (data.oldest_cam) {
+                camElement.innerHTML += ' <em>(Since ' + data.oldest_cam + ')</em>'
+            }
         });
 
         doRequest(netboxElement, '/api/netbox', function(data) {
