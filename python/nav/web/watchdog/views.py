@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2014 Uninett AS
+# Copyright (C) 2014, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -26,28 +26,26 @@ from nav.watchdog.util import get_statuses
 
 def render_index(request):
     """Controller for WatchDog index"""
-    navpath = [('Home', '/'), ('WatchDog', )]
+    navpath = [("Home", "/"), ("WatchDog",)]
 
     context = {
-        'navpath': navpath,
-        'title': create_title(navpath),
-        'tests': get_statuses()
+        "navpath": navpath,
+        "title": create_title(navpath),
+        "tests": get_statuses(),
     }
 
-    return render(request, 'watchdog/base.html', context)
+    return render(request, "watchdog/base.html", context)
 
 
 def get_active_addresses(_):
     """Get active addresses on the network"""
     active = Arp.objects.filter(end_time=INFINITY)
     num_active = active.count()
-    num_active_ipv6 = active.extra(where=['family(ip)=6']).count()
-    num_active_ipv4 = active.extra(where=['family(ip)=4']).count()
-    return JsonResponse({
-        'active': num_active,
-        'ipv6': num_active_ipv6,
-        'ipv4': num_active_ipv4
-    })
+    num_active_ipv6 = active.extra(where=["family(ip)=6"]).count()
+    num_active_ipv4 = active.extra(where=["family(ip)=4"]).count()
+    return JsonResponse(
+        {"active": num_active, "ipv6": num_active_ipv6, "ipv4": num_active_ipv4}
+    )
 
 
 def get_cam_and_arp(_request):
@@ -112,4 +110,4 @@ def get_oldest_start_time_date(cursor, table):
 
 def get_serial_numbers(_):
     """Get number of distinct serial numbers in NAV"""
-    return JsonResponse({'count': Device.objects.distinct('serial').count()})
+    return JsonResponse({"count": Device.objects.distinct("serial").count()})
