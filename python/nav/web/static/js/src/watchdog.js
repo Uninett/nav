@@ -13,6 +13,7 @@ require([], function () {
         var arpElement = document.getElementById('arp-count'),
             camElement = document.getElementById('cam-count'),
             netboxElement = document.getElementById('netbox-count'),
+            dbSizeElement = document.getElementById('db-size');
             activeAddressesElement = document.getElementById('active-addresses'),
             serialNumbers = document.getElementById('serial-numbers');
 
@@ -25,6 +26,10 @@ require([], function () {
             if (data.oldest_cam) {
                 camElement.innerHTML += ' <em>(Since ' + data.oldest_cam + ')</em>'
             }
+        });
+
+        doRequest(dbSizeElement, '/watchdog/db_size/', function(data) {
+            dbSizeElement.innerHTML = data.size;
         });
 
         doRequest(netboxElement, '/api/netbox', function(data) {
