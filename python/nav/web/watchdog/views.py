@@ -53,10 +53,14 @@ def get_active_addresses(_):
 def get_cam_and_arp(_request):
     """Get cam and arp numbers"""
     cursor = connection.cursor()
-    return JsonResponse({
-        'cam': get_cam(cursor),
-        'arp': get_arp(cursor)
-    })
+    return JsonResponse(
+        {
+            "cam": get_cam(cursor),
+            "arp": get_arp(cursor),
+            "oldest_cam": get_oldest_cam_date(cursor),
+            "oldest_arp": get_oldest_arp_date(cursor),
+        }
+    )
 
 
 def get_cam(cursor):
@@ -68,6 +72,20 @@ def get_cam(cursor):
     return row[0]
 
 
+def get_oldest_cam_date(cursor):
+    """Returns the date of the oldest closed CAM record"""
+    query = """SELECT start_time::DATE
+                FROM
+                 (SELECT start_time
+                  FROM cam
+                  WHERE end_time < 'infinity'
+                  ORDER BY start_time ASC
+                  LIMIT 1) AS foo"""
+    cursor.execute(query)
+    row = cursor.fetchone()
+    return row[0] if row else None
+
+
 def get_arp(cursor):
     """Gets number of arp records"""
     query = """SELECT n_live_tup
@@ -76,6 +94,20 @@ def get_arp(cursor):
     cursor.execute(query)
     row = cursor.fetchone()
     return row[0]
+
+
+def get_oldest_arp_date(cursor):
+    """Returns the date of the oldest closed ARP record"""
+    query = """SELECT start_time::DATE
+                FROM
+                 (SELECT start_time
+                  FROM arp
+                  WHERE end_time < 'infinity'
+                  ORDER BY start_time ASC
+                  LIMIT 1) AS foo"""
+    cursor.execute(query)
+    row = cursor.fetchone()
+    return row[0] if row else None
 
 
 def get_serial_numbers(_):
