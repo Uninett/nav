@@ -123,6 +123,13 @@ for disaggregation of DWDM systems. These sensors are registered and polled:
 * ODU
   * Signal delay
 
+Option to enable CDP on Cisco Voice VLAN ports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+PortAdmin can now explicitly enable/disable CDP on ports when
+configuring/de-configuring Cisco Voice VLANs on them, if instructed to do so by
+the new ``cisco_voice_cdp`` option in :file:`portadmin.conf`.
+
 
 NAV 4.9
 =======
