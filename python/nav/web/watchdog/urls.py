@@ -27,5 +27,7 @@ urlpatterns = [
     url(r'^serial_numbers', views.get_serial_numbers,
         name='watchdog-serial-numbers'),
     url(r'^cam_and_arp', views.get_cam_and_arp,
-        name='watchdog-cam-and-arp')
+        name='watchdog-cam-and-arp'),
+    url(r'^db_size', views.get_database_size,
+        name='watchdog-db-size'),
 ]
