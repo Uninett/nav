@@ -61,6 +61,17 @@ def get_cam_and_arp(_request):
     )
 
 
+def get_database_size(_request):
+    """Gets the size of the PostgreSQL database"""
+    cursor = connection.cursor()
+    return JsonResponse({"size": get_postgres_db_size(cursor)})
+
+
+#
+# Helper functions
+#
+
+
 def get_cam(cursor):
     """Gets number of cam records"""
     return get_tuple_count_estimate(cursor, "cam")
@@ -104,6 +115,14 @@ def get_oldest_start_time_date(cursor, table):
                   ORDER BY start_time ASC
                   LIMIT 1) AS foo"""
     cursor.execute(query.format(table=table))
+    row = cursor.fetchone()
+    return row[0] if row else None
+
+
+def get_postgres_db_size(cursor):
+    """Returns the size of the PostgreSQL database as a pretty string"""
+    query = """SELECT pg_size_pretty( pg_database_size( current_database() ) )"""
+    cursor.execute(query)
     row = cursor.fetchone()
     return row[0] if row else None
 
