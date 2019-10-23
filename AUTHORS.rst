@@ -34,6 +34,10 @@ Other contributors and previous maintainers
   Joined in 2000, and was instrumental in anything related to end user
   detentions (Arnold), the web interface and the API.
 
+* Philipp Petermann <philipp.petermann at unibas.ch>
+  Contributed support for enabling CDP when configuring Cisco Voice VLANs in
+  PortAdmin.
+
 * Ruben Andreassen (University of Tromsø)
   Contributed the initial support for IT-WATCHDOGS-V4-MIB, GEIST-V4-MIB and
   PowerTek PDUs (PWTv1-MIB).
