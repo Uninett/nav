@@ -84,13 +84,13 @@ def adminify(args):
         print("User %s does not exist" % args.login, file=sys.stderr)
         sys.exit(1)
 
-    if action == 'make':
+    if action == 'add':
         admin = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
         admin.accounts.add(account)
         msg = "User %s was made an admin" % args.login
-    elif action == 'unmake':
+    elif action == 'remove':
         admin = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
-        admin.accounts.add(account)
+        admin.accounts.remove(account)
         msg = "User %s is no longer an admin" % args.login
     else:
         msg = "Unknown argument %s" % action
