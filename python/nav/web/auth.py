@@ -224,6 +224,24 @@ def get_logout_url(request):
     return remote_logouturl if remote_logouturl else LOGOUT_URL
 
 
+def get_remote_loginurl(request):
+    """Return a url (if set) to log in to/via a remote service
+
+    :return: Either a string with an url, or None.
+    :rtype: str, None
+    """
+    return get_remote_url(request, 'login-url')
+
+
+def get_remote_logouturl(request):
+    """Return a url (if set) to log out to/via a remote service
+
+    :return: Either a string with an url, or None.
+    :rtype: str, None
+    """
+    return get_remote_url(request, 'logout-url')
+
+
 def get_remote_url(request, urltype):
     """Return a url (if set) to a remote service for REMOTE_USER purposes
 
@@ -241,24 +259,6 @@ def get_remote_url(request, urltype):
         nexthop = request.build_absolute_uri(request.get_full_path())
         remote_url = remote_url.format(nexthop)
     return remote_url
-
-
-def get_remote_loginurl(request):
-    """Return a url (if set) to log in to/via a remote service
-
-    :return: Either a string with an url, or None.
-    :rtype: str, None
-    """
-    return get_remote_url(request, 'login-url')
-
-
-def get_remote_logouturl(request):
-    """Return a url (if set) to log out to/via a remote service
-
-    :return: Either a string with an url, or None.
-    :rtype: str, None
-    """
-    return get_remote_url(request, 'logout-url')
 
 
 def get_remote_username(request):
