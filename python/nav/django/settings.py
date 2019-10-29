@@ -115,6 +115,7 @@ TEMPLATES = [
                 'nav.django.context_processors.nav_version',
                 'nav.django.context_processors.graphite_base',
                 'nav.django.context_processors.footer_info',
+                'nav.django.context_processors.auth',
                 'django.template.context_processors.static',
             ],
             'debug': DEBUG,
@@ -126,8 +127,8 @@ TEMPLATES = [
 MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'nav.django.auth.AuthenticationMiddleware',
-    'nav.django.auth.AuthorizationMiddleware',
+    'nav.web.auth.AuthenticationMiddleware',
+    'nav.web.auth.AuthorizationMiddleware',
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )

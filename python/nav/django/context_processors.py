@@ -23,7 +23,7 @@ from operator import attrgetter
 from django.conf import settings
 
 from nav.config import find_configfile
-from nav.django.auth import get_sudoer
+from nav.web.auth import get_sudoer, get_login_url, get_logout_url
 from nav.django.utils import get_account, is_admin
 from nav.web.message import Messages
 from nav.web.webfront.utils import tool_list, quick_read, split_tools
@@ -107,4 +107,14 @@ def graphite_base(_request):
     """Provide graphite dashboard url in context"""
     return {
         'graphite_base': CONFIG.get('graphiteweb', 'base')
+    }
+
+
+def auth(request):
+    """Add the correct login url and logout url to context"""
+    login_url = get_login_url(request)
+    logout_url = get_logout_url(request)
+    return {
+        'login_url': login_url,
+        'logout_url': logout_url,
     }
