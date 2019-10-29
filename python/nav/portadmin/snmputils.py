@@ -395,8 +395,16 @@ class SNMPHandler(object):
     def set_cisco_voice_vlan(self, interface, voice_vlan):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
+        
+    def enable_cisco_cdp(self, interface):
+        """Should not be implemented on anything else than Cisco"""
+        raise NotImplementedError
 
     def disable_cisco_voice_vlan(self, interface):
+        """Should not be implemented on anything else than Cisco"""
+        raise NotImplementedError
+        
+    def disable_cisco_cdp(self, interface):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
 
@@ -586,6 +594,7 @@ class Cisco(SNMPHandler):
         self.vlan_oid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
         self.write_mem_oid = '1.3.6.1.4.1.9.2.1.54.0'
         self.voice_vlan_oid = '1.3.6.1.4.1.9.9.68.1.5.1.1.1'
+        self.cdp_oid = '1.3.6.1.4.1.9.9.23.1.1.1.1.2'
 
     def get_vlan(self, interface):
         return self._query_netbox(self.vlan_oid, interface.ifindex)
@@ -648,6 +657,19 @@ class Cisco(SNMPHandler):
             _logger.error('%s is not a valid voice vlan', voice_vlan)
 
         return status
+        
+    def enable_cisco_cdp(self, interface):
+        """Enable CDP using Cisco specific oid"""
+        status = None
+        try:
+            status = self._set_netbox_value(
+                self.cdp_oid, interface.ifindex, 'i', 1)
+        except SnmpError as error:
+            _logger.error('Error setting cdp on interface: %s', error)
+        except ValueError as error:
+            _logger.error('%s is not a valid option for cdp', 1)
+
+        return status
 
     def disable_cisco_voice_vlan(self, interface):
         """Disable the Cisco Voice vlan on this interface"""
@@ -657,6 +679,19 @@ class Cisco(SNMPHandler):
                 self.voice_vlan_oid, interface.ifindex, 'i', 4096)
         except SnmpError as error:
             _logger.error('Error disabling voice vlan: %s', error)
+
+        return status
+        
+    def disable_cisco_cdp(self, interface):
+        """Disable CDP using Cisco specific oid"""
+        status = None
+        try:
+            status = self._set_netbox_value(
+                self.cdp_oid, interface.ifindex, 'i', 2)
+        except SnmpError as error:
+            _logger.error('Error setting cdp on interface: %s', error)
+        except ValueError as error:
+            _logger.error('%s is not a valid option for cdp', 2)
 
         return status
 
@@ -681,13 +716,13 @@ class Cisco(SNMPHandler):
         native_vlan = self._query_netbox(self.TRUNKPORTNATIVEVLAN, ifindex)
 
         blocks = [
-            self._query_netbox(oid, ifindex) or ''
+            self._query_netbox(oid, ifindex) or b''
             for oid in (self.TRUNKPORTVLANSENABLED,
                         self.TRUNKPORTVLANSENABLED2K,
                         self.TRUNKPORTVLANSENABLED3K,
                         self.TRUNKPORTVLANSENABLED4K)]
-        bitstring = "".join(value.ljust(CHARS_IN_1024_BITS, '\x00')
-                            for value in blocks)
+        bitstring = b"".join(value.ljust(CHARS_IN_1024_BITS, b'\x00')
+                             for value in blocks)
 
         bitvector = BitVector(bitstring)
         return native_vlan, bitvector.get_set_bits()
@@ -743,7 +778,7 @@ class Cisco(SNMPHandler):
 
         """
         ifindex = interface.ifindex
-        bitvector = BitVector(512 * '\000')  # initialize all-zero bitstring
+        bitvector = BitVector(512 * b'\x00')  # initialize all-zero bitstring
         for vlan in vlans:
             bitvector[int(vlan)] = 1
 
