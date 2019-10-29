@@ -123,6 +123,20 @@ for disaggregation of DWDM systems. These sensors are registered and polled:
 * ODU
   * Signal delay
 
+Option to enable CDP on Cisco Voice VLAN ports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+PortAdmin can now explicitly enable/disable CDP on ports when
+configuring/de-configuring Cisco Voice VLANs on them, if instructed to do so by
+the new ``cisco_voice_cdp`` option in :file:`portadmin.conf`.
+
+External authentication through the REMOTE_USER header
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NAV now supports external authentication by honoring the `REMOTE_USER` HTTP
+header / environment variable. See the :doc:`reference documentation for
+external web authentication </reference/web_authentication>` for details.
+
 
 NAV 4.9
 =======
