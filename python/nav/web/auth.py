@@ -82,7 +82,7 @@ enabled=no
 login-url=
 logout-url=
 varname=REMOTE_USER
-workaround=default
+workaround=none
 """
 _config = RemoteUserConfigParser()
 
@@ -276,7 +276,7 @@ def get_remote_username(request):
     if not request:
         return None
 
-    workaround = 'default'
+    workaround = 'none'
     try:
         workaround_config = _config.get('remote-user', 'workaround')
     except ValueError:
@@ -317,7 +317,7 @@ def _workaround_feide_oidc(request):
 
 
 REMOTE_USER_WORKAROUNDS = {
-    'default': _workaround_default,
+    'none': _workaround_default,
     'feide-oidc': _workaround_feide_oidc,
 }
 
