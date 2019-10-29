@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011, 2012, 2016 Uninett AS
+# Copyright (C) 2011, 2012, 2016, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,15 +21,13 @@ from twisted.internet.defer import returnValue
 from django.db import transaction
 
 from nav.event2 import EventFactory
-from nav.models import manage
+from nav.models import event
 from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll.jobs import SuggestedReschedule
 
 SYSTEM_OID = '.1.3.6.1.2.1.1'
 EVENT = EventFactory('ipdevpoll', 'eventEngine',
                      'snmpAgentState', 'snmpAgentDown', 'snmpAgentUp')
-INFO_KEY_NAME = 'status'
-INFO_VARIABLE_NAME = 'snmpstate'
 
 
 class SnmpCheck(Plugin):
@@ -55,8 +53,10 @@ class SnmpCheck(Plugin):
         is_ok = yield self._do_check()
 
         if is_ok and was_down:
+            # only send up events when there appears to be something to resolve
             yield self._mark_as_up()
-        elif not is_ok and not was_down:
+        elif not is_ok:
+            # Always send down events; eventengine will ignore any duplicates
             yield self._mark_as_down()
             raise SuggestedReschedule(delay=60)
 
@@ -76,23 +76,13 @@ class SnmpCheck(Plugin):
     @defer.inlineCallbacks
     def _mark_as_down(self):
         self._logger.warning("SNMP agent down on %s", self.netbox.sysname)
-        yield db.run_in_thread(self._save_state, 'down')
         yield db.run_in_thread(self._dispatch_down_event)
 
     @defer.inlineCallbacks
     def _mark_as_up(self):
         self._logger.warning("SNMP agent up again on %s",
                              self.netbox.sysname)
-        yield db.run_in_thread(self._save_state, 'up')
         yield db.run_in_thread(self._dispatch_up_event)
-
-    def _save_state(self, state):
-        info, _ = manage.NetboxInfo.objects.get_or_create(
-            netbox_id=self.netbox.id,
-            key=INFO_KEY_NAME,
-            variable=INFO_VARIABLE_NAME)
-        info.value = state
-        info.save()
 
     @transaction.atomic()
     def _dispatch_down_event(self):
@@ -104,9 +94,9 @@ class SnmpCheck(Plugin):
 
     @transaction.atomic()
     def _currently_down(self):
-        return manage.NetboxInfo.objects.filter(
-            netbox=self.netbox.id,
-            key=INFO_KEY_NAME,
-            variable=INFO_VARIABLE_NAME,
-            value="down"
-        ).exists()
+        """Returns True if the SNMP agent is known to be down in NAV's state table"""
+        return (
+            event.AlertHistory.objects.unresolved("snmpAgentState")
+            .filter(netbox=self.netbox.id)
+            .exists()
+        )
