@@ -18,7 +18,7 @@ def plugin():
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
-def test_stays_up(plugin):
+def test_should_not_mark_as_up_when_already_up(plugin):
     plugin._currently_down = Mock(return_value=False)
     plugin._currently_down.__name__ = '_currently_down'
     plugin.agent.walk.return_value = defer.succeed(True)
@@ -45,7 +45,7 @@ def test_should_always_mark_as_down_when_down(plugin):
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
-def test_going_down(plugin):
+def test_should_mark_as_down_when_transitioning_from_up_to_down(plugin):
     plugin._currently_down = Mock(return_value=False)
     plugin._currently_down.__name__ = '_currently_down'
     plugin.agent.walk.return_value = defer.succeed(False)
@@ -59,7 +59,7 @@ def test_going_down(plugin):
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
-def test_going_up(plugin):
+def test_should_mark_as_up_when_transitioning_from_down_to_up(plugin):
     plugin._currently_down = Mock(return_value=True)
     plugin._currently_down.__name__ = '_currently_down'
     plugin.agent.walk.return_value = defer.succeed(True)
@@ -72,7 +72,7 @@ def test_going_up(plugin):
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
-def test_timeout(plugin):
+def test_do_check_should_report_false_on_timeout(plugin):
     plugin.agent.walk.return_value = defer.fail(defer.TimeoutError())
     res = yield plugin._do_check()
     assert res is False
