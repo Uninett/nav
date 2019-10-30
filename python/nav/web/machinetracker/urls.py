@@ -27,12 +27,6 @@ urlpatterns = [
     url(r'^ip/$',
         views.ip_search,
         name='machinetracker-ip'),
-    # Short hand search url.
-    # Accepts from_ip, days and dns. Active is set to true
-    url(r'^ip/\?ip_range=(?P<from_ip>[^&]+)&days=(?P<days>-?\d+)'
-        r'&dns=(?P<dns>\w*)&period_filter=active',
-        views.ip_do_search,
-        name='machinetracker-ip_short_search'),
 
     url(r'^ip/\?prefixid=(?P<prefix_id>\d+)$',
         views.ip_do_search,

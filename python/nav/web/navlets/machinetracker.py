@@ -16,7 +16,9 @@
 """Machinetracker navlet"""
 
 from django.shortcuts import redirect
+
 from nav.util import IPRange
+from nav.django.utils import reverse_with_query
 from nav.web.navlets import Navlet
 from nav.macaddress import MacAddress
 
@@ -62,8 +64,11 @@ class MachineTrackerNavlet(Navlet):
         dns = request.POST.get('dns', '')
 
         if is_ip_address(forminput):
-            return redirect('machinetracker-ip_short_search',
-                            **{'from_ip': forminput, 'days': days, 'dns': dns})
+            return redirect(
+                reverse_with_query(
+                    "machinetracker-ip", ip_range=forminput, days=days, dns=dns
+                )
+            )
         elif is_mac_address(forminput):
             return redirect('machinetracker-mac_search',
                             **{'mac': forminput, 'days': days, 'dns': dns})
