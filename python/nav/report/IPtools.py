@@ -71,7 +71,7 @@ def _ipv4_getLastbitsMap(ip_list):
 
 def _ipv6_getNybblesMap(ip_list):
     """Finds the column where the IPs in the list should be displayed"""
-    nybble_index = (ip_list[0].prefixlen() / 4) - 1
+    nybble_index = (ip_list[0].prefixlen() // 4) - 1
     return dict(
         zip([i.net().strFullsize().replace(':', '')[nybble_index]
              for i in ip_list], ip_list))
