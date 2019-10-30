@@ -27,11 +27,6 @@ urlpatterns = [
     url(r'^ip/$',
         views.ip_search,
         name='machinetracker-ip'),
-    url(r'^ip/\?from_ip=(?P<from_ip>[^&]+)&to_ip=(?P<to_ip>[^&]*)'
-        r'&active=(?P<active>\w*)&inactive=(?P<inactive>\w*)'
-        r'&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
-        views.ip_do_search,
-        name='machinetracker-ip_search'),
     # Short hand search url.
     # Accepts from_ip, days and dns. Active is set to true
     url(r'^ip/\?ip_range=(?P<from_ip>[^&]+)&days=(?P<days>-?\d+)'
@@ -57,10 +52,6 @@ urlpatterns = [
     url(r'^swp/$',
         views.switch_search,
         name='machinetracker-swp'),
-    url(r'^swp/\?switch=(?P<switch>[^&]+)&module=(?P<module>\d*)'
-        r'&port=(?P<port>[^&]*)$',
-        views.switch_do_search,
-        name='machinetracker-swp_short_search'),
     url(r'^swp/\?switch=(?P<switch>[^&]+)&module=(?P<module>\d*)'
         r'&port=(?P<port>[^&]*)&days=(?P<days>-?\d+)$',
         views.switch_do_search,
