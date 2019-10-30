@@ -139,7 +139,7 @@ def _get_export_delimiter(query):
             del query['exportcsv']
 
 
-def matrix_report(request):
+def matrix_report(request, scope=None):
     """Subnet matrix view
     :type request: django.http.request.HttpRequest
     """
@@ -154,7 +154,7 @@ def matrix_report(request):
         'show_unused': show_unused
     }
 
-    if 'scope' not in request.GET:
+    if scope is None:
         scopes = Prefix.objects.filter(vlan__net_type='scope')
         if scopes.count() == 1:
             # If there is only one scope in the database display that scope
@@ -164,7 +164,7 @@ def matrix_report(request):
             context['scopes'] = group_scopes(scopes)
             return render(request, 'report/matrix.html', context)
     else:
-        scope = IP(request.GET.get('scope'))
+        scope = IP(scope)
 
     matrix = create_matrix(scope, show_unused)
 
