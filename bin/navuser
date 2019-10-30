@@ -178,7 +178,8 @@ def parse_args():
         description=
         "Lists and manipulates NAV web user accounts",
     )
-    subparsers = parser.add_subparsers(help='sub-command help')
+    subparsers = parser.add_subparsers(help='sub-command help', dest="command")
+    subparsers.required = True
 
     listparser = subparsers.add_parser('list', help='Lists user accounts')
     listparser.add_argument('--verbose', '-v', action='store_true',
