@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017 Uninett AS
+# Copyright (C) 2017, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -42,3 +42,6 @@ class IP(IPy.IP):
             return super(IP, self).__eq__(other)
         except TypeError:
             return False
+
+    def __hash__(self):
+        return super(IP, self).__hash__()
