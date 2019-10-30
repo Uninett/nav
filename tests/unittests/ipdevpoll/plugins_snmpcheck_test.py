@@ -31,15 +31,16 @@ def test_stays_up(plugin):
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
-def test_stays_down(plugin):
+def test_should_always_mark_as_down_when_down(plugin):
     plugin._currently_down = Mock(return_value=True)
     plugin._currently_down.__name__ = '_currently_down'
     plugin.agent.walk.return_value = defer.succeed(False)
     plugin._mark_as_up = Mock()
     plugin._mark_as_down = Mock()
-    yield plugin.handle()
+    with pytest.raises(SuggestedReschedule):
+        yield plugin.handle()
     plugin._mark_as_up.assert_not_called()
-    plugin._mark_as_down.assert_not_called()
+    plugin._mark_as_down.assert_called()
 
 
 @pytest.mark.twisted
