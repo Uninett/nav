@@ -75,13 +75,14 @@ def get_addresses_to_scan(exclude_list=None):
 
 
 @timed
-def scan(addresses, ignore_failed_sendto=True):
+def scan(addresses, ignore_failed_sendto=True, encoding="cp850"):
     """Scan a list of ip-addresses for netbios names
 
     :param addresses: A list of IP address strings.
     :param ignore_failed_sendto: Whether to ignore "sendto" failures, which may
                                  sometimes be a low-level OS error reported for
                                  individual addresses.
+    :param: encoding: Encoding to use when communicating with nbtscan
     """
 
     _logger.debug('Scanning %s addresses', len(addresses))
@@ -91,12 +92,12 @@ def scan(addresses, ignore_failed_sendto=True):
         stdout=PIPE,
         stderr=PIPE,
     )
-    stdout, stderr = proc.communicate('\n'.join(addresses))
+    stdout, stderr = proc.communicate('\n'.join(addresses).encode(encoding))
 
     if isinstance(stderr, six.binary_type):
-        stderr = stderr.decode('cp850')  # cp850 seems like netbios' standard
+        stderr = stderr.decode(encoding)
     if isinstance(stdout, six.binary_type):
-        stdout = stdout.decode('cp850')  # cp850 seems like netbios' standard
+        stdout = stdout.decode(encoding)
 
     if ignore_failed_sendto:
         stderr = _filter_failed_sendto(stderr)

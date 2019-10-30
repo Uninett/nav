@@ -18,14 +18,12 @@
 
 import logging
 import time
-from os.path import join
 
 from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
 from nav.netbiostracker import tracker
 from nav.netbiostracker.config import NetbiosTrackerConfig
-from nav.buildconf import localstatedir
 from nav.logs import init_generic_logging
 
 
@@ -42,7 +40,7 @@ def main():
     _logger.info('=== Starting netbiostracker ===')
 
     addresses = tracker.get_addresses_to_scan(config.get_exceptions())
-    scanresult = tracker.scan(addresses)
+    scanresult = tracker.scan(addresses, config.get_encoding())
     parsed_results = tracker.parse(scanresult, config.get_encoding())
     tracker.update_database(parsed_results)
 
