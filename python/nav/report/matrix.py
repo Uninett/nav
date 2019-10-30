@@ -127,7 +127,8 @@ class Matrix(object):
         elif self.matrix_nets[subnet]:
             # this subnet is divided into parts
             host_nybbles_map = IPtools.getLastbitsIpMap(
-                self.matrix_nets[subnet].keys())
+                list(self.matrix_nets[subnet].keys())
+            )
             return self._add_child_nets(host_nybbles_map)
 
         else:
