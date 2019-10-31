@@ -17,8 +17,17 @@
 
 """Utility methods for django used in NAV"""
 from django.db.models.fields import FieldDoesNotExist
+from django.urls import reverse
+from django.utils.six.moves.urllib.parse import urlencode
 
 from nav.models.profiles import Account, AccountGroup
+
+
+def reverse_with_query(viewname, **kwargs):
+    """Wrapper for django.urls.reverse, but will adapt query arguments from kwargs"""
+    baseurl = reverse(viewname)
+    getargs = urlencode(kwargs)
+    return "{}?{}".format(baseurl, getargs)
 
 
 def default_account():
