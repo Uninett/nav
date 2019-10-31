@@ -1,3 +1,4 @@
+{% load query %}
 <thead>
     <tr>
         <th rowspan="2">Status</th>
@@ -109,7 +110,7 @@
         <td>
             <a href="{% url 'seeddb-service-edit' service.id %}">
                 Edit</a>,
-            <a href="{% url 'maintenance-new-service' service.id %}">
+            <a href="{% query 'maintenance-new' service=service.id %}">
                 schedule maintenance</a>
         </td>
     </tr>

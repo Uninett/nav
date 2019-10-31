@@ -1,5 +1,6 @@
 {% extends "ipdevinfo/base.html" %}
 {% load silent_include %}
+{% load query %}
 
 {% block content %}
 
@@ -13,7 +14,7 @@
       </li>
 
       <li>
-        <a href="{% url 'maintenance-new-netbox' netbox.id %}"
+        <a href="{% query 'maintenance-new' netbox=netbox.id %}"
            class="button small secondary">
           Schedule maintenance
         </a>

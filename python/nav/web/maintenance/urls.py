@@ -46,10 +46,4 @@ urlpatterns = [
         name='maintenance-cancel'),
     url(r'^addnetbox/$', views.add_box_to_maintenance,
         name='maintenance-add-netbox'),
-    url(r'^new\?netbox=(?P<netbox_id>\d+)$', views.edit,
-        name='maintenance-new-netbox'),
-    url(r'^new\?service=(?P<service_id>\d+)$', views.edit,
-        name='maintenance-new-service'),
-    url(r'^new\?room=(?P<room_id>.+)$', views.edit,
-        name='maintenance-new-room'),
 ]
