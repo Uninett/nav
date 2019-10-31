@@ -156,6 +156,8 @@ class WebCrawler(object):
                 continue
             elif self._is_blacklisted(path):
                 continue
+            elif element.attrib.get("rel") == "nofollow":
+                continue  # ignore nofollow links
             elif not self._is_seen(path):
                 self.queue.append('%s://%s%s' % (url.scheme, url.netloc, url.path))
 
