@@ -22,10 +22,12 @@ import logging
 from IPy import IP
 
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.utils import six
+from django.http import HttpResponseRedirect
 
-from nav.models.manage import Arp, Cam, Netbios
+from nav.django.utils import reverse_with_query
+from nav.models.manage import Arp, Cam, Netbios, Prefix
 
 from nav import asyncdns
 
@@ -53,9 +55,22 @@ ADDRESS_LIMIT = 4096  # Value for when inactive gets disabled
 _logger = logging.getLogger(__name__)
 
 
+def ip_prefix_search(request, prefix_id, active=False):
+    """View to redirect to a proper machine tracker IP range search based on a
+    NAV-internal prefix ID.
+
+    """
+    prefix = get_object_or_404(Prefix, id=prefix_id)
+
+    kwargs = {"ip_range": prefix.net_address}
+    if active:
+        kwargs["days"] = -1
+    return HttpResponseRedirect(reverse_with_query("machinetracker-ip", **kwargs))
+
+
 def ip_search(request):
     """Controller for ip search"""
-    if 'ip_range' in request.GET or 'prefixid' in request.GET:
+    if 'ip_range' in request.GET:
         return ip_do_search(request)
 
     info_dict = {'form': forms.IpTrackerForm()}
@@ -64,7 +79,7 @@ def ip_search(request):
 
 
 def ip_do_search(request):
-    """Search cam and arp based on prefixid or ip range"""
+    """Search CAM and ARP based on IP range"""
     querydict = ProcessInput(request.GET).ip()
     form = forms.IpTrackerForm(querydict)
     tracker = None

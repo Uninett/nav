@@ -28,11 +28,11 @@ urlpatterns = [
         views.ip_search,
         name='machinetracker-ip'),
 
-    url(r'^ip/\?prefixid=(?P<prefix_id>\d+)$',
-        views.ip_do_search,
+    url(r'^ip/prefix/(?P<prefix_id>\d+)/$',
+        views.ip_prefix_search,
         name='machinetracker-prefixid_search'),
-    url(r'^ip/\?prefixid=(?P<prefix_id>\d+)&days=-1$',
-        views.ip_do_search,
+    url(r'^ip/prefix/(?P<prefix_id>\d+)/active/$',
+        views.ip_prefix_search, {'active': True},
         name='machinetracker-prefixid_search_active'),
 
     url(r'^mac/$',
