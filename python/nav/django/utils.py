@@ -18,7 +18,7 @@
 """Utility methods for django used in NAV"""
 from django.db.models.fields import FieldDoesNotExist
 from django.urls import reverse
-from django.utils.six.moves.urllib.parse import urlencode
+from django.utils.http import urlencode
 
 from nav.models.profiles import Account, AccountGroup
 
