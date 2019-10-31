@@ -42,10 +42,6 @@ urlpatterns = [
     url(r'^swp/$',
         views.switch_search,
         name='machinetracker-swp'),
-    url(r'^swp/\?switch=(?P<switch>[^&]+)&module=(?P<module>\d*)'
-        r'&port=(?P<port>[^&]*)&days=(?P<days>-?\d+)$',
-        views.switch_do_search,
-        name='machinetracker-swp_search'),
 
     # NetBIOS
     url(r'^netbios/$',
@@ -55,14 +51,4 @@ urlpatterns = [
         views.netbios_search,
         name='machinetracker-netbios-search'),
 
-    # Old machinetrakcer links.
-    url(r'^swp\?switch=(?P<netbox_sysname>[^&]+)'
-        r'&module=(?P<module_number>\d+)'
-        r'&port=(?P<port_interface>[^&]+)&days=7$',
-        views.switch_do_search,
-        name='machinetracker-swport'),
-    url(r'^swp\?switch=(?P<netbox_sysname>[^&]+)'
-        r'&port=(?P<port_interface>[^&]+)&days=7$',
-        views.switch_do_search,
-        name='machinetracker-swport'),
 ]
