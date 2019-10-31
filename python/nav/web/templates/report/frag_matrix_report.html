@@ -15,7 +15,7 @@
     </a>
   {% else %}
     {% if ipv4 %}
-      <a href="{% url 'report-matrix-scope-show_unused' link 'True' %}" class="button small">
+      <a href="{% url 'report-matrix-scope' link %}?show_unused_addresses=1" class="button small">
         Show unused address rows
       </a>
     {% endif %}
