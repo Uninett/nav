@@ -1,4 +1,5 @@
 {% extends 'arnold/base.html' %}
+{% load query %}
 
 {% block content %}
 
@@ -37,7 +38,7 @@
       <tr>
         <th>Mac</th>
         <td>
-          <a href="{% url 'machinetracker-mac_search' identity.mac 100 'on' %}"
+          <a href="{% query 'machinetracker-mac' mac=identity.mac days=100 dns='on' %}"
              title="Link to Machine Tracker">
             {{ identity.mac }}
           </a>

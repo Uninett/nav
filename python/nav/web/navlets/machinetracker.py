@@ -70,8 +70,11 @@ class MachineTrackerNavlet(Navlet):
                 )
             )
         elif is_mac_address(forminput):
-            return redirect('machinetracker-mac_search',
-                            **{'mac': forminput, 'days': days, 'dns': dns})
+            return redirect(
+                reverse_with_query(
+                    "machinetracker-mac", mac=forminput, days=days, dns=dns
+                )
+            )
         elif forminput:
             return redirect('machinetracker-netbios-search',
                             **{'search': forminput, 'days': days})

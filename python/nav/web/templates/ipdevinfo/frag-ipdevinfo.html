@@ -1,5 +1,6 @@
 {% load info %}
 {% load report %}
+{% load query %}
 <div id="deviceinfo">
 
   <div class="row">
@@ -578,12 +579,12 @@
               <th>Last active</th>
               <td>
                 {% ifequal no_netbox.dt_max arp.end_time %}
-                  <a href="{% url 'machinetracker-mac_search' arp.mac 1 "" %}">
+                  <a href="{% query 'machinetracker-mac' mac=arp.mac days=1 %}">
                     Right now
                   </a>
                 {% else %}
                   {% if arp.end_time %}
-                    <a href="{% url 'machinetracker-mac_search' arp.mac no_netbox.days_since_active "" %}">
+                    <a href="{% query 'machinetracker-mac' mac=arp.mac days=no_netbox.days_since_active %}">
                       {{ arp.end_time|date }}
                       {{ arp.end_time|time }}
                     </a>
@@ -598,7 +599,7 @@
               <th>Last seen with MAC</th>
               <td>
                 {% if arp.mac %}
-                  <a href="{% url 'machinetracker-mac_search' arp.mac 30 "" %}">
+                  <a href="{% query 'machinetracker-mac' mac=arp.mac days=30 %}">
                     {{ arp.mac }}
                   </a>
                 {% else %}

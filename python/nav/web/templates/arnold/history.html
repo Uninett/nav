@@ -1,4 +1,5 @@
 {% extends "arnold/tabs.html" %}
+{% load query %}
 
 {% block tabcontent %}
 
@@ -34,7 +35,7 @@
                     <td>{{ identity.dns }}</td>
 
                     <td>
-                        <a href="{% url 'machinetracker-mac_search' identity.mac 100 'on' %}"
+                        <a href="{% query 'machinetracker-mac' mac=identity.mac days=100 dns='on' %}"
                            title="Link to Machine Tracker">
                             {{ identity.mac }}
                         </a>

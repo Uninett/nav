@@ -1,5 +1,6 @@
 {% extends "arnold/base.html" %}
 {% load crispy_forms_tags %}
+{% load query %}
 
 {% block content %}
 
@@ -50,7 +51,7 @@
                     <td>{{ result.dns }}</td>
 
                     <td>
-                        <a href="{% url 'machinetracker-mac_search' result.mac 100 'on' %}"
+                        <a href="{% query 'machinetracker-mac' mac=result.mac days=100 dns='on' %}"
                            title="Link to Machine Tracker" target="_blank">
                             {{ result.mac }}
                         </a>

@@ -1,3 +1,4 @@
+{% load query %}
 <table id="tracker-table" class="listtable tablesorter">
     <caption>
         MAC Search results
@@ -71,7 +72,7 @@
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
                 {% if forloop.first %}
-                <a href="{% url 'machinetracker-mac_search' row.mac form_data.days dns %}" title="Search for this MAC address">
+                <a href="{% query 'machinetracker-mac' mac=row.mac days=form_data.days dns=dns %}" title="Search for this MAC address">
                 {{ row.mac }}</a>
                 {% endif %}
                 {% endwith %}

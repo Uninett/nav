@@ -38,10 +38,6 @@ urlpatterns = [
     url(r'^mac/$',
         views.mac_search,
         name='machinetracker-mac'),
-    url(r'^mac/\?mac=(?P<mac>[^&]+)'
-        r'&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
-        views.mac_do_search,
-        name='machinetracker-mac_search'),
 
     url(r'^swp/$',
         views.switch_search,
