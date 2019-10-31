@@ -19,7 +19,7 @@ from operator import attrgetter
 
 from django.db import connection, transaction
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from nav.models.fields import INFINITY
@@ -76,6 +76,21 @@ def devicehistory_search(request):
         'form': form
     }
     return render(request, 'devicehistory/history_search.html', info_dict)
+
+
+def devicehistory_view_location(request, location_id):
+    url = reverse('devicehistory-view')
+    return redirect(url+'?loc=%s' % location_id)
+
+
+def devicehistory_view_netbox(request, netbox_id):
+    url = reverse('devicehistory-view')
+    return redirect(url+'?netbox=%s' % netbox_id)
+
+
+def devicehistory_view_room(request, room_id):
+    url = reverse('devicehistory-view')
+    return redirect(url+'?room=%s' % room_id)
 
 
 def devicehistory_view(request, **_):
