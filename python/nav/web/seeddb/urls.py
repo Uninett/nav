@@ -52,7 +52,7 @@ urlpatterns = [
     url(r'^netbox/edit/(?P<netbox_id>(\d+))/',
         netbox_edit.netbox_edit,
         name='seeddb-netbox-edit'),
-    url(r'^netbox/add/\?suggestion=(.+)$',
+    url(r'^netbox/add/(?P<suggestion>.+)$',
         netbox_edit.netbox_edit,
         name='seeddb-netbox-add-suggestion'),
     url(r'^netbox/add/$',
