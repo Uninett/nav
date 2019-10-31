@@ -47,8 +47,5 @@ urlpatterns = [
     url(r'^netbios/$',
         views.netbios_search,
         name='machinetracker-netbios'),
-    url(r'^netbios/\?search=(?P<search>[^&]+)&days=(?P<days>\d+)$',
-        views.netbios_search,
-        name='machinetracker-netbios-search'),
 
 ]

@@ -76,7 +76,10 @@ class MachineTrackerNavlet(Navlet):
                 )
             )
         elif forminput:
-            return redirect('machinetracker-netbios-search',
-                            **{'search': forminput, 'days': days})
+            return redirect(
+                reverse_with_query(
+                    "machinetracker-netbios", search=forminput, days=days
+                )
+            )
         else:
             return redirect('machinetracker')
