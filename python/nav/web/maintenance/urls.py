@@ -25,7 +25,7 @@ urlpatterns = [
         name='maintenance'),
     url(r'^calendar/$', views.calendar,
         name='maintenance-calendar'),
-    url(r'^calendar/\?year=(?P<year>\d{4})&month=(?P<month>\d{1,2views.})$',
+    url(r'^calendar/(?P<year>\d{4})/(?P<month>\d{1,2})$',
         views.calendar,
         name='maintenance-calendar'),
     url(r'^active/$', views.active,
