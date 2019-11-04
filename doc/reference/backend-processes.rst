@@ -18,11 +18,14 @@ relevant section in this document:
 
 - `activeip`_
 - `alertengine`_
+- `dbclean`_
+- `emailreports`_
 - `eventengine`_
 - `ipdevpoll`_
 - `logengine`_
 - `mactrace`_
 - `maintengine`_
+- `navstats`_
 - `netbiostracker`_
 - `pping`_
 - `servicemon`_
@@ -70,6 +73,23 @@ recipients.
 :Logs:
   :file:`alertengine.log`
 
+emailreports
+------------
+
+Sends daily/weekly/monthly business report e-mail, according to subscriptions.
+
+For each configured subscription in the :program:`Business Reports` web tool,
+this cron job generates and dispatches the actual report e-mails.
+
+:Dependencies:
+  Subscriptions must be added using the :program:`Business Reports` web UI
+  tool.
+:Run mode:
+  cron
+:Configuration:
+  All configuration is done using the web interface.
+:Logs:
+  None
 
 eventengine
 -----------
@@ -97,6 +117,23 @@ alert will be posted instead of a ``boxDown`` alert.
 :Logs:
   :file:`eventengine.log`
 
+
+dbclean
+-------
+
+Regularly cleans out old data from the NAV database, using the
+:program:`navclean` program. The standard cleanup routine removes old web user
+interface sessions, and deletes IP devices that have been scheduled for
+deletion through either SeedDB or the API.
+
+:Dependencies:
+  None
+:Run mode:
+  cron
+:Configuration:
+  None.
+:Logs:
+  None
 
 ipdevpoll
 ---------
@@ -171,6 +208,24 @@ appropriate maintenance events for individual devices and services on NAV's
   cron
 :Configuration:
   Maintenance tasks are configured in the web interface.
+:Logs:
+  :file:`maintengine.log`
+
+navstats
+--------
+
+Regularly produces Graphite metrics from the configured SQL statements in
+:file:`navstats.conf`. By default, SQL reports are configured to log metrics of
+the number of difference IP Device types, the number of switch ports, and the
+number of switch ports that have an active link. More can be configured by the
+user in the config file.
+
+:Dependencies:
+  None
+:Run mode:
+  cron
+:Configuration:
+  :file:`navstats.conf`
 :Logs:
   :file:`maintengine.log`
 
