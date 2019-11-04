@@ -119,3 +119,24 @@ We've found it's best to avoid handsets, as these are built to be exactly
 that: Handsets. Sometimes, they require some form of user-interaction to
 continue operating, which isn't always feasible in a datacenter. At Uninett,
 we've had good results with GSM terminals from Siemens/Cinterion/Gemalto.
+
+
+How long are ARP and CAM records kept in the database?
+------------------------------------------------------
+
+NAV stores ARP an CAM records **indefinitely**, making them available for
+search in the :program:`Machine Tracker` web UI.
+
+*However*, in some jurisdictions, this type of data is considered personally
+identifiable and its retention is regulated by privacy laws. You may therefore
+be required by law to remove old ARP and CAM records from your database.
+
+The :program:`navclean` command line program can be used to delete old ARP and
+CAM records from the database. Many users run a :program:`navclean` command
+from their *crontabs* to clean out old ARP and CAM records, like in this
+example::
+
+  # m h  dom mon dow   command
+  * 6 * * * navclean --force --arp --cam --interval '6 months'
+
+See the output of ``navclean --help`` for usage details.
