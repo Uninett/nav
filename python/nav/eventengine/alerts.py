@@ -122,23 +122,39 @@ class AlertGenerator(dict):
     def _find_existing_alert_history(self):
         return unresolved.refers_to_unresolved_alert(self.event) or None
 
-    def post(self):
-        """Generates and posts the necessary alert objects to the database"""
-        history = self.post_alert_history()
-        self.post_alert(history)
+    def post(self, post_alert=True, set_state=True):
+        """Generates and posts the necessary alert objects to the database,
+        and exports the alert to an external script if configured.
 
-    def post_alert(self, history=None):
+        :param post_alert: If True, an AlertQueue entry is posted.
+
+        :param set_state: If True, a new AlertHistory (state) entry is posted,
+                          or an existing one is updated/resolved. If False, no
+                          AlertHistory objects are created or updated. If this is an
+                          actual AlertHistory instance and _post_alert is True, the
+                          posted alert will reference this AlertHistory record.
+        """
+        if isinstance(set_state, AlertHistory):
+            history = set_state
+        else:
+            history = self._post_alert_history() if set_state else None
+        alert = self._post_alert(history) if post_alert else None
+        if export.exporter:
+            if not alert:
+                alert = self.make_alert()
+                alert.history = history
+            export.exporter.export(alert)
+
+    def _post_alert(self, history=None):
         """Generates and posts an alert on the alert queue only"""
         _logger.debug("posting to alert queue for %r", self)
         alert = self.make_alert()
         alert.history = history
         alert.save()
         self._post_alert_messages(alert)
-        if export.exporter:
-            export.exporter.export(alert)
         return alert
 
-    def post_alert_history(self):
+    def _post_alert_history(self):
         """Generates and posts an alert history record only"""
         _logger.debug("posting to alert history for %r", self)
         history = self.make_alert_history()

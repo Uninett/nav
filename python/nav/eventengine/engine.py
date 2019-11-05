@@ -224,7 +224,7 @@ class EventEngine(object):
                 self._logger.debug('%s is on maintenance, only posting to '
                                    'alert history for %s event',
                                    event.netbox, event.event_type)
-                alert.post_alert_history()
+                alert.post(post_alert=False)
             else:
                 self._logger.debug('Posting %s event', event.event_type)
                 alert.post()

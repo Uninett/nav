@@ -121,10 +121,7 @@ class DelayedStateHandler(EventHandler):
 
             if is_unresolved:
                 alert = self._get_up_alert()
-                if self._box_is_on_maintenance():
-                    alert.post_alert_history()
-                else:
-                    alert.post()
+                alert.post(post_alert=not self._box_is_on_maintenance())
 
             if waiting_plugin:
                 self._logger.info("ignoring transient down state for %s",
@@ -184,10 +181,7 @@ class DelayedStateHandler(EventHandler):
         if alert:
             self._logger.info("%s: Posting %s alert", self.get_target(),
                               alert.alert_type)
-            if self._box_is_on_maintenance():
-                alert.post_alert_history()
-            else:
-                alert.post()
+            alert.post(post_alert=not self._box_is_on_maintenance())
         else:
             self._logger.error("could not find a down alert, doing nothing (%r)", alert)
 
