@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Serializers for status API data"""
-
+from django.core.exceptions import ObjectDoesNotExist
 from django.template.defaultfilters import urlize
 from django.urls import reverse
 from django.utils.encoding import force_text
@@ -145,10 +145,35 @@ class AlertQueueSerializer(AlertSerializerBase):
     """Serializer for the AlertQueue model"""
 
     time = serializers.DateTimeField()
+    alert_details_url = serializers.SerializerMethodField()
+    message = serializers.SerializerMethodField()
 
     class Meta(object):
         model = event.AlertQueue
         fields = "__all__"
+
+    @staticmethod
+    def get_alert_details_url(obj):
+        if obj.history:
+            return reverse("api:alert-detail", kwargs={'pk': obj.history.pk})
+
+    @staticmethod
+    def get_message(obj):
+        """Returns a short message describing this alert"""
+        try:
+            if obj.pk:
+                message = obj.messages.get(language="en", type="sms")
+            else:
+                # This might be a pseudo-alert, used only for export purposes. It
+                # doesn't exist in the database, so let's get the message from the
+                # corresponding AlertHistory state instead
+                message = obj.history.messages.get(
+                    language="en", type="sms", state=obj.state
+                )
+        except ObjectDoesNotExist:
+            pass
+        else:
+            return message.message
 
 
 class AlertHistorySerializer(AlertSerializerBase):
