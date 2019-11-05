@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 import logging
 
 from IPy import IP
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.fields.related import ManyToOneRel as _RelatedObject
@@ -43,6 +43,7 @@ from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 from nav.util import auth_token
 
+from nav.buildconf import VERSION
 from nav.web.api.v1 import serializers, alert_serializers
 from nav.web.status2 import STATELESS_THRESHOLD
 from nav.macaddress import MacPrefix
@@ -1007,3 +1008,11 @@ def get_or_create_token(request):
     else:
         return HttpResponse('You must log in to get a token',
                             status=status.HTTP_403_FORBIDDEN)
+
+
+def get_nav_version(request):
+    """Returns the version of the running NAV software
+
+    :type request: django.http.HttpRequest
+    """
+    return JsonResponse({"version": VERSION})

@@ -50,6 +50,7 @@ router.register(r'auditlog', auditlogapi.LogEntryViewSet, base_name='auditlog')
 urlpatterns = [
     url(r'^$', views.api_root),
     url(r'^token/$', views.get_or_create_token, name="token"),
+    url(r'^version/$', views.get_nav_version, name="version"),
     url(r"^prefix/routed/?$", views.RoutedPrefixList.as_view(),
         name="prefix-routed-list"),
     url(r"^prefix/usage/?$", views.PrefixUsageList.as_view(),
