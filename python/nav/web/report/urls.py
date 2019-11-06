@@ -27,12 +27,8 @@ urlpatterns = [
         name='report-index'),
     url(r'^matrix$', views.matrix_report,
         name='report-matrix'),
-    url(r'^matrix\?scope=(?P<scope>[^&]+)$', views.matrix_report,
+    url(r'^matrix/(?P<scope>[^&]+)$', views.matrix_report,
         name='report-matrix-scope'),
-    url(r'^matrix\?scope=(?P<scope>[^&]+)'
-        r'&show_unused_addresses=(?P<show_unused_addresses>True|False)',
-        views.matrix_report,
-        name='report-matrix-scope-show_unused'),
     url(r'^reportlist$', views.report_list,
         name='report-reportlist'),
     url(r'^(?P<report_name>[^/]+)$', views.get_report,

@@ -119,6 +119,7 @@ TEMPLATES = [
                 'django.template.context_processors.static',
             ],
             'debug': DEBUG,
+            "builtins": ["nav.django.templatetags.query"],
         },
     }
 ]

@@ -20,7 +20,7 @@
 
                 <tr>
                     <td>
-                        <a href="{% url 'machinetracker-mac_search' macwatch.get_mac_addr '-1' 'on' %}">
+                        <a href="{% query 'machinetracker-mac' mac=macwatch.get_mac_addr days=-1 dns='on' %}">
                             {{ macwatch.get_mac_addr }}
                         </a>
                     </td>

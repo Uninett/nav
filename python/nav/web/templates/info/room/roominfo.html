@@ -21,7 +21,7 @@
         </li>
 
         <li>
-            <a href="{% url 'maintenance-new-room' room.id %}" class="button secondary small">
+            <a href="{% query 'maintenance-new' room=room.id %}" class="button secondary small">
                 Schedule Maintenance
                 <i class="fa fa-wrench"></i>
             </a>

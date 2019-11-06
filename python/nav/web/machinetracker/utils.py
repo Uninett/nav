@@ -197,17 +197,8 @@ class ProcessInput:
         if not self.input.get('days', False):
             self.input['days'] = 7
 
-    def __prefix(self):
-        try:
-            ip = Prefix.objects.get(id=self.input['prefixid'])
-        except Prefix.DoesNotExist:
-            return None
-        self.input['ip_range'] = ip.net_address
-
     def ip(self):
         """Populates the GET dict with formatted values for an ip search"""
-        if self.input.get('prefixid', False):
-            self.__prefix()
         self.__common()
         if not self.input.get('period_filter'):
             self.input['period_filter'] = 'active'

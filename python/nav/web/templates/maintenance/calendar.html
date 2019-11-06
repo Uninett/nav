@@ -6,7 +6,7 @@
       {% url 'maintenance-calendar' prev_month.year prev_month.month as previous_month %}
       {% url 'maintenance-calendar' next_month.year next_month.month as next_month %}
 
-      <a href="{{ previous_month }}">
+      <a href="{{ previous_month }}" rel="nofollow">
         <i class="fa fa-step-backward fa-lg" title="Previous month"></i>
       </a>
 
@@ -22,7 +22,7 @@
         <button type="submit" class="small secondary">Current month</button>
       </form>
 
-      <a href="{{ next_month }}">
+      <a href="{{ next_month }}" rel="nofollow">
         <i class="fa fa-step-forward fa-lg" title="Next month"></i>
       </a>
     </div>

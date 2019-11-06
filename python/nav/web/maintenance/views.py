@@ -53,10 +53,18 @@ def redirect_to_calendar(_request):
 
 
 def calendar(request, year=None, month=None):
+    # If the form was used to get here, redirect to the appropriate page
+    if "year" in request.GET and "month" in request.GET:
+        return redirect(
+            "maintenance-calendar",
+            year=request.GET.get("year"),
+            month=request.GET.get("month"),
+        )
+
     heading = "Maintenance schedule"
     try:
-        year = int(request.GET.get('year'))
-        month = int(request.GET.get('month'))
+        year = int(year)
+        month = int(month)
         this_month_start = date(year, month, 1)
     except (TypeError, ValueError):
         year = date.today().year

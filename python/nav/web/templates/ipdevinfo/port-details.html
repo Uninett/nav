@@ -31,7 +31,7 @@
       <div class="small-12 column">
         <ul class="button-group">
           <li>
-            <a href="{% url 'machinetracker-swport' port.netbox.sysname port.ifname %}"
+            <a href="{% query 'machinetracker-swp' switch=port.netbox.sysname port=port.ifname %}"
                class="button small secondary">
               Track MAC behind port
             </a>

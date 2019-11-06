@@ -25,14 +25,14 @@
             {% for detention in detentions %}
                 <tr>
                     <td>
-                        <a href="{% url 'machinetracker-ip_short_search' detention.ip 100 'on' %}"
+                        <a href="{% query 'machinetracker-ip' ip_range=detention.ip days=100 dns='on' %}"
                            title="Link to Machine Tracker" target="_blank">
                             {{ detention.ip }}
                         </a>
                     </td>
 
                     <td>
-                        <a href="{% url 'machinetracker-mac_search' detention.mac 100 'on' %}"
+                        <a href="{% query 'machinetracker-mac' mac=detention.mac days=100 dns='on' %}"
                            title="Link to Machine Tracker" target="_blank">
                             {{ detention.mac }}
                         </a>

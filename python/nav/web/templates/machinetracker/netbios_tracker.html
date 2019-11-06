@@ -23,7 +23,7 @@
       {% for row in result %}
         <tr>
           <td>
-            <a href="{% url 'machinetracker-ip_short_search' row.ip form_data.days dns %}"
+            <a href="{% query 'machinetracker-ip' ip_range=row.ip days=form_data.days dns=dns %}"
                title="Search for this IP address">{{ row.ip }}
             </a>
           </td>
@@ -37,7 +37,7 @@
           </td>
           <td>
             {% if row.mac %}
-              <a href="{% url 'machinetracker-mac_search' row.mac form_data.days dns %}"
+              <a href="{% query 'machinetracker-mac' mac=row.mac days=form_data.days dns=dns %}"
                  title="Search for this MAC address">{{ row.mac }}
               </a>
             {% else %}

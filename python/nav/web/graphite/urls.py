@@ -26,5 +26,4 @@ def _dummy(x):
 urlpatterns = [
     url(r'^(?P<uri>.*)$', views.index, name='graphite'),
     url(r'^render', _dummy, name='graphite-render'),
-    url(r'^metrics/find\?query=(?P<path>)$', _dummy, name='graphite-find'),
 ]

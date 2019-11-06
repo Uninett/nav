@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 #
-# Copyright (C) 2009-2011 Uninett AS
+# Copyright (C) 2009-2011, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -27,61 +26,25 @@ urlpatterns = [
     url(r'^ip/$',
         views.ip_search,
         name='machinetracker-ip'),
-    url(r'^ip/\?from_ip=(?P<from_ip>[^&]+)&to_ip=(?P<to_ip>[^&]*)'
-        r'&active=(?P<active>\w*)&inactive=(?P<inactive>\w*)'
-        r'&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
-        views.ip_do_search,
-        name='machinetracker-ip_search'),
-    # Short hand search url.
-    # Accepts from_ip, days and dns. Active is set to true
-    url(r'^ip/\?ip_range=(?P<from_ip>[^&]+)&days=(?P<days>-?\d+)'
-        r'&dns=(?P<dns>\w*)&period_filter=active',
-        views.ip_do_search,
-        name='machinetracker-ip_short_search'),
 
-    url(r'^ip/\?prefixid=(?P<prefix_id>\d+)$',
-        views.ip_do_search,
+    url(r'^ip/prefix/(?P<prefix_id>\d+)/$',
+        views.ip_prefix_search,
         name='machinetracker-prefixid_search'),
-    url(r'^ip/\?prefixid=(?P<prefix_id>\d+)&days=-1$',
-        views.ip_do_search,
+    url(r'^ip/prefix/(?P<prefix_id>\d+)/active/$',
+        views.ip_prefix_search, {'active': True},
         name='machinetracker-prefixid_search_active'),
 
     url(r'^mac/$',
         views.mac_search,
         name='machinetracker-mac'),
-    url(r'^mac/\?mac=(?P<mac>[^&]+)'
-        r'&days=(?P<days>-?\d+)&dns=(?P<dns>\w*)$',
-        views.mac_do_search,
-        name='machinetracker-mac_search'),
 
     url(r'^swp/$',
         views.switch_search,
         name='machinetracker-swp'),
-    url(r'^swp/\?switch=(?P<switch>[^&]+)&module=(?P<module>\d*)'
-        r'&port=(?P<port>[^&]*)$',
-        views.switch_do_search,
-        name='machinetracker-swp_short_search'),
-    url(r'^swp/\?switch=(?P<switch>[^&]+)&module=(?P<module>\d*)'
-        r'&port=(?P<port>[^&]*)&days=(?P<days>-?\d+)$',
-        views.switch_do_search,
-        name='machinetracker-swp_search'),
 
     # NetBIOS
     url(r'^netbios/$',
         views.netbios_search,
         name='machinetracker-netbios'),
-    url(r'^netbios/\?search=(?P<search>[^&]+)&days=(?P<days>\d+)$',
-        views.netbios_search,
-        name='machinetracker-netbios-search'),
 
-    # Old machinetrakcer links.
-    url(r'^swp\?switch=(?P<netbox_sysname>[^&]+)'
-        r'&module=(?P<module_number>\d+)'
-        r'&port=(?P<port_interface>[^&]+)&days=7$',
-        views.switch_do_search,
-        name='machinetracker-swport'),
-    url(r'^swp\?switch=(?P<netbox_sysname>[^&]+)'
-        r'&port=(?P<port_interface>[^&]+)&days=7$',
-        views.switch_do_search,
-        name='machinetracker-swport'),
 ]

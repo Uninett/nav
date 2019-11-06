@@ -1,3 +1,4 @@
+
 <table id="tracker-table" class="listtable tablesorter">
     <caption>
         Interface search results
@@ -27,7 +28,7 @@
             </td>
 
             <td>
-                <a href="{% url 'machinetracker-mac_search' ifc.ifphysaddress form_data.days dns %}" title="Search again for this MAC address">
+                <a href="{% query 'machinetracker-mac' mac=ifc.ifphysaddress days=form_data.days dns=dns %}" title="Search again for this MAC address">
                 {{ ifc.ifphysaddress }}</a>
             </td>
 

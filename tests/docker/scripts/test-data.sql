@@ -15,3 +15,19 @@ INSERT INTO netbox (ip, typeid, sysname, catid, orgid, roomid)
 VALUES ('192.168.0.42', (SELECT typeid FROM TYPE WHERE typename = 'hp2626A'), 'test-gsw.example.org', 'GSW', 'myorg', 'bø-123');
 INSERT INTO interface (netboxid, ifindex, ifname, ifdescr, iftype, speed, ifphysaddress, ifadminstatus, ifoperstatus, ifalias, vlan)
 VALUES ((SELECT netboxid FROM netbox WHERE sysname='test-gsw.example.org'), 1000, '1', 'Port #1', 6, 1000, '0c:0f:fe:eb:00:b5', 1, 1, 'Uplink to space', 42);
+
+-- Add some test prefixes
+INSERT INTO vlan (nettype, netident) VALUES ('scope', 'test scope');
+INSERT INTO prefix (netaddr, vlanid) VALUES ('10.0.0.0/8', (SELECT vlanid FROM vlan WHERE netident='test scope'));
+
+INSERT INTO vlan (nettype, netident) VALUES ('lan', 'test lan');
+INSERT INTO prefix (netaddr, vlanid) VALUES ('10.42.0.0/24', (SELECT vlanid FROM vlan WHERE netident='test lan'));
+
+-- Add some arp data
+INSERT INTO arp (netboxid, sysname, ip, mac, start_time)
+VALUES (
+    (SELECT netboxid FROM netbox WHERE sysname='test-gsw.example.org'),
+    'test-gsw.example.org',
+    '10.42.0.1',
+    '00:00:ca:fe:ba:be',
+    '2019-10-02 12:00'::TIMESTAMP);

@@ -41,7 +41,7 @@
 <tbody>
     {% for service in service_list %}
     <tr>
-      
+
         {% if service.is_on_maintenance %}
             <td class="status_maintenance">
             {{ service.get_up_display|capfirst }}
@@ -109,7 +109,7 @@
         <td>
             <a href="{% url 'seeddb-service-edit' service.id %}">
                 Edit</a>,
-            <a href="{% url 'maintenance-new-service' service.id %}">
+            <a href="{% query 'maintenance-new' service=service.id %}">
                 schedule maintenance</a>
         </td>
     </tr>

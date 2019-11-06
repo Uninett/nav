@@ -59,7 +59,7 @@ def log_netbox_change(account, old, new):
                              censored_attributes=['read_only', 'read_write'])
 
 
-def netbox_edit(request, netbox_id=None):
+def netbox_edit(request, netbox_id=None, suggestion=None):
     """Controller for edit or create of netbox"""
     netbox = None
     if netbox_id:
@@ -77,7 +77,6 @@ def netbox_edit(request, netbox_id=None):
         else:
             messages.add_message(request, messages.ERROR, 'Form was not valid')
     else:
-        suggestion = request.GET.get('suggestion')
         if suggestion:
             form = NetboxModelForm(instance=netbox, initial={'ip': suggestion})
         else:

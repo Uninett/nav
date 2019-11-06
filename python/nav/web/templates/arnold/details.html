@@ -17,7 +17,7 @@
       <tr>
         <th>Ip</th>
         <td>
-          <a href="{% url 'machinetracker-ip_short_search' identity.ip 100 'on' %}"
+          <a href="{% query 'machinetracker-ip' ip_range=identity.ip days=100 dns='on' %}"
              title="Link to Machine Tracker">
             {{ identity.ip }}
           </a>
@@ -37,7 +37,7 @@
       <tr>
         <th>Mac</th>
         <td>
-          <a href="{% url 'machinetracker-mac_search' identity.mac 100 'on' %}"
+          <a href="{% query 'machinetracker-mac' mac=identity.mac days=100 dns='on' %}"
              title="Link to Machine Tracker">
             {{ identity.mac }}
           </a>

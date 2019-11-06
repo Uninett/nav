@@ -41,7 +41,7 @@
             {% for result in search_result %}
                 <tr>
                     <td>
-                        <a href="{% url 'machinetracker-ip_short_search' result.ip 100 'on' %}"
+                        <a href="{% query 'machinetracker-ip' ip_range=result.ip days=100 dns='on' %}"
                            title="Link to Machine Tracker" target="_blank">
                             {{ result.ip }}
                         </a>
@@ -50,7 +50,7 @@
                     <td>{{ result.dns }}</td>
 
                     <td>
-                        <a href="{% url 'machinetracker-mac_search' result.mac 100 'on' %}"
+                        <a href="{% query 'machinetracker-mac' mac=result.mac days=100 dns='on' %}"
                            title="Link to Machine Tracker" target="_blank">
                             {{ result.mac }}
                         </a>

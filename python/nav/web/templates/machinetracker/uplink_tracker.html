@@ -40,7 +40,7 @@
             </td>
 
             <td>
-                <a href="{% url 'machinetracker-mac_search' row.mac form_data.days dns %}" title="Search again for this MAC address">
+                <a href="{% query 'machinetracker-mac' mac=row.mac days=form_data.days dns=dns %}" title="Search again for this MAC address">
                 {{ row.mac }}</a>
             </td>
 
