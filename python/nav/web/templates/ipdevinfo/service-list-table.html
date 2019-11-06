@@ -1,4 +1,3 @@
-{% load query %}
 <thead>
     <tr>
         <th rowspan="2">Status</th>
@@ -42,7 +41,7 @@
 <tbody>
     {% for service in service_list %}
     <tr>
-      
+
         {% if service.is_on_maintenance %}
             <td class="status_maintenance">
             {{ service.get_up_display|capfirst }}
