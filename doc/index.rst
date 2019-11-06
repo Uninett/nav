@@ -27,7 +27,7 @@ Getting help
 .. _nav-users mailing list archives: https://sympa.uninett.no/lists/uninett.no/arc/nav-users
 .. _the nav-users mailing list: https://sympa.uninett.no/lists/uninett.no/info/nav-users
 .. _#nav IRC channel: irc://irc.freenode.net/nav
-.. _bug tracker: https://github.com/UNINETT/nav
+.. _bug tracker: https://github.com/Uninett/nav
 
 First steps
 ===========

@@ -16,7 +16,7 @@ Review milestone for next release on GitHub
 -------------------------------------------
 
 * Check the list of issues targeted to the upcoming milestone at
-  https://github.com/UNINETT/nav/milestones .
+  https://github.com/Uninett/nav/milestones .
 * Are all the targeted bugs closed?
 
   * Please remember that the series branch must be merged to ``master`` for

@@ -25,7 +25,7 @@ to other external tools.
 
 The original request and final proposal is available on `Launchpad
 <https://bugs.launchpad.net/nav/+bug/1321249>`_ and
-`GitHub <https://github.com/UNINETT/nav/issues/1187>`_.
+`GitHub <https://github.com/Uninett/nav/issues/1187>`_.
 
 Usage
 =====
