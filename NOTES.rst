@@ -137,6 +137,15 @@ NAV now supports external authentication by honoring the `REMOTE_USER` HTTP
 header / environment variable. See the :doc:`reference documentation for
 external web authentication </reference/web_authentication>` for details.
 
+Exporting a continuous stream of NAV alerts to third party software
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :program:`Event Engine` has gained support for starting an external program
+and feeding it a continuous stream of JSON-formatted descriptions of every
+alert it generates. This can be used to aggregate alerts into third party
+software. More details are available in the :doc:`Event Engine reference guide
+</reference/eventengine>`.
+
 
 NAV 4.9
 =======

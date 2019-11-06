@@ -107,6 +107,8 @@ Also, the Event Engine examines the network topology to correlate events from
 passes through another device currently known to be down, a ``boxShadow``
 alert will be posted instead of a ``boxDown`` alert.
 
+:Reference:
+  :doc:`Event Engine reference guide <eventengine>`
 :Dependencies:
   The various monitors need to post events on the *event queue*, targeted at
   ``eventEngine``, in order for the Event Engine to have anything to do.

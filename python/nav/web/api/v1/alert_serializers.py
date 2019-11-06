@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Serializers for status API data"""
-
+from django.core.exceptions import ObjectDoesNotExist
 from django.template.defaultfilters import urlize
 from django.urls import reverse
 from django.utils.encoding import force_text
@@ -67,24 +67,23 @@ class EventTypeSerializer(serializers.ModelSerializer):
         fields = ('id', 'description')
 
 
-class AlertHistorySerializer(serializers.ModelSerializer):
-    """Serializer for the AlertHistory model"""
+class AlertSerializerBase(serializers.ModelSerializer):
+    """Serializer mix-in for the common parts of the AlertQueue and AlertHistory
+    models.
+    """
+
     subject = serializers.SerializerMethodField(source='get_subject')
     subject_url = serializers.SerializerMethodField()
     subject_type = serializers.SerializerMethodField()
 
     on_maintenance = serializers.SerializerMethodField('is_on_maintenance')
-    acknowledgement = AcknowledgementSerializer()
 
     event_history_url = serializers.SerializerMethodField()
     netbox_history_url = serializers.SerializerMethodField()
-    event_details_url = serializers.SerializerMethodField()
     device_groups = serializers.SerializerMethodField()
 
     alert_type = AlertTypeSerializer()
     event_type = EventTypeSerializer()
-    start_time = serializers.DateTimeField()
-    end_time = serializers.SerializerMethodField()
 
     @staticmethod
     def get_subject(obj):
@@ -128,14 +127,66 @@ class AlertHistorySerializer(serializers.ModelSerializer):
                            kwargs={'netbox_id': obj.get_subject().id})
 
     @staticmethod
-    def get_event_details_url(obj):
-        """Returns the url to the details page for this event"""
-        return reverse('event-details', kwargs={'event_id': obj.pk})
-
-    @staticmethod
     def get_subject_type(obj):
         """Returns the class name of the subject"""
         return obj.get_subject().__class__.__name__
+
+    @staticmethod
+    def get_device_groups(obj):
+        """Returns all the device groups for the netbox if any"""
+        try:
+            netbox = obj.netbox
+            return netbox.groups.values_list('id', flat=True) or None
+        except Exception:
+            pass
+
+
+class AlertQueueSerializer(AlertSerializerBase):
+    """Serializer for the AlertQueue model"""
+
+    time = serializers.DateTimeField()
+    alert_details_url = serializers.SerializerMethodField()
+    message = serializers.SerializerMethodField()
+
+    class Meta(object):
+        model = event.AlertQueue
+        fields = "__all__"
+
+    @staticmethod
+    def get_alert_details_url(obj):
+        if obj.history:
+            return reverse("api:alert-detail", kwargs={'pk': obj.history.pk})
+
+    @staticmethod
+    def get_message(obj):
+        """Returns a short message describing this alert"""
+        try:
+            if obj.pk:
+                message = obj.messages.get(language="en", type="sms")
+            else:
+                # This might be a pseudo-alert, used only for export purposes. It
+                # doesn't exist in the database, so let's get the message from the
+                # corresponding AlertHistory state instead
+                message = obj.history.messages.get(
+                    language="en", type="sms", state=obj.state
+                )
+        except ObjectDoesNotExist:
+            pass
+        else:
+            return message.message
+
+
+class AlertHistorySerializer(AlertSerializerBase):
+    """Serializer for the AlertHistory model"""
+
+    acknowledgement = AcknowledgementSerializer()
+    start_time = serializers.DateTimeField()
+    end_time = serializers.SerializerMethodField()
+    event_details_url = serializers.SerializerMethodField()
+
+    class Meta(object):
+        model = event.AlertHistory
+        fields = "__all__"
 
     @staticmethod
     def get_end_time(obj):
@@ -146,14 +197,10 @@ class AlertHistorySerializer(serializers.ModelSerializer):
         return obj.end_time if obj.end_time != INFINITY else "infinity"
 
     @staticmethod
-    def get_device_groups(obj):
-        """Returns all the device groups for the netbox if any"""
-        try:
-            netbox = obj.netbox
-            return netbox.groups.values_list('id', flat=True)
-        except Exception:
-            pass
+    def get_event_details_url(obj):
+        """Returns the url to the details page for this alert. And yes, even though
+        all the functions and views involved have the word "event" in their names,
+        these are in fact alerts.
 
-    class Meta(object):
-        model = event.AlertHistory
-        fields = '__all__'
+        """
+        return reverse('event-details', kwargs={'event_id': obj.pk})

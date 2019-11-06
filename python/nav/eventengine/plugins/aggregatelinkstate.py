@@ -46,10 +46,7 @@ class AggregateLinkStateHandler(EventHandler):
                 return self._ignore("Got aggregateLinkState end event, but the "
                                     "interface still appears to be degraded.")
 
-        if self._box_is_on_maintenance():
-            alert.post_alert_history()
-        else:
-            alert.post()
+        alert.post(post_alert=not self._box_is_on_maintenance())
 
         event.delete()
 
@@ -60,7 +57,7 @@ class AggregateLinkStateHandler(EventHandler):
         self._logger.debug("%s: The unresolved AlertHist entry is %r",
                            interface, vars(existing_alert))
         # Post just an alertq entry, but don't touch alerthist
-        alert.post_alert(history=existing_alert)
+        alert.post(set_state=existing_alert)
         self.event.delete()
 
     def _ignore(self, msg):

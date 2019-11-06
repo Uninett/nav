@@ -37,10 +37,7 @@ class ServiceStateHandler(EventHandler):
 
         self._populate_alert(alert)
 
-        if self._box_is_on_maintenance():
-            alert.post_alert_history()
-        else:
-            alert.post()
+        alert.post(post_alert=not self._box_is_on_maintenance())
 
         event.delete()
 
