@@ -110,6 +110,7 @@ Coriant Groove devices, using ``CORIANT-GROOVE-MIB``. These devices are used
 for disaggregation of DWDM systems. These sensors are registered and polled:
 
 * Optical channels
+
   * Frequency
   * Power
   * Differential group delay
@@ -117,10 +118,14 @@ for disaggregation of DWDM systems. These sensors are registered and polled:
   * S/N ratio
   * Q-factor
   * PreFEC bit error ratio
+
 * Client ports
+
   * TX/RX optical power
   * TX/RX lane optical power
+
 * ODU
+
   * Signal delay
 
 Option to enable CDP on Cisco Voice VLAN ports
@@ -1362,7 +1367,7 @@ package must be installed to enable the extension.
 The :command:`navsyncdb` command will automatically install the hstore
 extension into the NAV database if missing, but the installation requires
 superuser access to the database. Normally, this is only required when
-initializing the database from scratch, using the :option:`-c` option.
+initializing the database from scratch, using the ``-c`` option.
 Typically, if NAV and PostgreSQL are on the same server, :command:`navsyncdb`
 is invoked as the ``postgres`` user to achieve this (otherwise, use the
 :envvar:`PGHOST`, :envvar:`PGUSER`, :envvar:`PGPASSWORD` environment variables

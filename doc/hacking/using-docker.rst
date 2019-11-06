@@ -42,7 +42,7 @@ in Docker Compose lingo):
 
 nav
   This container runs the NAV backend processes and cron jobs. It also runs the
-  "sass-watcher" job, which will watch *.scss files for modifications and
+  "sass-watcher" job, which will watch ``*.scss`` files for modifications and
   recompile NAV's CSS when changes do occur.
 
 web

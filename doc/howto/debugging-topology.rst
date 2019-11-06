@@ -79,11 +79,12 @@ to ``cleese-sw``'s port *Gi2/1*. Do the following:
 2. Under the :guilabel:`Connection` table, in the row titled :guilabel:`To IP
    device` there should be a small, clickable icon to browse the *Neighbor
    candidates* report for port 26. Click on it:
-.. image:: link-to-neighbor-candidates.png
+   
+   .. image:: link-to-neighbor-candidates.png
 
-You might then see something like this:
+   You might then see something like this:
 
-.. image:: neighbor-candidates.png
+   .. image:: neighbor-candidates.png
 
 3. Do the same for the *Gi2/1* interface on ``cleese-sw``.
 4. Attach the results of the two report listings when posting a question to a
