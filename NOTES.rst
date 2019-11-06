@@ -37,7 +37,7 @@ The version requirements have changed for these dependencies:
 * :mod:`networkx` must be any version from the *2.2* series.
 * :mod:`IPy` must be at least version *1.00*.
 * :mod:`pynetsnmp-2` must be version *0.1.5*.
-* :mod:`psycopg2` must be version *2.7.7*.
+* :mod:`psycopg2` must be version *2.8.4*.
 
 Removed features
 ----------------
