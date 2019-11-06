@@ -1,3 +1,61 @@
+Version 5.0.0
+(released 07 Nov 2019)
+
+#############################################################
+##                   DEPRECATION WARNING                   ##
+#############################################################
+##                                                         ##
+## NAV will now also run on Python 3. Support for Python 2 ##
+## will be dropped shortly. Please refer to the release    ##
+## notes for details.                                      ##
+##                                                         ##
+#############################################################
+
+ User-visible features and improvements:
+
+  * #1793 (Add maintenance filter option to netbox API endpoint)
+    + #1995 (Add maintenance filter to Netbox API endpoint)
+  * #1859 (Improve portadmin support for dot1x)
+  * #1905 (Add support for alcatel DDM-sensors)
+  * #1908 (Add display widget for binary/boolean sensors to "racks")
+  * #1919 (Add support for external sensors from newer Watchdog
+           products)
+  * #1926 (Add support for most external sensors on newer watchdog
+           products)
+  * #1930 (Refactor IT-WATCHDOGS-MIB MibRetriever implementations)
+  * #1943 (Improve support for boolean sensors in racks)
+  * #1947 (Management profiles)
+  * #1969 (Store local chassis ids from LLDP-MIB and use for neighbor
+           lookups)
+  * #1970 (Add API for management profiles)
+  * #1971 (Provide option to automatically enable CDP on voice ports)
+  * #1974 (enabling CDP when a voice port is set using portadmin)
+  * #1987 (Refactor power supply and fan monitoring functionality)
+  * #1988 (Add status monitoring for Juniper PSUs and FANs)
+  * #1989 (Collect optical sensor measurements from Coriant Groove
+           devices)
+  * #1998 (Remove support for alert dispatching over Jabber)
+  * #2002 (Refactor installation documentation.)
+  * #2005 (Export stream of serialized alerts from the event engine)
+  * #2007 (Support REMOTE_USER header for web authentication)
+  * #2008 (Add more database stats to Watchdog's "NAV by the numbers")
+
+ Fixed GitHub issues in this release:
+
+  * #1978 (Netmap layer 2 traffic data requests to Graphite are too slow
+           and too large)
+  * #1979 (Location alerts widget crashes intermittently)
+  * #1980 (Using the wrong Radius dictionary file can cause servicemon
+           to eat all available system memory and hang)
+  * #1984 (Blank sysnames should not be allowed)
+    + #1985 (Disallow blank sysnames)
+  * #1990 (Make type changes immediately when unknown types are
+           encountered)
+  * #2004 ([BUG] Interface browser shows wrong "last used" date)
+  * #2009 (Ensure rooms require a location attribute also in the SQL
+           schema)
+
+
 Version 4.9.8
 (released 22 Aug 2019)
 
