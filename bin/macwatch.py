@@ -36,7 +36,7 @@ from nav.web.macwatch.models import MacWatch
 from nav.web.macwatch.models import MacWatchMatch
 
 
-LOGFILE = join(nav.buildconf.localstatedir, "log/macwatch.log")
+LOGFILE = "macwatch.log"
 _logger = logging.getLogger('nav.macwatch')
 
 # Occurences of the mac-address nearest to the edges has highest
