@@ -128,6 +128,7 @@ def main():
     # Create logger, start logging
     nav.logs.init_generic_logging(logfile=LOGFILE, stderr=False,
                                   read_config=True)
+    start_time = time.time()
     _logger.info("--> Starting macwatch <--")
 
     # For each active macwatch entry, check if mac is active and post event.
@@ -194,8 +195,9 @@ def main():
                     _logger.warning("Failed to post event, no alert will be "
                                     "given.")
 
-    _logger.info("--> Done checking for macs in %s seconds <--", time.clock())
-
+    _logger.info(
+        "--> Done checking for macs in %.3f seconds <--", time.time() - start_time
+    )
 
 if __name__ == '__main__':
     main()

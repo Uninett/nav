@@ -36,7 +36,7 @@ LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message
 
 def main():
     """Good old main..."""
-    before = time.clock()
+    before = time.time()
     fmt = logging.Formatter(LOG_FORMAT)
     init_generic_logging(
         logfile=LOG_FILE,
@@ -51,7 +51,7 @@ def main():
         check_devices_on_maintenance()
     except Exception:
         _logger.exception("An unhandled exception occurred:")
-    _logger.debug('Finished in %.3fs' % (time.clock() - before))
+    _logger.debug('Finished in %.3fs' % (time.time() - before))
     _logger.debug('-'*60)  # Visual separation line
 
 

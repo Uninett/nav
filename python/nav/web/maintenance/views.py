@@ -362,7 +362,7 @@ def add_box_to_maintenance(request):
     the Netbox has been consistently up for a period of time.
 
     """
-    before = time.clock()
+    before = time.time()
     account = get_account(request)
     if request.method == 'POST':
         netboxid_form = MaintenanceAddSingleNetbox(request.POST)
@@ -385,7 +385,7 @@ def add_box_to_maintenance(request):
                 _logger.debug('Maintenance checker finished')
 
                 _logger.debug('Add netbox to maintenance finished in %.3fs',
-                              time.clock() - before)
+                              time.time() - before)
             else:
                 # What should we do here?
                 _logger.error('Netbox %s (id=%d) is already on maintenance',
