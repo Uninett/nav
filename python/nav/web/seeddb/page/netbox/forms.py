@@ -188,7 +188,7 @@ class NetboxModelForm(forms.ModelForm):
             try:
                 self._check_existing_ip(ip)
             except IPExistsException as ex:
-                self._errors['ip'] = self.error_class(ex.message)
+                self._errors['ip'] = self.error_class(str(ex))
                 del cleaned_data['ip']
 
         if cat and cat.req_mgmt and not profiles:
