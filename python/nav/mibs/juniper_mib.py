@@ -124,7 +124,7 @@ class JuniperMib(MibRetriever):
                 "jnxContentsModel",
             ]
         ).addCallback(self.translate_result)
-        self._logger.warning("jnxFru results: %r", response)
+        self._logger.debug("jnxFru results: %r", response)
         units = [
             _fru_row_to_powersupply_or_fan(row)
             for row in response.values()
