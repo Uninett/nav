@@ -20,6 +20,7 @@ from operator import itemgetter
 import logging
 from datetime import datetime
 import struct
+import sys
 
 from django.utils import six
 from django.utils.six import iteritems
@@ -268,7 +269,9 @@ class EntityTable(dict):
 
     def clean(self):
         """Cleans the table data"""
-        self._clean_unicode()
+
+        if sys.version_info[0] == 2:  # Python 2 only
+            self._clean_unicode()
         self._parse_mfg_date()
         self._strip_whitespace()
         self._fix_broken_chassis_relative_positions()
@@ -277,7 +280,7 @@ class EntityTable(dict):
     def _parse_mfg_date(self):
         for entity in self.values():
             mfg_date = entity.get('entPhysicalMfgDate')
-            if isinstance(mfg_date, six.string_types):
+            if mfg_date:
                 mfg_date = parse_dateandtime_tc(mfg_date)
                 entity['entPhysicalMfgDate'] = mfg_date
 
@@ -366,6 +369,8 @@ def parse_dateandtime_tc(value):
     """Parses an SNMPv2-TC::DateAndTime Textual Convention into a datetime
     object. Timezone information is ignored by this function.
 
+    Reference: https://tools.ietf.org/html/rfc2579#page-18
+
     :returns: A datetime.datetime object on success, or None on failure.
     """
     if value == UNDEFINED_DATETIME:
@@ -377,6 +382,9 @@ def parse_dateandtime_tc(value):
     except struct.error as err:
         _logger.debug("could not parse %r as DateAndTime TC: %s",
                       value, err)
+        return
+    except TypeError as err:
+        _logger.debug("value %r wrong type: %s", value, err)
         return
 
     microseconds = deciseconds * 100000
