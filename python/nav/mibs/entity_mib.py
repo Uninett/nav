@@ -369,6 +369,8 @@ def parse_dateandtime_tc(value):
     """Parses an SNMPv2-TC::DateAndTime Textual Convention into a datetime
     object. Timezone information is ignored by this function.
 
+    Reference: https://tools.ietf.org/html/rfc2579#page-18
+
     :returns: A datetime.datetime object on success, or None on failure.
     """
     if value == UNDEFINED_DATETIME:
