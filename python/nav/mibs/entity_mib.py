@@ -277,7 +277,7 @@ class EntityTable(dict):
     def _parse_mfg_date(self):
         for entity in self.values():
             mfg_date = entity.get('entPhysicalMfgDate')
-            if isinstance(mfg_date, six.string_types):
+            if mfg_date:
                 mfg_date = parse_dateandtime_tc(mfg_date)
                 entity['entPhysicalMfgDate'] = mfg_date
 
@@ -377,6 +377,9 @@ def parse_dateandtime_tc(value):
     except struct.error as err:
         _logger.debug("could not parse %r as DateAndTime TC: %s",
                       value, err)
+        return
+    except TypeError as err:
+        _logger.debug("value \"%s\" wrong type: %s", value, err)
         return
 
     microseconds = deciseconds * 100000
