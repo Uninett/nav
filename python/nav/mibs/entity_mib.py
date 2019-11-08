@@ -20,6 +20,7 @@ from operator import itemgetter
 import logging
 from datetime import datetime
 import struct
+import sys
 
 from django.utils import six
 from django.utils.six import iteritems
@@ -268,7 +269,9 @@ class EntityTable(dict):
 
     def clean(self):
         """Cleans the table data"""
-        self._clean_unicode()
+
+        if sys.version_info[0] == 2:  # Python 2 only
+            self._clean_unicode()
         self._parse_mfg_date()
         self._strip_whitespace()
         self._fix_broken_chassis_relative_positions()
