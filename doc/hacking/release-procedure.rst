@@ -58,19 +58,10 @@ Updating changelog and release notes
     git push --tags
 
 
-Rolling and uploading a new distribution tarball
-------------------------------------------------
-
-* Create a distribution tarball and sign it::
-
-    ./dist.sh
-
-* Draft a new release for the new tag at GitHub. Upload the tarball and the
-  detached signature to the GitHub release page.
-
 Announcing the release
 ----------------------
 
+* Draft a new release for the new tag at GitHub.
 * Add a new release entry in the homepage admin panel at
   https://nav.uninett.no/admin
 * Change the topic of the #nav freenode IRC channel to reference the new
