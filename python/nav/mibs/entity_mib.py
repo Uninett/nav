@@ -382,7 +382,7 @@ def parse_dateandtime_tc(value):
                       value, err)
         return
     except TypeError as err:
-        _logger.debug("value \"%s\" wrong type: %s", value, err)
+        _logger.debug("value %r wrong type: %s", value, err)
         return
 
     microseconds = deciseconds * 100000
