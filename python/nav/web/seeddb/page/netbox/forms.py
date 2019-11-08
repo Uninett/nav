@@ -187,8 +187,8 @@ class NetboxModelForm(forms.ModelForm):
         if ip:
             try:
                 self._check_existing_ip(ip)
-            except IPExistsException as ex:
-                self._errors['ip'] = self.error_class(ex.message)
+            except IPExistsException as error:
+                self._errors['ip'] = self.error_class(error.message_list)
                 del cleaned_data['ip']
 
         if cat and cat.req_mgmt and not profiles:
@@ -265,4 +265,9 @@ class NetboxMoveForm(forms.Form):
 
 class IPExistsException(Exception):
     """Exception raised when a device with the same IP-address exists"""
-    pass
+    def __init__(self, message_list, **kwargs):
+        """
+        :param message_list: A list of messages associated with this error.
+        """
+        super(IPExistsException, self).__init__(message_list, **kwargs)
+        self.message_list = message_list
