@@ -121,7 +121,7 @@ def get_neighbors(_request, netboxid):
 
     data = {
         "nodes": nodes,
-        "links": link_candidates.values() + un_candidates.values()
+        "links": list(link_candidates.values()) + list(un_candidates.values()),
     }
 
     return JsonResponse(data)
