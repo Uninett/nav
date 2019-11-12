@@ -87,6 +87,10 @@ class LLDPMib(mibretriever.MibRetriever):
         translateable into an ifIndex via the lldpLocPortTable.
 
         """
+        if self._is_remote_table_index_broken(remote_table):
+            self._logger.warning("lldpRemTable has broken row indexes on this device")
+            returnValue([])
+
         remotes = remote_table.values()
         local_ports = yield self._retrieve_local_ports()
 
@@ -134,6 +138,11 @@ class LLDPMib(mibretriever.MibRetriever):
             remote[0] = lookup.get(local_portnum, local_portnum)
 
         returnValue(remotes)
+
+    @staticmethod
+    def _is_remote_table_index_broken(remote_table):
+        """Returns True if an lldpRemTable response has a broken row index"""
+        return any(len(row[0]) != 3 for row in remote_table.values())
 
     @inlineCallbacks
     def _retrieve_local_ports(self):
