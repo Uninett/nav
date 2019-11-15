@@ -282,7 +282,7 @@ class Edge(object):
                 self.link_speed = self.u.interface.speed
             else:
                 self.errors.append("Mismatch between interface speed")
-                if self.u.interface.speed < self.v.interface.speed:
+                if (self.u.interface.speed or 0) < (self.v.interface.speed or 0):
                     self.link_speed = self.u.interface.speed
                 else:
                     self.link_speed = self.v.interface.speed
