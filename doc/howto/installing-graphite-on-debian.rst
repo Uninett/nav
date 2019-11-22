@@ -243,9 +243,9 @@ Now you're ready to add an Apache site definition for this app:
 		   Require all granted
 	   </Location>
 
-	   ErrorLog \${APACHE_LOG_DIR}/graphite-web_error.log
+	   ErrorLog ${APACHE_LOG_DIR}/graphite-web_error.log
 	   LogLevel warn
-	   CustomLog \${APACHE_LOG_DIR}/graphite-web_access.log combined
+	   CustomLog ${APACHE_LOG_DIR}/graphite-web_access.log combined
 
 	   ProxyRequests Off
 	   ProxyPreserveHost Off
