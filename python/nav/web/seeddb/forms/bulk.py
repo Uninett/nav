@@ -51,7 +51,7 @@ class BulkImportForm(forms.Form):
     def get_raw_data(self):
         """Returns the bulk data as an utf-8 encoded string"""
         data = self.data.get('bulk_data', None)
-        if six.PY2 and isinstance(data, six.string_type):
+        if six.PY2 and isinstance(data, six.string_types):
             return data.encode('utf-8')
         else:
             return data
