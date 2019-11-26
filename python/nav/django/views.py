@@ -18,7 +18,7 @@
 import sys
 import traceback
 
-from django.template import loader, RequestContext
+from django.template import loader
 from django.http import HttpResponseServerError
 
 
@@ -29,8 +29,8 @@ def custom_500(request):
 
     type, value, tb = sys.exc_info()
 
-    return HttpResponseServerError(template.render({
+    return HttpResponseServerError(template.render(context={
         'type': type.__name__,
         'value': value,
         'traceback': traceback.format_exception(type, value, tb)
-        }, RequestContext(request)))
+        }, request=request))
