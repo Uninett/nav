@@ -40,18 +40,14 @@ class BulkImportForm(forms.Form):
         kwargs['initial'] = {'bulk_data': "%s\n" % self.parser.get_header()}
         super(BulkImportForm, self).__init__(*args, **kwargs)
 
-        bulk_file = self.files.get('bulk_file', None)
-        if bulk_file:
-            self.data['bulk_data'] = bulk_file.read()
-
         if self.is_bound and self.is_valid():
             self.fields['bulk_file'].widget = forms.HiddenInput()
             self.fields['bulk_data'].widget = forms.HiddenInput()
 
     def get_raw_data(self):
         """Returns the bulk data as an utf-8 encoded string"""
-        data = self.data.get('bulk_data', None)
-        if six.PY2 and isinstance(data, six.string_type):
+        data = self.cleaned_data.get('bulk_data', None)
+        if six.PY2 and isinstance(data, six.string_types):
             return data.encode('utf-8')
         else:
             return data
@@ -68,10 +64,20 @@ class BulkImportForm(forms.Form):
         if self._no_data_found() or self._is_bulk_data_unchanged():
             raise forms.ValidationError("There was no data in the form")
 
-        if self._is_bulk_data_empty():
-            raise forms.ValidationError("There was nothing to import")
-
         return self.cleaned_data
+
+    def clean_bulk_data(self):
+        """Replaces the bulk data with the contents of the uploaded file, if any"""
+        bulk_file = self.files.get("bulk_file", None)
+        if bulk_file:
+            cleaned_data = bulk_file.read().decode("utf-8")
+        else:
+            cleaned_data = self.cleaned_data.get("bulk_data", "")
+
+        if self._is_bulk_data_empty(cleaned_data):
+            raise forms.ValidationError("There was nothing to import")
+        else:
+            return cleaned_data
 
     def _no_data_found(self):
         bulk_file = self.files.get('bulk_file', None)
@@ -83,8 +89,8 @@ class BulkImportForm(forms.Form):
         bulk_initial = self.initial.get('bulk_data', '').strip()
         return bulk_data == bulk_initial
 
-    def _is_bulk_data_empty(self):
-        bulk_data = self.cleaned_data.get('bulk_data', '')
+    @staticmethod
+    def _is_bulk_data_empty(bulk_data):
         bulk_lines = bulk_data.split('\n')
         stripper = CommentStripper(iter(bulk_lines))
         stripped_lines = [l for l in stripper if l.strip()]

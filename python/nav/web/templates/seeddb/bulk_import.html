@@ -60,7 +60,7 @@
         {% endif %}
 
         {% if form.bulk_data.is_hidden %}
-          {{ form.bulk_data }}
+            <input type="hidden" name="bulk_data" value="{{ form.cleaned_data.bulk_data }}" id="id_bulk_data">
         {% else %}
           <fieldset>
             <legend>{{ form.bulk_data.label }}</legend>
