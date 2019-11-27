@@ -12,7 +12,7 @@ sudo -u nav python3 setup.py build
 python3 setup.py develop
 sudo -u nav python3 setup.py build_sass
 
-if [[ ! -d "/etc/nav" ]]; then
+if [[ ! -f "/etc/nav/nav.conf" ]]; then
     echo "Copying initial NAV config files into this container"
     nav config install --verbose /etc/nav
     chown -R nav:nav /etc/nav
