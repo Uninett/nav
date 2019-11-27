@@ -127,13 +127,17 @@ container in the :file:`/var/log/supervisor/` directory. The NAV process logs
 themselves are placed inside the :file:`/tmp/` directory inside the ``nav``
 container.
 
-Controlling log levels
-----------------------
+Controlling log levels and configuration
+----------------------------------------
 
 The log levels of various parts of NAV are controlled through the config file
-:file:`/etc/nav/logging.conf` inside the containers. Please be aware that the
-``nav`` and ``web`` containers do not share a configuration volume, so you may
-need to make adjustments in either container, depending on your needs.
+:file:`/etc/nav/logging.conf` inside the containers.
+
+The ``nav`` and ``web`` containers share a common configuration volume named
+``nav_config``. This volume should persist even between rebuilds of the
+containers themselves. If you want NAV to install a completely new set of
+config files from scratch, you may need to manually trash this volume using the
+``-v`` option to the :kbd:`docker-compose down` command.
 
 
 Overriding the compose services
