@@ -26,6 +26,7 @@ services:
       - PGUSER=postgres
     volumes:
       - .:/source
+      - nav_config:/etc/nav
     depends_on:
       - postgres
 
@@ -61,3 +62,7 @@ services:
   # mydevice.mydomain:
   #   << : *forwarder
   #   command: /snmp_forward.sh mydevice.mydomain myvk
+
+volumes:
+  nav_config:
+    driver: local
