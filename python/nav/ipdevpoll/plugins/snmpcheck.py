@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011, 2012, 2016 Uninett AS
+# Copyright (C) 2011, 2012, 2016, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,7 +21,7 @@ from twisted.internet.defer import returnValue
 from django.db import transaction
 
 from nav.event2 import EventFactory
-from nav.models import manage
+from nav.models import manage, event
 from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll.jobs import SuggestedReschedule
 
@@ -104,9 +104,16 @@ class SnmpCheck(Plugin):
 
     @transaction.atomic()
     def _currently_down(self):
-        return manage.NetboxInfo.objects.filter(
+        internally_down = manage.NetboxInfo.objects.filter(
             netbox=self.netbox.id,
             key=INFO_KEY_NAME,
             variable=INFO_VARIABLE_NAME,
-            value="down"
+            value="down",
         ).exists()
+        globally_down = (
+            event.AlertHistory.objects.unresolved("snmpAgentState")
+            .filter(netbox=self.netbox.id)
+            .exists()
+        )
+
+        return internally_down or globally_down
