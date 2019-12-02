@@ -56,7 +56,8 @@ class SnmpCheck(Plugin):
 
         if is_ok and was_down:
             yield self._mark_as_up()
-        elif not is_ok and not was_down:
+        elif not is_ok:
+            # Always send down events; eventengine will ignore any duplicates
             yield self._mark_as_down()
             raise SuggestedReschedule(delay=60)
 
