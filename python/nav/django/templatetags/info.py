@@ -162,3 +162,9 @@ def get_value(something, key):
 def sortdict(dictionary, reverse=False):
     """Returns a list of sorted dictionary items"""
     return sorted(dictionary.items(), reverse=bool(reverse))
+
+
+@register.filter
+def is_list(value):
+    """Returns True if the value is a list"""
+    return isinstance(value, list)
