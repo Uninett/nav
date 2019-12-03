@@ -55,7 +55,9 @@ def netbox(request):
 def netbox_list(request):
     """Controller for showing all netboxes"""
     info = NetboxInfo()
-    query = Netbox.objects.all()
+    query = (
+        Netbox.objects.select_related("room", "category", "type", "organization")
+    )
     filter_form = NetboxFilterForm(request.GET)
     value_list = (
         'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
