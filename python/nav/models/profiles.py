@@ -218,7 +218,7 @@ class Account(models.Model):
             # hash we compute the MD5 hash of the supplied password
             # for comparison.
             if self.password[:3] == 'md5':
-                pw_hash = md5(password)
+                pw_hash = md5(password.encode("utf-8"))
                 return pw_hash.hexdigest() == self.password[3:]
             else:
                 return password == self.password
