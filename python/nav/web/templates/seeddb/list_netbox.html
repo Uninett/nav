@@ -23,9 +23,7 @@
           {% endif %}
 
       {% else %}
-        {% if element and forloop.counter0 in censor_list %}
-          ******
-        {% elif element|is_list %}
+        {% if element|is_list %}
             <span title="{{ element|join:", " }}">{{ element|join:", "|truncatechars:30}}</span>
         {% else %}
           {{ element|default_if_none:"" }}
