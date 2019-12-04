@@ -17,6 +17,7 @@
 """Controllers for the netbox part of seedDB"""
 import datetime
 from django.db import transaction
+from django.contrib.postgres.aggregates import ArrayAgg
 
 from nav.models.manage import Netbox
 from nav.bulkparse import NetboxBulkParser
@@ -55,24 +56,19 @@ def netbox(request):
 def netbox_list(request):
     """Controller for showing all netboxes"""
     info = NetboxInfo()
-    query = Netbox.objects.all()
+    query = (
+        Netbox.objects.select_related("room", "category", "type", "organization")
+        .prefetch_related("profiles")
+        .annotate(profile=ArrayAgg("profiles__name"))
+    )
     filter_form = NetboxFilterForm(request.GET)
-    value_list = (
-        'sysname', 'room', 'ip', 'category', 'organization', 'read_only',
-        'read_write', 'snmp_version', 'type__name')
+    value_list = ('sysname', 'room', 'ip', 'category', 'organization', 'profile',
+                  'type__name')
     return render_list(request, query, value_list, 'seeddb-netbox-edit',
                        edit_url_attr='pk',
                        filter_form=filter_form,
                        template='seeddb/list_netbox.html',
-                       extra_context=info.template_context,
-                       censor_list=create_index_list(
-                           value_list,
-                           ['read_only', 'read_write']))
-
-
-def create_index_list(value_list, values_to_index):
-    """Create a zero-based index list for the listvalues in value_list"""
-    return [value_list.index(x) for x in values_to_index]
+                       extra_context=info.template_context)
 
 
 def netbox_delete(request):

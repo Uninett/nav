@@ -61,11 +61,7 @@
                         {{ element }}
                       {% endif %}
                     {% else %}
-                      {% if element and forloop.counter0 in censor_list %}
-                        ******
-                      {% else %}
                         {{ element|default_if_none:"" }}
-                      {% endif %}
                     {% endif %}
                   </td>
                 {% endfor %}
