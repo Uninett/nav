@@ -201,8 +201,6 @@ class Account(models.Model):
 
         Copied from nav.db.navprofiles
         """
-        # FIXME If password is old style NAV MD5, shouldn't we update the
-        # password in the database to be new style password?
         if not self.locked:
             stored_hash = nav.pwhash.Hash()
             try:
@@ -214,16 +212,30 @@ class Account(models.Model):
             else:
                 return stored_hash.verify(password)
 
-            # If the stored password looks like an old-style NAV MD5
-            # hash we compute the MD5 hash of the supplied password
-            # for comparison.
-            if self.password[:3] == 'md5':
-                pw_hash = md5(password)
-                return pw_hash.hexdigest() == self.password[3:]
+            if self.has_old_style_password_hash():
+                return self._verify_old_password_hash_and_rehash(password)
             else:
                 return password == self.password
         else:
             return False
+
+    def has_old_style_password_hash(self):
+        """Returns True if this account has an old-style, insecure password hash"""
+        return self.password.startswith("md5")
+
+    @sensitive_variables('password')
+    def _verify_old_password_hash_and_rehash(self, password):
+        """Verifies an old-style MD5 password hash, and if there is a match,
+        the password is re-hashed using the modern and more secure method.
+        """
+        pw_hash = md5(password.encode("utf-8"))
+        verified = pw_hash.hexdigest() == self.password[3:]
+        if verified:
+            self.set_password(password)
+            if self.pk:
+                Account.objects.filter(pk=self.pk).update(password=self.password)
+
+        return verified
 
     @property
     def locked(self):
