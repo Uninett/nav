@@ -1,5 +1,6 @@
 {% extends "seeddb/list.html" %}
 {% load crispy_forms_tags %}
+{% load info %}
 
 {% block row %}
 
@@ -22,8 +23,8 @@
           {% endif %}
 
       {% else %}
-        {% if element and forloop.counter0 in censor_list %}
-          ******
+        {% if element|is_list %}
+            <span title="{{ element|join:", " }}">{{ element|join:", "|truncatechars:30}}</span>
         {% else %}
           {{ element|default_if_none:"" }}
         {% endif %}
