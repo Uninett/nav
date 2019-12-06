@@ -15,6 +15,7 @@
 #
 # pylint: disable=R0903
 """Serializers for the NAV REST api"""
+from decimal import Decimal
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -84,11 +85,22 @@ class RoomSerializer(serializers.ModelSerializer):
     """Serializer for the room model"""
     position = serializers.ListField(
         child=serializers.DecimalField(max_digits=20, decimal_places=12),
-        read_only=True)
+        allow_null=True,
+        required=False,
+        min_length=2,
+        max_length=2
+    )
 
     class Meta(object):
         model = manage.Room
         fields = '__all__'
+
+    def validate(self, attrs):
+        """Ensures conversion of coordinate from string list to tuple of Decimals"""
+        if attrs.get("position"):
+            lat, lon = attrs.get("position")
+            attrs["position"] = (Decimal(lat), Decimal(lon))
+        return attrs
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
