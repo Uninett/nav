@@ -72,11 +72,14 @@ class PowerSupplyOrFanStateWatcher(Plugin):
         method_name = CALL_MAP.get(unit.physical_class)
         assert method_name is not None
 
-        for mib in self.miblist:
-            method = getattr(mib, method_name, None)
-            if method:
-                state = yield method(unit.internal_id)
-                defer.returnValue(state or STATE_UNKNOWN)
+        if unit.internal_id is not None:
+            for mib in self.miblist:
+                method = getattr(mib, method_name, None)
+                if method:
+                    state = yield method(unit.internal_id)
+                    defer.returnValue(state or STATE_UNKNOWN)
+        else:
+            self._logger.debug("unit has no internal id: %r", unit)
 
         defer.returnValue(STATE_UNKNOWN)
 
