@@ -24,6 +24,8 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.endpoints import ProcessEndpoint, StandardIOEndpoint
 import twisted.internet.endpoints
 
+from django.utils import six
+
 from nav.ipdevpoll import ContextLogger
 from . import control, jobs
 
@@ -322,4 +324,6 @@ class HackLog(object):
     def msg(data, **kwargs):
         """Used to monkeypatch twisted.endpoints to log worker output the
         ipdevpoll way"""
+        if six.PY3 and isinstance(data, six.binary_type):
+            data = data.decode("utf-8")
         sys.stderr.write(data)
