@@ -305,7 +305,7 @@ def read_log_lines(config):
     logfile = None
     # open log
     try:
-        logfile = open(filename, "r+")
+        logfile = open(filename, "r+", encoding=charset)
     except IOError as err:
         # If logfile can't be found, we ignore it.  We won't needlessly
         # spam the NAV admin every minute with a file not found error!
@@ -330,8 +330,6 @@ def read_log_lines(config):
         logfile.close()
 
         for line in fcon:
-            # Make sure the data is encoded as UTF-8 before we begin work on it
-            line = line.decode(charset).encode("UTF-8")
             yield line
 
 
