@@ -50,7 +50,7 @@ def _strip_empty_arguments(request):
     """
     query = request.GET.copy()
 
-    deletable = (key for key, value in query.items() if not value.strip())
+    deletable = [key for key, value in query.items() if not value.strip()]
     for key in deletable:
         del query[key]
     return query
