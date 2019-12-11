@@ -11,5 +11,5 @@ pytest-twisted==1.12
 pytidylib==0.2.4
 selenium==3.4.3
 whisper>=0.9.9
-whitenoise
+whitenoise==4.1.4
 subprocess32  ; python_version < '3'
