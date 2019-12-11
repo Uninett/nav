@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# -*- testargs: --arp -*-
 #
 # Copyright (C) 2017 Uninett AS
 #
