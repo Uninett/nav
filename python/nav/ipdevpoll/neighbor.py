@@ -129,6 +129,11 @@ class Neighbor(object):
     def _identify_interfaces(self):
         raise NotImplementedError
 
+    def _netbox_from_mac(self, mac):
+        mac_map = get_netbox_macs()
+        if mac in mac_map:
+            return self._netbox_query(Q(id=mac_map[mac]))
+
     def _netbox_from_ip(self, ip):
         """Tries to find a Netbox from NAV's database based on an IP address.
 
