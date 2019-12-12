@@ -20,7 +20,6 @@ import logging
 
 from IPy import IP
 from django.http import HttpResponse, JsonResponse
-from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.fields.related import ManyToOneRel as _RelatedObject
 from django.db.models.fields import FieldDoesNotExist
@@ -879,16 +878,15 @@ class AlertFragmentRenderer(TemplateHTMLRenderer):
     """
     media_type = 'text/x-nav-html'
 
-    def resolve_context(self, data, request, _response):
+    def get_template_context(self, data, renderer_context):
         """Populate the context used for rendering the template
 
-        :type request: rest_framework.request.Request
-        :type _response: rest_framework.request.Response
         :param dict data: The serialized alert
+        :param dict renderer_context: Existing context
         """
 
         if 'id' not in data:
-            return RequestContext(request, data)
+            return data
 
         # Put the alert object in the context
         data['alert'] = event.AlertHistory.objects.get(pk=data['id'])
@@ -899,7 +897,7 @@ class AlertFragmentRenderer(TemplateHTMLRenderer):
             data.update({
                 'netbox': manage.Netbox.objects.get(pk=netboxid)
             })
-        return RequestContext(request, data)
+        return data
 
 
 class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):

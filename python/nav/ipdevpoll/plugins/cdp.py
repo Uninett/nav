@@ -14,9 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 "ipdevpoll plugin to collect CDP (Cisco Discovery Protocol) information"
+import string
+
 from django.utils import six
 from twisted.internet import defer
 
+from nav.macaddress import MacAddress
 from nav.models import manage
 from nav.ipdevpoll import Plugin, shadows
 from nav.mibs.cisco_cdp_mib import CiscoCDPMib
@@ -144,7 +147,7 @@ class CDP(Plugin):
 
 
 class CDPNeighbor(Neighbor):
-    "Parses a CDP tuple from nav.mibs.cisco_cdp_mib to identify a neighbor"
+    """Parses a CDP tuple from nav.mibs.cisco_cdp_mib to identify a neighbor"""
 
     def _identify_netbox(self):
         netbox = None
@@ -152,9 +155,26 @@ class CDPNeighbor(Neighbor):
             netbox = self._netbox_from_ip(self.record.ip)
 
         if not netbox and self.record.deviceid:
-            netbox = self._netbox_from_sysname(self.record.deviceid)
-
+            if looks_like_binary_garbage(self.record.deviceid):
+                if len(self.record.deviceid) == 6:
+                    try:
+                        mac = MacAddress.from_octets(self.record.deviceid)
+                    except TypeError:
+                        pass
+                    else:
+                        netbox = self._netbox_from_mac(str(mac))
+                else:
+                    self._logger.debug(
+                        "remote deviceid looks like garbage: %r", self.record.deviceid
+                    )
+            else:
+                netbox = self._netbox_from_sysname(self.record.deviceid)
         return netbox
 
     def _identify_interfaces(self):
         return self._interfaces_from_name(self.record.deviceport)
+
+
+def looks_like_binary_garbage(deviceid):
+    """Determines whether the string looks like it contains binary garbage"""
+    return any(c not in string.printable for c in deviceid)

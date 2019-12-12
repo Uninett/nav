@@ -25,6 +25,7 @@ from nav.config import find_config_dir
 from nav.web import refresh_session
 from nav.web.webfront.urls import urlpatterns
 from nav.web.styleguide import styleguide_index
+from nav.django.views import force_500
 
 _logger = logging.getLogger(__name__)
 
@@ -63,6 +64,7 @@ urlpatterns += [
     url(r'^refresh_session/', refresh_session, name='refresh-session'),
     url(r'^auditlog/', include('nav.auditlog.urls')),
     url(r'^interfaces/', include('nav.web.interface_browser.urls')),
+    url(r'^500/', force_500),
 ]
 
 # Load local url-config

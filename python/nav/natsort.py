@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2007 Uninett AS
+# Copyright (C) 2007, 2019 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -24,17 +24,58 @@ An example of how to naturally sort a directory listing:
   foo = os.listdir('/path/to/bar')
   foo.sort(key=natsort.split)
 """
+import sys
 import re
+from functools import total_ordering
+
+if sys.version_info.major == 2:
+    _string_types = basestring,  # Python 2
+else:
+    _string_types = str,         # Python 3
 
 _split_pattern = re.compile(r'(\d+|\D+)')
 
 
 def split(string):
     """Split a string into digit- and non-digit components."""
-    def intcast(n):
-        if n.isdigit():
-            return int(n)
-        else:
-            return n
+    return [ComparableThing(x) for x in _split_pattern.findall(string)]
 
-    return [intcast(x) for x in _split_pattern.findall(string)]
+
+@total_ordering
+class ComparableThing(object):
+    """Wrapper class for comparing both strings and integers.
+
+    This exists to impose a stable sort order for strings split by natsort.split, even
+    on Python 3, which doesn't want to compare objects of different types.
+
+    """
+
+    def __init__(self, value):
+        if isinstance(value, _string_types) and value.isdigit():
+            self.value = int(value)
+        else:
+            self.value = value
+
+    def __eq__(self, other):
+        if isinstance(other, ComparableThing):
+            return self.value == other.value
+        return self.value == other
+
+    def __lt__(self, other):
+        if not isinstance(other, ComparableThing):
+            return self.value < other
+
+        if isinstance(self.value, int) and not isinstance(other.value, int):
+            return True
+        if isinstance(self.value, _string_types) and not isinstance(
+            other.value, _string_types
+        ):
+            return False
+
+        return self.value < other.value
+
+    def __repr__(self):
+        return repr(self.value)
+
+    def __str__(self):
+        return str(self.value)

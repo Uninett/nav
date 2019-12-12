@@ -445,6 +445,14 @@ See https://docs.djangoproject.com/en/1.8/topics/serialization/
    <https://docs.djangoproject.com/en/dev/ref/django-admin/#dumpdata-appname-appname-appname-model>`_
    to create fixtures.
 
+Force the custom Django 500 error handler to run
+------------------------------------------------
+
+If working on the custom Django 500 error handler view,
+:py:func:`nav.django.views.custom_500`, a 500 error can be produced
+intentionally by browsing the URI ``/500/`` on your NAV installation. This view
+will by default only be available when logged in as a NAV administrator.
+
 .. _GitHub: https://github.com/Uninett/nav
 __ Github_
 .. _RequireJS: http://requirejs.org/

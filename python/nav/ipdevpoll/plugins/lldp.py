@@ -23,7 +23,7 @@ from twisted.internet import defer
 from nav.models import manage
 from nav.mibs import lldp_mib
 from nav.ipdevpoll import Plugin, shadows
-from nav.ipdevpoll.neighbor import Neighbor, get_netbox_macs
+from nav.ipdevpoll.neighbor import Neighbor
 from nav.ipdevpoll.db import run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
@@ -203,11 +203,6 @@ class LLDPNeighbor(Neighbor):
             return netbox
         else:
             return self._netbox_from_sysname(chassid)
-
-    def _netbox_from_mac(self, mac):
-        mac_map = get_netbox_macs()
-        if mac in mac_map:
-            return self._netbox_query(Q(id=mac_map[mac]))
 
     def _identify_interfaces(self):
         portid = self.record.port_id

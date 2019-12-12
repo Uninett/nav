@@ -34,3 +34,11 @@ def custom_500(request):
         'value': value,
         'traceback': traceback.format_exception(type, value, tb)
         }, request=request))
+
+
+def force_500(request):
+    """View that throws an exception just to test/showcase the currently active 500
+    error handler
+    """
+    raise Exception("This error was thrown on purpose, please ignore")
+
