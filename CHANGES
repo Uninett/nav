@@ -1,3 +1,22 @@
+Version 5.0.1
+(released 05 Dec 2019)
+
+ Fixed GitHub issues in this release:
+
+  * #2016 (ipdevpoll inventory job crashes when processing manufacturing
+           dates from ENTITY-MIB under Python 3)
+  * #2019 (IP Device info "Neighbor" tab is blank)
+  * #2023 (Netmap layer 3 crashing)
+  * #2025 (SeedDB bulk import file upload crashes)
+  * #2030 (Ensure internal snmp agent check state stays in sync with
+           global snmpAgentState)
+  * #2031 (Fix PortAdmin crash on invalid IP search)
+  * #2032 (Replace SNMP community columns in SeedDB netbox listing with
+           management profile lists)
+  * #2033 (Don't crash when logging in users with old-style password
+           hashes)
+
+
 Version 5.0.0
 (released 07 Nov 2019)
 
