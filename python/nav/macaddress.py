@@ -286,4 +286,7 @@ def _int_to_delimited_hexstring(mac_addr, delim, step):
 
 def octets_to_hexstring(octets):
     """Converts an octet string to a printable hexadecimal string"""
-    return ''.join("%02x" % byte for byte in six.iterbytes(octets))
+    if isinstance(octets, six.binary_type):
+        return ''.join("%02x" % byte for byte in six.iterbytes(octets))
+    else:
+        return ''.join("%02x" % ord(byte) for byte in six.iterbytes(octets))
