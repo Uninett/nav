@@ -27,6 +27,8 @@ import time
 import psycopg2
 import psycopg2.extensions
 
+from django.utils import six
+
 import nav
 from nav import config
 
@@ -84,7 +86,8 @@ def escape(string):
 
     """
     quoted = psycopg2.extensions.QuotedString(string)
-    return quoted.getquoted()
+    result = quoted.getquoted()
+    return result if isinstance(result, six.text_type) else result.decode("utf-8")
 
 
 def get_connection_parameters(script_name='default', database='nav'):
