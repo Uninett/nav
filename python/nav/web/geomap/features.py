@@ -34,7 +34,7 @@ import os
 import logging
 from functools import partial
 
-from django import template
+from django.template import engines
 
 from nav.config import open_configfile
 from nav.web.geomap.conf import get_configuration
@@ -81,14 +81,15 @@ def load_popup_template(filename):
     :param filename: name of a configuration file containing template source
                      (relative to the geomap configuration directory)
 
-    :returns: A django.template.Template object.
+    :returns: A django.template.backends.django.Template object.
     """
     if filename is None:
         return None
     filename = os.path.join('geomap', filename)
     with open_configfile(filename) as afile:
         content = afile.read()
-    return template.Template(content)
+    django_engine = engines['django']
+    return django_engine.from_string(content)
 
 
 def apply_indicator(ind, properties):
