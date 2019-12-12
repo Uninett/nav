@@ -346,9 +346,22 @@ class Interface(Shadow):
             self.ifoperstatus_change = None
 
     def prepare(self, containers):
+        self._strip_null_bytes(containers)
         self._set_netbox_if_unset(containers)
         self._set_ifindex_if_unset(containers)
         self.gone_since = None
+
+    def _strip_null_bytes(self, containers):
+        """Strips null bytes from several string fields.
+
+        As it turns out, some devices like to return these as part of interface names
+        or descriptions, but we cannot insert those into the database.
+        """
+        for field in 'ifname', 'ifdescr', 'ifalias':
+            value = getattr(self, field, None)
+            if value is not None and "\x00" in value:
+                value = value.replace("\x00", "")
+                setattr(self, field, value)
 
     def _set_netbox_if_unset(self, containers):
         """Sets this Interface's netbox reference if unset by plugins."""
