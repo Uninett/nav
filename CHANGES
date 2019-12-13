@@ -22,6 +22,9 @@ Version 5.0.2
   * #2052 ([BUG] ipdevpoll inventory job sometimes crashes when saving
            POE Port information)
   * #2054 ([BUG] pping resolves all boxDown alerts on restart)
+  * #2055 ([BUG] Navlets crash/appear blank if their config is stored as
+           legacy pickles)
+  * #2056 ([BUG] Cannot add activity graphs to dashboard)
 
 
 Version 5.0.1
