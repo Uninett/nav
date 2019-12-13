@@ -296,15 +296,13 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
         reverse = res.copy()
         reversable_properties = ['sysname', 'netboxid', 'interface',
                                  'portid', 'gwportid', 'swportid']
-        map(reverse.swap,
-            map(lambda p: 'local_'+p, reversable_properties),
-            map(lambda p: 'remote_'+p, reversable_properties))
+        for prop in reversable_properties:
+            reverse.swap('local_'+prop, 'remote_'+prop)
 
-        def add_load_properties(d):
+        for d in res, reverse:
             d['load'] = (float('nan'), float('nan'))
             d['load_in'] = float('nan')
             d['load_out'] = float('nan')
-        map(add_load_properties, [res, reverse])
 
         connection_id = "%s-%s" % (res['local_sysname'], res['remote_sysname'])
         connection_rid = "%s-%s" % (res['remote_sysname'], res['local_sysname'])
