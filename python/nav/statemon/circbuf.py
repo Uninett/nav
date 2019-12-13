@@ -40,3 +40,7 @@ class CircBuf(object):
 
     def __getitem__(self, i):
         return self._data[i]
+
+    def reset_all_to(self, value):
+        """Resets all slots in the buffer to value"""
+        self._data = [-1]*self._size
