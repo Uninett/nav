@@ -63,7 +63,7 @@ def index(request, uri):
 
     if request.method == 'HEAD':
         response = HttpResponse(content_type=content_type, status=status)
-        response['Content-Length'] = headers.getheader('Content-Length', '0')
+        response['Content-Length'] = headers.get('Content-Length', '0')
     else:
         response = HttpResponse(output, content_type=content_type, status=status)
 

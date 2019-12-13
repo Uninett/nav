@@ -1,3 +1,32 @@
+Version 5.0.2
+(released 13 Dec 2019)
+
+ Fixed GitHub issues in this release:
+
+  * #2035 (Enable room geo positions to be writeable in API)
+  * #2036 ([BUG] logengine crash with AttributeError on every run on NAV
+           5.0.1)
+  * #2037 ([BUG] ipdevpolld multiprocess mode logs reams of TypeErrors)
+  * #2038 ([BUG] ipdevpoll psuwatch crash with TypeError immediately
+           after upgrade to NAV 5)
+  * #2039 (Fix broken natural sort implementation on Python 3 )
+  * #2041 (Geomap does not work in NAV 5.0.1)
+  * #2043 ([BUG] Syslog analyzer search returns nothing)
+  * #2044 ([BUG] navclean does not work under Python 3)
+  * #2045 ([BUG] Exception is raised when visiting /api/1/alert/ID)
+  * #2047 ([BUG] ipdevpoll jobs crash with "A string literal cannot
+           contain NUL (0x00) characters" messages for some devices)
+  * #2048 (Support MAC address device IDs from CDP records)
+  * #2049 ([BUG] ipdevinfo old style Switch port activity view is blank)
+  * #2050 ([BUG] Geomap is missing links between nodes)
+  * #2052 ([BUG] ipdevpoll inventory job sometimes crashes when saving
+           POE Port information)
+  * #2054 ([BUG] pping resolves all boxDown alerts on restart)
+  * #2055 ([BUG] Navlets crash/appear blank if their config is stored as
+           legacy pickles)
+  * #2056 ([BUG] Cannot add activity graphs to dashboard)
+
+
 Version 5.0.1
 (released 05 Dec 2019)
 

@@ -110,9 +110,7 @@ class Pinger(object):
             if netbox.netboxid not in self.replies:
                 self.replies[netbox.netboxid] = circbuf.CircBuf(self._nrping)
                 if netbox.up != 'y':
-                    buf = self.replies[netbox.netboxid]
-                    # This genious line marks all-down for the whole buf
-                    map(buf.push, [-1]*len(buf))
+                    self.replies[netbox.netboxid].reset_all_to(-1)
             netboxmap[netbox.netboxid] = netbox
             self.ip_to_netboxid[netbox.ip] = netbox.netboxid
         # Update netboxmap
