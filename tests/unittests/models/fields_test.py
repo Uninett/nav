@@ -123,7 +123,7 @@ class TestDictAsJsonField(object):
     def test_to_python_pickle(self):
         field = DictAsJsonField()
         orig_value = 2
-        value = pickle.dumps(orig_value)
+        value = pickle.dumps(orig_value, protocol=1)
         result = field.to_python(value)
         assert result == orig_value
 
