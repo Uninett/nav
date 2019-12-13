@@ -24,6 +24,8 @@ from nav.mibs.entity_mib import EntityMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
+SNMP_TRUTH_VALUES = {1: True, 2: False}
+
 
 class Poe(Plugin):
     """Monitors power over ethernet status"""
@@ -88,7 +90,7 @@ class Poe(Plugin):
         port.netbox = self.netbox
         port.index = portindex
         port.poegroup = poegroup
-        port.admin_enable = row['pethPsePortAdminEnable']
+        port.admin_enable = SNMP_TRUTH_VALUES.get(row['pethPsePortAdminEnable'], False)
         port.detection_status = row['pethPsePortDetectionStatus']
         port.priority = row['pethPsePortPowerPriority']
         port.classification = row['pethPsePortPowerClassifications']
