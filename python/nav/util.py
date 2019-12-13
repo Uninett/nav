@@ -57,7 +57,7 @@ def color_gradient(start, stop, steps):
     blue = gradient(start[2], stop[2], steps)
 
     grad = zip(red, green, blue)
-    return grad
+    return list(grad)
 
 
 def colortohex(triplet):
