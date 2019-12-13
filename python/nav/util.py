@@ -23,7 +23,7 @@ import datetime
 import uuid
 import hashlib
 from functools import wraps
-from itertools import chain, tee, groupby
+from itertools import chain, tee, groupby, islice
 from operator import itemgetter
 
 from django.utils import six
@@ -57,7 +57,7 @@ def color_gradient(start, stop, steps):
     blue = gradient(start[2], stop[2], steps)
 
     grad = zip(red, green, blue)
-    return grad
+    return list(grad)
 
 
 def colortohex(triplet):
@@ -216,12 +216,15 @@ def first_true(iterable, default=None, pred=None):
     return next(six.filter(pred, iterable), default)
 
 
-def chunks(lst, size):
+def chunks(iterable, size):
+    """Yields successive chunks from iterable. Each chunk will be at most `size`
+    elements long. For example,
+
+    >>> list(chunks(range(9), 4))
+    [(0, 1, 2, 3), (4, 5, 6, 7), (8,)]
     """
-    Yields successive `size`-sized chunks from lst.
-    """
-    for i in range(0, len(lst), size):
-        yield lst[i:i+size]
+    iterator = iter(iterable)
+    return iter(lambda: tuple(islice(iterator, size)), ())
 
 
 class IPRange(object):
