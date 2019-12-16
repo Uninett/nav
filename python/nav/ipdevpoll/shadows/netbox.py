@@ -59,7 +59,13 @@ class Netbox(Shadow):
 
     def copy(self, other):
         super(Netbox, self).copy(other)
-        for attr in ('snmp_up', 'last_updated'):
+        for attr in (
+            "snmp_up",
+            "last_updated",
+            "snmp_version",
+            "read_only",
+            "read_write",
+        ):
             if hasattr(other, attr):
                 setattr(self, attr, getattr(other, attr))
 
