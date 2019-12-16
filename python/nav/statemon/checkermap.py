@@ -44,6 +44,8 @@ def get(checker):
         return
     if checker not in checkers:
         parsedir()
+        # apparently, the following is required for proper plugin imports on Python 3
+        importlib.import_module("nav.statemon.checker")
     module_name = class_name = checkers.get(checker.lower(), '')
     if not module_name:
         return
