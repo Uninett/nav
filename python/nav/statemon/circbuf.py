@@ -43,4 +43,4 @@ class CircBuf(object):
 
     def reset_all_to(self, value):
         """Resets all slots in the buffer to value"""
-        self._data = [-1]*self._size
+        self._data = [value]*self._size
