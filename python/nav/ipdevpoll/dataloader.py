@@ -33,6 +33,7 @@ interfering with the daemon's asynchronous operations.
 
 """
 from collections import defaultdict
+import logging
 
 import django.db
 
@@ -40,6 +41,9 @@ from nav.models import manage, event
 from nav import ipdevpoll
 from nav.ipdevpoll.db import django_debug_cleanup, run_in_thread
 from . import storage
+
+
+_logger = logging.getLogger(__name__)
 
 
 def load_netbox(netbox_id):
@@ -161,6 +165,13 @@ def is_netbox_changed(netbox1, netbox2):
                  'deleted_at'
                  ):
         if getattr(netbox1, attr) != getattr(netbox2, attr):
+            _logger.debug(
+                "%s.%s changed from %r to %r",
+                netbox1.sysname,
+                attr,
+                getattr(netbox1, attr),
+                getattr(netbox2, attr)
+            )
             return True
 
     # Switching from up_to_date to not up_to_date warrants a reload, but not
