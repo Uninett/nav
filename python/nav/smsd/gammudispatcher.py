@@ -82,9 +82,9 @@ class GammuDispatcher(Dispatcher):
             sm.Init()
         except gammu.GSMError as error:
             raise PermanentDispatcherError(
-                  "GSM %s error %d: %s" % (error[0]['Where'],
-                                           error[0]['Code'],
-                                           error[0]['Text'])
+                  "GSM %s error %d: %s" % (error.args[0]['Where'],
+                                           error.args[0]['Code'],
+                                           error.args[0]['Text'])
             )
 
         message = {
@@ -99,9 +99,9 @@ class GammuDispatcher(Dispatcher):
             # - Sony Ericsson K310, USB cable, Gammu 1.06.00, python-gammu 0.13
             smsid = sm.SendSMS(message)
         except gammu.GSMError as error:
-            raise DispatcherError("GSM %s error %d: %s" % (error[0]['Where'],
-                                                           error[0]['Code'],
-                                                           error[0]['Text']))
+            raise DispatcherError("GSM %s error %d: %s" % (error.args[0]['Where'],
+                                                           error.args[0]['Code'],
+                                                           error.args[0]['Text']))
 
         if isinstance(smsid, six.integer_types):
             result = True
