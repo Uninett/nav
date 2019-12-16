@@ -82,9 +82,11 @@ class DictAsJsonField(models.TextField):
             if isinstance(value, dict):
                 return value
             try:
-                if isinstance(value, six.binary_type):
-                    value = six.text_type(value, encoding='utf-8')
-                return json.loads(value)
+                return json.loads(
+                    six.text_type(value, encoding="utf-8")
+                    if isinstance(value, six.binary_type)
+                    else value
+                )
             except ValueError:
                 try:
                     return pickle.loads(value)
