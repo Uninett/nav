@@ -6,6 +6,7 @@
 """Template tag for silent include of template"""
 
 from django import template
+from django.template import RequestContext
 
 register = template.Library()
 
@@ -17,6 +18,8 @@ class IncludeNode(template.Node):
     def render(self, context):
         try:
             # Loading the template and rendering it
+            if isinstance(context, RequestContext):
+                context = context.flatten()
             included_template = template.loader.get_template(
                 self.template_name).render(context)
         except template.TemplateDoesNotExist:
