@@ -39,7 +39,7 @@ class SshChecker(AbstractChecker):
         try:
             sock = socket.create_connection((hostname, port),
                                             self.timeout)
-            stream = sock.makefile('r+')
+            stream = sock.makefile('rw')
             version = stream.readline().strip()
             protocol, major = version.split('-')[:2]
             stream.write("%s-%s-%s" % (protocol, major, "NAV_Servicemon"))
