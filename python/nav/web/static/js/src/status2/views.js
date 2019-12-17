@@ -152,7 +152,7 @@ define([
             this.alertBox.addClass('hidden');
             this.collection.url = NAV.urls.status2_api_alerthistory + '?' + this.$('form').serialize();
             console.log(this.collection.url);
-            var request = this.collection.fetch({ reset: true });
+            var request = this.collection.fetch({ reset: true, data: {page_size: 1000} });
             request.done(function () {
                 console.log('data fetched');
                 // Reflow for foundation to enable dropdown content
