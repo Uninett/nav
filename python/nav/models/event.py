@@ -591,8 +591,8 @@ class AlertQueueVariable(models.Model):
         return u'%s=%s' % (self.variable, self.value)
 
 
-class AlertHistoryManager(models.Manager):
-    """Custom manager for the AlertHistory model"""
+class AlertHistoryQuerySet(models.QuerySet):
+    """Custom QuerySet for the AlertHistory model"""
 
     def unresolved(self, event_type_id=None):
         """
@@ -613,7 +613,7 @@ class AlertHistory(models.Model, EventMixIn):
     """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
-    objects = AlertHistoryManager()
+    objects = AlertHistoryQuerySet.as_manager()
 
     id = models.AutoField(db_column='alerthistid', primary_key=True)
     source = models.ForeignKey(
