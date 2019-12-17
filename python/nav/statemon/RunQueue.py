@@ -140,8 +140,11 @@ class _RunQueue(object):
     def _start_worker_if_needed(self):
         # This is quite dirty, but I really need to know how many
         # threads are waiting for checkers.
-        # pylint: disable=protected-access, no-member
-        num_waiters = len(self.await_work._Condition__waiters)
+        waiters = getattr(self.await_work, "_waiters", None)
+        # Next two lines exist only for compat with Python 2 (Python < 3)
+        if waiters is None:
+            waiters = getattr(self.await_work, "_Condition__waiters")
+        num_waiters = len(waiters)
         _logger.debug("Number of workers: %i Waiting workers: %i",
                       len(self.workers), num_waiters)
         if num_waiters > 0:
