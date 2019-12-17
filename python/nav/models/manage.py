@@ -283,7 +283,7 @@ class Netbox(models.Model):
             category=DeprecationWarning,
             stacklevel=2,
         )
-        return self._get_snmp_config('version')
+        return int(self._get_snmp_config('version'))
 
     def _get_snmp_config(self, variable='community', writeable=None):
         """Returns SNMP profile configuration variables, preferring the profile
