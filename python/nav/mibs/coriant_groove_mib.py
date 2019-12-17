@@ -207,3 +207,28 @@ class CoriantGrooveMib(MibRetriever):
         mib_object = self.nodes[column].raw_mib_data
         description = mib_object.get("description", "").strip()
         return description.split("\n")[0]
+
+
+def _fix_text_columns():
+    """Updates CoriantGrooveMib.text_columns to include all known text columns.
+
+    The text_columns attribute cannot be modified directly in the class definition
+    because of the way the metaclass generates the text_columns attribute during the
+    construction of the CoriantGrooveMib class.
+
+    The MIB modules itself marks most of these up as OctetString, rather than
+    DisplayString, causing the SNMP library to return them all as bytes objects
+    rather than strings.
+    """
+    # TODO Find a way to let the metaclass make a union w/the class' own text_columns
+    CoriantGrooveMib.text_columns.update(grp["name_from"] for grp in SENSOR_GROUPS)
+    CoriantGrooveMib.text_columns.update(grp["alias_from"] for grp in SENSOR_GROUPS)
+    CoriantGrooveMib.text_columns.update(
+        column_name
+        for group in SENSOR_GROUPS
+        for column_name, column in group["columns"].items()
+        if column.get("type") == "string"
+    )
+
+
+_fix_text_columns()
