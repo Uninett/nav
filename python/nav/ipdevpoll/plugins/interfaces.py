@@ -80,7 +80,8 @@ class Interfaces(Plugin):
         # to the next callback
         netbox = self.containers.factory(None, shadows.Netbox)
         interfaces = [self._convert_row_to_container(netbox, ifindex, row)
-                      for ifindex, row in result.items()]
+                      for ifindex, row in result.items()
+                      if isinstance(ifindex, int)]
         return interfaces
 
     def _convert_row_to_container(self, netbox, ifindex, row):
@@ -93,12 +94,13 @@ class Interfaces(Plugin):
 
         # ifSpeed spec says to use ifHighSpeed if the 32-bit unsigned
         # integer is maxed out
-        if row['ifSpeed'] is not None and row['ifSpeed'] < 4294967295:
-            interface.speed = row['ifSpeed'] / 1000000.0
-        elif row['ifHighSpeed'] is not None:
-            interface.speed = float(row['ifHighSpeed'])
+        if isinstance(row['ifSpeed'], int):
+            if row['ifSpeed'] < 4294967295:
+                interface.speed = row['ifSpeed'] / 1000000.0
+            elif isinstance(row['ifHighSpeed'], int):
+                interface.speed = float(row['ifHighSpeed'])
 
-        interface.ifphysaddress = binary_mac_to_hex(row['ifPhysAddress'])
+        interface.ifphysaddress = typesafe_binary_mac_to_hex(row['ifPhysAddress'])
         interface.ifadminstatus = row['ifAdminStatus']
         interface.ifoperstatus = row['ifOperStatus']
 
@@ -169,3 +171,17 @@ class Interfaces(Plugin):
         deferred = self.etherlikemib.get_duplex()
         deferred.addCallback(update_result)
         return deferred
+
+
+def typesafe_binary_mac_to_hex(octets):
+    """Converts binary mac addresses to hexadecimal representations for database
+    storage.
+
+    However, some devices return the wrong data types, so this method will return
+    None if the given value cannot be converted to a Mac Address without a TypeError
+    being raised.
+    """
+    try:
+        return binary_mac_to_hex(octets)
+    except TypeError:
+        return None

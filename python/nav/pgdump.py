@@ -43,7 +43,7 @@ def main():
         writeln("-- args: %r" % sys.argv)
 
         pg_dump(STD_DUMP_ARGS + ["--schema-only"])
-        excluded = set(opts.exclude + opts.filters.keys())
+        excluded = set(opts.exclude).union(opts.filters.keys())
         pg_dump(STD_DUMP_ARGS + ["--data-only"] +
                 ["--exclude-table=%s" % tbl for tbl in excluded])
 

@@ -69,7 +69,7 @@ class MysqlConnection(object):
     def __init__(self, addr, timeout=None):
         host, _port = addr
         sock = socket.create_connection(addr, timeout)
-        self.file = sock.makefile('r+')
+        self.file = sock.makefile('rw')
 
         self.seqno = 0
 

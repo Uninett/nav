@@ -70,6 +70,12 @@ def test_mac_address_return_same_address_value_without_dash():
     assert six.text_type(mac_addr) == u'e4:2f:45:72:6e:76'
 
 
+def test_mac_address_return_same_address_value_without_spaces():
+    param = 'e4 2f 45 72 6e 76'
+    mac_addr = MacAddress(param)
+    assert six.text_type(mac_addr) == u'e4:2f:45:72:6e:76'
+
+
 def test_mac_address_return_same_address_value_without_dot():
     param = 'e42f.4572.6e76'
     mac_addr = MacAddress(param)

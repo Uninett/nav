@@ -19,12 +19,15 @@ within a Netbox, from the ENTITY-MIB::entPhysicalTable (RFC 4133 and RFC 6933)
 """
 from django.utils import six
 from twisted.internet import defer
+
+from nav.Snmp import safestring
 from nav.ipdevpoll.shadows.entity import NetboxEntity
 
 from nav.mibs.entity_mib import EntityMib, EntityTable
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.timestamps import TimestampChecker
 from nav.models import manage
+from nav.oids import OID
 
 INFO_VAR_NAME = 'entityphysical'
 
@@ -120,6 +123,10 @@ class Entity(Plugin):
 
         for attr, column in self.field_map.items():
             value = ent.get(column)
+            if column in EntityMib.text_columns and "\x00" in value:
+                value = value.replace("\x00", "")  # Remove broken stuff from text
+            if column == "entPhysicalVendorType":
+                value = safestring(value).replace("\x00", "")
             if column == 'entPhysicalClass':
                 value = self.class_map.get(value)
             if value is not None:

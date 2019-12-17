@@ -42,7 +42,8 @@ class LinkState(Plugin):
     def _put_results(self, results):
         netbox = self.containers.factory(None, shadows.Netbox)
         for index, row in results.items():
-            self._update_interface(netbox, index, row)
+            if isinstance(index, int):  # only accept proper ifIndex values
+                self._update_interface(netbox, index, row)
 
     def _update_interface(self, netbox, ifindex, row):
         ifc = self.containers.factory(ifindex, shadows.Interface)

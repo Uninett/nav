@@ -18,8 +18,9 @@
 import time
 
 from twisted.internet import defer
-from django.utils.six import iteritems
+from django.utils import six
 
+from nav.Snmp import safestring
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import db
 from nav.ipdevpoll.db import run_in_thread
@@ -72,9 +73,18 @@ class StatSensors(Plugin):
     def _response_to_metrics(self, result, sensors, netboxes):
         metrics = []
         timestamp = time.time()
-        data = ((sensors[oid], value) for oid, value in iteritems(result)
+        data = ((sensors[oid], value) for oid, value in six.iteritems(result)
                 if oid in sensors)
         for sensor, value in data:
+            # Attempt to support numbers-as-text values
+            if isinstance(value, six.binary_type):
+                value = safestring(value)
+            if isinstance(value, six.text_type):
+                try:
+                    value = float(value)
+                except ValueError:
+                    pass
+
             value = convert_to_precision(value, sensor)
             for netbox in netboxes:
                 path = metric_path_for_sensor(netbox,
