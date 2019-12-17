@@ -237,6 +237,17 @@ class EventMixIn(object):
         be some physical or logical subcomponents of a Netbox.
 
         """
+        subject = getattr(self, "_cached_subject", None)
+        subid = getattr(self, "_cached_subid", None)
+        if not subid or subid != self.subid:
+            subject = self._fetch_subject()
+            subid = self.subid
+            setattr(self, "_cached_subject", subject)
+            setattr(self, "_cached_subid", subid)
+
+        return subject
+
+    def _fetch_subject(self):
         if self.subid:
             from django.apps import apps
 
