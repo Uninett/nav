@@ -270,7 +270,10 @@ class MacPrefix(object):
 # Helper functions used by both classes
 
 def _clean_hexstring(hexstr):
-    stripped = ''.join(i for i in hexstr.strip() if i not in DELIMS_AND_STEPS)
+    stripped = ''.join(
+        i for i in hexstr.strip().replace(" ", "")
+        if i not in DELIMS_AND_STEPS
+    )
     if not MAC_ADDRESS_PATTERN.match(stripped):
         raise ValueError("Not a valid hexadecimal string: %s" % hexstr)
     return stripped
