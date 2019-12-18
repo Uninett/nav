@@ -30,6 +30,7 @@ import re
 from collections import defaultdict
 
 from twisted.internet import defer
+from twisted.internet import error
 
 from nav.config import ConfigurationError
 from nav.mibs import mibretriever
@@ -57,7 +58,15 @@ class Sensors(Plugin):
         self._logger.debug("Discovering sensors sensors using: %r",
                            [type(m).__name__ for m in mibs])
         for mib in mibs:
-            all_sensors = yield mib.get_all_sensors()
+            self._logger.debug("Trying %r", type(mib).__name__)
+            try:
+                all_sensors = yield mib.get_all_sensors()
+            except (error.TimeoutError, defer.TimeoutError):
+                self._logger.debug(
+                    "Timed out collecting sensors from %s", mib.mib["moduleName"]
+                )
+                continue
+
             if all_sensors:
                 # Store and jump out on the first MIB that give
                 # any results

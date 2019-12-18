@@ -123,9 +123,9 @@ class Entity(Plugin):
 
         for attr, column in self.field_map.items():
             value = ent.get(column)
-            if column in EntityMib.text_columns and "\x00" in value:
+            if column in EntityMib.text_columns and value and "\x00" in value:
                 value = value.replace("\x00", "")  # Remove broken stuff from text
-            if column == "entPhysicalVendorType":
+            if column in ("entPhysicalVendorType", "entPhysicalUris"):
                 value = safestring(value).replace("\x00", "")
             if column == 'entPhysicalClass':
                 value = self.class_map.get(value)

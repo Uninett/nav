@@ -97,9 +97,7 @@ class MIBObject(object):
             if module and typename in module['typedefs']:
                 typ = module['typedefs'][typename]
             elif typ['module'] == 'SNMPv2-TC' and typename == 'TruthValue':
-                # no True:1 translate because of wacky Python.
-                # True is resolved as 1 anyway.
-                self.enum = {1: True, 2: False, False: 2}
+                self.enum = {1: True, 2: False}
                 return
 
         if 'basetype' in typ and typ['basetype'] == 'Enumeration':

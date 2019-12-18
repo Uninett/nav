@@ -175,7 +175,15 @@ def get_dot1d_instances(agentproxy):
         mib = mibclass(agentproxy)
         instances = yield mib.retrieve_alternate_bridge_mibs()
         if instances:
-            defer.returnValue(modifier(instances))
+            result = modifier(instances)
+            modified_by = modifier if instances != result else None
+            _logger.debug(
+                "get_dot1d_instances(%r) [modified=%r]: %r",
+                agentproxy.ip,
+                modified_by,
+                result,
+            )
+            defer.returnValue(result)
 
     defer.returnValue([])
 
@@ -202,8 +210,4 @@ def _workaround_broken_aruba_alternate_communities(instances):
             if not community.endswith(index):
                 community = community + index
         output.append((name, community))
-    if output != instances:
-        _logger.debug("worked around potentially defunct Aruba BRIDGE-MIB "
-                      "instance list. original: %r new: %r",
-                      instances, output)
     return output

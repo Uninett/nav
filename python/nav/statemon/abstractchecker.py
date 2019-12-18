@@ -187,9 +187,9 @@ class AbstractChecker(object):
         start = time.time()
         try:
             status, info = self.execute()
-        except Exception as info:  # pylint: disable=broad-except
+        except Exception as error:  # pylint: disable=broad-except
             status = event.Event.DOWN
-            info = str(info)
+            info = str(error)
         self.response_time = time.time()-start
         return status, info
 
