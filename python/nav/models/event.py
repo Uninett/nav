@@ -237,6 +237,17 @@ class EventMixIn(object):
         be some physical or logical subcomponents of a Netbox.
 
         """
+        subject = getattr(self, "_cached_subject", None)
+        subid = getattr(self, "_cached_subid", None)
+        if not subid or subid != self.subid:
+            subject = self._fetch_subject()
+            subid = self.subid
+            setattr(self, "_cached_subject", subject)
+            setattr(self, "_cached_subid", subid)
+
+        return subject
+
+    def _fetch_subject(self):
         if self.subid:
             from django.apps import apps
 
@@ -591,8 +602,8 @@ class AlertQueueVariable(models.Model):
         return u'%s=%s' % (self.variable, self.value)
 
 
-class AlertHistoryManager(models.Manager):
-    """Custom manager for the AlertHistory model"""
+class AlertHistoryQuerySet(models.QuerySet):
+    """Custom QuerySet for the AlertHistory model"""
 
     def unresolved(self, event_type_id=None):
         """
@@ -613,7 +624,7 @@ class AlertHistory(models.Model, EventMixIn):
     """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
-    objects = AlertHistoryManager()
+    objects = AlertHistoryQuerySet.as_manager()
 
     id = models.AutoField(db_column='alerthistid', primary_key=True)
     source = models.ForeignKey(

@@ -923,6 +923,11 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filter_backends = (AlertHistoryFilterBackend,)
     model = event.AlertHistory
     serializer_class = alert_serializers.AlertHistorySerializer
+    base_queryset = base = event.AlertHistory.objects.prefetch_related(
+        "variables", "netbox__groups"
+    ).select_related(
+        "netbox", "alert_type", "event_type", "acknowledgement", "source",
+    )
 
     def get_renderers(self):
         if self.action == 'retrieve':
@@ -932,9 +937,9 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """Gets an AlertHistory QuerySet"""
         if self.is_single_alert_by_primary_key():
-            return event.AlertHistory.objects.all().select_related()
+            return self.base_queryset
         elif not self.request.query_params.get('stateless', False):
-            return event.AlertHistory.objects.unresolved().select_related()
+            return self.base_queryset.unresolved()
         else:
             return self._get_stateless_queryset()
 
@@ -945,8 +950,7 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             raise ValueError("hours must be at least 1")
         threshold = datetime.now() - timedelta(hours=hours)
         stateless = Q(start_time__gte=threshold) & Q(end_time__isnull=True)
-        return event.AlertHistory.objects.filter(
-            stateless | UNRESOLVED).select_related()
+        return self.base_queryset.filter(stateless | UNRESOLVED)
 
     def get_template_names(self):
         """Get the template name based on the alerthist object"""
