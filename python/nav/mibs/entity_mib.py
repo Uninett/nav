@@ -62,9 +62,11 @@ class EntityMib(mibretriever.MibRetriever):
                         and OID(row['entLogicalType']) == bridge_mib_oid
                         and b'\x00' not in row['entLogicalCommunity'])
 
-            new_result = [(r['entLogicalDescr'], r['entLogicalCommunity'])
-                          for r in result.values()
-                          if _is_bridge_mib_instance_with_valid_community(r)]
+            new_result = [
+                (r["entLogicalDescr"], r["entLogicalCommunity"].decode("utf-8"))
+                for r in result.values()
+                if _is_bridge_mib_instance_with_valid_community(r)
+            ]
             return new_result
 
         df = self.retrieve_columns([
