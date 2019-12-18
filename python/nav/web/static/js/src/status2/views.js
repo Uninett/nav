@@ -1,4 +1,5 @@
 define([
+    'libs/spin.min',
     'status/collections',
     'libs-amd/text!resources/status2/event_template.hbs',
     'moment',
@@ -6,10 +7,12 @@ define([
     'status/handlebars-helpers',
     'libs/backbone',
     'libs/backbone-eventbroker'
-], function (Collections, EventTemplate, moment, Handlebars) {
+], function (Spinner, Collections, EventTemplate, moment, Handlebars) {
 
     // This collection contains all the event-models that are to be cleared/acknowledged etc.
     var alertsToChange = new Collections.ChangeCollection();
+
+    var spinner = new Spinner({position: 'relative', top: '0.5em', left: '-1em', scale: 0.5});
 
     /** The main view containing the panel and the results list */
     var StatusView = Backbone.View.extend({
@@ -86,6 +89,14 @@ define([
 
     });
 
+    function startSpinner() {
+        spinner.spin();
+        $('#fetch-spinner').append(spinner.el);
+    }
+
+    function stopSpinner() {
+        spinner.stop();
+    }
 
     /** The main panel for filtering events */
     var PanelView = Backbone.View.extend({
@@ -146,15 +157,16 @@ define([
         },
 
         fetchData: function () {
-            /* TODO: Inform user that we are trying to fetch data */
             var self = this;
             console.log('Fetching data...');
+            startSpinner();
             this.alertBox.addClass('hidden');
             this.collection.url = NAV.urls.status2_api_alerthistory + '?' + this.$('form').serialize();
             console.log(this.collection.url);
-            var request = this.collection.fetch({ reset: true });
+            var request = this.collection.fetch({ reset: true, data: {page_size: 1000} });
             request.done(function () {
                 console.log('data fetched');
+                stopSpinner();
                 // Reflow for foundation to enable dropdown content
                 $(document).foundation('dropdown', 'reflow');
             });
