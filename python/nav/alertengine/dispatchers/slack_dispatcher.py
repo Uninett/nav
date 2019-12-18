@@ -2,6 +2,7 @@
 
 import json
 
+from django.utils import six
 from django.utils.six.moves.urllib.request import Request, urlopen
 
 from nav.alertengine.dispatchers import Dispatcher
@@ -26,7 +27,10 @@ class Slack(Dispatcher):
             'channel': self.channel,
             'icon_emoji': self.emoji
         }
-        request = Request(address.address, json.dumps(params),
+        payload = json.dumps(params)
+        if isinstance(payload, six.text_type):
+            payload = payload.encode("utf-8")
+        request = Request(address.address, payload,
                           {'Content-Type': 'application/json'})
         urlopen(request)
 
