@@ -36,7 +36,9 @@ def create_hash(something, salt=False):
     data = str(something) + str(time.time()) if salt else something
     try:
         hash_object = hashlib.sha1(data)
-    except UnicodeEncodeError:
+    except (UnicodeEncodeError, TypeError):
+        # UnicodeEncodeError: Only on Python<3
+        # TypeError: Only on Python>=3
         hash_object = hashlib.sha1(data.encode('utf-8'))
 
     return hash_object.hexdigest()
