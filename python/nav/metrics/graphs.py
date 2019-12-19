@@ -168,9 +168,8 @@ class Graph(object):
             #
             # https://github.com/graphite-project/graphite-web/issues/238
             # https://github.com/graphite-project/graphite-web/pull/480
-            target = 'alias({target}, "{alias}")'.format(
-                target=target,
-                alias=meta['alias'].encode('ascii', 'replace'))
+            alias = meta['alias'].encode('ascii', 'replace').decode("ascii")
+            target = 'alias({target}, "{alias}")'.format(target=target, alias=alias)
 
         self.args.setdefault('target', []).append(target)
         if meta['unit']:

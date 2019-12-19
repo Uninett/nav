@@ -40,6 +40,7 @@ class SmtpChecker(AbstractChecker):
         ip, port = self.get_address()
         smtp = SMTP(self.timeout)
         code, msg = smtp.connect(ip, port)
+        msg = msg.decode("utf-8")
         try:
             smtp.quit()
         except smtplib.SMTPException:
