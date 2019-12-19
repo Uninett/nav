@@ -49,6 +49,9 @@ class SshChecker(AbstractChecker):
                     "Failed to send version reply to %s: %s" % (
                         self.get_address(), str(err)))
         finally:
-            sock.close()
+            try:
+                sock.close()
+            except UnboundLocalError:
+                pass  # sock was never created
         self.version = version
         return Event.UP, version
