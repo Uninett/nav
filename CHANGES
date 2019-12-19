@@ -1,3 +1,41 @@
+Version 5.0.3
+(released 19 Dec 2019)
+
+Fixed GitHub issues in this release:
+
+  * #2015 (Broken Mikrotik LLDP-MIB implementation causes ipdevpoll LLDP
+           plugin to crash)
+  * #2055 ([BUG] Navlets crash/appear blank if their config is stored as
+           legacy pickles)
+  * #2057 (Make servicemon run on Python 3)
+  * #2058 ([BUG] navpgdump crashes with TypeError on Python 3 if
+           exclusion options are provided)
+  * #2059 ([BUG] Coriant Groove sensors names appear as reprs of bytes
+           objects under Python 3)
+  * #2060 ([BUG] smsd gammudispatcher error handling fails on Python 3)
+  * #2061 ([BUG] silent_include tag template crashes any view that uses
+           it)
+  * #2062 ([BUG] ipdevpoll considers the same devices changed on every
+           reload loop, causing massive scheduling problems)
+  * #2063 (Massively reduce the number of queries produced by the API
+           /alert endpoint)
+  * #2065 ([BUG] some servicemon checker runs crash with a
+           UnboundLocalError)
+  * #2066 (Increase the max number of shown alerts in Status page to
+           1000 and provide feedback spinner when loading data)
+  * #2067 ([BUG] Alertengine Slack dispatcher fails with TypeError)
+  * #2068 ([BUG] Workaround for faulty Aruba ENTITY-MIB::entLogicalTable
+           implementation crashes with TypeError on Python 3)
+  * #2069 ([BUG] ipdevpoll inventory job crashes with a Django
+           ValidationError)
+  * #2070 ([BUG] Servicemon SMTP checker fails with " a bytes-like
+           object is required, not 'str'")
+  * #2071 ([BUG] Active maintenance task list crashes when tasks contain
+           deleted IP devices)
+  * #2072 ([BUG] Servicemon RadiusChecker always fails with "secret must
+           be a binary string" message)
+  * #2073 ([BUG] Room image upload crashes with a TypeError)
+
 Version 5.0.2
 (released 13 Dec 2019)
 
