@@ -86,7 +86,7 @@ class RadiusChecker(AbstractChecker):
         try:
             username = args.get("username", "")
             password = args.get("password", "")
-            rad_secret = args.get("secret", "")
+            rad_secret = args.get("secret", "").encode("utf-8")
             identifier = args.get("identifier", "")
             dictionary = args.get("dictionary", DEFAULT_DICTIONARY)
             ip, _port = self.get_address()
