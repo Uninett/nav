@@ -243,7 +243,7 @@ class TokenForm(forms.ModelForm):
         # endpoints from a dictionary to a list of keys. The 'clean_endpoints'
         # method does the opposite when saving.
         if self.instance and self.instance.endpoints:
-            self.initial['endpoints'] = self.instance.endpoints.keys()
+            self.initial['endpoints'] = list(self.instance.endpoints.keys())
 
         # Create the formhelper and define the layout of the form. The form
         # element itself aswell as the submit button is defined in the template
