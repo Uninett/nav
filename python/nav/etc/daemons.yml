@@ -16,6 +16,7 @@ daemons:
     pping:
         description: Pings all IP devices for status monitoring.
         command: pping.py
+        privileged: true
 
     servicemon:
         description: Monitors configured services.
@@ -28,3 +29,4 @@ daemons:
     snmptrapd:
         description: Receives and processes SNMP traps and notifications.
         command: snmptrapd.py
+        privileged: true
