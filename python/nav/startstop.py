@@ -121,7 +121,16 @@ class DaemonService(Service):
         if self.is_up():
             return False
 
-        return self.execute(self._command, silent=silent)
+        if not self.service_dict.get("privileged", False):
+            # run command as regular nav user
+            user = NAV_CONFIG.get("NAV_USER", "navcron")
+            command = 'su -c "{command}" {user}'.format(
+                command=self._command, user=user
+            )
+        else:
+            command = self._command
+
+        return self.execute(command, silent=silent)
 
     def stop(self, silent=False):
         if not self.is_up():
