@@ -24,6 +24,8 @@ from ctypes import (c_ushort, c_char, POINTER, cast, c_long)
 from IPy import IP
 from pynetsnmp import netsnmp
 
+from django.utils import six
+
 from nav.errors import GeneralException
 from nav.oids import OID
 from nav.util import address_to_string
@@ -126,8 +128,13 @@ def value_to_str(value):
     """
     if isinstance(value, tuple):
         return str(OID(value))
-    else:
-        return str(value)
+    elif isinstance(value, six.binary_type):
+        try:
+            return value.decode("utf-8")
+        except UnicodeDecodeError:
+            pass
+
+    return str(value)
 
 
 SNMP_TRAPS = OID('.1.3.6.1.6.3.1.1.5')

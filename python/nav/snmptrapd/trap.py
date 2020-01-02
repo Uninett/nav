@@ -80,9 +80,7 @@ class SNMPTrap(object):
         text = (text + "Type %s, snmpTrapOID: %s\n") % (
             self.genericType, self.snmpTrapOID)
 
-        keys = self.varbinds.keys()
-        keys.sort()
-        for key in keys:
+        for key in sorted(self.varbinds.keys()):
             val = self.varbinds[key]
             text = text + "%s -> %s\n" % (key, val)
 
