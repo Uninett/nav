@@ -1,4 +1,6 @@
 """Tests for report view utility functions"""
+import sys
+import pytest
 from nav.web.report.views import find_page_range
 
 
@@ -11,8 +13,13 @@ class TestPageRangeForPage1(object):
         cls.pages = range(1, 28)
         cls.result = find_page_range(cls.page_num, cls.pages, 5)
 
+    @pytest.mark.skipif(sys.version_info >= (3, 0), reason="requires python 2")
     def test_returns_list(self):
         assert isinstance(self.result, list)
+
+    @pytest.mark.skipif(sys.version_info < (3, 0), reason="requires python 3")
+    def test_returns_range(self):
+        assert isinstance(self.result, range)
 
     def test_current_page_is_in_range(self):
         assert self.page_num in self.result
