@@ -409,7 +409,7 @@ def find_page_range(page_number, page_range, visible_pages=5):
     if length <= visible_pages:
         return page_range
 
-    padding = visible_pages / 2
+    padding = visible_pages // 2
     start = page_number - 1 - padding
     if start < 0:
         start = 0
