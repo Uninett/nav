@@ -127,6 +127,16 @@ class TestDictAsJsonField(object):
         result = field.to_python(value)
         assert result == orig_value
 
+    def test_to_python_pickle_str(self):
+        # Github issue #2085
+        # Not all pickles can be converted to Py3 str at all so use an actual
+        # production value
+        field = DictAsJsonField()
+        orig_value = {'refresh_interval': 600000}
+        value = "(dp0\nS'refresh_interval'\np1\nI600000\ns."
+        result = field.to_python(value)
+        assert result == orig_value
+
     def test_get_prep_value_empty(self):
         field = DictAsJsonField()
         result = field.get_prep_value(None)
