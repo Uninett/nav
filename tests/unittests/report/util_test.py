@@ -44,3 +44,7 @@ class TestGenericPageRangeCalls(object):
     def test_page_should_be_center(self):
         result = find_page_range(3, range(1, 11), 5)
         assert result[2] == 3
+
+    def test_page_in_middle_of_long_range_should_not_crash(self):
+        result = find_page_range(5, range(1, 11), 5)
+        assert result[2] == 5
