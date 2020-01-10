@@ -63,6 +63,19 @@ class TestNetboxImporter(DjangoTransactionTestCase):
             for o in objects
         ), msg=objects)
 
+    def test_server_import_yields_netbox_and_device_model(self):
+        data = 'myroom:10.0.90.253:myorg:SRV'
+        parser = bulkparse.NetboxBulkParser(data)
+        importer = bulkimport.NetboxImporter(parser)
+        _line_num, objects = six.next(importer)
+
+        self.assertTrue(isinstance(objects, list), repr(objects))
+        self.assertTrue(len(objects) == 1, repr(objects))
+        self.assertTrue(any(
+            isinstance(o, manage.Netbox)
+            for o in objects
+        ), msg=objects)
+
     def test_simple_import_yields_objects_with_proper_values(self):
         data = 'myroom:10.0.90.252:myorg:SW:{}::'.format(
             self.read_profile.name,
