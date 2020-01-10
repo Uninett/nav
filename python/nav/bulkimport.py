@@ -122,6 +122,9 @@ class NetboxImporter(BulkImporter):
 
     @staticmethod
     def _get_management_profiles(netbox, profile_names):
+        if not profile_names:
+            return
+
         profiles = profile_names.split('|')
         profiles = [
             get_object_or_fail(ManagementProfile, name=name)
