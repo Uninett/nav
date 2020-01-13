@@ -48,6 +48,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      add_dot1x_info,
                                      is_restart_interface_enabled,
                                      is_write_mem_enabled, get_trunk_edit)
+from nav.Snmp import safestring
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmputils import SNMPFactory, SNMPHandler
 from .forms import SearchForm
@@ -394,17 +395,18 @@ def set_ifalias(account, fac, interface, request):
         if check_format_on_ifalias(ifalias):
             try:
                 fac.set_if_alias(interface.ifindex, ifalias)
-                interface.ifalias = ifalias
+                str_ifalias = safestring(ifalias)
+                interface.ifalias = str_ifalias
                 LogEntry.add_log_entry(
                     account,
                     u'set-ifalias',
-                    u'{actor}: {object} - ifalias set to "%s"' % ifalias,
+                    u'{actor}: {object} - ifalias set to "%s"' % str_ifalias,
                     subsystem=u'portadmin',
                     object=interface,
                 )
                 _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
                              interface.netbox.get_short_sysname(),
-                             interface.ifname, ifalias)
+                             interface.ifname, str_ifalias)
             except SnmpError as error:
                 _logger.error('Error setting ifalias: %s', error)
                 messages.error(request, "Error setting ifalias: %s" % error)
