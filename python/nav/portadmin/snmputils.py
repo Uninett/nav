@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011-2015 Uninett AS
+# Copyright (C) 2011-2015, 2020 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,6 +22,7 @@ from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav import Snmp
+from nav.Snmp import safestring
 from nav.errors import NoNetboxTypeError
 from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
                              NoSuchObjectError)
@@ -218,11 +219,13 @@ class SNMPHandler(object):
 
     def get_if_alias(self, if_index):
         """ Get alias on a specific interface """
-        return self._query_netbox(self.IF_ALIAS_OID, if_index)
+        return safestring(self._query_netbox(self.IF_ALIAS_OID, if_index))
 
     def get_all_if_alias(self):
         """Get all aliases for all interfaces."""
-        return self._bulkwalk(self.IF_ALIAS_OID)
+        return [
+            (oid, safestring(value)) for oid, value in self._bulkwalk(self.IF_ALIAS_OID)
+        ]
 
     def set_if_alias(self, if_index, if_alias):
         """Set alias on a specific interface."""
