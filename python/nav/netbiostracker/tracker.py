@@ -75,7 +75,7 @@ def get_addresses_to_scan(exclude_list=None):
 
 
 @timed
-def scan(addresses, ignore_failed_sendto=True, encoding="cp850"):
+def scan(addresses, ignore_failed_sendto=True, encoding="cp850", verbose=False):
     """Scan a list of ip-addresses for netbios names
 
     :param addresses: A list of IP address strings.
@@ -85,13 +85,12 @@ def scan(addresses, ignore_failed_sendto=True, encoding="cp850"):
     :param: encoding: Encoding to use when communicating with nbtscan
     """
 
+    command = ['nbtscan', '-f-', '-s', SPLITCHAR]
+    if verbose:
+        command.append('-v')
+
     _logger.debug('Scanning %s addresses', len(addresses))
-    proc = Popen(
-        ['nbtscan', '-f-', '-s', SPLITCHAR],
-        stdin=PIPE,
-        stdout=PIPE,
-        stderr=PIPE,
-    )
+    proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdout, stderr = proc.communicate('\n'.join(addresses).encode(encoding))
 
     if isinstance(stderr, six.binary_type):
@@ -118,10 +117,10 @@ def _filter_failed_sendto(data):
 
 
 @timed
-def parse(output, encoding=None):
+def parse(nbtscan_output, encoding=None):
     """Parse the results from a netbios scan"""
 
-    results = output.split('\n')
+    results = nbtscan_output.split('\n')
     parsed_results = []
     for result in results:
         if result:
@@ -137,6 +136,23 @@ def parse(output, encoding=None):
                 parsed_results.append(netbiosresult)
 
     return parsed_results
+
+
+@timed
+def parse_get_workstations(verbose_nbtscan_output):
+    """Parse the results from a verbose netbios scan, get only workstations"""
+
+    results = verbose_nbtscan_output.split('\n')
+    parsed_results = {}
+    for result in results:
+        if result:
+            if result[-4:] not in (':00U', ':00G'):
+                continue
+            ip, name, _ = [p.strip()
+                             for p in result.split(SPLITCHAR, 2)]
+            parsed_results[ip] = name
+            break
+    return result
 
 
 @timed
