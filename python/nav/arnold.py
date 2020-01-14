@@ -43,6 +43,7 @@ from nav.config import find_configfile
 from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
+from nav.netbiostracker.tracker import scan, parse_get_workstations
 from nav.portadmin.snmputils import SNMPFactory
 from nav.util import is_valid_ip
 
@@ -338,7 +339,7 @@ def update_identity(identity, justification, autoenablestep):
     identity.dns = get_host_name(identity.ip)
     identity.netbios = get_netbios(identity.ip)
     identity.textual_interface = str(identity.interface)
-    if autoenablestep > 0:
+    if autoenablestep:
         identity.autoenable = datetime.now() + timedelta(days=autoenablestep)
         identity.autoenablestep = autoenablestep
 
@@ -496,23 +497,12 @@ def get_host_name(ip):
 def get_netbios(ip):
     """Get netbiosname of computer with ip"""
 
-    # Try to locate nmblookup
-    command, _ = Popen(['which', 'nmblookup'], stdout=PIPE).communicate()
-    if not command:
+    netbios_dump = scan([ip], verbose=True)
+    if not netbios_dump:
         return ""
 
-    result, _ = Popen([command.strip(), "-A", ip], stdout=PIPE).communicate()
-    if not result:
-        return ""
-
-    # For each line in output, try to find name of computer.
-    for line in result.split("\n\t"):
-        if re.search("<00>", line):
-            match_object = re.search(r"(\S+)\s+<00>", line)
-            return match_object.group(1) or ""
-
-    # If it times out or for some other reason doesn't match
-    return ""
+    parsed_results = parse_get_workstations(netbios_dump)
+    return parsed_results.get(ip, "")
 
 
 def check_non_block(ip):
