@@ -91,9 +91,11 @@ class PortadminResponseTest(unittest.TestCase):
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method
         # for getting all IfAlias
-        self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=['hjalmar', 'snorre', 'bjarne'])
+        walkdata = [('.1', b'hjalmar'), ('.2', b'snorre'), ('.3', b'bjarne')]
+        expected = [('.1', 'hjalmar'), ('.2', 'snorre'), ('.3', 'bjarne')]
+        self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=walkdata)
         self.assertEqual(self.handler.get_all_if_alias(),
-                         ['hjalmar', 'snorre', 'bjarne'],
+                         expected,
                          "getAllIfAlias failed.")
 
     def test_set_ifalias_hp(self):
@@ -159,9 +161,11 @@ class PortadminResponseTest(unittest.TestCase):
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method
         # for getting all IfAlias
-        self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=['jomar', 'knut', 'hjallis'])
+        walkdata = [('.1', b'jomar'), ('.2', b'knut'), ('.3', b'hjallis')]
+        expected = [('.1', 'jomar'), ('.2', 'knut'), ('.3', 'hjallis')]
+        self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=walkdata)
         self.assertEqual(self.handler.get_all_if_alias(),
-                         ['jomar', 'knut', 'hjallis'], "getAllIfAlias failed.")
+                         expected, "getAllIfAlias failed.")
 
 
 if __name__ == '__main__':
