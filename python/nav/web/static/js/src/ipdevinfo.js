@@ -55,10 +55,20 @@ require([
         });
     }
 
+    function commonPrefix(array){
+        var arr = array.concat().sort(),
+            a1 = arr[0], a2 = arr[arr.length-1], len = a1.length, i = 0;
+        while (i<len && a1.charAt(i) === a2.charAt(i)) i++;
+        return a1.substring(0, i);
+    }
+
     function getSensorData(metricMap, updateFunc) {
         var url = NAV.graphiteRenderUrl;
+        // under the assumption that all sensors on a single device have a
+        // common parent node in the metric tree:
+        var target = commonPrefix(_.keys(metricMap)) + '*';
         var data = $.param({
-            target: _.keys(metricMap),
+            target: target,
             format: 'json',
             from: '-5min',
             until: 'now'
