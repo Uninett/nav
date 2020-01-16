@@ -185,6 +185,7 @@ class Worker(object):
     _logger = logging.getLogger(__name__ + '.worker')
 
     def __init__(self, pool, threadpoolsize, max_jobs):
+        self._pid = None
         self.active_jobs = 0
         self.total_jobs = 0
         self.max_concurrent_jobs = 0
@@ -224,12 +225,14 @@ class Worker(object):
 
     @property
     def pid(self):
+        """Returns the PID number of the worker process, if started"""
         try:
-            if not getattr(self, '_pid', None):
+            if not self._pid:
+                # pylint: disable=protected-access
                 self._pid = self.process.transport._process.pid
         except AttributeError:
             return None
-        return getattr(self, '_pid', None)
+        return self._pid
 
     def done(self):
         return self.max_jobs and (self.total_jobs >= self.max_jobs)
