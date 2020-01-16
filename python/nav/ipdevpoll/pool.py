@@ -15,8 +15,11 @@
 #
 """Handle sending jobs to worker processes."""
 from __future__ import print_function
+
+import datetime
 import os
 import sys
+import logging
 
 from twisted.protocols import amp
 from twisted.internet import reactor, protocol
@@ -26,7 +29,6 @@ import twisted.internet.endpoints
 
 from django.utils import six
 
-from nav.ipdevpoll import ContextLogger
 from . import control, jobs
 
 
@@ -72,7 +74,7 @@ class Job(amp.Command):
 class JobHandler(amp.CommandLocator):
     """Resolve actions for jobs received over AMP"""
 
-    _logger = ContextLogger()
+    _logger = logging.getLogger(__name__ + '.jobhandler')
 
     def __init__(self):
         super(JobHandler, self).__init__()
@@ -132,8 +134,6 @@ class JobHandler(amp.CommandLocator):
 class ProcessAMP(amp.AMP):
     """Modify AMP protocol to allow running over process pipes"""
 
-    _logger = ContextLogger()
-
     def __init__(self, is_worker, **kwargs):
         super(ProcessAMP, self).__init__(**kwargs)
         self.is_worker = is_worker
@@ -182,7 +182,7 @@ class Worker(object):
     """This class holds information about one worker process as seen from
     the worker pool"""
 
-    _logger = ContextLogger()
+    _logger = logging.getLogger(__name__ + '.worker')
 
     def __init__(self, pool, threadpoolsize, max_jobs):
         self.active_jobs = 0
@@ -191,6 +191,20 @@ class Worker(object):
         self.pool = pool
         self.threadpoolsize = threadpoolsize
         self.max_jobs = max_jobs
+        self.started_at = None
+
+    def __repr__(self):
+        return (
+            "<Worker pid={pid} ready={ready} active={active} max={max} "
+            "total={total} started_at={started_at}>"
+        ).format(
+            pid=self.pid,
+            ready=not self.done(),
+            active=self.active_jobs,
+            max=self.max_concurrent_jobs,
+            total=self.total_jobs,
+            started_at=self.started_at,
+        )
 
     @inlineCallbacks
     def start(self):
@@ -204,25 +218,29 @@ class Worker(object):
                                               locator=JobHandler())
         self.process = yield endpoint.connect(factory)
         self.process.lost_handler = self._worker_died
+        self.started_at = datetime.datetime.now()
+        self._logger.debug("Started new worker %r", self)
         returnValue(self)
+
+    @property
+    def pid(self):
+        try:
+            if not getattr(self, '_pid', None):
+                self._pid = self.process.transport._process.pid
+        except AttributeError:
+            return None
+        return getattr(self, '_pid', None)
 
     def done(self):
         return self.max_jobs and (self.total_jobs >= self.max_jobs)
 
-    def _worker_died(self, worker, reason):
+    def _worker_died(self, process, reason):
         if not self.done():
-            self._logger.warning("Lost worker {worker} with {jobs} "
-                                 "active jobs".format(
-                                     worker=worker,
-                                     jobs=self.active_jobs))
+            self._logger.warning("Lost worker: %r", self)
         elif self.active_jobs:
-            self._logger.warning("Worker {worker} exited with {jobs} "
-                                 "active jobs".format(
-                                     worker=worker,
-                                     jobs=self.active_jobs))
+            self._logger.warning("Exited with active jobs: %r", self)
         else:
-            self._logger.debug("Worker {worker} exited normally"
-                               .format(worker=worker))
+            self._logger.debug("Exited normally: %r", self)
         self.pool.worker_died(self)
 
     def execute(self, serial, command, **kwargs):
@@ -243,7 +261,7 @@ class WorkerPool(object):
     """This class represent a pool of worker processes to which jobs can
     be scheduled"""
 
-    _logger = ContextLogger()
+    _logger = logging.getLogger(__name__ + '.workerpool')
 
     def __init__(self, workers, max_jobs, threadpoolsize=None):
         twisted.internet.endpoints.log = HackLog
@@ -311,12 +329,7 @@ class WorkerPool(object):
             active=len(self.workers),
             target=self.target_count))
         for worker in self.workers:
-            self._logger.info(" - ready {ready} active {active}"
-                              " max {max} total {total}".format(
-                                  ready=not worker.done(),
-                                  active=worker.active_jobs,
-                                  max=worker.max_concurrent_jobs,
-                                  total=worker.total_jobs))
+            self._logger.info(" - %r", worker)
 
 
 class HackLog(object):
@@ -327,3 +340,4 @@ class HackLog(object):
         if six.PY3 and isinstance(data, six.binary_type):
             data = data.decode("utf-8")
         sys.stderr.write(data)
+        sys.stderr.flush()
