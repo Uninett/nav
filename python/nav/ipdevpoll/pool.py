@@ -17,6 +17,7 @@
 from __future__ import print_function
 import os
 import sys
+import logging
 
 from twisted.protocols import amp
 from twisted.internet import reactor, protocol
@@ -26,7 +27,6 @@ import twisted.internet.endpoints
 
 from django.utils import six
 
-from nav.ipdevpoll import ContextLogger
 from . import control, jobs
 
 
@@ -72,7 +72,7 @@ class Job(amp.Command):
 class JobHandler(amp.CommandLocator):
     """Resolve actions for jobs received over AMP"""
 
-    _logger = ContextLogger()
+    _logger = logging.getLogger(__name__ + '.jobhandler')
 
     def __init__(self):
         super(JobHandler, self).__init__()
@@ -132,8 +132,6 @@ class JobHandler(amp.CommandLocator):
 class ProcessAMP(amp.AMP):
     """Modify AMP protocol to allow running over process pipes"""
 
-    _logger = ContextLogger()
-
     def __init__(self, is_worker, **kwargs):
         super(ProcessAMP, self).__init__(**kwargs)
         self.is_worker = is_worker
@@ -182,7 +180,7 @@ class Worker(object):
     """This class holds information about one worker process as seen from
     the worker pool"""
 
-    _logger = ContextLogger()
+    _logger = logging.getLogger(__name__ + '.worker')
 
     def __init__(self, pool, threadpoolsize, max_jobs):
         self.active_jobs = 0
@@ -243,7 +241,7 @@ class WorkerPool(object):
     """This class represent a pool of worker processes to which jobs can
     be scheduled"""
 
-    _logger = ContextLogger()
+    _logger = logging.getLogger(__name__ + '.workerpool')
 
     def __init__(self, workers, max_jobs, threadpoolsize=None):
         twisted.internet.endpoints.log = HackLog
