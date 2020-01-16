@@ -305,8 +305,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             metric = {
                 'id': metric_id,
                 'sensor': sensor,
-                'graphite_data_url': Graph(
-                    magic_targets=[metric_id], format='json'),
+                'graphite_data_url': sensor.get_graph(format='json'),
             }
             sensor_metrics.append(metric)
         find_rules(sensor_metrics)
