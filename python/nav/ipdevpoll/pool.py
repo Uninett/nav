@@ -204,6 +204,15 @@ class Worker(object):
         self.process.lost_handler = self._worker_died
         returnValue(self)
 
+    @property
+    def pid(self):
+        try:
+            if not getattr(self, '_pid', None):
+                self._pid = self.process.transport._process.pid
+        except AttributeError:
+            return None
+        return getattr(self, '_pid', None)
+
     def done(self):
         return self.max_jobs and (self.total_jobs >= self.max_jobs)
 
