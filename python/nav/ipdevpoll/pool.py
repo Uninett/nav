@@ -219,6 +219,7 @@ class Worker(object):
         self.process = yield endpoint.connect(factory)
         self.process.lost_handler = self._worker_died
         self.started_at = datetime.datetime.now()
+        self._logger.debug("Started new worker %r", self)
         returnValue(self)
 
     @property
@@ -233,20 +234,13 @@ class Worker(object):
     def done(self):
         return self.max_jobs and (self.total_jobs >= self.max_jobs)
 
-    def _worker_died(self, worker, reason):
+    def _worker_died(self, process, reason):
         if not self.done():
-            self._logger.warning("Lost worker {worker} with {jobs} "
-                                 "active jobs".format(
-                                     worker=worker,
-                                     jobs=self.active_jobs))
+            self._logger.warning("Lost worker: %r", self)
         elif self.active_jobs:
-            self._logger.warning("Worker {worker} exited with {jobs} "
-                                 "active jobs".format(
-                                     worker=worker,
-                                     jobs=self.active_jobs))
+            self._logger.warning("Exited with active jobs: %r", self)
         else:
-            self._logger.debug("Worker {worker} exited normally"
-                               .format(worker=worker))
+            self._logger.debug("Exited normally: %r", self)
         self.pool.worker_died(self)
 
     def execute(self, serial, command, **kwargs):
@@ -335,12 +329,7 @@ class WorkerPool(object):
             active=len(self.workers),
             target=self.target_count))
         for worker in self.workers:
-            self._logger.info(" - ready {ready} active {active}"
-                              " max {max} total {total}".format(
-                                  ready=not worker.done(),
-                                  active=worker.active_jobs,
-                                  max=worker.max_concurrent_jobs,
-                                  total=worker.total_jobs))
+            self._logger.info(" - %r", worker)
 
 
 class HackLog(object):
