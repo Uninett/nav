@@ -193,6 +193,18 @@ class Worker(object):
         self.max_jobs = max_jobs
         self.started_at = None
 
+    def __repr__(self):
+        return (
+            "<Worker pid={pid} ready={ready} active={active} max={max} "
+            "total={total} started_at={started_at}>"
+        ).format(
+            pid=self.pid,
+            ready=not self.done(),
+            active=self.active_jobs,
+            max=self.max_concurrent_jobs,
+            total=self.total_jobs,
+            started_at=self.started_at,
+        )
 
     @inlineCallbacks
     def start(self):
