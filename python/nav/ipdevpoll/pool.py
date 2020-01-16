@@ -15,6 +15,8 @@
 #
 """Handle sending jobs to worker processes."""
 from __future__ import print_function
+
+import datetime
 import os
 import sys
 import logging
@@ -189,6 +191,8 @@ class Worker(object):
         self.pool = pool
         self.threadpoolsize = threadpoolsize
         self.max_jobs = max_jobs
+        self.started_at = None
+
 
     @inlineCallbacks
     def start(self):
@@ -202,6 +206,7 @@ class Worker(object):
                                               locator=JobHandler())
         self.process = yield endpoint.connect(factory)
         self.process.lost_handler = self._worker_died
+        self.started_at = datetime.datetime.now()
         returnValue(self)
 
     @property
