@@ -340,3 +340,4 @@ class HackLog(object):
         if six.PY3 and isinstance(data, six.binary_type):
             data = data.decode("utf-8")
         sys.stderr.write(data)
+        sys.stderr.flush()
