@@ -39,7 +39,7 @@ from nav import util
 from nav.adapters import HStoreField
 from nav.bitvector import BitVector
 from nav.metrics.data import get_netboxes_availability
-from nav.metrics.graphs import get_simple_graph_url
+from nav.metrics.graphs import get_simple_graph_url, Graph
 from nav.metrics.names import get_all_leaves_below
 from nav.metrics.templates import (
     metric_prefix_for_interface,
@@ -2354,6 +2354,40 @@ class Sensor(models.Model):
     def get_graph_url(self, time_frame='1day'):
         return get_simple_graph_url([self.get_metric_name()],
                                     time_frame=time_frame)
+
+    def get_graph(self, format="png"):
+        """Returns a Graph object describing a simple Graphite graph URL for this
+        sensor.
+
+        :param format: The format of the desired graph, e.g. `png` or `json`
+        :rtype: Graph
+        """
+        alias = (
+            self.human_readable.replace("\n", " ") if self.human_readable else self.name
+        )
+        # turns out graphite-web cannot handle non-ascii characters in
+        # aliases. we replace them here so we at least get a graph.
+        #
+        # https://github.com/graphite-project/graphite-web/issues/238
+        # https://github.com/graphite-project/graphite-web/pull/480
+        alias = alias.encode("ascii", errors="replace").decode("ascii")
+
+        scale = (
+            self.get_data_scale_display()
+            if self.data_scale != self.SCALE_UNITS
+            else None
+        )
+        uom = (
+            self.unit_of_measurement
+            if self.unit_of_measurement != self.UNIT_OTHER
+            else None
+        )
+        unit = (scale or "") + (uom or "")
+
+        metric = self.get_metric_name()
+        target = 'alias({metric}, "{alias}")'.format(metric=metric, alias=alias)
+
+        return Graph(targets=[target], format=format, vtitle=unit)
 
     def get_display_range(self):
         minimum = 0
