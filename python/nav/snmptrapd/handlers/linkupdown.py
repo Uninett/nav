@@ -1,5 +1,5 @@
 #
-# Copyright 2011 (C) Uninett AS
+# Copyright 2011, 2020 (C) Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -26,12 +26,14 @@ from nav.event import Event
 _logger = logging.getLogger('nav.snmptrapd.linkupdown')
 
 
+LINKDOWN = ".1.3.6.1.6.3.1.1.5.3"
+LINKUP = ".1.3.6.1.6.3.1.1.5.4"
+
+
 def handleTrap(trap, config=None):
     """Handles LINKUP/LINKDOWN traps, discarding anything else"""
 
-    # Linkstate-traps are generictypes. Check for linkup/down and post
-    # events on eventq.
-    if trap.genericType not in ['LINKUP', 'LINKDOWN']:
+    if trap.snmpTrapOID not in (LINKDOWN, LINKUP):
         return False
 
     _logger.debug("Module linkupdown got trap %s %s",
@@ -52,7 +54,7 @@ def handleTrap(trap, config=None):
         return False
 
     # Check for traptype, post event on queue
-    down = trap.genericType == 'LINKDOWN'
+    down = trap.snmpTrapOID == LINKDOWN
     success = post_link_event(down,
                               trap.netbox.netboxid, deviceid, interfaceid,
                               modulename, ifname, ifalias)
