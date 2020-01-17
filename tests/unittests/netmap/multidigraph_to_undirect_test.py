@@ -36,17 +36,12 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
 
     def test_edges_length_of_netmap_graph_is_reduced_properly(self):
         # one LINE between A and B.
-        # one LINE between B and C
+        # one LINE between A and C
         # one line between C and D
         self.assertEqual(3, len(self.netmap_graph.edges()))
-        self.assertEqual(
-            [
-                (self.a, self.b),
-                (self.a, self.c),
-                (self.c, self.d)
-            ],
-            list(self.netmap_graph.edges())
-        )
+        self.assertIn((self.a, self.b), self.netmap_graph.edges())
+        self.assertIn((self.a, self.c), self.netmap_graph.edges())
+        self.assertIn((self.c, self.d), self.netmap_graph.edges())
 
     def test_layer2_create_directional_metadata_from_nav_graph(self):
         self.netmap_graph = build_netmap_layer2_graph (
@@ -57,14 +52,9 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
 
         # should be the same as
         #  test_edges_length_of_netmap_graph_is_reduced_properly
-        self.assertEqual(
-            [
-                (self.a, self.b),
-                (self.a, self.c),
-                (self.c, self.d)
-            ],
-            list(self.netmap_graph.edges())
-        )
+        self.assertIn((self.a, self.b), self.netmap_graph.edges())
+        self.assertIn((self.a, self.c), self.netmap_graph.edges())
+        self.assertIn((self.c, self.d), self.netmap_graph.edges())
 
         self.assertEqual(2,
                          len(self.netmap_graph.get_edge_data(
