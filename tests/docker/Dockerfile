@@ -1,42 +1,40 @@
 # Full integration test image for NAV
 #
-FROM mbrekkevold/debian-gosu:stretch
+FROM mbrekkevold/ubuntu-gosu:bionic
 
-ENV DISTRO stretch
+ENV DISTRO buster
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
+ENV DEBIAN_FRONTEND noninteractive
 
 ### Installing packages
 RUN apt-get update && \
-    apt-get -y install --no-install-recommends \
-      curl git \
-      python python-dev python-pip build-essential \
-      python3 python3-dev python3-pip
+    apt-get install -y software-properties-common
 
-RUN echo "\n\
-\
-deb-src http://security.debian.org/ $DISTRO/updates main\n\
-deb-src http://deb.debian.org/debian $DISTRO main contrib non-free\n\
-deb-src http://deb.debian.org/debian $DISTRO-updates main contrib non-free\n\
-\
-deb http://dl.google.com/linux/chrome/deb/ stable main\n\
-\
-" > /etc/apt/sources.list.d/pkg-sources.list
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get -y install --no-install-recommends \
+      curl git build-essential \
+      python3.5 python3.5-dev \
+      python3.7 python3.7-dev \
+      python3-pip
+
+RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
 RUN apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends build-dep \
-	python-psycopg2 python-lxml python-imaging python-ldap
+	python3-psycopg2 python3-lxml python3-pil python3-ldap
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
 	libsnmp30 \
 	cron \
-	python-cairo \
+	libjpeg62 \
 	postgresql postgresql-contrib postgresql-client \
 	libxml2-dev libxslt1-dev \
 	libwww-perl \
-	firefox-esr xvfb \
+	firefox xvfb \
 	imagemagick \
 	x11vnc google-chrome-stable cloc \
 	cmake nbtscan python-gammu
@@ -73,7 +71,7 @@ RUN cd /tmp && \
     mv chromedriver /usr/local/bin/
 
 # Install our primary test runner
-RUN pip install tox snmpsim
+RUN python3.5 -m pip install tox snmpsim
 
 # Add a build user
 RUN adduser --system --group --home=/source --shell=/bin/bash build && \
