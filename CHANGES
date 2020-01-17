@@ -1,3 +1,29 @@
+Version 5.0.4
+(released 16 Jan 2020)
+
+Fixed GitHub issues in this release:
+
+  * #2074 ([BUG] ipdevpoll inventory job crashes for many devices with
+           an AttributeError)
+  * #2075 ([BUG] Editing existing API tokens shows no enabled endpoints)
+  * #2076 ([BUG] Missing Javascript multiselect library used by
+           Useradmin API token form)
+  * #2077 ([BUG] string handling in snmptrapd is broken on Python 3)
+  * #2081 ([BUG] Bulk importing netboxes without a managment profile
+           raises an exception)
+  * #2083 ([BUG] TypeError is raised when creating a csv for download
+           from a room-search)
+  * #2085 ([BUG] TypeError is raised when getting navlet)
+  * #2087 ([BUG] Reports with many pages crash once page 4 is visited)
+  * #2090 ([BUG] Marking machine as disabled in arnold raises TypeError)
+  * #2092 ([BUG] ipdevinfo sensor tab produces too large Graphite
+           request)
+  * #2093 ([BUG] PortAdmin crashes when viewing a switch with non-ASCII
+           port descriptions)
+  * #2097 ([BUG] Adding a manual detention without a number of days
+           until autoenable crashes Arnold)
+
+
 Version 5.0.3
 (released 19 Dec 2019)
 

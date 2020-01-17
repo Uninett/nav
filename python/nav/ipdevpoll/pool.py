@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017 Uninett AS
+# Copyright (C) 2017, 2020 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,8 +15,11 @@
 #
 """Handle sending jobs to worker processes."""
 from __future__ import print_function
+
+import datetime
 import os
 import sys
+import logging
 
 from twisted.protocols import amp
 from twisted.internet import reactor, protocol
@@ -26,11 +29,11 @@ import twisted.internet.endpoints
 
 from django.utils import six
 
-from nav.ipdevpoll import ContextLogger
 from . import control, jobs
 
 
 def initialize_worker():
+    """Initializes AMP server for a worker process"""
     handler = JobHandler()
     factory = protocol.Factory()
     factory.protocol = lambda: ProcessAMP(is_worker=True, locator=handler)
@@ -72,7 +75,7 @@ class Job(amp.Command):
 class JobHandler(amp.CommandLocator):
     """Resolve actions for jobs received over AMP"""
 
-    _logger = ContextLogger()
+    _logger = logging.getLogger(__name__ + '.jobhandler')
 
     def __init__(self):
         super(JobHandler, self).__init__()
@@ -80,6 +83,7 @@ class JobHandler(amp.CommandLocator):
         self.done = False
 
     def job_done(self, result, serial):
+        """De-registers a finished job"""
         if serial in self.jobs:
             del self.jobs[serial]
         if self.done and not self.jobs:
@@ -88,13 +92,14 @@ class JobHandler(amp.CommandLocator):
 
     @Job.responder
     def execute_job(self, netbox, job, plugins, interval, serial):
-        self._logger.debug("Process {pid} received job {job} for"
-                           " netbox {netbox}"
-                           " with plugins {plugins}".format(
-                               pid=os.getpid(),
-                               job=job,
-                               netbox=netbox,
-                               plugins=",".join(plugins)),)
+        """Executes a single job, as instructed by the scheduler"""
+        self._logger.debug(
+            "Process %s received job %s for netbox %s with plugins %s",
+            os.getpid(),
+            job,
+            netbox,
+            ",".join(plugins),
+        )
         job = jobs.JobHandler(job, netbox, plugins, interval)
         self.jobs[serial] = job
         deferred = job.run()
@@ -110,29 +115,26 @@ class JobHandler(amp.CommandLocator):
 
     @Cancel.responder
     def cancel(self, serial):
+        """Cancels a running job"""
         if serial in self.jobs:
             self.jobs[serial].cancel()
         return {}
 
     @Shutdown.responder
     def shutdown(self):
+        """Shuts down the worker process"""
         self.done = True
         return {}
 
     def log_jobs(self):
-        self._logger.info("Got {jobs} active jobs".format(
-            jobs=len(self.jobs)))
+        """Logs information about active jobs"""
+        self._logger.info("Got %s active jobs", len(self.jobs))
         for job in self.jobs.values():
-            self._logger.info("{job} {netbox} {plugins}".format(
-                job=job.name,
-                netbox=job.netbox,
-                plugins=", ".join(job.plugins)))
+            self._logger.info("%s %s %s", job.name, job.netbox, ", ".join(job.plugins))
 
 
 class ProcessAMP(amp.AMP):
     """Modify AMP protocol to allow running over process pipes"""
-
-    _logger = ContextLogger()
 
     def __init__(self, is_worker, **kwargs):
         super(ProcessAMP, self).__init__(**kwargs)
@@ -140,6 +142,7 @@ class ProcessAMP(amp.AMP):
         self.lost_handler = None
 
     def makeConnection(self, transport):
+        """Called when a connection has been made to the AMP endpoint"""
         if not hasattr(transport, 'getPeer'):
             setattr(transport, 'getPeer', lambda: "peer")
         if not hasattr(transport, 'getHost'):
@@ -147,6 +150,7 @@ class ProcessAMP(amp.AMP):
         super(ProcessAMP, self).makeConnection(transport)
 
     def connectionLost(self, reason):
+        """Called when a connection to the AMP endpoint has been lost"""
         super(ProcessAMP, self).connectionLost(reason)
         if self.is_worker:
             if reactor.running:
@@ -157,16 +161,18 @@ class ProcessAMP(amp.AMP):
 
 
 class InlinePool(object):
-    "This is a dummy worker pool that executes all jobs in the current process"
+    """This is a dummy worker pool that executes all jobs in the current process"""
     def __init__(self):
         self.active_jobs = {}
 
     def job_done(self, result, deferred):
+        """Cancels a running job"""
         if deferred in self.active_jobs:
             del self.active_jobs[deferred]
         return result
 
     def execute_job(self, job, netbox, plugins=None, interval=None):
+        """Executes a single job, as instructed by the scheduler"""
         job = jobs.JobHandler(job, netbox, plugins, interval)
         deferred = job.run()
         self.active_jobs[deferred] = job
@@ -174,6 +180,7 @@ class InlinePool(object):
         return deferred
 
     def cancel(self, deferred):
+        """Cancels a running job"""
         if deferred in self.active_jobs:
             self.active_jobs[deferred].cancel()
 
@@ -182,18 +189,35 @@ class Worker(object):
     """This class holds information about one worker process as seen from
     the worker pool"""
 
-    _logger = ContextLogger()
+    _logger = logging.getLogger(__name__ + '.worker')
 
     def __init__(self, pool, threadpoolsize, max_jobs):
+        self._pid = None
+        self.process = None
         self.active_jobs = 0
         self.total_jobs = 0
         self.max_concurrent_jobs = 0
         self.pool = pool
         self.threadpoolsize = threadpoolsize
         self.max_jobs = max_jobs
+        self.started_at = None
+
+    def __repr__(self):
+        return (
+            "<Worker pid={pid} ready={ready} active={active} max={max} "
+            "total={total} started_at={started_at}>"
+        ).format(
+            pid=self.pid,
+            ready=not self.done(),
+            active=self.active_jobs,
+            max=self.max_concurrent_jobs,
+            total=self.total_jobs,
+            started_at=self.started_at,
+        )
 
     @inlineCallbacks
     def start(self):
+        """Starts a new child worker process"""
         args = [control.get_process_command(), '--worker', '-f', '-s', '-P']
         if self.threadpoolsize:
             args.append('--threadpoolsize=%d' % self.threadpoolsize)
@@ -204,28 +228,36 @@ class Worker(object):
                                               locator=JobHandler())
         self.process = yield endpoint.connect(factory)
         self.process.lost_handler = self._worker_died
+        self.started_at = datetime.datetime.now()
+        self._logger.debug("Started new worker %r", self)
         returnValue(self)
 
+    @property
+    def pid(self):
+        """Returns the PID number of the worker process, if started"""
+        try:
+            if not self._pid:
+                # pylint: disable=protected-access
+                self._pid = self.process.transport._process.pid
+        except AttributeError:
+            return None
+        return self._pid
+
     def done(self):
+        """Returns True if this worker process will take no more jobs"""
         return self.max_jobs and (self.total_jobs >= self.max_jobs)
 
-    def _worker_died(self, worker, reason):
+    def _worker_died(self, _process, _reason):
         if not self.done():
-            self._logger.warning("Lost worker {worker} with {jobs} "
-                                 "active jobs".format(
-                                     worker=worker,
-                                     jobs=self.active_jobs))
+            self._logger.warning("Lost worker: %r", self)
         elif self.active_jobs:
-            self._logger.warning("Worker {worker} exited with {jobs} "
-                                 "active jobs".format(
-                                     worker=worker,
-                                     jobs=self.active_jobs))
+            self._logger.warning("Exited with active jobs: %r", self)
         else:
-            self._logger.debug("Worker {worker} exited normally"
-                               .format(worker=worker))
+            self._logger.debug("Exited normally: %r", self)
         self.pool.worker_died(self)
 
     def execute(self, serial, command, **kwargs):
+        """Executes a remove """
         self.active_jobs += 1
         self.total_jobs += 1
         self.max_concurrent_jobs = max(self.active_jobs,
@@ -236,6 +268,7 @@ class Worker(object):
         return deferred
 
     def cancel(self, serial):
+        """Cancels a job running on this worker"""
         return self.process.callRemote(Cancel, serial=serial)
 
 
@@ -243,7 +276,7 @@ class WorkerPool(object):
     """This class represent a pool of worker processes to which jobs can
     be scheduled"""
 
-    _logger = ContextLogger()
+    _logger = logging.getLogger(__name__ + '.workerpool')
 
     def __init__(self, workers, max_jobs, threadpoolsize=None):
         twisted.internet.endpoints.log = HackLog
@@ -251,12 +284,13 @@ class WorkerPool(object):
         self.target_count = workers
         self.max_jobs = max_jobs
         self.threadpoolsize = threadpoolsize
-        for i in range(self.target_count):
+        for _ in range(self.target_count):
             self._spawn_worker()
         self.serial = 0
         self.jobs = dict()
 
     def worker_died(self, worker):
+        """Called to signal the death of a worker process"""
         self.workers.remove(worker)
         if not worker.done():
             self._spawn_worker()
@@ -267,7 +301,7 @@ class WorkerPool(object):
         self.workers.add(worker)
 
     def _cleanup(self, result, deferred):
-        serial, worker = self.jobs[deferred]
+        _serial, worker = self.jobs[deferred]
         del self.jobs[deferred]
         worker.active_jobs -= 1
         return result
@@ -286,6 +320,7 @@ class WorkerPool(object):
         return deferred
 
     def cancel(self, deferred):
+        """Cancels a job running in the pool"""
         if deferred not in self.jobs:
             self._logger.debug("Cancelling job that isn't known")
             return
@@ -293,6 +328,7 @@ class WorkerPool(object):
         return worker.cancel(serial)
 
     def execute_job(self, job, netbox, plugins=None, interval=None):
+        """Executes a single job on an available worker"""
         deferred = self._execute(Job, job=job, netbox=netbox,
                                  plugins=plugins, interval=interval)
 
@@ -307,23 +343,22 @@ class WorkerPool(object):
         return deferred
 
     def log_summary(self):
-        self._logger.info("{active} out of {target} workers running".format(
-            active=len(self.workers),
-            target=self.target_count))
+        """Logs a summary of currently running workers"""
+        self._logger.info(
+            "%s out of %s workers running", len(self.workers), self.target_count
+        )
         for worker in self.workers:
-            self._logger.info(" - ready {ready} active {active}"
-                              " max {max} total {total}".format(
-                                  ready=not worker.done(),
-                                  active=worker.active_jobs,
-                                  max=worker.max_concurrent_jobs,
-                                  total=worker.total_jobs))
+            self._logger.info(" - %r", worker)
 
 
 class HackLog(object):
+    """Used to monkeypatch twisted.endpoints to log worker output the
+    ipdevpoll way"""
+
     @staticmethod
-    def msg(data, **kwargs):
-        """Used to monkeypatch twisted.endpoints to log worker output the
-        ipdevpoll way"""
+    def msg(data, **_kwargs):
+        """Logs a message to STDERR"""
         if six.PY3 and isinstance(data, six.binary_type):
             data = data.decode("utf-8")
         sys.stderr.write(data)
+        sys.stderr.flush()
