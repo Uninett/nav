@@ -331,10 +331,11 @@ def get_data(db_cursor, bounds, time_interval=None):
             connections[connection_id] = connection
         else:
             for existing_id, existing_conn in connections.items():
-                if ((existing_id == connection_id or
-                     existing_id == connection_rid) and
-                    (existing_conn['forward']['capacity'] < res['capacity'])):
-                    connections[existing_id] = connection
+                if existing_id in (connection_id, connection_rid):
+                    existing_capacity = existing_conn["forward"]["capacity"] or 0
+                    result_capacity = res["capacity"] or 0
+                    if existing_capacity < result_capacity:
+                        connections[existing_id] = connection
 
     db_cursor.execute(QUERY_NETBOXES)
     netboxes = [lazy_dict(row) for row in db_cursor.fetchall()]
