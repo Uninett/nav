@@ -257,11 +257,20 @@ class Worker(object):
         self.pool.worker_died(self)
 
     def execute(self, serial, command, **kwargs):
-        """Executes a remove """
+        """Executes a remote job"""
         self.active_jobs += 1
         self.total_jobs += 1
         self.max_concurrent_jobs = max(self.active_jobs,
                                        self.max_concurrent_jobs)
+        self._logger.debug(
+            "Dispatching to process %s job %s for netbox %s with plugins %s "
+            "(serial=%r)",
+            self.pid,
+            kwargs.get("job"),
+            kwargs.get("netbox"),
+            ",".join(kwargs.get("plugins", [])),
+            serial,
+        )
         deferred = self.process.callRemote(command, serial=serial, **kwargs)
         if self.done():
             self.process.callRemote(Shutdown)
