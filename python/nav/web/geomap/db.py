@@ -48,6 +48,208 @@ _logger = logging.getLogger(__name__)
 _domain_suffix = NAV_CONFIG.get('DOMAIN_SUFFIX')
 
 
+LAYER_3_QUERY = """
+    SELECT DISTINCT ON (local_sysname, remote_sysname)
+           sysname AS local_sysname,
+           ifname AS local_interface,
+           netbox.netboxid AS local_netboxid,
+           interface_gwport.interfaceid AS local_gwportid,
+           interface_gwport.interfaceid AS local_portid,
+           NULL AS local_swportid,
+           speed AS capacity,
+           ifindex,
+           conn.*, nettype, netident,
+           3 AS layer, NULL AS remote_swportid, vlan.*
+    FROM gwportprefix
+    JOIN (
+        SELECT DISTINCT ON (gwportprefix.prefixid)
+               interfaceid AS remote_gwportid,
+               interfaceid AS remote_portid,
+               NULL AS remote_swportid,
+               gwportprefix.prefixid,
+               ifindex AS remote_ifindex,
+               ifname AS remote_interface,
+               sysname AS remote_sysname,
+               speed AS remote_speed,
+               netboxid AS remote_netboxid,
+               room.position AS remote_position
+        FROM interface_gwport
+        JOIN netbox USING (netboxid)
+        JOIN room USING (roomid)
+        JOIN gwportprefix USING (interfaceid)
+    ) AS conn USING (prefixid)
+    JOIN interface_gwport USING (interfaceid)
+    JOIN netbox USING (netboxid)
+    JOIN room USING (roomid)
+    LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
+    LEFT JOIN vlan USING (vlanid)
+    WHERE interface_gwport.interfaceid <> remote_gwportid AND vlan.nettype NOT IN ('static', 'lan')
+      AND ((room.position[1] >= %s AND room.position[0] >= %s AND
+            room.position[1] <= %s AND room.position[0] <= %s)
+           OR
+           (remote_position[1] >= %s AND remote_position[0] >= %s AND
+            remote_position[1] <= %s AND remote_position[0] <= %s))
+      AND length(lseg(room.position, remote_position)) >= %s
+    ORDER BY sysname,remote_sysname, netaddr ASC, speed DESC
+"""
+
+LAYER_2_QUERY_1 = """
+    SELECT DISTINCT ON (interface_swport.interfaceid)
+    interface_gwport.interfaceid AS remote_gwportid,
+    interface_gwport.interfaceid AS remote_portid,
+    NULL AS remote_swportid,
+    interface_gwport.speed AS capacity,
+    interface_gwport.ifindex AS remote_ifindex,
+    interface_gwport.ifname AS remote_interface,
+    netbox.sysname AS remote_sysname,
+    netbox.netboxid AS remote_netboxid,
+
+    interface_swport.interfaceid AS local_swportid,
+    interface_swport.interfaceid AS local_portid,
+    NULL AS local_gwportid,
+    interface_swport.ifname AS local_interface,
+    swport_netbox.sysname AS local_sysname,
+    swport_netbox.netboxid AS local_netboxid,
+    interface_swport.ifindex AS ifindex,
+
+    2 AS layer,
+    nettype, netident,
+    vlan.*
+
+    FROM interface_gwport
+     JOIN netbox ON (interface_gwport.netboxid=netbox.netboxid)
+
+     LEFT JOIN gwportprefix ON (gwportprefix.interfaceid = interface_gwport.interfaceid)
+     LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
+     LEFT JOIN vlan USING (vlanid)
+
+     JOIN interface_swport ON (interface_swport.interfaceid = interface_gwport.to_interfaceid)
+     JOIN netbox AS swport_netbox ON (interface_swport.netboxid = swport_netbox.netboxid)
+
+     JOIN room AS gwport_room ON (netbox.roomid = gwport_room.roomid)
+     JOIN room AS swport_room ON (swport_netbox.roomid = swport_room.roomid)
+
+     WHERE interface_gwport.to_interfaceid IS NOT NULL AND interface_gwport.to_interfaceid = interface_swport.interfaceid
+       AND ((gwport_room.position[1] >= %s AND gwport_room.position[0] >= %s AND
+             gwport_room.position[1] <= %s AND gwport_room.position[0] <= %s)
+            OR
+            (swport_room.position[1] >= %s AND swport_room.position[0] >= %s AND
+             swport_room.position[1] <= %s AND swport_room.position[0] <= %s))
+       AND length(lseg(gwport_room.position, swport_room.position)) >= %s
+"""
+
+LAYER_2_QUERY_2 = """
+    SELECT DISTINCT ON (remote_sysname, local_sysname)
+    interface_swport.interfaceid AS remote_swportid,
+    interface_swport.interfaceid AS remote_portid,
+    NULL AS remote_gwportid,
+    interface_swport.speed AS capacity,
+    interface_swport.ifindex AS remote_ifindex,
+    interface_swport.ifname AS remote_interface,
+    netbox.sysname AS remote_sysname,
+    netbox.netboxid AS remote_netboxid,
+    2 AS layer,
+    foo.*,
+    vlan.*
+
+    FROM interface_swport
+     JOIN netbox USING (netboxid)
+
+     JOIN (
+
+         SELECT
+         interface_swport.interfaceid AS local_swportid,
+         interface_swport.interfaceid AS local_portid,
+         NULL AS local_gwportid,
+         interface_swport.ifindex AS ifindex,
+         interface_swport.ifname AS local_interface,
+         netbox.sysname AS local_sysname,
+         netbox.netboxid AS local_netboxid,
+         room.position AS local_position
+
+         FROM interface_swport
+         JOIN netbox USING (netboxid)
+         JOIN room USING (roomid)
+
+       ) AS foo ON (foo.local_swportid = to_interfaceid)
+
+
+    LEFT JOIN swportvlan ON (interface_swport.interfaceid = swportvlan.interfaceid)
+    LEFT JOIN vlan USING (vlanid)
+
+    JOIN room AS remote_room ON (netbox.roomid = remote_room.roomid)
+
+    WHERE ((remote_room.position[1] >= %s AND remote_room.position[0] >= %s AND
+            remote_room.position[1] <= %s AND remote_room.position[0] <= %s)
+           OR
+           (foo.local_position[1] >= %s AND foo.local_position[0] >= %s AND
+            foo.local_position[1] <= %s AND foo.local_position[0] <= %s))
+      AND length(lseg(remote_room.position, foo.local_position)) >= %s
+
+    ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
+"""
+
+LAYER_2_QUERY_3 = """
+    SELECT DISTINCT ON (remote_sysname, local_sysname)
+
+    interface_swport.interfaceid AS remote_swportid,
+    interface_swport.interfaceid AS remote_portid,
+    interface_swport.ifindex AS remote_ifindex,
+    interface_swport.ifname AS remote_interface,
+    netbox.sysname AS remote_sysname,
+    netbox.netboxid AS remote_netboxid,
+    interface_swport.speed AS capacity,
+    2 AS layer,
+    conn.*,
+    vlan.*,
+    NULL AS remote_gwportid,
+    NULL AS local_gwportid,
+    NULL AS local_swportid,
+    NULL AS local_portid,
+    NULL AS local_interface
+
+    FROM interface_swport
+     JOIN netbox USING (netboxid)
+
+     JOIN (
+        SELECT
+          netbox.sysname AS local_sysname,
+          netbox.netboxid AS local_netboxid,
+          room.position AS local_position
+        FROM netbox
+        JOIN room USING (roomid)
+     ) AS conn ON (conn.local_netboxid = to_netboxid)
+
+    LEFT JOIN swportvlan ON (interface_swport.interfaceid = swportvlan.interfaceid)
+    LEFT JOIN vlan USING (vlanid)
+
+    JOIN room AS remote_room ON (netbox.roomid = remote_room.roomid)
+
+    WHERE ((remote_room.position[1] >= %s AND remote_room.position[0] >= %s AND
+            remote_room.position[1] <= %s AND remote_room.position[0] <= %s)
+           OR
+           (conn.local_position[1] >= %s AND conn.local_position[0] >= %s AND
+            conn.local_position[1] <= %s AND conn.local_position[0] <= %s))
+      AND length(lseg(remote_room.position, conn.local_position)) >= %s
+
+    ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
+"""
+
+QUERY_NETBOXES = """
+    SELECT DISTINCT ON (netboxid)
+           netbox.netboxid, netbox.sysname, netbox.ip,
+           netbox.catid, netbox.up, netbox.roomid,
+           type.descr AS type,
+           location.descr AS location, room.descr AS room_descr,
+           room.position[0] as lat, room.position[1] as lon
+    FROM netbox
+    LEFT JOIN room using (roomid)
+    LEFT JOIN location USING (locationid)
+    LEFT JOIN type USING (typeid)
+    WHERE room.position IS NOT NULL
+"""
+
+
 def get_data(db_cursor, bounds, time_interval=None):
     """Reads data from database.
 
@@ -77,201 +279,14 @@ def get_data(db_cursor, bounds, time_interval=None):
 
     connections = {}
 
-    layer_3_query = """
-        SELECT DISTINCT ON (local_sysname, remote_sysname)
-               sysname AS local_sysname,
-               ifname AS local_interface,
-               netbox.netboxid AS local_netboxid,
-               interface_gwport.interfaceid AS local_gwportid,
-               interface_gwport.interfaceid AS local_portid,
-               NULL AS local_swportid,
-               speed AS capacity,
-               ifindex,
-               conn.*, nettype, netident,
-               3 AS layer, NULL AS remote_swportid, vlan.*
-        FROM gwportprefix
-        JOIN (
-            SELECT DISTINCT ON (gwportprefix.prefixid)
-                   interfaceid AS remote_gwportid,
-                   interfaceid AS remote_portid,
-                   NULL AS remote_swportid,
-                   gwportprefix.prefixid,
-                   ifindex AS remote_ifindex,
-                   ifname AS remote_interface,
-                   sysname AS remote_sysname,
-                   speed AS remote_speed,
-                   netboxid AS remote_netboxid,
-                   room.position AS remote_position
-            FROM interface_gwport
-            JOIN netbox USING (netboxid)
-            JOIN room USING (roomid)
-            JOIN gwportprefix USING (interfaceid)
-        ) AS conn USING (prefixid)
-        JOIN interface_gwport USING (interfaceid)
-        JOIN netbox USING (netboxid)
-        JOIN room USING (roomid)
-        LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
-        LEFT JOIN vlan USING (vlanid)
-        WHERE interface_gwport.interfaceid <> remote_gwportid AND vlan.nettype NOT IN ('static', 'lan')
-          AND ((room.position[1] >= %s AND room.position[0] >= %s AND
-                room.position[1] <= %s AND room.position[0] <= %s)
-               OR
-               (remote_position[1] >= %s AND remote_position[0] >= %s AND
-                remote_position[1] <= %s AND remote_position[0] <= %s))
-          AND length(lseg(room.position, remote_position)) >= %s
-        ORDER BY sysname,remote_sysname, netaddr ASC, speed DESC
-    """
-
-    layer_2_query_1 = """
-SELECT DISTINCT ON (interface_swport.interfaceid)
-interface_gwport.interfaceid AS remote_gwportid,
-interface_gwport.interfaceid AS remote_portid,
-NULL AS remote_swportid,
-interface_gwport.speed AS capacity,
-interface_gwport.ifindex AS remote_ifindex,
-interface_gwport.ifname AS remote_interface,
-netbox.sysname AS remote_sysname,
-netbox.netboxid AS remote_netboxid,
-
-interface_swport.interfaceid AS local_swportid,
-interface_swport.interfaceid AS local_portid,
-NULL AS local_gwportid,
-interface_swport.ifname AS local_interface,
-swport_netbox.sysname AS local_sysname,
-swport_netbox.netboxid AS local_netboxid,
-interface_swport.ifindex AS ifindex,
-
-2 AS layer,
-nettype, netident,
-vlan.*
-
-FROM interface_gwport
- JOIN netbox ON (interface_gwport.netboxid=netbox.netboxid)
-
- LEFT JOIN gwportprefix ON (gwportprefix.interfaceid = interface_gwport.interfaceid)
- LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
- LEFT JOIN vlan USING (vlanid)
-
- JOIN interface_swport ON (interface_swport.interfaceid = interface_gwport.to_interfaceid)
- JOIN netbox AS swport_netbox ON (interface_swport.netboxid = swport_netbox.netboxid)
-
- JOIN room AS gwport_room ON (netbox.roomid = gwport_room.roomid)
- JOIN room AS swport_room ON (swport_netbox.roomid = swport_room.roomid)
-
- WHERE interface_gwport.to_interfaceid IS NOT NULL AND interface_gwport.to_interfaceid = interface_swport.interfaceid
-   AND ((gwport_room.position[1] >= %s AND gwport_room.position[0] >= %s AND
-         gwport_room.position[1] <= %s AND gwport_room.position[0] <= %s)
-        OR
-        (swport_room.position[1] >= %s AND swport_room.position[0] >= %s AND
-         swport_room.position[1] <= %s AND swport_room.position[0] <= %s))
-   AND length(lseg(gwport_room.position, swport_room.position)) >= %s
-    """
-
-    layer_2_query_2 = """
-SELECT DISTINCT ON (remote_sysname, local_sysname)
-interface_swport.interfaceid AS remote_swportid,
-interface_swport.interfaceid AS remote_portid,
-NULL AS remote_gwportid,
-interface_swport.speed AS capacity,
-interface_swport.ifindex AS remote_ifindex,
-interface_swport.ifname AS remote_interface,
-netbox.sysname AS remote_sysname,
-netbox.netboxid AS remote_netboxid,
-2 AS layer,
-foo.*,
-vlan.*
-
-FROM interface_swport
- JOIN netbox USING (netboxid)
-
- JOIN (
-
-     SELECT
-     interface_swport.interfaceid AS local_swportid,
-     interface_swport.interfaceid AS local_portid,
-     NULL AS local_gwportid,
-     interface_swport.ifindex AS ifindex,
-     interface_swport.ifname AS local_interface,
-     netbox.sysname AS local_sysname,
-     netbox.netboxid AS local_netboxid,
-     room.position AS local_position
-
-     FROM interface_swport
-     JOIN netbox USING (netboxid)
-     JOIN room USING (roomid)
-
-   ) AS foo ON (foo.local_swportid = to_interfaceid)
-
-
-LEFT JOIN swportvlan ON (interface_swport.interfaceid = swportvlan.interfaceid)
-LEFT JOIN vlan USING (vlanid)
-
-JOIN room AS remote_room ON (netbox.roomid = remote_room.roomid)
-
-WHERE ((remote_room.position[1] >= %s AND remote_room.position[0] >= %s AND
-        remote_room.position[1] <= %s AND remote_room.position[0] <= %s)
-       OR
-       (foo.local_position[1] >= %s AND foo.local_position[0] >= %s AND
-        foo.local_position[1] <= %s AND foo.local_position[0] <= %s))
-  AND length(lseg(remote_room.position, foo.local_position)) >= %s
-
-ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
-    """
-
-    layer_2_query_3 = """
-SELECT DISTINCT ON (remote_sysname, local_sysname)
-
-interface_swport.interfaceid AS remote_swportid,
-interface_swport.interfaceid AS remote_portid,
-interface_swport.ifindex AS remote_ifindex,
-interface_swport.ifname AS remote_interface,
-netbox.sysname AS remote_sysname,
-netbox.netboxid AS remote_netboxid,
-interface_swport.speed AS capacity,
-2 AS layer,
-conn.*,
-vlan.*,
-NULL AS remote_gwportid,
-NULL AS local_gwportid,
-NULL AS local_swportid,
-NULL AS local_portid,
-NULL AS local_interface
-
-FROM interface_swport
- JOIN netbox USING (netboxid)
-
- JOIN (
-    SELECT
-      netbox.sysname AS local_sysname,
-      netbox.netboxid AS local_netboxid,
-      room.position AS local_position
-    FROM netbox
-    JOIN room USING (roomid)
- ) AS conn ON (conn.local_netboxid = to_netboxid)
-
-LEFT JOIN swportvlan ON (interface_swport.interfaceid = swportvlan.interfaceid)
-LEFT JOIN vlan USING (vlanid)
-
-JOIN room AS remote_room ON (netbox.roomid = remote_room.roomid)
-
-WHERE ((remote_room.position[1] >= %s AND remote_room.position[0] >= %s AND
-        remote_room.position[1] <= %s AND remote_room.position[0] <= %s)
-       OR
-       (conn.local_position[1] >= %s AND conn.local_position[0] >= %s AND
-        conn.local_position[1] <= %s AND conn.local_position[0] <= %s))
-  AND length(lseg(remote_room.position, conn.local_position)) >= %s
-
-ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
-    """
-
-    db_cursor.execute(layer_3_query, network_query_args)
+    db_cursor.execute(LAYER_3_QUERY, network_query_args)
     # Expect DictRows, but want to work with updateable dicts:
     results = [lazy_dict(row) for row in db_cursor.fetchall()]
-    db_cursor.execute(layer_2_query_1, network_query_args)
+    db_cursor.execute(LAYER_2_QUERY_1, network_query_args)
     results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
-    db_cursor.execute(layer_2_query_2, network_query_args)
+    db_cursor.execute(LAYER_2_QUERY_2, network_query_args)
     results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
-    db_cursor.execute(layer_2_query_3, network_query_args)
+    db_cursor.execute(LAYER_2_QUERY_3, network_query_args)
     results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
 
     for res in results:
@@ -316,26 +331,13 @@ ORDER BY remote_sysname, local_sysname, interface_swport.speed DESC
             connections[connection_id] = connection
         else:
             for existing_id, existing_conn in connections.items():
-                if ((existing_id == connection_id or
-                     existing_id == connection_rid) and
-                    (existing_conn['forward']['capacity'] < res['capacity'])):
-                    connections[existing_id] = connection
+                if existing_id in (connection_id, connection_rid):
+                    existing_capacity = existing_conn["forward"]["capacity"] or 0
+                    result_capacity = res["capacity"] or 0
+                    if existing_capacity < result_capacity:
+                        connections[existing_id] = connection
 
-    query_netboxes = """
-        SELECT DISTINCT ON (netboxid)
-               netbox.netboxid, netbox.sysname, netbox.ip,
-               netbox.catid, netbox.up, netbox.roomid,
-               type.descr AS type,
-               location.descr AS location, room.descr AS room_descr,
-               room.position[0] as lat, room.position[1] as lon
-        FROM netbox
-        LEFT JOIN room using (roomid)
-        LEFT JOIN location USING (locationid)
-        LEFT JOIN type USING (typeid)
-        WHERE room.position IS NOT NULL
-        """
-
-    db_cursor.execute(query_netboxes)
+    db_cursor.execute(QUERY_NETBOXES)
     netboxes = [lazy_dict(row) for row in db_cursor.fetchall()]
     for netbox in netboxes:
         netbox['load'] = float('nan')

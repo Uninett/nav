@@ -241,8 +241,8 @@ class JobHandler(object):
                                              self.netbox_id)
         self._log_context.update(dict(job=self.name,
                                       sysname=self.netbox.sysname))
-        self._logger.debug("Job %r started with plugins: %r",
-                           self.name, self.plugins)
+        self._logger.debug("Job %r started for netbox %s with plugins: %r",
+                           self.name, self.netbox_id, self.plugins)
         # Initialize netbox in container
         self._container_factory(shadows.Netbox, key=None,
                                 id=self.netbox.id,
