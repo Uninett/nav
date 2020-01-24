@@ -319,7 +319,7 @@ class WorkerPool(object):
         ready_workers = [w for w in self.workers if not w.done()]
         if not ready_workers:
             raise RuntimeError("No ready workers")
-        worker = min(ready_workers, key=lambda x: x.active_jobs)
+        worker = min(ready_workers, key=lambda x: x.active_jobs)  # type: Worker
         self.serial += 1
         deferred = worker.execute(self.serial, command, **kwargs)
         if worker.done():
