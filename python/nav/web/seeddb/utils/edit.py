@@ -39,7 +39,7 @@ _logger = logging.getLogger(__name__)
 
 def render_edit(request, model, form_model, object_id, redirect,
                 template='seeddb/edit.html',
-                lon=None, lat=None, extra_context=None):
+                lon=None, lat=None, extra_context=None, action='edit'):
     """Handles editing for objects in seeddb."""
 
     if not extra_context:
@@ -51,6 +51,9 @@ def render_edit(request, model, form_model, object_id, redirect,
     if not obj and (lat and lon):
         obj = model(position='({0},{1})'.format(lat, lon))
 
+    original_pk = getattr(obj, 'pk', None)
+    if action == 'copy' and original_pk:
+        obj.pk = None
     if request.method == 'POST':
         form = form_model(request.POST, instance=obj)
         if form.is_valid():
@@ -86,11 +89,17 @@ def render_edit(request, model, form_model, object_id, redirect,
         'verbose_name': verbose_name,
         'sub_active': {'add': True},
     }
-    if obj and obj.pk:
-        context.update({
-            'title': 'Edit %s "%s"' % (verbose_name, obj),
-            'sub_active': {'edit': True},
-        })
+    if obj:
+        if obj.pk:
+            context.update({
+                'title': 'Edit %s "%s"' % (verbose_name, obj),
+                'sub_active': {'edit': True},
+            })
+        else:
+            context.update({
+                'title': 'Copy %s "%s"' % (verbose_name, original_pk),
+                'sub_active': {'edit': True},
+            })
     extra_context.update(context)
     return render(request, template, extra_context)
 
