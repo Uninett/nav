@@ -2431,12 +2431,15 @@ class Sensor(models.Model):
 
     @property
     def normalized_unit(self):
-        """Try to normalize the unit
+        """Try to normalize the unit of measurement.
 
         The unit_of_measurement is the value reported by the device, and is
         all sorts of stuff like percentRH, Celcius. Here we try to normalize
         those units (in a very basic way).
         """
+        if not self.unit_of_measurement:
+            return ""
+
         units = ['celsius', 'percent']
         for unit in units:
             if unit in self.unit_of_measurement.lower():
