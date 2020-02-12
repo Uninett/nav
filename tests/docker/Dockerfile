@@ -73,7 +73,7 @@ RUN cd /tmp && \
     mv chromedriver /usr/local/bin/
 
 # Install our primary test runner
-RUN pip install tox snmpsim
+RUN pip install tox snmpsim 'virtualenv<20.0.0'
 
 # Add a build user
 RUN adduser --system --group --home=/source --shell=/bin/bash build && \
