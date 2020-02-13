@@ -25,7 +25,7 @@ from django.template import loader
 
 from nav.config import find_configfile
 from nav.django.utils import is_admin
-from nav.portadmin.snmputils import SNMPFactory
+from nav.portadmin.management import ManagementFactory
 from nav.portadmin.vlan import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
@@ -36,7 +36,7 @@ _logger = logging.getLogger("nav.web.portadmin")
 
 def get_and_populate_livedata(netbox, interfaces):
     """Fetch live data from netbox"""
-    handler = SNMPFactory.get_instance(netbox)
+    handler = ManagementFactory.get_instance(netbox)
     live_ifaliases = create_dict_from_tuplelist(handler.get_all_if_alias())
     live_vlans = create_dict_from_tuplelist(handler.get_all_vlans())
     live_operstatus = dict(handler.get_netbox_oper_status())
@@ -157,7 +157,7 @@ def find_vlans_on_netbox(netbox, factory=None):
     :rtype: list
     """
     if not factory:
-        factory = SNMPFactory.get_instance(netbox)
+        factory = ManagementFactory.get_instance(netbox)
     return factory.get_netbox_vlans()
 
 

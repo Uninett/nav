@@ -50,7 +50,7 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      is_write_mem_enabled, get_trunk_edit)
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmp.base import SNMPHandler
-from nav.portadmin.snmputils import SNMPFactory
+from nav.portadmin.management import ManagementFactory
 from .forms import SearchForm
 
 _logger = logging.getLogger("nav.web.portadmin")
@@ -504,7 +504,7 @@ def set_voice_vlan(fac, interface, request):
 
 def set_admin_status(fac, interface, request):
     """Set admin status for the interface
-    :type fac: nav.portadmin.snmputils.SNMPFactory
+    :type fac: nav.portadmin.management.ManagementFactory
     :type request: django.http.HttpRequest
     """
     status_up = '1'
@@ -698,8 +698,8 @@ def get_factory(netbox):
     retries = get_config_value(config, 'general', 'retries', fallback=3)
 
     try:
-        return SNMPFactory.get_instance(netbox, timeout=timeout,
-                                        retries=retries)
+        return ManagementFactory.get_instance(netbox, timeout=timeout,
+                                              retries=retries)
     except SnmpError as error:
         _logger.error('Error getting snmpfactory instance %s: %s',
                       netbox, error)

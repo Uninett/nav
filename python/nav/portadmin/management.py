@@ -29,9 +29,9 @@ from nav.portadmin.snmp.h3c import H3C
 from nav.portadmin.snmp.hp import HP
 
 
-class SNMPFactory(object):
-    """Factory class for returning SNMP-handles depending
-    on a netbox' vendor identification."""
+class ManagementFactory(object):
+    """Factory class for returning management handles, depending
+    on a netbox' vendor identification and its management configuration."""
 
     @classmethod
     def get_instance(cls, netbox, **kwargs):

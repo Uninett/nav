@@ -44,7 +44,7 @@ from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
 from nav.netbiostracker.tracker import scan, parse_get_workstations
-from nav.portadmin.snmputils import SNMPFactory
+from nav.portadmin.management import ManagementFactory
 from nav.util import is_valid_ip
 
 CONFIGFILE = os.path.join("arnold", "arnold.conf")
@@ -455,7 +455,7 @@ def change_port_vlan(identity, vlan):
     interface = identity.interface
     netbox = interface.netbox
 
-    agent = SNMPFactory().get_instance(netbox)
+    agent = ManagementFactory().get_instance(netbox)
     try:
         fromvlan = agent.get_vlan(interface)
     except Exception as error:
