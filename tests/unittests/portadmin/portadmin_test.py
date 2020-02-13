@@ -55,7 +55,7 @@ class PortadminResponseTest(unittest.TestCase):
     ####################################################################
     #  HP-netbox
 
-    def test_snmp_factory_get_hp(self):
+    def test_management_factory_get_hp(self):
         self.handler = ManagementFactory.get_instance(self.netboxHP)
         self.assertNotEqual(self.handler, None,
                             'Could not get handler-object')
@@ -125,7 +125,7 @@ class PortadminResponseTest(unittest.TestCase):
     ####################################################################
     #  CISCO-netbox
 
-    def test_snmp_factory_get_cisco(self):
+    def test_management_factory_get_cisco(self):
         ####################################################################
         #  cisco-netbox
         self.handler = ManagementFactory.get_instance(self.netboxCisco)
