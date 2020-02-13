@@ -25,7 +25,8 @@ from django.template import loader
 
 from nav.config import find_configfile
 from nav.django.utils import is_admin
-from nav.portadmin.snmputils import SNMPFactory, FantasyVlan
+from nav.portadmin.snmputils import SNMPFactory
+from nav.portadmin.vlan import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
 CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf")) or ''

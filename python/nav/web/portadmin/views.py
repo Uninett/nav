@@ -49,7 +49,8 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      is_restart_interface_enabled,
                                      is_write_mem_enabled, get_trunk_edit)
 from nav.Snmp.errors import SnmpError, TimeOutException
-from nav.portadmin.snmputils import SNMPFactory, SNMPHandler
+from nav.portadmin.snmp.base import SNMPHandler
+from nav.portadmin.snmputils import SNMPFactory
 from .forms import SearchForm
 
 _logger = logging.getLogger("nav.web.portadmin")

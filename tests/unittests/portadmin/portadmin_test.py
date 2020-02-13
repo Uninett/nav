@@ -5,10 +5,10 @@ import unittest
 from django.utils import six
 
 from nav.oids import OID
-from nav.web.portadmin.utils import *
 from nav.portadmin.snmputils import *
 
 ###############################################################################
+from nav.portadmin.vlan import FantasyVlan
 
 
 class PortadminResponseTest(unittest.TestCase):

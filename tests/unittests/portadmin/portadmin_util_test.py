@@ -3,7 +3,7 @@ import unittest
 from mock import Mock
 from nav.web.portadmin.utils import (find_allowed_vlans_for_user,
                                      find_vlans_in_org, filter_vlans)
-from nav.portadmin.snmputils import FantasyVlan
+from nav.portadmin.vlan import FantasyVlan
 
 
 class TestPortAdminUtil(unittest.TestCase):
