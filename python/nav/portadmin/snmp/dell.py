@@ -18,6 +18,7 @@ import logging
 
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.smidumps import get_mib
+from nav.enterprise.ids import VENDOR_ID_DELL_INC
 
 
 _logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ class Dell(SNMPHandler):
 
     Uses DNOS-SWITCHING-MIB
     """
+    VENDOR = VENDOR_ID_DELL_INC
 
     DNOSNODES = get_mib('DNOS-SWITCHING-MIB')['nodes']
 

@@ -21,6 +21,7 @@ from nav.Snmp.errors import SnmpError
 from nav.bitvector import BitVector
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.smidumps import get_mib
+from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
 
 _logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ _logger = logging.getLogger(__name__)
 
 class Cisco(SNMPHandler):
     """A specialized class for handling ports in CISCO switches."""
+    VENDOR = VENDOR_ID_CISCOSYSTEMS
 
     VTPNODES = get_mib('CISCO-VTP-MIB')['nodes']
     PAENODES = get_mib('CISCO-PAE-MIB')['nodes']

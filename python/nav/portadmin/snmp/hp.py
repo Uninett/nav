@@ -15,10 +15,12 @@
 #
 """Hewlett-Packard specific PortAdmin SNMP handling"""
 from nav.portadmin.snmp.base import SNMPHandler
+from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD
 
 
 class HP(SNMPHandler):
     """A specialized class for handling ports in HP switches."""
+    VENDOR = VENDOR_ID_HEWLETT_PACKARD
 
     # From HP-DOT1X-EXTENSIONS-MIB
     # hpicfDot1xPaePortAuth return INTEGER { true(1), false(2) }

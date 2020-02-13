@@ -36,6 +36,7 @@ _logger = logging.getLogger(__name__)
 @python_2_unicode_compatible
 class SNMPHandler(object):
     """A basic class for SNMP-read and -write to switches."""
+    VENDOR = None
 
     QBRIDGENODES = get_mib('Q-BRIDGE-MIB')['nodes']
 

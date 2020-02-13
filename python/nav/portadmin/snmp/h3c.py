@@ -16,10 +16,12 @@
 """H3C specific PortAdmin SNMP handling"""
 from nav import Snmp
 from nav.portadmin.snmp.base import SNMPHandler
+from nav.enterprise.ids import VENDOR_ID_H3C
 
 
 class H3C(SNMPHandler):
     """HP Comware Platform Software handler"""
+    VENDOR = VENDOR_ID_H3C
 
     hh3cCfgOperateType = '1.3.6.1.4.1.25506.2.4.1.2.4.1.2'
     hh3cCfgOperateRowStatus = '1.3.6.1.4.1.25506.2.4.1.2.4.1.9'

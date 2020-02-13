@@ -14,19 +14,14 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This is a utility library made especially for PortAdmin."""
-from nav.enterprise.ids import (
-    VENDOR_ID_CISCOSYSTEMS,
-    VENDOR_ID_HEWLETT_PACKARD,
-    VENDOR_ID_H3C,
-    VENDOR_ID_DELL_INC,
-)
-
 from nav.errors import NoNetboxTypeError
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.snmp.cisco import Cisco
 from nav.portadmin.snmp.dell import Dell
 from nav.portadmin.snmp.h3c import H3C
 from nav.portadmin.snmp.hp import HP
+
+VENDOR_MAP = {cls.VENDOR: cls for cls in (Cisco, Dell, H3C, HP)}
 
 
 class ManagementFactory(object):
@@ -38,16 +33,10 @@ class ManagementFactory(object):
         """Get and SNMP-handle depending on vendor type"""
         if not netbox.type:
             raise NoNetboxTypeError()
+
         vendor_id = netbox.type.get_enterprise_id()
-        if vendor_id == VENDOR_ID_CISCOSYSTEMS:
-            return Cisco(netbox, **kwargs)
-        if vendor_id == VENDOR_ID_HEWLETT_PACKARD:
-            return HP(netbox, **kwargs)
-        if vendor_id == VENDOR_ID_H3C:
-            return H3C(netbox, **kwargs)
-        if vendor_id == VENDOR_ID_DELL_INC:
-            return Dell(netbox, **kwargs)
-        return SNMPHandler(netbox, **kwargs)
+        handler = VENDOR_MAP.get(vendor_id, SNMPHandler)
+        return handler(netbox, **kwargs)
 
     def __init__(self):
         pass
