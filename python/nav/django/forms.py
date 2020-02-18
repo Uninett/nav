@@ -62,10 +62,10 @@ class JSONWidget(Textarea):
             value = u''
         return value
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         """Convert the value to JSON and render in textarea"""
         value = self._render_value(value)
-        return super(JSONWidget, self).render(name, value, attrs)
+        return super(JSONWidget, self).render(name, value, attrs, renderer)
 
 
 class HStoreField(Field):
