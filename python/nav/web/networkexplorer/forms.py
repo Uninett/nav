@@ -40,7 +40,9 @@ class MultitypeQueryField(forms.MultiValueField):
         :param validators:  A dict that maps query type
         values to validators.
         """
-        super(MultitypeQueryField, self).__init__(*args, **kwargs)
+        # Prevent Django from affecting "required" by setting the fields
+        # ourselves
+        super(MultitypeQueryField, self).__init__(fields=(), *args, **kwargs)
         self.fields = (
             forms.CharField(min_length=1),
             forms.ChoiceField(choices=choices)

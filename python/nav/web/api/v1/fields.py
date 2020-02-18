@@ -40,4 +40,4 @@ class DisplayNameWritableField(serializers.ChoiceField):
         super(DisplayNameWritableField, self).bind(field_name, parent)
         self.choices = parent.Meta.model._meta.get_field(field_name).choices
         self._choice_map = dict(self.choices)
-        self._choice_reverse_map = {v: k for k, v in self.choices}
+        self._choice_reverse_map = {v: k for (k, v) in self._choice_map.items()}
