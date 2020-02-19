@@ -25,7 +25,7 @@ from nav.django.utils import is_admin
 from nav.portadmin.config import (
     is_vlan_authorization_enabled,
     dot1x_external_url,
-    read_config,
+    get_ifaliasformat,
     find_default_vlan)
 from nav.portadmin.management import ManagementFactory
 from nav.portadmin.vlan import FantasyVlan
@@ -171,13 +171,11 @@ def find_vlans_in_org(org):
 
 def check_format_on_ifalias(ifalias):
     """Verify that format on ifalias is correct if it is defined in config"""
-    section = "ifaliasformat"
-    option = "format"
-    config = read_config()
     if not ifalias:
         return True
-    elif config.has_section(section) and config.has_option(section, option):
-        ifalias_format = re.compile(config.get(section, option))
+    ifalias_format = get_ifaliasformat()
+    if ifalias_format:
+        ifalias_format = re.compile(ifalias_format)
         if ifalias_format.match(ifalias):
             return True
         else:
