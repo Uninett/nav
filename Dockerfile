@@ -58,7 +58,8 @@ ADD tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 COPY requirements/ /requirements
 ADD requirements.txt /
 ADD tests/requirements.txt /test-requirements.txt
-RUN pip3 install --upgrade pip tox setuptools && \
+RUN pip3 install --upgrade setuptools && \
+    pip3 install --upgrade pip tox && \
     hash -r && \
     # Since we used pip3 to install pip globally, pip should now be for Python 3 \
     pip install -r /requirements.txt && \
