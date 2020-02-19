@@ -5,10 +5,11 @@ import unittest
 from django.utils import six
 
 from nav.oids import OID
-from nav.web.portadmin.utils import *
-from nav.portadmin.snmputils import *
+from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD, VENDOR_ID_CISCOSYSTEMS
+from nav.portadmin.management import *
 
 ###############################################################################
+from nav.portadmin.vlan import FantasyVlan
 
 
 class PortadminResponseTest(unittest.TestCase):
@@ -54,15 +55,15 @@ class PortadminResponseTest(unittest.TestCase):
     ####################################################################
     #  HP-netbox
 
-    def test_snmp_factory_get_hp(self):
-        self.handler = SNMPFactory.get_instance(self.netboxHP)
+    def test_management_factory_get_hp(self):
+        self.handler = ManagementFactory.get_instance(self.netboxHP)
         self.assertNotEqual(self.handler, None,
                             'Could not get handler-object')
         self.assertEqual(six.text_type(self.handler),  u'hp',
                           'Wrong handler-type')
 
     def test_get_ifalias_hp(self):
-        self.handler = SNMPFactory.get_instance(self.netboxHP)
+        self.handler = ManagementFactory.get_instance(self.netboxHP)
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method
@@ -72,7 +73,7 @@ class PortadminResponseTest(unittest.TestCase):
                           "getIfAlias-test failed")
 
     def test_get_vlan_hp(self):
-        self.handler = SNMPFactory.get_instance(self.netboxHP)
+        self.handler = ManagementFactory.get_instance(self.netboxHP)
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method
@@ -86,7 +87,7 @@ class PortadminResponseTest(unittest.TestCase):
         )
 
     def test_get_ifaliases_hp(self):
-        self.handler = SNMPFactory.get_instance(self.netboxHP)
+        self.handler = ManagementFactory.get_instance(self.netboxHP)
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method
@@ -99,7 +100,7 @@ class PortadminResponseTest(unittest.TestCase):
                          "getAllIfAlias failed.")
 
     def test_set_ifalias_hp(self):
-        self.handler = SNMPFactory.get_instance(self.netboxHP)
+        self.handler = ManagementFactory.get_instance(self.netboxHP)
         # get hold of the read-write Snmp-object
         self.snmpReadWriteHandler = self.handler._get_read_write_handle()
 
@@ -110,7 +111,7 @@ class PortadminResponseTest(unittest.TestCase):
                          'setIfAlias failed')
 
     def test_get_vlans(self):
-        handler = SNMPFactory.get_instance(self.netboxHP)
+        handler = ManagementFactory.get_instance(self.netboxHP)
 
         interface = Mock()
         swportvlan1 = Mock(vlan=Mock(vlan=1))
@@ -124,16 +125,16 @@ class PortadminResponseTest(unittest.TestCase):
     ####################################################################
     #  CISCO-netbox
 
-    def test_snmp_factory_get_cisco(self):
+    def test_management_factory_get_cisco(self):
         ####################################################################
         #  cisco-netbox
-        self.handler = SNMPFactory.get_instance(self.netboxCisco)
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
         self.assertNotEqual(self.handler, None, 'Could not get handler-object')
         self.assertEqual(six.text_type(self.handler),  u'cisco', 'Wrong handler-type')
         self.assertEqual(type(self.handler), Cisco, 'Wrong handler-type')
 
     def test_get_ifalias_cisco(self):
-        self.handler = SNMPFactory.get_instance(self.netboxCisco)
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method
@@ -143,7 +144,7 @@ class PortadminResponseTest(unittest.TestCase):
                           "getIfAlias-test failed")
 
     def test_get_vlan_cisco(self):
-        self.handler = SNMPFactory.get_instance(self.netboxCisco)
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
         assert type(self.handler) == Cisco
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
@@ -156,7 +157,7 @@ class PortadminResponseTest(unittest.TestCase):
         self.snmpReadOnlyHandler.get.assert_called_with('1.3.6.1.4.1.9.9.68.1.2.2.1.2.1')
 
     def test_get_ifaliases_cisco(self):
-        self.handler = SNMPFactory.get_instance(self.netboxCisco)
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
         # get hold of the read-only Snmp-object
         self.snmpReadOnlyHandler = self.handler._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method

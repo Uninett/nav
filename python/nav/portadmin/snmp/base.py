@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011-2015, 2020 Uninett AS
+# Copyright (C) 2011-2015, 2020 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -13,68 +13,30 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""This is a utility library made especially for PortAdmin."""
 import time
-import logging
 from operator import attrgetter
+import logging
 
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav import Snmp
 from nav.Snmp import safestring
-from nav.errors import NoNetboxTypeError
-from nav.Snmp.errors import (SnmpError, UnsupportedSnmpVersionError,
-                             NoSuchObjectError)
-from nav.smidumps import get_mib
+from nav.Snmp.errors import UnsupportedSnmpVersionError, SnmpError, NoSuchObjectError
 from nav.bitvector import BitVector
+
 from nav.models.manage import Vlan, SwPortAllowedVlan
-from nav.enterprise.ids import (VENDOR_ID_CISCOSYSTEMS,
-                                VENDOR_ID_H3C,
-                                VENDOR_ID_DELL_INC,
-                                VENDOR_ID_HEWLETT_PACKARD)
+from nav.portadmin.vlan import FantasyVlan
+from nav.smidumps import get_mib
 
 
-_logger = logging.getLogger("nav.portadmin.snmputils")
-CHARS_IN_1024_BITS = 128
-
-# TODO: Fix get_vlans as it does not return all vlans, see get_available_vlans
-
-
-@python_2_unicode_compatible
-class FantasyVlan(object):
-    """A container object for storing vlans for a netbox
-
-    This object is needed because we mix "real" vlans that NAV know about
-    and "fake" vlan that NAV does not know about but exists on the switch.
-    They need to be compared and sorted, and this class does that.
-
-    """
-
-    def __init__(self, vlan, netident=None, descr=None):
-        self.vlan = vlan
-        self.net_ident = netident
-        self.descr = descr
-
-    def __str__(self):
-        if self.net_ident:
-            return "%s (%s)" % (self.vlan, self.net_ident)
-        else:
-            return str(self.vlan)
-
-    def __hash__(self):
-        return hash(self.vlan)
-
-    def __lt__(self, other):
-        return self.vlan < other.vlan
-
-    def __eq__(self, other):
-        return self.vlan == other.vlan
+_logger = logging.getLogger(__name__)
 
 
 @python_2_unicode_compatible
 class SNMPHandler(object):
     """A basic class for SNMP-read and -write to switches."""
+    VENDOR = None
 
     QBRIDGENODES = get_mib('Q-BRIDGE-MIB')['nodes']
 
@@ -398,7 +360,7 @@ class SNMPHandler(object):
     def set_cisco_voice_vlan(self, interface, voice_vlan):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
-        
+
     def enable_cisco_cdp(self, interface):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
@@ -406,7 +368,7 @@ class SNMPHandler(object):
     def disable_cisco_voice_vlan(self, interface):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
-        
+
     def disable_cisco_cdp(self, interface):
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
@@ -563,412 +525,3 @@ class SNMPHandler(object):
         """Returns state of port access control"""
         handle = self._get_read_only_handle()
         return int(handle.get(self.dot1xPaeSystemAuthControl)) == 1
-
-
-class Cisco(SNMPHandler):
-    """A specialized class for handling ports in CISCO switches."""
-
-    VTPNODES = get_mib('CISCO-VTP-MIB')['nodes']
-    PAENODES = get_mib('CISCO-PAE-MIB')['nodes']
-
-    VTPVLANSTATE = VTPNODES['vtpVlanState']['oid']
-    VTPVLANTYPE = VTPNODES['vtpVlanType']['oid']
-    TRUNKPORTNATIVEVLAN = VTPNODES['vlanTrunkPortNativeVlan']['oid']
-    TRUNKPORTVLANSENABLED = VTPNODES['vlanTrunkPortVlansEnabled']['oid']
-    TRUNKPORTVLANSENABLED2K = VTPNODES['vlanTrunkPortVlansEnabled2k']['oid']
-    TRUNKPORTVLANSENABLED3K = VTPNODES['vlanTrunkPortVlansEnabled3k']['oid']
-    TRUNKPORTVLANSENABLED4K = VTPNODES['vlanTrunkPortVlansEnabled4k']['oid']
-
-    TRUNKPORTSTATE = VTPNODES['vlanTrunkPortDynamicState']['oid']
-    TRUNKSTATE_ON = 1
-    TRUNKSTATE_OFF = 2
-    TRUNKSTATE_AUTO = 4
-
-    TRUNKPORTENCAPSULATION = VTPNODES['vlanTrunkPortEncapsulationType']['oid']
-    ENCAPSULATION_DOT1Q = 4
-    ENCAPSULATION_NEGOTIATE = 5
-
-    dot1xPortAuth = PAENODES['cpaePortCapabilitiesEnabled']['oid']
-    DOT1X_AUTHENTICATOR = 0b10000000
-    DOT1X_SUPPLICANT = 0b01000000
-
-    def __init__(self, netbox, **kwargs):
-        super(Cisco, self).__init__(netbox, **kwargs)
-        self.vlan_oid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
-        self.write_mem_oid = '1.3.6.1.4.1.9.2.1.54.0'
-        self.voice_vlan_oid = '1.3.6.1.4.1.9.9.68.1.5.1.1.1'
-        self.cdp_oid = '1.3.6.1.4.1.9.9.23.1.1.1.1.2'
-
-    def get_vlan(self, interface):
-        return self._query_netbox(self.vlan_oid, interface.ifindex)
-
-    def set_vlan(self, interface, vlan):
-        """Set a new vlan for a specified interface,- and
-        remove the previous vlan."""
-        if_index = interface.ifindex
-        try:
-            vlan = int(vlan)
-        except ValueError:
-            raise TypeError('Not a valid vlan %s' % vlan)
-        # Fetch current vlan
-        fromvlan = self.get_vlan(interface)
-        # fromvlan and vlan is the same, there's nothing to do
-        if fromvlan == vlan:
-            return None
-        # Add port to vlan. This makes the port active on both old and new vlan
-        status = None
-        try:
-            _logger.debug("setting vlan: if_index: %s i %s", if_index, vlan)
-            status = self._set_netbox_value(self.vlan_oid, if_index, "i", vlan)
-        except SnmpError as ex:
-            # Ignore this exception,- some boxes want signed integer and
-            # we do not know this beforehand.
-            # If unsigned fail,- try with signed integer.
-            _logger.debug("set_vlan with integer failed: Exception = %s", ex)
-            _logger.debug("setting vlan: if_index: %s u %s", if_index, vlan)
-            status = self._set_netbox_value(self.vlan_oid, if_index, "u", vlan)
-        return status
-
-    def set_native_vlan(self, interface, vlan):
-        """Set native vlan on a trunk interface"""
-        if_index = interface.ifindex
-        try:
-            self._set_netbox_value(self.TRUNKPORTNATIVEVLAN, if_index, 'i',
-                                   vlan)
-        except SnmpError:
-            try:
-                self._set_netbox_value(self.TRUNKPORTNATIVEVLAN, if_index,
-                                       'u', vlan)
-            except SnmpError:
-                _logger.error('Setting native vlan on %s ifindex %s failed',
-                              self.netbox, if_index)
-
-    def get_cisco_voice_vlans(self):
-        """Returns a dict of ifIndex:vmVoiceVlanId entries"""
-        return {int(x): y for x, y in self._jog(self.voice_vlan_oid)}
-
-    def set_cisco_voice_vlan(self, interface, voice_vlan):
-        """Set a voice vlan using Cisco specific oid"""
-        status = None
-        try:
-            voice_vlan = int(voice_vlan)
-            status = self._set_netbox_value(
-                self.voice_vlan_oid, interface.ifindex, 'i', voice_vlan)
-        except SnmpError as error:
-            _logger.error('Error setting voice vlan: %s', error)
-        except ValueError as error:
-            _logger.error('%s is not a valid voice vlan', voice_vlan)
-
-        return status
-        
-    def enable_cisco_cdp(self, interface):
-        """Enable CDP using Cisco specific oid"""
-        status = None
-        try:
-            status = self._set_netbox_value(
-                self.cdp_oid, interface.ifindex, 'i', 1)
-        except SnmpError as error:
-            _logger.error('Error setting cdp on interface: %s', error)
-        except ValueError as error:
-            _logger.error('%s is not a valid option for cdp', 1)
-
-        return status
-
-    def disable_cisco_voice_vlan(self, interface):
-        """Disable the Cisco Voice vlan on this interface"""
-        status = None
-        try:
-            status = self._set_netbox_value(
-                self.voice_vlan_oid, interface.ifindex, 'i', 4096)
-        except SnmpError as error:
-            _logger.error('Error disabling voice vlan: %s', error)
-
-        return status
-        
-    def disable_cisco_cdp(self, interface):
-        """Disable CDP using Cisco specific oid"""
-        status = None
-        try:
-            status = self._set_netbox_value(
-                self.cdp_oid, interface.ifindex, 'i', 2)
-        except SnmpError as error:
-            _logger.error('Error setting cdp on interface: %s', error)
-        except ValueError as error:
-            _logger.error('%s is not a valid option for cdp', 2)
-
-        return status
-
-    def write_mem(self):
-        """Use OLD-CISCO-SYS-MIB (v1) writeMem to write tomemory.
-        Write configuration into non-volatile memory / erase config
-        memory if 0."""
-        handle = self._get_read_write_handle()
-        return handle.set(self.write_mem_oid, 'i', 1)
-
-    def get_available_vlans(self):
-        """Fetch all vlans. Filter on operational and of type ethernet."""
-        vlan_states = [self._extract_index_from_oid(oid) for oid, status in
-                       self._bulkwalk(self.VTPVLANSTATE) if status == 1]
-        vlan_types = [self._extract_index_from_oid(oid) for oid, vlantype in
-                      self._bulkwalk(self.VTPVLANTYPE) if vlantype == 1]
-
-        return list(set(vlan_states) & set(vlan_types))
-
-    def get_native_and_trunked_vlans(self, interface):
-        ifindex = interface.ifindex
-        native_vlan = self._query_netbox(self.TRUNKPORTNATIVEVLAN, ifindex)
-
-        blocks = [
-            self._query_netbox(oid, ifindex) or b''
-            for oid in (self.TRUNKPORTVLANSENABLED,
-                        self.TRUNKPORTVLANSENABLED2K,
-                        self.TRUNKPORTVLANSENABLED3K,
-                        self.TRUNKPORTVLANSENABLED4K)]
-        bitstring = b"".join(value.ljust(CHARS_IN_1024_BITS, b'\x00')
-                             for value in blocks)
-
-        bitvector = BitVector(bitstring)
-        return native_vlan, bitvector.get_set_bits()
-
-    def set_access(self, interface, access_vlan):
-        """Set interface trunking to off and set encapsulation to negotiate"""
-        _logger.debug("set_access: %s %s", interface, access_vlan)
-        if self._is_trunk(interface):
-            self._set_access_mode(interface)
-        self.set_trunk_vlans(interface, [])
-        self.set_native_vlan(interface, access_vlan)
-        self.set_vlan(interface, access_vlan)
-        interface.trunk = False  # Make sure database is updated
-        interface.vlan = access_vlan
-        interface.save()
-
-    def _set_access_mode(self, interface):
-        _logger.debug("set_access_mode: %s", interface)
-        self._set_netbox_value(self.TRUNKPORTSTATE, interface.ifindex, 'i',
-                               self.TRUNKSTATE_OFF)
-        interface.trunk = False
-        interface.save()
-
-    def set_trunk(self, interface, native_vlan, trunk_vlans):
-        """Check for trunk, set native vlan, set trunk vlans"""
-        _logger.debug("set_trunk: %s (%s, %s)",
-                      interface, native_vlan, trunk_vlans)
-        if not self._is_trunk(interface):
-            self._set_trunk_mode(interface)
-
-        self.set_trunk_vlans(interface, trunk_vlans)
-        self.set_native_vlan(interface, native_vlan)
-        self._save_trunk_interface(interface, native_vlan, trunk_vlans)
-
-    def _set_trunk_mode(self, interface):
-        _logger.debug("_set_trunk_mode %s", interface)
-        ifindex = interface.ifindex
-        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i',
-                               self.TRUNKSTATE_ON)
-        # Set encapsulation to dot1Q TODO: Support other encapsulations
-        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i',
-                               self.ENCAPSULATION_DOT1Q)
-        interface.trunk = True
-        interface.save()
-
-    def set_trunk_vlans(self, interface, vlans):
-        """Set trunk vlans
-
-        Initialize a BitVector with all 4096 vlans set to 0. Then fill in all
-        vlans. As Cisco has 4 different oids to set all vlans on the trunk,
-        we divide this bitvector into one bitvector for each oid, and set
-        each of those.
-
-        """
-        ifindex = interface.ifindex
-        bitvector = BitVector(512 * b'\x00')  # initialize all-zero bitstring
-        for vlan in vlans:
-            bitvector[int(vlan)] = 1
-
-        chunks = self._chunkify(bitvector, 4)
-
-        for oid in [self.TRUNKPORTVLANSENABLED,
-                    self.TRUNKPORTVLANSENABLED2K,
-                    self.TRUNKPORTVLANSENABLED3K,
-                    self.TRUNKPORTVLANSENABLED4K]:
-            bitvector_chunk = next(chunks)
-            try:
-                self._set_netbox_value(oid, ifindex, 's',
-                                       bitvector_chunk.to_bytes())
-            except SnmpError as error:
-                _logger.error('Error setting trunk vlans on %s ifindex %s: %s',
-                              self.netbox, ifindex, error)
-                break
-
-    def _is_trunk(self, interface):
-        state = int(self._query_netbox(self.TRUNKPORTSTATE, interface.ifindex))
-        return state in [1, 5]
-
-    def is_dot1x_enabled(self, interface):
-        """Returns True or False based on state of dot1x"""
-        return six.byte2int(self._query_netbox(
-            self.dot1xPortAuth, interface.ifindex)) & self.DOT1X_AUTHENTICATOR
-
-    def get_dot1x_enabled_interfaces(self):
-        """Fetches a dict mapping ifindex to enabled state
-
-        :returns: dict[ifindex, is_enabled]
-        :rtype: dict[int, bool]
-        """
-        _logger.error("Querying for dot1x enabled interfaces on Cisco")
-        return {self._get_last_number(oid):
-                six.byte2int(state) & self.DOT1X_AUTHENTICATOR
-                for oid, state in self._bulkwalk(self.dot1xPortAuth)}
-
-
-class HP(SNMPHandler):
-    """A specialized class for handling ports in HP switches."""
-
-    # From HP-DOT1X-EXTENSIONS-MIB
-    # hpicfDot1xPaePortAuth return INTEGER { true(1), false(2) }
-    dot1xPortAuth = '1.3.6.1.4.1.11.2.14.11.5.1.25.1.1.1.1.1'
-
-    def __init__(self, netbox, **kwargs):
-        super(HP, self).__init__(netbox, **kwargs)
-
-    def is_dot1x_enabled(self, interface):
-        """Returns True or False based on state of dot1x"""
-        return int(self._query_netbox(
-            self.dot1xPortAuth, interface.ifindex)) == 1
-
-    def get_dot1x_enabled_interfaces(self):
-        """Fetches a dict mapping ifindex to enabled state
-
-        :returns: dict[ifindex, is_enabled]
-        :rtype: dict[int, bool]
-        """
-        return {self._get_last_number(oid): state == 1
-                for oid, state in self._bulkwalk(self.dot1xPortAuth)}
-
-
-class H3C(SNMPHandler):
-    """HP Comware Platform Software handler"""
-
-    hh3cCfgOperateType = '1.3.6.1.4.1.25506.2.4.1.2.4.1.2'
-    hh3cCfgOperateRowStatus = '1.3.6.1.4.1.25506.2.4.1.2.4.1.9'
-
-    def __init__(self, netbox, **kwargs):
-        super(H3C, self).__init__(netbox, **kwargs)
-
-    def write_mem(self):
-        """Use hh3c-config-man-mib to save running config to startup"""
-
-        running_to_startup = 1
-        create_and_go = 4
-
-        # Find the next available row for configuring and store it as a suffix
-        active_rows = [self._extract_index_from_oid(o[0])
-                       for o in self._bulkwalk(self.hh3cCfgOperateRowStatus)]
-        try:
-            suffix = str(max(active_rows) + 1)
-        except ValueError:
-            suffix = '1'
-
-        operation_type_oid = '.'.join([self.hh3cCfgOperateType, suffix])
-        operation_status_oid = '.'.join([self.hh3cCfgOperateRowStatus, suffix])
-
-        handle = self._get_read_write_handle()
-        handle.multi_set([
-            Snmp.PDUVarbind(operation_type_oid, 'i', running_to_startup),
-            Snmp.PDUVarbind(operation_status_oid, 'i', create_and_go)
-        ])
-
-
-class Dell(SNMPHandler):
-    """Dell INC handler
-
-    Uses DNOS-SWITCHING-MIB
-    """
-
-    DNOSNODES = get_mib('DNOS-SWITCHING-MIB')['nodes']
-
-    PORT_MODE_ACCESS = 1
-    PORT_MODE_TRUNK = 2
-    PORT_MODE_GENERAL = 3
-
-    PORT_MODE_OID = DNOSNODES['agentPortSwitchportMode']['oid']
-    NATIVE_VLAN_ID = DNOSNODES['agentPortNativeVlanID']['oid']
-    # Overriding members
-    VlAN_OID = DNOSNODES['agentPortAccessVlanID']['oid']
-    VLAN_EGRESS_PORTS = DNOSNODES['agentVlanSwitchportTrunkStaticEgressPorts']['oid']
-    WRITE_MEM_OID = DNOSNODES['agentSaveConfig']['oid'] + '.0'
-
-    def __init__(self, netbox, **kwargs):
-        super(Dell, self).__init__(netbox, **kwargs)
-
-    def write_mem(self):
-        """Use DNOS-SWITCHING-MIB agentSaveConfig to write to memory.
-        Write configuration into non-volatile memory."""
-        handle = self._get_read_write_handle()
-        return handle.set(self.WRITE_MEM_OID, 'i', 1)
-
-    def set_vlan(self, interface, vlan):
-        baseport = interface.baseport
-        try:
-            vlan = int(vlan)
-        except ValueError:
-            raise TypeError('Not a valid vlan %s' % vlan)
-        # Fetch current vlan
-        fromvlan = self.get_vlan(interface)
-        # fromvlan and vlan is the same, there's nothing to do
-        if fromvlan == vlan:
-            _logger.debug('fromvlan and vlan is the same - skip')
-            return None
-
-        self._set_netbox_value(self.VlAN_OID, baseport, "i", vlan)
-
-    def set_access(self, interface, access_vlan):
-        self._set_swport_mode(interface, self.PORT_MODE_ACCESS)
-        self.set_vlan(interface, access_vlan)
-        interface.vlan = access_vlan
-        interface.trunk = False
-        interface.save()
-
-    def set_trunk(self, interface, native_vlan, trunk_vlans):
-        self._set_swport_mode(interface, self.PORT_MODE_TRUNK)
-        self.set_trunk_vlans(interface, trunk_vlans)
-        self.set_native_vlan(interface, native_vlan)
-        interface.vlan = native_vlan
-        interface.trunk = True
-        interface.save()
-
-    def _set_swport_mode(self, interface, mode):
-        baseport = interface.baseport
-        self._set_netbox_value(self.PORT_MODE_OID, baseport, 'i', mode)
-
-    def get_native_vlan(self, interface):
-        baseport = interface.baseport
-        return self._query_netbox(self.NATIVE_VLAN_ID, baseport)
-
-    def set_native_vlan(self, interface, vlan):
-        """Set native vlan on a trunk interface"""
-        baseport = interface.baseport
-        self._set_netbox_value(self.NATIVE_VLAN_ID, baseport, "i", vlan)
-
-
-class SNMPFactory(object):
-    """Factory class for returning SNMP-handles depending
-    on a netbox' vendor identification."""
-    @classmethod
-    def get_instance(cls, netbox, **kwargs):
-        """Get and SNMP-handle depending on vendor type"""
-        if not netbox.type:
-            raise NoNetboxTypeError()
-        vendor_id = netbox.type.get_enterprise_id()
-        if vendor_id == VENDOR_ID_CISCOSYSTEMS:
-            return Cisco(netbox, **kwargs)
-        if vendor_id == VENDOR_ID_HEWLETT_PACKARD:
-            return HP(netbox, **kwargs)
-        if vendor_id == VENDOR_ID_H3C:
-            return H3C(netbox, **kwargs)
-        if vendor_id == VENDOR_ID_DELL_INC:
-            return Dell(netbox, **kwargs)
-        return SNMPHandler(netbox, **kwargs)
-
-    def __init__(self):
-        pass

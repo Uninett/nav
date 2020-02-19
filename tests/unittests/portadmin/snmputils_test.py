@@ -17,7 +17,7 @@
 
 import unittest
 
-from nav.portadmin.snmputils import SNMPHandler
+from nav.portadmin.snmp.base import SNMPHandler
 from nav.bitvector import BitVector
 
 
