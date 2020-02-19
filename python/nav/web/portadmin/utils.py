@@ -16,20 +16,21 @@
 """Util functions for the PortAdmin"""
 from __future__ import unicode_literals
 import re
-import configparser
 import logging
 from operator import attrgetter
-from os.path import join
 
 from django.template import loader
 
-from nav.config import find_configfile
 from nav.django.utils import is_admin
+from nav.portadmin.config import (
+    is_vlan_authorization_enabled,
+    dot1x_external_url,
+    get_ifaliasformat,
+    find_default_vlan)
 from nav.portadmin.management import ManagementFactory
 from nav.portadmin.vlan import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
-CONFIGFILE = find_configfile(join("portadmin", "portadmin.conf")) or ''
 
 _logger = logging.getLogger("nav.web.portadmin")
 
@@ -109,44 +110,6 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
     return sorted(allowed_vlans, key=attrgetter('vlan'))
 
 
-def is_vlan_authorization_enabled():
-    """Check config to see if authorization is to be done"""
-    # TODO: It is very inefficient to reread config for every option
-    config = read_config()
-    if config.has_option("authorization", "vlan_auth"):
-        return config.getboolean("authorization", "vlan_auth")
-
-    return False
-
-
-def is_write_mem_enabled():
-    """Checks if write mem is turned on or off. Default is on"""
-    # TODO: It is very inefficient to reread config for every option
-    config = read_config()
-    if config.has_option("general", "write_mem"):
-        return config.getboolean("general", "write_mem")
-
-    return True
-
-
-def is_restart_interface_enabled():
-    """Checks if restart interface is turned on or off. Default is on"""
-    # TODO: It is very inefficient to reread config for every option
-    config = read_config()
-    if config.has_option("general", "restart_interface"):
-        return config.getboolean("general", "restart_interface")
-
-    return True
-
-
-def dot1x_external_url():
-    """Returns url for external config of dot1x for a interface"""
-    config = read_config()
-    section = 'dot1x'
-    option = 'port_url_template'
-    return config[section].get(option, None)
-
-
 def find_vlans_on_netbox(netbox, factory=None):
     """Find all the vlans on this netbox
 
@@ -172,51 +135,6 @@ def find_allowed_vlans_for_user(account):
         allowed_vlans.append(defaultvlan)
 
     return allowed_vlans
-
-
-def find_default_vlan(include_netident=False):
-    """Check config to see if a default vlan is set
-
-    :rtype: FantasyVlan
-    """
-    defaultvlan = ""
-    netident = ""
-
-    # TODO: It is very inefficient to reread config for every option
-    config = read_config()
-    if config.has_section("defaultvlan"):
-        if config.has_option("defaultvlan", "vlan"):
-            defaultvlan = config.getint("defaultvlan", "vlan")
-        if config.has_option("defaultvlan", "netident"):
-            netident = config.get("defaultvlan", "netident")
-
-    if defaultvlan:
-        if include_netident:
-            return FantasyVlan(defaultvlan, netident)
-        else:
-            return FantasyVlan(defaultvlan)
-
-
-def fetch_voice_vlans(config=None):
-    """Fetch the voice vlans (if any) from the config file"""
-    if config is None:
-        config = read_config()
-    if config.has_section("general"):
-        if config.has_option("general", "voice_vlans"):
-            try:
-                return [int(v) for v in
-                        config.get("general", "voice_vlans").split(',')]
-            except ValueError:
-                pass
-    return []
-
-
-def read_config():
-    """Read the config"""
-    config = configparser.ConfigParser()
-    config.read(CONFIGFILE)
-
-    return config
 
 
 def set_editable_on_interfaces(netbox, interfaces, vlans):
@@ -253,13 +171,11 @@ def find_vlans_in_org(org):
 
 def check_format_on_ifalias(ifalias):
     """Verify that format on ifalias is correct if it is defined in config"""
-    section = "ifaliasformat"
-    option = "format"
-    config = read_config()
     if not ifalias:
         return True
-    elif config.has_section(section) and config.has_option(section, option):
-        ifalias_format = re.compile(config.get(section, option))
+    ifalias_format = get_ifaliasformat()
+    if ifalias_format:
+        ifalias_format = re.compile(ifalias_format)
         if ifalias_format.match(ifalias):
             return True
         else:
@@ -267,16 +183,6 @@ def check_format_on_ifalias(ifalias):
             return False
     else:
         return True
-
-
-def get_ifaliasformat(config=None):
-    """Get format for ifalias defined in config file"""
-    if config is None:
-        config = read_config()
-    section = "ifaliasformat"
-    option = "format"
-    if config.has_section(section) and config.has_option(section, option):
-        return config.get(section, option)
 
 
 def get_aliastemplate():
