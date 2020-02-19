@@ -59,11 +59,11 @@ COPY requirements/ /requirements
 ADD requirements.txt /
 ADD tests/requirements.txt /test-requirements.txt
 RUN pip3 install --upgrade setuptools && \
-    pip3 install --upgrade pip tox && \
+    pip3 install --upgrade pip pip-tools tox && \
     hash -r && \
-    # Since we used pip3 to install pip globally, pip should now be for Python 3 \
-    pip install -r /requirements.txt && \
-    pip install -r /test-requirements.txt
+	# Since we used pip3 to install pip globally, pip should now be for Python 3 \
+    pip-compile --output-file /requirements.txt.lock /requirements.txt /test-requirements.txt && \
+    pip-sync /requirements.txt.lock
 
 ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
