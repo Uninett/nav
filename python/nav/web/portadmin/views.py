@@ -36,18 +36,22 @@ from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface
 from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      find_and_populate_allowed_vlans,
-                                     get_aliastemplate, get_ifaliasformat,
-                                     save_to_database,
+                                     get_aliastemplate, save_to_database,
                                      check_format_on_ifalias,
                                      find_allowed_vlans_for_user_on_netbox,
                                      find_allowed_vlans_for_user,
-                                     filter_vlans, fetch_voice_vlans,
-                                     should_check_access_rights,
+                                     filter_vlans, should_check_access_rights,
                                      mark_detained_interfaces,
-                                     read_config, is_cisco,
+                                     is_cisco,
                                      add_dot1x_info,
-                                     is_restart_interface_enabled,
-                                     is_write_mem_enabled, get_trunk_edit)
+                                     get_trunk_edit)
+from nav.portadmin.config import (
+    is_write_mem_enabled,
+    is_restart_interface_enabled,
+    read_config,
+    get_ifaliasformat,
+    fetch_voice_vlans,
+)
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.management import ManagementFactory
