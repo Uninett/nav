@@ -15,9 +15,12 @@
 #
 """Tools to handle PortAdmin configuration database/file"""
 from os.path import join
+from collections import namedtuple
 
-from nav.config import NAVConfigParser
+from nav.config import NAVConfigParser, ConfigurationError
 from nav.portadmin.vlan import FantasyVlan
+
+CNaaSNMSConfig = namedtuple("CNaasNMSConfig", ["url", "token"])
 
 
 class PortAdminConfig(NAVConfigParser):
@@ -42,6 +45,15 @@ vlan_auth = off
 
 [dot1x]
 enabled = false
+
+[cnaas-nms]
+# These options can be used to configure PortAdmin to proxy all device write
+# operations through a CNaaS-NMS instance.
+# Refer to https://github.com/SUNET/cnaas-nms
+
+enabled = off
+#url=https://cnaas-nms.example.org/api/v1.0
+#token=very_long_and_secret_api_access_token
 """
 
     def is_vlan_authorization_enabled(self):
@@ -104,6 +116,22 @@ enabled = false
     def is_cisco_voice_cdp_enabled(self):
         """Checks if the CDP config option is enabled"""
         return self.getboolean("general", "cisco_voice_cdp", fallback=False)
+
+    def is_cnaas_nms_enabled(self):
+        return self.getboolean("cnaas-nms", "enabled", fallback=False)
+
+    def get_cnaas_nms_config(
+        self, section="cnaas-nms", url_option="url", token_option="token"
+    ):
+        """Returns a CNaaSNMSConfig namedtuple if a CNaaS-NMS proxy is enabled"""
+        if not self.has_option(section, url_option):
+            raise ConfigurationError("Missing CNaaS-NMS API URL in configuration")
+        if not self.has_option(section, token_option):
+            raise ConfigurationError("Missing CNaaS-NMS API token in configuration")
+
+        return CNaaSNMSConfig(
+            self.get(section, url_option), self.get(section, token_option)
+        )
 
 
 CONFIG = PortAdminConfig()
