@@ -17,6 +17,8 @@
 from nav.errors import NoNetboxTypeError
 from nav.models import manage
 from nav.portadmin.handlers import ManagementHandler
+from nav.portadmin.cnaas_nms.proxy import CNaaSNMSMixIn
+from nav.portadmin.config import CONFIG
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.snmp.cisco import Cisco
 from nav.portadmin.snmp.dell import Dell
@@ -33,13 +35,33 @@ class ManagementFactory(object):
 
     @classmethod
     def get_instance(cls, netbox: manage.Netbox, **kwargs) -> ManagementHandler:
-        """Get and SNMP-handle depending on vendor type"""
+        """Returns a ManagementHandler implementation, depending on Netbox vendor and
+        configured management protocol.
+        """
         if not netbox.type:
             raise NoNetboxTypeError()
 
         vendor_id = netbox.type.get_enterprise_id()
         handler = VENDOR_MAP.get(vendor_id, SNMPHandler)
+
+        if CONFIG.is_cnaas_nms_enabled():
+            handler = cls._hybridize_cnaas_nms_handler(handler)
+
         return handler(netbox, **kwargs)
+
+    @classmethod
+    def _hybridize_cnaas_nms_handler(cls, handler):
+        """Builds and returns a hybrid ManagementHandler class.
+
+        The class will have two base classes, the CNaaSNMSMixIn class and handler,
+        thereby letting the CNaaSMixIn implementation override methods from handler
+        as it sees fit.
+        """
+
+        class HybridProxyHandler(CNaaSNMSMixIn, handler):
+            pass
+
+        return HybridProxyHandler
 
     def __init__(self):
         pass
