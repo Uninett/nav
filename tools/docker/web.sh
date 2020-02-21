@@ -8,4 +8,4 @@ mydir=$(dirname $0)
 cd /source
 
 
-exec django-admin runserver 0.0.0.0:80
+django-admin check && exec django-admin runserver 0.0.0.0:80

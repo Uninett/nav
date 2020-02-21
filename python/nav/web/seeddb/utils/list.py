@@ -113,6 +113,9 @@ def _process_objects(queryset, value_list, edit_url=None, edit_url_attr=None):
             if attr in datakeys:
                 for key in datakeys[attr]:
                     yield value.get(key, None)
+            elif isinstance(value, tuple):
+                # this only normally happens with tuples of Decimal values in Rooms
+                yield ", ".join(str(v) for v in value)
             else:
                 yield value
 
