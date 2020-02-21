@@ -285,6 +285,7 @@ class SNMPHandler(ManagementHandler):
     @staticmethod
     def _get_last_number(oid):
         """Get the last index for an OID."""
+        # TODO: This method is superfluous, use nav.oids.OID objects instead
         if not (isinstance(oid, six.string_types)):
             raise TypeError('Illegal value for oid')
         splits = oid.split('.')
@@ -376,6 +377,7 @@ class SNMPHandler(ManagementHandler):
 
     @staticmethod
     def _extract_index_from_oid(oid):
+        # TODO: This method is also superfluous, use nav.oids.OID objects instead
         return int(oid.split('.')[-1])
 
     def get_native_and_trunked_vlans(self, interface):
