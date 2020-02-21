@@ -324,7 +324,7 @@ def save_interfaceinfo(request):
 
 
 def set_interface_values(account, interface, request):
-    """Use snmp to set the values in the request on the netbox"""
+    """Configures an interface according to the values from the request"""
 
     fac = get_factory(interface.netbox)
 
