@@ -38,32 +38,14 @@ _logger = logging.getLogger("nav.web.portadmin")
 def get_and_populate_livedata(netbox, interfaces):
     """Fetch live data from netbox"""
     handler = ManagementFactory.get_instance(netbox)
-    live_ifaliases = create_dict_from_tuplelist(handler.get_all_if_alias())
-    live_vlans = create_dict_from_tuplelist(handler.get_all_vlans())
+    live_ifaliases = handler.get_all_if_alias()
+    live_vlans = handler.get_all_vlans()
     live_operstatus = dict(handler.get_netbox_oper_status())
     live_adminstatus = dict(handler.get_netbox_admin_status())
     update_interfaces_with_snmpdata(interfaces, live_ifaliases, live_vlans,
                                     live_operstatus, live_adminstatus)
 
     return handler
-
-
-def create_dict_from_tuplelist(tuplelist):
-    """
-    The input is a list from a snmp bulkwalk or walk.
-    Extract ifindex from oid and use that as key in the dict.
-    """
-    pattern = re.compile(r"(\d+)$")
-    result = []
-    # Extract ifindex from oid
-    for key, value in tuplelist:
-        match_object = pattern.search(key)
-        if match_object:
-            ifindex = int(match_object.groups()[0])
-            result.append((ifindex, value))
-
-    # Create dict from modified list
-    return dict(result)
 
 
 def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,

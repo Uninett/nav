@@ -21,7 +21,7 @@ from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible
 
 from nav import Snmp
-from nav.Snmp import safestring
+from nav.Snmp import safestring, OID
 from nav.Snmp.errors import UnsupportedSnmpVersionError, SnmpError, NoSuchObjectError
 from nav.bitvector import BitVector
 
@@ -184,10 +184,14 @@ class SNMPHandler(object):
         return safestring(self._query_netbox(self.IF_ALIAS_OID, if_index))
 
     def get_all_if_alias(self):
-        """Get all aliases for all interfaces."""
-        return [
-            (oid, safestring(value)) for oid, value in self._bulkwalk(self.IF_ALIAS_OID)
-        ]
+        """Get all aliases for all interfaces.
+
+        :returns: A dict describing {ifIndex: ifAlias}
+        """
+        return {
+            OID(oid)[-1]: safestring(value)
+            for oid, value in self._bulkwalk(self.IF_ALIAS_OID)
+        }
 
     def set_if_alias(self, if_index, if_alias):
         """Set alias on a specific interface."""
@@ -201,8 +205,11 @@ class SNMPHandler(object):
         return self._query_netbox(self.VlAN_OID, interface.baseport)
 
     def get_all_vlans(self):
-        """Get all vlans on the switch"""
-        return self._bulkwalk(self.VlAN_OID)
+        """Retrieves the untagged VLAN value for every interface.
+
+        :returns: A dict describing {ifIndex: VLAN_TAG}
+        """
+        return {OID(index)[-1]: value for index, value in self._bulkwalk(self.VlAN_OID)}
 
     @staticmethod
     def _compute_octet_string(hexstring, port, action='enable'):
