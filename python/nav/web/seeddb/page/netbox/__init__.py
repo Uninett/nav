@@ -45,6 +45,7 @@ class NetboxInfo(SeeddbInfo):
     back_url = reverse_lazy('seeddb-netbox')
     add_url = reverse_lazy('seeddb-netbox-edit')
     bulk_url = reverse_lazy('seeddb-netbox-bulk')
+    copy_url_name = 'seeddb-netbox-copy'
 
 
 def netbox(request):

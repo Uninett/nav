@@ -27,19 +27,19 @@
 
   <div class="row">
     <div class="small-6 column">
-      {% if object %}
-        <h4>Edit
-          <a href="{% url 'ipdevinfo-details-by-id' object.pk %}"
-             title="See device info for {{ object.sysname }}">
-            {{ object.sysname }}
-          </a>
-        </h4>
+      {% if object and object.pk %}
+      <h4>{{ action|capfirst }}
+        <a href="{% url 'ipdevinfo-details-by-id' object.pk %}"
+           title="See device info for {{ object.sysname }}">
+          {{ object.sysname }}
+        </a>
+      </h4>
       {% else %}
-        <h5>Add new IP device</h5>
+      <h5>{{ title }}</h5>
       {% endif %}
     </div>
     <div class="small-6 column">
-      {% if object %}
+      {% if object and object.pk%}
         <form action="{% url 'seeddb-netbox' %}" method="post" class="pull-right">
           <input type="hidden" name="object" value="{{ object.pk }}"/>
           <input type="submit" name="delete" value="Delete this IP device" class="button small secondary"/>
@@ -47,6 +47,13 @@
       {% endif %}
     </div>
   </div>
+
+  {% if action == 'copy' %}
+  <div>
+      <p>Copy instructions: At a minimum, you need to change the
+      <b>ip-address</b> and click on <b>"Check connectivity"</b>.</p>
+  </div>
+  {% endif %}
 
   {% crispy form %}
 
@@ -111,5 +118,10 @@
     </li>
   </ol>
 
+{% endif %}
+{% if copy_url and object.pk %}
+<div>
+  <a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a>
+</div>
 {% endif %}
 {% endblock %}
