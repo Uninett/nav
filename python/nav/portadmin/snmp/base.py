@@ -18,7 +18,6 @@ from operator import attrgetter
 import logging
 
 from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible
 
 from nav import Snmp
 from nav.Snmp import safestring, OID
@@ -26,6 +25,7 @@ from nav.Snmp.errors import UnsupportedSnmpVersionError, SnmpError, NoSuchObject
 from nav.bitvector import BitVector
 
 from nav.models.manage import Vlan, SwPortAllowedVlan
+from nav.portadmin.handlers import ManagementHandler
 from nav.portadmin.vlan import FantasyVlan
 from nav.smidumps import get_mib
 
@@ -33,8 +33,7 @@ from nav.smidumps import get_mib
 _logger = logging.getLogger(__name__)
 
 
-@python_2_unicode_compatible
-class SNMPHandler(object):
+class SNMPHandler(ManagementHandler):
     """A basic class for SNMP-read and -write to switches."""
     VENDOR = None
 
@@ -66,18 +65,13 @@ class SNMPHandler(object):
     # Port Access Control in a System.
     dot1xPaeSystemAuthControl = '1.0.8802.1.1.1.1.1.1.0'
 
-    netbox = None
-
     def __init__(self, netbox, **kwargs):
-        self.netbox = netbox
+        super().__init__(netbox, **kwargs)
         self.read_only_handle = None
         self.read_write_handle = None
         self.available_vlans = None
         self.timeout = kwargs.get('timeout', 3)
         self.retries = kwargs.get('retries', 3)
-
-    def __str__(self):
-        return self.netbox.type.vendor.id
 
     def _bulkwalk(self, oid):
         """Walk all branches for the given oid."""
