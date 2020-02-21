@@ -319,26 +319,6 @@ class SNMPHandler(ManagementHandler):
     def set_voice_vlan(self, interface, voice_vlan):
         self.set_trunk(interface, interface.vlan, [voice_vlan])
 
-    def get_cisco_voice_vlans(self):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def set_cisco_voice_vlan(self, interface, voice_vlan):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def enable_cisco_cdp(self, interface):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def disable_cisco_voice_vlan(self, interface):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def disable_cisco_cdp(self, interface):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
     @staticmethod
     def _extract_index_from_oid(oid):
         # TODO: This method is also superfluous, use nav.oids.OID objects instead
