@@ -14,7 +14,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """View controller for PortAdmin"""
-import configparser
 import logging
 import json
 
@@ -43,15 +42,8 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      filter_vlans, should_check_access_rights,
                                      mark_detained_interfaces,
                                      is_cisco,
-                                     add_dot1x_info,
-                                     get_trunk_edit)
-from nav.portadmin.config import (
-    is_write_mem_enabled,
-    is_restart_interface_enabled,
-    read_config,
-    get_ifaliasformat,
-    fetch_voice_vlans,
-)
+                                     add_dot1x_info)
+from nav.portadmin.config import CONFIG
 from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.management import ManagementFactory
@@ -183,20 +175,19 @@ def populate_infodict(request, netbox, interfaces):
     allowed_vlans = []
     voice_vlan = None
     readonly = False
-    config = read_config()
 
     try:
         fac = get_and_populate_livedata(netbox, interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(
             request.account, netbox, interfaces, fac)
-        voice_vlan = fetch_voice_vlan_for_netbox(request, fac, config)
+        voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
         if voice_vlan:
-            if is_cisco_voice_enabled(config) and is_cisco(netbox):
+            if CONFIG.is_cisco_voice_enabled() and is_cisco(netbox):
                 set_voice_vlan_attribute_cisco(voice_vlan, interfaces, fac)
             else:
                 set_voice_vlan_attribute(voice_vlan, interfaces)
         mark_detained_interfaces(interfaces)
-        if is_dot1x_enabled(config):
+        if CONFIG.is_dot1x_enabled():
             add_dot1x_info(interfaces, fac)
     except TimeOutException:
         readonly = True
@@ -212,7 +203,7 @@ def populate_infodict(request, netbox, interfaces):
     if check_read_write(netbox, request):
         readonly = True
 
-    ifaliasformat = get_ifaliasformat(config)
+    ifaliasformat = CONFIG.get_ifaliasformat()
     aliastemplate = ''
     if ifaliasformat:
         tmpl = get_aliastemplate()
@@ -235,55 +226,23 @@ def populate_infodict(request, netbox, interfaces):
             'allowed_vlans': allowed_vlans,
             'readonly': readonly,
             'aliastemplate': aliastemplate,
-            'trunk_edit': get_trunk_edit(config),
+            'trunk_edit': CONFIG.get_trunk_edit(),
             'auditlog_api_parameters': json.dumps(auditlog_api_parameters)
         }
     )
     return info_dict
 
 
-def is_dot1x_enabled(config):
-    """Checks if dot1x config option is true"""
-    section = 'dot1x'
-    option = 'enabled'
-    try:
-        return (config.has_option(section, option) and
-                config.getboolean(section, option))
-    except ValueError:
-        pass
-
-    return False
 
 
-def is_cisco_voice_enabled(config):
-    """Checks if the Cisco config option is enabled"""
-    section = 'general'
-    option = 'cisco_voice_vlan'
-    if config.has_section(section):
-        if config.has_option(section, option):
-            return config.getboolean(section, option)
-    return False
-
-def is_cisco_voice_cdp_enabled(config):
-    """Checks if the CDP config option is enabled"""
-    section = 'general'
-    option = 'cisco_voice_cdp'
-    if config.has_section(section):
-        if config.has_option(section, option):
-            return config.getboolean(section, option)
-    return False
-
-def fetch_voice_vlan_for_netbox(request, factory, config=None):
+def fetch_voice_vlan_for_netbox(request, factory):
     """Fetch the voice vlan for this netbox
 
     There may be multiple voice vlans configured. Pick the one that exists
     on this netbox. If multiple vlans exist, we cannot know which one to use.
 
     """
-    if config is None:
-        config = read_config()
-
-    voice_vlans = fetch_voice_vlans(config)
+    voice_vlans = CONFIG.fetch_voice_vlans()
     if not voice_vlans:
         return
 
@@ -431,9 +390,8 @@ def set_vlan(account, fac, interface, request):
             if is_cisco(interface.netbox):
                 # If Cisco and trunk voice vlan (not Cisco voice vlan),
                 # we have to set native vlan instead of access vlan
-                config = read_config()
                 voice_activated = request.POST.get('voice_activated', False)
-                if not is_cisco_voice_enabled(config) and voice_activated:
+                if not CONFIG.is_cisco_voice_enabled() and voice_activated:
                     fac.set_native_vlan(interface, vlan)
                 else:
                     fac.set_vlan(interface, vlan)
@@ -468,11 +426,10 @@ def set_voice_vlan(fac, interface, request):
     """
     if 'voicevlan' in request.POST:
         cdp_changed = False
-        config = read_config()
-        voice_vlan = fetch_voice_vlan_for_netbox(request, fac, config)
-        use_cisco_voice_vlan = (is_cisco_voice_enabled(config) and
+        voice_vlan = fetch_voice_vlan_for_netbox(request, fac)
+        use_cisco_voice_vlan = (CONFIG.is_cisco_voice_enabled() and
                                 is_cisco(interface.netbox))
-        enable_cdp_for_cisco_voice_port = is_cisco_voice_cdp_enabled(config)
+        enable_cdp_for_cisco_voice_port = CONFIG.is_cisco_voice_cdp_enabled()
 
         # Either the voicevlan is turned off or turned on
         turn_on_voice_vlan = request.POST.get('voicevlan') == 'true'
@@ -559,7 +516,6 @@ def response_based_on_result(result):
 def render_trunk_edit(request, interfaceid):
     """Controller for rendering trunk edit view"""
 
-    config = read_config()
     interface = Interface.objects.get(pk=interfaceid)
     agent = get_factory(interface.netbox)
     if request.method == 'POST':
@@ -596,7 +552,7 @@ def render_trunk_edit(request, interfaceid):
     context.update({'interface': interface, 'available_vlans': vlans,
                     'native_vlan': native_vlan, 'trunked_vlans': trunked_vlans,
                     'allowed_vlans': allowed_vlans,
-                    'trunk_edit': get_trunk_edit(config)})
+                    'trunk_edit': CONFIG.get_trunk_edit()})
 
     return render(request, 'portadmin/trunk_edit.html', context)
 
@@ -638,7 +594,7 @@ def handle_trunk_edit(request, agent, interface):
 @require_POST
 def restart_interface(request):
     """Restart the interface by setting admin status to down and up"""
-    if not is_restart_interface_enabled():
+    if not CONFIG.is_restart_interface_enabled():
         _logger.debug('Not doing a restart of interface, it is configured off')
         return HttpResponse()
 
@@ -668,7 +624,7 @@ def restart_interface(request):
 @require_POST
 def write_mem(request):
     """Do a write mem on the netbox"""
-    if not is_write_mem_enabled():
+    if not CONFIG.is_write_mem_enabled():
         _logger.debug('Not doing a write mem, it is configured off')
         return HttpResponse("Write mem is configured to not be done")
 
@@ -697,9 +653,8 @@ def write_mem(request):
 
 def get_factory(netbox):
     """Get a SNMP factory instance"""
-    config = read_config()
-    timeout = get_config_value(config, 'general', 'timeout', fallback=3)
-    retries = get_config_value(config, 'general', 'retries', fallback=3)
+    timeout = CONFIG.getfloat("general", "timeout", fallback=3)
+    retries = CONFIG.getint("general", "retries", fallback=3)
 
     try:
         return ManagementFactory.get_instance(netbox, timeout=timeout,
@@ -707,11 +662,3 @@ def get_factory(netbox):
     except SnmpError as error:
         _logger.error('Error getting snmpfactory instance %s: %s',
                       netbox, error)
-
-
-def get_config_value(config, section, key, fallback=None):
-    """Get the value of key from a ConfigParser object, with fallback"""
-    try:
-        return config.get(section, key)
-    except (configparser.NoOptionError, configparser.NoSectionError):
-        return fallback

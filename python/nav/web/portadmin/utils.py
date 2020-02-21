@@ -22,11 +22,7 @@ from operator import attrgetter
 from django.template import loader
 
 from nav.django.utils import is_admin
-from nav.portadmin.config import (
-    is_vlan_authorization_enabled,
-    dot1x_external_url,
-    get_ifaliasformat,
-    find_default_vlan)
+from nav.portadmin.config import CONFIG
 from nav.portadmin.management import ManagementFactory
 from nav.portadmin.vlan import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
@@ -98,7 +94,7 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
     """
     netbox_vlans = find_vlans_on_netbox(netbox, factory=factory)
 
-    if is_vlan_authorization_enabled():
+    if CONFIG.is_vlan_authorization_enabled():
         if is_admin(account):
             allowed_vlans = netbox_vlans
         else:
@@ -130,7 +126,7 @@ def find_allowed_vlans_for_user(account):
     for org in account.organizations.all():
         allowed_vlans.extend(find_vlans_in_org(org))
 
-    defaultvlan = find_default_vlan()
+    defaultvlan = CONFIG.find_default_vlan()
     if defaultvlan and defaultvlan not in allowed_vlans:
         allowed_vlans.append(defaultvlan)
 
@@ -173,7 +169,7 @@ def check_format_on_ifalias(ifalias):
     """Verify that format on ifalias is correct if it is defined in config"""
     if not ifalias:
         return True
-    ifalias_format = get_ifaliasformat()
+    ifalias_format = CONFIG.get_ifaliasformat()
     if ifalias_format:
         ifalias_format = re.compile(ifalias_format)
         if ifalias_format.match(ifalias):
@@ -208,7 +204,7 @@ def filter_vlans(target_vlans, old_vlans, allowed_vlans):
 
 def should_check_access_rights(account):
     """Return boolean indicating that this user is restricted"""
-    return (is_vlan_authorization_enabled() and
+    return (CONFIG.is_vlan_authorization_enabled() and
             not is_admin(account))
 
 
@@ -234,7 +230,7 @@ def add_dot1x_info(interfaces, handler):
 
     dot1x_states = handler.get_dot1x_enabled_interfaces()
 
-    url_template = dot1x_external_url()
+    url_template = CONFIG.get_dot1x_external_url()
     for interface in interfaces:
         interface.dot1xenabled = dot1x_states.get(interface.ifindex)
         if url_template:
@@ -248,15 +244,3 @@ def is_cisco(netbox):
     :type netbox: manage.Netbox
     """
     return netbox.type.get_enterprise_id() == VENDOR_ID_CISCOSYSTEMS
-
-
-def get_trunk_edit(config):
-    """Gets config option for trunk edit
-
-    Default is to allow trunk edit
-    """
-    section = 'general'
-    option = 'trunk_edit'
-    if config.has_section(section) and config.has_option(section, option):
-        return config.getboolean(section, option)
-    return True
