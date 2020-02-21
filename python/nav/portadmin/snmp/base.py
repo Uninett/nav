@@ -423,20 +423,6 @@ class SNMPHandler(ManagementHandler):
         allowedvlan.set_allowed_vlans(trunk_vlans)
         allowedvlan.save()
 
-    @staticmethod
-    def _find_vlans_for_interface(interface):
-        """Find vland for the given interface."""
-        interface_vlans = interface.swportvlan_set.all()
-        vlans = []
-        if interface_vlans:
-            for swportvlan in interface_vlans:
-                vlan = swportvlan.vlan
-                if vlan.vlan:
-                    vlans.append(FantasyVlan(vlan.vlan, vlan.net_ident))
-        elif interface.vlan:
-            vlans = [FantasyVlan(vlan=interface.vlan)]
-        return vlans
-
     def is_dot1x_enabled(self, interfaces):
         """Explicitly returns None as we do not know on a SNMP-generic basis"""
         return None
