@@ -26,10 +26,6 @@ class ManagementHandler:
     def __init__(self, netbox, **kwargs):
         self.netbox = netbox
 
-    def __str__(self):
-        # TODO: This was copied from SNMPHandler and doesn't make much sense
-        return self.netbox.type.vendor.id
-
     def test_read(self):
         """Test if read works"""
         raise NotImplementedError
