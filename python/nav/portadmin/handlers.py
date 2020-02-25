@@ -14,10 +14,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Interface definition for PortAdmin management handlers"""
-from django.utils.encoding import python_2_unicode_compatible
 
 
-@python_2_unicode_compatible
 class ManagementHandler:
     """Defines a common interface for all types of PortAdmin management handlers.
 
