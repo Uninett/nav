@@ -59,8 +59,7 @@ class PortadminResponseTest(unittest.TestCase):
         self.handler = ManagementFactory.get_instance(self.netboxHP)
         self.assertNotEqual(self.handler, None,
                             'Could not get handler-object')
-        self.assertEqual(six.text_type(self.handler),  u'hp',
-                          'Wrong handler-type')
+        self.assertIsInstance(self.handler, HP, msg='Wrong handler-type')
 
     def test_get_ifalias_hp(self):
         self.handler = ManagementFactory.get_instance(self.netboxHP)
@@ -118,8 +117,7 @@ class PortadminResponseTest(unittest.TestCase):
         #  cisco-netbox
         self.handler = ManagementFactory.get_instance(self.netboxCisco)
         self.assertNotEqual(self.handler, None, 'Could not get handler-object')
-        self.assertEqual(six.text_type(self.handler),  u'cisco', 'Wrong handler-type')
-        self.assertEqual(type(self.handler), Cisco, 'Wrong handler-type')
+        self.assertIsInstance(self.handler, Cisco, 'Wrong handler-type')
 
     def test_get_ifalias_cisco(self):
         self.handler = ManagementFactory.get_instance(self.netboxCisco)
