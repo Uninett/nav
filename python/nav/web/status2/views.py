@@ -71,7 +71,7 @@ class StatusView(View):
 
     def get(self, request):
         """Produces a list view of AlertHistory entries"""
-        if request.GET.values():
+        if request.GET:
             parameters = request.GET.copy()
             self.set_default_parameters(parameters)
             form = forms.StatusPanelForm(parameters)
