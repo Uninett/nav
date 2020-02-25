@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Interface definition for PortAdmin management handlers"""
+from nav.models import manage
 
 
 class ManagementHandler:
@@ -23,7 +24,7 @@ class ManagementHandler:
     to provide, regardless of the underlying management protocol implemented by such
     a class.
     """
-    def __init__(self, netbox, **kwargs):
+    def __init__(self, netbox: manage.Netbox, **kwargs):
         self.netbox = netbox
 
     def test_read(self):
