@@ -59,8 +59,7 @@ class PortadminResponseTest(unittest.TestCase):
         self.handler = ManagementFactory.get_instance(self.netboxHP)
         self.assertNotEqual(self.handler, None,
                             'Could not get handler-object')
-        self.assertEqual(six.text_type(self.handler),  u'hp',
-                          'Wrong handler-type')
+        self.assertIsInstance(self.handler, HP, msg='Wrong handler-type')
 
     def test_get_ifalias_hp(self):
         self.handler = ManagementFactory.get_instance(self.netboxHP)
@@ -110,18 +109,6 @@ class PortadminResponseTest(unittest.TestCase):
         self.assertEqual(self.handler.set_if_alias(1, 'punkt1'), None,
                          'setIfAlias failed')
 
-    def test_get_vlans(self):
-        handler = ManagementFactory.get_instance(self.netboxHP)
-
-        interface = Mock()
-        swportvlan1 = Mock(vlan=Mock(vlan=1))
-        swportvlan2 = Mock(vlan=Mock(vlan=2))
-
-        interface.swportvlan_set.all.return_value = [swportvlan1, swportvlan2]
-
-        self.assertEqual(sorted(handler._find_vlans_for_interface(interface)),
-                         [FantasyVlan(1), FantasyVlan(2)])
-
     ####################################################################
     #  CISCO-netbox
 
@@ -130,8 +117,7 @@ class PortadminResponseTest(unittest.TestCase):
         #  cisco-netbox
         self.handler = ManagementFactory.get_instance(self.netboxCisco)
         self.assertNotEqual(self.handler, None, 'Could not get handler-object')
-        self.assertEqual(six.text_type(self.handler),  u'cisco', 'Wrong handler-type')
-        self.assertEqual(type(self.handler), Cisco, 'Wrong handler-type')
+        self.assertIsInstance(self.handler, Cisco, 'Wrong handler-type')
 
     def test_get_ifalias_cisco(self):
         self.handler = ManagementFactory.get_instance(self.netboxCisco)

@@ -18,7 +18,6 @@ from operator import attrgetter
 import logging
 
 from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible
 
 from nav import Snmp
 from nav.Snmp import safestring, OID
@@ -26,6 +25,7 @@ from nav.Snmp.errors import UnsupportedSnmpVersionError, SnmpError, NoSuchObject
 from nav.bitvector import BitVector
 
 from nav.models.manage import Vlan, SwPortAllowedVlan
+from nav.portadmin.handlers import ManagementHandler
 from nav.portadmin.vlan import FantasyVlan
 from nav.smidumps import get_mib
 
@@ -33,9 +33,8 @@ from nav.smidumps import get_mib
 _logger = logging.getLogger(__name__)
 
 
-@python_2_unicode_compatible
-class SNMPHandler(object):
-    """A basic class for SNMP-read and -write to switches."""
+class SNMPHandler(ManagementHandler):
+    """Implements PortAdmin management functions for SNMP-enabled switches"""
     VENDOR = None
 
     QBRIDGENODES = get_mib('Q-BRIDGE-MIB')['nodes']
@@ -66,18 +65,13 @@ class SNMPHandler(object):
     # Port Access Control in a System.
     dot1xPaeSystemAuthControl = '1.0.8802.1.1.1.1.1.1.0'
 
-    netbox = None
-
     def __init__(self, netbox, **kwargs):
-        self.netbox = netbox
+        super().__init__(netbox, **kwargs)
         self.read_only_handle = None
         self.read_write_handle = None
         self.available_vlans = None
         self.timeout = kwargs.get('timeout', 3)
         self.retries = kwargs.get('retries', 3)
-
-    def __str__(self):
-        return self.netbox.type.vendor.id
 
     def _bulkwalk(self, oid):
         """Walk all branches for the given oid."""
@@ -161,7 +155,6 @@ class SNMPHandler(object):
             yield BitVector.from_hex(hexes[i:i + chunksize])
 
     def test_read(self):
-        """Test if read works"""
         handle = self._get_read_only_handle()
         try:
             handle.get(self.SYSOBJECTID)
@@ -170,7 +163,6 @@ class SNMPHandler(object):
             return False
 
     def test_write(self):
-        """Test if write works"""
         handle = self._get_read_write_handle()
         try:
             value = handle.get(self.SYSLOCATION)
@@ -180,35 +172,24 @@ class SNMPHandler(object):
             return False
 
     def get_if_alias(self, if_index):
-        """ Get alias on a specific interface """
         return safestring(self._query_netbox(self.IF_ALIAS_OID, if_index))
 
     def get_all_if_alias(self):
-        """Get all aliases for all interfaces.
-
-        :returns: A dict describing {ifIndex: ifAlias}
-        """
         return {
             OID(oid)[-1]: safestring(value)
             for oid, value in self._bulkwalk(self.IF_ALIAS_OID)
         }
 
     def set_if_alias(self, if_index, if_alias):
-        """Set alias on a specific interface."""
         if isinstance(if_alias, six.text_type):
             if_alias = if_alias.encode('utf8')
         return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
                                       if_alias)
 
     def get_vlan(self, interface):
-        """Get vlan on a specific interface."""
         return self._query_netbox(self.VlAN_OID, interface.baseport)
 
     def get_all_vlans(self):
-        """Retrieves the untagged VLAN value for every interface.
-
-        :returns: A dict describing {ifIndex: VLAN_TAG}
-        """
         return {OID(index)[-1]: value for index, value in self._bulkwalk(self.VlAN_OID)}
 
     @staticmethod
@@ -227,8 +208,6 @@ class SNMPHandler(object):
         return bit.to_bytes()
 
     def set_vlan(self, interface, vlan):
-        """Set a new vlan on the given interface and remove
-        the previous vlan"""
         base_port = interface.baseport
         try:
             vlan = int(vlan)
@@ -252,22 +231,17 @@ class SNMPHandler(object):
                                       fromvlan, 's', modified_hexport)
 
     def set_native_vlan(self, interface, vlan):
-        """Set native vlan on a trunk interface"""
         self.set_vlan(interface, vlan)
 
     def set_if_up(self, if_index):
-        """Set interface.to up"""
         return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
                                       self.IF_ADMIN_STATUS_UP)
 
     def set_if_down(self, if_index):
-        """Set interface.to down"""
         return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
                                       self.IF_ADMIN_STATUS_DOWN)
 
     def restart_if(self, if_index, wait=5):
-        """ Take interface down and up.
-            wait = number of seconds to wait between down and up."""
         wait = int(wait)
         self.set_if_down(if_index)
         _logger.debug('Interface set administratively down - '
@@ -277,20 +251,18 @@ class SNMPHandler(object):
         _logger.debug('Interface set administratively up')
 
     def write_mem(self):
-        """ Do a write memory on netbox if available"""
         pass
 
     def get_if_admin_status(self, if_index):
-        """Query administration status for a given interface."""
         return self._query_netbox(self.IF_ADMIN_STATUS, if_index)
 
     def get_if_oper_status(self, if_index):
-        """Query operational status of a given interface."""
         return self._query_netbox(self.IF_OPER_STATUS, if_index)
 
     @staticmethod
     def _get_last_number(oid):
         """Get the last index for an OID."""
+        # TODO: This method is superfluous, use nav.oids.OID objects instead
         if not (isinstance(oid, six.string_types)):
             raise TypeError('Illegal value for oid')
         splits = oid.split('.')
@@ -311,17 +283,14 @@ class SNMPHandler(object):
         return available_stats
 
     def get_netbox_admin_status(self):
-        """Walk all ports and get their administration status."""
         if_admin_stats = self._bulkwalk(self.IF_ADMIN_STATUS)
         return self._get_if_stats(if_admin_stats)
 
     def get_netbox_oper_status(self):
-        """Walk all ports and get their operational status."""
         if_oper_stats = self._bulkwalk(self.IF_OPER_STATUS)
         return self._get_if_stats(if_oper_stats)
 
     def get_netbox_vlans(self):
-        """Create Fantasyvlans for all vlans on this netbox"""
         numerical_vlans = self.get_available_vlans()
         vlan_objects = Vlan.objects.filter(
             swportvlan__interface__netbox=self.netbox).distinct()
@@ -340,11 +309,6 @@ class SNMPHandler(object):
         return sorted(list(set(vlans)), key=attrgetter('vlan'))
 
     def get_available_vlans(self):
-        """Get available vlans from the box
-
-        This is similar to the terminal command "show vlans"
-
-        """
         if self.available_vlans is None:
             self.available_vlans = [
                 int(self._extract_index_from_oid(oid))
@@ -353,47 +317,14 @@ class SNMPHandler(object):
         return self.available_vlans
 
     def set_voice_vlan(self, interface, voice_vlan):
-        """Activate voice vlan on this interface
-
-        Use set_trunk to make sure the interface is put in trunk mode
-
-        """
         self.set_trunk(interface, interface.vlan, [voice_vlan])
-
-    def get_cisco_voice_vlans(self):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def set_cisco_voice_vlan(self, interface, voice_vlan):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def enable_cisco_cdp(self, interface):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def disable_cisco_voice_vlan(self, interface):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
-
-    def disable_cisco_cdp(self, interface):
-        """Should not be implemented on anything else than Cisco"""
-        raise NotImplementedError
 
     @staticmethod
     def _extract_index_from_oid(oid):
+        # TODO: This method is also superfluous, use nav.oids.OID objects instead
         return int(oid.split('.')[-1])
 
     def get_native_and_trunked_vlans(self, interface):
-        """Get the trunked vlans on this interface
-
-        For each available vlan, fetch list of interfaces that forward this
-        vlan. If the interface index is in this list, add the vlan to the
-        return list.
-
-        :returns native vlan + list of trunked vlan
-
-        """
         native_vlan = self.get_native_vlan(interface)
 
         bitvector_index = interface.baseport - 1
@@ -423,15 +354,6 @@ class SNMPHandler(object):
         return self.get_vlan(interface)
 
     def set_trunk_vlans(self, interface, vlans):
-        """Trunk the vlans on interface
-
-        Egress_Ports includes native vlan. Be sure to not alter that.
-
-        Get all available vlans. For each available vlan fetch list of
-        interfaces that forward this vlan. Set or remove the interface from
-        this list based on if it is in the vlans list.
-
-        """
         base_port = interface.baseport
         native_vlan = self.get_native_vlan(interface)
         bitvector_index = base_port - 1
@@ -472,10 +394,6 @@ class SNMPHandler(object):
             raise error
 
     def set_access(self, interface, access_vlan):
-        """Set this port in access mode and set access vlan
-
-        Means - remove all vlans except access vlan from this interface
-        """
         _logger.debug('Setting access mode vlan %s on interface %s',
                       access_vlan, interface)
         self.set_vlan(interface, access_vlan)
@@ -485,7 +403,6 @@ class SNMPHandler(object):
         interface.save()
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
-        """Set this port in trunk mode and set native vlan"""
         self.set_vlan(interface, native_vlan)
         self.set_trunk_vlans(interface, trunk_vlans)
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
@@ -506,29 +423,13 @@ class SNMPHandler(object):
         allowedvlan.set_allowed_vlans(trunk_vlans)
         allowedvlan.save()
 
-    @staticmethod
-    def _find_vlans_for_interface(interface):
-        """Find vland for the given interface."""
-        interface_vlans = interface.swportvlan_set.all()
-        vlans = []
-        if interface_vlans:
-            for swportvlan in interface_vlans:
-                vlan = swportvlan.vlan
-                if vlan.vlan:
-                    vlans.append(FantasyVlan(vlan.vlan, vlan.net_ident))
-        elif interface.vlan:
-            vlans = [FantasyVlan(vlan=interface.vlan)]
-        return vlans
-
     def is_dot1x_enabled(self, interfaces):
-        """Explicitly returns None as we do not know"""
+        """Explicitly returns None as we do not know on a SNMP-generic basis"""
         return None
 
     def get_dot1x_enabled_interfaces(self):
-        """"""
         return {}
 
     def is_port_access_control_enabled(self):
-        """Returns state of port access control"""
         handle = self._get_read_only_handle()
         return int(handle.get(self.dot1xPaeSystemAuthControl)) == 1
