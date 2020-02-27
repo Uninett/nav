@@ -46,7 +46,11 @@ class StatusView(View):
                 data = base64.b64decode(preferences)
                 return pickle.loads(data)
             except Exception:  # maybe an old, none-base64 pickle
-                return pickle.loads(preferences)
+                _logger.exception(
+                    "Ignoring potential legacy status preferences for user %s",
+                    self.request.account.login,
+                )
+                return self.set_default_parameters({})
 
     @staticmethod
     def set_default_parameters(parameters):
