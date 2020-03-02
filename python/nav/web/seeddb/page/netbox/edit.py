@@ -73,11 +73,17 @@ def netbox_edit(request, netbox_id=None, suggestion=None, action='edit'):
             )
 
     if request.method == 'POST':
-        form = NetboxModelForm(request.POST, instance=netbox)
+        if action == 'copy':
+            # Remove stuff that should not be copied over
+            post = request.POST.copy()
+            post.pop('sysname', None)
+            post.pop('type', None)
+            post.pop('virtual_instance', None)
+            form = NetboxModelForm(post)
+        else:
+            form = NetboxModelForm(request.POST, instance=netbox)
         if form.is_valid():
             old_netbox = copy.deepcopy(netbox)
-            if action == 'copy' and old_netbox.pk:
-                form.instance.pk = form.instance.id = None
             netbox = netbox_do_save(form)
             messages.add_message(request, messages.SUCCESS, 'IP Device saved')
             log_netbox_change(request.account, old_netbox, netbox)
