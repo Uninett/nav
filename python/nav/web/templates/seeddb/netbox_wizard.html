@@ -112,7 +112,7 @@
   </ol>
 
 {% endif %}
-{% if copy_url and object.pk %}
+{% if copy_url and object.pk and not object.deleted_at %}
 <div>
   <a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a>
 </div>
