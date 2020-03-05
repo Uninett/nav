@@ -47,6 +47,7 @@ class SeeddbInfo(object):
 
     hide_move = False
     hide_delete = False
+    copy_url_name = None
     delete_url = None
     back_url = None
     add_url = None
@@ -81,4 +82,5 @@ class SeeddbInfo(object):
             'back_url': self.back_url,
             'add_url': self.add_url,
             'bulk_url': self.bulk_url,
+            'copy_url_name': self.copy_url_name,
         }

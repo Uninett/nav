@@ -42,6 +42,7 @@ class LocationInfo(SeeddbInfo):
     back_url = reverse_lazy('seeddb-location')
     add_url = reverse_lazy('seeddb-location-edit')
     bulk_url = reverse_lazy('seeddb-location-bulk')
+    copy_url_name = 'seeddb-location-copy'
 
 
 def location(request):
@@ -68,11 +69,23 @@ def location_delete(request):
                          extra_context=info.template_context)
 
 
-def location_edit(request, location_id=None):
+def location_edit(request, location_id=None, action='edit'):
     info = LocationInfo()
+    if location_id:
+        copy_url = reverse_lazy(info.copy_url_name, kwargs={'action': 'copy',
+                                                            'location_id': location_id})
+    else:
+        copy_url = None
+
+    _title = 'Use this location as a template for creating a new location'
+    extra_context = {
+        'copy_url': copy_url,
+        'copy_title': _title,
+    }
+    extra_context.update(info.template_context)
     return render_edit(request, Location, LocationForm, location_id,
                        'seeddb-location-edit',
-                       extra_context=info.template_context)
+                       extra_context=extra_context, action=action)
 
 
 def location_bulk(request):

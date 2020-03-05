@@ -52,19 +52,31 @@
               {% endfor %}
               <tr>
                 <th></th>
-                <td><input type="submit" value="Save" class="button small"></td>
+                <td><input type="submit" value="Save" class="button small">
+                </td>
               </tr>
             {% endblock %}
           </table>
         </fieldset>
       </form>
 
-      {% if delete_url and object %}
-        <form action="{{ delete_url }}" method="post">
-          <input type="hidden" name="object" value="{{ object.pk }}">
-          <input type="submit" name="delete" value="Delete this {{ verbose_name }}"
-                 class="button small">
-        </form>
+      {% if object and object.pk %}
+      <ul class="button-group">
+        {% if delete_url %}
+        <li>
+          <form action="{{ delete_url }}" method="post">
+            <input type="hidden" name="object" value="{{ object.pk }}">
+            <input type="submit" name="delete" value="Delete this {{ verbose_name }}"
+                   class="button small">
+          </form>
+        </li>
+        {% endif %}
+        {% if copy_url %}
+        <li>
+          <a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a>
+        </li>
+        {% endif %}
+      </ul>
       {% endif %}
 
     </div>

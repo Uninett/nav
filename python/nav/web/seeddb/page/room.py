@@ -16,6 +16,8 @@
 #
 """Forms and view functions for SeedDB's Room view"""
 
+from django.urls import reverse
+
 from nav.models.manage import Room
 from nav.bulkparse import RoomBulkParser
 from nav.bulkimport import RoomImporter
@@ -44,6 +46,7 @@ class RoomInfo(SeeddbInfo):
     back_url = reverse_lazy('seeddb-room')
     add_url = reverse_lazy('seeddb-room-edit')
     bulk_url = reverse_lazy('seeddb-room-bulk')
+    copy_url_name = 'seeddb-room-copy'
 
 
 def room(request):
@@ -81,18 +84,28 @@ def room_delete(request):
                          extra_context=info.template_context)
 
 
-def room_edit(request, room_id=None, lat=None, lon=None):
+def room_edit(request, action='edit', room_id=None, lat=None, lon=None):
     """Controller for editing a room"""
     info = RoomInfo()
+    if room_id:
+        copy_url = reverse_lazy(info.copy_url_name, kwargs={'action': 'copy',
+                                                            'room_id': room_id})
+    else:
+        copy_url = None
     roompositions = [[float(r.position[0]), float(r.position[1])]
                      for r in Room.objects.all()
                      if r.position]
-    extra_context = {'map': True, 'roompositions': roompositions}
+    extra_context = {
+        'map': True,
+        'roompositions': roompositions,
+        'copy_url': copy_url,
+        'copy_title': 'Use this room as a template for creating a new room',
+    }
 
     extra_context.update(info.template_context)
     return render_edit(request, Room, RoomForm, room_id,
                        'seeddb-room-edit', lon=lon, lat=lat,
-                       extra_context=extra_context)
+                       extra_context=extra_context, action=action)
 
 
 def room_bulk(request):
