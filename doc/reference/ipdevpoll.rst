@@ -117,6 +117,17 @@ Section [prefix]
   database, even if they are collected from a device's interfaces.
 
 
+Section [netbox_filters]
+------------------------
+
+``groups_included``
+  Allows you to specify the devices that WILL be handled by this instance of
+  ipdevpoll using a space separated list of group ids.
+
+``groups_excluded``
+  Allows you to specify the devices that WON'T be handled by this instance of
+  ipdevpoll using a space separated list of group ids.
+
 Section [linkstate]
 -------------------
 

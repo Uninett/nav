@@ -33,6 +33,10 @@ class IpdevpollConfig(NAVConfigParser):
 logfile = ipdevpolld.log
 max_concurrent_jobs = 500
 
+[netbox_filters]
+groups_included=
+groups_excluded=
+
 [snmp]
 timeout = 1.5
 max-repetitions = 10
@@ -103,6 +107,18 @@ def get_jobs(config=None):
 def get_job_sections(config):
     """Find all job sections in a config file"""
     return [s for s in config.sections() if s.startswith(JOB_PREFIX)]
+
+
+def get_netbox_filter(section, config=None):
+    """Get the requested netbox filter as list"""
+    if config is None:
+        config = ipdevpoll_conf
+
+    netbox_filters = ipdevpoll_conf.get('netbox_filters',section)
+
+    if netbox_filters:
+        return netbox_filters.split()
+    return []
 
 
 # this is a data container class, mr. pylint!

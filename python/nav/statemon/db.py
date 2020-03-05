@@ -246,11 +246,23 @@ class _DB(threading.Thread):
         values = (nextid, 'descr', event.info)
         self.execute(statement, values)
 
-    def hosts_to_ping(self):
+    def hosts_to_ping(self, groups_included=[], groups_excluded=[]):
         """Returns a list of netboxes to ping, from the database"""
-        query = """SELECT netboxid, sysname, ip, up FROM netbox """
+        query = """SELECT distinct(netbox.netboxid), sysname, ip, up FROM netbox, netboxcategory
+                   where netbox.netboxid = netboxcategory.netboxid"""
+
+        if (len(groups_included)):
+            groups_included_vars_string = ', '.join("%s" for g in groups_included)
+            query += """
+                        and netboxcategory.category in ({0})""".format(groups_included_vars_string)
+
+        if (len(groups_excluded)):
+            groups_excluded_vars_string = ', '.join("%s" for g in groups_excluded)
+            query += """
+                        and netboxcategory.category not in ({0})""".format(groups_excluded_vars_string)
+
         try:
-            self._hosts_to_ping = self.query(query)
+            self._hosts_to_ping = self.query(query, groups_included + groups_excluded)
         except DbError:
             return self._hosts_to_ping
         return self._hosts_to_ping
