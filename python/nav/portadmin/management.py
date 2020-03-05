@@ -58,6 +58,9 @@ class ManagementFactory(object):
         as it sees fit.
         """
 
+        # This class is constructed on the fly, no need to warn about missing
+        # implementations:
+        # pylint: disable=abstract-method
         class HybridProxyHandler(CNaaSNMSMixIn, handler):
             pass
 
