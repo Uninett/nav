@@ -18,6 +18,7 @@ from __future__ import print_function
 
 import datetime
 import os
+import signal
 import sys
 import logging
 
@@ -212,6 +213,9 @@ class Worker(object):
         self.threadpoolsize = threadpoolsize
         self.max_jobs = max_jobs
         self.started_at = None
+        self._ping_loop = twisted.internet.task.LoopingCall(
+            self._euthanize_unresponsive_worker
+        )
 
     def __repr__(self):
         return (
@@ -241,6 +245,7 @@ class Worker(object):
         self.process.lost_handler = self._worker_died
         self.started_at = datetime.datetime.now()
         self._logger.debug("Started new worker %r", self)
+        self._ping_loop.start(interval=30, now=False)
         returnValue(self)
 
     @property
@@ -259,6 +264,8 @@ class Worker(object):
         return self.max_jobs and (self.total_jobs >= self.max_jobs)
 
     def _worker_died(self, _process, _reason):
+        if self._ping_loop.running:
+            self._ping_loop.stop()
         if not self.done():
             self._logger.warning("Lost worker: %r", self)
         elif self.active_jobs:
@@ -266,6 +273,38 @@ class Worker(object):
         else:
             self._logger.debug("Exited normally: %r", self)
         self.pool.worker_died(self)
+
+    @inlineCallbacks
+    def _euthanize_unresponsive_worker(self):
+        """Sends the ping command to the worker. If the ping command does not succeed
+        within the configured timeout, the worker is killed using the SIGTERM signal,
+        under the assumption the process has frozen somehow.
+        """
+        is_alive = not self.done()  # assume the best
+        if not self.done():
+            try:
+                is_alive = yield self.responds_to_ping()
+            except twisted.internet.defer.TimeoutError:
+                self._logger.warning("PING: Timed out for %r", self)
+                is_alive = False
+            except Exception:
+                self._logger.exception(
+                    "PING: Unhandled exception while pinging %r", self
+                )
+                is_alive = None
+
+        # check again; no need to kill worker if its status became 'done'while waiting
+        if not self.done():
+            try:
+                if not is_alive:
+                    self._logger.warning(
+                        "PING: Not responding, attempting to kill: %r", self
+                    )
+                    os.kill(self.pid, signal.SIGTERM)
+            except Exception:
+                self._logger.exception(
+                    "PING: Ignoring unhandled exception when killing worker %r", self
+                )
 
     def execute(self, serial, command, **kwargs):
         """Executes a remote job"""
