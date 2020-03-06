@@ -55,6 +55,12 @@ class Shutdown(amp.Command):
     response = []
 
 
+class Ping(amp.Command):
+    """Represents a ping command for sending to workers"""
+    arguments = []
+    response = [(b'result', amp.Unicode())]
+
+
 class Job(amp.Command):
     """Represent a job for sending to a worker"""
     arguments = [
@@ -125,6 +131,11 @@ class JobHandler(amp.CommandLocator):
         """Shuts down the worker process"""
         self.done = True
         return {}
+
+    @Ping.responder
+    def ping(self):
+        """Returns the string "pong" as a response to a ping"""
+        return {"result": "pong"}
 
     def log_jobs(self):
         """Logs information about active jobs"""
@@ -275,6 +286,22 @@ class Worker(object):
         if self.done():
             self.process.callRemote(Shutdown)
         return deferred
+
+    @inlineCallbacks
+    def responds_to_ping(self, timeout=10):
+        """Verifies that this worker is alive.
+
+        :param timeout: The maximum allowable number of seconds for the worker to
+                        respond
+        :type timeout: int
+        :return: A Deferred whose result will be True if the worker process responded
+                 correctly and within the set timeout.
+        """
+        self._logger.debug("PING: %r", self)
+        deferred = self.process.callRemote(Ping)
+        response = yield deferred.addTimeout(timeout, clock=reactor)
+        self._logger.debug("PING: Response from %r: %r", self, response)
+        returnValue(response.get("result") == "pong")
 
     def cancel(self, serial):
         """Cancels a job running on this worker"""
