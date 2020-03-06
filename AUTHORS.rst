@@ -38,6 +38,10 @@ Other contributors and previous maintainers
   Contributed support for enabling CDP when configuring Cisco Voice VLANs in
   PortAdmin.
 
+* Leigh Murray <l.d.murray@usit.uio.no>
+  Implemented group-based ipdevpoll and pping, allowing multiple
+  instances to run simultaneously handling specific groups of devices.
+
 * Ruben Andreassen (University of Tromsø)
   Contributed the initial support for IT-WATCHDOGS-V4-MIB, GEIST-V4-MIB and
   PowerTek PDUs (PWTv1-MIB).

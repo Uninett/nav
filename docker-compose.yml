@@ -30,6 +30,20 @@ services:
     depends_on:
       - postgres
 
+# Uncomment if you want a second container for group restricted backend services
+#  slave:
+#    build: .
+#    environment:
+#      - NONAVSTART=1 # Set to 1 to disable startup of NAV backend processes when container starts
+#      - PGHOST=postgres
+#      - PGDATABASE=nav
+#      - PGUSER=postgres
+#    volumes:
+#      - .:/source
+#      - slave_nav_config:/etc/nav
+#    depends_on:
+#      - postgres
+
   web:
     build: .
     command: ["/source/tools/docker/web.sh"]
@@ -42,6 +56,8 @@ services:
 
   postgres:
     image: "postgres:9.4"
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
 
   graphite:
     build: ./tools/docker/graphite
@@ -66,3 +82,6 @@ services:
 volumes:
   nav_config:
     driver: local
+# Uncomment if you want a second container for group restricted backend services
+#  slave_nav_config:
+#    driver: local
