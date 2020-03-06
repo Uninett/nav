@@ -31,6 +31,7 @@ import twisted.internet.endpoints
 from django.utils import six
 
 from . import control, jobs
+from nav.ipdevpoll.config import ipdevpoll_conf
 
 
 def initialize_worker():
@@ -214,7 +215,8 @@ class Worker(object):
         self.max_jobs = max_jobs
         self.started_at = None
         self._ping_loop = twisted.internet.task.LoopingCall(
-            self._euthanize_unresponsive_worker
+            self._euthanize_unresponsive_worker,
+            timeout=ipdevpoll_conf.getint("multiprocess", "ping_timeout", fallback=10),
         )
 
     def __repr__(self):
@@ -245,7 +247,15 @@ class Worker(object):
         self.process.lost_handler = self._worker_died
         self.started_at = datetime.datetime.now()
         self._logger.debug("Started new worker %r", self)
-        self._ping_loop.start(interval=30, now=False)
+
+        if ipdevpoll_conf.getboolean("multiprocess", "ping_workers", fallback=True):
+            self._ping_loop.start(
+                interval=ipdevpoll_conf.getint(
+                    "multiprocess", "ping_interval", fallback=30
+                ),
+                now=False,
+            )
+
         returnValue(self)
 
     @property
@@ -275,7 +285,7 @@ class Worker(object):
         self.pool.worker_died(self)
 
     @inlineCallbacks
-    def _euthanize_unresponsive_worker(self):
+    def _euthanize_unresponsive_worker(self, timeout=10):
         """Sends the ping command to the worker. If the ping command does not succeed
         within the configured timeout, the worker is killed using the SIGTERM signal,
         under the assumption the process has frozen somehow.
@@ -283,7 +293,7 @@ class Worker(object):
         is_alive = not self.done()  # assume the best
         if not self.done():
             try:
-                is_alive = yield self.responds_to_ping()
+                is_alive = yield self.responds_to_ping(timeout)
             except twisted.internet.defer.TimeoutError:
                 self._logger.warning("PING: Timed out for %r", self)
                 is_alive = False
