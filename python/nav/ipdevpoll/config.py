@@ -37,6 +37,11 @@ max_concurrent_jobs = 500
 timeout = 1.5
 max-repetitions = 10
 
+[multiprocess]
+ping_workers = true
+ping_interval = 30
+ping_timeout = 10
+
 [plugins]
 
 [jobs]

@@ -8,8 +8,7 @@ IPy==1.00
 py2-ipaddress==3.4.1 ; python_version < '3'
 pyaml
 
-twisted>=14.0.1,<18 ; python_version < '3'
-twisted>=16.6.0,<18 ; python_version >= '3'
+twisted>=16.6.0,<18
 
 networkx>=2.2,<2.3
 Pillow==3.3.2
