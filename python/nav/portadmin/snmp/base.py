@@ -433,3 +433,10 @@ class SNMPHandler(ManagementHandler):
     def is_port_access_control_enabled(self):
         handle = self._get_read_only_handle()
         return int(handle.get(self.dot1xPaeSystemAuthControl)) == 1
+
+    # These are not relevant for this generic subclass
+    get_cisco_voice_vlans = None
+    set_cisco_voice_vlan = None
+    enable_cisco_cdp = None
+    disable_cisco_voice_vlan = None
+    disable_cisco_cdp = None
