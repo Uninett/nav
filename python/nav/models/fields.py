@@ -75,9 +75,11 @@ class DictAsJsonField(models.TextField):
         return 'varchar'
 
     if django.VERSION < (2,):  # Django < 2.x
+        # pylint: disable=unused-argument
         def from_db_value(self, value, expression, connection, context):
             return self.to_python(value)
     else:
+        # pylint: disable=unused-argument
         def from_db_value(self, value, expression, connection):
             return self.to_python(value)
 
