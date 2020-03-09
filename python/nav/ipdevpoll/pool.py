@@ -30,8 +30,8 @@ import twisted.internet.endpoints
 
 from django.utils import six
 
-from . import control, jobs
 from nav.ipdevpoll.config import ipdevpoll_conf
+from . import control, jobs
 
 
 def initialize_worker():
@@ -134,6 +134,7 @@ class JobHandler(amp.CommandLocator):
         self.done = True
         return {}
 
+    # pylint: disable=no-self-use
     @Ping.responder
     def ping(self):
         """Returns the string "pong" as a response to a ping"""
