@@ -125,7 +125,9 @@ def import_dashboard(request):
     response = {}
     if 'file' in request.FILES:
         try:
-            data = json.load(request.FILES['file'])
+            # Ensure file is interpreted as utf-8 regardless of locale
+            blob = request.FILES['file'].read()
+            data = json.loads(blob.decode("utf-8"))
             if not isinstance(data, dict):
                 raise ValueError()
             for field, dtype in dashboard_fields.items():
