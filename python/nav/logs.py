@@ -89,7 +89,8 @@ def _set_custom_log_file():
             logger_name = ''
         _logger = logging.getLogger(logger_name)
 
-        filehandler = logging.FileHandler(_get_logfile_path(filename))
+        filehandler = logging.FileHandler(_get_logfile_path(filename),
+                                            encoding='utf-8')
         filehandler.setFormatter(DEFAULT_LOG_FORMATTER)
         _logger.addHandler(filehandler)
 
@@ -212,7 +213,8 @@ def init_generic_logging(logfile=None, stderr=True, stdout=False,
 
     if logfile:
         try:
-            filehandler = logging.FileHandler(_get_logfile_path(logfile))
+            filehandler = logging.FileHandler(_get_logfile_path(logfile),
+                                              encoding='utf-8')
         except IOError:
             pass
         else:
