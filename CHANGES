@@ -1,3 +1,22 @@
+Version 5.0.5
+(released 13 Mar 2020)
+
+Fixed GitHub issues in this release:
+
+  * #1994 (snmptrapd linkupdown plugin does not handle v2 traps)
+  * #2101 ([BUG] Geomap data API endpoint crashes with a TypeError)
+  * #2109 ([BUG] ipdevinfo sensor details page crashes with
+           AttributeError on unit-less sensors)
+  * #2111 ([BUG] Logging non-ASCII characters crashes NAV programs)
+  * #2113 (Document advice for robust e-mail)
+  * #2114 ([BUG] Unable to save status filter in [Status] page)
+  * #2119 ([BUG] Latitude/Longitude is displayed weirdly in the SeedDB
+           room list)
+  * #2123 (Drop support for legacy status preference pickles)
+  * #2129 (Euthanize unresponsive ipdevpoll workers)
+  * #2130 ([BUG] Cannot import dashboard)
+
+
 Version 5.0.4
 (released 16 Jan 2020)
 
