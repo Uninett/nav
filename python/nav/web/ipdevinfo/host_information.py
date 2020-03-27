@@ -51,7 +51,12 @@ def _get_host_info(host):
     if is_valid_ip(host):
         addresses = list(reverse_lookup([host]))
     else:
-        addresses = forward_lookup(host) or []
+        try:
+            addresses = forward_lookup(host) or []
+        except UnicodeError:
+            # Probably just some invalid string that cannot be represented using IDNA
+            # encoding. Let's just pretend it never happened (i.e. we can't look it up)
+            addresses = []
         if addresses:
             addresses = list(reverse_lookup(addresses))
 
