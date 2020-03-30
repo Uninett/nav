@@ -42,7 +42,7 @@ def test_get_module_view(netbox, perspective):
 
 @pytest.mark.parametrize("badname", [
     "02.44.02",  # Looks like an IP address
-    "\x01\x9e$ü\x86",  # Cannot be encoded using IDNA for DNS lookups
+    u"\x01\x9e$ü\x86",  # Cannot be encoded using IDNA for DNS lookups
 ])
 def test_bad_name_should_not_crash_ipdevinfo(client, badname):
     """Tests "bad" device names to ensure they dont crash ipdevinfo lookup views"""
