@@ -21,17 +21,15 @@
   {% endcomment %}
 
   <div class="row">
+    <div class="small-12 column">
+      <h4>{{ title }}</h4>
+    </div>
 
     <div class="{% if map %}large-6{% else %}small-12{% endif %} column">
       <form class="seeddb-edit" action="" method="post">
         <fieldset>
-          <legend>{{ title }}</legend>
+          <legend>Attributes</legend>
           <table class="listtable {% if map %}expand{% endif %} edit">
-            {% if object %}
-              <caption>
-                {{ object }}
-              </caption>
-            {% endif %}
             {% block formfields %}
               {% for field in form %}
                 <tr>
@@ -67,7 +65,7 @@
           <form action="{{ delete_url }}" method="post">
             <input type="hidden" name="object" value="{{ object.pk }}">
             <input type="submit" name="delete" value="Delete this {{ verbose_name }}"
-                   class="button small">
+                   class="button small secondary">
           </form>
         </li>
         {% endif %}
