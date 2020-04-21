@@ -20,6 +20,7 @@ from itertools import groupby
 
 from django.db.models import Q
 from django.db import transaction
+from django.utils import six
 
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
@@ -359,7 +360,7 @@ class Interface(Shadow):
         """
         for field in 'ifname', 'ifdescr', 'ifalias':
             value = getattr(self, field, None)
-            if value is not None and "\x00" in value:
+            if isinstance(value, six.text_type) and "\x00" in value:
                 value = value.replace("\x00", "")
                 setattr(self, field, value)
 
