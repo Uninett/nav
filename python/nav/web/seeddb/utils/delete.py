@@ -54,19 +54,20 @@ def qs_delete(queryset):
 
 
 def render_delete(request, model, redirect, whitelist=None, extra_context=None,
-                  pre_delete_operation=None, delete_operation=qs_delete):
+                  pre_delete_operation=None, delete_operation=qs_delete, object_id=None):
     """Handles input and rendering of general delete page.
     """
-    if request.method != 'POST':
+
+    # GET with single object_id in url or POST with object_ids as POST query
+    if not (object_id or request.method == 'POST'):
         return HttpResponseRedirect(reverse(redirect))
-    if not request.POST.getlist('object'):
+    object_ids = request.POST.getlist('object') or [object_id]
+    if not object_ids:
         new_message(request,
                     "You need to select at least one object to edit",
                     Messages.ERROR)
         return HttpResponseRedirect(reverse(redirect))
-
-    objects = _get_qs_to_delete(model, request.POST.getlist('object'),
-                                whitelist)
+    objects = _get_qs_to_delete(model, object_ids, whitelist)
 
     if request.POST.get('confirm'):
         did_delete = _try_deleting(request, objects, pre_delete_operation,
