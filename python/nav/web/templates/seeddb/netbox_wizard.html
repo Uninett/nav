@@ -106,12 +106,9 @@
 {% endif %}
 {% if object and object.pk%}
 <ul class="button-group">
-  <li>
-  <form action="{% url 'seeddb-netbox' %}" method="post">
-    <input type="hidden" name="object" value="{{ object.pk }}"/>
-    <input type="submit" name="delete" value="Delete this IP device" class="button small secondary"/>
-  </form>
-  </li>
+  {% if delete_url_name %}
+  <li><a href="{% url delete_url_name object_id=object.pk %}" class="button small secondary" title="Delete this {{ verbose_name }}">Delete</a></li>
+  {% endif %}
   {% if copy_url and not object.deleted_at %}
   <li><a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a></li>
   {% endif %}

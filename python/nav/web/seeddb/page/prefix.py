@@ -49,6 +49,7 @@ class PrefixInfo(SeeddbInfo):
     verbose_name = Prefix._meta.verbose_name
     _navpath = [('Prefix', reverse_lazy('seeddb-prefix'))]
     delete_url = reverse_lazy('seeddb-prefix')
+    delete_url_name = 'seeddb-prefix-delete'
     back_url = reverse_lazy('seeddb-prefix')
     add_url = reverse_lazy('seeddb-prefix-edit')
     bulk_url = reverse_lazy('seeddb-prefix-bulk')
@@ -94,12 +95,13 @@ def prefix_list(request):
                        extra_context=info.template_context)
 
 
-def prefix_delete(request):
+def prefix_delete(request, object_id=None):
     """Controller for deleting prefixes"""
     info = PrefixInfo()
     return render_delete(request, Prefix, 'seeddb-prefix',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=object_id)
 
 
 def prefix_bulk(request):

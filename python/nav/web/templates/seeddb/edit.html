@@ -39,13 +39,9 @@
 
       {% if object and object.pk %}
       <ul class="button-group">
-        {% if delete_url %}
+        {% if delete_url_name %}
         <li>
-          <form action="{{ delete_url }}" method="post">
-            <input type="hidden" name="object" value="{{ object.pk }}">
-            <input type="submit" name="delete" value="Delete this {{ verbose_name }}"
-                   class="button small secondary">
-          </form>
+          <a href="{% url delete_url_name object_id=object.pk %}" class="button small secondary" title="Delete this {{ verbose_name }}">Delete</a>
         </li>
         {% endif %}
         {% if copy_url %}

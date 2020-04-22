@@ -35,6 +35,7 @@ class ServiceInfo(SeeddbInfo):
     _title = 'Services'
     _navpath = [('Services', reverse_lazy('seeddb-service'))]
     delete_url = reverse_lazy('seeddb-service')
+    delete_url_name = 'seeddb-service-delete'
     back_url = reverse_lazy('seeddb-service')
     add_url = reverse_lazy('seeddb-service-edit')
     bulk_url = reverse_lazy('seeddb-service-bulk')
@@ -57,11 +58,12 @@ def service_list(request):
                        add_descriptions=True)
 
 
-def service_delete(request):
+def service_delete(request, object_id=None):
     info = ServiceInfo()
     return render_delete(request, Service, 'seeddb-service',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=object_id)
 
 
 def service_bulk(request):

@@ -39,6 +39,7 @@ class LocationInfo(SeeddbInfo):
     _navpath = [('Locations', reverse_lazy('seeddb-location'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-location')
+    delete_url_name = 'seeddb-location-delete'
     back_url = reverse_lazy('seeddb-location')
     add_url = reverse_lazy('seeddb-location-edit')
     bulk_url = reverse_lazy('seeddb-location-bulk')
@@ -62,11 +63,12 @@ def location_list(request):
     return render(request, 'seeddb/list_tree.html', context)
 
 
-def location_delete(request):
+def location_delete(request, object_id=None):
     info = LocationInfo()
     return render_delete(request, Location, 'seeddb-location',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=object_id)
 
 
 def location_edit(request, location_id=None, action='edit'):
