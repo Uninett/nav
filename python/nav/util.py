@@ -91,6 +91,9 @@ def _is_valid_ip_socket(ip):
             return False
         else:
             return True
+    except UnicodeError:
+        # Definitely not an IP address!
+        return False
     else:
         return True
 

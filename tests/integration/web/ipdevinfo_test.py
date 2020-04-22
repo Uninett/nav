@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 
 from django.urls import reverse
@@ -37,6 +38,18 @@ def test_get_module_view(netbox, perspective):
     result = get_module_view(module, perspective='swportstatus', netbox=netbox)
     assert result['object'] == module
     assert 'ports' in result
+
+
+@pytest.mark.parametrize("badname", [
+    "02.44.02",  # Looks like an IP address
+    u"\x01\x9e$ü\x86",  # Cannot be encoded using IDNA for DNS lookups
+])
+def test_bad_name_should_not_crash_ipdevinfo(client, badname):
+    """Tests "bad" device names to ensure they dont crash ipdevinfo lookup views"""
+    url = reverse("ipdevinfo-details-by-name", kwargs={"name": badname})
+    response = client.get(url)
+    assert response.status_code == 200
+    assert badname in smart_text(response.content)
 
 ###
 #
