@@ -59,7 +59,7 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
     """
 
     # GET with single object_id in url or POST with object_ids as POST query
-    if not object_id or request.method != 'POST':
+    if not (object_id or request.method == 'POST'):
         return HttpResponseRedirect(reverse(redirect))
     object_ids = request.POST.getlist('object') or [object_id]
     if not object_ids:
