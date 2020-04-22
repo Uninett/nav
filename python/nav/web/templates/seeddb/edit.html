@@ -25,7 +25,7 @@
       <h4>{{ title }}</h4>
     </div>
 
-    <div class="{% if map %}large-6{% else %}small-12{% endif %} column">
+    <div class="large-6 column{% if not map %} end{% endif %}">
       <form class="seeddb-edit" action="" method="post">
         <fieldset>
           <legend>Attributes</legend>
