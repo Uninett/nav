@@ -49,6 +49,7 @@ class SeeddbInfo(object):
     hide_delete = False
     copy_url_name = None
     delete_url = None
+    delete_url_name = None
     back_url = None
     add_url = None
     bulk_url = None

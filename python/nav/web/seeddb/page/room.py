@@ -43,6 +43,7 @@ class RoomInfo(SeeddbInfo):
     verbose_name = Room._meta.verbose_name
     _navpath = [('Rooms', reverse_lazy('seeddb-room'))]
     delete_url = reverse_lazy('seeddb-room')
+    delete_url_name = 'seedb-room-delete'
     back_url = reverse_lazy('seeddb-room')
     add_url = reverse_lazy('seeddb-room-edit')
     bulk_url = reverse_lazy('seeddb-room-bulk')
@@ -76,12 +77,13 @@ def room_move(request):
                 extra_context=info.template_context)
 
 
-def room_delete(request):
+def room_delete(request, room_id=None):
     """Controller for deleting rooms. Used in room()"""
     info = RoomInfo()
     return render_delete(request, Room, 'seeddb-room',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=room_id)
 
 
 def room_edit(request, action='edit', room_id=None, lat=None, lon=None):
