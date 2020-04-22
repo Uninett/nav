@@ -43,7 +43,7 @@ class RoomInfo(SeeddbInfo):
     verbose_name = Room._meta.verbose_name
     _navpath = [('Rooms', reverse_lazy('seeddb-room'))]
     delete_url = reverse_lazy('seeddb-room')
-    delete_url_name = 'seedb-room-delete'
+    delete_url_name = 'seeddb-room-delete'
     back_url = reverse_lazy('seeddb-room')
     add_url = reverse_lazy('seeddb-room-edit')
     bulk_url = reverse_lazy('seeddb-room-bulk')
