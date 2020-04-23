@@ -23,7 +23,7 @@
                  methods: {
                      loadRack: function () {
                          var self = this;
-                         $.getJSON('{% url 'api:rack-detail' rackid %}', function (data) {
+                         $.getJSON('{% url 'api:1:rack-detail' rackid %}', function (data) {
                              self.rack = data;
                          });
                      }
