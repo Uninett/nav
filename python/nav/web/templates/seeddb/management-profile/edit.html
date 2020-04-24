@@ -63,9 +63,9 @@
 {% if object and object.pk%}
 <ul class="button-group">
   <li>
-  <form action="{% url 'seeddb-netbox' %}" method="post">
+  <form action="{% url 'seeddb-management-profile' %}" method="post">
     <input type="hidden" name="object" value="{{ object.pk }}"/>
-    <input type="submit" name="delete" value="Delete this IP device" class="button small secondary"/>
+    <input type="submit" name="delete" value="Delete this {{ verbose_name }}" class="button small secondary"/>
   </form>
   </li>
   {% if copy_url and not object.deleted_at %}
