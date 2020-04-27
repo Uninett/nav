@@ -26,7 +26,7 @@
   {% endfor %}
 
   <div class="row">
-    <div class="small-6 column">
+    <div class="small-12 column">
       {% if object and object.pk %}
       <h4>{{ action|capfirst }}
         <a href="{% url 'ipdevinfo-details-by-id' object.pk %}"
@@ -35,15 +35,7 @@
         </a>
       </h4>
       {% else %}
-      <h5>{{ title }}</h5>
-      {% endif %}
-    </div>
-    <div class="small-6 column">
-      {% if object and object.pk%}
-        <form action="{% url 'seeddb-netbox' %}" method="post" class="pull-right">
-          <input type="hidden" name="object" value="{{ object.pk }}"/>
-          <input type="submit" name="delete" value="Delete this IP device" class="button small secondary"/>
-        </form>
+      <h4>{{ title }}</h4>
       {% endif %}
     </div>
   </div>
@@ -112,9 +104,17 @@
   </ol>
 
 {% endif %}
-{% if copy_url and object.pk and not object.deleted_at %}
-<div>
-  <a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a>
-</div>
+{% if object and object.pk%}
+<ul class="button-group">
+  <li>
+  <form action="{% url 'seeddb-netbox' %}" method="post">
+    <input type="hidden" name="object" value="{{ object.pk }}"/>
+    <input type="submit" name="delete" value="Delete this IP device" class="button small secondary"/>
+  </form>
+  </li>
+  {% if copy_url and not object.deleted_at %}
+  <li><a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a></li>
+  {% endif %}
+</ul>
 {% endif %}
 {% endblock %}

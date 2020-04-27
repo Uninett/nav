@@ -54,65 +54,80 @@ def qs_delete(queryset):
 
 
 def render_delete(request, model, redirect, whitelist=None, extra_context=None,
-                  pre_delete_operation=None, delete_operation=qs_delete):
+                  pre_delete_operation=None, delete_operation=qs_delete, object_id=None):
     """Handles input and rendering of general delete page.
     """
-    if request.method != 'POST':
+
+    # GET with single object_id in url or POST with object_ids as POST query
+    if not (object_id or request.method == 'POST'):
         return HttpResponseRedirect(reverse(redirect))
-    if not request.POST.getlist('object'):
+    object_ids = request.POST.getlist('object') or [object_id]
+    if not object_ids:
         new_message(request,
                     "You need to select at least one object to edit",
                     Messages.ERROR)
         return HttpResponseRedirect(reverse(redirect))
-
-    if not whitelist:
-        whitelist = []
-    if not extra_context:
-        extra_context = {}
-
-    objects = model.objects.filter(
-        pk__in=request.POST.getlist('object')
-    ).order_by('pk')
-    related = dependencies(objects, whitelist)
-
-    for obj in objects:
-        if obj.pk in related:
-            obj.related_objects = related[obj.pk]
+    objects = _get_qs_to_delete(model, object_ids, whitelist)
 
     if request.POST.get('confirm'):
-        try:
-            if pre_delete_operation:
-                pre_delete_operation(objects)
-            if delete_operation:
-                delete_operation(objects)
-        except IntegrityError as ex:
-            # We can't delete.
-            # Some of the objects we want to delete is referenced by another
-            # table without any ON DELETE rules.
-            msg = "Integrity failed: %s" % ex
-            new_message(request, msg, Messages.ERROR)
-        except Exception as ex:
-            # Something else went wrong
-            _logger.exception("Unhandled exception during delete: %r", request)
-            msg = "Error: %s" % ex
-            new_message(request, msg, Messages.ERROR)
-        else:
-            if delete_operation:
-                new_message(request,
-                            "Deleted %i rows" % len(objects), Messages.SUCCESS)
-                log_deleted(request.account, objects, template=u'{actor} deleted {object}')
-            else:
-                new_message(request,
-                            "Scheduled %i rows for deletion" % len(objects), Messages.SUCCESS)
-                log_deleted(request.account, objects, template=u'{actor} scheduled {object} for deletion')
+        did_delete = _try_deleting(request, objects, pre_delete_operation,
+                                   delete_operation)
+        if did_delete:
             return HttpResponseRedirect(reverse(redirect))
 
+    if not extra_context:
+        extra_context = {}
     info_dict = {
         'objects': objects,
         'sub_active': {'list': True},
     }
     extra_context.update(info_dict)
     return render(request, 'seeddb/delete.html', extra_context)
+
+
+def _get_qs_to_delete(model, object_ids, whitelist=None):
+    "Turn a list of object_ids for model into a queryset, with dependencies"
+    if  not whitelist:
+        whitelist = []
+
+    objects = model.objects.filter(pk__in=object_ids).order_by('pk')
+    related = dependencies(objects, whitelist)
+
+    for obj in objects:
+        if obj.pk in related:
+            obj.related_objects = related[obj.pk]
+    return objects
+
+
+def _try_deleting(request, objects, pre_delete_operation=None,
+               delete_operation=None):
+    try:
+        if pre_delete_operation:
+            pre_delete_operation(objects)
+        if delete_operation:
+            delete_operation(objects)
+    except IntegrityError as ex:
+        # We can't delete.
+        # Some of the objects we want to delete is referenced by another
+        # table without any ON DELETE rules.
+        msg = "Integrity failed: %s" % ex
+        new_message(request, msg, Messages.ERROR)
+    except Exception as ex:
+        # Something else went wrong
+        _logger.exception("Unhandled exception during delete: %r", request)
+        msg = "Error: %s" % ex
+        new_message(request, msg, Messages.ERROR)
+    else:
+        if delete_operation:
+            new_message(request,
+                        "Deleted %i rows" % len(objects), Messages.SUCCESS)
+            log_deleted(request.account, objects, template=u'{actor} deleted {object}')
+        else:
+            new_message(request,
+                        "Scheduled %i rows for deletion" % len(objects), Messages.SUCCESS)
+            log_deleted(request.account, objects, template=u'{actor} scheduled {object} for deletion')
+        return True
+    return False
 
 
 def log_deleted(account, objects, template):
