@@ -155,7 +155,7 @@ class AlertQueueSerializer(AlertSerializerBase):
     @staticmethod
     def get_alert_details_url(obj):
         if obj.history:
-            return reverse("api:alert-detail", kwargs={'pk': obj.history.pk})
+            return reverse("api:1:alert-detail", kwargs={'pk': obj.history.pk})
 
     @staticmethod
     def get_message(obj):
