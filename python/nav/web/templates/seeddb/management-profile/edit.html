@@ -56,18 +56,22 @@
         {% endif %}
 
 
-        <input type="submit" name="submit" value="Save management profile" class="submit button" id="submit-id-submit">
+        <input type="submit" name="submit" value="Save {{ verbose_name }}" class="submit button small left" id="submit-id-submit">
 
     </form>
 
-{% if object and object.pk%}
-<ul class="button-group">
-  {% if delete_url_name %}
-  <li><a href="{% url 'seeddb-management-profile-delete' object_id=object.pk%}" class="button small secondary" title="Delete this {{ verbose_name }}">Delete</a></li>
-  {% endif %}
-  {% if copy_url and not object.deleted_at %}
-  <li><a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a></li>
-  {% endif %}
-</ul>
-{% endif %}
+    {% if object and object.pk %}
+    <ul class="button-group right">
+      {% if delete_url_name %}
+      <li>
+        <a href="{% url delete_url_name object_id=object.pk %}" class="button small secondary" title="Delete this {{ verbose_name }}">Delete</a>
+      </li>
+      {% endif %}
+      {% if copy_url %}
+      <li>
+        <a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a>
+      </li>
+      {% endif %}
+    </ul>
+    {% endif %}
 {% endblock %}

@@ -100,6 +100,7 @@ class NetboxModelForm(forms.ModelForm):
         self.helper.form_action = ''
         self.helper.form_method = 'POST'
         self.helper.form_id = 'seeddb-netbox-form'
+        self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
                 Column(
@@ -134,7 +135,6 @@ class NetboxModelForm(forms.ModelForm):
                     ),
                     css_class=css_class),
             ),
-            Submit('save_ip_device', 'Save IP device')
         )
 
     def create_instance_query(self, masters):

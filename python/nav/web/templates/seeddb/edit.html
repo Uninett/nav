@@ -34,11 +34,11 @@
           {{ form|crispy }}
           {% endblock %}
         </fieldset>
-        <input type="submit" name="submit" value="Save {{ verbose_name }}" class="submit button" id="submit-id-submit">
+        <input type="submit" name="submit" value="Save {{ verbose_name }}" class="submit button small left" id="submit-id-submit">
       </form>
 
       {% if object and object.pk %}
-      <ul class="button-group">
+      <ul class="button-group right">
         {% if delete_url_name %}
         <li>
           <a href="{% url delete_url_name object_id=object.pk %}" class="button small secondary" title="Delete this {{ verbose_name }}">Delete</a>
