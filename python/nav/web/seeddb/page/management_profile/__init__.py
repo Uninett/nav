@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms and view functions for SeedDB's Management Profile view"""
+from django.db.models import Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -67,7 +68,7 @@ def management_profile_list(request):
     info = ManagementProfileInfo()
     value_list = (
         'name', 'description', 'get_protocol_display')
-    query = ManagementProfile.objects.all()
+    query = ManagementProfile.objects.annotate(num_netboxes=Count('netbox'))
     filter_form = ManagementProfileFilterForm(request.GET)
     return render_list(request, query, value_list,
                        edit_url='seeddb-management-profile-edit',
@@ -101,8 +102,10 @@ def management_profile_edit(request, management_profile_id=None):
     """
     try:
         profile = ManagementProfile.objects.get(id=management_profile_id)
+        num_netboxes = profile.netbox_set.distinct().count()
     except ManagementProfile.DoesNotExist:
         profile = None
+        num_netboxes = 0
 
     verbose_name = ManagementProfile._meta.verbose_name
 
@@ -139,6 +142,7 @@ def management_profile_edit(request, management_profile_id=None):
         'title': 'Add new %s' % verbose_name,
         'verbose_name': verbose_name,
         'sub_active': {'add': True},
+        'num_netboxes': num_netboxes,
     }
     if profile and profile.pk:
         context.update({
