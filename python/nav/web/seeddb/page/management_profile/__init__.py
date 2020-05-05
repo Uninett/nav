@@ -47,6 +47,7 @@ class ManagementProfileInfo(SeeddbInfo):
     _navpath = [('Management Profiles',
                  reverse_lazy('seeddb-management-profile'))]
     delete_url = reverse_lazy('seeddb-management-profile')
+    delete_url_name = 'seeddb-management-profile-delete'
     back_url = reverse_lazy('seeddb-management-profile')
     add_url = reverse_lazy('seeddb-management-profile-edit')
     bulk_url = reverse_lazy('seeddb-management-profile-bulk')
@@ -74,14 +75,15 @@ def management_profile_list(request):
                        extra_context=info.template_context)
 
 
-def management_profile_delete(request):
+def management_profile_delete(request, object_id=None):
     """Controller for deleting management profiles. Used in
     management_profile()"""
     info = ManagementProfileInfo()
     return render_delete(request, ManagementProfile,
                          redirect='seeddb-management-profile',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=object_id)
 
 
 def management_profile_edit(request, management_profile_id=None):

@@ -41,6 +41,7 @@ class OrganizationInfo(SeeddbInfo):
     verbose_name = Organization._meta.verbose_name
     _navpath = [('Organizations', reverse_lazy('seeddb-organization'))]
     delete_url = reverse_lazy('seeddb-organization')
+    delete_url_name = 'seeddb-organization-delete'
     back_url = reverse_lazy('seeddb-organization')
     add_url = reverse_lazy('seeddb-organization-edit')
     bulk_url = reverse_lazy('seeddb-organization-bulk')
@@ -70,11 +71,12 @@ def organization_move(request):
                 extra_context=info.template_context)
 
 
-def organization_delete(request):
+def organization_delete(request, object_id=None):
     info = OrganizationInfo()
     return render_delete(request, Organization, 'seeddb-organization',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=object_id)
 
 
 def organization_edit(request, organization_id=None):

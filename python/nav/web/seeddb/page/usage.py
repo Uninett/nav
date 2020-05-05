@@ -41,6 +41,7 @@ class UsageInfo(SeeddbInfo):
     _navpath = [('Usage', reverse_lazy('seeddb-usage'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-usage')
+    delete_url_name = 'seeddb-usage-delete'
     back_url = reverse_lazy('seeddb-usage')
     add_url = reverse_lazy('seeddb-usage-edit')
     bulk_url = reverse_lazy('seeddb-usage-bulk')
@@ -76,12 +77,13 @@ def usage_list(request):
                        extra_context=info.template_context)
 
 
-def usage_delete(request):
+def usage_delete(request, object_id=None):
     """The view used when deleting usages"""
     info = UsageInfo()
     return render_delete(request, Usage, 'seeddb-usage',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=object_id)
 
 
 def usage_edit(request, usage_id=None):

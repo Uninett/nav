@@ -39,6 +39,7 @@ class NetboxTypeInfo(SeeddbInfo):
     _navpath = [('Types', reverse_lazy('seeddb-type'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-type')
+    delete_url_name = 'seeddb-type-delete'
     back_url = reverse_lazy('seeddb-type')
     add_url = reverse_lazy('seeddb-type-edit')
     bulk_url = reverse_lazy('seeddb-type-bulk')
@@ -62,11 +63,12 @@ def netboxtype_list(request):
                        extra_context=info.template_context)
 
 
-def netboxtype_delete(request):
+def netboxtype_delete(request, object_id=None):
     info = NetboxTypeInfo()
     return render_delete(request, NetboxType, 'seeddb-type',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=object_id)
 
 
 def netboxtype_edit(request, type_id=None):

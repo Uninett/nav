@@ -42,6 +42,7 @@ class NetboxInfo(SeeddbInfo):
     verbose_name = Netbox._meta.verbose_name
     _navpath = [('IP Devices', reverse_lazy('seeddb-netbox'))]
     delete_url = reverse_lazy('seeddb-netbox')
+    delete_url_name = 'seeddb-netbox-delete'
     back_url = reverse_lazy('seeddb-netbox')
     add_url = reverse_lazy('seeddb-netbox-edit')
     bulk_url = reverse_lazy('seeddb-netbox-bulk')
@@ -72,14 +73,15 @@ def netbox_list(request):
                        extra_context=info.template_context)
 
 
-def netbox_delete(request):
+def netbox_delete(request, object_id=None):
     """Controller for handling a request for deleting a netbox"""
     info = NetboxInfo()
     return render_delete(request, Netbox, 'seeddb-netbox',
                          whitelist=SEEDDB_EDITABLE_MODELS,
                          extra_context=info.template_context,
                          pre_delete_operation=netbox_pre_deletion_mark,
-                         delete_operation=None)
+                         delete_operation=None,
+                         object_id=object_id)
 
 
 @transaction.atomic
