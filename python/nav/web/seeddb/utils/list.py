@@ -81,8 +81,12 @@ def _filter_query(filter_form, queryset):
     """Apply filter_form to queryset.
     """
     if filter_form and filter_form.is_valid():
+        # Convert UI fieldname to DB lookup
+        mapper = getattr(filter_form, "map_formfieldname_to_queryname",
+                         lambda x: x)
         filter_data = filter_form.cleaned_data.items()
-        filter_tuples = [(key, value) for key, value in filter_data if value]
+        filter_tuples = [(mapper(key), value)
+                         for key, value in filter_data if value]
         query_filter = dict(filter_tuples)
         queryset = queryset.filter(**query_filter)
     return queryset
