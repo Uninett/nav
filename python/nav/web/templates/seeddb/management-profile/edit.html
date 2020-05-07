@@ -43,8 +43,9 @@
 
         {% if object %}{% if num_netboxes > 0 %}
         <div class="alert-box warning">
-            <strong>{{ num_netboxes }} IP device{{ num_netboxes|pluralize:",s" }}</strong>
+            <strong>{{ num_netboxes }} IP device{{ num_netboxes|pluralize:"s" }}</strong>
             will be affected by changes to this profile.
+            (<a href="{% url "seeddb-netbox" %}?profile={{ object.pk }}">Link</a>)
         </div>
         {% else %}
         <div class="alert-box info">
