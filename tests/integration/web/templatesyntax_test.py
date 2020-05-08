@@ -33,6 +33,9 @@ def get_template_list(directories=None):
     for tmpldir in directories:
         for dirname, _subdirs, files in os.walk(tmpldir):
             for name in files:
+                if name[0] == ".":
+                    # Do not test generated files, swap files, hidden files!
+                    continue
                 fullpath = join(dirname, name)
                 yield relpath(fullpath, tmpldir)
 
