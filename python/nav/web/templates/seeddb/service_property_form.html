@@ -30,21 +30,22 @@
             </div>
           {% endif %}
         </fieldset>
-        <input class="button small left" type="submit" name="save"
-               {% if object %}
-               value="Save changes"
-               {% else %}
-               value="Save new service"
-               {% endif %}
-               />
+        <input class="button small left" type="submit" name="save" value="Save {{ verbose_name }}" />
       </form>
 
-      {% if delete_url and object %}
-        <form action="{{ delete_url }}" method="post" class="right">
-          <input type="hidden" name="object" value="{{ object.pk }}"/>
-          <input type="submit" name="delete"
-                 value="Delete this service" class="button small secondary"/>
-        </form>
+      {% if object and object.pk %}
+      <ul class="button-group right">
+        {% if delete_url_name %}
+        <li>
+          <a href="{% url delete_url_name object_id=object.pk %}" class="button small secondary" title="Delete this {{ verbose_name }}">Delete</a>
+        </li>
+        {% endif %}
+        {% if copy_url %}
+        <li>
+          <a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a>
+        </li>
+        {% endif %}
+      </ul>
       {% endif %}
 
     </div>

@@ -28,7 +28,7 @@
               {% if result.subject_url %}
                 {# check for interface #}
                 {% if result.subject_type == 'Interface' %}
-                  <a href="{{ result.subject_url }}" class="toooltip" data-url="{% url 'api:interface-detail' result.subid %}">{{ result.subject }}</a>
+                  <a href="{{ result.subject_url }}" class="toooltip" data-url="{% url 'api:1:interface-detail' result.subid %}">{{ result.subject }}</a>
                 {% else %}
                   <a href="{{ result.subject_url }}">{{ result.subject }}</a>
                 {% endif %}

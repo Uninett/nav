@@ -1,6 +1,7 @@
+from __future__ import unicode_literals
 from unittest import TestCase
 from nav.ipdevpoll.storage import ContainerRepository
-from nav.ipdevpoll.shadows import Vlan, Prefix, Netbox
+from nav.ipdevpoll.shadows import Vlan, Prefix, Netbox, Interface
 from mock import patch, Mock
 
 
@@ -77,3 +78,23 @@ class RFC3021NetTypeTest(TestCase):
         ):
             net_type = self.vlan._guesstimate_net_type(self.repo)
             self.assertEqual('link', net_type.id)
+
+
+class TestInterfaces(object):
+    def test_strip_null_bytes_should_leave_normal_strings_unchanged(self):
+        ifc = Interface()
+        ifc.ifname = ifc.ifalias = ifc.ifdescr = "Foobar"
+        ifc._strip_null_bytes(None)
+        assert ifc.ifname == ifc.ifalias == ifc.ifdescr == "Foobar"
+
+    def test_strip_null_bytes_should_strip_nullbytes(self):
+        ifc = Interface()
+        ifc.ifname = ifc.ifalias = ifc.ifdescr = "Foobar\x00"
+        ifc._strip_null_bytes(None)
+        assert ifc.ifname == ifc.ifalias == ifc.ifdescr == "Foobar"
+
+    def test_strip_null_bytes_should_ignore_nonstrings(self):
+        ifc = Interface()
+        ifc.ifname = ifc.ifalias = ifc.ifdescr = 42
+        ifc._strip_null_bytes(None)
+        assert ifc.ifname == ifc.ifalias == ifc.ifdescr == 42

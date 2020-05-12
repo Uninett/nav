@@ -26,7 +26,7 @@
   {% endfor %}
 
   <div class="row">
-    <div class="small-6 column">
+    <div class="small-12 column">
       {% if object and object.pk %}
       <h4>{{ action|capfirst }}
         <a href="{% url 'ipdevinfo-details-by-id' object.pk %}"
@@ -35,21 +35,28 @@
         </a>
       </h4>
       {% else %}
-      <h5>{{ title }}</h5>
-      {% endif %}
-    </div>
-    <div class="small-6 column">
-      {% if object and object.pk%}
-        <form action="{% url 'seeddb-netbox' %}" method="post" class="pull-right">
-          <input type="hidden" name="object" value="{{ object.pk }}"/>
-          <input type="submit" name="delete" value="Delete this IP device" class="button small secondary"/>
-        </form>
+      <h4>{{ title }}</h4>
       {% endif %}
     </div>
   </div>
 
-  {% crispy form %}
+  <form  id="seeddb-netbox-form" method="post">
+    {% crispy form %}
+    <input type="submit" name="save_ip_device" value="Save IP device" class="submit button small left" id="submit-id-save_ip_device" />
+  </form>
 
+  {% endif %}
+
+  {% if object and object.pk%}
+  <ul class="button-group right">
+    {% if delete_url_name %}
+    <li><a href="{% url delete_url_name object_id=object.pk %}" class="button small secondary" title="Delete this {{ verbose_name }}">Delete</a></li>
+    {% endif %}
+    {% if copy_url and not object.deleted_at %}
+    <li><a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a></li>
+    {% endif %}
+  </ul>
+  {% endif %}
 
   <ol class="joyride-list" data-joyride>
     <li>
@@ -111,10 +118,4 @@
     </li>
   </ol>
 
-{% endif %}
-{% if copy_url and object.pk and not object.deleted_at %}
-<div>
-  <a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a>
-</div>
-{% endif %}
 {% endblock %}

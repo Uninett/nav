@@ -22,7 +22,8 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Fieldset, Row, Column)
+from crispy_forms_foundation.layout import (Layout, Field, Fieldset, Row,
+                                            Column)
 
 from django.utils import six
 
@@ -325,6 +326,13 @@ class DeviceGroupForm(forms.ModelForm):
             initial['netboxes'] = [n.pk for n in
                                    kwargs['instance'].netbox_set.all()]
         forms.ModelForm.__init__(self, *args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'id',
+            'description',
+            Field('netboxes', css_class='select2'),
+        )
 
     class Meta(object):
         model = NetboxGroup

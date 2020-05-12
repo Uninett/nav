@@ -12,20 +12,11 @@
   {% endfor %}
 
   <div class="row">
-    <div class="small-6 column">
+    <div class="small-12 column">
       {% if object %}
           <h4>Edit {{ object }}</h4>
       {% else %}
-        <h5>Add new management profile</h5>
-      {% endif %}
-    </div>
-
-    <div class="small-6 column">
-      {% if object %}
-        <form action="{% url 'seeddb-management-profile' %}" method="post" class="pull-right">
-          <input type="hidden" name="object" value="{{ object.pk }}"/>
-          <input type="submit" name="delete" value="Delete this management profile" class="button small secondary"/>
-        </form>
+        <h4>Add new management profile</h4>
       {% endif %}
     </div>
   </div>
@@ -65,8 +56,22 @@
         {% endif %}
 
 
-        <input type="submit" name="submit" value="Save management profile" class="submit button" id="submit-id-submit">
+        <input type="submit" name="submit" value="Save {{ verbose_name }}" class="submit button small left" id="submit-id-submit">
 
     </form>
 
+    {% if object and object.pk %}
+    <ul class="button-group right">
+      {% if delete_url_name %}
+      <li>
+        <a href="{% url delete_url_name object_id=object.pk %}" class="button small secondary" title="Delete this {{ verbose_name }}">Delete</a>
+      </li>
+      {% endif %}
+      {% if copy_url %}
+      <li>
+        <a href="{{ copy_url }}" class="button small secondary" title="{{ copy_title }}">Copy</a>
+      </li>
+      {% endif %}
+    </ul>
+    {% endif %}
 {% endblock %}

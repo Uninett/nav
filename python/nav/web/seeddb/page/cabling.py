@@ -42,6 +42,7 @@ class CablingInfo(SeeddbInfo):
     _navpath = [('Cabling', reverse_lazy('seeddb-cabling'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-cabling')
+    delete_url_name = 'seeddb-cabling-delete'
     back_url = reverse_lazy('seeddb-cabling')
     add_url = reverse_lazy('seeddb-cabling-add')
     bulk_url = reverse_lazy('seeddb-cabling-bulk')
@@ -68,11 +69,12 @@ def cabling_list(request):
                        extra_context=context)
 
 
-def cabling_delete(request):
+def cabling_delete(request, object_id=None):
     info = CablingInfo()
     return render_delete(request, Cabling, 'seeddb-cabling',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=object_id)
 
 
 def cabling_edit(request):

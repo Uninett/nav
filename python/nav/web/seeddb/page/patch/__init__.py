@@ -51,6 +51,7 @@ class PatchInfo(SeeddbInfo):
     _navpath = [('Patch', reverse_lazy('seeddb-patch'))]
     hide_move = True
     delete_url = reverse_lazy('seeddb-patch')
+    delete_url_name = 'seeddb-patch-delete'
     back_url = reverse_lazy('seeddb-patch')
     add_url = reverse_lazy('seeddb-patch-edit')
     bulk_url = reverse_lazy('seeddb-patch-bulk')
@@ -90,12 +91,13 @@ def patch_list(request):
                        extra_context=context)
 
 
-def patch_delete(request):
+def patch_delete(request, object_id=None):
     """The view used when deleting patches"""
     info = PatchInfo()
     return render_delete(request, Patch, 'seeddb-patch',
                          whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+                         extra_context=info.template_context,
+                         object_id=object_id)
 
 
 def patch_edit(request):

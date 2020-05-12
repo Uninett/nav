@@ -1,23 +1,6 @@
 {% extends "seeddb/edit.html" %}
-
-{% block formfields %}
-{% for field in form %}
-<tr>
-    <th><label for="{{ field.auto_id }}">
-        <span class="{{ field.field.required|yesno:"required," }}">
-        {{ field.label }}</span>
-        </label></th>
-    <td>
-        {{ field }}
-        {% if field.errors %}
-            {{ field.errors }}
-        {% endif %}
-    </td>
-</tr>
-{% endfor %}
-{{ vlan_form.as_table }}
-<tr>
-    <th></th>
-    <td><input type="submit" value="Save" class="button small" /></td>
-</tr>
+{% load crispy_forms_tags %}
+{% block crispyfields %}
+{{ block.super }}
+{{ vlan_form|crispy }}
 {% endblock %}

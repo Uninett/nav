@@ -15,3 +15,18 @@
 </tr>
 {{ block.super }}
 {% endblock %}
+{% block crispyfields %}
+<div>
+    <p>Net type<br/>
+    {{ object.net_type }}</p>
+</div>
+<div>
+    <p>Net ident<br/>
+    {{ object.net_ident }}</p>
+</div>
+<div>
+    <p>Description<br/>
+    {{ object.description }}</p>
+</div>
+{{ block.super }}
+{% endblock %}
