@@ -361,7 +361,7 @@ def process_single_queued_notification(queued_alert, now):
             weekly = True
 
     elif subscription.type == AlertSubscription.NEXT:
-        if _verify_next_dispatch(queued_alert, _logger):
+        if _verify_next_dispatch(queued_alert, now, _logger):
             send = True
 
     else:
@@ -435,7 +435,7 @@ def _verify_weekly_dispatch(queued_alert, now, _logger=_logger):
     return weekday_test and last_sent_test and weekly_time_test and insertion_time_test
 
 
-def _verify_next_dispatch(queued_alert, _logger=_logger):
+def _verify_next_dispatch(queued_alert, now, _logger=_logger):
     subscription = queued_alert.subscription
     active_profile = subscription.alert_address.account.get_active_profile()
 
@@ -458,7 +458,7 @@ def _verify_next_dispatch(queued_alert, _logger=_logger):
         # has passed. This check should catch the corner case where
         # a user only has one timeperiod that loops.
 
-        if datetime.now().isoweekday() in [6, 7]:
+        if now.isoweekday() in [6, 7]:
             valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
         else:
             valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
