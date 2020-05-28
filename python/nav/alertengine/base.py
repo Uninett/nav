@@ -276,19 +276,18 @@ def handle_queued_alerts(queued_alerts, now=None):
     :type now: datetime
 
     :return: A tuple of stats on how the queued alerts were processed:
-             (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends,
-              num_resolved_alerts_ignored)
+             (accounts_sent_daily, accounts_sent_weekly, num_sent_alerts,
+              num_failed_sends, num_resolved_alerts_ignored)
     """
     _logger = logging.getLogger('nav.alertengine.handle_queued_alerts')
 
     if not now:
         now = datetime.now()
 
-    # We want to keep track of wether or not any weekly or daily messages have
-    # been sent so that we can update the state of the users
-    # last_sent_daily/weekly
-    sent_weekly = []
-    sent_daily = []
+    # We want to keep track of which users have received their weekly or daily
+    # notifications during this queue run, so that their profile states can be updated
+    accounts_sent_weekly = set()
+    accounts_sent_daily = set()
 
     num_sent_alerts = 0
     num_resolved_alerts_ignored = 0
@@ -306,16 +305,16 @@ def handle_queued_alerts(queued_alerts, now=None):
             num_sent_alerts += 1
 
         if result == DISPATCHED_DAILY:
-            sent_daily.append(queued_alert.account)
+            accounts_sent_daily.add(queued_alert.account)
         elif result == DISPATCHED_WEEKLY:
-            sent_weekly.append(queued_alert.account)
+            accounts_sent_weekly.add(queued_alert.account)
 
         del queued_alert
 
     del queued_alerts
 
-    return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends,
-            num_resolved_alerts_ignored)
+    return (accounts_sent_daily, accounts_sent_weekly, num_sent_alerts,
+            num_failed_sends, num_resolved_alerts_ignored)
 
 
 def process_single_queued_notification(queued_alert, now):
