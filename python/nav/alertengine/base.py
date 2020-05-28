@@ -249,7 +249,29 @@ def _check_permissions(account, alert, alertsubscription, dupemap, _logger,
 
 
 def handle_queued_alerts(queued_alerts, now=None):
-    """Handles profile-queued alerts for later dispatch"""
+    """Processes and dispatches notifications that are queued for individual users.
+    Every AccountAlertQueue object represents a specific AlertQueue item that has been
+    scheduled for dispatch to a particular user. Typical scheduling choices may be:
+
+      * Immediately.
+      * Wait until the next timeperiod in the user's profile becomes active.
+      * Wait until the daily dispatch time set in the profile.
+      * Wait until the weekly dispatch time set in the profile.
+
+    If a user's profile says so, a delayed notification may also be ignored and removed
+    from the queue if the represented alert has been resolved since it was added to the
+    queue.
+
+    :param queued_alerts: A sequence of all AccountAlertQueue items to consider.
+    :type queued_alerts: List[AccountAlertQueue]
+    :param now: Set only when testing, to force what value should be considered the
+                current time.
+    :type now: datetime
+
+    :return: A tuple of stats on how the queued alerts were processed:
+             (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends,
+              num_resolved_alerts_ignored)
+    """
     _logger = logging.getLogger('nav.alertengine.handle_queued_alerts')
 
     if not now:
@@ -265,9 +287,8 @@ def handle_queued_alerts(queued_alerts, now=None):
     num_resolved_alerts_ignored = 0
     num_failed_sends = 0
 
-    for queued_alert in queued_alerts:
+    for queued_alert in queued_alerts:  # type: AccountAlertQueue
         send, daily, weekly = False, False, False
-
         try:
             subscription = queued_alert.subscription
         except AlertSubscription.DoesNotExist:
