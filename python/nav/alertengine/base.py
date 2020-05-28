@@ -352,101 +352,18 @@ def process_single_queued_notification(queued_alert, now):
         send = True
 
     elif subscription.type == AlertSubscription.DAILY:
-        daily_time = subscription.time_period.profile.daily_dispatch_time
-        last_sent = (
-                subscription.time_period.profile.alertpreference.last_sent_day
-                or datetime.min)
-
-        # If the last sent date is less than the current date, and we are
-        # past the daily time and the alert was added to the queue before
-        # this time
-
-        last_sent_test = last_sent.date() < now.date()
-        daily_time_test = daily_time < now.time()
-        insertion_time_test = (
-                queued_alert.insertion_time < datetime.combine(now.date(),
-                                                               daily_time))
-
-        _logger.debug('Tests: last sent %s, daily time %s, insertion time '
-                      '%s', last_sent_test, daily_time_test,
-                      insertion_time_test)
-
-        if last_sent_test and daily_time_test and insertion_time_test:
+        if _verify_daily_dispatch(queued_alert, now, _logger):
             send = True
             daily = True
 
     elif subscription.type == AlertSubscription.WEEKLY:
-        weekly_time = subscription.time_period.profile.weekly_dispatch_time
-        weekly_day = subscription.time_period.profile.weekly_dispatch_day
-        last_sent = (
-                subscription.time_period.profile.alertpreference.last_sent_week
-                or datetime.min)
-
-        # Check that we are at the correct weekday, and that the last sent
-        # time is less than today, and that alert was inserted before the
-        # weekly time.
-
-        weekday_test = weekly_day == now.weekday()
-        last_sent_test = last_sent.date() < now.date()
-        weekly_time_test = weekly_time < now.time()
-        insertion_time_test = (
-                queued_alert.insertion_time < datetime.combine(now.date(),
-                                                               weekly_time))
-
-        _logger.debug('Tests: weekday %s, last sent %s, weekly time %s, '
-                      'insertion time %s', weekday_test, last_sent_test,
-                      weekly_time_test, insertion_time_test)
-
-        if (weekday_test and last_sent_test and weekly_time_test
-                and insertion_time_test):
+        if _verify_weekly_dispatch(queued_alert, now, _logger):
             send = True
             weekly = True
 
     elif subscription.type == AlertSubscription.NEXT:
-        active_profile = (
-            subscription.alert_address.account.get_active_profile())
-
-        if not active_profile:
-            # No active profile do nothing (FIXME ask if this is how we
-            # want things)
-            pass
-        else:
-            current_time_period = active_profile.get_active_timeperiod()
-
-            insertion_time = queued_alert.insertion_time
-            queued_alert_time_period = subscription.time_period
-
-            # Send if we are in a different time period than the one that
-            # the message was inserted with.
-            _logger.debug(
-                'Tests: different time period %s',
-                queued_alert_time_period.id != current_time_period.id)
-
-            # Check if the message was inserted on a previous day and
-            # that the start period of the time period it was inserted in
-            # has passed. This check should catch the corner case where
-            # a user only has one timeperiod that loops.
-
-            if datetime.now().isoweekday() in [6, 7]:
-                valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
-            else:
-                valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
-
-            only_one_time_period = active_profile.timeperiod_set.filter(
-                valid_during__in=valid_during).count() == 1
-
-            _logger.debug(
-                'Tests: only one time period %s, insertion time %s',
-                only_one_time_period,
-                insertion_time.time() < queued_alert_time_period.start)
-
-            if subscription.time_period.id != current_time_period.id:
-                send = True
-
-            elif (only_one_time_period
-                  and insertion_time.time() <
-                  queued_alert_time_period.start):
-                send = True
+        if _verify_next_dispatch(queued_alert, _logger):
+            send = True
 
     else:
         _logger.error('Account %s has an invalid subscription type in '
@@ -471,6 +388,94 @@ def process_single_queued_notification(queued_alert, now):
                 return DISPATCHED_NOW
         else:
             return DISPATCH_FAILED
+
+
+def _verify_daily_dispatch(queued_alert, now, _logger=_logger):
+    subscription = queued_alert.subscription
+    daily_time = subscription.time_period.profile.daily_dispatch_time
+    last_sent = (
+            subscription.time_period.profile.alertpreference.last_sent_day
+            or datetime.min)
+    # If the last sent date is less than the current date, and we are
+    # past the daily time and the alert was added to the queue before
+    # this time
+    last_sent_test = last_sent.date() < now.date()
+    daily_time_test = daily_time < now.time()
+    insertion_time_test = (
+            queued_alert.insertion_time < datetime.combine(now.date(),
+                                                           daily_time))
+    _logger.debug('Tests: last sent %s, daily time %s, insertion time '
+                  '%s', last_sent_test, daily_time_test,
+                  insertion_time_test)
+    return last_sent_test and daily_time_test and insertion_time_test
+
+
+def _verify_weekly_dispatch(queued_alert, now, _logger=_logger):
+    subscription = queued_alert.subscription
+    weekly_time = subscription.time_period.profile.weekly_dispatch_time
+    weekly_day = subscription.time_period.profile.weekly_dispatch_day
+    last_sent = (
+            subscription.time_period.profile.alertpreference.last_sent_week
+            or datetime.min)
+
+    # Check that we are at the correct weekday, and that the last sent
+    # time is less than today, and that alert was inserted before the
+    # weekly time.
+
+    weekday_test = weekly_day == now.weekday()
+    last_sent_test = last_sent.date() < now.date()
+    weekly_time_test = weekly_time < now.time()
+    insertion_time_test = (
+            queued_alert.insertion_time < datetime.combine(now.date(),
+                                                           weekly_time))
+
+    _logger.debug('Tests: weekday %s, last sent %s, weekly time %s, '
+                  'insertion time %s', weekday_test, last_sent_test,
+                  weekly_time_test, insertion_time_test)
+
+    return weekday_test and last_sent_test and weekly_time_test and insertion_time_test
+
+
+def _verify_next_dispatch(queued_alert, _logger=_logger):
+    subscription = queued_alert.subscription
+    active_profile = subscription.alert_address.account.get_active_profile()
+
+    if not active_profile:
+        # No active profile do nothing (FIXME ask if this is how we want things)
+        return False
+    else:
+        current_time_period = active_profile.get_active_timeperiod()
+
+        insertion_time = queued_alert.insertion_time
+        queued_alert_time_period = subscription.time_period
+        is_different_timeperiod = queued_alert_time_period.id != current_time_period.id
+
+        # Send if we are in a different time period than the one that
+        # the message was inserted with.
+        _logger.debug('Tests: different time period %s', is_different_timeperiod)
+
+        # Check if the message was inserted on a previous day and
+        # that the start period of the time period it was inserted in
+        # has passed. This check should catch the corner case where
+        # a user only has one timeperiod that loops.
+
+        if datetime.now().isoweekday() in [6, 7]:
+            valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
+        else:
+            valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
+
+        only_one_time_period = active_profile.timeperiod_set.filter(
+            valid_during__in=valid_during).count() == 1
+
+        _logger.debug(
+            'Tests: only one time period %s, insertion time %s',
+            only_one_time_period,
+            insertion_time.time() < queued_alert_time_period.start)
+
+        return is_different_timeperiod or (
+            only_one_time_period
+            and insertion_time.time() < queued_alert_time_period.start
+        )
 
 
 def alert_should_be_ignored(queued_alert, subscription, now):
