@@ -40,6 +40,8 @@ DISPATCHED_WEEKLY = object()
 DISPATCH_FAILED = object()
 DISPATCH_IGNORED = object()
 
+WEEKEND_DAYS = (6, 7)
+
 
 def check_alerts(debug=False):
     """Handles all new and user queued alerts"""
@@ -457,24 +459,28 @@ def _verify_next_dispatch(queued_alert, now, _logger=_logger):
         # that the start period of the time period it was inserted in
         # has passed. This check should catch the corner case where
         # a user only has one timeperiod that loops.
-
-        if now.isoweekday() in [6, 7]:
-            valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
-        else:
-            valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
-
-        only_one_time_period = active_profile.timeperiod_set.filter(
-            valid_during__in=valid_during).count() == 1
-
+        timeperiod_count = _get_number_of_timeperiods_today(active_profile, now)
         _logger.debug(
             'Tests: only one time period %s, insertion time %s',
-            only_one_time_period,
+            timeperiod_count == 1,
             insertion_time.time() < queued_alert_time_period.start)
 
         return is_different_timeperiod or (
-            only_one_time_period
+            timeperiod_count == 1
             and insertion_time.time() < queued_alert_time_period.start
         )
+
+
+def _get_number_of_timeperiods_today(alertprofile, now):
+    """
+    :type alertprofile: nav.models.profiles.AlertProfile
+    :type now: datetime
+    """
+    if now.isoweekday() in WEEKEND_DAYS:
+        valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
+    else:
+        valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
+    return alertprofile.timeperiod_set.filter(valid_during__in=valid_during).count()
 
 
 def alert_should_be_ignored(queued_alert, subscription, now):
