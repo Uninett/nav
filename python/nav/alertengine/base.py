@@ -449,26 +449,22 @@ def _verify_next_dispatch(queued_alert, now, _logger=_logger):
 
         insertion_time = queued_alert.insertion_time
         queued_alert_time_period = subscription.time_period
-        is_different_timeperiod = queued_alert_time_period.id != current_time_period.id
 
-        # Send if we are in a different time period than the one that
-        # the message was inserted with.
-        _logger.debug('Tests: different time period %s', is_different_timeperiod)
-
-        # Check if the message was inserted on a previous day and
-        # that the start period of the time period it was inserted in
-        # has passed. This check should catch the corner case where
-        # a user only has one timeperiod that loops.
         timeperiod_count = _get_number_of_timeperiods_today(active_profile, now)
-        _logger.debug(
-            'Tests: only one time period %s, insertion time %s',
-            timeperiod_count == 1,
-            insertion_time.time() < queued_alert_time_period.start)
+        if timeperiod_count == 1:  # we have a looping time period
+            start_time = _calculate_timeperiod_start(queued_alert_time_period, now)
+            was_inserted_before = insertion_time < start_time
+            _logger.debug(
+                "Tests: Only one time period, inserted in previous iteration: %s",
+                was_inserted_before
+            )
+        else:
+            was_inserted_before = queued_alert_time_period.id != current_time_period.id
+            _logger.debug(
+                "Tests: Inserted in different time period: %s", was_inserted_before
+            )
 
-        return is_different_timeperiod or (
-            timeperiod_count == 1
-            and insertion_time.time() < queued_alert_time_period.start
-        )
+        return was_inserted_before
 
 
 def _get_number_of_timeperiods_today(alertprofile, now):
@@ -481,6 +477,24 @@ def _get_number_of_timeperiods_today(alertprofile, now):
     else:
         valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
     return alertprofile.timeperiod_set.filter(valid_during__in=valid_during).count()
+
+
+def _calculate_timeperiod_start(timeperiod, now=None):
+    """Given a timeperiod that is looping, i.e. it is the only timeperiod in a
+    profile, this calculates the full datetime when the current time period started.
+
+    :type timeperiod: TimePeriod
+    :type now: datetime
+    """
+    if not now:
+        now = datetime.now()
+
+    if now.time() < timeperiod.start:
+        date = now.date() - timedelta(days=1)  # yesterday
+    else:
+        date = now.date()  # today
+
+    return datetime.combine(date, timeperiod.start)
 
 
 def alert_should_be_ignored(queued_alert, subscription, now):
