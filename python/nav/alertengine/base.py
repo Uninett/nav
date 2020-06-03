@@ -33,6 +33,15 @@ from nav.models.event import AlertQueue
 
 _logger = logging.getLogger(__name__)
 
+# Queued notification dispatch decisions
+DISPATCHED_NOW = object()
+DISPATCHED_DAILY = object()
+DISPATCHED_WEEKLY = object()
+DISPATCH_FAILED = object()
+DISPATCH_IGNORED = object()
+
+WEEKEND_DAYS = (6, 7)
+
 
 def check_alerts(debug=False):
     """Handles all new and user queued alerts"""
@@ -249,177 +258,243 @@ def _check_permissions(account, alert, alertsubscription, dupemap, _logger,
 
 
 def handle_queued_alerts(queued_alerts, now=None):
-    """Handles profile-queued alerts for later dispatch"""
+    """Processes and dispatches notifications that are queued for individual users.
+    Every AccountAlertQueue object represents a specific AlertQueue item that has been
+    scheduled for dispatch to a particular user. Typical scheduling choices may be:
+
+      * Immediately.
+      * Wait until the next timeperiod in the user's profile becomes active.
+      * Wait until the daily dispatch time set in the profile.
+      * Wait until the weekly dispatch time set in the profile.
+
+    If a user's profile says so, a delayed notification may also be ignored and removed
+    from the queue if the represented alert has been resolved since it was added to the
+    queue.
+
+    :param queued_alerts: A sequence of all AccountAlertQueue items to consider.
+    :type queued_alerts: List[AccountAlertQueue]
+    :param now: Set only when testing, to force what value should be considered the
+                current time.
+    :type now: datetime
+
+    :return: A tuple of stats on how the queued alerts were processed:
+             (accounts_sent_daily, accounts_sent_weekly, num_sent_alerts,
+              num_failed_sends, num_resolved_alerts_ignored)
+    """
     _logger = logging.getLogger('nav.alertengine.handle_queued_alerts')
 
     if not now:
         now = datetime.now()
 
-    # We want to keep track of wether or not any weekly or daily messages have
-    # been sent so that we can update the state of the users
-    # last_sent_daily/weekly
-    sent_weekly = []
-    sent_daily = []
+    # We want to keep track of which users have received their weekly or daily
+    # notifications during this queue run, so that their profile states can be updated
+    accounts_sent_weekly = set()
+    accounts_sent_daily = set()
 
     num_sent_alerts = 0
     num_resolved_alerts_ignored = 0
     num_failed_sends = 0
 
-    for queued_alert in queued_alerts:
-        send, daily, weekly = False, False, False
+    for queued_alert in queued_alerts:  # type: AccountAlertQueue
+        result = process_single_queued_notification(queued_alert, now=now)
 
-        try:
-            subscription = queued_alert.subscription
-        except AlertSubscription.DoesNotExist:
-            _logger.error('account queued alert %d does not have subscription, '
-                          'probably a legacy table row', queued_alert.id)
-            continue
+        # The result value is processed purely for statistics and record keeping
+        if result == DISPATCH_FAILED:
+            num_failed_sends += 1
+        elif result == DISPATCH_IGNORED:
+            num_resolved_alerts_ignored += 1
+        elif result in (DISPATCHED_NOW, DISPATCHED_WEEKLY, DISPATCHED_DAILY):
+            num_sent_alerts += 1
 
-        _logger.debug('Stored alert %d: Checking %s %s subscription %d',
-                      queued_alert.alert_id, queued_alert.account,
-                      subscription.get_type_display(), subscription.id)
-
-        try:
-            subscription.time_period.profile.alertpreference
-        except AlertPreference.DoesNotExist:
-            subscription = None
-
-        if subscription is None:
-            _logger.info('Sending alert %d right away as the users profile has '
-                         'been disabled', queued_alert.alert_id)
-            send = True
-
-        elif subscription.type == AlertSubscription.NOW:
-            send = True
-
-        elif subscription.type == AlertSubscription.DAILY:
-            daily_time = subscription.time_period.profile.daily_dispatch_time
-            last_sent = (
-                subscription.time_period.profile.alertpreference.last_sent_day
-                or datetime.min)
-
-            # If the last sent date is less than the current date, and we are
-            # past the daily time and the alert was added to the queue before
-            # this time
-
-            last_sent_test = last_sent.date() < now.date()
-            daily_time_test = daily_time < now.time()
-            insertion_time_test = (
-                queued_alert.insertion_time < datetime.combine(now.date(),
-                                                               daily_time))
-
-            _logger.debug('Tests: last sent %s, daily time %s, insertion time '
-                          '%s', last_sent_test, daily_time_test,
-                          insertion_time_test)
-
-            if last_sent_test and daily_time_test and insertion_time_test:
-                send = True
-                daily = True
-
-        elif subscription.type == AlertSubscription.WEEKLY:
-            weekly_time = subscription.time_period.profile.weekly_dispatch_time
-            weekly_day = subscription.time_period.profile.weekly_dispatch_day
-            last_sent = (
-                subscription.time_period.profile.alertpreference.last_sent_week
-                or datetime.min)
-
-            # Check that we are at the correct weekday, and that the last sent
-            # time is less than today, and that alert was inserted before the
-            # weekly time.
-
-            weekday_test = weekly_day == now.weekday()
-            last_sent_test = last_sent.date() < now.date()
-            weekly_time_test = weekly_time < now.time()
-            insertion_time_test = (
-                queued_alert.insertion_time < datetime.combine(now.date(),
-                                                               weekly_time))
-
-            _logger.debug('Tests: weekday %s, last sent %s, weekly time %s, '
-                          'insertion time %s', weekday_test, last_sent_test,
-                          weekly_time_test, insertion_time_test)
-
-            if (weekday_test and last_sent_test and weekly_time_test
-                    and insertion_time_test):
-                send = True
-                weekly = True
-
-        elif subscription.type == AlertSubscription.NEXT:
-            active_profile = (
-                subscription.alert_address.account.get_active_profile())
-
-            if not active_profile:
-                # No active profile do nothing (FIXME ask if this is how we
-                # want things)
-                pass
-            else:
-                current_time_period = active_profile.get_active_timeperiod()
-
-                insertion_time = queued_alert.insertion_time
-                queued_alert_time_period = subscription.time_period
-
-                # Send if we are in a different time period than the one that
-                # the message was inserted with.
-                _logger.debug(
-                    'Tests: different time period %s',
-                    queued_alert_time_period.id != current_time_period.id)
-
-                # Check if the message was inserted on a previous day and
-                # that the start period of the time period it was inserted in
-                # has passed. This check should catch the corner case where
-                # a user only has one timeperiod that loops.
-
-                if datetime.now().isoweekday() in [6, 7]:
-                    valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
-                else:
-                    valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
-
-                only_one_time_period = active_profile.timeperiod_set.filter(
-                    valid_during__in=valid_during).count() == 1
-
-                _logger.debug(
-                    'Tests: only one time period %s, insertion time %s',
-                    only_one_time_period,
-                    insertion_time.time() < queued_alert_time_period.start)
-
-                if subscription.time_period.id != current_time_period.id:
-                    send = True
-
-                elif (only_one_time_period
-                      and insertion_time.time() <
-                        queued_alert_time_period.start):
-                    send = True
-
-        else:
-            _logger.error('Account %s has an invalid subscription type in '
-                          'subscription %d',
-                          subscription.account, subscription.id)
-
-        if send:
-            if alert_should_be_ignored(queued_alert, subscription, now):
-                _logger.info(
-                    'Ignoring resolved alert %d due to user preference',
-                    queued_alert.alert_id
-                )
-                num_resolved_alerts_ignored += 1
-                queued_alert.delete()
-
-            # Try to send alert
-            elif queued_alert.send():
-                num_sent_alerts += 1
-
-                if weekly:
-                    sent_weekly.append(queued_alert.account)
-                elif daily:
-                    sent_daily.append(queued_alert.account)
-            # Count failure
-            else:
-                num_failed_sends += 1
+        if result == DISPATCHED_DAILY:
+            accounts_sent_daily.add(queued_alert.account)
+        elif result == DISPATCHED_WEEKLY:
+            accounts_sent_weekly.add(queued_alert.account)
 
         del queued_alert
+
     del queued_alerts
 
-    return (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends,
-            num_resolved_alerts_ignored)
+    return (accounts_sent_daily, accounts_sent_weekly, num_sent_alerts,
+            num_failed_sends, num_resolved_alerts_ignored)
+
+
+def process_single_queued_notification(queued_alert, now):
+    """Processes and, if deemed necessary, dispatches a queued notification.
+
+    :type queued_alert: AccountAlertQueue
+    :type now: datetime
+    """
+    _logger = logging.getLogger("nav.alertengine.process_single_queued_notification")
+
+    send, daily, weekly = False, False, False
+    try:
+        subscription = queued_alert.subscription
+    except AlertSubscription.DoesNotExist:
+        _logger.error('account queued alert %d does not have subscription, '
+                      'probably a legacy table row', queued_alert.id)
+        return
+
+    _logger.debug('Stored alert %d: Checking %s %s subscription %d',
+                  queued_alert.alert_id, queued_alert.account,
+                  subscription.get_type_display(), subscription.id)
+
+    try:
+        subscription.time_period.profile.alertpreference
+    except AlertPreference.DoesNotExist:
+        subscription = None
+
+    if subscription is None:
+        _logger.info('Sending alert %d right away as the users profile has '
+                     'been disabled', queued_alert.alert_id)
+        send = True
+
+    elif subscription.type == AlertSubscription.NOW:
+        send = True
+
+    elif subscription.type == AlertSubscription.DAILY:
+        if _verify_daily_dispatch(queued_alert, now, _logger):
+            send = True
+            daily = True
+
+    elif subscription.type == AlertSubscription.WEEKLY:
+        if _verify_weekly_dispatch(queued_alert, now, _logger):
+            send = True
+            weekly = True
+
+    elif subscription.type == AlertSubscription.NEXT:
+        if _verify_next_dispatch(queued_alert, now, _logger):
+            send = True
+
+    else:
+        _logger.error('Account %s has an invalid subscription type in '
+                      'subscription %d',
+                      subscription.account, subscription.id)
+
+    if send:
+        if alert_should_be_ignored(queued_alert, subscription, now):
+            _logger.info(
+                'Ignoring resolved alert %d due to user preference',
+                queued_alert.alert_id
+            )
+            queued_alert.delete()
+            return DISPATCH_IGNORED
+
+        if queued_alert.send():
+            if weekly:
+                return DISPATCHED_WEEKLY
+            elif daily:
+                return DISPATCHED_DAILY
+            else:
+                return DISPATCHED_NOW
+        else:
+            return DISPATCH_FAILED
+
+
+def _verify_daily_dispatch(queued_alert, now, _logger=_logger):
+    subscription = queued_alert.subscription
+    daily_time = subscription.time_period.profile.daily_dispatch_time
+    last_sent = (
+            subscription.time_period.profile.alertpreference.last_sent_day
+            or datetime.min)
+    # If the last sent date is less than the current date, and we are
+    # past the daily time and the alert was added to the queue before
+    # this time
+    last_sent_test = last_sent.date() < now.date()
+    daily_time_test = daily_time < now.time()
+    insertion_time_test = (
+            queued_alert.insertion_time < datetime.combine(now.date(),
+                                                           daily_time))
+    _logger.debug('Tests: last sent %s, daily time %s, insertion time '
+                  '%s', last_sent_test, daily_time_test,
+                  insertion_time_test)
+    return last_sent_test and daily_time_test and insertion_time_test
+
+
+def _verify_weekly_dispatch(queued_alert, now, _logger=_logger):
+    subscription = queued_alert.subscription
+    weekly_time = subscription.time_period.profile.weekly_dispatch_time
+    weekly_day = subscription.time_period.profile.weekly_dispatch_day
+    last_sent = (
+            subscription.time_period.profile.alertpreference.last_sent_week
+            or datetime.min)
+
+    # Check that we are at the correct weekday, and that the last sent
+    # time is less than today, and that alert was inserted before the
+    # weekly time.
+
+    weekday_test = weekly_day == now.weekday()
+    last_sent_test = last_sent.date() < now.date()
+    weekly_time_test = weekly_time < now.time()
+    insertion_time_test = (
+            queued_alert.insertion_time < datetime.combine(now.date(),
+                                                           weekly_time))
+
+    _logger.debug('Tests: weekday %s, last sent %s, weekly time %s, '
+                  'insertion time %s', weekday_test, last_sent_test,
+                  weekly_time_test, insertion_time_test)
+
+    return weekday_test and last_sent_test and weekly_time_test and insertion_time_test
+
+
+def _verify_next_dispatch(queued_alert, now, _logger=_logger):
+    subscription = queued_alert.subscription
+    active_profile = subscription.alert_address.account.get_active_profile()
+
+    if not active_profile:
+        # No active profile do nothing (FIXME ask if this is how we want things)
+        return False
+    else:
+        current_time_period = active_profile.get_active_timeperiod()
+
+        insertion_time = queued_alert.insertion_time
+        queued_alert_time_period = subscription.time_period
+
+        timeperiod_count = _get_number_of_timeperiods_today(active_profile, now)
+        if timeperiod_count == 1:  # we have a looping time period
+            start_time = _calculate_timeperiod_start(queued_alert_time_period, now)
+            was_inserted_before = insertion_time < start_time
+            _logger.debug(
+                "Tests: Only one time period, inserted in previous iteration: %s",
+                was_inserted_before
+            )
+        else:
+            was_inserted_before = queued_alert_time_period.id != current_time_period.id
+            _logger.debug(
+                "Tests: Inserted in different time period: %s", was_inserted_before
+            )
+
+        return was_inserted_before
+
+
+def _get_number_of_timeperiods_today(alertprofile, now):
+    """
+    :type alertprofile: nav.models.profiles.AlertProfile
+    :type now: datetime
+    """
+    if now.isoweekday() in WEEKEND_DAYS:
+        valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
+    else:
+        valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
+    return alertprofile.timeperiod_set.filter(valid_during__in=valid_during).count()
+
+
+def _calculate_timeperiod_start(timeperiod, now=None):
+    """Given a timeperiod that is looping, i.e. it is the only timeperiod in a
+    profile, this calculates the full datetime when the current time period started.
+
+    :type timeperiod: TimePeriod
+    :type now: datetime
+    """
+    if not now:
+        now = datetime.now()
+
+    if now.time() < timeperiod.start:
+        date = now.date() - timedelta(days=1)  # yesterday
+    else:
+        date = now.date()  # today
+
+    return datetime.combine(date, timeperiod.start)
 
 
 def alert_should_be_ignored(queued_alert, subscription, now):
