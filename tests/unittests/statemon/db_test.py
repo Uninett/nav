@@ -1,3 +1,5 @@
+# Copyright (C) 2020 Universitetet i Oslo
+
 from nav.statemon.db import db
 from unittest import TestCase
 

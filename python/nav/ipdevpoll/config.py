@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009-2012 Uninett AS
+# Copyright (C) 2020 Universitetet i Oslo
 #
 # This file is part of Network Administration Visualized (NAV).
 #

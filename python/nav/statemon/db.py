@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2010, 2012 Uninett AS
+# Copyright (C) 2020 Universitetet i Oslo
 #
 # This file is part of Network Administration Visualized (NAV).
 #

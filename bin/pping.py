@@ -3,6 +3,7 @@
 # -*- testargs: -h -*-
 #
 # Copyright (C) 2018 Uninett AS
+# Copyright (C) 2020 Universitetet i Oslo
 #
 # This file is part of Network Administration Visualized (NAV).
 #
