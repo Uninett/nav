@@ -29,7 +29,8 @@ Get the source::
 You might want to choose your version now, otherwise you'll be installing the
 bleeding edge `master` branch. All release versions have git tags, so you can
 easily find and checkout the latest stable version (although these instructions
-are not valid for versions of NAV prior to 4.9).
+are not valid for versions of NAV prior to 4.9). Use ``git tag`` to list the
+available tags, and ``git checkout x.y.z`` to checkout version ``x.y.z``.
 
 
 3. NAV/Python dependencies
