@@ -8,6 +8,33 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.1 (unreleased)
+====================
+
+New features
+------------
+
+Device filter options for distributed monitoring with pping and ipdevpoll
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :program:`pping` and :program:`ipdevpoll` daemons have gained support for
+device filtering options. Using these options can limit the set of devices a
+pping or ipdevpoll instance will work with, based on your already configured
+device groups.
+
+This enables a form of distributed monitoring that wasn't previously possible:
+If you have a group of devices that are only accesible from the inside of some
+VLAN or secure zone, you can install NAV inside this zone and configure pping
+and ipdevpoll there to only monitor the devices within that zone, while telling
+other pping/ipdevpoll instances to ignore those device groups.
+
+This can also be used for low-level and manual horizontal scaling of NAV's
+monitoring functions.
+
+The new options are documented in the daemons' example config files,
+:file:`ipdevpoll.conf` and :file:`pping.conf`, respectively.
+
+
 NAV 5.0
 =======
 
