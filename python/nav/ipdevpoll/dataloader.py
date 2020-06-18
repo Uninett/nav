@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008-2012 Uninett AS
+# Copyright (C) 2020 Universitetet i Oslo
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -40,6 +41,7 @@ import django.db
 from nav.models import manage, event
 from nav import ipdevpoll
 from nav.ipdevpoll.db import django_debug_cleanup, run_in_thread
+from nav.ipdevpoll.config import get_netbox_filter
 from . import storage
 
 
@@ -101,6 +103,15 @@ class NetboxLoader(dict):
         self._logger.debug("These netboxes have active snmpAgentStates: %r",
                            snmp_down)
         queryset = manage.Netbox.objects.filter(deleted_at__isnull=True)
+
+        filter_groups_included = get_netbox_filter('groups_included')
+        if filter_groups_included:
+            queryset = queryset.filter(groups__id__in=filter_groups_included)
+
+        filter_groups_excluded = get_netbox_filter('groups_excluded')
+        if filter_groups_excluded:
+            queryset = queryset.exclude(groups__id__in=filter_groups_excluded)
+
         queryset = list(queryset.select_related(*related))
         for netbox in queryset:
             netbox.snmp_up = netbox.id not in snmp_down

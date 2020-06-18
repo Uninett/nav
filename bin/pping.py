@@ -3,6 +3,7 @@
 # -*- testargs: -h -*-
 #
 # Copyright (C) 2018 Uninett AS
+# Copyright (C) 2020 Universitetet i Oslo
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -94,7 +95,9 @@ class Pinger(object):
         internal data structures.
         """
         _logger.debug("Getting hosts from database...")
-        hosts = self.db.hosts_to_ping()
+        netbox_included_groups = self.config.get("groups_included", "").split()
+        netbox_excluded_groups = self.config.get("groups_excluded", "").split()
+        hosts = self.db.hosts_to_ping(netbox_included_groups, netbox_excluded_groups)
         netboxmap = {}
         self.ip_to_netboxid = {}
         for host in hosts:
