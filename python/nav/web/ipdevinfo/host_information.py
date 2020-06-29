@@ -48,7 +48,7 @@ def reverse_lookup(addresses):
 
 def _get_host_info(host):
     """Returns a dictionary containing DNS information about the host"""
-    if is_valid_ip(host, use_socket_lib=True):
+    if is_valid_ip(host, strict=True):
         addresses = list(reverse_lookup([host]))
     else:
         try:

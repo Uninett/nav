@@ -69,12 +69,15 @@ def colortohex(triplet):
     return ('%02x' * 3) % triplet
 
 
-def is_valid_ip(ip, use_socket_lib=False):
+def is_valid_ip(ip, strict=False):
     """Verifies that a string is a single, valid IPv4 or IPv6 address.
 
-    Uses the IPy or socket library to verify addresses.
+    :param ip: The string to test for validity
+    :param strict: If False, the quite lax rules of IPy.IP will be used to validate the
+                   IP address - partial IP addresses and even integers will parsed.
+                   If True, the stricter rules of the system socket library are used.
     """
-    if use_socket_lib:
+    if strict:
         return _is_valid_ip_socket(ip)
     else:
         return _is_valid_ip_ipy(ip)

@@ -112,7 +112,7 @@ class NetboxImporter(BulkImporter):
 
         master = row.get('master')
         if master:
-            if is_valid_ip(master, use_socket_lib=True):
+            if is_valid_ip(master, strict=True):
                 netbox.master = get_object_or_fail(Netbox, ip=master)
             else:
                 netbox.master = get_object_or_fail(Netbox,

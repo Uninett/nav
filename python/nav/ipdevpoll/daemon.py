@@ -53,7 +53,7 @@ class NetboxAction(argparse.Action):
 
         search_base = manage.Netbox.objects.select_related(
             'type', 'type__vendor').order_by('sysname')
-        if is_valid_ip(values, use_socket_lib=True):
+        if is_valid_ip(values, strict=True):
             matches = search_base.filter(ip=values)
         else:
             matches = search_base.filter(sysname__startswith=values)

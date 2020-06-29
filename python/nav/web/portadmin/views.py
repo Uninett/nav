@@ -106,7 +106,7 @@ def search(query):
     netbox_filters = [
         Q(sysname__icontains=query),
     ]
-    if is_valid_ip(query, use_socket_lib=True):
+    if is_valid_ip(query, strict=True):
         netbox_filters.append(Q(ip=query))
     netboxes = Netbox.objects.filter(
         reduce(OR, netbox_filters)).order_by('sysname')

@@ -255,7 +255,7 @@ class Host(object):
             self.ip = self.get_host_by_name() or None
 
     def is_ip(self):
-        return is_valid_ip(self.host, use_socket_lib=True)
+        return is_valid_ip(self.host, strict=True)
 
     def get_host_by_name(self):
         if self.host is not None:
