@@ -185,7 +185,7 @@ def main():
                              cam.mac, cam.sysname, cam.module, cam.port)
                 if post_event(mac_watch, cam):
                     _logger.info(
-                        "Event posted for macwatch = %s", mac_watch.idi
+                        "Event posted for macwatch = %s", mac_watch.id
                     )
                     new_macwatch_match = MacWatchMatch(macwatch=mac_watch,
                                                        cam=cam,
