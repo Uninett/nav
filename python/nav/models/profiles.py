@@ -202,9 +202,8 @@ class Account(models.Model):
         Copied from nav.db.navprofiles
         """
         if not self.locked:
-            stored_hash = nav.pwhash.Hash()
             try:
-                stored_hash.set_hash(self.password)
+                stored_hash = self.password_hash
             except nav.pwhash.InvalidHashStringError:
                 # Probably an old style NAV password hash, get out
                 # of here and check it the old way
@@ -221,7 +220,7 @@ class Account(models.Model):
 
     def has_old_style_password_hash(self):
         """Returns True if this account has an old-style, insecure password hash"""
-        return self.password.startswith("md5")
+        return self.unlocked_password.startswith("md5")
 
     @sensitive_variables('password')
     def _verify_old_password_hash_and_rehash(self, password):
@@ -247,6 +246,21 @@ class Account(models.Model):
             self.password = self.password[1:]
         elif value and not self.password.startswith('!'):
             self.password = '!' + self.password
+
+    @property
+    def password_hash(self):
+        """Returns the Account's password as a Hash object"""
+        stored_hash = nav.pwhash.Hash()
+        stored_hash.set_hash(self.unlocked_password)
+        return stored_hash
+
+    @property
+    def unlocked_password(self):
+        """Returns the raw password value, but with any lock status stripped"""
+        if not self.locked:
+            return self.password or ''
+        else:
+            return self.password[1:]
 
     def get_email_addresses(self):
         return self.alertaddress_set.filter(type__name=AlertSender.EMAIL)
