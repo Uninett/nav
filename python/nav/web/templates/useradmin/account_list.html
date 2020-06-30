@@ -26,7 +26,7 @@
           <tr>
             <th>Login</th>
             <th>Name</th>
-            <th>External</th>
+            <th>Status</th>
             <th># of groups</th>
           </tr>
         </thead>
@@ -37,7 +37,19 @@
                 <a href="{% url 'useradmin-account_detail' account.id %}">{{ account.login }}</a>
               </td>
               <td>{{ account.name }}</td>
-              <td>{{ account.ext_sync|default_if_none:"" }}</td>
+              <td>
+                  {% if account.ext_sync %}<span class="label info" data-tooltip title="This account is managed externally via {{ account.ext_sync }}">{{ account.ext_sync }}</span>{% endif %}
+
+                  {% if account.locked %}
+                      <i class="fa fa-lock warning" data-tooltip title="This account is locked: It cannot be used to log in."></i>
+                  {% elif account.has_plaintext_password %}
+                      <i class="fa fa-warning warning" data-tooltip title="This account uses an insecure plaintext password. It should be reset."></i>
+                  {% elif account.has_old_style_password_hash %}
+                      <i class="fa fa-warning warning" data-tooltip title="This account has a password using an old style insecure hashing method. Its password has probably not been changed in years - or, in the case of an LDAP user, they might not have logged in in years."></i>
+                  {% elif account.has_deprecated_password_hash_method %}
+                      <i class="fa fa-warning warning" data-tooltip title="This account has a password hashed with an older, deprecated method. Its password has probably not been changed in a long time - or, in the case of an LDAP user, they might not have logged in in a long time."></i>
+                  {% endif %}
+              </td>
               <td>{{ account.accountgroup_set.all|length }}</td>
             </tr>
           {% endfor %}
