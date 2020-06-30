@@ -222,6 +222,23 @@ class Account(models.Model):
         """Returns True if this account has an old-style, insecure password hash"""
         return self.unlocked_password.startswith("md5")
 
+    def has_plaintext_password(self):
+        """Returns True if this account appears to contain a plain-text password"""
+        if not self.has_old_style_password_hash():
+            try:
+                self.password_hash
+            except nav.pwhash.InvalidHashStringError:
+                return True
+        return False
+
+    def has_deprecated_password_hash_method(self):
+        """Returns True if this account's password is salted hash, but using a
+        deprecated hashing method.
+        """
+        if not (self.has_plaintext_password() or self.has_old_style_password_hash()):
+            return self.password_hash.method != nav.pwhash.DEFAULT_METHOD
+        return False
+
     @sensitive_variables('password')
     def _verify_old_password_hash_and_rehash(self, password):
         """Verifies an old-style MD5 password hash, and if there is a match,
