@@ -49,6 +49,7 @@ from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.management import ManagementFactory
 from nav.portadmin.handlers import ManagementHandler
 from .forms import SearchForm
+from ...portadmin.handlers import DeviceNotConfigurableError
 
 _logger = logging.getLogger("nav.web.portadmin")
 
@@ -176,6 +177,7 @@ def populate_infodict(request, netbox, interfaces):
     allowed_vlans = []
     voice_vlan = None
     readonly = False
+    handler = None
 
     try:
         handler = get_and_populate_livedata(netbox, interfaces)
@@ -201,7 +203,8 @@ def populate_infodict(request, netbox, interfaces):
         messages.error(request, "SNMP error when contacting %s. Values "
                                 "displayed are from database" % netbox.sysname)
 
-    if check_read_write(netbox, request):
+    if handler and not handler.is_configurable():
+        add_readonly_reason(request, handler)
         readonly = True
 
     ifaliasformat = CONFIG.get_ifaliasformat()
@@ -277,17 +280,14 @@ def set_voice_vlan_attribute_cisco(voice_vlan, interfaces, handler: ManagementHa
         interface.voice_activated = voice_activated
 
 
-def check_read_write(netbox, request):
-    """Add a message to user explaining why he can't edit anything
-
-    :returns: flag indicating readonly or not
+def add_readonly_reason(request: HttpRequest, mgmt_handler: ManagementHandler):
+    """Adds a message to the request's session, explaining why this device cannot be
+    configured through PortAdmin.
     """
-    if not netbox.read_write:
-        messages.error(request,
-                       "Write community not set for this device, "
-                       "changes cannot be saved")
-        return True
-    return False
+    try:
+        mgmt_handler.raise_if_not_configurable()
+    except DeviceNotConfigurableError as error:
+        messages.error(request, str(error))
 
 
 def save_interfaceinfo(request):
@@ -513,10 +513,10 @@ def render_trunk_edit(request, interfaceid):
     """Controller for rendering trunk edit view"""
 
     interface = Interface.objects.get(pk=interfaceid)
-    agent = get_management_handler(interface.netbox)
+    handler = get_management_handler(interface.netbox)
     if request.method == 'POST':
         try:
-            handle_trunk_edit(request, agent, interface)
+            handle_trunk_edit(request, handler, interface)
         except SnmpError as error:
             messages.error(request, 'Error editing trunk: %s' % error)
         else:
@@ -524,10 +524,10 @@ def render_trunk_edit(request, interfaceid):
 
     account = request.account
     netbox = interface.netbox
-    check_read_write(netbox, request)
+    add_readonly_reason(request, handler)
     try:
-        vlans = agent.get_netbox_vlans()  # All vlans on this netbox
-        native_vlan, trunked_vlans = agent.get_native_and_trunked_vlans(
+        vlans = handler.get_netbox_vlans()  # All vlans on this netbox
+        native_vlan, trunked_vlans = handler.get_native_and_trunked_vlans(
             interface)
     except SnmpError:
         vlans = native_vlan = trunked_vlans = allowed_vlans = None
@@ -535,7 +535,7 @@ def render_trunk_edit(request, interfaceid):
     else:
         if should_check_access_rights(account):
             allowed_vlans = find_allowed_vlans_for_user_on_netbox(
-                account, interface.netbox, agent)
+                account, interface.netbox, handler)
         else:
             allowed_vlans = vlans
 
@@ -548,7 +548,8 @@ def render_trunk_edit(request, interfaceid):
     context.update({'interface': interface, 'available_vlans': vlans,
                     'native_vlan': native_vlan, 'trunked_vlans': trunked_vlans,
                     'allowed_vlans': allowed_vlans,
-                    'trunk_edit': CONFIG.get_trunk_edit()})
+                    'trunk_edit': CONFIG.get_trunk_edit(),
+                    'readonly': not handler.is_configurable()})
 
     return render(request, 'portadmin/trunk_edit.html', context)
 

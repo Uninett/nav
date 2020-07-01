@@ -80,7 +80,7 @@
         <input type="submit"
                value="Save changes"
                class="button small"
-               {% if not interface.netbox.read_write %}disabled="disabled"{% endif %}>
+               {% if readonly %}disabled="disabled"{% endif %}>
       </form>
 
     </div>
