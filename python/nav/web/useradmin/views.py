@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008, 2011 Uninett AS
+# Copyright (C) 2008, 2011, 2020 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -82,11 +82,13 @@ def account_detail(request, account_id=None):
         elif 'submit_sudo' in request.POST:
             return sudo_to_user(request)
 
-    active = {'account_detail': True} if account else {'account_new': True}
-    auditlog_api_parameters = {
-        'object_model': 'account',
-        'object_pk': account.pk
-    } if account else {}
+    if account:
+        active = {"account_detail": True}
+        auditlog_api_parameters = {"object_model": "account", "object_pk": account.pk}
+        add_warnings_for_account(account, request)
+    else:
+        active = {"account_new": True}
+        auditlog_api_parameters = {}
 
     context = {
         'auditlog_api_parameters': auditlog_api_parameters,
