@@ -27,14 +27,6 @@ class ManagementHandler:
     def __init__(self, netbox: manage.Netbox, **kwargs):
         self.netbox = netbox
 
-    def test_read(self):
-        """Test if read works"""
-        raise NotImplementedError
-
-    def test_write(self):
-        """Test if write works"""
-        raise NotImplementedError
-
     def get_if_alias(self, if_index):
         """Get alias on a specific interface"""
         raise NotImplementedError

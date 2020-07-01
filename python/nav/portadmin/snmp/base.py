@@ -155,6 +155,7 @@ class SNMPHandler(ManagementHandler):
             yield BitVector.from_hex(hexes[i:i + chunksize])
 
     def test_read(self):
+        """Test if SNMP read works"""
         handle = self._get_read_only_handle()
         try:
             handle.get(self.SYSOBJECTID)
@@ -163,6 +164,7 @@ class SNMPHandler(ManagementHandler):
             return False
 
     def test_write(self):
+        """Test if SNMP write works"""
         handle = self._get_read_write_handle()
         try:
             value = handle.get(self.SYSLOCATION)
