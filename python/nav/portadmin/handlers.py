@@ -197,3 +197,28 @@ class ManagementHandler:
     def is_port_access_control_enabled(self):
         """Returns state of port access control"""
         raise NotImplementedError
+
+    def raise_if_not_configurable(self):
+        """Raises an exception if this netbox cannot be configured through PortAdmin.
+
+        The exception message will contain a human-readable explanation as to why not.
+        """
+        raise NotImplementedError
+
+    def is_configurable(self) -> bool:
+        """Returns True if this netbox is configurable using this handler"""
+        try:
+            self.raise_if_not_configurable()
+        except Exception:
+            return False
+        return True
+
+
+class ManagementError(Exception):
+    """Base exception class for device management errors"""
+    pass
+
+
+class DeviceNotConfigurableError(ManagementError):
+    """Raised when a device is not configurable by PortAdmin for some reason"""
+    pass
