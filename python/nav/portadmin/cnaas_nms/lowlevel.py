@@ -16,6 +16,7 @@
 """Low-level CNaaS-NMS REST API access using simple_rest_client"""
 from simple_rest_client.api import API
 from simple_rest_client.resource import Resource
+from simple_rest_client.exceptions import ClientError
 
 
 def get_api(url, token):

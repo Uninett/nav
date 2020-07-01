@@ -15,7 +15,7 @@
 #
 from nav.models import manage
 from nav.portadmin.config import CONFIG
-from nav.portadmin.cnaas_nms.lowlevel import get_api
+from nav.portadmin.cnaas_nms.lowlevel import get_api, ClientError
 from nav.portadmin.handlers import (
     ManagementHandler,
     DeviceNotConfigurableError,
@@ -58,14 +58,39 @@ class CNaaSNMSMixIn(ManagementHandler):
         # TODO: Poll the job API for "status": "FINISHED"
 
     def raise_if_not_configurable(self):
-        device = self._get_device_record()
-        if not (
-            device.get("state") == "MANAGED"
-            and device.get("device_type") == "ACCESS"
-            and device.get("synchronized")
-        ):
+        """Raises an exception if this device cannot be configured by CNaaS-NMS for
+        some reason.
+        """
+        try:
+            device = self._get_device_record()
+            self.raise_on_unmatched_criteria(device)
+        except CNaaSNMSApiError as error:
+            raise DeviceNotConfigurableError(str(error)) from error
+        except ClientError as error:
             raise DeviceNotConfigurableError(
-                "CNaaS NMS will not permit configuration of this device"
+                "Unexpected error talking to the CNaaS-NMS backend: " + str(error)
+            ) from error
+
+    def raise_on_unmatched_criteria(self, device_record):
+        """Raises an exception if the device's CNaaS-NMS attributes do not match the
+        preset criteria for being managed via the API.
+        """
+        state = device_record.get("state")
+        device_type = device_record.get("device_type")
+        synchronized = device_record.get("synchronized")
+
+        if state != "MANAGED":
+            raise DeviceNotConfigurableError(
+                "CNaaS-NMS does not list this device as managed ({})".format(state)
+            )
+        if device_type != "ACCESS":
+            raise DeviceNotConfigurableError(
+                "Cannot use CNaaS-NMS to configure {} type devices".format(device_type)
+            )
+        if not synchronized:
+            raise DeviceNotConfigurableError(
+                "Device configuration is not synchronized with CNaaS-NMS, cannot make "
+                "changes at the moment. Please try againt later."
             )
 
     def _get_device_record(self):
