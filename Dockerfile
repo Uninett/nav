@@ -20,7 +20,7 @@
 # be world-readable!
 #
 #
-FROM mbrekkevold/navbase-debian:stretch
+FROM mbrekkevold/navbase-debian:buster
 
 #### Install various build and runtime requirements as Debian packages ####
 
