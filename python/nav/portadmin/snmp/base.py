@@ -25,7 +25,7 @@ from nav.Snmp.errors import UnsupportedSnmpVersionError, SnmpError, NoSuchObject
 from nav.bitvector import BitVector
 
 from nav.models.manage import Vlan, SwPortAllowedVlan
-from nav.portadmin.handlers import ManagementHandler
+from nav.portadmin.handlers import ManagementHandler, DeviceNotConfigurableError
 from nav.portadmin.vlan import FantasyVlan
 from nav.smidumps import get_mib
 
@@ -433,6 +433,12 @@ class SNMPHandler(ManagementHandler):
     def is_port_access_control_enabled(self):
         handle = self._get_read_only_handle()
         return int(handle.get(self.dot1xPaeSystemAuthControl)) == 1
+
+    def raise_if_not_configurable(self):
+        if not self.netbox.read_write:
+            raise DeviceNotConfigurableError(
+                "SNMP Write community not set for this device, changes cannot be saved"
+            )
 
     # These are not relevant for this generic subclass
     get_cisco_voice_vlans = None
