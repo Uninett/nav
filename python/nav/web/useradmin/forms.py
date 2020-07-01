@@ -92,6 +92,10 @@ class AccountForm(forms.ModelForm):
                                       HTML(authenticator)])
             else:
                 fieldset_args.extend(default_args)
+            if kwargs["instance"].id == Account.DEFAULT_ACCOUNT:
+                # We don't want to enable significant changes to the anonymous account
+                for field in ("password1", "password2", "login"):
+                    self.fields[field].widget.attrs["readonly"] = True
         else:
             submit_value = 'Create account'
             fieldset_args.extend(default_args)
