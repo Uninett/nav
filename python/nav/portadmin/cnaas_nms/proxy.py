@@ -58,22 +58,33 @@ class CNaaSNMSMixIn(ManagementHandler):
         # TODO: Poll the job API for "status": "FINISHED"
 
     def raise_if_not_configurable(self):
-        response = self._api.devices.retrieve(self.netbox.sysname)
+        device = self._get_device_record()
+        if not (
+            device.get("state") == "MANAGED"
+            and device.get("device_type") == "ACCESS"
+            and device.get("synchronized")
+        ):
+            raise DeviceNotConfigurableError(
+                "CNaaS NMS will not permit configuration of this device"
+            )
+
+    def _get_device_record(self):
+        response = self._api.devices.retrieve(self.netbox.ip)
         payload = response.body
         if response.status_code == 200 and payload.get("status") == "success":
-            if len(payload.get("devices", []) < 0):
-                raise CNaaSNMSApiError("No devices match this name in CNaaS NMS")
-            device = payload["devices"][0]
-            if not (
-                device.get("state") == "MANAGED"
-                and device.get("device_type") == "ACCESS"
-                and device.get("synchronized")
-            ):
-                raise DeviceNotConfigurableError(
-                    "CNaaS NMS will not permit configuration of this device"
+            data = payload.get("data", {})
+            if len(data.get("devices", [])) < 0:
+                raise CNaaSNMSApiError(
+                    "No devices matched {} in CNaaS-NMS".format(self.netbox.ip)
                 )
+            device = data["devices"][0]
+            return device
         else:
-            raise CNaaSNMSApiError("Cannot verify device status in CNaaS NMS")
+            raise CNaaSNMSApiError(
+                "Unknown failure when talking to CNaaS-NMS (code={}, status={})".format(
+                    response.status_code, payload.get("status")
+                )
+            )
 
 
 class CNaaSNMSApiError(ProtocolError):
