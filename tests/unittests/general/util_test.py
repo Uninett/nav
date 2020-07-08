@@ -15,7 +15,7 @@
 import pytest
 
 from nav import util
-from nav.util import IPRange
+from nav.util import IPRange, first_true
 from IPy import IP
 
 
@@ -149,3 +149,18 @@ class TestIPRangeString(object):
     def test_multi_mask_should_raise(self):
         with pytest.raises(ValueError):
             IPRange.from_string('10.0.0.0/8/24')
+
+
+class TestFirstTrue(object):
+    def test_first_true_should_find_true_element(self):
+        elems = [False, False, True, False]
+        assert first_true(elems) == True
+
+    def test_first_true_should_return_default_value_when_no_true_found(self):
+        elems = [False, False, False]
+        default = object()
+        assert first_true(elems, default=default) is default
+
+    def test_first_true_should_parse_predicate_correctly(self):
+        elems = ["foo", "bar", "baz", "frobnicate"]
+        assert first_true(elems, pred=lambda x: x == "baz") == "baz"

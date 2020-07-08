@@ -216,7 +216,7 @@ def first_true(iterable, default=None, pred=None):
     :param pred: Optional predicate function to evaluate the truthfulness of
                  elements.
     """
-    return next(six.filter(pred, iterable), default)
+    return next(six.moves.filter(pred, iterable), default)
 
 
 def chunks(iterable, size):
