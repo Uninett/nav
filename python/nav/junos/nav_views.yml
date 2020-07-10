@@ -1,0 +1,85 @@
+---
+
+####
+#### Interface configuration table
+#### I.e. `show configuration interface`
+####
+
+InterfaceConfigTable:
+  get: interfaces/interface
+  view: InterfaceConfigView
+
+InterfaceConfigView:
+  fields:
+    ifindex: snmp
+    ifname: name
+    ifalias: description
+    port_mode: unit/family/ethernet-switching/port-mode
+    native_vlan: unit/family/ethernet-switching/native-vlan-id
+    ifgroup: name/@group
+    vlans: _VlanTable
+
+
+_VlanTable:
+  item: unit/family/ethernet-switching/vlan
+  key: members
+  view: _VlanView
+
+
+_VlanView:
+  fields:
+    vlan: members
+
+
+####
+#### Interface status table
+#### I.e. `show interface`
+####
+
+EthPortTable:
+  rpc: get-interface-information
+  args:
+    interface_name: '[afgxe][et]-*'
+  args_key: interface_name
+  item: physical-interface
+  view: EthPortView
+
+EthPortView:
+  fields:
+    ifname: name
+    ifindex: { snmp-index: int }
+    oper: oper-status
+    admin: admin-status
+    ifalias: description
+    macaddr: current-physical-address
+
+
+####
+#### Ethernet switching interfaces table
+#### I.e. `show ethernet-switching interfaces`
+####
+
+EthernetSwitchingInterfaceTable:
+  rpc: get-ethernet-switching-interface-information
+  args_key: interface_name
+  item: interface
+  key: interface-name
+  view: EthernetSwitchingInterfaceView
+
+EthernetSwitchingInterfaceView:
+  fields:
+    ifname: interface-name
+    state: interface-state
+    vlans: _VlanMemberTable
+
+_VlanMemberTable:
+  item: interface-vlan-member-list/interface-vlan-member
+  key: interface-vlan-name
+  view: _VlanMemberView
+
+_VlanMemberView:
+  fields:
+    name: interface-vlan-name
+    tag: { interface-vlan-member-tagid: int }
+    tagged: { interface-vlan-member-tagness: True=tagged }
+    blocking-status: blocking-status
