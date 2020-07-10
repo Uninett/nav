@@ -14,7 +14,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Interface definition for PortAdmin management handlers"""
+from typing import List, Tuple, Dict
+
 from nav.models import manage
+from nav.portadmin.vlan import FantasyVlan
 
 
 class ManagementHandler:
@@ -42,7 +45,7 @@ class ManagementHandler:
         """Set alias on a specific interface."""
         raise NotImplementedError
 
-    def get_vlan(self, interface):
+    def get_vlan(self, interface: manage.Interface):
         """Get vlan on a specific interface."""
         raise NotImplementedError
 
@@ -96,8 +99,13 @@ class ManagementHandler:
         """Walk all ports and get their operational status."""
         raise NotImplementedError
 
-    def get_netbox_vlans(self):
-        """Create Fantasyvlans for all vlans on this netbox"""
+    def get_netbox_vlans(self) -> List[FantasyVlan]:
+        """Returns a list of enabled VLANs on this netbox.
+
+        The list will consist of FantasyVlan objects, as not all the VLAN tags
+        discovered on the netbox will necessarily correspond to a known Vlan object
+        from the NAV database.
+        """
         raise NotImplementedError
 
     def get_available_vlans(self):
@@ -134,15 +142,14 @@ class ManagementHandler:
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
 
-    def get_native_and_trunked_vlans(self, interface):
+    def get_native_and_trunked_vlans(self, interface) -> Tuple[int, List[int]]:
         """Get the trunked vlans on this interface
 
         For each available vlan, fetch list of interfaces that forward this
         vlan. If the interface index is in this list, add the vlan to the
         return list.
 
-        :returns: (native vlan, list_of_trunked_vlans)
-        :rtype: tuple
+        :returns: (native_vlan_tag, list_of_trunked_vlan_tags)
         """
         raise NotImplementedError
 
@@ -178,11 +185,10 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def get_dot1x_enabled_interfaces(self):
+    def get_dot1x_enabled_interfaces(self) -> Dict[int, bool]:
         """Fetches a dict mapping ifindex to enabled state
 
         :returns: dict[ifindex, is_enabled]
-        :rtype: dict[int, bool]
         """
         raise NotImplementedError
 
