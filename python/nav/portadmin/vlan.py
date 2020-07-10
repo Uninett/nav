@@ -46,3 +46,9 @@ class FantasyVlan(object):
 
     def __eq__(self, other):
         return self.vlan == other.vlan
+
+    def __repr__(self):
+        return (
+            "{self.__class__.__name__}(vlan={self.vlan!r}, "
+            "netident={self.net_ident!r}, descr={self.descr!r})"
+        ).format(self=self)
