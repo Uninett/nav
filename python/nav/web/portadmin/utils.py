@@ -15,15 +15,18 @@
 #
 """Util functions for the PortAdmin"""
 from __future__ import unicode_literals
+from typing import List, Sequence
 import re
 import logging
 from operator import attrgetter
 
 from django.template import loader
 
+from nav.models import manage, profiles
 from nav.django.utils import is_admin
 from nav.portadmin.config import CONFIG
 from nav.portadmin.management import ManagementFactory
+from nav.portadmin.handlers import ManagementHandler
 from nav.portadmin.vlan import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
@@ -60,21 +63,25 @@ def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,
             interface.ifadminstatus = adminstatus[interface.ifindex]
 
 
-def find_and_populate_allowed_vlans(account, netbox, interfaces, factory):
-    """Find allowed vlans and indicate which interface can be edited"""
-    allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox,
-                                                          factory)
+def find_and_populate_allowed_vlans(
+        account: profiles.Account,
+        netbox: manage.Netbox,
+        interfaces: Sequence[manage.Interface],
+        handler: ManagementHandler
+):
+    """Finds allowed vlans and indicate which interfaces can be edited"""
+    allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox, handler)
     set_editable_on_interfaces(netbox, interfaces, allowed_vlans)
     return allowed_vlans
 
 
-def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
-    """Find allowed vlans for this user on this netbox
-
-    ::returns list of Fantasyvlans
-
-    """
-    netbox_vlans = find_vlans_on_netbox(netbox, factory=factory)
+def find_allowed_vlans_for_user_on_netbox(
+        account: profiles.Account,
+        netbox: manage.Netbox,
+        handler: ManagementHandler = None
+) -> List[FantasyVlan]:
+    """Finds allowed vlans for this user on this netbox"""
+    netbox_vlans = find_vlans_on_netbox(netbox, handler=handler)
 
     if CONFIG.is_vlan_authorization_enabled():
         if is_admin(account):
@@ -88,18 +95,18 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
     return sorted(allowed_vlans, key=attrgetter('vlan'))
 
 
-def find_vlans_on_netbox(netbox, factory=None):
-    """Find all the vlans on this netbox
+def find_vlans_on_netbox(
+    netbox: manage.Netbox, handler: ManagementHandler = None
+) -> List[FantasyVlan]:
+    """Find all the available vlans on this netbox
 
-    fac: already instantiated factory instance. Use this if possible
-    to enable use of cached values
-
-    :returns: list of FantasyVlans
-    :rtype: list
+    :param netbox: The Netbox whose available VLANs you want to find.
+    :param handler: Already instantiated ManagementHandler instance. Use this if
+                    possible to enable use of cached values.
     """
-    if not factory:
-        factory = ManagementFactory.get_instance(netbox)
-    return factory.get_netbox_vlans()
+    if not handler:
+        handler = ManagementFactory.get_instance(netbox)
+    return handler.get_netbox_vlans()
 
 
 def find_allowed_vlans_for_user(account):
