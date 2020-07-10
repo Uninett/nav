@@ -71,7 +71,7 @@ def find_and_populate_allowed_vlans(
 ):
     """Finds allowed vlans and indicate which interfaces can be edited"""
     allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox, handler)
-    set_editable_on_interfaces(netbox, interfaces, allowed_vlans)
+    set_editable_flag_on_interfaces(interfaces, allowed_vlans)
     return allowed_vlans
 
 
@@ -122,18 +122,19 @@ def find_allowed_vlans_for_user(account):
     return allowed_vlans
 
 
-def set_editable_on_interfaces(netbox, interfaces, vlans):
+def set_editable_flag_on_interfaces(
+        interfaces: Sequence[manage.Interface], vlans: Sequence[FantasyVlan]
+):
+    """Sets the pseudo-attribute `iseditable` on each interface in the interfaces
+    list, indicating whether the PortAdmin UI should allow edits to it or not.
+
+    An interface will be considered "editable" only if its native vlan matches one of
+    the vlan tags from `vlans`.
     """
-    Set a flag on the interface to indicate if user is allowed to edit it.
-    """
-    vlan_numbers = [vlan.vlan for vlan in vlans]
+    vlan_tags = {vlan.vlan for vlan in vlans}
 
     for interface in interfaces:
-        iseditable = (interface.vlan in vlan_numbers and netbox.read_write)
-        if iseditable:
-            interface.iseditable = True
-        else:
-            interface.iseditable = False
+        interface.iseditable = interface.vlan in vlan_tags
 
 
 def intersect(list_a, list_b):

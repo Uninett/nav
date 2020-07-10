@@ -71,7 +71,7 @@
 
       {# Port Description - input field #}
       <div class="medium-4 column">
-        {% if interface.iseditable %}
+        {% if interface.iseditable and not readonly %}
           <input class="ifalias" type="text"
                  value="{{ interface.ifalias|default_if_none:'' }}"
                  data-orig="{{ interface.ifalias|default_if_none:'' }}"/>
@@ -98,7 +98,7 @@
               Trunk
             {% endif %}
           {% else %}
-            {% if interface.iseditable %}
+            {% if interface.iseditable and not readonly %}
               {% if interface.detained %}
                 {{ interface.vlan|default_if_none:'' }}
                 <a href="{% url 'arnold-detainedports' %}">
@@ -148,7 +148,7 @@
                      name="voice_vlan"
                      data-orig="{{ interface.voice_activated|default:'false' }}"
                      {% if interface.voice_activated %}checked{% endif %}
-                     {% if not interface.iseditable %}disabled="disabled"{% endif %}>
+                     {% if readonly or not interface.iseditable %}disabled="disabled"{% endif %}>
             </span>
           {% else %}
             &nbsp;
@@ -158,7 +158,7 @@
 
       {# Button for saving #}
       <div class="{% if voice_vlan %}medium-1 small-4{% else %}medium-2 small-8{% endif %}  column text-right">
-        {% if interface.iseditable %}
+        {% if interface.iseditable and not readonly %}
           <button class="tiny portadmin-save secondary">Save</button>
         {% endif %}
       </div>
