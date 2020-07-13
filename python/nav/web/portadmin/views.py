@@ -356,7 +356,7 @@ def set_ifalias(account, handler: ManagementHandler, interface, request):
         ifalias = request.POST.get('ifalias')
         if check_format_on_ifalias(ifalias):
             try:
-                handler.set_if_alias(interface.ifindex, ifalias)
+                handler.set_interface_description(interface, ifalias)
                 interface.ifalias = ifalias
                 LogEntry.add_log_entry(
                     account,

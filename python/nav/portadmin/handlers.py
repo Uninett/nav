@@ -41,8 +41,8 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def set_if_alias(self, if_index, if_alias):
-        """Set alias on a specific interface."""
+    def set_interface_description(self, interface: manage.Interface, description: str):
+        """Configures a single interface's description, AKA the ifalias value"""
         raise NotImplementedError
 
     def get_vlan(self, interface: manage.Interface):

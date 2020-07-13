@@ -182,11 +182,12 @@ class SNMPHandler(ManagementHandler):
             for oid, value in self._bulkwalk(self.IF_ALIAS_OID)
         }
 
-    def set_if_alias(self, if_index, if_alias):
-        if isinstance(if_alias, six.text_type):
-            if_alias = if_alias.encode('utf8')
-        return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
-                                      if_alias)
+    def set_interface_description(self, interface, description):
+        if isinstance(description, str):
+            description = description.encode("utf8")
+        return self._set_netbox_value(
+            self.IF_ALIAS_OID, interface.ifindex, "s", description
+        )
 
     def get_vlan(self, interface):
         return self._query_netbox(self.VlAN_OID, interface.baseport)

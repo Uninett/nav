@@ -106,8 +106,13 @@ class PortadminResponseTest(unittest.TestCase):
         # replace set-method on Snmp-object with a mock-method
         # all set-methods return None
         self.snmpReadWriteHandler.set = Mock(return_value=None)
-        self.assertEqual(self.handler.set_if_alias(1, 'punkt1'), None,
-                         'setIfAlias failed')
+        interface = Mock()
+        interface.ifindex = 1
+        self.assertEqual(
+            self.handler.set_interface_description(interface, "punkt1"),
+            None,
+            "setIfAlias failed",
+        )
 
     ####################################################################
     #  CISCO-netbox
