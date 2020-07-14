@@ -84,12 +84,32 @@ class ManagementHandler:
         """Do a write memory on netbox if available"""
         raise NotImplementedError
 
-    def get_if_admin_status(self, if_index):
-        """Query administrative status for a given interface."""
+    def get_interface_admin_status(self, interface: manage.Interface) -> int:
+        """Query administrative status of an individual interface.
+
+        :returns: A integer to be interpreted as an RFC 2863 ifAdminStatus value, also
+                  defined in `manage.Interface.ADMIN_STATUS_CHOICES`:
+                  > up(1),       -- ready to pass packets
+                  > down(2),
+                  > testing(3)   -- in some test mode
+        """
         raise NotImplementedError
 
-    def get_if_oper_status(self, if_index):
-        """Query operational status of a given interface."""
+    def get_interface_oper_status(self, interface: manage.Interface) -> int:
+        """Query operational status of an individual interface.
+
+        :returns: A integer to be interpreted as an RFC 2863 ifOperStatus value, also
+                  defined in `manage.Interface.OPER_STATUS_CHOICES`:
+                  > up(1),        -- ready to pass packets
+                  > down(2),
+                  > testing(3),   -- in some test mode
+                  > unknown(4),   -- status can not be determined
+                  >               -- for some reason.
+                  > dormant(5),
+                  > notPresent(6),    -- some component is missing
+                  > lowerLayerDown(7) -- down due to state of
+                  >                   -- lower-layer interface(s)
+        """
         raise NotImplementedError
 
     def get_netbox_vlans(self) -> List[FantasyVlan]:

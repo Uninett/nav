@@ -294,11 +294,11 @@ class SNMPHandler(ManagementHandler):
     def write_mem(self):
         pass
 
-    def get_if_admin_status(self, if_index):
-        return self._query_netbox(self.IF_ADMIN_STATUS, if_index)
+    def get_interface_admin_status(self, interface):
+        return self._query_netbox(self.IF_ADMIN_STATUS, interface.ifindex)
 
-    def get_if_oper_status(self, if_index):
-        return self._query_netbox(self.IF_OPER_STATUS, if_index)
+    def get_interface_oper_status(self, interface):
+        return self._query_netbox(self.IF_OPER_STATUS, interface.ifindex)
 
     @staticmethod
     def _get_last_number(oid):

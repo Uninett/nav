@@ -600,7 +600,7 @@ def restart_interface(request):
 
     handler = get_management_handler(interface.netbox)
     if handler:
-        adminstatus = handler.get_if_admin_status(interface.ifindex)
+        adminstatus = handler.get_interface_admin_status(interface)
         if adminstatus == SNMPHandler.IF_ADMIN_STATUS_DOWN:
             _logger.debug('Not restarting %s as it is down', interface)
             return HttpResponse()
