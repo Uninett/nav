@@ -14,7 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Interface definition for PortAdmin management handlers"""
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Any
 
 from nav.models import manage
 from nav.portadmin.vlan import FantasyVlan
@@ -34,13 +34,6 @@ class ManagementHandler:
         """Get alias on a specific interface"""
         raise NotImplementedError
 
-    def get_all_if_alias(self):
-        """Get all aliases for all interfaces.
-
-        :returns: A dict describing {ifIndex: ifAlias}
-        """
-        raise NotImplementedError
-
     def set_interface_description(self, interface: manage.Interface, description: str):
         """Configures a single interface's description, AKA the ifalias value"""
         raise NotImplementedError
@@ -49,10 +42,11 @@ class ManagementHandler:
         """Get vlan on a specific interface."""
         raise NotImplementedError
 
-    def get_all_vlans(self):
-        """Retrieves the untagged VLAN value for every interface.
+    def get_interfaces(self) -> List[Dict[str, Any]]:
+        """Retrieves running configuration of all switch ports on the device.
 
-        :returns: A dict describing {ifIndex: VLAN_TAG}
+        :returns: A list of dicts with members `name`, `description`, `oper`, `admin`
+                  and `vlan` (the latter being the access/untagged/native vlan ID.
         """
         raise NotImplementedError
 
@@ -89,14 +83,6 @@ class ManagementHandler:
 
     def get_if_oper_status(self, if_index):
         """Query operational status of a given interface."""
-        raise NotImplementedError
-
-    def get_netbox_admin_status(self):
-        """Walk all ports and get their administration status."""
-        raise NotImplementedError
-
-    def get_netbox_oper_status(self):
-        """Walk all ports and get their operational status."""
         raise NotImplementedError
 
     def get_netbox_vlans(self) -> List[FantasyVlan]:

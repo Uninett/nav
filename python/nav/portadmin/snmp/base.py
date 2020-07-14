@@ -42,6 +42,7 @@ class SNMPHandler(ManagementHandler):
     SYSOBJECTID = '.1.3.6.1.2.1.1.2.0'
     SYSLOCATION = '1.3.6.1.2.1.1.6.0'
     IF_ALIAS_OID = '1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
+    IF_NAME_OID = '1.3.6.1.2.1.31.1.1.1.1'
     IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7'
     IF_ADMIN_STATUS_UP = 1
     IF_ADMIN_STATUS_DOWN = 2
@@ -73,8 +74,12 @@ class SNMPHandler(ManagementHandler):
         self.timeout = kwargs.get('timeout', 3)
         self.retries = kwargs.get('retries', 3)
 
-    def _bulkwalk(self, oid):
-        """Walk all branches for the given oid."""
+    def _bulkwalk(self, oid: str):
+        """Performs a GETBULK walk operation on `oid`, downgrading to a regular
+        GETNEXT-based walk if the active SNMP version doesn't support the GETBULK
+        operation.
+
+        """
         handle = self._get_read_only_handle()
         result = []
         try:
@@ -176,7 +181,34 @@ class SNMPHandler(ManagementHandler):
     def get_interface_description(self, interface):
         return safestring(self._query_netbox(self.IF_ALIAS_OID, interface.ifindex))
 
-    def get_all_if_alias(self):
+    def get_interfaces(self):
+        names = {
+            OID(index)[-1]: safestring(value)
+            for index, value in self._bulkwalk(self.IF_NAME_OID)
+        }
+        aliases = self._get_all_ifaliases()
+        oper = dict(self._get_all_interfaces_oper_status())
+        admin = dict(self._get_all_interfaces_admin_status())
+        vlans = self._get_all_interfaces_vlan()
+
+        result = [
+            {
+                "snmp-index": index,
+                "name": names.get(index),
+                "description": aliases.get(index),
+                "oper": oper.get(index),
+                "admin": admin.get(index),
+                "vlan": vlans.get(index),
+            }
+            for index in names
+        ]
+        return result
+
+    def _get_all_ifaliases(self):
+        """Get all aliases for all interfaces.
+
+        :returns: A dict describing {ifIndex: ifAlias}
+        """
         return {
             OID(oid)[-1]: safestring(value)
             for oid, value in self._bulkwalk(self.IF_ALIAS_OID)
@@ -192,7 +224,11 @@ class SNMPHandler(ManagementHandler):
     def get_interface_native_vlan(self, interface):
         return self._query_netbox(self.VlAN_OID, interface.baseport)
 
-    def get_all_vlans(self):
+    def _get_all_interfaces_vlan(self):
+        """Retrieves the untagged VLAN value for every interface.
+
+        :returns: A dict describing {ifIndex: VLAN_TAG}
+        """
         return {OID(index)[-1]: value for index, value in self._bulkwalk(self.VlAN_OID)}
 
     @staticmethod
@@ -285,11 +321,13 @@ class SNMPHandler(ManagementHandler):
                 available_stats.append((if_index, stat))
         return available_stats
 
-    def get_netbox_admin_status(self):
+    def _get_all_interfaces_admin_status(self):
+        """Walk all ports and get their administration status."""
         if_admin_stats = self._bulkwalk(self.IF_ADMIN_STATUS)
         return self._get_if_stats(if_admin_stats)
 
-    def get_netbox_oper_status(self):
+    def _get_all_interfaces_oper_status(self):
+        """Walk all ports and get their operational status."""
         if_oper_stats = self._bulkwalk(self.IF_OPER_STATUS)
         return self._get_if_stats(if_oper_stats)
 

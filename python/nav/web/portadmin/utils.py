@@ -15,7 +15,7 @@
 #
 """Util functions for the PortAdmin"""
 from __future__ import unicode_literals
-from typing import List, Sequence
+from typing import List, Sequence, Dict, Any
 import re
 import logging
 from operator import attrgetter
@@ -37,30 +37,35 @@ _logger = logging.getLogger("nav.web.portadmin")
 def get_and_populate_livedata(netbox, interfaces):
     """Fetch live data from netbox"""
     handler = ManagementFactory.get_instance(netbox)
-    live_ifaliases = handler.get_all_if_alias()
-    live_vlans = handler.get_all_vlans()
-    live_operstatus = dict(handler.get_netbox_oper_status())
-    live_adminstatus = dict(handler.get_netbox_admin_status())
-    update_interfaces_with_snmpdata(interfaces, live_ifaliases, live_vlans,
-                                    live_operstatus, live_adminstatus)
+    livedata = handler.get_interfaces()
+    update_interfaces_with_collected_data(interfaces, livedata)
 
     return handler
 
 
-def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,
-                                    adminstatus):
+def update_interfaces_with_collected_data(
+    interfaces: Sequence[manage.Interface], livedata: Sequence[Dict[str, Any]]
+):
+    """Updates the list of Interface objects with data gathered via
+    ManagementHandler.get_interfaces().
     """
-    Update the interfaces with data gathered via snmp.
-    """
-    for interface in interfaces:
-        if interface.ifindex in ifalias:
-            interface.ifalias = ifalias[interface.ifindex]
-        if interface.ifindex in vlans:
-            interface.vlan = vlans[interface.ifindex]
-        if interface.ifindex in operstatus:
-            interface.ifoperstatus = operstatus[interface.ifindex]
-        if interface.ifindex in adminstatus:
-            interface.ifadminstatus = adminstatus[interface.ifindex]
+    interfaces_by_name = {ifc.ifdescr: ifc for ifc in interfaces}
+    interfaces_by_name.update({ifc.ifname: ifc for ifc in interfaces})
+
+    matches = (
+        (interfaces_by_name[data["name"]], data)
+        for data in livedata
+        if data.get("name") in interfaces_by_name
+    )
+    for interface, data in matches:
+        if data.get("description") is not None:
+            interface.ifalias = data["description"]
+        if data.get("vlan"):
+            interface.vlan = data["vlan"]
+        if data.get("oper"):
+            interface.ifoperstatus = data["oper"]
+        if data.get("admin"):
+            interface.ifadminstatus = data["admin"]
 
 
 def find_and_populate_allowed_vlans(
