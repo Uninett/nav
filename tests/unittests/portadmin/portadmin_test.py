@@ -83,7 +83,7 @@ class PortadminResponseTest(unittest.TestCase):
         # this get-method returns a vlan-number
         self.snmpReadOnlyHandler.get = Mock(return_value=666)
         ifc = Mock(baseport=1)
-        self.assertEqual(self.handler.get_vlan(ifc), 666,
+        self.assertEqual(self.handler.get_interface_native_vlan(ifc), 666,
                                 "getVlan-test failed")
         self.snmpReadOnlyHandler.get.assert_called_with(
             OID('.1.3.6.1.2.1.17.7.1.4.5.1.1.1')
@@ -151,7 +151,7 @@ class PortadminResponseTest(unittest.TestCase):
         # this get-method returns a vlan-number
         self.snmpReadOnlyHandler.get = Mock(return_value=77)
         ifc = Mock(ifindex=1)
-        self.assertEqual(self.handler.get_vlan(ifc), 77,
+        self.assertEqual(self.handler.get_interface_native_vlan(ifc), 77,
                                 "getVlan-test failed")
         self.snmpReadOnlyHandler.get.assert_called_with('1.3.6.1.4.1.9.9.68.1.2.2.1.2.1')
 

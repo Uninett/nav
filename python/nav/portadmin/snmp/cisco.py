@@ -62,7 +62,7 @@ class Cisco(SNMPHandler):
         self.voice_vlan_oid = '1.3.6.1.4.1.9.9.68.1.5.1.1.1'
         self.cdp_oid = '1.3.6.1.4.1.9.9.23.1.1.1.1.2'
 
-    def get_vlan(self, interface):
+    def get_interface_native_vlan(self, interface):
         return self._query_netbox(self.vlan_oid, interface.ifindex)
 
     def set_vlan(self, interface, vlan):
@@ -74,7 +74,7 @@ class Cisco(SNMPHandler):
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(interface)
+        fromvlan = self.get_interface_native_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             return None

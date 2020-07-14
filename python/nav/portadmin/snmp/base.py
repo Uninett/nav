@@ -189,7 +189,7 @@ class SNMPHandler(ManagementHandler):
             self.IF_ALIAS_OID, interface.ifindex, "s", description
         )
 
-    def get_vlan(self, interface):
+    def get_interface_native_vlan(self, interface):
         return self._query_netbox(self.VlAN_OID, interface.baseport)
 
     def get_all_vlans(self):
@@ -217,7 +217,7 @@ class SNMPHandler(ManagementHandler):
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(interface)
+        fromvlan = self.get_interface_native_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             _logger.debug('fromvlan and vlan is the same - skip')
@@ -354,7 +354,7 @@ class SNMPHandler(ManagementHandler):
         return BitVector(octet_string)
 
     def get_native_vlan(self, interface):
-        return self.get_vlan(interface)
+        return self.get_interface_native_vlan(interface)
 
     def set_trunk_vlans(self, interface, vlans):
         base_port = interface.baseport
