@@ -58,18 +58,25 @@ class ManagementHandler:
         """Set native vlan on a trunk interface"""
         raise NotImplementedError
 
-    def set_if_up(self, if_index):
-        """Set interface.to up"""
+    def set_interface_up(self, interface: manage.Interface):
+        """Enables a previously shutdown interface"""
         raise NotImplementedError
 
-    def set_if_down(self, if_index):
-        """Set interface.to down"""
+    def set_interface_down(self, interface: manage.Interface):
+        """Shuts down/disables an enabled interface"""
         raise NotImplementedError
 
-    def restart_if(self, if_index, wait=5):
-        """Take interface down and up.
+    def cycle_interface(self, interface: manage.Interface, wait: float = 5.0):
+        """Take interface down and up again, with an optional delay in between.
 
-        :param wait: number of seconds to wait between down and up.
+        Mostly used for configuration changes where any client connected to the
+        interface needs to be notified about the change. Typically, if an interface
+        is suddenly placed on a new VLAN, cycling the link status of the interface
+        will prompt any connected machine to ask for a new DHCP lease, which may be
+        necessary now that the machine is potentially on a different IP subnet.
+
+        :param interface: The interface to cycle.
+        :param wait: number of seconds to wait between down and up operations.
         """
         raise NotImplementedError
 

@@ -481,7 +481,7 @@ def set_admin_status(handler: ManagementHandler, interface, request: HttpRequest
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'up')
-                handler.set_if_up(interface.ifindex)
+                handler.set_interface_up(interface)
             elif adminstatus == status_down:
                 LogEntry.add_log_entry(
                     account,
@@ -492,7 +492,7 @@ def set_admin_status(handler: ManagementHandler, interface, request: HttpRequest
                 )
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'down')
-                handler.set_if_down(interface.ifindex)
+                handler.set_interface_down(interface)
         except (SnmpError, ValueError) as error:
             messages.error(request, "Error setting ifadminstatus: %s" % error)
 
@@ -608,7 +608,7 @@ def restart_interface(request):
         _logger.debug('Restarting interface %s', interface)
         try:
             # Restart interface so that client fetches new address
-            handler.restart_if(interface.ifindex)
+            handler.cycle_interface(interface)
         except TimeOutException:
             # Swallow this exception as it is not important. Others should
             # create an error

@@ -272,21 +272,23 @@ class SNMPHandler(ManagementHandler):
     def set_native_vlan(self, interface, vlan):
         self.set_vlan(interface, vlan)
 
-    def set_if_up(self, if_index):
-        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
-                                      self.IF_ADMIN_STATUS_UP)
+    def set_interface_up(self, interface):
+        return self._set_netbox_value(
+            self.IF_ADMIN_STATUS, interface.ifindex, "i", self.IF_ADMIN_STATUS_UP
+        )
 
-    def set_if_down(self, if_index):
-        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
-                                      self.IF_ADMIN_STATUS_DOWN)
+    def set_interface_down(self, interface):
+        return self._set_netbox_value(
+            self.IF_ADMIN_STATUS, interface.ifindex, "i", self.IF_ADMIN_STATUS_DOWN
+        )
 
-    def restart_if(self, if_index, wait=5):
+    def cycle_interface(self, interface, wait=5.0):
         wait = int(wait)
-        self.set_if_down(if_index)
+        self.set_interface_down(interface)
         _logger.debug('Interface set administratively down - '
                       'waiting %s seconds', wait)
         time.sleep(wait)
-        self.set_if_up(if_index)
+        self.set_interface_up(interface)
         _logger.debug('Interface set administratively up')
 
     def write_mem(self):

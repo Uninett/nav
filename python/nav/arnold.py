@@ -464,7 +464,7 @@ def change_port_vlan(identity, vlan):
         _logger.info('Setting vlan %s on interface %s', vlan, interface)
         try:
             agent.set_vlan(interface, vlan)
-            agent.restart_if(interface.ifindex)
+            agent.cycle_interface(interface)
         except Exception as error:
             raise ChangePortVlanError(error)
         else:
