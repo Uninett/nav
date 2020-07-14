@@ -80,8 +80,16 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def write_mem(self):
-        """Do a write memory on netbox if available"""
+    def commit_configuration(self):
+        """Commit running configuration or pending configuration changes to the
+        device's startup configuration.
+
+        This operation has different implications depending on the underlying
+        platform and management protocol, and may in some instances be a no-op.
+
+        This would map more or less one-to-one when using NETCONF and related protocols,
+        whereas when using SNMP on Cisco, this may consist of a "write mem" operation.
+        """
         raise NotImplementedError
 
     def get_interface_admin_status(self, interface: manage.Interface) -> int:

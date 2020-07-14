@@ -161,7 +161,7 @@ class Cisco(SNMPHandler):
 
         return status
 
-    def write_mem(self):
+    def commit_configuration(self):
         """Use OLD-CISCO-SYS-MIB (v1) writeMem to write tomemory.
         Write configuration into non-volatile memory / erase config
         memory if 0."""

@@ -43,7 +43,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         },
         /**
          * The cancel button will empty the queue of interfaces to handle, but
-         * the write to memory request will still be sent.
+         * the commit configuration request will still be sent.
          * NB: Currently not in use
          */
         addCancelButton: function() {
@@ -369,7 +369,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
                 // spinner.stop();
                 if (nav_ajax_queue.length === 0) {
                     enableSaveallButtons();
-                    writeMemWhenRestartsDone(interfaceData.interfaceid);
+                    commitWhenRestartsDone(interfaceData.interfaceid);
                 } else {
                     // Process next entry in queue
                     doAjaxRequest(nav_ajax_queue[0]);
@@ -379,28 +379,28 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
     }
 
     /**
-     * Verify that no interfaces are restarting before sending the write mem
+     * Verify that no interfaces are restarting before sending the commit configuration
      * request
      */
-    function writeMemWhenRestartsDone(interfaceid) {
+    function commitWhenRestartsDone(interfaceid) {
         if (restart_queue.length === 0) {
-            writeMem(interfaceid);
+            commitConfig(interfaceid);
         } else {
             console.log('Waiting for interfaces to restart');
             var listItem = feedback.restartingInterfaces();
             $('body').one('nav:restartQueueEmpty', function() {
                 feedback.restartInterfacesDone(listItem);
-                writeMem(interfaceid);
+                commitConfig(interfaceid);
             });
         }
     }
 
-    function writeMem(interfaceid) {
-        /** Do a request to write to memory */
-        console.log('Sending write mem request');
+    function commitConfig(interfaceid) {
+        /** Do a request to commit changes to startup config */
+        console.log('Sending commit configuration request');
 
-        var request = $.post('write_mem', {'interfaceid': interfaceid});
-        var text = 'Write to memory';
+        var request = $.post('commit_configuration', {'interfaceid': interfaceid});
+        var text = 'Commit';
         request.done(function() {
             feedback.addFeedback(text, 'success', request.responseText);
         });

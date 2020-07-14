@@ -291,7 +291,7 @@ class SNMPHandler(ManagementHandler):
         self.set_interface_up(interface)
         _logger.debug('Interface set administratively up')
 
-    def write_mem(self):
+    def commit_configuration(self):
         pass
 
     def get_interface_admin_status(self, interface):

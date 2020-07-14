@@ -29,7 +29,7 @@ class PortAdminConfig(NAVConfigParser):
 cisco_voice_vlans = false
 cisco_voice_cdp = false
 restart_interface = on
-write_mem = on
+commit = on
 timeout = 3
 retries = 3
 trunk_edit = true
@@ -48,9 +48,9 @@ enabled = false
         """Check config to see if authorization is to be done"""
         return self.getboolean("authorization", "vlan_auth")
 
-    def is_write_mem_enabled(self):
-        """Checks if write mem is turned on or off. Default is on"""
-        return self.getboolean("general", "write_mem")
+    def is_commit_enabled(self):
+        """Checks if configuration commit is turned on or off. Default is on"""
+        return self.getboolean("general", "commit")
 
     def is_restart_interface_enabled(self):
         """Checks if restart interface is turned on or off. Default is on"""

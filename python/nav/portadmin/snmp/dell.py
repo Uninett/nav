@@ -47,7 +47,7 @@ class Dell(SNMPHandler):
     def __init__(self, netbox, **kwargs):
         super(Dell, self).__init__(netbox, **kwargs)
 
-    def write_mem(self):
+    def commit_configuration(self):
         """Use DNOS-SWITCHING-MIB agentSaveConfig to write to memory.
         Write configuration into non-volatile memory."""
         handle = self._get_read_write_handle()

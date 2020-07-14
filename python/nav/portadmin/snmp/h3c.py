@@ -29,7 +29,7 @@ class H3C(SNMPHandler):
     def __init__(self, netbox, **kwargs):
         super(H3C, self).__init__(netbox, **kwargs)
 
-    def write_mem(self):
+    def commit_configuration(self):
         """Use hh3c-config-man-mib to save running config to startup"""
 
         running_to_startup = 1
