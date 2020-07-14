@@ -68,8 +68,12 @@ class PortadminResponseTest(unittest.TestCase):
         # replace get-method on Snmp-object with a mock-method
         # this get-method returns a ifalias
         self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 999")
-        self.assertEqual(self.handler.get_if_alias(1), "pkt: 999",
-                          "getIfAlias-test failed")
+        interface = Mock(ifindex=1)
+        self.assertEqual(
+            self.handler.get_interface_description(interface),
+            "pkt: 999",
+            "getIfAlias-test failed",
+        )
 
     def test_get_vlan_hp(self):
         self.handler = ManagementFactory.get_instance(self.netboxHP)
@@ -131,8 +135,12 @@ class PortadminResponseTest(unittest.TestCase):
         # replace get-method on Snmp-object with a mock-method
         # this get-method returns a ifalias
         self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 88")
-        self.assertEqual(self.handler.get_if_alias(1), "pkt: 88",
-                          "getIfAlias-test failed")
+        interface = Mock(ifindex=1)
+        self.assertEqual(
+            self.handler.get_interface_description(interface),
+            "pkt: 88",
+            "getIfAlias-test failed",
+        )
 
     def test_get_vlan_cisco(self):
         self.handler = ManagementFactory.get_instance(self.netboxCisco)

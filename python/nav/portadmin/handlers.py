@@ -30,7 +30,7 @@ class ManagementHandler:
     def __init__(self, netbox: manage.Netbox, **kwargs):
         self.netbox = netbox
 
-    def get_if_alias(self, if_index):
+    def get_interface_description(self, interface: manage.Interface):
         """Get alias on a specific interface"""
         raise NotImplementedError
 

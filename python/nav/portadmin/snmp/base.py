@@ -173,8 +173,8 @@ class SNMPHandler(ManagementHandler):
         except SnmpError as error:
             return False
 
-    def get_if_alias(self, if_index):
-        return safestring(self._query_netbox(self.IF_ALIAS_OID, if_index))
+    def get_interface_description(self, interface):
+        return safestring(self._query_netbox(self.IF_ALIAS_OID, interface.ifindex))
 
     def get_all_if_alias(self):
         return {
