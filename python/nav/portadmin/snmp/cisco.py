@@ -274,15 +274,12 @@ class Cisco(SNMPHandler):
             self.dot1xPortAuth, interface.ifindex)) & self.DOT1X_AUTHENTICATOR
 
     def get_dot1x_enabled_interfaces(self):
-        """Fetches a dict mapping ifindex to enabled state
-
-        :returns: dict[ifindex, is_enabled]
-        :rtype: dict[int, bool]
-        """
         _logger.error("Querying for dot1x enabled interfaces on Cisco")
-        return {OID(oid)[-1]:
-                six.byte2int(state) & self.DOT1X_AUTHENTICATOR
-                for oid, state in self._bulkwalk(self.dot1xPortAuth)}
+        names = self._get_interface_names()
+        return {
+            names.get(OID(oid)[-1]): six.byte2int(state) & self.DOT1X_AUTHENTICATOR
+            for oid, state in self._bulkwalk(self.dot1xPortAuth)
+        }
 
 
 CHARS_IN_1024_BITS = 128

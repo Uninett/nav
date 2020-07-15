@@ -227,7 +227,7 @@ def add_dot1x_info(interfaces, handler):
 
     url_template = CONFIG.get_dot1x_external_url()
     for interface in interfaces:
-        interface.dot1xenabled = dot1x_states.get(interface.ifindex)
+        interface.dot1xenabled = dot1x_states.get(interface.ifname)
         if url_template:
             interface.dot1x_external_url = url_template.format(
                 netbox=interface.netbox,

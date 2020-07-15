@@ -36,10 +36,8 @@ class HP(SNMPHandler):
             self.dot1xPortAuth, interface.ifindex)) == 1
 
     def get_dot1x_enabled_interfaces(self):
-        """Fetches a dict mapping ifindex to enabled state
-
-        :returns: dict[ifindex, is_enabled]
-        :rtype: dict[int, bool]
-        """
-        return {OID(oid)[-1]: state == 1
-                for oid, state in self._bulkwalk(self.dot1xPortAuth)}
+        names = self._get_interface_names()
+        return {
+            names.get(OID(oid)[-1]): state == 1
+            for oid, state in self._bulkwalk(self.dot1xPortAuth)
+        }

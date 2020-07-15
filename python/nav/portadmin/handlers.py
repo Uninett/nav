@@ -198,10 +198,10 @@ class ManagementHandler:
         """Returns True if 802.1X authentication is is enabled on interface"""
         raise NotImplementedError
 
-    def get_dot1x_enabled_interfaces(self) -> Dict[int, bool]:
-        """Fetches a dict mapping ifindex to enabled state
+    def get_dot1x_enabled_interfaces(self) -> Dict[str, bool]:
+        """Fetches the 802.1X enabled state of every interface.
 
-        :returns: dict[ifindex, is_enabled]
+        :returns: A dict mapping each interface name to a "802.1X enabled" value
         """
         raise NotImplementedError
 
