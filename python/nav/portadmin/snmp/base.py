@@ -368,7 +368,7 @@ class SNMPHandler(ManagementHandler):
         return int(oid.split('.')[-1])
 
     def get_native_and_trunked_vlans(self, interface):
-        native_vlan = self.get_native_vlan(interface)
+        native_vlan = self.get_interface_native_vlan(interface)
 
         bitvector_index = interface.baseport - 1
         vlans = []
@@ -393,12 +393,9 @@ class SNMPHandler(ManagementHandler):
         octet_string = self._query_netbox(self.CURRENT_VLAN_EGRESS_PORTS, vlan)
         return BitVector(octet_string)
 
-    def get_native_vlan(self, interface):
-        return self.get_interface_native_vlan(interface)
-
     def set_trunk_vlans(self, interface, vlans):
         base_port = interface.baseport
-        native_vlan = self.get_native_vlan(interface)
+        native_vlan = self.get_interface_native_vlan(interface)
         bitvector_index = base_port - 1
 
         _logger.debug('base_port: %s, native_vlan: %s, trunk_vlans: %s',

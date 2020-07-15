@@ -39,7 +39,7 @@ class ManagementHandler:
         raise NotImplementedError
 
     def get_interface_native_vlan(self, interface: manage.Interface):
-        """Get vlan on a specific interface."""
+        """Get the native/untagged VLAN configured on interface"""
         raise NotImplementedError
 
     def get_interfaces(self) -> List[Dict[str, Any]]:
@@ -172,9 +172,6 @@ class ManagementHandler:
 
         :returns: (native_vlan_tag, list_of_trunked_vlan_tags)
         """
-        raise NotImplementedError
-
-    def get_native_vlan(self, interface):
         raise NotImplementedError
 
     def set_trunk_vlans(self, interface, vlans):

@@ -87,7 +87,8 @@ class Dell(SNMPHandler):
         baseport = interface.baseport
         self._set_netbox_value(self.PORT_MODE_OID, baseport, 'i', mode)
 
-    def get_native_vlan(self, interface):
+    def get_interface_native_vlan(self, interface):
+        # FIXME This override is potentially only applicable for trunk ports
         baseport = interface.baseport
         return self._query_netbox(self.NATIVE_VLAN_ID, baseport)
 
