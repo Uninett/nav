@@ -14,7 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Interface definition for PortAdmin management handlers"""
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Sequence
 
 from nav.models import manage
 from nav.portadmin.vlan import FantasyVlan
@@ -174,15 +174,11 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def set_trunk_vlans(self, interface, vlans):
-        """Trunk the vlans on interface
+    def set_trunk_vlans(self, interface: manage.Interface, vlans: Sequence[int]):
+        """Trunk vlans on this interface.
 
-        Egress_Ports includes native vlan. Be sure to not alter that.
-
-        Get all available vlans. For each available vlan fetch list of
-        interfaces that forward this vlan. Set or remove the interface from
-        this list based on if it is in the vlans list.
-
+        :param interface: The interface to set to trunk mode.
+        :param vlans: The list of VLAN tags to allow on this trunk.
         """
         raise NotImplementedError
 

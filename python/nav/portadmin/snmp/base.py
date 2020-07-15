@@ -394,6 +394,14 @@ class SNMPHandler(ManagementHandler):
         return BitVector(octet_string)
 
     def set_trunk_vlans(self, interface, vlans):
+        # This procedure is somewhat complex using the Q-BRIDGE-MIB. For each
+        # configured VLAN there is a list of ports (encoded as an octet string where
+        # each bit represents a port) with an active egress on this VLAN, so making
+        # this configuration change on a single port means updating the egress port
+        # list on every VLAN to remove from the port, and for every VLAN to add.
+        #
+        # Note that the egress port list contains both tagged and untagged/native vlans.
+        #
         base_port = interface.baseport
         native_vlan = self.get_interface_native_vlan(interface)
         bitvector_index = base_port - 1
