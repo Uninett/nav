@@ -166,10 +166,6 @@ class ManagementHandler:
     def get_native_and_trunked_vlans(self, interface) -> Tuple[int, List[int]]:
         """Get the trunked vlans on this interface
 
-        For each available vlan, fetch list of interfaces that forward this
-        vlan. If the interface index is in this list, add the vlan to the
-        return list.
-
         :returns: (native_vlan_tag, list_of_trunked_vlan_tags)
         """
         raise NotImplementedError
@@ -182,21 +178,24 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def set_access(self, interface, access_vlan):
-        """Set this port in access mode and set access vlan
+    def set_access(self, interface: manage.Interface, access_vlan: int):
+        """Puts a port in access mode and sets its access/native/untagged VLAN"""
+        raise NotImplementedError
 
-        Means - remove all vlans except access vlan from this interface
+    def set_trunk(
+        self, interface: manage.Interface, native_vlan: int, trunk_vlans: Sequence[int]
+    ):
+        """Puts a port in trunk mode, setting its native/untagged VLAN and tagged
+        trunk VLANs as well.
+
+        :param interface: The interface to set to trunk mode.
+        :param native_vlan: The native VLAN for untagged packets on this interface.
+        :param trunk_vlans: A list of VLAN tags to allow on this trunk.
         """
         raise NotImplementedError
 
-    def set_trunk(self, interface, native_vlan, trunk_vlans):
-        """Set this port in trunk mode and set native vlan"""
-        raise NotImplementedError
-
-    def is_dot1x_enabled(self, interface):
-        """Returns a boolean indicating whether 802.1X is enabled on the given
-        interface.
-        """
+    def is_dot1x_enabled(self, interface: manage.Interface) -> bool:
+        """Returns True if 802.1X authentication is is enabled on interface"""
         raise NotImplementedError
 
     def get_dot1x_enabled_interfaces(self) -> Dict[int, bool]:
@@ -206,8 +205,8 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def is_port_access_control_enabled(self):
-        """Returns state of port access control"""
+    def is_port_access_control_enabled(self) -> bool:
+        """Returns True if port access control is enabled on this netbox"""
         raise NotImplementedError
 
     def raise_if_not_configurable(self):
