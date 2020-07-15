@@ -300,25 +300,12 @@ class SNMPHandler(ManagementHandler):
     def get_interface_oper_status(self, interface):
         return self._query_netbox(self.IF_OPER_STATUS, interface.ifindex)
 
-    @staticmethod
-    def _get_last_number(oid):
-        """Get the last index for an OID."""
-        # TODO: This method is superfluous, use nav.oids.OID objects instead
-        if not (isinstance(oid, six.string_types)):
-            raise TypeError('Illegal value for oid')
-        splits = oid.split('.')
-        last = splits[-1]
-        if isinstance(last, six.string_types):
-            if last.isdigit():
-                last = int(last)
-        return last
-
     def _get_if_stats(self, stats):
         """Make a list with tuples.  Each tuple contain
          interface-index and corresponding status-value"""
         available_stats = []
         for (if_index, stat) in stats:
-            if_index = self._get_last_number(if_index)
+            if_index = OID(if_index)[-1]
             if isinstance(if_index, int):
                 available_stats.append((if_index, stat))
         return available_stats

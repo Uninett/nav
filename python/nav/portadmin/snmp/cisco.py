@@ -19,6 +19,7 @@ from django.utils import six
 
 from nav.Snmp.errors import SnmpError
 from nav.bitvector import BitVector
+from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.smidumps import get_mib
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
@@ -279,7 +280,7 @@ class Cisco(SNMPHandler):
         :rtype: dict[int, bool]
         """
         _logger.error("Querying for dot1x enabled interfaces on Cisco")
-        return {self._get_last_number(oid):
+        return {OID(oid)[-1]:
                 six.byte2int(state) & self.DOT1X_AUTHENTICATOR
                 for oid, state in self._bulkwalk(self.dot1xPortAuth)}
 
