@@ -16,6 +16,7 @@
 import time
 from operator import attrgetter
 import logging
+from typing import Dict
 
 from django.utils import six
 
@@ -182,10 +183,7 @@ class SNMPHandler(ManagementHandler):
         return safestring(self._query_netbox(self.IF_ALIAS_OID, interface.ifindex))
 
     def get_interfaces(self):
-        names = {
-            OID(index)[-1]: safestring(value)
-            for index, value in self._bulkwalk(self.IF_NAME_OID)
-        }
+        names = self._get_interface_names()
         aliases = self._get_all_ifaliases()
         oper = dict(self._get_all_interfaces_oper_status())
         admin = dict(self._get_all_interfaces_admin_status())
@@ -203,6 +201,13 @@ class SNMPHandler(ManagementHandler):
             for index in names
         ]
         return result
+
+    def _get_interface_names(self) -> Dict[int, str]:
+        """Returns a mapping of interface indexes to ifName values"""
+        return {
+            OID(index)[-1]: safestring(value)
+            for index, value in self._bulkwalk(self.IF_NAME_OID)
+        }
 
     def _get_all_ifaliases(self):
         """Get all aliases for all interfaces.
