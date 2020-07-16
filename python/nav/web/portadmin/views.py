@@ -44,10 +44,14 @@ from nav.web.portadmin.utils import (get_and_populate_livedata,
                                      is_cisco,
                                      add_dot1x_info)
 from nav.portadmin.config import CONFIG
-from nav.Snmp.errors import SnmpError, TimeOutException
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.management import ManagementFactory
-from nav.portadmin.handlers import ManagementHandler
+from nav.portadmin.handlers import (
+    ManagementHandler,
+    NoResponseError,
+    ProtocolError,
+    ManagementError,
+)
 from .forms import SearchForm
 from ...portadmin.handlers import DeviceNotConfigurableError
 
@@ -192,16 +196,22 @@ def populate_infodict(request, netbox, interfaces):
         mark_detained_interfaces(interfaces)
         if CONFIG.is_dot1x_enabled():
             add_dot1x_info(interfaces, handler)
-    except TimeOutException:
+    except NoResponseError:
         readonly = True
-        messages.error(request, "Timeout when contacting %s. Values displayed "
-                                "are from database" % netbox.sysname)
-        if not netbox.read_only:
+        messages.error(
+            request,
+            "%s did not respond within the set timeouts. Values displayed are from database"
+            % netbox.sysname,
+        )
+        if isinstance(handler, SNMPHandler) and not netbox.read_only:
             messages.error(request, "Read only community not set")
-    except SnmpError:
+    except ProtocolError:
         readonly = True
-        messages.error(request, "SNMP error when contacting %s. Values "
-                                "displayed are from database" % netbox.sysname)
+        messages.error(
+            request,
+            "Protocol error when contacting %s. Values displayed are from database"
+            % netbox.sysname,
+        )
 
     if handler and not handler.is_configurable():
         add_readonly_reason(request, handler)
@@ -368,9 +378,9 @@ def set_ifalias(account, handler: ManagementHandler, interface, request):
                 _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
                              interface.netbox.get_short_sysname(),
                              interface.ifname, ifalias)
-            except SnmpError as error:
-                _logger.error('Error setting ifalias: %s', error)
-                messages.error(request, "Error setting ifalias: %s" % error)
+            except ManagementError as error:
+                _logger.error('Error setting port description: %s', error)
+                messages.error(request, "Error setting port description: %s" % error)
         else:
             messages.error(request, "Wrong format on port description")
 
@@ -408,7 +418,7 @@ def set_vlan(account, handler: ManagementHandler, interface, request):
             _logger.info('%s: %s:%s - vlan set to %s', account.login,
                          interface.netbox.get_short_sysname(),
                          interface.ifname, vlan)
-        except (SnmpError, TypeError) as error:
+        except (ManagementError, TypeError) as error:
             _logger.error('Error setting vlan: %s', error)
             messages.error(request, "Error setting vlan: %s" % error)
 
@@ -458,7 +468,7 @@ def set_voice_vlan(handler: ManagementHandler, interface, request):
                              interface.netbox.get_short_sysname(),
                              interface.ifname, 'voice vlan disabled',
                              ', CDP disabled' if cdp_changed else '')
-        except (SnmpError, ValueError, NotImplementedError) as error:
+        except (ManagementError, ValueError, NotImplementedError) as error:
             messages.error(request, "Error setting voicevlan: %s" % error)
 
 
@@ -493,7 +503,7 @@ def set_admin_status(handler: ManagementHandler, interface, request: HttpRequest
                 _logger.info('%s: Setting ifadminstatus for %s to %s',
                              account.login, interface, 'down')
                 handler.set_interface_down(interface)
-        except (SnmpError, ValueError) as error:
+        except (ManagementError, ValueError) as error:
             messages.error(request, "Error setting ifadminstatus: %s" % error)
 
 
@@ -517,7 +527,7 @@ def render_trunk_edit(request, interfaceid):
     if request.method == 'POST':
         try:
             handle_trunk_edit(request, handler, interface)
-        except SnmpError as error:
+        except ManagementError as error:
             messages.error(request, 'Error editing trunk: %s' % error)
         else:
             messages.success(request, 'Trunk edit successful')
@@ -529,9 +539,9 @@ def render_trunk_edit(request, interfaceid):
         vlans = handler.get_netbox_vlans()  # All vlans on this netbox
         native_vlan, trunked_vlans = handler.get_native_and_trunked_vlans(
             interface)
-    except SnmpError:
+    except ManagementError as error:
         vlans = native_vlan = trunked_vlans = allowed_vlans = None
-        messages.error(request, 'Error getting trunk information')
+        messages.error(request, 'Error getting trunk information: {}'.format(error))
     else:
         if should_check_access_rights(account):
             allowed_vlans = find_allowed_vlans_for_user_on_netbox(
@@ -609,7 +619,7 @@ def restart_interface(request):
         try:
             # Restart interface so that client fetches new address
             handler.cycle_interface(interface)
-        except TimeOutException:
+        except NoResponseError:
             # Swallow this exception as it is not important. Others should
             # create an error
             pass
@@ -632,8 +642,8 @@ def commit_configuration(request):
     if handler:
         try:
             handler.commit_configuration()
-        except SnmpError as error:
-            error_message = 'Error doing write mem on {}: {}'.format(
+        except ManagementError as error:
+            error_message = 'Error committing configuration on {}: {}'.format(
                 handler.netbox, error)
             _logger.error(error_message)
             return HttpResponse(error_message, status=500)
@@ -656,6 +666,6 @@ def get_management_handler(netbox: Netbox) -> ManagementHandler:
     try:
         return ManagementFactory.get_instance(netbox, timeout=timeout,
                                               retries=retries)
-    except SnmpError as error:
+    except ManagementError as error:
         _logger.error('Error getting ManagementHandler instance %s: %s',
                       netbox, error)
