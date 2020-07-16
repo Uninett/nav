@@ -22,11 +22,21 @@ from django.utils import six
 
 from nav import Snmp
 from nav.Snmp import safestring, OID
-from nav.Snmp.errors import UnsupportedSnmpVersionError, SnmpError, NoSuchObjectError
+from nav.Snmp.errors import (
+    UnsupportedSnmpVersionError,
+    SnmpError,
+    NoSuchObjectError,
+    TimeOutException,
+)
 from nav.bitvector import BitVector
 
 from nav.models.manage import Vlan, SwPortAllowedVlan
-from nav.portadmin.handlers import ManagementHandler, DeviceNotConfigurableError
+from nav.portadmin.handlers import (
+    ManagementHandler,
+    DeviceNotConfigurableError,
+    NoResponseError,
+    ProtocolError,
+)
 from nav.portadmin.vlan import FantasyVlan
 from nav.smidumps import get_mib
 
@@ -92,6 +102,8 @@ class SNMPHandler(ManagementHandler):
                 result = handle.walk(oid)
             except SnmpError as ex:
                 _logger.error("_bulkwalk: Exception = %s", ex)
+        except TimeOutException as error:
+            raise NoResponseError("Timed out") from error
         return result
 
     def _jog(self, oid):
@@ -129,6 +141,10 @@ class SNMPHandler(ManagementHandler):
             result = handle.get(self._get_query(oid, if_index))
         except NoSuchObjectError as no_such_ex:
             _logger.debug("_query_netbox: NoSuchObjectError = %s", no_such_ex)
+        except TimeoutError as error:
+            raise NoResponseError("Timed out") from error
+        except SnmpError as error:
+            raise ProtocolError("SNMP error") from error
         return result
 
     def _get_read_write_handle(self):
@@ -472,7 +488,12 @@ class SNMPHandler(ManagementHandler):
 
     def is_port_access_control_enabled(self):
         handle = self._get_read_only_handle()
-        return int(handle.get(self.dot1xPaeSystemAuthControl)) == 1
+        try:
+            return int(handle.get(self.dot1xPaeSystemAuthControl)) == 1
+        except TimeOutException as error:
+            raise NoResponseError("Timed out") from error
+        except SnmpError as error:
+            raise ProtocolError("SNMP error") from error
 
     def raise_if_not_configurable(self):
         if not self.netbox.read_write:
