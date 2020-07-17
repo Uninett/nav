@@ -50,7 +50,8 @@
       {# Interface name #}
       <div class="medium-2 small-12 column">
         <span class="left hide-for-medium-up">Port&nbsp;</span>
-        <div title="{{ interface.ifname }}" class="long-content port-name">{{ interface.ifname }}</div>
+        <div title="{{ interface.ifname }}" class="long-content port-name">
+            <a href="{{ interface.get_absolute_url }}" title="Click to see details of {{ interface.ifname }}">{{ interface.ifname }}</a></div>
       </div>
 
       {# Status indicators / ifadminstatus checkbox #}
