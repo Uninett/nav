@@ -234,6 +234,7 @@ def populate_infodict(request, netbox, interfaces):
     info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
     info_dict.update(
         {
+            'handlertype': type(handler).__name__,
             'interfaces': interfaces,
             'netbox': netbox,
             'voice_vlan': voice_vlan,
