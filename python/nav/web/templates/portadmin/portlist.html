@@ -11,6 +11,8 @@
        title="Go to Ip Device Info for {{ netbox }}">
       {{ netbox.get_short_sysname }}
     </a>
+    {% if handlertype %}({{ handlertype }}){% endif %}
+
   </div>
 
   <div class="row header_row">
