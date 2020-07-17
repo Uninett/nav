@@ -121,18 +121,19 @@ class ManagementHandler:
         raise NotImplementedError
 
     def get_netbox_vlans(self) -> List[FantasyVlan]:
-        """Returns a list of enabled VLANs on this netbox.
+        """Returns a list of FantasyVlan objects representing the enabled VLANs on
+        this netbox.
 
-        The list will consist of FantasyVlan objects, as not all the VLAN tags
-        discovered on the netbox will necessarily correspond to a known Vlan object
-        from the NAV database.
+        The FantasyVlan objects represent NAV VLAN objects where a VLAN tag can be
+        correlated with a NAV VLAN entry, but can also be used to represent VLAN tags
+        that are unknown to NAV.
         """
         raise NotImplementedError
 
-    def get_available_vlans(self):
-        """Get available vlans from the box
+    def get_netbox_vlan_tags(self) -> List[int]:
+        """Returns a list of enabled VLANs on this netbox.
 
-        This is similar to the terminal command "show vlans"
+        :returns: A list of VLAN tags (integers)
         """
         raise NotImplementedError
 

@@ -169,7 +169,7 @@ class Cisco(SNMPHandler):
         handle = self._get_read_write_handle()
         return handle.set(self.write_mem_oid, 'i', 1)
 
-    def get_available_vlans(self):
+    def get_netbox_vlan_tags(self):
         """Fetch all vlans. Filter on operational and of type ethernet."""
         vlan_states = [self._extract_index_from_oid(oid) for oid, status in
                        self._bulkwalk(self.VTPVLANSTATE) if status == 1]

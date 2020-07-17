@@ -259,7 +259,7 @@ def fetch_voice_vlan_for_netbox(request: HttpRequest, handler: ManagementHandler
         return
 
     voice_vlans_on_netbox = list(set(voice_vlans) &
-                                 set(handler.get_available_vlans()))
+                                 set(handler.get_netbox_vlan_tags()))
     if not voice_vlans_on_netbox:
         # Should this be reported? At the moment I do not think so.
         return

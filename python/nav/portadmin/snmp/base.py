@@ -342,7 +342,7 @@ class SNMPHandler(ManagementHandler):
         return self._get_if_stats(if_oper_stats)
 
     def get_netbox_vlans(self):
-        numerical_vlans = self.get_available_vlans()
+        numerical_vlans = self.get_netbox_vlan_tags()
         vlan_objects = Vlan.objects.filter(
             swportvlan__interface__netbox=self.netbox).distinct()
         vlans = []
@@ -359,7 +359,7 @@ class SNMPHandler(ManagementHandler):
 
         return sorted(list(set(vlans)), key=attrgetter('vlan'))
 
-    def get_available_vlans(self):
+    def get_netbox_vlan_tags(self):
         if self.available_vlans is None:
             self.available_vlans = [
                 int(self._extract_index_from_oid(oid))
@@ -380,7 +380,7 @@ class SNMPHandler(ManagementHandler):
 
         bitvector_index = interface.baseport - 1
         vlans = []
-        for vlan in self.get_available_vlans():
+        for vlan in self.get_netbox_vlan_tags():
             if vlan == native_vlan:
                 continue
             octet_string = self._query_netbox(
@@ -419,7 +419,7 @@ class SNMPHandler(ManagementHandler):
 
         vlans = [int(vlan) for vlan in vlans]
 
-        for available_vlan in self.get_available_vlans():
+        for available_vlan in self.get_netbox_vlan_tags():
             if native_vlan == available_vlan:
                 _logger.debug('native vlan (%s) == available vlan (%s) - skip',
                               native_vlan, available_vlan)
