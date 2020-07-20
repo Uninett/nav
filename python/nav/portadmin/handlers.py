@@ -160,7 +160,10 @@ class ManagementHandler:
         raise NotImplementedError
 
     def set_access(self, interface: manage.Interface, access_vlan: int):
-        """Puts a port in access mode and sets its access/native/untagged VLAN"""
+        """Puts a port in access mode and sets its access/native/untagged VLAN.
+
+        An implementation must also update the Interface object in the NAVdb.
+        """
         raise NotImplementedError
 
     def set_trunk(
@@ -168,6 +171,8 @@ class ManagementHandler:
     ):
         """Puts a port in trunk mode, setting its native/untagged VLAN and tagged
         trunk VLANs as well.
+
+        An implementation must also update the Interface object in the NAVdb.
 
         :param interface: The interface to set to trunk mode.
         :param native_vlan: The native VLAN for untagged packets on this interface.

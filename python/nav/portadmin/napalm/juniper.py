@@ -25,7 +25,7 @@ so the underlying Juniper PyEZ library is utilized directly in most cases.
 
 """
 from operator import attrgetter
-from typing import List, Any, Dict, Tuple
+from typing import List, Any, Dict, Tuple, Sequence
 
 import napalm
 from napalm.base.exceptions import ConnectAuthError, ConnectionException
@@ -60,6 +60,15 @@ TEMPLATE_DELETE_INTERFACE_DESCRIPTION = "delete interfaces {ifname} description"
 TEMPLATE_RESET_VLAN_MEMBERS = """
 delete interfaces {ifname} unit {unit} family ethernet-switching vlan members
 set interfaces {ifname} unit {unit} family ethernet-switching vlan members [ {members} ]
+"""
+TEMPLATE_DELETE_NATIVE_VLAN = """
+delete interfaces {ifname} unit {unit} family ethernet-switching native-vlan-id
+"""
+TEMPLATE_SET_NATIVE_VLAN = """
+set interfaces {ifname} unit {unit} family ethernet-switching native-vlan-id {native}
+"""
+TEMPLATE_SET_PORT_MODE = """
+set interfaces {ifname} unit {unit} family ethernet-switching port-mode {mode}
 """
 
 
@@ -207,6 +216,80 @@ class Juniper(ManagementHandler):
             ifname=master, unit=unit, members=vlan
         )
         self.device.load_merge_candidate(config=config)
+
+    def set_access(self, interface: manage.Interface, access_vlan: int):
+        master, unit = split_master_unit(interface.ifname)
+        if not unit:
+            raise ManagementError(
+                "Cannot set vlan config on non-units", interface.ifname
+            )
+
+        current = InterfaceConfigTable(self.device.device).get(master)[master]
+
+        # Deleting native vlan id is only appropriate if the element exists already
+        templates = [TEMPLATE_DELETE_NATIVE_VLAN] if current["native_vlan"] else []
+        templates += [TEMPLATE_SET_PORT_MODE, TEMPLATE_RESET_VLAN_MEMBERS]
+
+        config = "\n".join(
+            tmpl.format(ifname=master, unit=unit, mode="access", members=access_vlan)
+            for tmpl in templates
+        )
+        self.device.load_merge_candidate(config=config)
+        self._save_access_interface(interface, access_vlan)
+
+    def _save_access_interface(self, interface: manage.Interface, access_vlan: int):
+        """Updates the Interface entry in the database with access config"""
+        interface.trunk = False
+        interface.vlan = access_vlan
+        try:
+            allowedvlans = interface.swportallowedvlan
+            allowedvlans.save()
+        except manage.SwPortAllowedVlan.DoesNotExist:
+            pass
+        interface.save()
+
+    def set_trunk(
+        self, interface: manage.Interface, native_vlan: int, trunk_vlans: Sequence[int]
+    ):
+        master, unit = split_master_unit(interface.ifname)
+        if not unit:
+            raise ManagementError(
+                "Cannot set vlan config on non-units", interface.ifname
+            )
+
+        members = " ".join(str(tag) for tag in trunk_vlans)
+        templates = [
+            TEMPLATE_SET_PORT_MODE,
+            TEMPLATE_SET_NATIVE_VLAN,
+            TEMPLATE_RESET_VLAN_MEMBERS,
+        ]
+        config = "\n".join(
+            tmpl.format(
+                ifname=master,
+                unit=unit,
+                mode="trunk",
+                native=native_vlan,
+                members=members,
+            )
+            for tmpl in templates
+        )
+
+        self.device.load_merge_candidate(config=config)
+        self._save_trunk_interface(interface, native_vlan, trunk_vlans)
+
+    @staticmethod
+    def _save_trunk_interface(
+        interface: manage.Interface, native_vlan: int, trunk_vlans: Sequence[int]
+    ):
+        """Updates the Interface entry in the database with trunk config"""
+        interface.trunk = True
+        interface.vlan = native_vlan
+        allowedvlan, _ = manage.SwPortAllowedVlan.objects.get_or_create(
+            interface=interface
+        )
+        allowedvlan.set_allowed_vlans(trunk_vlans)
+        allowedvlan.save()
+        interface.save()
 
     def get_interface_admin_status(self, interface: manage.Interface) -> int:
         ifc = self.interfaces[interface.ifname]
