@@ -77,12 +77,14 @@ class AccountForm(forms.ModelForm):
             self.fields['password1'].required = False
             submit_value = 'Save changes'
 
-            # Remove password and login from external accounts
             # This should really be two different forms because of this
             if kwargs['instance'].ext_sync:
-                authenticator = "" \
-                    "<p class='alert-box'>External authenticator: %s</p>" % (
-                        kwargs['instance'].ext_sync)
+                # We don't want to enable local password editing for accounts that are
+                # managed externally.
+                authenticator = (
+                    "<p class='alert-box'>External authenticator: %s</p>"
+                    % kwargs["instance"].ext_sync
+                )
                 del self.fields['password1']
                 del self.fields['password2']
                 self.fields['login'].widget.attrs['readonly'] = True
@@ -90,6 +92,10 @@ class AccountForm(forms.ModelForm):
                                       HTML(authenticator)])
             else:
                 fieldset_args.extend(default_args)
+            if kwargs["instance"].id == Account.DEFAULT_ACCOUNT:
+                # We don't want to enable significant changes to the anonymous account
+                for field in ("password1", "password2", "login"):
+                    self.fields[field].widget.attrs["readonly"] = True
         else:
             submit_value = 'Create account'
             fieldset_args.extend(default_args)
