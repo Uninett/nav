@@ -37,6 +37,7 @@ from nav.portadmin.handlers import (
     DeviceNotConfigurableError,
     AuthenticationError,
     NoResponseError,
+    ManagementError,
 )
 from nav.junos.nav_views import (
     EthPortTable,
@@ -56,6 +57,10 @@ SNMP_STATUS_MAP = {"up": 1, "down": 2, True: 1, False: 2}
 
 TEMPLATE_SET_INTERFACE_DESCRIPTION = 'set interfaces {ifname} description "{descr}"'
 TEMPLATE_DELETE_INTERFACE_DESCRIPTION = "delete interfaces {ifname} description"
+TEMPLATE_RESET_VLAN_MEMBERS = """
+delete interfaces {ifname} unit {unit} family ethernet-switching vlan members
+set interfaces {ifname} unit {unit} family ethernet-switching vlan members [ {members} ]
+"""
 
 
 class Juniper(ManagementHandler):
@@ -190,6 +195,31 @@ class Juniper(ManagementHandler):
         else:
             config = TEMPLATE_DELETE_INTERFACE_DESCRIPTION.format(ifname=master)
         self.device.load_merge_candidate(config=config)
+
+    def set_vlan(self, interface: manage.Interface, vlan: int):
+        master, unit = split_master_unit(interface.ifname)
+        if not unit:
+            raise ManagementError(
+                "Cannot set vlan members on non-units", interface.ifname
+            )
+
+        config = TEMPLATE_RESET_VLAN_MEMBERS.format(
+            ifname=master, unit=unit, members=vlan
+        )
+        self.device.load_merge_candidate(config=config)
+
+    def get_interface_admin_status(self, interface: manage.Interface) -> int:
+        ifc = self.interfaces[interface.ifname]
+        admin = ifc.get("is_enabled")
+        if not isinstance(admin, bool) and iter(admin):
+            admin = admin[0]  # sometimes, crazy multiple values are returned
+
+        return SNMP_STATUS_MAP[admin]
+
+    def cycle_interface(self, interface: manage.Interface, wait: float = 5.0):
+        # It isn't clear yet how to do this on Juniper, since PortAdmin performs this
+        # step before the configuration alterations are actually committed.
+        pass
 
     def commit_configuration(self):
         self.device.commit_config(message="Committed from NAV/PortAdmin")
