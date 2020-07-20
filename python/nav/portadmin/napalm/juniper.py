@@ -175,6 +175,9 @@ class Juniper(ManagementHandler):
         untagged = first_true(vlans, pred=lambda vlan: not vlan.tagged)
         return (untagged.tag if untagged else None), tagged
 
+    def commit_configuration(self):
+        self.device.commit_config(message="Committed from NAV/PortAdmin")
+
     @property
     def vlans(self):
         """A cached representation of Juniper VLAN table"""
