@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008, 2011 Uninett AS
+# Copyright (C) 2008, 2011, 2020 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -82,11 +82,13 @@ def account_detail(request, account_id=None):
         elif 'submit_sudo' in request.POST:
             return sudo_to_user(request)
 
-    active = {'account_detail': True} if account else {'account_new': True}
-    auditlog_api_parameters = {
-        'object_model': 'account',
-        'object_pk': account.pk
-    } if account else {}
+    if account:
+        active = {"account_detail": True}
+        auditlog_api_parameters = {"object_model": "account", "object_pk": account.pk}
+        add_warnings_for_account(account, request)
+    else:
+        active = {"account_new": True}
+        auditlog_api_parameters = {}
 
     context = {
         'auditlog_api_parameters': auditlog_api_parameters,
@@ -98,6 +100,51 @@ def account_detail(request, account_id=None):
     }
     context.update(DEFAULT_NAVPATH)
     return render(request, 'useradmin/account_detail.html', context)
+
+
+def add_warnings_for_account(account, request):
+    """Adds session warning messages about issues with an Account's configuration
+
+    :type account: Account
+    :type request: HttpRequest
+    """
+    if account.id == Account.DEFAULT_ACCOUNT:
+        if account.locked:
+            messages.warning(
+                request,
+                "This account represents all non-logged in users. Be wary of making "
+                "changes to it.",
+            )
+        else:
+            messages.warning(
+                request,
+                "This account represents all non-logged in users, but has been UNLOCKED"
+                " so it can be used to log in. Please LOCK this account immediately",
+            )
+    else:
+        if account.locked:
+            messages.warning(request, "This account is locked and cannot log in.")
+
+    if not account.locked and account.has_plaintext_password():
+        messages.warning(
+            request,
+            "This account's password is stored in plain text. Its password should be "
+            "changed immediately, or the account disabled.",
+        )
+    if account.has_old_style_password_hash():
+        messages.warning(
+            request,
+            "This account's password is stored using an outdated and INSECURE hashing "
+            "method. The user has either not logged in or not changed its password in "
+            "years. Its password should be changed or the account disabled.",
+        )
+    if account.has_deprecated_password_hash_method():
+        messages.warning(
+            request,
+            "This account's password is stored using an older hash method. The user "
+            "has either not logged in or not changed its password in a long time. Its "
+            "password should be changed or the account disabled.",
+        )
 
 
 def save_account(request, account_form, old_account):
