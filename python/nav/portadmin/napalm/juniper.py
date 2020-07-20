@@ -54,6 +54,9 @@ __all__ = ["Juniper"]
 # model. See IF-MIB::ifOperStatus and IF-MIB::ifAdminStatus from RFC 2863 for details.
 SNMP_STATUS_MAP = {"up": 1, "down": 2, True: 1, False: 2}
 
+TEMPLATE_SET_INTERFACE_DESCRIPTION = 'set interfaces {ifname} description "{descr}"'
+TEMPLATE_DELETE_INTERFACE_DESCRIPTION = "delete interfaces {ifname} description"
+
 
 class Juniper(ManagementHandler):
     """Juniper specific version of a Napalm PortAdmin handler.
@@ -174,6 +177,19 @@ class Juniper(ManagementHandler):
         tagged = [vlan.tag for vlan in vlans if vlan.tagged]
         untagged = first_true(vlans, pred=lambda vlan: not vlan.tagged)
         return (untagged.tag if untagged else None), tagged
+
+    def set_interface_description(self, interface: manage.Interface, description: str):
+        # never set description on units but on master interface
+        master, _ = split_master_unit(interface.ifname)
+        description = description.replace('"', r"\"")  # escape quotes
+
+        if description:
+            config = TEMPLATE_SET_INTERFACE_DESCRIPTION.format(
+                ifname=master, descr=description
+            )
+        else:
+            config = TEMPLATE_DELETE_INTERFACE_DESCRIPTION.format(ifname=master)
+        self.device.load_merge_candidate(config=config)
 
     def commit_configuration(self):
         self.device.commit_config(message="Committed from NAV/PortAdmin")
