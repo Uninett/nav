@@ -91,7 +91,11 @@ class Juniper(ManagementHandler):
                 hostname=self.netbox.sysname,
                 username="nav",
                 password="",
-                optional_args={"key_file": "/source/id_netconf"},
+                optional_args={
+                    "key_file": "/source/id_netconf",
+                    "config_lock": True,
+                    "lock_disable": True,
+                },
             )
             try:
                 self._device.open()
