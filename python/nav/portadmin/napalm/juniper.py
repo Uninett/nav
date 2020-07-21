@@ -305,7 +305,9 @@ class Juniper(ManagementHandler):
         pass
 
     def commit_configuration(self):
-        self.device.commit_config(message="Committed from NAV/PortAdmin")
+        # Only take our sweet time to commit if there are pending changes
+        if self.device.compare_config():
+            self.device.commit_config(message="Committed from NAV/PortAdmin")
 
     @property
     def vlans(self):
