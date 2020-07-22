@@ -337,6 +337,13 @@ class Juniper(ManagementHandler):
         if self.netbox.type.get_enterprise_id() != VENDOR_ID_JUNIPER_NETWORKS_INC:
             raise DeviceNotConfigurableError("Can only configure JunOS devices")
 
+    # These are not relevant for Juniper
+    get_cisco_voice_vlans = None
+    set_cisco_voice_vlan = None
+    enable_cisco_cdp = None
+    disable_cisco_voice_vlan = None
+    disable_cisco_cdp = None
+
 
 # Helper functions
 
