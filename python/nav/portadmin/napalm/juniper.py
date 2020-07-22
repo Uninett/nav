@@ -70,6 +70,8 @@ set interfaces {ifname} unit {unit} family ethernet-switching native-vlan-id {na
 TEMPLATE_SET_PORT_MODE = """
 set interfaces {ifname} unit {unit} family ethernet-switching port-mode {mode}
 """
+TEMPLATE_DISABLE_PORT = "set interfaces {ifname} disable"
+TEMPLATE_ENABLE_PORT = "delete interfaces {ifname} disable"
 
 
 class Juniper(ManagementHandler):
@@ -303,6 +305,31 @@ class Juniper(ManagementHandler):
         # It isn't clear yet how to do this on Juniper, since PortAdmin performs this
         # step before the configuration alterations are actually committed.
         pass
+
+    def set_interface_down(self, interface: manage.Interface):
+        # does not set oper on logical units, only on physical masters
+        master, unit = split_master_unit(interface.ifname)
+        config = TEMPLATE_DISABLE_PORT.format(ifname=master)
+        self.device.load_merge_candidate(config=config)
+
+        self._save_interface_oper(interface, interface.OPER_DOWN)
+
+    def set_interface_up(self, interface: manage.Interface):
+        # does not set oper on logical units, only on physical masters
+        master, unit = split_master_unit(interface.ifname)
+        config = TEMPLATE_ENABLE_PORT.format(ifname=master)
+        self.device.load_merge_candidate(config=config)
+
+        self._save_interface_oper(interface, interface.OPER_UP)
+
+    def _save_interface_oper(self, interface: manage.Interface, ifoperstatus: int):
+        master, unit = split_master_unit(interface.ifname)
+        interface.ifoperstatus = ifoperstatus
+        if unit:  # this was a logical unit, also set the state of the master ifc
+            master_interface = manage.Interface.objects.filter(
+                netbox=interface.netbox, ifname=master
+            )
+            master_interface.update(ifoperstatus=ifoperstatus)
 
     def commit_configuration(self):
         # Only take our sweet time to commit if there are pending changes
