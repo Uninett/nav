@@ -16,7 +16,7 @@
 import time
 from operator import attrgetter
 import logging
-from typing import Dict, Sequence
+from typing import Dict, Sequence, List, Any
 
 from django.utils import six
 
@@ -29,6 +29,7 @@ from nav.Snmp.errors import (
     TimeOutException,
 )
 from nav.bitvector import BitVector
+from nav.models import manage
 
 from nav.models.manage import Vlan, SwPortAllowedVlan, Interface
 from nav.portadmin.handlers import (
@@ -198,7 +199,9 @@ class SNMPHandler(ManagementHandler):
     def get_interface_description(self, interface):
         return safestring(self._query_netbox(self.IF_ALIAS_OID, interface.ifindex))
 
-    def get_interfaces(self):
+    def get_interfaces(
+        self, interfaces: Sequence[manage.Interface] = None
+    ) -> List[Dict[str, Any]]:
         names = self._get_interface_names()
         aliases = self._get_all_ifaliases()
         oper = dict(self._get_all_interfaces_oper_status())

@@ -42,9 +42,16 @@ class ManagementHandler:
         """Get the native/untagged VLAN configured on interface"""
         raise NotImplementedError
 
-    def get_interfaces(self) -> List[Dict[str, Any]]:
-        """Retrieves running configuration of all switch ports on the device.
+    def get_interfaces(
+        self, interfaces: Sequence[manage.Interface] = None
+    ) -> List[Dict[str, Any]]:
+        """Retrieves running configuration switch ports on the device.
 
+        :param interfaces: Optional list of interfaces to filter for, as fetching
+                           data for all interfaces may be a waste of time if only a
+                           single interface is needed. The implementing
+                           handler/protocol may not support this filter, so do not rely
+                           on it.
         :returns: A list of dicts with members `name`, `description`, `oper`, `admin`
                   and `vlan` (the latter being the access/untagged/native vlan ID.
         """

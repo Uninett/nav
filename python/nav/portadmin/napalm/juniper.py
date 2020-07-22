@@ -123,7 +123,9 @@ class Juniper(ManagementHandler):
 
         return self._device
 
-    def get_interfaces(self) -> List[Dict[str, Any]]:
+    def get_interfaces(
+        self, interfaces: Sequence[manage.Interface] = None
+    ) -> List[Dict[str, Any]]:
         vlan_map = self._get_untagged_vlans()
         interfaces = self.get_interface_information()
 
