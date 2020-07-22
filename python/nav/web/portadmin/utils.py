@@ -37,7 +37,7 @@ _logger = logging.getLogger("nav.web.portadmin")
 def get_and_populate_livedata(netbox, interfaces):
     """Fetch live data from netbox"""
     handler = ManagementFactory.get_instance(netbox)
-    livedata = handler.get_interfaces()
+    livedata = handler.get_interfaces(interfaces)
     update_interfaces_with_collected_data(interfaces, livedata)
 
     return handler
