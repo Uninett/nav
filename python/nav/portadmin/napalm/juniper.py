@@ -40,7 +40,6 @@ from nav.portadmin.handlers import (
     ManagementError,
 )
 from nav.junos.nav_views import (
-    EthPortTable,
     EthernetSwitchingInterfaceTable,
     InterfaceConfigTable,
 )
@@ -97,8 +96,7 @@ class Juniper(ManagementHandler):
         super().__init__(netbox, **kwargs)
         self.driver = napalm.get_network_driver("JunOS")
         self._device = None
-        self._ports = None
-        self._interfaces = None
+        self._interfaces = {}
         self._vlans = None
 
     @property
@@ -127,21 +125,18 @@ class Juniper(ManagementHandler):
 
     def get_interfaces(self) -> List[Dict[str, Any]]:
         vlan_map = self._get_untagged_vlans()
+        interfaces = self.get_interface_information()
 
         def _convert(name, ifc):
             oper = ifc.get("is_up")
-            if not isinstance(oper, bool) and iter(oper):
-                oper = oper[0]  # sometimes, crazy multiple values are returned
             admin = ifc.get("is_enabled")
-            if not isinstance(admin, bool) and iter(admin):
-                admin = admin[0]  # sometimes, crazy multiple values are returned
 
             # fake a description from master interface if necessary
             descr = ifc["description"]
             if not descr and is_unit(name):
                 master, _ = split_master_unit(name)
-                if master in self.interfaces:
-                    descr = self.interfaces[master]["description"]
+                if master in interfaces:
+                    descr = interfaces[master]["description"]
 
             return {
                 "name": name,
@@ -151,7 +146,7 @@ class Juniper(ManagementHandler):
                 "vlan": vlan_map.get(name),
             }
 
-        return [_convert(name, ifc) for name, ifc in self.interfaces.items()]
+        return [_convert(name, ifc) for name, ifc in interfaces.items()]
 
     def _get_untagged_vlans(self):
         # This table gets us tagged/untagged VLANs for each interface
@@ -344,20 +339,46 @@ class Juniper(ManagementHandler):
             self._vlans.get()
         return self._vlans
 
-    @property
-    def interfaces(self):
-        """A cached representation of the NAPALM get_interfaces result"""
-        if not self._interfaces:
-            self._interfaces = self.device.get_interfaces()
+    def get_interface_information(self, interface_name: str = None):
+        """Retrieves operational information about ethernet interfaces.
+
+        Getting the full interface table can be slow, especially on stacked switches,
+        so this method will use internal caching.
+
+        :param interface_name: Optional interface name to fetch. If specified,
+                               only data for matching interface names are retrieved
+                               (however, the result may contain data for more interfaces
+                               if old data is in the cache).
+        """
+        # Unable to get PyEZ tables to set a proper key if matching both physical and
+        # logical interfaces in a single table, so doing this rpc manually
+        if not self._interfaces or (
+            interface_name and interface_name not in self._interfaces
+        ):
+            tree = self.device.device.rpc.get_interface_information(
+                terse=True,
+                interface_name=interface_name if interface_name else "[afgxe][et]-*",
+            )
+            self._interfaces.update(self._parse_interface_tree(tree))
         return self._interfaces
 
-    @property
-    def ports(self):
-        """A cached representation of the switch' ethernet port table"""
-        if not self._ports:
-            self._ports = EthPortTable(self.device.device)
-            self._ports.get()
-        return self._ports
+    @staticmethod
+    def _parse_interface_tree(tree):
+        def findtext(elem, text):
+            found = elem.findtext(text)
+            return found.strip() if found else None
+
+        return {
+            findtext(elem, "name"): {
+                "name": findtext(elem, "name"),
+                "description": findtext(elem, "description"),
+                "is_up": findtext(elem, "oper-status") == "up",
+                "is_enabled": findtext(elem, "admin-status") == "up",
+            }
+            for elem in tree.xpath(
+                "physical-interface | physical-interface/logical-interface"
+            )
+        }
 
     def raise_if_not_configurable(self):
         # FIXME: This is just for prototyping, must change to something sense-making
