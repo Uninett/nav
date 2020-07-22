@@ -127,7 +127,8 @@ class Juniper(ManagementHandler):
         self, interfaces: Sequence[manage.Interface] = None
     ) -> List[Dict[str, Any]]:
         vlan_map = self._get_untagged_vlans()
-        interfaces = self.get_interface_information()
+        args = (interfaces[0].ifname,) if len(interfaces) == 1 else ()
+        interfaces = self.get_interface_information(*args)
 
         def _convert(name, ifc):
             oper = ifc.get("is_up")
