@@ -32,26 +32,29 @@ _VlanView:
 
 
 ####
-#### Interface status table
+#### Terse interface status table for both physical and logical interfaces
 #### I.e. `show interface`
 ####
+#### PyEZ seems unable to key the result properly when mixing physical/logical
+#### items, so this table is no good.
+####
 
-EthPortTable:
+InterfaceTable:
   rpc: get-interface-information
   args:
     interface_name: '[afgxe][et]-*'
+    terse: True
   args_key: interface_name
-  item: physical-interface
-  view: EthPortView
+  item: physical-interface|physical-interface/logical-interface
+  view: InterfaceView
 
-EthPortView:
+InterfaceView:
   fields:
-    ifname: name
-    ifindex: { snmp-index: int }
+    name: name
     oper: oper-status
     admin: admin-status
-    ifalias: description
-    macaddr: current-physical-address
+    description: description
+
 
 
 ####
