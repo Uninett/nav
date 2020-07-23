@@ -34,8 +34,8 @@ class ManagementHandler:
         """Configures a single interface's description, AKA the ifalias value"""
         raise NotImplementedError
 
-    def get_interface_native_vlan(self, interface: manage.Interface):
-        """Get the native/untagged VLAN configured on interface"""
+    def get_interface_native_vlan(self, interface: manage.Interface) -> int:
+        """Retrieves the native/untagged VLAN configured on interface"""
         raise NotImplementedError
 
     def get_interfaces(

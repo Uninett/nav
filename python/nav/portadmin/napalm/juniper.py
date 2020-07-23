@@ -184,6 +184,10 @@ class Juniper(ManagementHandler):
         }
         return sorted(result, key=attrgetter("vlan"))
 
+    def get_interface_native_vlan(self, interface: manage.Interface) -> int:
+        untagged, _ = self.get_native_and_trunked_vlans(interface)
+        return untagged
+
     def get_native_and_trunked_vlans(self, interface) -> Tuple[int, List[int]]:
         switching = EthernetSwitchingInterfaceTable(self.device.device)
         switching.get(interface_name=interface.ifname)
