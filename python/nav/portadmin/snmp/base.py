@@ -318,9 +318,6 @@ class SNMPHandler(ManagementHandler):
     def get_interface_admin_status(self, interface):
         return self._query_netbox(self.IF_ADMIN_STATUS, interface.ifindex)
 
-    def get_interface_oper_status(self, interface):
-        return self._query_netbox(self.IF_OPER_STATUS, interface.ifindex)
-
     def _get_if_stats(self, stats):
         """Make a list with tuples.  Each tuple contain
          interface-index and corresponding status-value"""

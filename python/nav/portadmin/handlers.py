@@ -103,23 +103,6 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def get_interface_oper_status(self, interface: manage.Interface) -> int:
-        """Query operational status of an individual interface.
-
-        :returns: A integer to be interpreted as an RFC 2863 ifOperStatus value, also
-                  defined in `manage.Interface.OPER_STATUS_CHOICES`:
-                  > up(1),        -- ready to pass packets
-                  > down(2),
-                  > testing(3),   -- in some test mode
-                  > unknown(4),   -- status can not be determined
-                  >               -- for some reason.
-                  > dormant(5),
-                  > notPresent(6),    -- some component is missing
-                  > lowerLayerDown(7) -- down due to state of
-                  >                   -- lower-layer interface(s)
-        """
-        raise NotImplementedError
-
     def get_netbox_vlans(self) -> List[FantasyVlan]:
         """Returns a list of FantasyVlan objects representing the enabled VLANs on
         this netbox.
