@@ -171,9 +171,9 @@ class Cisco(SNMPHandler):
 
     def get_netbox_vlan_tags(self):
         """Fetch all vlans. Filter on operational and of type ethernet."""
-        vlan_states = [self._extract_index_from_oid(oid) for oid, status in
+        vlan_states = [OID(oid)[-1] for oid, status in
                        self._bulkwalk(self.VTPVLANSTATE) if status == 1]
-        vlan_types = [self._extract_index_from_oid(oid) for oid, vlantype in
+        vlan_types = [OID(oid)[-1] for oid, vlantype in
                       self._bulkwalk(self.VTPVLANTYPE) if vlantype == 1]
 
         return list(set(vlan_states) & set(vlan_types))

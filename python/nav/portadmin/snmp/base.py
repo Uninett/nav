@@ -362,18 +362,13 @@ class SNMPHandler(ManagementHandler):
     def get_netbox_vlan_tags(self):
         if self.available_vlans is None:
             self.available_vlans = [
-                int(self._extract_index_from_oid(oid))
+                OID(oid)[-1]
                 for oid, status in self._bulkwalk(self.VLAN_ROW_STATUS)
                 if status == 1]
         return self.available_vlans
 
     def set_voice_vlan(self, interface, voice_vlan):
         self.set_trunk(interface, interface.vlan, [voice_vlan])
-
-    @staticmethod
-    def _extract_index_from_oid(oid):
-        # TODO: This method is also superfluous, use nav.oids.OID objects instead
-        return int(oid.split('.')[-1])
 
     def get_native_and_trunked_vlans(self, interface):
         native_vlan = self.get_interface_native_vlan(interface)
