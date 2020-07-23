@@ -16,7 +16,7 @@
 import time
 from operator import attrgetter
 import logging
-from typing import Dict
+from typing import Dict, Sequence
 
 from django.utils import six
 
@@ -30,7 +30,7 @@ from nav.Snmp.errors import (
 )
 from nav.bitvector import BitVector
 
-from nav.models.manage import Vlan, SwPortAllowedVlan
+from nav.models.manage import Vlan, SwPortAllowedVlan, Interface
 from nav.portadmin.handlers import (
     ManagementHandler,
     DeviceNotConfigurableError,
@@ -364,9 +364,6 @@ class SNMPHandler(ManagementHandler):
                 if status == 1]
         return self.available_vlans
 
-    def set_voice_vlan(self, interface, voice_vlan):
-        self.set_trunk(interface, interface.vlan, [voice_vlan])
-
     def get_native_and_trunked_vlans(self, interface):
         native_vlan = self.get_interface_native_vlan(interface)
 
@@ -393,7 +390,7 @@ class SNMPHandler(ManagementHandler):
         octet_string = self._query_netbox(self.CURRENT_VLAN_EGRESS_PORTS, vlan)
         return BitVector(octet_string)
 
-    def set_trunk_vlans(self, interface: manage.Interface, vlans: Sequence[int]):
+    def set_trunk_vlans(self, interface: Interface, vlans: Sequence[int]):
         """Trunk vlans on this interface.
 
         :param interface: The interface to set to trunk mode.

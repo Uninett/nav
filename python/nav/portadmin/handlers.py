@@ -120,12 +120,17 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def set_voice_vlan(self, interface, voice_vlan):
-        """Activate voice vlan on this interface
+    def set_interface_voice_vlan(self, interface: manage.Interface, voice_vlan: int):
+        """Activates the voice vlan on this interface.
 
-        Use set_trunk to make sure the interface is put in trunk mode
+        The default implementation is to employ PortAdmin's generic trunk-based voice
+        VLAN concept. This entails setting the interface to trunk mode, keeping the
+        untagged VLAN as its native VLAN and trunking/tagging the voice VLAN.
+
+        A vendor-specific implementation in an inheriting class may opt to use a more
+        appropriate vendor-specific implementation (one example is Cisco voice VLAN).
         """
-        raise NotImplementedError
+        self.set_trunk(interface, interface.vlan, [voice_vlan])
 
     def get_cisco_voice_vlans(self):
         """Should not be implemented on anything else than Cisco"""

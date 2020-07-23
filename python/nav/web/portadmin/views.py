@@ -451,7 +451,7 @@ def set_voice_vlan(handler: ManagementHandler, interface, request):
                         handler.enable_cisco_cdp(interface)
                         cdp_changed = True
                 else:
-                    handler.set_voice_vlan(interface, voice_vlan)
+                    handler.set_interface_voice_vlan(interface, voice_vlan)
                 _logger.info('%s: %s:%s - %s%s', account.login,
                              interface.netbox.get_short_sysname(),
                              interface.ifname, 'voice vlan enabled',
