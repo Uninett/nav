@@ -57,7 +57,7 @@ class ManagementHandler:
         """Set a new vlan on the given interface and remove the previous vlan"""
         raise NotImplementedError
 
-    def set_native_vlan(self, interface, vlan):
+    def set_native_vlan(self, interface: manage.Interface, vlan: int):
         """Set native vlan on a trunk interface"""
         raise NotImplementedError
 

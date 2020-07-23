@@ -188,6 +188,17 @@ class Juniper(ManagementHandler):
         untagged, _ = self.get_native_and_trunked_vlans(interface)
         return untagged
 
+    def set_native_vlan(self, interface: manage.Interface, vlan: int):
+        master, unit = split_master_unit(interface.ifname)
+        if not unit:
+            raise ManagementError(
+                "Cannot set vlan config on non-units", interface.ifname
+            )
+        config = TEMPLATE_SET_NATIVE_VLAN.format(ifname=master, unit=unit, native=vlan)
+        self.device.load_merge_candidate(config=config)
+        interface.vlan = vlan
+        interface.save()
+
     def get_native_and_trunked_vlans(self, interface) -> Tuple[int, List[int]]:
         switching = EthernetSwitchingInterfaceTable(self.device.device)
         switching.get(interface_name=interface.ifname)
