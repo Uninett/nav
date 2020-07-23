@@ -406,6 +406,13 @@ class Juniper(ManagementHandler):
         if self.netbox.type.get_enterprise_id() != VENDOR_ID_JUNIPER_NETWORKS_INC:
             raise DeviceNotConfigurableError("Can only configure JunOS devices")
 
+    # FIXME Implement dot1x fetcher methods
+    # dot1x authentication configuration fetchers aren't implemented yet, for lack
+    # of configured devices to test on
+    # def is_dot1x_enabled(self, interface: manage.Interface) -> bool:
+    # def get_dot1x_enabled_interfaces(self) -> Dict[str, bool]:
+    # def is_port_access_control_enabled(self) -> bool:
+
     # These are not relevant for Juniper
     get_cisco_voice_vlans = None
     set_cisco_voice_vlan = None
