@@ -393,7 +393,12 @@ class SNMPHandler(ManagementHandler):
         octet_string = self._query_netbox(self.CURRENT_VLAN_EGRESS_PORTS, vlan)
         return BitVector(octet_string)
 
-    def set_trunk_vlans(self, interface, vlans):
+    def set_trunk_vlans(self, interface: manage.Interface, vlans: Sequence[int]):
+        """Trunk vlans on this interface.
+
+        :param interface: The interface to set to trunk mode.
+        :param vlans: The list of VLAN tags to allow on this trunk.
+        """
         # This procedure is somewhat complex using the Q-BRIDGE-MIB. For each
         # configured VLAN there is a list of ports (encoded as an octet string where
         # each bit represents a port) with an active egress on this VLAN, so making

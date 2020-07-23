@@ -154,14 +154,6 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def set_trunk_vlans(self, interface: manage.Interface, vlans: Sequence[int]):
-        """Trunk vlans on this interface.
-
-        :param interface: The interface to set to trunk mode.
-        :param vlans: The list of VLAN tags to allow on this trunk.
-        """
-        raise NotImplementedError
-
     def set_access(self, interface: manage.Interface, access_vlan: int):
         """Puts a port in access mode and sets its access/native/untagged VLAN"""
         raise NotImplementedError
