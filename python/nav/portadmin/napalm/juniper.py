@@ -184,6 +184,9 @@ class Juniper(ManagementHandler):
         }
         return sorted(result, key=attrgetter("vlan"))
 
+    def get_netbox_vlan_tags(self) -> List[int]:
+        return [vlan.tag for vlan in self.vlans if vlan.status.upper() == "ENABLED"]
+
     def get_interface_native_vlan(self, interface: manage.Interface) -> int:
         untagged, _ = self.get_native_and_trunked_vlans(interface)
         return untagged
