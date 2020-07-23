@@ -137,6 +137,8 @@ def get_read_only_variables(request):
     for profile in profiles:
         if profile.is_snmp:
             response = get_snmp_read_only_variables(ip_address, profile)
+        elif profile.protocol == profile.PROTOCOL_NAPALM:
+            response = test_napalm_connectivity(ip_address, profile)
         else:
             response = None
 
@@ -217,6 +219,14 @@ def check_snmp_version(ip, profile):
         return False
     else:
         return True
+
+
+def test_napalm_connectivity(ip_address: str, profile: ManagementProfile) -> dict:
+    """Tests connectivity of a NAPALM profile and returns a status dictionary"""
+    return {
+        "status": False,
+        "error_message": "Can't test NAPALM profiles just yet",
+    }
 
 
 def get_sysname(ip_address):
