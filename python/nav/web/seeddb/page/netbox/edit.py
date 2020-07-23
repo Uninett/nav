@@ -133,21 +133,22 @@ def get_read_only_variables(request):
     sysname = get_sysname(ip_address)
     netbox_type = None
 
-    snmp_profiles = [p for p in profiles if p.is_snmp]
-    result = {p.id: {} for p in snmp_profiles}
-    for profile in snmp_profiles:
-        if profile.configuration.get('write'):
-            result[profile.id] = snmp_write_test(ip_address, profile)
+    result = {p.id: {} for p in profiles}
+    for profile in profiles:
+        if profile.is_snmp:
+            response = get_snmp_read_only_variables(ip_address, profile)
         else:
-            netbox_type = get_type_id(ip_address, profile)
-            result[profile.id]['status'] = check_snmp_version(
-                ip_address, profile
+            response = None
+
+        if response:
+            response["name"] = profile.name
+            response["url"] = reverse(
+                "seeddb-management-profile-edit",
+                kwargs={"management_profile_id": profile.id},
             )
-        result[profile.id]['name'] = profile.name
-        result[profile.id]['url'] = reverse(
-            'seeddb-management-profile-edit',
-            kwargs={'management_profile_id': profile.id}
-        )
+            result[profile.id].update(response)
+            if result.get("type"):
+                netbox_type = result["type"]
 
     data = {
         'sysname': sysname,
@@ -155,6 +156,17 @@ def get_read_only_variables(request):
         'profiles': result,
     }
     return JsonResponse(data)
+
+
+def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
+    """Tests and retrieves basic netbox clasification from an SNMP profile"""
+    result = {}
+    if profile.configuration.get("write"):
+        result = snmp_write_test(ip_address, profile)
+    else:
+        result["type"] = get_type_id(ip_address, profile)
+        result["status"] = check_snmp_version(ip_address, profile)
+    return result
 
 
 def snmp_write_test(ip, profile):
