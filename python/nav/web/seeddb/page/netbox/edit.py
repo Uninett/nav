@@ -34,6 +34,7 @@ from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
 from nav.models.manage import NetboxInfo, ManagementProfile
 from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
+from nav import napalm
 from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname
@@ -149,8 +150,8 @@ def get_read_only_variables(request):
                 kwargs={"management_profile_id": profile.id},
             )
             result[profile.id].update(response)
-            if result.get("type"):
-                netbox_type = result["type"]
+            if response.get("type"):
+                netbox_type = response["type"]
 
     data = {
         'sysname': sysname,
@@ -223,10 +224,12 @@ def check_snmp_version(ip, profile):
 
 def test_napalm_connectivity(ip_address: str, profile: ManagementProfile) -> dict:
     """Tests connectivity of a NAPALM profile and returns a status dictionary"""
-    return {
-        "status": False,
-        "error_message": "Can't test NAPALM profiles just yet",
-    }
+    try:
+        with napalm.connect(ip_address, profile) as device:
+            return {"status": True}
+    except Exception as error:
+        _logger.exception("Could not connect to %s using NAPALM profile", ip_address)
+        return {"status": False, "error_message": str(error)}
 
 
 def get_sysname(ip_address):
