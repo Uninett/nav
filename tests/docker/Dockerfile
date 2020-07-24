@@ -15,8 +15,8 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get -y install --no-install-recommends \
       curl git build-essential \
-      python3.5 python3.5-dev \
       python3.7 python3.7-dev \
+      python3.8 python3.8-dev \
       python3-pip
 
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
@@ -41,10 +41,8 @@ RUN apt-get update && \
 
 
 # Now install NodeJS and NPM for Javascript testing needs -
-# Which incidentally includes Python2.7, so we need some selection magic
 RUN curl -sL https://deb.nodesource.com/setup_8.x  | bash - && \
-    apt-get install -y --no-install-recommends nodejs && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python2.7 2
+    apt-get install -y --no-install-recommends nodejs
 
 # Build and install libtidy5
 RUN cd /tmp && \
@@ -71,7 +69,7 @@ RUN cd /tmp && \
     mv chromedriver /usr/local/bin/
 
 # Install our primary test runner
-RUN python3.5 -m pip install tox snmpsim 'virtualenv<20.0.0'
+RUN python3.7 -m pip install tox snmpsim 'virtualenv<20.0.0'
 
 # Add a build user
 RUN adduser --system --group --home=/source --shell=/bin/bash build && \

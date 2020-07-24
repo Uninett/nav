@@ -28,7 +28,7 @@ build.sub_commands = [('build_sass', None)] + build.sub_commands
 
 setup(
     setup_requires=['libsass', 'setuptools_scm'],
-    python_requires=">=2.7",
+    python_requires=">=3.7",
     use_scm_version=True,
 
     name="nav",
