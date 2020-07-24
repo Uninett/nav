@@ -27,9 +27,9 @@ so the underlying Juniper PyEZ library is utilized directly in most cases.
 from operator import attrgetter
 from typing import List, Any, Dict, Tuple, Sequence
 
-import napalm
 from napalm.base.exceptions import ConnectAuthError, ConnectionException
 
+from nav.napalm import connect as napalm_connect
 from nav.enterprise.ids import VENDOR_ID_JUNIPER_NETWORKS_INC
 from nav.models import manage
 from nav.portadmin.handlers import (
@@ -91,31 +91,31 @@ class Juniper(ManagementHandler):
     """
 
     VENDOR = VENDOR_ID_JUNIPER_NETWORKS_INC
+    PROTOCOL = manage.ManagementProfile.PROTOCOL_NAPALM
 
-    def __init__(self, netbox, **kwargs):
+    def __init__(self, netbox: manage.Netbox, **kwargs):
         super().__init__(netbox, **kwargs)
-        self.driver = napalm.get_network_driver("JunOS")
         self._device = None
+        self._profile = None
         self._interfaces = {}
         self._vlans = None
+
+    @property
+    def profile(self):
+        """Returns the selected NAPALM profile for this netbox"""
+        if not self._profile:
+            profiles = self.netbox.profiles.filter(protocol=self.PROTOCOL)
+            if profiles:
+                self._profile = profiles[0]
+        return self._profile
 
     @property
     def device(self):
         """Opens a device connection or returns an existing one"""
         # FIXME: This is just for prototyping, this config must be retrieved from the DB
         if not self._device:
-            self._device = self.driver(
-                hostname=self.netbox.sysname,
-                username="nav",
-                password="",
-                optional_args={
-                    "key_file": "/source/id_netconf",
-                    "config_lock": True,
-                    "lock_disable": True,
-                },
-            )
             try:
-                self._device.open()
+                self._device = napalm_connect(self.netbox, self.profile)
             except ConnectAuthError as err:
                 raise AuthenticationError("Authentication failed") from err
             except ConnectionException as err:
@@ -405,6 +405,8 @@ class Juniper(ManagementHandler):
         # FIXME: This is just for prototyping, must change to something sense-making
         if self.netbox.type.get_enterprise_id() != VENDOR_ID_JUNIPER_NETWORKS_INC:
             raise DeviceNotConfigurableError("Can only configure JunOS devices")
+        if not self.profile:
+            raise DeviceNotConfigurableError("Device has no NAPALM profile")
 
     # FIXME Implement dot1x fetcher methods
     # dot1x authentication configuration fetchers aren't implemented yet, for lack
