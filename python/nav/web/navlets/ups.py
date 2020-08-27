@@ -73,7 +73,12 @@ class UpsWidget(Navlet):
         if not netboxid:
             return context
 
-        netbox = Netbox.objects.get(pk=netboxid)
+        try:
+            netbox = Netbox.objects.get(pk=netboxid)
+        except Netbox.DoesNotExist:
+            context["doesnotexist"] = netboxid
+            return context
+
         context['netbox'] = netbox
 
         # internal names selected from ups-mib and powernet-mib.
