@@ -48,7 +48,12 @@ class PduWidget(Navlet):
         if not roomid:
             return context
 
-        room = Room.objects.get(pk=roomid)
+        try:
+            room = Room.objects.get(pk=roomid)
+        except Room.DoesNotExist:
+            context["doesnotexist"] = roomid
+            return context
+
         pdus = room.netbox_set.filter(category='POWER').filter(
             sensor__internal_name__startswith='rPDULoadStatusLoad'
         ).prefetch_related('sensor_set').distinct()
