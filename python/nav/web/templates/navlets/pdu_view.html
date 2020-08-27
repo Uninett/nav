@@ -44,10 +44,16 @@
     </script>
 
   {% else %}
-    <div class="alert-box">
-      <a href="#" class="configure-link">Choose which room</a> to show pdu status for
-    </div>
-
+      {% if doesnotexist %}
+          <div class="alert-box error">
+              The room <q>{{ doesnotexist }}</q> no longer exists.
+              <a href="#" class="configure-link">Choose a new room</a> to show pdu status for.
+          </div>
+      {% else %}
+        <div class="alert-box">
+          <a href="#" class="configure-link">Choose which room</a> to show pdu status for
+        </div>
+      {% endif %}
     <script>
      (function(){
          var $navlet = $('[data-id=' + {{ navlet.navlet_id }}+ ']');

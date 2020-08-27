@@ -112,7 +112,14 @@
 
   {% else %}
 
-    <div class="alertbox info">Edit the widget to add UPS</div>
+      {% if doesnotexist %}
+          <div class="alert-box error">
+              The configured UPS <em>(netboxid={{ doesnotexist }})</em> has been deleted from NAV. Please edit the
+              widget to configure a new UPS, or delete this widget from your dashboard.
+          </div>
+      {% else %}
+          <div class="alert-box info">Edit the widget to add UPS</div>
+      {% endif %}
 
   {% endif %}
 

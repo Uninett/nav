@@ -30,6 +30,12 @@ class MyDateInput(forms.DateInput):
     """Set date as type on date input widget"""
     input_type = 'date'
 
+    def __init__(self, attrs=None, format=None):
+        if not attrs:
+            attrs = {}
+        attrs.setdefault("placeholder", "yyyy-mm-dd")
+        super(MyDateInput, self).__init__(attrs=attrs, format=format)
+
 
 class MyDateField(forms.DateField):
     """Set widget with type = date as default widget"""
@@ -81,7 +87,7 @@ class DeviceHistoryViewFilter(forms.Form):
         """Uses the initial values for empty fields"""
         cleaned_data = super(DeviceHistoryViewFilter, self).clean()
         for field in self.fields.keys():
-            if not cleaned_data[field] and self.fields[field].initial:
+            if not cleaned_data.get(field) and self.fields[field].initial:
                 cleaned_data[field] = self.fields[field].initial
         self.data = cleaned_data
         return cleaned_data
