@@ -98,10 +98,7 @@ def move(request, model, form_model, redirect, title_attr='id',
             return HttpResponseRedirect(reverse(redirect))
 
     # Keep values from the form and pass them as context
-    if form:
-        fields = form.fields.keys()
-    else:
-        fields = form_model().fields.keys()
+    fields = list(form.fields.keys() if form else form_model().fields.keys())
 
     values = objects.values('pk', title_attr, *fields)
     object_list = _parse_value_differences(values, data, title_attr, fields)
