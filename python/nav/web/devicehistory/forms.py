@@ -34,7 +34,7 @@ class MyDateInput(forms.DateInput):
         if not attrs:
             attrs = {}
         attrs.setdefault("placeholder", "yyyy-mm-dd")
-        super().__init__(attrs=attrs, format=format)
+        super(MyDateInput, self).__init__(attrs=attrs, format=format)
 
 
 class MyDateField(forms.DateField):
