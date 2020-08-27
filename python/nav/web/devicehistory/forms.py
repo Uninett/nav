@@ -30,6 +30,12 @@ class MyDateInput(forms.DateInput):
     """Set date as type on date input widget"""
     input_type = 'date'
 
+    def __init__(self, attrs=None, format=None):
+        if not attrs:
+            attrs = {}
+        attrs.setdefault("placeholder", "yyyy-mm-dd")
+        super().__init__(attrs=attrs, format=format)
+
 
 class MyDateField(forms.DateField):
     """Set widget with type = date as default widget"""
