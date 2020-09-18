@@ -70,8 +70,9 @@ class LLDP(Plugin):
                 self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
             yield run_in_thread(self._process_remote)
 
-            # Store sentinel to signal that LLDP neighbors have been processed
+            # Store sentinels to signal that LLDP neighbors have been processed
             shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+            shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
             yield self._get_chassis_id(mib)
         else:
             self._logger.debug("LLDP remote table seems unchanged")
