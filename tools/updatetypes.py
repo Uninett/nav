@@ -26,11 +26,15 @@ from __future__ import print_function
 import sys
 import nav.db
 
-selectsql = 'SELECT vendorid, typename, cdp, tftp, cs_at_vlan, chassis, ' \
-            'descr, sysobjectid FROM "type"'
-updatesql = 'UPDATE "type" SET vendorid=%s, typename=%s, cdp=%s, tftp=%s, ' \
-            'cs_at_vlan=%s, chassis=%s, descr=%s ' \
-            'WHERE sysobjectid=%s;'
+selectsql = (
+    "SELECT vendorid, typename, cdp, tftp, cs_at_vlan, chassis, "
+    'descr, sysobjectid FROM "type"'
+)
+updatesql = (
+    'UPDATE "type" SET vendorid=%s, typename=%s, cdp=%s, tftp=%s, '
+    "cs_at_vlan=%s, chassis=%s, descr=%s "
+    "WHERE sysobjectid=%s;"
+)
 
 
 def escape(v):
@@ -43,7 +47,7 @@ def escape(v):
 
 def main(args):
     """Main execution flow"""
-    conn = nav.db.getConnection('default')
+    conn = nav.db.getConnection("default")
 
     cursor = conn.cursor()
     cursor.execute(selectsql)
@@ -56,5 +60,6 @@ def main(args):
 
     conn.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main(sys.argv[1:])
