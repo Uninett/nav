@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (C) 2006, 2010 Uninett AS
+# Copyright (C) 2006, 2010, 2020 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,52 +14,88 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""This script produces UPDATE statements suitable to update a NAV type table.
+"""This script produces PostgreSQL INSERT (or actually, "UPSERT") statements suitable
+to synchronize the IP Device type registry of one NAV installation based on the
+information contained in another.
 
 Typically, this is used by the upstream authors to create an SQL script that
 will bring the type data of users' installations up-to-date.  The script will
 access a NAV database by way of the standard db.conf configuration file.
 """
-
-from __future__ import print_function
-
-import sys
 import nav.db
+from nav.bootstrap import bootstrap_django
 
-selectsql = (
-    "SELECT vendorid, typename, cdp, tftp, cs_at_vlan, chassis, "
-    'descr, sysobjectid FROM "type"'
-)
-updatesql = (
-    'UPDATE "type" SET vendorid=%s, typename=%s, cdp=%s, tftp=%s, '
-    "cs_at_vlan=%s, chassis=%s, descr=%s "
-    "WHERE sysobjectid=%s;"
-)
+bootstrap_django("synctypes")
+from nav.models.manage import NetboxType
+
+
+VENDOR_INSERT_SQL_TEMPLATE = """
+INSERT INTO vendor 
+(SELECT {vendorid} AS vendorid
+ WHERE NOT EXISTS (
+  SELECT vendorid FROM vendor WHERE vendorid ILIKE {vendorid}
+ )
+); 
+"""
+
+TYPE_UPSERT_SQL_TEMPLATE = """
+INSERT INTO "type" (vendorid, typename, sysobjectid, descr)
+VALUES (
+  (SELECT vendorid FROM vendor WHERE vendorid ILIKE {vendorid}),
+  {typename},
+  {sysobjectid},
+  {descr}
+) ON CONFLICT (sysobjectid) DO UPDATE 
+  SET
+    vendorid=(SELECT vendorid FROM vendor WHERE vendorid ILIKE {vendorid}),
+    typename={typename},
+    descr={descr};
+
+"""
+
+
+def main():
+    """Main program"""
+    types = NetboxType.objects.all().select_related("vendor")
+    used_vendors = {t.vendor.id for t in types}
+    if types:
+        print("BEGIN;\n")
+        print("-- Vendor definitions --\n")
+        for vendor in used_vendors:
+            print_vendor(vendor)
+
+        print("-- Netbox type definitions --\n")
+        for typ in types:
+            print_type(typ)
+
+        print("\nCOMMIT;")
+
+
+def print_vendor(vendor: str):
+    """Prints an SQL statement to ensure a vendor entry is synced.
+
+    Vendor ID's are case sensitive, so the statement will try work case
+    insensitively to avoid inserting 'duplicate' records due to casing changes.
+    """
+    sql = VENDOR_INSERT_SQL_TEMPLATE.format(vendorid=escape(vendor))
+    print(sql)
+
+
+def print_type(typ: NetboxType):
+    """Prints an SQL statement to ensure a type entry is synced"""
+    sql = TYPE_UPSERT_SQL_TEMPLATE.format(
+        vendorid=escape(typ.vendor.id),
+        typename=escape(typ.name),
+        sysobjectid=escape(typ.sysobjectid),
+        descr=escape(typ.description),
+    )
+    print(sql)
 
 
 def escape(v):
     """Escape a value before entering it in to the db"""
-    if v is None:
-        return "NULL"
-    else:
-        return nav.db.escape(str(v))
-
-
-def main(args):
-    """Main execution flow"""
-    conn = nav.db.getConnection("default")
-
-    cursor = conn.cursor()
-    cursor.execute(selectsql)
-    if cursor.rowcount > 0:
-        print("BEGIN;\n")
-        for row in cursor.fetchall():
-            values = [escape(v) for v in row]
-            print(updatesql % tuple(values))
-        print("\nCOMMIT;")
-
-    conn.close()
+    return nav.db.escape(str(v)) if v is not None else "NULL"
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
