@@ -22,6 +22,8 @@ Typically, this is used by the upstream authors to create an SQL script that
 will bring the type data of users' installations up-to-date.  The script will
 access a NAV database by way of the standard db.conf configuration file.
 """
+import argparse
+
 import nav.db
 from nav.bootstrap import bootstrap_django
 
@@ -54,11 +56,12 @@ VALUES (
 """
 
 
-def main():
+def main(_args):
     """Main program"""
     types = NetboxType.objects.all().select_related("vendor")
     used_vendors = {t.vendor.id for t in types}
     if types:
+        print("-- This SQL script needs at least PostgreSQL 9.5 to work --")
         print("BEGIN;\n")
         print("-- Vendor definitions --\n")
         for vendor in used_vendors:
@@ -97,5 +100,17 @@ def escape(v):
     return nav.db.escape(str(v)) if v is not None else "NULL"
 
 
+def parse_args():
+    """Parses command line arguments using argparse"""
+    parser = argparse.ArgumentParser(
+        description="NAV type registry synchronizer",
+        epilog="This program dumps this NAV installation's IP device type registry to "
+        "STDOUT as a PostgreSQL compatible script. The resulting script can be used to "
+        "synchronize the type registry of another NAV installation. The script will "
+        "add missing types and update existing type names and descriptions.",
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    main()
+    main(parse_args())
