@@ -35,6 +35,19 @@ The new options are documented in the daemons' example config files,
 :file:`ipdevpoll.conf` and :file:`pping.conf`, respectively.
 
 
+New type sync script
+~~~~~~~~~~~~~~~~~~~~
+
+:program:`navsynctypes` is a new command line program to dump the NAV IP device
+type registry as a series of PostgreSQL compatible commands that will update
+the type registry of another NAV installation. Missing types will be added,
+while existing types will have their names and descriptions updated to reflect
+the names and descriptions of the source NAV installation.
+
+Its primary use may be for someone who operates multiple NAV installations to
+easily synchronize the type registry between those installations.
+
+
 NAV 5.0
 =======
 
