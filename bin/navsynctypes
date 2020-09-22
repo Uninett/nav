@@ -17,10 +17,6 @@
 """This script produces PostgreSQL INSERT (or actually, "UPSERT") statements suitable
 to synchronize the IP Device type registry of one NAV installation based on the
 information contained in another.
-
-Typically, this is used by the upstream authors to create an SQL script that
-will bring the type data of users' installations up-to-date.  The script will
-access a NAV database by way of the standard db.conf configuration file.
 """
 import argparse
 
