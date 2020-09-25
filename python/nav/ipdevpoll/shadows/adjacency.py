@@ -38,8 +38,8 @@ same source are expired properly.
 Sentinels
 ---------
 
-A sentinel record is an AdjacencyCandidate instance whose interface attribute
-is None, and whose source attribute is a non-empty string.
+A sentinel record is an AdjacencyCandidate or UnrecognizedNeighbor instance whose
+interface attribute is None, and whose source attribute is a non-empty string.
 
 """
 from django.utils import six
@@ -158,7 +158,7 @@ def candidate_key(cand):
 
 
 class UnrecognizedNeighborManager(DefaultManager):
-    "Managed UnrecognizedNeighbor entries"
+    """Manager for UnrecognizedNeighbor entries"""
     existing = None
     found = None
     sources = None
@@ -192,7 +192,7 @@ class UnrecognizedNeighborManager(DefaultManager):
 
     @staticmethod
     def make_key(obj):
-        return (obj.interface.id, obj.remote_id, obj.source)
+        return obj.interface.id if obj.interface else None, obj.remote_id, obj.source
 
     def cleanup(self):
         missing = set(self.existing).difference(self.found)
@@ -222,3 +222,21 @@ class UnrecognizedNeighbor(Shadow):
             elif not isinstance(getattr(self, attr), six.text_type):
                 value = getattr(self, attr)
                 setattr(self, attr, value.decode('utf-8'))
+
+    def save(self, containers=None):
+        """Does nothing if this is a sentinel object"""
+        if self.interface:
+            return super(UnrecognizedNeighbor, self).save(containers)
+
+    @classmethod
+    def sentinel(cls, containers, source):
+        """Creates or returns existing sentinel for source in containers.
+
+        :param containers: A ContainerRepository.
+        :param source: A source identifier string, e.g. 'lldp', 'cam', 'cdp',
+                       etc.
+
+        """
+        sentinel = containers.factory(source, cls)
+        sentinel.source = source
+        return sentinel

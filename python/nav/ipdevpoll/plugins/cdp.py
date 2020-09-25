@@ -68,8 +68,9 @@ class CDP(Plugin):
                 self.cache = cache
                 yield run_in_thread(self._process_cache)
 
-            # Store sentinel to signal that CDP neighbors have been processed
+            # Store sentinels to signal that CDP neighbors have been processed
             shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+            shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
 
         else:
             self._logger.debug("CDP cache table seems unchanged")

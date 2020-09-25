@@ -1,3 +1,32 @@
+Version 5.0.6
+(released 27 Aug 2020)
+
+Fixed GitHub issues in this release:
+
+  * #2144 (Prevent ipdevinfo from crashing on weird device names)
+  * #2149 (Inventory failing on DLink DGS-1100 : 'TypeError: argument of
+           type 'int' is not iterable')
+  * #2150 ([BUG] Interface down is causing widget 'status' to display
+           'Could not load widget' due to HTTP 500)
+  * #2165 ([BUG] Delayed delivery alert subscriptions in single time
+           period alert profiles are never sent)
+  * #2167 (Fix potential typecast issue with SQL migration to NAV 5.0)
+  * #2169 ([BUG] macwatch.py crashes when logging notifications about
+           found MAC addresses)
+  * #2170 ([BUG] Alertengine stops dispatching Slack notifications
+           indefinitely if Slack complains of too many requests)
+  * #2171 (Warn about user accounts that have issues with their
+           passwords)
+  * #2172 (Prevent login/password changes to default account)
+  * #2177 ([BUG] Attempting to move IP devices to another room crashes
+           SeedDB)
+  * #2178 ([BUG] PDU widget stops displaying properly if room is
+           deleted)
+  * #2179 ([BUG] UPS widget does not display properly if UPS is deleted
+           from NAV)
+  * #2180 ([BUG] Entering invalid dates in Device History search form
+           causes crash)
+
 Version 5.0.5
 (released 13 Mar 2020)
 
