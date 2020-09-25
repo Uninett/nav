@@ -277,7 +277,7 @@ class Account(models.Model):
         if not self.locked:
             return self.password or ''
         else:
-            return self.password[1:]
+            return self.password[1:] if self.password else ''
 
     def get_email_addresses(self):
         return self.alertaddress_set.filter(type__name=AlertSender.EMAIL)
