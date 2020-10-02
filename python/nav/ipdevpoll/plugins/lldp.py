@@ -61,22 +61,35 @@ class LLDP(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         mib = lldp_mib.LLDPMib(self.agent)
-        need_to_collect = yield stampcheck.is_changed()
+
         stampcheck = yield self._get_stampcheck(mib)
+        remote_table_has_changed = yield stampcheck.is_changed()
+        need_to_collect = remote_table_has_changed
+
+        if not remote_table_has_changed:
+            cache = yield self._get_cached_remote_table()
+            if cache is not None:
+                self._logger.debug("Using cached LLDP remote table")
+                self.remote = cache
+            else:
+                self._logger.debug("Remote didn't change, but cache was empty")
+                need_to_collect = True
+
         if need_to_collect:
             self._logger.debug("collecting LLDP remote table")
             self.remote = yield mib.get_remote_table()
-            if self.remote:
-                self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
+
+        if self.remote:
+            self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
             yield run_in_thread(self._process_remote)
-
-            # Store sentinels to signal that LLDP neighbors have been processed
-            shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
-            shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
             yield self._get_chassis_id(mib)
+            yield self._save_cached_remote_table(self.remote)
         else:
-            self._logger.debug("LLDP remote table seems unchanged")
+            self._logger.debug("No LLDP neighbors to process")
 
+        # Store sentinels to signal that LLDP neighbors have been processed
+        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+        shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
         stampcheck.save()
 
     @defer.inlineCallbacks
