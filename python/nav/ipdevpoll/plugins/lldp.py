@@ -80,6 +80,18 @@ class LLDP(Plugin):
         stampcheck.save()
 
     @defer.inlineCallbacks
+    def _get_cached_remote_table(self):
+        """Placeholder for retrieving a cached version of the remote neighbor table"""
+        yield None
+        defer.returnValue(None)
+
+    @defer.inlineCallbacks
+    def _save_cached_remote_table(self, remote_table):
+        """Placeholder for caching a copy of the remote neighbor table"""
+        yield None
+        defer.returnValue(None)
+
+    @defer.inlineCallbacks
     def _get_chassis_id(self, mib):
         chassis_id_subtype = yield mib.get_next("lldpLocChassisIdSubtype",
                                                 translate_result=True)
