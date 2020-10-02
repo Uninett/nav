@@ -61,8 +61,8 @@ class LLDP(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         mib = lldp_mib.LLDPMib(self.agent)
-        stampcheck = yield self._stampcheck(mib)
         need_to_collect = yield stampcheck.is_changed()
+        stampcheck = yield self._get_stampcheck(mib)
         if need_to_collect:
             self._logger.debug("collecting LLDP remote table")
             self.remote = yield mib.get_remote_table()
@@ -104,9 +104,11 @@ class LLDP(Plugin):
             info.variable = INFO_VAR_CHASSIS_MAC
 
     @defer.inlineCallbacks
-    def _stampcheck(self, mib):
-        stampcheck = TimestampChecker(self.agent, self.containers,
-                                      INFO_VAR_NAME)
+    def _get_stampcheck(self, mib):
+        """Retrieves the last change timestamp of the LLDP remote table, returning a
+        TimestampChecker instance reflecting it.
+        """
+        stampcheck = TimestampChecker(self.agent, self.containers, INFO_VAR_NAME)
         yield stampcheck.load()
         yield stampcheck.collect([mib.get_remote_last_change()])
 
