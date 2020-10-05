@@ -19,6 +19,7 @@ from django.utils import six
 
 from nav.Snmp.errors import SnmpError
 from nav.bitvector import BitVector
+from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.smidumps import get_mib
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
@@ -62,7 +63,7 @@ class Cisco(SNMPHandler):
         self.voice_vlan_oid = '1.3.6.1.4.1.9.9.68.1.5.1.1.1'
         self.cdp_oid = '1.3.6.1.4.1.9.9.23.1.1.1.1.2'
 
-    def get_vlan(self, interface):
+    def get_interface_native_vlan(self, interface):
         return self._query_netbox(self.vlan_oid, interface.ifindex)
 
     def set_vlan(self, interface, vlan):
@@ -74,7 +75,7 @@ class Cisco(SNMPHandler):
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(interface)
+        fromvlan = self.get_interface_native_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             return None
@@ -161,18 +162,18 @@ class Cisco(SNMPHandler):
 
         return status
 
-    def write_mem(self):
+    def commit_configuration(self):
         """Use OLD-CISCO-SYS-MIB (v1) writeMem to write tomemory.
         Write configuration into non-volatile memory / erase config
         memory if 0."""
         handle = self._get_read_write_handle()
         return handle.set(self.write_mem_oid, 'i', 1)
 
-    def get_available_vlans(self):
+    def get_netbox_vlan_tags(self):
         """Fetch all vlans. Filter on operational and of type ethernet."""
-        vlan_states = [self._extract_index_from_oid(oid) for oid, status in
+        vlan_states = [OID(oid)[-1] for oid, status in
                        self._bulkwalk(self.VTPVLANSTATE) if status == 1]
-        vlan_types = [self._extract_index_from_oid(oid) for oid, vlantype in
+        vlan_types = [OID(oid)[-1] for oid, vlantype in
                       self._bulkwalk(self.VTPVLANTYPE) if vlantype == 1]
 
         return list(set(vlan_states) & set(vlan_types))
@@ -273,15 +274,12 @@ class Cisco(SNMPHandler):
             self.dot1xPortAuth, interface.ifindex)) & self.DOT1X_AUTHENTICATOR
 
     def get_dot1x_enabled_interfaces(self):
-        """Fetches a dict mapping ifindex to enabled state
-
-        :returns: dict[ifindex, is_enabled]
-        :rtype: dict[int, bool]
-        """
         _logger.error("Querying for dot1x enabled interfaces on Cisco")
-        return {self._get_last_number(oid):
-                six.byte2int(state) & self.DOT1X_AUTHENTICATOR
-                for oid, state in self._bulkwalk(self.dot1xPortAuth)}
+        names = self._get_interface_names()
+        return {
+            names.get(OID(oid)[-1]): six.byte2int(state) & self.DOT1X_AUTHENTICATOR
+            for oid, state in self._bulkwalk(self.dot1xPortAuth)
+        }
 
 
 CHARS_IN_1024_BITS = 128

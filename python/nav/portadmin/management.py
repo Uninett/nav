@@ -15,6 +15,8 @@
 #
 """This is a utility library made especially for PortAdmin."""
 from nav.errors import NoNetboxTypeError
+from nav.models import manage
+from nav.portadmin.handlers import ManagementHandler
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.snmp.cisco import Cisco
 from nav.portadmin.snmp.dell import Dell
@@ -29,7 +31,7 @@ class ManagementFactory(object):
     on a netbox' vendor identification and its management configuration."""
 
     @classmethod
-    def get_instance(cls, netbox, **kwargs):
+    def get_instance(cls, netbox: manage.Netbox, **kwargs) -> ManagementHandler:
         """Get and SNMP-handle depending on vendor type"""
         if not netbox.type:
             raise NoNetboxTypeError()

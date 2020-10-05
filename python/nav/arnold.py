@@ -457,14 +457,14 @@ def change_port_vlan(identity, vlan):
 
     agent = ManagementFactory().get_instance(netbox)
     try:
-        fromvlan = agent.get_vlan(interface)
+        fromvlan = agent.get_interface_native_vlan(interface)
     except Exception as error:
         raise ChangePortVlanError(error)
     else:
         _logger.info('Setting vlan %s on interface %s', vlan, interface)
         try:
             agent.set_vlan(interface, vlan)
-            agent.restart_if(interface.ifindex)
+            agent.cycle_interface(interface)
         except Exception as error:
             raise ChangePortVlanError(error)
         else:

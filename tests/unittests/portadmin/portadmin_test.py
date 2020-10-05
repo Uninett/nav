@@ -68,8 +68,12 @@ class PortadminResponseTest(unittest.TestCase):
         # replace get-method on Snmp-object with a mock-method
         # this get-method returns a ifalias
         self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 999")
-        self.assertEqual(self.handler.get_if_alias(1), "pkt: 999",
-                          "getIfAlias-test failed")
+        interface = Mock(ifindex=1)
+        self.assertEqual(
+            self.handler.get_interface_description(interface),
+            "pkt: 999",
+            "getIfAlias-test failed",
+        )
 
     def test_get_vlan_hp(self):
         self.handler = ManagementFactory.get_instance(self.netboxHP)
@@ -79,7 +83,7 @@ class PortadminResponseTest(unittest.TestCase):
         # this get-method returns a vlan-number
         self.snmpReadOnlyHandler.get = Mock(return_value=666)
         ifc = Mock(baseport=1)
-        self.assertEqual(self.handler.get_vlan(ifc), 666,
+        self.assertEqual(self.handler.get_interface_native_vlan(ifc), 666,
                                 "getVlan-test failed")
         self.snmpReadOnlyHandler.get.assert_called_with(
             OID('.1.3.6.1.2.1.17.7.1.4.5.1.1.1')
@@ -94,7 +98,7 @@ class PortadminResponseTest(unittest.TestCase):
         walkdata = [('.1', b'hjalmar'), ('.2', b'snorre'), ('.3', b'bjarne')]
         expected = {1: 'hjalmar', 2: 'snorre', 3: 'bjarne'}
         self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=walkdata)
-        self.assertEqual(self.handler.get_all_if_alias(),
+        self.assertEqual(self.handler._get_all_ifaliases(),
                          expected,
                          "getAllIfAlias failed.")
 
@@ -106,8 +110,13 @@ class PortadminResponseTest(unittest.TestCase):
         # replace set-method on Snmp-object with a mock-method
         # all set-methods return None
         self.snmpReadWriteHandler.set = Mock(return_value=None)
-        self.assertEqual(self.handler.set_if_alias(1, 'punkt1'), None,
-                         'setIfAlias failed')
+        interface = Mock()
+        interface.ifindex = 1
+        self.assertEqual(
+            self.handler.set_interface_description(interface, "punkt1"),
+            None,
+            "setIfAlias failed",
+        )
 
     ####################################################################
     #  CISCO-netbox
@@ -126,8 +135,12 @@ class PortadminResponseTest(unittest.TestCase):
         # replace get-method on Snmp-object with a mock-method
         # this get-method returns a ifalias
         self.snmpReadOnlyHandler.get = Mock(return_value="pkt: 88")
-        self.assertEqual(self.handler.get_if_alias(1), "pkt: 88",
-                          "getIfAlias-test failed")
+        interface = Mock(ifindex=1)
+        self.assertEqual(
+            self.handler.get_interface_description(interface),
+            "pkt: 88",
+            "getIfAlias-test failed",
+        )
 
     def test_get_vlan_cisco(self):
         self.handler = ManagementFactory.get_instance(self.netboxCisco)
@@ -138,7 +151,7 @@ class PortadminResponseTest(unittest.TestCase):
         # this get-method returns a vlan-number
         self.snmpReadOnlyHandler.get = Mock(return_value=77)
         ifc = Mock(ifindex=1)
-        self.assertEqual(self.handler.get_vlan(ifc), 77,
+        self.assertEqual(self.handler.get_interface_native_vlan(ifc), 77,
                                 "getVlan-test failed")
         self.snmpReadOnlyHandler.get.assert_called_with('1.3.6.1.4.1.9.9.68.1.2.2.1.2.1')
 
@@ -151,7 +164,7 @@ class PortadminResponseTest(unittest.TestCase):
         walkdata = [('.1', b'jomar'), ('.2', b'knut'), ('.3', b'hjallis')]
         expected = {1: 'jomar', 2: 'knut', 3: 'hjallis'}
         self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=walkdata)
-        self.assertEqual(self.handler.get_all_if_alias(),
+        self.assertEqual(self.handler._get_all_ifaliases(),
                          expected, "getAllIfAlias failed.")
 
 

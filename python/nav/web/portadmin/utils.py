@@ -15,15 +15,18 @@
 #
 """Util functions for the PortAdmin"""
 from __future__ import unicode_literals
+from typing import List, Sequence, Dict, Any
 import re
 import logging
 from operator import attrgetter
 
 from django.template import loader
 
+from nav.models import manage, profiles
 from nav.django.utils import is_admin
 from nav.portadmin.config import CONFIG
 from nav.portadmin.management import ManagementFactory
+from nav.portadmin.handlers import ManagementHandler
 from nav.portadmin.vlan import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
@@ -34,47 +37,56 @@ _logger = logging.getLogger("nav.web.portadmin")
 def get_and_populate_livedata(netbox, interfaces):
     """Fetch live data from netbox"""
     handler = ManagementFactory.get_instance(netbox)
-    live_ifaliases = handler.get_all_if_alias()
-    live_vlans = handler.get_all_vlans()
-    live_operstatus = dict(handler.get_netbox_oper_status())
-    live_adminstatus = dict(handler.get_netbox_admin_status())
-    update_interfaces_with_snmpdata(interfaces, live_ifaliases, live_vlans,
-                                    live_operstatus, live_adminstatus)
+    livedata = handler.get_interfaces()
+    update_interfaces_with_collected_data(interfaces, livedata)
 
     return handler
 
 
-def update_interfaces_with_snmpdata(interfaces, ifalias, vlans, operstatus,
-                                    adminstatus):
+def update_interfaces_with_collected_data(
+    interfaces: Sequence[manage.Interface], livedata: Sequence[Dict[str, Any]]
+):
+    """Updates the list of Interface objects with data gathered via
+    ManagementHandler.get_interfaces().
     """
-    Update the interfaces with data gathered via snmp.
-    """
-    for interface in interfaces:
-        if interface.ifindex in ifalias:
-            interface.ifalias = ifalias[interface.ifindex]
-        if interface.ifindex in vlans:
-            interface.vlan = vlans[interface.ifindex]
-        if interface.ifindex in operstatus:
-            interface.ifoperstatus = operstatus[interface.ifindex]
-        if interface.ifindex in adminstatus:
-            interface.ifadminstatus = adminstatus[interface.ifindex]
+    interfaces_by_name = {ifc.ifdescr: ifc for ifc in interfaces}
+    interfaces_by_name.update({ifc.ifname: ifc for ifc in interfaces})
+
+    matches = (
+        (interfaces_by_name[data["name"]], data)
+        for data in livedata
+        if data.get("name") in interfaces_by_name
+    )
+    for interface, data in matches:
+        if data.get("description") is not None:
+            interface.ifalias = data["description"]
+        if data.get("vlan"):
+            interface.vlan = data["vlan"]
+        if data.get("oper"):
+            interface.ifoperstatus = data["oper"]
+        if data.get("admin"):
+            interface.ifadminstatus = data["admin"]
 
 
-def find_and_populate_allowed_vlans(account, netbox, interfaces, factory):
-    """Find allowed vlans and indicate which interface can be edited"""
-    allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox,
-                                                          factory)
-    set_editable_on_interfaces(netbox, interfaces, allowed_vlans)
+def find_and_populate_allowed_vlans(
+        account: profiles.Account,
+        netbox: manage.Netbox,
+        interfaces: Sequence[manage.Interface],
+        handler: ManagementHandler
+):
+    """Finds allowed vlans and indicate which interfaces can be edited"""
+    allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox, handler)
+    set_editable_flag_on_interfaces(interfaces, allowed_vlans)
     return allowed_vlans
 
 
-def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
-    """Find allowed vlans for this user on this netbox
-
-    ::returns list of Fantasyvlans
-
-    """
-    netbox_vlans = find_vlans_on_netbox(netbox, factory=factory)
+def find_allowed_vlans_for_user_on_netbox(
+        account: profiles.Account,
+        netbox: manage.Netbox,
+        handler: ManagementHandler = None
+) -> List[FantasyVlan]:
+    """Finds allowed vlans for this user on this netbox"""
+    netbox_vlans = find_vlans_on_netbox(netbox, handler=handler)
 
     if CONFIG.is_vlan_authorization_enabled():
         if is_admin(account):
@@ -88,18 +100,18 @@ def find_allowed_vlans_for_user_on_netbox(account, netbox, factory=None):
     return sorted(allowed_vlans, key=attrgetter('vlan'))
 
 
-def find_vlans_on_netbox(netbox, factory=None):
-    """Find all the vlans on this netbox
+def find_vlans_on_netbox(
+    netbox: manage.Netbox, handler: ManagementHandler = None
+) -> List[FantasyVlan]:
+    """Find all the available vlans on this netbox
 
-    fac: already instantiated factory instance. Use this if possible
-    to enable use of cached values
-
-    :returns: list of FantasyVlans
-    :rtype: list
+    :param netbox: The Netbox whose available VLANs you want to find.
+    :param handler: Already instantiated ManagementHandler instance. Use this if
+                    possible to enable use of cached values.
     """
-    if not factory:
-        factory = ManagementFactory.get_instance(netbox)
-    return factory.get_netbox_vlans()
+    if not handler:
+        handler = ManagementFactory.get_instance(netbox)
+    return handler.get_netbox_vlans()
 
 
 def find_allowed_vlans_for_user(account):
@@ -115,18 +127,19 @@ def find_allowed_vlans_for_user(account):
     return allowed_vlans
 
 
-def set_editable_on_interfaces(netbox, interfaces, vlans):
+def set_editable_flag_on_interfaces(
+        interfaces: Sequence[manage.Interface], vlans: Sequence[FantasyVlan]
+):
+    """Sets the pseudo-attribute `iseditable` on each interface in the interfaces
+    list, indicating whether the PortAdmin UI should allow edits to it or not.
+
+    An interface will be considered "editable" only if its native vlan matches one of
+    the vlan tags from `vlans`.
     """
-    Set a flag on the interface to indicate if user is allowed to edit it.
-    """
-    vlan_numbers = [vlan.vlan for vlan in vlans]
+    vlan_tags = {vlan.vlan for vlan in vlans}
 
     for interface in interfaces:
-        iseditable = (interface.vlan in vlan_numbers and netbox.read_write)
-        if iseditable:
-            interface.iseditable = True
-        else:
-            interface.iseditable = False
+        interface.iseditable = interface.vlan in vlan_tags
 
 
 def intersect(list_a, list_b):
@@ -214,7 +227,7 @@ def add_dot1x_info(interfaces, handler):
 
     url_template = CONFIG.get_dot1x_external_url()
     for interface in interfaces:
-        interface.dot1xenabled = dot1x_states.get(interface.ifindex)
+        interface.dot1xenabled = dot1x_states.get(interface.ifname)
         if url_template:
             interface.dot1x_external_url = url_template.format(
                 netbox=interface.netbox,

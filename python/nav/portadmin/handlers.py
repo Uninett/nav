@@ -14,6 +14,10 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Interface definition for PortAdmin management handlers"""
+from typing import List, Tuple, Dict, Any, Sequence
+
+from nav.models import manage
+from nav.portadmin.vlan import FantasyVlan
 
 
 class ManagementHandler:
@@ -23,40 +27,26 @@ class ManagementHandler:
     to provide, regardless of the underlying management protocol implemented by such
     a class.
     """
-    def __init__(self, netbox, **kwargs):
+    def __init__(self, netbox: manage.Netbox, **kwargs):
         self.netbox = netbox
 
-    def test_read(self):
-        """Test if read works"""
-        raise NotImplementedError
-
-    def test_write(self):
-        """Test if write works"""
-        raise NotImplementedError
-
-    def get_if_alias(self, if_index):
+    def get_interface_description(self, interface: manage.Interface):
         """Get alias on a specific interface"""
         raise NotImplementedError
 
-    def get_all_if_alias(self):
-        """Get all aliases for all interfaces.
-
-        :returns: A dict describing {ifIndex: ifAlias}
-        """
+    def set_interface_description(self, interface: manage.Interface, description: str):
+        """Configures a single interface's description, AKA the ifalias value"""
         raise NotImplementedError
 
-    def set_if_alias(self, if_index, if_alias):
-        """Set alias on a specific interface."""
+    def get_interface_native_vlan(self, interface: manage.Interface):
+        """Get the native/untagged VLAN configured on interface"""
         raise NotImplementedError
 
-    def get_vlan(self, interface):
-        """Get vlan on a specific interface."""
-        raise NotImplementedError
+    def get_interfaces(self) -> List[Dict[str, Any]]:
+        """Retrieves running configuration of all switch ports on the device.
 
-    def get_all_vlans(self):
-        """Retrieves the untagged VLAN value for every interface.
-
-        :returns: A dict describing {ifIndex: VLAN_TAG}
+        :returns: A list of dicts with members `name`, `description`, `oper`, `admin`
+                  and `vlan` (the latter being the access/untagged/native vlan ID.
         """
         raise NotImplementedError
 
@@ -68,58 +58,79 @@ class ManagementHandler:
         """Set native vlan on a trunk interface"""
         raise NotImplementedError
 
-    def set_if_up(self, if_index):
-        """Set interface.to up"""
+    def set_interface_up(self, interface: manage.Interface):
+        """Enables a previously shutdown interface"""
         raise NotImplementedError
 
-    def set_if_down(self, if_index):
-        """Set interface.to down"""
+    def set_interface_down(self, interface: manage.Interface):
+        """Shuts down/disables an enabled interface"""
         raise NotImplementedError
 
-    def restart_if(self, if_index, wait=5):
-        """Take interface down and up.
+    def cycle_interface(self, interface: manage.Interface, wait: float = 5.0):
+        """Take interface down and up again, with an optional delay in between.
 
-        :param wait: number of seconds to wait between down and up.
+        Mostly used for configuration changes where any client connected to the
+        interface needs to be notified about the change. Typically, if an interface
+        is suddenly placed on a new VLAN, cycling the link status of the interface
+        will prompt any connected machine to ask for a new DHCP lease, which may be
+        necessary now that the machine is potentially on a different IP subnet.
+
+        :param interface: The interface to cycle.
+        :param wait: number of seconds to wait between down and up operations.
         """
         raise NotImplementedError
 
-    def write_mem(self):
-        """Do a write memory on netbox if available"""
-        raise NotImplementedError
+    def commit_configuration(self):
+        """Commit running configuration or pending configuration changes to the
+        device's startup configuration.
 
-    def get_if_admin_status(self, if_index):
-        """Query administrative status for a given interface."""
-        raise NotImplementedError
+        This operation has different implications depending on the underlying
+        platform and management protocol, and may in some instances be a no-op.
 
-    def get_if_oper_status(self, if_index):
-        """Query operational status of a given interface."""
-        raise NotImplementedError
-
-    def get_netbox_admin_status(self):
-        """Walk all ports and get their administration status."""
-        raise NotImplementedError
-
-    def get_netbox_oper_status(self):
-        """Walk all ports and get their operational status."""
-        raise NotImplementedError
-
-    def get_netbox_vlans(self):
-        """Create Fantasyvlans for all vlans on this netbox"""
-        raise NotImplementedError
-
-    def get_available_vlans(self):
-        """Get available vlans from the box
-
-        This is similar to the terminal command "show vlans"
+        This would map more or less one-to-one when using NETCONF and related protocols,
+        whereas when using SNMP on Cisco, this may consist of a "write mem" operation.
         """
         raise NotImplementedError
 
-    def set_voice_vlan(self, interface, voice_vlan):
-        """Activate voice vlan on this interface
+    def get_interface_admin_status(self, interface: manage.Interface) -> int:
+        """Query administrative status of an individual interface.
 
-        Use set_trunk to make sure the interface is put in trunk mode
+        :returns: A integer to be interpreted as an RFC 2863 ifAdminStatus value, also
+                  defined in `manage.Interface.ADMIN_STATUS_CHOICES`:
+                  > up(1),       -- ready to pass packets
+                  > down(2),
+                  > testing(3)   -- in some test mode
         """
         raise NotImplementedError
+
+    def get_netbox_vlans(self) -> List[FantasyVlan]:
+        """Returns a list of FantasyVlan objects representing the enabled VLANs on
+        this netbox.
+
+        The FantasyVlan objects represent NAV VLAN objects where a VLAN tag can be
+        correlated with a NAV VLAN entry, but can also be used to represent VLAN tags
+        that are unknown to NAV.
+        """
+        raise NotImplementedError
+
+    def get_netbox_vlan_tags(self) -> List[int]:
+        """Returns a list of enabled VLANs on this netbox.
+
+        :returns: A list of VLAN tags (integers)
+        """
+        raise NotImplementedError
+
+    def set_interface_voice_vlan(self, interface: manage.Interface, voice_vlan: int):
+        """Activates the voice vlan on this interface.
+
+        The default implementation is to employ PortAdmin's generic trunk-based voice
+        VLAN concept. This entails setting the interface to trunk mode, keeping the
+        untagged VLAN as its native VLAN and trunking/tagging the voice VLAN.
+
+        A vendor-specific implementation in an inheriting class may opt to use a more
+        appropriate vendor-specific implementation (one example is Cisco voice VLAN).
+        """
+        self.set_trunk(interface, interface.vlan, [voice_vlan])
 
     def get_cisco_voice_vlans(self):
         """Should not be implemented on anything else than Cisco"""
@@ -141,58 +152,87 @@ class ManagementHandler:
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
 
-    def get_native_and_trunked_vlans(self, interface):
+    def get_native_and_trunked_vlans(self, interface) -> Tuple[int, List[int]]:
         """Get the trunked vlans on this interface
 
-        For each available vlan, fetch list of interfaces that forward this
-        vlan. If the interface index is in this list, add the vlan to the
-        return list.
-
-        :returns: (native vlan, list_of_trunked_vlans)
-        :rtype: tuple
+        :returns: (native_vlan_tag, list_of_trunked_vlan_tags)
         """
         raise NotImplementedError
 
-    def get_native_vlan(self, interface):
+    def set_access(self, interface: manage.Interface, access_vlan: int):
+        """Puts a port in access mode and sets its access/native/untagged VLAN"""
         raise NotImplementedError
 
-    def set_trunk_vlans(self, interface, vlans):
-        """Trunk the vlans on interface
+    def set_trunk(
+        self, interface: manage.Interface, native_vlan: int, trunk_vlans: Sequence[int]
+    ):
+        """Puts a port in trunk mode, setting its native/untagged VLAN and tagged
+        trunk VLANs as well.
 
-        Egress_Ports includes native vlan. Be sure to not alter that.
-
-        Get all available vlans. For each available vlan fetch list of
-        interfaces that forward this vlan. Set or remove the interface from
-        this list based on if it is in the vlans list.
-
+        :param interface: The interface to set to trunk mode.
+        :param native_vlan: The native VLAN for untagged packets on this interface.
+        :param trunk_vlans: A list of VLAN tags to allow on this trunk.
         """
         raise NotImplementedError
 
-    def set_access(self, interface, access_vlan):
-        """Set this port in access mode and set access vlan
+    def is_dot1x_enabled(self, interface: manage.Interface) -> bool:
+        """Returns True if 802.1X authentication is is enabled on interface"""
+        raise NotImplementedError
 
-        Means - remove all vlans except access vlan from this interface
+    def get_dot1x_enabled_interfaces(self) -> Dict[str, bool]:
+        """Fetches the 802.1X enabled state of every interface.
+
+        :returns: A dict mapping each interface name to a "802.1X enabled" value
         """
         raise NotImplementedError
 
-    def set_trunk(self, interface, native_vlan, trunk_vlans):
-        """Set this port in trunk mode and set native vlan"""
+    def is_port_access_control_enabled(self) -> bool:
+        """Returns True if port access control is enabled on this netbox"""
         raise NotImplementedError
 
-    def is_dot1x_enabled(self, interface):
-        """Returns a boolean indicating whether 802.1X is enabled on the given
-        interface.
+    def raise_if_not_configurable(self):
+        """Raises an exception if this netbox cannot be configured through PortAdmin.
+
+        The exception message will contain a human-readable explanation as to why not.
         """
         raise NotImplementedError
 
-    def get_dot1x_enabled_interfaces(self):
-        """Fetches a dict mapping ifindex to enabled state
+    def is_configurable(self) -> bool:
+        """Returns True if this netbox is configurable using this handler"""
+        try:
+            self.raise_if_not_configurable()
+        except Exception:
+            return False
+        return True
 
-        :returns: dict[ifindex, is_enabled]
-        :rtype: dict[int, bool]
-        """
-        raise NotImplementedError
 
-    def is_port_access_control_enabled(self):
-        """Returns state of port access control"""
-        raise NotImplementedError
+class ManagementError(Exception):
+    """Base exception class for device management errors"""
+
+    pass
+
+
+class DeviceNotConfigurableError(ManagementError):
+    """Raised when a device is not configurable by PortAdmin for some reason"""
+
+    pass
+
+
+class NoResponseError(ManagementError):
+    """Raised whenever there is no response when talking to the remote device"""
+
+    pass
+
+
+class AuthenticationError(ManagementError):
+    """Raised where the remote device indicated the wrong credentials were used"""
+
+    pass
+
+
+class ProtocolError(ManagementError):
+    """Raised when some non-categorized error in the underlying protocol occurred
+    during communication
+    """
+
+    pass

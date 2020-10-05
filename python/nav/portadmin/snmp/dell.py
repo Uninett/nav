@@ -47,7 +47,7 @@ class Dell(SNMPHandler):
     def __init__(self, netbox, **kwargs):
         super(Dell, self).__init__(netbox, **kwargs)
 
-    def write_mem(self):
+    def commit_configuration(self):
         """Use DNOS-SWITCHING-MIB agentSaveConfig to write to memory.
         Write configuration into non-volatile memory."""
         handle = self._get_read_write_handle()
@@ -60,7 +60,7 @@ class Dell(SNMPHandler):
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(interface)
+        fromvlan = self.get_interface_native_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             _logger.debug('fromvlan and vlan is the same - skip')
@@ -87,7 +87,8 @@ class Dell(SNMPHandler):
         baseport = interface.baseport
         self._set_netbox_value(self.PORT_MODE_OID, baseport, 'i', mode)
 
-    def get_native_vlan(self, interface):
+    def get_interface_native_vlan(self, interface):
+        # FIXME This override is potentially only applicable for trunk ports
         baseport = interface.baseport
         return self._query_netbox(self.NATIVE_VLAN_ID, baseport)
 

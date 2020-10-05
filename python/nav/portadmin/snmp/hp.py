@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Hewlett-Packard specific PortAdmin SNMP handling"""
+from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD
 
@@ -35,10 +36,8 @@ class HP(SNMPHandler):
             self.dot1xPortAuth, interface.ifindex)) == 1
 
     def get_dot1x_enabled_interfaces(self):
-        """Fetches a dict mapping ifindex to enabled state
-
-        :returns: dict[ifindex, is_enabled]
-        :rtype: dict[int, bool]
-        """
-        return {self._get_last_number(oid): state == 1
-                for oid, state in self._bulkwalk(self.dot1xPortAuth)}
+        names = self._get_interface_names()
+        return {
+            names.get(OID(oid)[-1]): state == 1
+            for oid, state in self._bulkwalk(self.dot1xPortAuth)
+        }

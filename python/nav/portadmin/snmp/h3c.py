@@ -15,6 +15,7 @@
 #
 """H3C specific PortAdmin SNMP handling"""
 from nav import Snmp
+from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.enterprise.ids import VENDOR_ID_H3C
 
@@ -29,14 +30,14 @@ class H3C(SNMPHandler):
     def __init__(self, netbox, **kwargs):
         super(H3C, self).__init__(netbox, **kwargs)
 
-    def write_mem(self):
+    def commit_configuration(self):
         """Use hh3c-config-man-mib to save running config to startup"""
 
         running_to_startup = 1
         create_and_go = 4
 
         # Find the next available row for configuring and store it as a suffix
-        active_rows = [self._extract_index_from_oid(o[0])
+        active_rows = [OID(o[0])[-1]
                        for o in self._bulkwalk(self.hh3cCfgOperateRowStatus)]
         try:
             suffix = str(max(active_rows) + 1)

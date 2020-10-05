@@ -11,6 +11,19 @@ please go to https://github.com/uninett/nav/milestones .
 NAV 5.1 (unreleased)
 ====================
 
+Backwards incompatible changes
+------------------------------
+
+Changed configuration files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These configuration files changed:
+
+* :file:`portadmin/portadmin.conf`: The option ``write_mem`` has been renamed
+  to ``commit``, for the sake of a a more platform and management protocol
+  agnostic view of the world.
+
+
 New features
 ------------
 

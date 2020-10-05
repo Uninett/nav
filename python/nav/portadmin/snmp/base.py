@@ -16,16 +16,27 @@
 import time
 from operator import attrgetter
 import logging
+from typing import Dict, Sequence
 
 from django.utils import six
 
 from nav import Snmp
 from nav.Snmp import safestring, OID
-from nav.Snmp.errors import UnsupportedSnmpVersionError, SnmpError, NoSuchObjectError
+from nav.Snmp.errors import (
+    UnsupportedSnmpVersionError,
+    SnmpError,
+    NoSuchObjectError,
+    TimeOutException,
+)
 from nav.bitvector import BitVector
 
-from nav.models.manage import Vlan, SwPortAllowedVlan
-from nav.portadmin.handlers import ManagementHandler
+from nav.models.manage import Vlan, SwPortAllowedVlan, Interface
+from nav.portadmin.handlers import (
+    ManagementHandler,
+    DeviceNotConfigurableError,
+    NoResponseError,
+    ProtocolError,
+)
 from nav.portadmin.vlan import FantasyVlan
 from nav.smidumps import get_mib
 
@@ -42,6 +53,7 @@ class SNMPHandler(ManagementHandler):
     SYSOBJECTID = '.1.3.6.1.2.1.1.2.0'
     SYSLOCATION = '1.3.6.1.2.1.1.6.0'
     IF_ALIAS_OID = '1.3.6.1.2.1.31.1.1.1.18'  # From IF-MIB
+    IF_NAME_OID = '1.3.6.1.2.1.31.1.1.1.1'
     IF_ADMIN_STATUS = '1.3.6.1.2.1.2.2.1.7'
     IF_ADMIN_STATUS_UP = 1
     IF_ADMIN_STATUS_DOWN = 2
@@ -73,8 +85,12 @@ class SNMPHandler(ManagementHandler):
         self.timeout = kwargs.get('timeout', 3)
         self.retries = kwargs.get('retries', 3)
 
-    def _bulkwalk(self, oid):
-        """Walk all branches for the given oid."""
+    def _bulkwalk(self, oid: str):
+        """Performs a GETBULK walk operation on `oid`, downgrading to a regular
+        GETNEXT-based walk if the active SNMP version doesn't support the GETBULK
+        operation.
+
+        """
         handle = self._get_read_only_handle()
         result = []
         try:
@@ -86,6 +102,8 @@ class SNMPHandler(ManagementHandler):
                 result = handle.walk(oid)
             except SnmpError as ex:
                 _logger.error("_bulkwalk: Exception = %s", ex)
+        except TimeOutException as error:
+            raise NoResponseError("Timed out") from error
         return result
 
     def _jog(self, oid):
@@ -123,6 +141,10 @@ class SNMPHandler(ManagementHandler):
             result = handle.get(self._get_query(oid, if_index))
         except NoSuchObjectError as no_such_ex:
             _logger.debug("_query_netbox: NoSuchObjectError = %s", no_such_ex)
+        except TimeoutError as error:
+            raise NoResponseError("Timed out") from error
+        except SnmpError as error:
+            raise ProtocolError("SNMP error") from error
         return result
 
     def _get_read_write_handle(self):
@@ -155,6 +177,7 @@ class SNMPHandler(ManagementHandler):
             yield BitVector.from_hex(hexes[i:i + chunksize])
 
     def test_read(self):
+        """Test if SNMP read works"""
         handle = self._get_read_only_handle()
         try:
             handle.get(self.SYSOBJECTID)
@@ -163,6 +186,7 @@ class SNMPHandler(ManagementHandler):
             return False
 
     def test_write(self):
+        """Test if SNMP write works"""
         handle = self._get_read_write_handle()
         try:
             value = handle.get(self.SYSLOCATION)
@@ -171,25 +195,61 @@ class SNMPHandler(ManagementHandler):
         except SnmpError as error:
             return False
 
-    def get_if_alias(self, if_index):
-        return safestring(self._query_netbox(self.IF_ALIAS_OID, if_index))
+    def get_interface_description(self, interface):
+        return safestring(self._query_netbox(self.IF_ALIAS_OID, interface.ifindex))
 
-    def get_all_if_alias(self):
+    def get_interfaces(self):
+        names = self._get_interface_names()
+        aliases = self._get_all_ifaliases()
+        oper = dict(self._get_all_interfaces_oper_status())
+        admin = dict(self._get_all_interfaces_admin_status())
+        vlans = self._get_all_interfaces_vlan()
+
+        result = [
+            {
+                "snmp-index": index,
+                "name": names.get(index),
+                "description": aliases.get(index),
+                "oper": oper.get(index),
+                "admin": admin.get(index),
+                "vlan": vlans.get(index),
+            }
+            for index in names
+        ]
+        return result
+
+    def _get_interface_names(self) -> Dict[int, str]:
+        """Returns a mapping of interface indexes to ifName values"""
+        return {
+            OID(index)[-1]: safestring(value)
+            for index, value in self._bulkwalk(self.IF_NAME_OID)
+        }
+
+    def _get_all_ifaliases(self):
+        """Get all aliases for all interfaces.
+
+        :returns: A dict describing {ifIndex: ifAlias}
+        """
         return {
             OID(oid)[-1]: safestring(value)
             for oid, value in self._bulkwalk(self.IF_ALIAS_OID)
         }
 
-    def set_if_alias(self, if_index, if_alias):
-        if isinstance(if_alias, six.text_type):
-            if_alias = if_alias.encode('utf8')
-        return self._set_netbox_value(self.IF_ALIAS_OID, if_index, "s",
-                                      if_alias)
+    def set_interface_description(self, interface, description):
+        if isinstance(description, str):
+            description = description.encode("utf8")
+        return self._set_netbox_value(
+            self.IF_ALIAS_OID, interface.ifindex, "s", description
+        )
 
-    def get_vlan(self, interface):
+    def get_interface_native_vlan(self, interface):
         return self._query_netbox(self.VlAN_OID, interface.baseport)
 
-    def get_all_vlans(self):
+    def _get_all_interfaces_vlan(self):
+        """Retrieves the untagged VLAN value for every interface.
+
+        :returns: A dict describing {ifIndex: VLAN_TAG}
+        """
         return {OID(index)[-1]: value for index, value in self._bulkwalk(self.VlAN_OID)}
 
     @staticmethod
@@ -214,7 +274,7 @@ class SNMPHandler(ManagementHandler):
         except ValueError:
             raise TypeError('Not a valid vlan %s' % vlan)
         # Fetch current vlan
-        fromvlan = self.get_vlan(interface)
+        fromvlan = self.get_interface_native_vlan(interface)
         # fromvlan and vlan is the same, there's nothing to do
         if fromvlan == vlan:
             _logger.debug('fromvlan and vlan is the same - skip')
@@ -233,65 +293,53 @@ class SNMPHandler(ManagementHandler):
     def set_native_vlan(self, interface, vlan):
         self.set_vlan(interface, vlan)
 
-    def set_if_up(self, if_index):
-        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
-                                      self.IF_ADMIN_STATUS_UP)
+    def set_interface_up(self, interface):
+        return self._set_netbox_value(
+            self.IF_ADMIN_STATUS, interface.ifindex, "i", self.IF_ADMIN_STATUS_UP
+        )
 
-    def set_if_down(self, if_index):
-        return self._set_netbox_value(self.IF_ADMIN_STATUS, if_index, "i",
-                                      self.IF_ADMIN_STATUS_DOWN)
+    def set_interface_down(self, interface):
+        return self._set_netbox_value(
+            self.IF_ADMIN_STATUS, interface.ifindex, "i", self.IF_ADMIN_STATUS_DOWN
+        )
 
-    def restart_if(self, if_index, wait=5):
+    def cycle_interface(self, interface, wait=5.0):
         wait = int(wait)
-        self.set_if_down(if_index)
+        self.set_interface_down(interface)
         _logger.debug('Interface set administratively down - '
                       'waiting %s seconds', wait)
         time.sleep(wait)
-        self.set_if_up(if_index)
+        self.set_interface_up(interface)
         _logger.debug('Interface set administratively up')
 
-    def write_mem(self):
+    def commit_configuration(self):
         pass
 
-    def get_if_admin_status(self, if_index):
-        return self._query_netbox(self.IF_ADMIN_STATUS, if_index)
-
-    def get_if_oper_status(self, if_index):
-        return self._query_netbox(self.IF_OPER_STATUS, if_index)
-
-    @staticmethod
-    def _get_last_number(oid):
-        """Get the last index for an OID."""
-        # TODO: This method is superfluous, use nav.oids.OID objects instead
-        if not (isinstance(oid, six.string_types)):
-            raise TypeError('Illegal value for oid')
-        splits = oid.split('.')
-        last = splits[-1]
-        if isinstance(last, six.string_types):
-            if last.isdigit():
-                last = int(last)
-        return last
+    def get_interface_admin_status(self, interface):
+        return self._query_netbox(self.IF_ADMIN_STATUS, interface.ifindex)
 
     def _get_if_stats(self, stats):
         """Make a list with tuples.  Each tuple contain
          interface-index and corresponding status-value"""
         available_stats = []
         for (if_index, stat) in stats:
-            if_index = self._get_last_number(if_index)
+            if_index = OID(if_index)[-1]
             if isinstance(if_index, int):
                 available_stats.append((if_index, stat))
         return available_stats
 
-    def get_netbox_admin_status(self):
+    def _get_all_interfaces_admin_status(self):
+        """Walk all ports and get their administration status."""
         if_admin_stats = self._bulkwalk(self.IF_ADMIN_STATUS)
         return self._get_if_stats(if_admin_stats)
 
-    def get_netbox_oper_status(self):
+    def _get_all_interfaces_oper_status(self):
+        """Walk all ports and get their operational status."""
         if_oper_stats = self._bulkwalk(self.IF_OPER_STATUS)
         return self._get_if_stats(if_oper_stats)
 
     def get_netbox_vlans(self):
-        numerical_vlans = self.get_available_vlans()
+        numerical_vlans = self.get_netbox_vlan_tags()
         vlan_objects = Vlan.objects.filter(
             swportvlan__interface__netbox=self.netbox).distinct()
         vlans = []
@@ -308,28 +356,20 @@ class SNMPHandler(ManagementHandler):
 
         return sorted(list(set(vlans)), key=attrgetter('vlan'))
 
-    def get_available_vlans(self):
+    def get_netbox_vlan_tags(self):
         if self.available_vlans is None:
             self.available_vlans = [
-                int(self._extract_index_from_oid(oid))
+                OID(oid)[-1]
                 for oid, status in self._bulkwalk(self.VLAN_ROW_STATUS)
                 if status == 1]
         return self.available_vlans
 
-    def set_voice_vlan(self, interface, voice_vlan):
-        self.set_trunk(interface, interface.vlan, [voice_vlan])
-
-    @staticmethod
-    def _extract_index_from_oid(oid):
-        # TODO: This method is also superfluous, use nav.oids.OID objects instead
-        return int(oid.split('.')[-1])
-
     def get_native_and_trunked_vlans(self, interface):
-        native_vlan = self.get_native_vlan(interface)
+        native_vlan = self.get_interface_native_vlan(interface)
 
         bitvector_index = interface.baseport - 1
         vlans = []
-        for vlan in self.get_available_vlans():
+        for vlan in self.get_netbox_vlan_tags():
             if vlan == native_vlan:
                 continue
             octet_string = self._query_netbox(
@@ -350,12 +390,22 @@ class SNMPHandler(ManagementHandler):
         octet_string = self._query_netbox(self.CURRENT_VLAN_EGRESS_PORTS, vlan)
         return BitVector(octet_string)
 
-    def get_native_vlan(self, interface):
-        return self.get_vlan(interface)
+    def set_trunk_vlans(self, interface: Interface, vlans: Sequence[int]):
+        """Trunk vlans on this interface.
 
-    def set_trunk_vlans(self, interface, vlans):
+        :param interface: The interface to set to trunk mode.
+        :param vlans: The list of VLAN tags to allow on this trunk.
+        """
+        # This procedure is somewhat complex using the Q-BRIDGE-MIB. For each
+        # configured VLAN there is a list of ports (encoded as an octet string where
+        # each bit represents a port) with an active egress on this VLAN, so making
+        # this configuration change on a single port means updating the egress port
+        # list on every VLAN to remove from the port, and for every VLAN to add.
+        #
+        # Note that the egress port list contains both tagged and untagged/native vlans.
+        #
         base_port = interface.baseport
-        native_vlan = self.get_native_vlan(interface)
+        native_vlan = self.get_interface_native_vlan(interface)
         bitvector_index = base_port - 1
 
         _logger.debug('base_port: %s, native_vlan: %s, trunk_vlans: %s',
@@ -363,7 +413,7 @@ class SNMPHandler(ManagementHandler):
 
         vlans = [int(vlan) for vlan in vlans]
 
-        for available_vlan in self.get_available_vlans():
+        for available_vlan in self.get_netbox_vlan_tags():
             if native_vlan == available_vlan:
                 _logger.debug('native vlan (%s) == available vlan (%s) - skip',
                               native_vlan, available_vlan)
@@ -432,7 +482,18 @@ class SNMPHandler(ManagementHandler):
 
     def is_port_access_control_enabled(self):
         handle = self._get_read_only_handle()
-        return int(handle.get(self.dot1xPaeSystemAuthControl)) == 1
+        try:
+            return int(handle.get(self.dot1xPaeSystemAuthControl)) == 1
+        except TimeOutException as error:
+            raise NoResponseError("Timed out") from error
+        except SnmpError as error:
+            raise ProtocolError("SNMP error") from error
+
+    def raise_if_not_configurable(self):
+        if not self.netbox.read_write:
+            raise DeviceNotConfigurableError(
+                "SNMP Write community not set for this device, changes cannot be saved"
+            )
 
     # These are not relevant for this generic subclass
     get_cisco_voice_vlans = None
