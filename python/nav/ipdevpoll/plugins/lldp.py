@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"ipdevpoll plugin to collect LLDP neighbors"
+"""ipdevpoll plugin to collect LLDP neighbors"""
 from pprint import pformat
 
 from django.db.models import Q
@@ -32,6 +32,7 @@ SOURCE = 'lldp'
 INFO_KEY_LLDP_INFO = "lldp"
 INFO_VAR_CHASSIS_ID = "chassis_id"
 INFO_VAR_CHASSIS_MAC = "chassis_mac"
+INFO_VAR_REMOTES_CACHE = "remotes_cache"
 
 
 class LLDP(Plugin):
@@ -94,15 +95,25 @@ class LLDP(Plugin):
 
     @defer.inlineCallbacks
     def _get_cached_remote_table(self):
-        """Placeholder for retrieving a cached version of the remote neighbor table"""
-        yield None
-        defer.returnValue(None)
+        """Retrieves a cached version of the remote neighbor table"""
+        value = yield run_in_thread(
+            manage.NetboxInfo.cache_get,
+            self.netbox,
+            INFO_KEY_LLDP_INFO,
+            INFO_VAR_REMOTES_CACHE
+        )
+        defer.returnValue(value)
 
     @defer.inlineCallbacks
     def _save_cached_remote_table(self, remote_table):
-        """Placeholder for caching a copy of the remote neighbor table"""
-        yield None
-        defer.returnValue(None)
+        """Saves a cached copy of the remote neighbor table"""
+        yield run_in_thread(
+            manage.NetboxInfo.cache_set,
+            self.netbox,
+            INFO_KEY_LLDP_INFO,
+            INFO_VAR_REMOTES_CACHE,
+            remote_table
+        )
 
     @defer.inlineCallbacks
     def _get_chassis_id(self, mib):
