@@ -18,7 +18,9 @@
 
 # pylint: disable=R0903
 
+import base64
 import datetime as dt
+import pickle
 import warnings
 from functools import partial
 from itertools import count, groupby
@@ -578,6 +580,41 @@ class NetboxInfo(models.Model):
 
     def __str__(self):
         return u'%s="%s"' % (self.variable, self.value)
+
+    @classmethod
+    def cache_set(cls, netbox, key, variable, value):
+        """Attempts to cache a serialized Python value as a NetboxInfo record"""
+        cache, _ = cls.objects.get_or_create(
+            netbox_id=netbox.id, key=key, variable=variable
+        )
+        cache.value = base64.encodebytes(pickle.dumps(value))
+        cache.save()
+
+    @classmethod
+    def cache_get(cls, netbox, key, variable):
+        """Attempts to fetch and unserialize a cached Python value from a NetboxInfo
+        record. Returns None if unsucessful for any reason.
+        """
+        try:
+            cache = cls.objects.get(
+                netbox_id=netbox.id, key=key, variable=variable
+            )
+        except cls.DoesNotExist:
+            return None
+        try:
+            value = cache.value.encode("utf-8")
+            remote_table = pickle.loads(base64.decodebytes(value))
+            return remote_table
+        except Exception as error:
+            _logger.debug(
+                "Unable to unpickle cache value for (%r, %r, %r): %s",
+                netbox.sysname,
+                key,
+                variable,
+                error
+            )
+            # Broken cache values don't matter, just re-calculate
+            return None
 
 
 @python_2_unicode_compatible
