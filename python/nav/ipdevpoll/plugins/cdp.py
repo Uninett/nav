@@ -59,23 +59,36 @@ class CDP(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         cdp = CiscoCDPMib(self.agent)
+
         stampcheck = yield self._get_stampcheck(cdp)
-        need_to_collect = yield stampcheck.is_changed()
+        remote_table_has_changed = yield stampcheck.is_changed()
+        need_to_collect = remote_table_has_changed
+
+        if not remote_table_has_changed:
+            cache = yield self._get_cached_neighbors()
+            if cache is not None:
+                self._logger.debug("Using cached CDP neighbors")
+                self.neighbors = cache
+            else:
+                self._logger.debug(
+                    "CDP cache table didn't change, but local cache was empty"
+                )
+                need_to_collect = True
+
         if need_to_collect:
             self._logger.debug("collecting CDP cache table")
-            neighbors = yield cdp.get_cdp_neighbors()
-            if neighbors:
-                self._logger.debug("found CDP cache data: %r", neighbors)
-                self.neighbors = neighbors
-                yield run_in_thread(self._process_neighbors)
+            self.neighbors = yield cdp.get_cdp_neighbors()
 
-            # Store sentinels to signal that CDP neighbors have been processed
-            shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
-            shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
-
+        if self.neighbors:
+            self._logger.debug("CDP neighbors:\n %r", self.neighbors)
+            yield run_in_thread(self._process_neighbors)
+            yield self._save_cached_neighbors(self.neighbors)
         else:
-            self._logger.debug("CDP cache table seems unchanged")
+            self._logger.debug("No CDP neighbors to process")
 
+        # Store sentinels to signal that CDP neighbors have been processed
+        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+        shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
         stampcheck.save()
 
     @defer.inlineCallbacks
