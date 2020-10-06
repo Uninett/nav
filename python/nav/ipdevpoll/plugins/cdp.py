@@ -27,8 +27,10 @@ from nav.ipdevpoll.neighbor import Neighbor
 from nav.ipdevpoll.db import run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
-INFO_VAR_NAME = 'cdp'
-SOURCE = 'cdp'
+INFO_VAR_NAME = "cdp"
+INFO_KEY_NAME = "cdp"
+INFO_VAR_NEIGHBORS_CACHE = "neighbors_cache"
+SOURCE = "cdp"
 
 
 class CDP(Plugin):
@@ -83,6 +85,28 @@ class CDP(Plugin):
         yield stampcheck.collect([mib.get_neighbors_last_change()])
 
         defer.returnValue(stampcheck)
+
+    @defer.inlineCallbacks
+    def _get_cached_neighbors(self):
+        """Retrieves a cached version of the remote neighbor table"""
+        value = yield run_in_thread(
+            manage.NetboxInfo.cache_get,
+            self.netbox,
+            INFO_KEY_NAME,
+            INFO_VAR_NEIGHBORS_CACHE
+        )
+        defer.returnValue(value)
+
+    @defer.inlineCallbacks
+    def _save_cached_neighbors(self, neighbors):
+        """Saves a cached a copy of the remote neighbor table"""
+        yield run_in_thread(
+            manage.NetboxInfo.cache_set,
+            self.netbox,
+            INFO_KEY_NAME,
+            INFO_VAR_NEIGHBORS_CACHE,
+            neighbors
+        )
 
     def _process_neighbors(self):
         """
