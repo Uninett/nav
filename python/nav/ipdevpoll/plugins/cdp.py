@@ -40,7 +40,7 @@ class CDP(Plugin):
     device.
 
     """
-    cache = None
+    neighbors = None
 
     @classmethod
     @defer.inlineCallbacks
@@ -61,11 +61,11 @@ class CDP(Plugin):
         need_to_collect = yield stampcheck.is_changed()
         if need_to_collect:
             self._logger.debug("collecting CDP cache table")
-            cache = yield cdp.get_cdp_neighbors()
-            if cache:
-                self._logger.debug("found CDP cache data: %r", cache)
-                self.cache = cache
-                yield run_in_thread(self._process_cache)
+            neighbors = yield cdp.get_cdp_neighbors()
+            if neighbors:
+                self._logger.debug("found CDP cache data: %r", neighbors)
+                self.neighbors = neighbors
+                yield run_in_thread(self._process_neighbors)
 
             # Store sentinels to signal that CDP neighbors have been processed
             shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
@@ -84,11 +84,11 @@ class CDP(Plugin):
 
         defer.returnValue(stampcheck)
 
-    def _process_cache(self):
+    def _process_neighbors(self):
         """
         Tries to synchronously identify CDP cache entries in NAV's database
         """
-        neighbors = [CDPNeighbor(cdp, self.netbox.ip) for cdp in self.cache]
+        neighbors = [CDPNeighbor(cdp, self.netbox.ip) for cdp in self.neighbors]
 
         self._process_identified(
             [n for n in neighbors if n.identified])
