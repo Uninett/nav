@@ -58,7 +58,7 @@ class CDP(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         cdp = CiscoCDPMib(self.agent)
-        stampcheck = yield self._stampcheck(cdp)
+        stampcheck = yield self._get_stampcheck(cdp)
         need_to_collect = yield stampcheck.is_changed()
         if need_to_collect:
             self._logger.debug("collecting CDP cache table")
@@ -78,9 +78,8 @@ class CDP(Plugin):
         stampcheck.save()
 
     @defer.inlineCallbacks
-    def _stampcheck(self, mib):
-        stampcheck = TimestampChecker(self.agent, self.containers,
-                                      INFO_VAR_NAME)
+    def _get_stampcheck(self, mib):
+        stampcheck = TimestampChecker(self.agent, self.containers, INFO_VAR_NAME)
         yield stampcheck.load()
         yield stampcheck.collect([mib.get_neighbors_last_change()])
 
