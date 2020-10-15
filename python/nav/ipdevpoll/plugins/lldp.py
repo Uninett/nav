@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"ipdevpoll plugin to collect LLDP neighbors"
+"""ipdevpoll plugin to collect LLDP neighbors"""
 from pprint import pformat
 
 from django.db.models import Q
@@ -32,6 +32,7 @@ SOURCE = 'lldp'
 INFO_KEY_LLDP_INFO = "lldp"
 INFO_VAR_CHASSIS_ID = "chassis_id"
 INFO_VAR_CHASSIS_MAC = "chassis_mac"
+INFO_VAR_REMOTES_CACHE = "remotes_cache"
 
 
 class LLDP(Plugin):
@@ -61,23 +62,58 @@ class LLDP(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         mib = lldp_mib.LLDPMib(self.agent)
-        stampcheck = yield self._stampcheck(mib)
-        need_to_collect = yield stampcheck.is_changed()
+
+        stampcheck = yield self._get_stampcheck(mib)
+        remote_table_has_changed = yield stampcheck.is_changed()
+        need_to_collect = remote_table_has_changed
+
+        if not remote_table_has_changed:
+            cache = yield self._get_cached_remote_table()
+            if cache is not None:
+                self._logger.debug("Using cached LLDP remote table")
+                self.remote = cache
+            else:
+                self._logger.debug("Remote didn't change, but cache was empty")
+                need_to_collect = True
+
         if need_to_collect:
             self._logger.debug("collecting LLDP remote table")
             self.remote = yield mib.get_remote_table()
-            if self.remote:
-                self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
+
+        if self.remote:
+            self._logger.debug("LLDP neighbors:\n %s", pformat(self.remote))
             yield run_in_thread(self._process_remote)
-
-            # Store sentinels to signal that LLDP neighbors have been processed
-            shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
-            shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
             yield self._get_chassis_id(mib)
+            yield self._save_cached_remote_table(self.remote)
         else:
-            self._logger.debug("LLDP remote table seems unchanged")
+            self._logger.debug("No LLDP neighbors to process")
 
+        # Store sentinels to signal that LLDP neighbors have been processed
+        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+        shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
         stampcheck.save()
+
+    @defer.inlineCallbacks
+    def _get_cached_remote_table(self):
+        """Retrieves a cached version of the remote neighbor table"""
+        value = yield run_in_thread(
+            manage.NetboxInfo.cache_get,
+            self.netbox,
+            INFO_KEY_LLDP_INFO,
+            INFO_VAR_REMOTES_CACHE
+        )
+        defer.returnValue(value)
+
+    @defer.inlineCallbacks
+    def _save_cached_remote_table(self, remote_table):
+        """Saves a cached copy of the remote neighbor table"""
+        yield run_in_thread(
+            manage.NetboxInfo.cache_set,
+            self.netbox,
+            INFO_KEY_LLDP_INFO,
+            INFO_VAR_REMOTES_CACHE,
+            remote_table
+        )
 
     @defer.inlineCallbacks
     def _get_chassis_id(self, mib):
@@ -104,9 +140,11 @@ class LLDP(Plugin):
             info.variable = INFO_VAR_CHASSIS_MAC
 
     @defer.inlineCallbacks
-    def _stampcheck(self, mib):
-        stampcheck = TimestampChecker(self.agent, self.containers,
-                                      INFO_VAR_NAME)
+    def _get_stampcheck(self, mib):
+        """Retrieves the last change timestamp of the LLDP remote table, returning a
+        TimestampChecker instance reflecting it.
+        """
+        stampcheck = TimestampChecker(self.agent, self.containers, INFO_VAR_NAME)
         yield stampcheck.load()
         yield stampcheck.collect([mib.get_remote_last_change()])
 
