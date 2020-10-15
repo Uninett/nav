@@ -27,8 +27,10 @@ from nav.ipdevpoll.neighbor import Neighbor
 from nav.ipdevpoll.db import run_in_thread
 from nav.ipdevpoll.timestamps import TimestampChecker
 
-INFO_VAR_NAME = 'cdp'
-SOURCE = 'cdp'
+INFO_VAR_NAME = "cdp"
+INFO_KEY_NAME = "cdp"
+INFO_VAR_NEIGHBORS_CACHE = "neighbors_cache"
+SOURCE = "cdp"
 
 
 class CDP(Plugin):
@@ -40,7 +42,6 @@ class CDP(Plugin):
     device.
 
     """
-    cache = None
     neighbors = None
 
     @classmethod
@@ -58,46 +59,78 @@ class CDP(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         cdp = CiscoCDPMib(self.agent)
-        stampcheck = yield self._stampcheck(cdp)
-        need_to_collect = yield stampcheck.is_changed()
+
+        stampcheck = yield self._get_stampcheck(cdp)
+        remote_table_has_changed = yield stampcheck.is_changed()
+        need_to_collect = remote_table_has_changed
+
+        if not remote_table_has_changed:
+            cache = yield self._get_cached_neighbors()
+            if cache is not None:
+                self._logger.debug("Using cached CDP neighbors")
+                self.neighbors = cache
+            else:
+                self._logger.debug(
+                    "CDP cache table didn't change, but local cache was empty"
+                )
+                need_to_collect = True
+
         if need_to_collect:
             self._logger.debug("collecting CDP cache table")
-            cache = yield cdp.get_cdp_neighbors()
-            if cache:
-                self._logger.debug("found CDP cache data: %r", cache)
-                self.cache = cache
-                yield run_in_thread(self._process_cache)
+            self.neighbors = yield cdp.get_cdp_neighbors()
 
-            # Store sentinels to signal that CDP neighbors have been processed
-            shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
-            shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
-
+        if self.neighbors:
+            self._logger.debug("CDP neighbors:\n %r", self.neighbors)
+            yield run_in_thread(self._process_neighbors)
+            yield self._save_cached_neighbors(self.neighbors)
         else:
-            self._logger.debug("CDP cache table seems unchanged")
+            self._logger.debug("No CDP neighbors to process")
 
+        # Store sentinels to signal that CDP neighbors have been processed
+        shadows.AdjacencyCandidate.sentinel(self.containers, SOURCE)
+        shadows.UnrecognizedNeighbor.sentinel(self.containers, SOURCE)
         stampcheck.save()
 
     @defer.inlineCallbacks
-    def _stampcheck(self, mib):
-        stampcheck = TimestampChecker(self.agent, self.containers,
-                                      INFO_VAR_NAME)
+    def _get_stampcheck(self, mib):
+        stampcheck = TimestampChecker(self.agent, self.containers, INFO_VAR_NAME)
         yield stampcheck.load()
         yield stampcheck.collect([mib.get_neighbors_last_change()])
 
         defer.returnValue(stampcheck)
 
-    def _process_cache(self):
+    @defer.inlineCallbacks
+    def _get_cached_neighbors(self):
+        """Retrieves a cached version of the remote neighbor table"""
+        value = yield run_in_thread(
+            manage.NetboxInfo.cache_get,
+            self.netbox,
+            INFO_KEY_NAME,
+            INFO_VAR_NEIGHBORS_CACHE
+        )
+        defer.returnValue(value)
+
+    @defer.inlineCallbacks
+    def _save_cached_neighbors(self, neighbors):
+        """Saves a cached a copy of the remote neighbor table"""
+        yield run_in_thread(
+            manage.NetboxInfo.cache_set,
+            self.netbox,
+            INFO_KEY_NAME,
+            INFO_VAR_NEIGHBORS_CACHE,
+            neighbors
+        )
+
+    def _process_neighbors(self):
         """
         Tries to synchronously identify CDP cache entries in NAV's database
         """
-        neighbors = [CDPNeighbor(cdp, self.netbox.ip) for cdp in self.cache]
+        neighbors = [CDPNeighbor(cdp, self.netbox.ip) for cdp in self.neighbors]
 
         self._process_identified(
             [n for n in neighbors if n.identified])
         self._process_unidentified(
             [n.record for n in neighbors if not n.identified])
-
-        self.neighbors = neighbors
 
     def _process_identified(self, identified):
         for neigh in identified:
