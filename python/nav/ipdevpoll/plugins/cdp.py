@@ -41,7 +41,6 @@ class CDP(Plugin):
 
     """
     cache = None
-    neighbors = None
 
     @classmethod
     @defer.inlineCallbacks
@@ -95,8 +94,6 @@ class CDP(Plugin):
             [n for n in neighbors if n.identified])
         self._process_unidentified(
             [n.record for n in neighbors if not n.identified])
-
-        self.neighbors = neighbors
 
     def _process_identified(self, identified):
         for neigh in identified:
