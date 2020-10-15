@@ -16,7 +16,8 @@
 """FTP Service Checker"""
 import contextlib
 import socket
-import ftplib
+import sys
+from ftplib import FTP
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
@@ -36,13 +37,18 @@ class FtpChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
 
     def execute(self):
-        with contextlib.closing(FTP(self.timeout)) as session:
+        with contextlib.closing(FTP(timeout=self.timeout)) as session:
             ip, port = self.get_address()
-            output = session.connect(ip, port or 21)
+            welcome = session.connect(ip, port or 21)
+
+            # This cannot happen on Linux (debian)
+            # A bug has been reported on FreeBSD so we CYA
+            if sys.version_info >= (3,) and isinstance(welcome, bytes):
+                welcome = welcome.decode('utf-8', 'replace')
 
             # Get server version from the banner.
             version = ''
-            for line in session.welcome.split('\n'):
+            for line in welcome.split('\n'):
                 if line.startswith('220 '):
                     version = line[4:].strip()
             self.version = version
@@ -56,32 +62,3 @@ class FtpChecker(AbstractChecker):
                 return Event.UP, 'code 230'
             else:
                 return Event.DOWN, output.split('\n')[0]
-
-
-# pylint: disable=R0913,W0221,R0904
-class FTP(ftplib.FTP):
-    """Customized FTP protocol interface"""
-    def __init__(self, timeout, host='', user='', passwd='', acct=''):
-        ftplib.FTP.__init__(self)
-        if host:
-            self.connect(host)
-        if user:
-            self.login(user, passwd, acct)
-        self.timeout = timeout
-
-    def connect(self, host='', port=0):
-        """Connects to host.
-
-        :param host: hostname to connect to (string, default previous host)
-        :param port: port to connect to (integer, default previous port)
-
-        """
-        if host:
-            self.host = host
-        if port:
-            self.port = port
-        self.sock = socket.create_connection((self.host, self.port),
-                                             self.timeout)
-        self.file = self.sock.makefile('rb')
-        self.welcome = self.getresp()
-        return self.welcome
