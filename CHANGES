@@ -1,3 +1,19 @@
+Version 5.0.7
+(released 15 Oct 2020)
+
+Fixed GitHub issues in this release:
+
+  * #2106 ([BUG] Cached LLDP/CDP records are never re-evaluated)
+  * #2182 ([BUG] Delayed delivery alert subscriptions crash Alert
+           Engine with a NameError)
+  * #2184 ([BUG] Unrecognized Neighbors are never removed when all
+           neighbors have been identified)
+  * #2187 ([BUG] Locked accounts with a NULL value for a password cannot
+           be edited)
+  * #2188 ([BUG] Useradmin user listing becomes excruciatingly slow when
+           many users have password issues)
+  * #2189 ([BUG] Regression - ftp service check in 5.X does not work)
+
 Version 5.0.6
 (released 27 Aug 2020)
 
