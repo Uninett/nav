@@ -26,3 +26,5 @@ pynetsnmp-2==0.1.5
 
 # libsass for compiling scss files to css using distutils/setuptools
 libsass==0.15.1
+
+napalm==3.0.1

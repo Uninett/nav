@@ -103,8 +103,10 @@ class ManagementProfile(models.Model):
 
     PROTOCOL_DEBUG = 0
     PROTOCOL_SNMP = 1
+    PROTOCOL_NAPALM = 2
     PROTOCOL_CHOICES = [
         (PROTOCOL_SNMP, "SNMP"),
+        (PROTOCOL_NAPALM, "NAPALM"),
     ]
     if settings.DEBUG:
         PROTOCOL_CHOICES.insert(0, (PROTOCOL_DEBUG, 'debug'))

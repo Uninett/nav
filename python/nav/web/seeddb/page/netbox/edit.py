@@ -34,6 +34,7 @@ from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
 from nav.models.manage import NetboxInfo, ManagementProfile
 from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
+from nav import napalm
 from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname
@@ -133,21 +134,24 @@ def get_read_only_variables(request):
     sysname = get_sysname(ip_address)
     netbox_type = None
 
-    snmp_profiles = [p for p in profiles if p.is_snmp]
-    result = {p.id: {} for p in snmp_profiles}
-    for profile in snmp_profiles:
-        if profile.configuration.get('write'):
-            result[profile.id] = snmp_write_test(ip_address, profile)
+    result = {p.id: {} for p in profiles}
+    for profile in profiles:
+        if profile.is_snmp:
+            response = get_snmp_read_only_variables(ip_address, profile)
+        elif profile.protocol == profile.PROTOCOL_NAPALM:
+            response = test_napalm_connectivity(ip_address, profile)
         else:
-            netbox_type = get_type_id(ip_address, profile)
-            result[profile.id]['status'] = check_snmp_version(
-                ip_address, profile
+            response = None
+
+        if response:
+            response["name"] = profile.name
+            response["url"] = reverse(
+                "seeddb-management-profile-edit",
+                kwargs={"management_profile_id": profile.id},
             )
-        result[profile.id]['name'] = profile.name
-        result[profile.id]['url'] = reverse(
-            'seeddb-management-profile-edit',
-            kwargs={'management_profile_id': profile.id}
-        )
+            result[profile.id].update(response)
+            if response.get("type"):
+                netbox_type = response["type"]
 
     data = {
         'sysname': sysname,
@@ -155,6 +159,17 @@ def get_read_only_variables(request):
         'profiles': result,
     }
     return JsonResponse(data)
+
+
+def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
+    """Tests and retrieves basic netbox clasification from an SNMP profile"""
+    result = {}
+    if profile.configuration.get("write"):
+        result = snmp_write_test(ip_address, profile)
+    else:
+        result["type"] = get_type_id(ip_address, profile)
+        result["status"] = check_snmp_version(ip_address, profile)
+    return result
 
 
 def snmp_write_test(ip, profile):
@@ -205,6 +220,16 @@ def check_snmp_version(ip, profile):
         return False
     else:
         return True
+
+
+def test_napalm_connectivity(ip_address: str, profile: ManagementProfile) -> dict:
+    """Tests connectivity of a NAPALM profile and returns a status dictionary"""
+    try:
+        with napalm.connect(ip_address, profile) as device:
+            return {"status": True}
+    except Exception as error:
+        _logger.exception("Could not connect to %s using NAPALM profile", ip_address)
+        return {"status": False, "error_message": str(error)}
 
 
 def get_sysname(ip_address):

@@ -160,7 +160,7 @@ Copy the file :file:`/etc/nav/apache/apache.conf.example` to
 * ``documentation_path`` is where Sphinx put the docs, in
   ``$SOURCE_CODE_DIRECTORY/build/sphinx/html/``.
 * ``nav_uploads_path`` is the upload path you created in step 8.
-* ``nav_python_base`` should be :file:`/usr/local/lib/python3.5/dist-packages` (or wherever the ``nav`` Python module was installed)
+* ``nav_python_base`` should be :file:`/usr/local/lib/python3.7/dist-packages` (or wherever the ``nav`` Python module was installed)
 
 We suggest creating a new Apache site config:
 Inside a ``VirtualHost``-directive, add:

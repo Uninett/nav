@@ -90,6 +90,49 @@ class SnmpForm(ProtocolSpecificMixIn, forms.ModelForm):
     )
 
 
+class NapalmForm(ProtocolSpecificMixIn, forms.ModelForm):
+    PROTOCOL = ManagementProfile.PROTOCOL_NAPALM
+    PROTOCOL_NAME = PROTOCOL_CHOICES.get(PROTOCOL)
+
+    class Meta(object):
+        model = ManagementProfile
+        configuration_fields = [
+            "driver",
+            "username",
+            "password",
+            "private_key",
+            "use_keys",
+            "alternate_port",
+        ]
+        fields = []
+
+    driver = forms.ChoiceField(
+        choices=(("JunOS", "JunOS"),),
+        initial="JunOS",
+        help_text="Which NAPALM driver to use",
+    )
+    username = forms.CharField(required=True, help_text="User name to use for login")
+    password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(render_value=True),
+        help_text="Password to use for login",
+    )
+    private_key = forms.CharField(
+        required=False,
+        widget=forms.Textarea(),
+        help_text="SSH private key to use for login",
+    )
+    use_keys = forms.BooleanField(
+        required=False, help_text="Check to try the available keys in ~/.ssh/"
+    )
+    alternate_port = forms.IntegerField(
+        required=False,
+        help_text="Alternate port (default port value varies with vendor)",
+        min_value=1,
+        max_value=65535,
+    )
+
+
 FORM_MAPPING = {
     form_class.PROTOCOL: form_class
     for form_class in ProtocolSpecificMixIn.__subclasses__()
