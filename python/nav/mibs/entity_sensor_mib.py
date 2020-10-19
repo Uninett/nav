@@ -98,10 +98,8 @@ class EntitySensorMib(mibretriever.MibRetriever):
         aliases = yield self.entity_mib.get_alias_mapping()
         for idx, row in entities.items():
             if idx in sensors:
-                sensors[idx]['entPhysicalDescr'] = row.get(
-                    'entPhysicalDescr', None)
-                sensors[idx]['entPhysicalName'] = row.get(
-                    'entPhysicalName', None)
+                sensors[idx]['entPhysicalDescr'] = row.get('entPhysicalDescr')
+                sensors[idx]['entPhysicalName'] = row.get('entPhysicalName')
                 port = entities.get_nearest_port_parent(row)
                 if port and port.index[-1] in aliases:
                     ifindices = aliases[port.index[-1]]
@@ -109,24 +107,25 @@ class EntitySensorMib(mibretriever.MibRetriever):
                         sensors[idx]['ifindex'] = ifindices[0]
         result = []
         for row_id, row in sensors.items():
-            row_oid = row.get(0, None)
-            mibobject = self.nodes.get(self.VALUE_COLUMN, None)
+            row_oid = row.get(0)
+            mibobject = self.nodes.get(self.VALUE_COLUMN)
             oid = str(mibobject.oid) + str(row_oid)
             unit_of_measurement = row.get(self.TYPE_COLUMN, 2)
             precision = row.get(self.PRECISION_COLUMN, 0)
-            scale = row.get(self.SCALE_COLUMN, None)
-            op_status = row.get(self.STATUS_COLUMN, None)
-            description = row.get('entPhysicalDescr', None)
-            name = row.get('entPhysicalName', None)
+            scale = row.get(self.SCALE_COLUMN)
+            op_status = row.get(self.STATUS_COLUMN)
+            description = row.get('entPhysicalDescr')
+            name = row.get('entPhysicalName') or description
             ifindex = row.get('ifindex')
             internal_name = name
             if op_status == 1:
                 result.append({
                     'oid': oid,
                     'unit_of_measurement': UNITS_OF_MEASUREMENTS.get(
-                        unit_of_measurement, None),
+                        unit_of_measurement
+                    ),
                     'precision': precision,
-                    'scale': DATA_SCALE.get(scale, None),
+                    'scale': DATA_SCALE.get(scale),
                     'description': description,
                     'name': name,
                     'internal_name': internal_name,
