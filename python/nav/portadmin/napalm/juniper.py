@@ -441,9 +441,11 @@ def is_unit(name: str) -> bool:
 
 
 def split_master_unit(name: str) -> Tuple[str, str]:
-    """Splits an interface name into master and unit parts, if applicable"""
+    """Splits an interface name into master and unit parts. If the name doesn't
+    already refer to a unit, unit 0 will be assumed.
+    """
     names = name.split(".")
     if len(names) == 2:
         return names
     else:
-        return name, None
+        return name, "0"
