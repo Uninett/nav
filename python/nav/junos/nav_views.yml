@@ -88,6 +88,23 @@ _VlanMemberView:
     blocking-status: blocking-status
 
 
+ElsEthernetSwitchingInterfaceTable:
+    rpc: get-ethernet-switching-interface-information
+    args:
+        detail: True
+    item: l2ng-l2ald-iff-interface-entry
+    key: l2iff-interface-handle
+    view: ElsEthernetSwitchingInterfaceView
+
+ElsEthernetSwitchingInterfaceView:
+    fields:
+        ifname: l2iff-interface-name
+        tag: { l2iff-interface-vlan-id: int }
+        vlan_name: l2iff-interface-vlan-name
+        tagged: { l2iff-interface-vlan-member-tagness: True=tagged }
+        flags: l2iff-interface-flags
+
+
 ####
 #### Vlan information table, updated version for l2ng (ELS Switches)
 #### PyEZ comes with an old VlanTable definition, but newer JunOS seems to
