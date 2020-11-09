@@ -42,6 +42,7 @@ from nav.portadmin.handlers import (
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
     InterfaceConfigTable,
+    ElsVlanTable,
 )
 from jnpr.junos.op.vlan import VlanTable
 
@@ -187,13 +188,11 @@ class Juniper(ManagementHandler):
                     tag, netident=vlan_object.net_ident, descr=vlan_object.description
                 )
 
-        result = {
-            _make_vlan(vlan) for vlan in self.vlans if vlan.status.upper() == "ENABLED"
-        }
+        result = {_make_vlan(vlan) for vlan in self.vlans}
         return sorted(result, key=attrgetter("vlan"))
 
     def get_netbox_vlan_tags(self) -> List[int]:
-        return [vlan.tag for vlan in self.vlans if vlan.status.upper() == "ENABLED"]
+        return [vlan.tag for vlan in self.vlans]
 
     def get_interface_native_vlan(self, interface: manage.Interface) -> int:
         untagged, _ = self.get_native_and_trunked_vlans(interface)
@@ -364,7 +363,11 @@ class Juniper(ManagementHandler):
     def vlans(self):
         """A cached representation of Juniper VLAN table"""
         if not self._vlans:
-            self._vlans = VlanTable(self.device.device)
+            self._vlans = (
+                ElsVlanTable(self.device.device)
+                if self.is_els
+                else VlanTable(self.device.device)
+            )
             self._vlans.get()
         return self._vlans
 
