@@ -99,6 +99,7 @@ class Juniper(ManagementHandler):
         self._profile = None
         self._interfaces = {}
         self._vlans = None
+        self._is_els = None
 
     @property
     def profile(self):
@@ -122,6 +123,13 @@ class Juniper(ManagementHandler):
                 raise NoResponseError("Device did not respond within timeout") from err
 
         return self._device
+
+    @property
+    def is_els(self):
+        """Returns True if this is an ELS config style Juniper switch"""
+        if self._is_els is None:
+            self._is_els = self.device.device.facts.get("switch_style") == "VLAN_L2NG"
+        return self._is_els
 
     def get_interfaces(
         self, interfaces: Sequence[manage.Interface] = None
