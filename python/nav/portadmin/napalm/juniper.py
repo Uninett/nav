@@ -41,6 +41,7 @@ from nav.portadmin.handlers import (
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
+    ElsEthernetSwitchingInterfaceTable,
     InterfaceConfigTable,
     ElsVlanTable,
 )
@@ -161,16 +162,25 @@ class Juniper(ManagementHandler):
         return [_convert(name, ifc) for name, ifc in interfaces.items()]
 
     def _get_untagged_vlans(self):
-        # This table gets us tagged/untagged VLANs for each interface
-        switching = EthernetSwitchingInterfaceTable(self.device.device)
-        switching.get()
+        if not self.is_els:
+            # This table gets us tagged/untagged VLANs for each interface
+            switching = EthernetSwitchingInterfaceTable(self.device.device)
+            switching.get()
 
-        return {
-            port.ifname: vlan.tag
-            for port in switching
-            for vlan in port.vlans
-            if not vlan.tagged
-        }
+            return {
+                port.ifname: vlan.tag
+                for port in switching
+                for vlan in port.vlans
+                if not vlan.tagged
+            }
+        else:
+            switching = ElsEthernetSwitchingInterfaceTable(self.device.device)
+            switching.get()
+            return {
+                port.ifname: port.tag
+                for port in switching
+                if not port.tagged
+            }
 
     def get_netbox_vlans(self) -> List[FantasyVlan]:
         vlan_objects = manage.Vlan.objects.filter(
@@ -210,9 +220,15 @@ class Juniper(ManagementHandler):
         interface.save()
 
     def get_native_and_trunked_vlans(self, interface) -> Tuple[int, List[int]]:
-        switching = EthernetSwitchingInterfaceTable(self.device.device)
-        switching.get(interface_name=interface.ifname)
-        vlans = switching[interface.ifname].vlans
+        if not self.is_els:
+            switching = EthernetSwitchingInterfaceTable(self.device.device)
+            switching.get(interface_name=interface.ifname)
+            vlans = switching[interface.ifname].vlans
+        else:
+            switching = ElsEthernetSwitchingInterfaceTable(self.device.device)
+            switching.get(interface_name=interface.ifname)
+            vlans = switching
+
         tagged = [vlan.tag for vlan in vlans if vlan.tagged]
         untagged = first_true(vlans, pred=lambda vlan: not vlan.tagged)
         return (untagged.tag if untagged else None), tagged
