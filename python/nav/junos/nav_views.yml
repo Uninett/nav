@@ -86,3 +86,22 @@ _VlanMemberView:
     tag: { interface-vlan-member-tagid: int }
     tagged: { interface-vlan-member-tagness: True=tagged }
     blocking-status: blocking-status
+
+
+####
+#### Vlan information table, updated version for l2ng (ELS Switches)
+#### PyEZ comes with an old VlanTable definition, but newer JunOS seems to
+#### provide a very different XML response to this RPC, so here is the newer
+#### definition
+
+ElsVlanTable:
+  rpc: get-vlan-information
+  key: l2ng-l2rtb-vlan-name
+  item: l2ng-l2ald-vlan-instance-group
+  view: ElsVlanView
+
+ElsVlanView:
+  fields:
+    name: l2ng-l2rtb-vlan-name
+    tag: l2ng-l2rtb-vlan-tag
+    members: .//l2ng-l2rtb-vlan-member-interface
