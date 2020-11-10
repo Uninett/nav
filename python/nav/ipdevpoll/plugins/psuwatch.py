@@ -21,6 +21,8 @@ import datetime
 
 from twisted.internet import defer
 
+from django.db import transaction
+
 from nav.event2 import EventFactory
 from nav.ipdevpoll import Plugin, db
 from nav.models.manage import PowerSupplyOrFan
@@ -135,4 +137,5 @@ class PowerSupplyOrFanStateWatcher(Plugin):
             varmap=varmap,
         )
         self._logger.debug("posting state change event for %s: %r", unit, event)
-        event.save()
+        with transaction.atomic():
+            event.save()
