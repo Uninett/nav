@@ -221,11 +221,6 @@ class Juniper(ManagementHandler):
 
     def set_access(self, interface: manage.Interface, access_vlan: int):
         master, unit = split_master_unit(interface.ifname)
-        if not unit:
-            raise ManagementError(
-                "Cannot set vlan config on non-units", interface.ifname
-            )
-
         current = InterfaceConfigTable(self.device.device).get(master)[master]
         template = get_template("portadmin/junos-set-access-port-vlan.djt")
         context = {
@@ -254,11 +249,6 @@ class Juniper(ManagementHandler):
         self, interface: manage.Interface, native_vlan: int, trunk_vlans: Sequence[int]
     ):
         master, unit = split_master_unit(interface.ifname)
-        if not unit:
-            raise ManagementError(
-                "Cannot set vlan config on non-units", interface.ifname
-            )
-
         template = get_template("portadmin/junos-set-trunk-port-vlans.djt")
         members = " ".join(str(tag) for tag in trunk_vlans)
         context = {
