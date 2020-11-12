@@ -209,15 +209,7 @@ class Juniper(ManagementHandler):
         return untagged
 
     def set_native_vlan(self, interface: manage.Interface, vlan: int):
-        master, unit = split_master_unit(interface.ifname)
-        if not unit:
-            raise ManagementError(
-                "Cannot set vlan config on non-units", interface.ifname
-            )
-        config = TEMPLATE_SET_NATIVE_VLAN.format(ifname=master, unit=unit, native=vlan)
-        self.device.load_merge_candidate(config=config)
-        interface.vlan = vlan
-        interface.save()
+        raise NotImplementedError  # This is in fact never used on Juniper!
 
     def get_native_and_trunked_vlans(self, interface) -> Tuple[int, List[int]]:
         if not self.is_els:
