@@ -103,7 +103,20 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         restartInterfacesDone: function(listItem) {
             listItem.append(this.createAlert('success'));
             listItem.find('progress').remove();
-        }
+        },
+        committingConfig: function() {
+            return this.addFeedback('Committing configuration changes')
+                .append(this.createProgress());
+        },
+        committedConfig: function(listItem, status, message) {
+            status = typeof status === 'undefined' ? 'success' : status;
+            message = typeof message === 'undefined' ? '' : message;
+            listItem.append(this.createAlert(status));
+            if (status !== 'success') {
+                listItem.append($('<small style="margin-left: 1em">').text(message));
+            }
+            listItem.find('progress').remove();
+        },
     };
 
 
@@ -399,13 +412,13 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         /** Do a request to commit changes to startup config */
         console.log('Sending commit configuration request');
 
+        var status = feedback.committingConfig();
         var request = $.post('commit_configuration', {'interfaceid': interfaceid});
-        var text = 'Commit';
         request.done(function() {
-            feedback.addFeedback(text, 'success', request.responseText);
+            feedback.committedConfig(status, 'success', request.responseText);
         });
         request.fail(function() {
-            feedback.addFeedback(text, 'alert', request.responseText);
+            feedback.committedConfig(status, 'alert', request.responseText);
         });
         request.always(function() {
             feedback.addCloseButton();
