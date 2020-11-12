@@ -434,7 +434,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             if (index > -1) {
                 restart_queue.splice(index, 1);
             }
-            console.log('Inteface ' + interfaceid + ' restarted');
+            console.log('Interface ' + interfaceid + ' restarted');
             if (restart_queue.length === 0) {
                 $('body').triggerHandler('nav:restartQueueEmpty');
             }
