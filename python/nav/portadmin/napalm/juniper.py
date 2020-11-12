@@ -27,6 +27,7 @@ so the underlying Juniper PyEZ library is utilized directly in most cases.
 from operator import attrgetter
 from typing import List, Any, Dict, Tuple, Sequence
 
+from django.template.loader import get_template
 from napalm.base.exceptions import ConnectAuthError, ConnectionException
 
 from nav.napalm import connect as napalm_connect
@@ -55,24 +56,6 @@ __all__ = ["Juniper"]
 # This maps interface oper/admin status values to SNMP values as used in NAV's data
 # model. See IF-MIB::ifOperStatus and IF-MIB::ifAdminStatus from RFC 2863 for details.
 SNMP_STATUS_MAP = {"up": 1, "down": 2, True: 1, False: 2}
-
-TEMPLATE_SET_INTERFACE_DESCRIPTION = 'set interfaces {ifname} description "{descr}"'
-TEMPLATE_DELETE_INTERFACE_DESCRIPTION = "delete interfaces {ifname} description"
-TEMPLATE_RESET_VLAN_MEMBERS = """
-delete interfaces {ifname} unit {unit} family ethernet-switching vlan members
-set interfaces {ifname} unit {unit} family ethernet-switching vlan members [ {members} ]
-"""
-TEMPLATE_DELETE_NATIVE_VLAN = """
-delete interfaces {ifname} unit {unit} family ethernet-switching native-vlan-id
-"""
-TEMPLATE_SET_NATIVE_VLAN = """
-set interfaces {ifname} unit {unit} family ethernet-switching native-vlan-id {native}
-"""
-TEMPLATE_SET_PORT_MODE = """
-set interfaces {ifname} unit {unit} family ethernet-switching port-mode {mode}
-"""
-TEMPLATE_DISABLE_PORT = "set interfaces {ifname} disable"
-TEMPLATE_ENABLE_PORT = "delete interfaces {ifname} disable"
 
 
 class Juniper(ManagementHandler):
@@ -176,11 +159,7 @@ class Juniper(ManagementHandler):
         else:
             switching = ElsEthernetSwitchingInterfaceTable(self.device.device)
             switching.get()
-            return {
-                port.ifname: port.tag
-                for port in switching
-                if not port.tagged
-            }
+            return {port.ifname: port.tag for port in switching if not port.tagged}
 
     def get_netbox_vlans(self) -> List[FantasyVlan]:
         vlan_objects = manage.Vlan.objects.filter(
@@ -228,27 +207,17 @@ class Juniper(ManagementHandler):
     def set_interface_description(self, interface: manage.Interface, description: str):
         # never set description on units but on master interface
         master, _ = split_master_unit(interface.ifname)
-        description = description.replace('"', r"\"")  # escape quotes
-
-        if description:
-            config = TEMPLATE_SET_INTERFACE_DESCRIPTION.format(
-                ifname=master, descr=description
-            )
-        else:
-            config = TEMPLATE_DELETE_INTERFACE_DESCRIPTION.format(ifname=master)
+        context = {
+            "is_els": self.is_els,
+            "ifname": master,
+            "description": description.replace('"', r"\""),  # escape quotes
+        }
+        template = get_template("portadmin/junos-set-interface-description.djt")
+        config = template.render(context)
         self.device.load_merge_candidate(config=config)
 
     def set_vlan(self, interface: manage.Interface, vlan: int):
-        master, unit = split_master_unit(interface.ifname)
-        if not unit:
-            raise ManagementError(
-                "Cannot set vlan members on non-units", interface.ifname
-            )
-
-        config = TEMPLATE_RESET_VLAN_MEMBERS.format(
-            ifname=master, unit=unit, members=vlan
-        )
-        self.device.load_merge_candidate(config=config)
+        self.set_access(interface, vlan)
 
     def set_access(self, interface: manage.Interface, access_vlan: int):
         master, unit = split_master_unit(interface.ifname)
@@ -258,15 +227,15 @@ class Juniper(ManagementHandler):
             )
 
         current = InterfaceConfigTable(self.device.device).get(master)[master]
-
-        # Deleting native vlan id is only appropriate if the element exists already
-        templates = [TEMPLATE_DELETE_NATIVE_VLAN] if current["native_vlan"] else []
-        templates += [TEMPLATE_SET_PORT_MODE, TEMPLATE_RESET_VLAN_MEMBERS]
-
-        config = "\n".join(
-            tmpl.format(ifname=master, unit=unit, mode="access", members=access_vlan)
-            for tmpl in templates
-        )
+        template = get_template("portadmin/junos-set-access-port-vlan.djt")
+        context = {
+            "is_els": self.is_els,
+            "delete_native_vlan": bool(current["native_vlan"]),
+            "ifname": master,
+            "unit": unit,
+            "members": access_vlan,
+        }
+        config = template.render(context)
         self.device.load_merge_candidate(config=config)
         self._save_access_interface(interface, access_vlan)
 
@@ -290,23 +259,16 @@ class Juniper(ManagementHandler):
                 "Cannot set vlan config on non-units", interface.ifname
             )
 
+        template = get_template("portadmin/junos-set-trunk-port-vlans.djt")
         members = " ".join(str(tag) for tag in trunk_vlans)
-        templates = [
-            TEMPLATE_SET_PORT_MODE,
-            TEMPLATE_SET_NATIVE_VLAN,
-            TEMPLATE_RESET_VLAN_MEMBERS,
-        ]
-        config = "\n".join(
-            tmpl.format(
-                ifname=master,
-                unit=unit,
-                mode="trunk",
-                native=native_vlan,
-                members=members,
-            )
-            for tmpl in templates
-        )
-
+        context = {
+            "is_els": self.is_els,
+            "ifname": master,
+            "unit": unit,
+            "native_vlan": native_vlan,
+            "members": members,
+        }
+        config = template.render(context)
         self.device.load_merge_candidate(config=config)
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
@@ -340,7 +302,8 @@ class Juniper(ManagementHandler):
     def set_interface_down(self, interface: manage.Interface):
         # does not set oper on logical units, only on physical masters
         master, unit = split_master_unit(interface.ifname)
-        config = TEMPLATE_DISABLE_PORT.format(ifname=master)
+        template = get_template("portadmin/junos-disable-interface.djt")
+        config = template.render({"ifname": master, "disable": True})
         self.device.load_merge_candidate(config=config)
 
         self._save_interface_oper(interface, interface.OPER_DOWN)
@@ -348,7 +311,8 @@ class Juniper(ManagementHandler):
     def set_interface_up(self, interface: manage.Interface):
         # does not set oper on logical units, only on physical masters
         master, unit = split_master_unit(interface.ifname)
-        config = TEMPLATE_ENABLE_PORT.format(ifname=master)
+        template = get_template("portadmin/junos-disable-interface.djt")
+        config = template.render({"ifname": master, "disable": False})
         self.device.load_merge_candidate(config=config)
 
         self._save_interface_oper(interface, interface.OPER_UP)

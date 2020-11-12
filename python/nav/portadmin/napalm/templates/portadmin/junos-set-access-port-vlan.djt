@@ -1,0 +1,15 @@
+{% if is_els %}
+    {% if delete_native_vlan %}
+delete interfaces {{ ifname }} native-vlan-id
+    {% endif %}
+set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching interface-mode access
+
+{% else %}
+    {% if delete_native_vlan %}
+delete interfaces {{ ifname }} unit {{ unit }} family ethernet-switching native-vlan-id
+    {% endif %}
+set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching port-mode access
+{% endif %}
+
+delete interfaces {{ ifname }} unit {{ unit }} family ethernet-switching vlan members
+set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching vlan members [ {{ members }} ]

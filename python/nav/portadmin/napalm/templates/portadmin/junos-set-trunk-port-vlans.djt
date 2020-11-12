@@ -1,15 +1,23 @@
 {% if is_els %}
-    {% if delete_native_vlan %}
-delete interfaces {{ ifname }} native-vlan-id
+
+set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching interface-mode trunk
+    {% if native_vlan %}
+        {# DELETE NATIVE VLAN IF NECESSARY? #}
+set interfaces {{ ifname }} native-vlan-id {{ native_vlan }}
+delete interfaces {{ ifname }} unit {{ unit }} family ethernet-switching vlan members
+set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching vlan members [ {{ native_vlan }} {{ members }} ]
+    {% else %}
+set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching vlan members [ {{ members }} ]
     {% endif %}
-set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching interface-mode access
 
 {% else %}
-    {% if delete_native_vlan %}
-delete interfaces {{ ifname }} unit {{ unit }} family ethernet-switching native-vlan-id
-    {% endif %}
-set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching port-mode access
-{% endif %}
 
+set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching port-mode trunk
+    {% if native_vlan %}
+set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching native-vlan-id {{ native_vlan }}
+    {% endif %}
 delete interfaces {{ ifname }} unit {{ unit }} family ethernet-switching vlan members
 set interfaces {{ ifname }} unit {{ unit }} family ethernet-switching vlan members [ {{ members }} ]
+
+{% endif %}
+

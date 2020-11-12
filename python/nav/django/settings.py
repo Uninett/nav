@@ -228,6 +228,7 @@ INSTALLED_APPS = (
     'nav.auditlog',
     'nav.web.macwatch',
     'nav.web.geomap',
+    'nav.portadmin.napalm',
     'nav.web.portadmin',
     'django.contrib.postgres',
 )
