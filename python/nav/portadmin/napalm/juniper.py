@@ -100,6 +100,7 @@ class Juniper(ManagementHandler):
     def device(self):
         """Opens a device connection or returns an existing one"""
         if not self._device:
+            self.raise_if_not_configurable()
             try:
                 self._device = napalm_connect(self.netbox, self.profile)
             except ConnectAuthError as err:
