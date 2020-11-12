@@ -198,7 +198,7 @@ class Juniper(ManagementHandler):
         else:
             switching = ElsEthernetSwitchingInterfaceTable(self.device.device)
             switching.get(interface_name=interface.ifname)
-            vlans = switching
+            vlans = [vlan for vlan in switching if vlan.tagged is not None]
 
         tagged = [vlan.tag for vlan in vlans if vlan.tagged]
         untagged = first_true(vlans, pred=lambda vlan: not vlan.tagged)
