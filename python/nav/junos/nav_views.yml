@@ -15,7 +15,7 @@ InterfaceConfigView:
     ifname: name
     ifalias: description
     port_mode: unit/family/ethernet-switching/port-mode
-    native_vlan: unit/family/ethernet-switching/native-vlan-id
+    native_vlan: unit/family/ethernet-switching/native-vlan-id|native-vlan-id
     ifgroup: name/@group
     vlans: _VlanTable
 
