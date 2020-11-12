@@ -24,6 +24,7 @@ but many of the operations PortAdmin needs are not directly supported by the NAP
 so the underlying Juniper PyEZ library is utilized directly in most cases.
 
 """
+from __future__ import annotations
 from operator import attrgetter
 from typing import List, Any, Dict, Tuple, Sequence
 
@@ -87,7 +88,7 @@ class Juniper(ManagementHandler):
         self._is_els = None
 
     @property
-    def profile(self):
+    def profile(self) -> nav.models.manage.ManagementProtocol:
         """Returns the selected NAPALM profile for this netbox"""
         if not self._profile:
             profiles = self.netbox.profiles.filter(protocol=self.PROTOCOL)
@@ -98,7 +99,6 @@ class Juniper(ManagementHandler):
     @property
     def device(self):
         """Opens a device connection or returns an existing one"""
-        # FIXME: This is just for prototyping, this config must be retrieved from the DB
         if not self._device:
             try:
                 self._device = napalm_connect(self.netbox, self.profile)
@@ -110,7 +110,7 @@ class Juniper(ManagementHandler):
         return self._device
 
     @property
-    def is_els(self):
+    def is_els(self) -> bool:
         """Returns True if this is an ELS config style Juniper switch"""
         if self._is_els is None:
             self._is_els = self.device.device.facts.get("switch_style") == "VLAN_L2NG"
@@ -375,7 +375,6 @@ class Juniper(ManagementHandler):
         }
 
     def raise_if_not_configurable(self):
-        # FIXME: This is just for prototyping, must change to something sense-making
         if self.netbox.type.get_enterprise_id() != VENDOR_ID_JUNIPER_NETWORKS_INC:
             raise DeviceNotConfigurableError("Can only configure JunOS devices")
         if not self.profile:
