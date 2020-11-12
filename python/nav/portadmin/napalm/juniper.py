@@ -278,9 +278,10 @@ class Juniper(ManagementHandler):
         interface.save()
 
     def get_interface_admin_status(self, interface: manage.Interface) -> int:
-        ifc = self.interfaces[interface.ifname]
+        info = self.get_interface_information(interface.ifname)
+        ifc = info[interface.ifname]
         admin = ifc.get("is_enabled")
-        if not isinstance(admin, bool) and iter(admin):
+        if admin and not isinstance(admin, bool) and iter(admin):
             admin = admin[0]  # sometimes, crazy multiple values are returned
 
         return SNMP_STATUS_MAP[admin]
