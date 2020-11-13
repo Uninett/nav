@@ -1,3 +1,11 @@
+Version 5.0.8
+(released 23 Oct 2020)
+
+This release fixes a single regression caused by the 5.0.7 release:
+
+  * #2196 ([BUG] ipdevpoll topo job crashes with a PostgreSQL
+           operational error, due to an index size error)
+
 Version 5.0.7
 (released 15 Oct 2020)
 
