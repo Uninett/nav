@@ -67,7 +67,7 @@ RUN apt-get update \
 
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
-RUN pip3 install --upgrade setuptools && \
+RUN pip3 install --upgrade setuptools wheel && \
     pip3 install --upgrade pip pip-tools
 
 #################################################################################
