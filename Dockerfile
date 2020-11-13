@@ -85,6 +85,9 @@ ADD tests/requirements.txt /test-requirements.txt
 RUN pip-compile --output-file /requirements.txt.lock /requirements.txt /test-requirements.txt
 RUN pip-sync /requirements.txt.lock
 
+ARG CUSTOM_PIP=ipython
+RUN pip install ${CUSTOM_PIP}
+
 ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
 VOLUME ["/source"]
