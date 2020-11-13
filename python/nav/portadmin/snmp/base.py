@@ -303,15 +303,6 @@ class SNMPHandler(ManagementHandler):
             self.IF_ADMIN_STATUS, interface.ifindex, "i", self.IF_ADMIN_STATUS_DOWN
         )
 
-    def cycle_interface(self, interface, wait=5.0):
-        wait = int(wait)
-        self.set_interface_down(interface)
-        _logger.debug('Interface set administratively down - '
-                      'waiting %s seconds', wait)
-        time.sleep(wait)
-        self.set_interface_up(interface)
-        _logger.debug('Interface set administratively up')
-
     def commit_configuration(self):
         pass
 

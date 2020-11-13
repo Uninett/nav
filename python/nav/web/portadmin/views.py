@@ -616,15 +616,10 @@ def restart_interface(request):
 
     handler = get_management_handler(interface.netbox)
     if handler:
-        adminstatus = handler.get_interface_admin_status(interface)
-        if adminstatus == SNMPHandler.IF_ADMIN_STATUS_DOWN:
-            _logger.debug('Not restarting %s as it is down', interface)
-            return HttpResponse()
-
         _logger.debug('Restarting interface %s', interface)
         try:
             # Restart interface so that client fetches new address
-            handler.cycle_interface(interface)
+            handler.cycle_interfaces([interface])
         except NoResponseError:
             # Swallow this exception as it is not important. Others should
             # create an error
