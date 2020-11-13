@@ -67,7 +67,8 @@ RUN apt-get update \
 
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
-
+RUN pip3 install --upgrade setuptools && \
+    pip3 install --upgrade pip pip-tools
 
 #################################################################################
 ### ADDing the requirements file to pip-install Python requirements may bust  ###
@@ -80,12 +81,9 @@ ADD tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 COPY requirements/ /requirements
 ADD requirements.txt /
 ADD tests/requirements.txt /test-requirements.txt
-RUN pip3 install --upgrade setuptools && \
-    pip3 install --upgrade pip pip-tools tox && \
-    hash -r && \
-	# Since we used pip3 to install pip globally, pip should now be for Python 3 \
-    pip-compile --output-file /requirements.txt.lock /requirements.txt /test-requirements.txt && \
-    pip-sync /requirements.txt.lock
+# Since we used pip3 to install pip globally, pip should now be for Python 3
+RUN pip-compile --output-file /requirements.txt.lock /requirements.txt /test-requirements.txt
+RUN pip-sync /requirements.txt.lock
 
 ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
