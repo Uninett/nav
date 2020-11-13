@@ -20,7 +20,29 @@
 # be world-readable!
 #
 #
-FROM mbrekkevold/navbase-debian:buster
+FROM debian:buster
+
+#### Prepare the OS base setup ###
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN echo 'deb-src http://deb.debian.org/debian buster main' >> /etc/apt/sources.list.d/srcpkg.list && \
+    echo 'deb-src http://security.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list.d/srcpkg.list && \
+    echo 'deb-src http://deb.debian.org/debian buster-updates main' >> /etc/apt/sources.list.d/srcpkg.list
+
+RUN apt-get update && \
+    apt-get -y --no-install-recommends install \
+            locales \
+            sudo python3-dev python3-pip python3-virtualenv build-essential supervisor \
+	    debian-keyring debian-archive-keyring ca-certificates
+
+ARG TIMEZONE=Europe/Oslo
+ARG LOCALE=en_US.UTF-8
+ARG ENCODING=UTF-8
+RUN echo "${LOCALE} ${ENCODING}" > /etc/locale.gen && locale-gen ${LOCALE} && update-locale LANG=${LOCALE} LC_ALL=${LOCALE}
+ENV LANG ${LOCALE}
+ENV LC_ALL ${LOCALE}
+RUN echo "${TIMEZONE}" > /etc/timezone && cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
 
 #### Install various build and runtime requirements as Debian packages ####
 
