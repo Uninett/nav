@@ -100,8 +100,13 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             $(document).foundation('tooltip', 'reflow');
             return listItem;
         },
-        restartInterfacesDone: function(listItem) {
-            listItem.append(this.createAlert('success'));
+        restartInterfacesDone: function(listItem, status, message) {
+            status = typeof status === 'undefined' ? 'success' : status;
+            message = typeof message === 'undefined' ? '' : message;
+            listItem.append(this.createAlert(status));
+            if (status !== 'success') {
+                listItem.append($('<small style="margin-left: 1em">').text(message));
+            }
             listItem.find('progress').remove();
         },
         committingConfig: function() {
@@ -357,9 +362,9 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
                 clearChangedState($row);
                 updateDefaults($row, interfaceData);
                 feedback.savedInterface(listItem);
-                // Restart the interface if a vlan change is done.
+                // Restart the interface if a vlan change was made.
                 if (interfaceData.hasOwnProperty('vlan')) {
-                    restartInterface(interfaceData.interfaceid);
+                    restart_queue.push(interfaceData.interfaceid);
                 }
                 $(document).trigger('nav-portadmin-ajax-success');
             },
@@ -382,7 +387,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
                 // spinner.stop();
                 if (nav_ajax_queue.length === 0) {
                     enableSaveallButtons();
-                    commitWhenRestartsDone(interfaceData.interfaceid);
+                    commitConfig(interfaceData.interfaceid);
                 } else {
                     // Process next entry in queue
                     doAjaxRequest(nav_ajax_queue[0]);
@@ -392,22 +397,9 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
     }
 
     /**
-     * Verify that no interfaces are restarting before sending the commit configuration
-     * request
+     * Commits configuration changes and then link cycles / restarts all
+     * interfaces that had their access VLAN changed.
      */
-    function commitWhenRestartsDone(interfaceid) {
-        if (restart_queue.length === 0) {
-            commitConfig(interfaceid);
-        } else {
-            console.log('Waiting for interfaces to restart');
-            var listItem = feedback.restartingInterfaces();
-            $('body').one('nav:restartQueueEmpty', function() {
-                feedback.restartInterfacesDone(listItem);
-                commitConfig(interfaceid);
-            });
-        }
-    }
-
     function commitConfig(interfaceid) {
         /** Do a request to commit changes to startup config */
         console.log('Sending commit configuration request');
@@ -416,28 +408,34 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         var request = $.post('commit_configuration', {'interfaceid': interfaceid});
         request.done(function() {
             feedback.committedConfig(status, 'success', request.responseText);
+            restartInterfaces();
         });
         request.fail(function() {
             feedback.committedConfig(status, 'alert', request.responseText);
-        });
-        request.always(function() {
             feedback.addCloseButton();
         });
     }
 
-    function restartInterface(interfaceid) {
-        /* Do a request to restart the interface with given id */
-        restart_queue.push(interfaceid);
-        var request = $.post('restart_interface', {'interfaceid': interfaceid});
+    function restartInterfaces() {
+        // Sends a request to restart all interfaces in the restart queue, if any, and then add
+        if (restart_queue.length == 0) {
+            feedback.addCloseButton();
+            return;
+        }
+
+        var listItem = feedback.restartingInterfaces();
+        var request = $.post('restart_interfaces', {'interfaceid': restart_queue});
+        request.done(function() {
+            console.log("Interfaces restarted: " + restart_queue)
+            feedback.restartInterfacesDone(listItem, 'success');
+        });
+        request.fail(function() {
+            console.log("Interfaces restarted: " + restart_queue)
+            feedback.restartInterfacesDone(listItem, "alert", request.responseText);
+        });
         request.always(function() {
-            var index = restart_queue.indexOf(interfaceid);
-            if (index > -1) {
-                restart_queue.splice(index, 1);
-            }
-            console.log('Interface ' + interfaceid + ' restarted');
-            if (restart_queue.length === 0) {
-                $('body').triggerHandler('nav:restartQueueEmpty');
-            }
+           restart_queue.length = 0;
+            feedback.addCloseButton();
         });
     }
 
