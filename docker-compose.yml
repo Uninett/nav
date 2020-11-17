@@ -30,6 +30,29 @@ services:
     depends_on:
       - postgres
 
+# Uncomment if you want to start a jupyter notebook server to play with the NAV codebase
+#  jupyter:
+#    build:
+#      context: .
+#      args:
+#        CUSTOM_PIP: jupyter
+#    user: nav
+#    working_dir: /source
+#    command: jupyter-notebook --ip=0.0.0.0
+#    ports:
+#       - "8888:8888"
+#    environment:
+#      - NONAVSTART=0  # Set to 1 to disable startup of NAV backend processes when container starts
+#      - PGHOST=postgres
+#      - PGDATABASE=nav
+#      - PGUSER=postgres
+#      - PYTHONPATH=/source/python
+#    volumes:
+#      - .:/source
+#      - nav_config:/etc/nav
+#    depends_on:
+#      - postgres
+
 # Uncomment if you want a second container for group restricted backend services
 #  slave:
 #    build: .
