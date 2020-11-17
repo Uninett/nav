@@ -84,15 +84,6 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             return this.addFeedback('Configuring interface ' + $row.find('.port-name').text())
                 .append(this.createProgress());
         },
-        savedInterface: function(listItem, status, message) {
-            status = typeof status === 'undefined' ? 'success' : status;
-            message = typeof message === 'undefined' ? '' : message;
-            listItem.append(this.createAlert(status));
-            if (status !== 'success') {
-                listItem.append($('<small style="margin-left: 1em">').text(message));
-            }
-            listItem.find('progress').remove();
-        },
         restartingInterfaces: function() {
             var restartReason = "<p>A computer connected to a port does not detect that the vlan changes. When that happens the computer will have the IP-address from the old vlan and it will lose connectivity. But if the link goes down and up (a 'restart') the computer will send a request for a new address.</p> 'Restarting' interfaces is only done when changing vlans.";
             var why = $('<span data-tooltip class="has-tip" title="' + restartReason + '">(why?)</span>');
@@ -100,20 +91,11 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             $(document).foundation('tooltip', 'reflow');
             return listItem;
         },
-        restartInterfacesDone: function(listItem, status, message) {
-            status = typeof status === 'undefined' ? 'success' : status;
-            message = typeof message === 'undefined' ? '' : message;
-            listItem.append(this.createAlert(status));
-            if (status !== 'success') {
-                listItem.append($('<small style="margin-left: 1em">').text(message));
-            }
-            listItem.find('progress').remove();
-        },
         committingConfig: function() {
             return this.addFeedback('Committing configuration changes')
                 .append(this.createProgress());
         },
-        committedConfig: function(listItem, status, message) {
+        endProgress: function(listItem, status, message) {
             status = typeof status === 'undefined' ? 'success' : status;
             message = typeof message === 'undefined' ? '' : message;
             listItem.append(this.createAlert(status));
@@ -121,7 +103,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
                 listItem.append($('<small style="margin-left: 1em">').text(message));
             }
             listItem.find('progress').remove();
-        },
+        }
     };
 
 
@@ -361,7 +343,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             success: function () {
                 clearChangedState($row);
                 updateDefaults($row, interfaceData);
-                feedback.savedInterface(listItem);
+                feedback.endProgress(listItem);
                 // Restart the interface if a vlan change was made.
                 if (interfaceData.hasOwnProperty('vlan')) {
                     restart_queue.push(interfaceData.interfaceid);
@@ -377,7 +359,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
                     messages = [{'message': 'Error saving changes'}];
                 }
                 indicateError($row, messages);
-                feedback.savedInterface(listItem, 'alert', messages.map(function(message){
+                feedback.endProgress(listItem, 'alert', messages.map(function(message){
                     return message['message'];
                 }).join(', '));
             },
@@ -407,11 +389,11 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         var status = feedback.committingConfig();
         var request = $.post('commit_configuration', {'interfaceid': interfaceid});
         request.done(function() {
-            feedback.committedConfig(status, 'success', request.responseText);
+            feedback.endProgress(status, 'success', request.responseText);
             restartInterfaces();
         });
         request.fail(function() {
-            feedback.committedConfig(status, 'alert', request.responseText);
+            feedback.endProgress(status, 'alert', request.responseText);
             feedback.addCloseButton();
         });
     }
@@ -427,11 +409,11 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         var request = $.post('restart_interfaces', {'interfaceid': restart_queue});
         request.done(function() {
             console.log("Interfaces restarted: " + restart_queue)
-            feedback.restartInterfacesDone(listItem, 'success');
+            feedback.endProgress(listItem, 'success');
         });
         request.fail(function() {
             console.log("Interfaces restarted: " + restart_queue)
-            feedback.restartInterfacesDone(listItem, "alert", request.responseText);
+            feedback.endProgress(listItem, "alert", request.responseText);
         });
         request.always(function() {
            restart_queue.length = 0;
