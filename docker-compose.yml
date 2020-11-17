@@ -36,9 +36,8 @@ services:
 #      context: .
 #      args:
 #        CUSTOM_PIP: jupyter
-#    user: nav
 #    working_dir: /source
-#    command: jupyter-notebook --ip=0.0.0.0
+#    command: su -c "jupyter-notebook --ip=0.0.0.0" nav
 #    ports:
 #       - "8888:8888"
 #    environment:
