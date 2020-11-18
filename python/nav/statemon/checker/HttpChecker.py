@@ -58,12 +58,13 @@ class HttpChecker(AbstractChecker):
 
     def execute(self):
         ip, port = self.get_address()
-        url = self.args.get('url', '')
+        url = self.args.get('url', '/')
         username = self.args.get('username')
         password = self.args.get('password', '')
-        if not url:
-            url = "/"
         _protocol, vhost, path, query, _fragment = urlsplit(url)
+        if ':' in vhost:
+            vhost, port = vhost.split(':', 1)
+            port = int(port)
 
         with contextlib.closing(self.connect(ip, port or self.PORT)) as i:
 
