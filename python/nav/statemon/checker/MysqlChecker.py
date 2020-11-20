@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2018 Uninett AS
+# Copyright (C) 2018, 2020 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,6 +16,8 @@
 #
 """A MySQL service checker"""
 import socket
+import struct
+
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
@@ -28,6 +30,7 @@ class MysqlChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=3306, **kwargs)
 
     def execute(self):
+        conn = None
         try:
             #
             # Connect and read handshake packet.
@@ -38,8 +41,8 @@ class MysqlChecker(AbstractChecker):
             #
             # Get server version from handshake
             #
-            version = data[1:].split('\x00')[0]  # Null terminated string
-            self.version = version
+            version = data[1:].split(b'\x00')[0]  # Null terminated string
+            self.version = version.decode("utf-8")
 
             #
             # Send authentication packet to make server happy.
@@ -54,10 +57,14 @@ class MysqlChecker(AbstractChecker):
 
             return Event.UP, 'OK'
 
-        except MysqlError as err:
+        except (MysqlError, socket.timeout) as err:
             return Event.DOWN, str(err)
+
         finally:
-            conn.close()
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 class MysqlConnection(object):
@@ -69,25 +76,22 @@ class MysqlConnection(object):
     def __init__(self, addr, timeout=None):
         host, _port = addr
         sock = socket.create_connection(addr, timeout)
-        self.file = sock.makefile('rw')
+        self.file = sock.makefile('rwb')
 
         self.seqno = 0
 
     def read_packet(self):
         header = self.file.read(4)
 
-        lll = ord(header[0])
-        mmm = ord(header[1])
-        hhh = ord(header[2])
+        lll, mmm, hhh, seqno = struct.unpack('BBBB', header)
         size = hhh << 16 | mmm << 8 | lll
-        seqno = ord(header[3])
 
         self.seqno = seqno
 
         data = self.file.read(size)
-
-        if data.startswith('\xff'):
-            raise MysqlError(data[3:])
+        if data.startswith(b'\xff'):
+            error = data[3:].decode("utf-8")
+            raise MysqlError(error)
 
         return data
 
@@ -98,17 +102,17 @@ class MysqlConnection(object):
         hhh = size & 0xff
         seqno = self.seqno = (self.seqno + 1) % 256
 
-        header = '%c%c%c%c' % (hhh, mmm, lll, seqno)
+        header = struct.pack("BBBB", hhh, mmm, lll, seqno)
 
         self.file.write(header + data)
         self.file.flush()
 
     def write_auth_packet(self, username):
-        data = '\x85\xa4\x00\x00\x00%s\x00\x00' % username
+        data = b'\x85\xa4\x00\x00\x00%s\x00\x00' % username.encode("utf-8")
         self.write_packet(data)
 
     def close(self):
-        self.write_packet(chr(1))  # Send COM_QUIT
+        self.write_packet(b'\x01')  # Send COM_QUIT
         self.file.close()
 
 
