@@ -30,6 +30,7 @@ class MysqlChecker(AbstractChecker):
         AbstractChecker.__init__(self, service, port=3306, **kwargs)
 
     def execute(self):
+        conn = None
         try:
             #
             # Connect and read handshake packet.
@@ -56,10 +57,14 @@ class MysqlChecker(AbstractChecker):
 
             return Event.UP, 'OK'
 
-        except MysqlError as err:
+        except (MysqlError, socket.timeout) as err:
             return Event.DOWN, str(err)
+
         finally:
-            conn.close()
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 class MysqlConnection(object):
