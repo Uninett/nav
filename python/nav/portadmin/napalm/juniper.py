@@ -64,16 +64,21 @@ class Juniper(ManagementHandler):
 
     Juniper switches do things a bit differently from the standard model supported by
     NAV. VLAN config is put on logical sub-units of the physical ports. SNMP-wise,
-    these count as separate, but related interfaces.
+    sub-units are presented as interfaces on a conceptually higher level than their
+    "parent" interface. NAV doesn't really understand or care about this unusual
+    relationship between pairs of interfaces - it will only see that the interfaces
+    are somehow related.
 
-    NAV's standard interpretation from collection is that the logical sub-units are
-    switch ports, since these are the interfaces listed in the BRIDGE-MIB, while the
-    parent ports are largely ignored as significant.
+    On non-ELS switches, the sub-interfaces are reported in the BRIDGE-MIB and
+    Q-BRIDGE-MIB, causing NAV to view these units as the actual switch ports. On ELS
+    switches, the parent interfaces are reported as the switch ports - yet, VLAN config
+    still belongs on unit 0 when uploading config changes outside of SNMP.
 
-    This implementation will therefore focus on the logical units as targets for
-    administration, but will infer which configuration properties belong on the
-    parent interface and fetch/set those parameters from that interface silently.
-
+    This implementation will therefore always consider any given switch port
+    reference to be a pair of master/unit interfaces, regardless of whether the
+    reference is to the master or the unit. When building new configuration, it will
+    split configuration options appropriatelt between the master and the unit before
+    uploading and merging config changes using NAPALM/PyEZ.
     """
 
     VENDOR = VENDOR_ID_JUNIPER_NETWORKS_INC
@@ -121,8 +126,11 @@ class Juniper(ManagementHandler):
         self, interfaces: Sequence[manage.Interface] = None
     ) -> List[Dict[str, Any]]:
         vlan_map = self._get_untagged_vlans()
-        args = (interfaces[0].ifname,) if len(interfaces) == 1 else ()
-        interfaces = self.get_interface_information(*args)
+        if interfaces and len(interfaces) == 1:
+            # we can use a filter if only a single interface was specified
+            interfaces = self.get_interface_information(interfaces[0].ifname)
+        else:
+            interfaces = self.get_interface_information()
 
         def _convert(name, ifc):
             oper = ifc.get("is_up")
