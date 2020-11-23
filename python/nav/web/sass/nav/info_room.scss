@@ -78,6 +78,10 @@ img.textbottom {
     }
 }
 
+/* Ensure lightbox captions don't overlap with the image */
+.visible-img img {
+    padding-bottom: 50px;
+}
 
 /* Prevent OpenStreetmap to show through the image clearing */
 .clearing-blackout {
