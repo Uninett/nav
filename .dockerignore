@@ -1,10 +1,10 @@
-.tox
-.git
-.cache
-.idea
-.eggs
-.npm
-.pytest_cache
-build/
-python/nav/web/static/js/node_modules
-*.pyc
+# We actually need very little context to build a development image which
+# mounts the source code as a volume, so we ignore everything except the few
+# files we need to build the image
+*
+
+# We only need a few build tools and the requirements files, that is all
+!tools/**/*
+!requirements.txt
+!tests/requirements.txt
+!requirements/**/*
