@@ -17,9 +17,18 @@ Backwards incompatible changes
 Dependency changes
 ------------------
 
-The Python library :mod:`Pillow` requirement has been moved to version 8.0 (In
-reality, NAV is compatible with all versions from 3 through 8, as only the
-thumbnail API call is used, but the latest version is recommended due to
+NAV 5.1 moves to Django 2.2, resulting in several changes in version
+dependencies of related libraries:
+
+* :mod:`Django`>=2.2,<2.3
+* :mod:`django-filter`>=2
+* :mod:`django-crispy-forms`>=1.7,<1.8
+* :mod:`crispy-forms-foundation`>=0.7,<0.8
+* :mod:`djangorestframework`>=3.9,<3.10
+
+Also, the Python library :mod:`Pillow` requirement has been moved to version
+8.0 (In reality, NAV is compatible with all versions from 3 through 8, as only
+the thumbnail API call is used, but the latest version is recommended due to
 reported security vulnerabilities in the older versions).
 
 
