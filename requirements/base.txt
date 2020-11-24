@@ -2,10 +2,8 @@
 # Dockerfile
 
 asciitree==0.3.3  # optional, for naventity
-configparser==3.5.0 ; python_version < '3'
 psycopg2==2.8.4  # requires libpq to build
 IPy==1.00
-py2-ipaddress==3.4.1 ; python_version < '3'
 pyaml
 
 twisted>=16.6.0,<18
