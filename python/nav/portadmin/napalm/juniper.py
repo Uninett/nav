@@ -13,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+# Sorry pylint, we can't shorten URLs, you dumbass.
+# pylint: disable=line-too-long
 """Juniper specific PortAdmin functionality.
 
 Some references:
@@ -30,6 +32,7 @@ from typing import List, Any, Dict, Tuple, Sequence
 
 from django.template.loader import get_template
 from napalm.base.exceptions import ConnectAuthError, ConnectionException
+from jnpr.junos.op.vlan import VlanTable
 
 from nav.napalm import connect as napalm_connect
 from nav.enterprise.ids import VENDOR_ID_JUNIPER_NETWORKS_INC
@@ -39,7 +42,6 @@ from nav.portadmin.handlers import (
     DeviceNotConfigurableError,
     AuthenticationError,
     NoResponseError,
-    ManagementError,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -47,7 +49,6 @@ from nav.junos.nav_views import (
     InterfaceConfigTable,
     ElsVlanTable,
 )
-from jnpr.junos.op.vlan import VlanTable
 
 from nav.portadmin.vlan import FantasyVlan
 from nav.util import first_true
@@ -93,7 +94,7 @@ class Juniper(ManagementHandler):
         self._is_els = None
 
     @property
-    def profile(self) -> nav.models.manage.ManagementProtocol:
+    def profile(self) -> manage.ManagementProfile:
         """Returns the selected NAPALM profile for this netbox"""
         if not self._profile:
             profiles = self.netbox.profiles.filter(protocol=self.PROTOCOL)
@@ -243,7 +244,8 @@ class Juniper(ManagementHandler):
         self.device.load_merge_candidate(config=config)
         self._save_access_interface(interface, access_vlan)
 
-    def _save_access_interface(self, interface: manage.Interface, access_vlan: int):
+    @staticmethod
+    def _save_access_interface(interface: manage.Interface, access_vlan: int):
         """Updates the Interface entry in the database with access config"""
         interface.trunk = False
         interface.vlan = access_vlan
@@ -301,7 +303,7 @@ class Juniper(ManagementHandler):
 
     def set_interface_down(self, interface: manage.Interface):
         # does not set oper on logical units, only on physical masters
-        master, unit = split_master_unit(interface.ifname)
+        master, _unit = split_master_unit(interface.ifname)
         template = get_template("portadmin/junos-disable-interface.djt")
         config = template.render({"ifname": master, "disable": True})
         self.device.load_merge_candidate(config=config)
@@ -310,14 +312,15 @@ class Juniper(ManagementHandler):
 
     def set_interface_up(self, interface: manage.Interface):
         # does not set oper on logical units, only on physical masters
-        master, unit = split_master_unit(interface.ifname)
+        master, _unit = split_master_unit(interface.ifname)
         template = get_template("portadmin/junos-disable-interface.djt")
         config = template.render({"ifname": master, "disable": False})
         self.device.load_merge_candidate(config=config)
 
         self._save_interface_oper(interface, interface.OPER_UP)
 
-    def _save_interface_oper(self, interface: manage.Interface, ifoperstatus: int):
+    @staticmethod
+    def _save_interface_oper(interface: manage.Interface, ifoperstatus: int):
         master, unit = split_master_unit(interface.ifname)
         interface.ifoperstatus = ifoperstatus
         if unit:  # this was a logical unit, also set the state of the master ifc

@@ -193,7 +193,7 @@ class SNMPHandler(ManagementHandler):
             value = handle.get(self.SYSLOCATION)
             handle.set(self.SYSLOCATION, 's', value)
             return True
-        except SnmpError as error:
+        except SnmpError:
             return False
 
     def get_interfaces(

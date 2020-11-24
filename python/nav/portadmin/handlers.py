@@ -217,30 +217,20 @@ class ManagementHandler:
 class ManagementError(Exception):
     """Base exception class for device management errors"""
 
-    pass
-
 
 class DeviceNotConfigurableError(ManagementError):
     """Raised when a device is not configurable by PortAdmin for some reason"""
-
-    pass
 
 
 class NoResponseError(ManagementError):
     """Raised whenever there is no response when talking to the remote device"""
 
-    pass
-
 
 class AuthenticationError(ManagementError):
     """Raised where the remote device indicated the wrong credentials were used"""
-
-    pass
 
 
 class ProtocolError(ManagementError):
     """Raised when some non-categorized error in the underlying protocol occurred
     during communication
     """
-
-    pass
