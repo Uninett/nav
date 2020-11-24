@@ -737,6 +737,7 @@ def render_affected(request, netboxid):
         request,
         'ipdevinfo/frag-affected.html',
         {
+            'netbox': netbox,
             'unreachable': unreachable,
             'affected': affected,
             'services': services,
