@@ -14,6 +14,15 @@ NAV 5.1 (unreleased)
 Backwards incompatible changes
 ------------------------------
 
+Dependency changes
+------------------
+
+The Python library :mod:`Pillow` requirement has been moved to version 8.0 (In
+reality, NAV is compatible with all versions from 3 through 8, as only the
+thumbnail API call is used, but the latest version is recommended due to
+reported security vulnerabilities in the older versions).
+
+
 Changed configuration files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
