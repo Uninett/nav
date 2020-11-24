@@ -87,9 +87,7 @@ def _filter_query(filter_form, queryset):
         mapper = getattr(filter_form, "map_formfieldname_to_queryname",
                          lambda x: x)
         filter_data = filter_form.cleaned_data.items()
-        filter_tuples = [(mapper(key), value)
-                         for key, value in filter_data if value]
-        query_filter = dict(filter_tuples)
+        query_filter = {mapper(key): value for key, value in filter_data if value}
         queryset = queryset.filter(**query_filter)
     return queryset
 
