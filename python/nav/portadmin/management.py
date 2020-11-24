@@ -22,8 +22,9 @@ from nav.portadmin.snmp.cisco import Cisco
 from nav.portadmin.snmp.dell import Dell
 from nav.portadmin.snmp.h3c import H3C
 from nav.portadmin.snmp.hp import HP
+from nav.portadmin.napalm.juniper import Juniper
 
-VENDOR_MAP = {cls.VENDOR: cls for cls in (Cisco, Dell, H3C, HP)}
+VENDOR_MAP = {cls.VENDOR: cls for cls in (Cisco, Dell, H3C, HP, Juniper)}
 
 
 class ManagementFactory(object):

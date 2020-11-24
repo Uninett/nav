@@ -1,0 +1,6 @@
+{% if disable %}
+set interfaces {{ ifname }} disable
+{% else %}
+delete interfaces {{ ifname }} disable
+{% endif %}
+

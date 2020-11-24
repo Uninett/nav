@@ -30,21 +30,24 @@ class ManagementHandler:
     def __init__(self, netbox: manage.Netbox, **kwargs):
         self.netbox = netbox
 
-    def get_interface_description(self, interface: manage.Interface):
-        """Get alias on a specific interface"""
-        raise NotImplementedError
-
     def set_interface_description(self, interface: manage.Interface, description: str):
         """Configures a single interface's description, AKA the ifalias value"""
         raise NotImplementedError
 
-    def get_interface_native_vlan(self, interface: manage.Interface):
-        """Get the native/untagged VLAN configured on interface"""
+    def get_interface_native_vlan(self, interface: manage.Interface) -> int:
+        """Retrieves the native/untagged VLAN configured on interface"""
         raise NotImplementedError
 
-    def get_interfaces(self) -> List[Dict[str, Any]]:
-        """Retrieves running configuration of all switch ports on the device.
+    def get_interfaces(
+        self, interfaces: Sequence[manage.Interface] = None
+    ) -> List[Dict[str, Any]]:
+        """Retrieves running configuration switch ports on the device.
 
+        :param interfaces: Optional list of interfaces to filter for, as fetching
+                           data for all interfaces may be a waste of time if only a
+                           single interface is needed. The implementing
+                           handler/protocol may not support this filter, so do not rely
+                           on it.
         :returns: A list of dicts with members `name`, `description`, `oper`, `admin`
                   and `vlan` (the latter being the access/untagged/native vlan ID.
         """
@@ -54,7 +57,7 @@ class ManagementHandler:
         """Set a new vlan on the given interface and remove the previous vlan"""
         raise NotImplementedError
 
-    def set_native_vlan(self, interface, vlan):
+    def set_native_vlan(self, interface: manage.Interface, vlan: int):
         """Set native vlan on a trunk interface"""
         raise NotImplementedError
 
@@ -160,7 +163,10 @@ class ManagementHandler:
         raise NotImplementedError
 
     def set_access(self, interface: manage.Interface, access_vlan: int):
-        """Puts a port in access mode and sets its access/native/untagged VLAN"""
+        """Puts a port in access mode and sets its access/native/untagged VLAN.
+
+        An implementation must also update the Interface object in the NAVdb.
+        """
         raise NotImplementedError
 
     def set_trunk(
@@ -168,6 +174,8 @@ class ManagementHandler:
     ):
         """Puts a port in trunk mode, setting its native/untagged VLAN and tagged
         trunk VLANs as well.
+
+        An implementation must also update the Interface object in the NAVdb.
 
         :param interface: The interface to set to trunk mode.
         :param native_vlan: The native VLAN for untagged packets on this interface.

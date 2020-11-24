@@ -212,6 +212,9 @@ def populate_infodict(request, netbox, interfaces):
             "Protocol error when contacting %s. Values displayed are from database"
             % netbox.sysname,
         )
+    except DeviceNotConfigurableError as error:
+        readonly = True
+        messages.error(request, str(error))
 
     if handler and not handler.is_configurable():
         add_readonly_reason(request, handler)
@@ -234,6 +237,7 @@ def populate_infodict(request, netbox, interfaces):
     info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
     info_dict.update(
         {
+            'handlertype': type(handler).__name__,
             'interfaces': interfaces,
             'netbox': netbox,
             'voice_vlan': voice_vlan,

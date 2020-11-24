@@ -1,0 +1,124 @@
+---
+
+####
+#### Interface configuration table
+#### I.e. `show configuration interface`
+####
+
+InterfaceConfigTable:
+  get: interfaces/interface
+  view: InterfaceConfigView
+
+InterfaceConfigView:
+  fields:
+    ifindex: snmp
+    ifname: name
+    ifalias: description
+    port_mode: unit/family/ethernet-switching/port-mode
+    native_vlan: unit/family/ethernet-switching/native-vlan-id|native-vlan-id
+    ifgroup: name/@group
+    vlans: _VlanTable
+
+
+_VlanTable:
+  item: unit/family/ethernet-switching/vlan
+  key: members
+  view: _VlanView
+
+
+_VlanView:
+  fields:
+    vlan: members
+
+
+####
+#### Terse interface status table for both physical and logical interfaces
+#### I.e. `show interface`
+####
+#### PyEZ seems unable to key the result properly when mixing physical/logical
+#### items, so this table is no good.
+####
+
+InterfaceTable:
+  rpc: get-interface-information
+  args:
+    interface_name: '[afgxe][et]-*'
+    terse: True
+  args_key: interface_name
+  item: physical-interface|physical-interface/logical-interface
+  view: InterfaceView
+
+InterfaceView:
+  fields:
+    name: name
+    oper: oper-status
+    admin: admin-status
+    description: description
+
+
+
+####
+#### Ethernet switching interfaces table
+#### I.e. `show ethernet-switching interfaces`
+####
+
+EthernetSwitchingInterfaceTable:
+  rpc: get-ethernet-switching-interface-information
+  args_key: interface_name
+  item: interface
+  key: interface-name
+  view: EthernetSwitchingInterfaceView
+
+EthernetSwitchingInterfaceView:
+  fields:
+    ifname: interface-name
+    state: interface-state
+    vlans: _VlanMemberTable
+
+_VlanMemberTable:
+  item: interface-vlan-member-list/interface-vlan-member
+  key: interface-vlan-name
+  view: _VlanMemberView
+
+_VlanMemberView:
+  fields:
+    name: interface-vlan-name
+    tag: { interface-vlan-member-tagid: int }
+    tagged: { interface-vlan-member-tagness: True=tagged }
+    blocking-status: blocking-status
+
+
+ElsEthernetSwitchingInterfaceTable:
+    rpc: get-ethernet-switching-interface-information
+    args:
+        detail: True
+    item: l2ng-l2ald-iff-interface-entry
+    key: l2iff-interface-handle
+    view: ElsEthernetSwitchingInterfaceView
+
+ElsEthernetSwitchingInterfaceView:
+    fields:
+        ifname: l2iff-interface-name
+        tag: { l2iff-interface-vlan-id: int }
+        vlan_name: l2iff-interface-vlan-name
+        tagged: { l2iff-interface-vlan-member-tagness: True=tagged }
+        flags: l2iff-interface-flags
+
+
+####
+#### Vlan information table, updated version for l2ng (ELS Switches)
+#### PyEZ comes with an old VlanTable definition, but newer JunOS seems to
+#### provide a very different XML response to this RPC, so here is the newer
+#### definition
+
+ElsVlanTable:
+  rpc: get-vlan-information
+  key: l2ng-l2rtb-vlan-name
+  item: l2ng-l2ald-vlan-instance-group
+  view: ElsVlanView
+
+ElsVlanView:
+  fields:
+    name: l2ng-l2rtb-vlan-name
+    tag: l2ng-l2rtb-vlan-tag
+    members: .//l2ng-l2rtb-vlan-member-interface
