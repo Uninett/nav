@@ -15,9 +15,11 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms and view functions for SeedDB's Management Profile view"""
+from django.db.models import Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.utils.html import format_html, mark_safe
 
 from nav.models.manage import ManagementProfile
 from nav.bulkparse import ManagementProfileBulkParser
@@ -35,6 +37,25 @@ from nav.web.seeddb.page.management_profile.forms import (
     ManagementProfileFilterForm,
     ManagementProfileForm,
 )
+
+
+NETBOX_LIST_PAGE = reverse_lazy('seeddb-netbox')
+
+
+def _get_netbox_link(management_profile_id):
+    return '{}?profile={}'.format(NETBOX_LIST_PAGE, management_profile_id)
+
+
+def add_netbox_links(rows):
+    for row in rows:
+        link_html = '0'
+        related_raw = row['values_list'][-1]
+        if related_raw:
+            link_html = format_html(mark_safe("""<a href="{}">{}</a>"""),
+                                    _get_netbox_link(row['pk']),
+                                    related_raw)
+        row['values_list'][-1] = link_html
+    return rows
 
 
 class ManagementProfileInfo(SeeddbInfo):
@@ -65,14 +86,15 @@ def management_profile_list(request):
     """Controller for listing management profiles. Used in
     management_profile()"""
     info = ManagementProfileInfo()
-    value_list = (
-        'name', 'description', 'get_protocol_display')
-    query = ManagementProfile.objects.all()
+    value_list = ( 'name', 'description', 'get_protocol_display', 'related')
+    netbox_link = reverse('seeddb-netbox')
+    queryset = ManagementProfile.objects.annotate(related=Count('netbox'))
     filter_form = ManagementProfileFilterForm(request.GET)
-    return render_list(request, query, value_list,
+    return render_list(request, queryset, value_list,
                        edit_url='seeddb-management-profile-edit',
                        filter_form=filter_form,
-                       extra_context=info.template_context)
+                       extra_context=info.template_context,
+                       add_related=add_netbox_links)
 
 
 def management_profile_delete(request, object_id=None):
@@ -101,8 +123,10 @@ def management_profile_edit(request, management_profile_id=None):
     """
     try:
         profile = ManagementProfile.objects.get(id=management_profile_id)
+        num_netboxes = profile.netbox_set.distinct().count()
     except ManagementProfile.DoesNotExist:
         profile = None
+        num_netboxes = 0
 
     verbose_name = ManagementProfile._meta.verbose_name
 
@@ -139,6 +163,7 @@ def management_profile_edit(request, management_profile_id=None):
         'title': 'Add new %s' % verbose_name,
         'verbose_name': verbose_name,
         'sub_active': {'add': True},
+        'num_netboxes': num_netboxes,
     }
     if profile and profile.pk:
         context.update({

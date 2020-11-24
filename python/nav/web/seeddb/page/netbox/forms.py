@@ -26,7 +26,8 @@ from django.utils import six
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit, NavButton
-from nav.models.manage import Room, Category, Organization, Netbox
+from nav.models.manage import (Room, Category, Organization, Netbox,
+                               ManagementProfile)
 from nav.models.manage import NetboxInfo
 from nav.web.seeddb.utils.edit import (resolve_ip_and_sysname, does_ip_exist,
                                        does_sysname_exist)
@@ -232,6 +233,8 @@ class NetboxFilterForm(forms.Form):
         Room.objects.order_by('id').all(), required=False)
     organization = forms.ModelChoiceField(
         Organization.objects.order_by('id').all(), required=False)
+    profile = forms.ModelChoiceField(
+        ManagementProfile.objects.order_by('id').all(), required=False)
 
     def __init__(self, *args, **kwargs):
         super(NetboxFilterForm, self).__init__(*args, **kwargs)
@@ -247,12 +250,21 @@ class NetboxFilterForm(forms.Form):
                     Column('category', css_class='medium-3'),
                     Column('room', css_class='medium-3'),
                     Column('organization', css_class='medium-3'),
+                    Column('profile', css_class='medium-3'),
                     Column(LabelSubmit('submit', 'Filter',
                                        css_class='postfix'),
                            css_class='medium-3')
                 )
             )
         )
+
+    @staticmethod
+    def map_formfieldname_to_queryname(fieldname):
+        # Support for ManyToMany lookups, often called "modelname_set"
+        # Helps preserve consistency of UI
+        if fieldname == 'profile':
+            return 'profiles'
+        return fieldname
 
 
 class NetboxMoveForm(forms.Form):

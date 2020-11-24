@@ -31,7 +31,7 @@ from nav.django.utils import get_verbose_name
 def render_list(request, queryset, value_list, edit_url=None,
                 edit_url_attr='pk', filter_form=None,
                 template='seeddb/list.html', extra_context=None,
-                add_descriptions=False):
+                add_descriptions=False, add_related=None):
     """Renders a Seed DB list.
 
     Parameters:
@@ -62,6 +62,8 @@ def render_list(request, queryset, value_list, edit_url=None,
     labels = _label(queryset.model, value_list, datakeys)
     if add_descriptions:
         _add_descriptions(rows, queryset)
+    if add_related is not None:
+        add_related(rows)
 
     context = {
         'object_list': rows,
@@ -81,9 +83,11 @@ def _filter_query(filter_form, queryset):
     """Apply filter_form to queryset.
     """
     if filter_form and filter_form.is_valid():
+        # Convert UI fieldname to DB lookup
+        mapper = getattr(filter_form, "map_formfieldname_to_queryname",
+                         lambda x: x)
         filter_data = filter_form.cleaned_data.items()
-        filter_tuples = [(key, value) for key, value in filter_data if value]
-        query_filter = dict(filter_tuples)
+        query_filter = {mapper(key): value for key, value in filter_data if value}
         queryset = queryset.filter(**query_filter)
     return queryset
 

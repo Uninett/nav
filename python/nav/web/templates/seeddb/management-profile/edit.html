@@ -41,20 +41,16 @@
             </div>
         </div>
 
-        {% if object %}
-            {% with object.netbox_set.all.distinct.count as netbox_count %}
-                {% if netbox_count > 0 %}
-                    <div class="alert-box warning">
-                    <strong>{{ netbox_count }} IP device{{ netbox_count|pluralize:",s" }}</strong>
-                    will be affected by changes to this profile.
-                {% else %}
-                    <div class="alert-box info">
-                    No IP devices will currently be affected by changes to this profile.
-                {% endif %}
-                </div>
-            {% endwith %}
-        {% endif %}
-
+        {% if object %}{% if num_netboxes > 0 %}
+        <div class="alert-box warning">
+            <strong><a href="{% url "seeddb-netbox" %}?profile={{ object.pk }}">{{ num_netboxes }} IP device{{ num_netboxes|pluralize:"s" }}</a></strong>
+            will be affected by changes to this profile.
+        </div>
+        {% else %}
+        <div class="alert-box info">
+            No IP devices will currently be affected by changes to this profile.
+        </div>
+        {% endif %}{% endif %}
 
         <input type="submit" name="submit" value="Save {{ verbose_name }}" class="submit button small left" id="submit-id-submit">
 
