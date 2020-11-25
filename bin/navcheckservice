@@ -25,6 +25,8 @@ host. Useful for testing or debugging individual servicemon plugins.
 from __future__ import print_function
 
 import argparse
+import sys
+
 import IPy
 import logging
 
@@ -41,10 +43,15 @@ _logger = logging.getLogger('nav.checkservice')
 def main():
     init_stderr_logging()
     cargs = parse_args()
-    args = read_checker_args()
-    _logger.debug("Ip: %s sysname: %s handler: %s args: %s",
-                  cargs.ip, cargs.sysname, cargs.handler, args)
+    _logger.debug(
+        "Ip: %s sysname: %s handler: %r", cargs.ip, cargs.sysname, cargs.handler
+    )
     checker = checkermap.get(cargs.handler)
+    if not checker:
+        _logger.fatal("Could not create checker instance")
+        sys.exit(1)
+    args = read_checker_args(checker)
+    _logger.debug("Input args: %r", args)
 
     service = {
         'id': 0,
@@ -78,9 +85,21 @@ def parse_args():
     return parser.parse_args()
 
 
-def read_checker_args():
+def read_checker_args(checker):
     args = {}
-    print("Input additional arguments (key=val), empty line to continue:")
+    if checker.ARGS:
+        print("Checker requires these arguments: {}".format(
+            ", ".join(arg[0] for arg in checker.ARGS)
+        ))
+    if checker.OPTARGS:
+        print("Checker takes these optional arguments: {}".format(
+            ", ".join(arg[0] for arg in checker.OPTARGS)
+        ))
+    if not (checker.ARGS or checker.OPTARGS):
+        print("Checker takes no extra arguments")
+        return args
+
+    print("Input checker arguments (key=val), empty line to continue:")
     while True:
         try:
             line = input()
