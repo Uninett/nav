@@ -68,6 +68,10 @@ class HttpChecker(AbstractChecker):
         with contextlib.closing(self.connect(ip, port or self.PORT)) as i:
 
             if vhost:
+                if ':' in vhost:
+                    vhost, port = vhost.split(':', 1)
+                    port = int(port)
+
                 i.host = vhost
 
             if '?' in url:
