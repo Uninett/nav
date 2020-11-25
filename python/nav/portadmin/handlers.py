@@ -14,10 +14,15 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Interface definition for PortAdmin management handlers"""
+import time
 from typing import List, Tuple, Dict, Any, Sequence
+import logging
 
 from nav.models import manage
 from nav.portadmin.vlan import FantasyVlan
+
+
+_logger = logging.getLogger(__name__)
 
 
 class ManagementHandler:
@@ -27,6 +32,7 @@ class ManagementHandler:
     to provide, regardless of the underlying management protocol implemented by such
     a class.
     """
+
     def __init__(self, netbox: manage.Netbox, **kwargs):
         self.netbox = netbox
 
@@ -69,19 +75,78 @@ class ManagementHandler:
         """Shuts down/disables an enabled interface"""
         raise NotImplementedError
 
-    def cycle_interface(self, interface: manage.Interface, wait: float = 5.0):
-        """Take interface down and up again, with an optional delay in between.
+    def cycle_interfaces(
+        self,
+        interfaces: Sequence[manage.Interface],
+        wait: float = 5.0,
+        commit: bool = False,
+    ):
+        """Link cycles a set of interfaces, with an optional delay in between.
 
-        Mostly used for configuration changes where any client connected to the
-        interface needs to be notified about the change. Typically, if an interface
-        is suddenly placed on a new VLAN, cycling the link status of the interface
-        will prompt any connected machine to ask for a new DHCP lease, which may be
-        necessary now that the machine is potentially on a different IP subnet.
+        Mostly used for configuration changes where any client connected to an
+        interface needs to be notified about a network change. Typically,
+        if an interface is suddenly placed on a new VLAN, cycling the link status of
+        the interface will prompt any connected machine to ask for a new DHCP lease,
+        which may be necessary now that the machine is potentially on a different IP
+        subnet.
 
-        :param interface: The interface to cycle.
+        :param interfaces: The list of interfaces to cycle.
         :param wait: number of seconds to wait between down and up operations.
+        :param commit: If True, issues a config commit when the interface have been
+                       disabled, and issues a new commit when they have been enabled
+                       again.
         """
-        raise NotImplementedError
+        if not interfaces:
+            return
+
+        netbox = set(ifc.netbox for ifc in interfaces)
+        assert len(netbox) == 1, "Interfaces belong to multiple netboxes"
+        netbox = list(netbox)[0]
+        assert netbox == self.netbox, "Interfaces belong to wrong netbox"
+
+        to_cycle = self._filter_oper_up_interfaces(interfaces)
+        if not to_cycle:
+            _logger.debug("No interfaces to cycle on %s", netbox.sysname)
+            return
+
+        _logger.debug("Taking interfaces administratively down")
+        for ifc in to_cycle:
+            self.set_interface_down(ifc)
+            _logger.debug(ifc.ifname)
+        if commit:
+            self.commit_configuration()
+
+        if wait:
+            time.sleep(wait)
+
+        _logger.debug("Taking interfaces administratively up again")
+        for ifc in to_cycle:
+            self.set_interface_up(ifc)
+            _logger.debug(ifc.ifname)
+        if commit:
+            self.commit_configuration()
+
+    def _filter_oper_up_interfaces(
+        self, interfaces: Sequence[manage.Interface]
+    ) -> List[manage.Interface]:
+        """Filters a list of Interface objects, returning only those that are
+        currently operationally up.
+
+        """
+        oper_up = set(
+            ifc["name"]
+            for ifc in self.get_interfaces(interfaces)
+            if ifc["oper"] == manage.Interface.OPER_UP
+        )
+        to_cycle = [ifc for ifc in interfaces if ifc.ifname in oper_up]
+        if len(to_cycle) < len(interfaces):
+            _logger.debug(
+                "Link cycling on %s: Asked to cycle %r, but only %r is oper up",
+                self.netbox.sysname,
+                [ifc.ifname for ifc in interfaces],
+                [ifc.ifname for ifc in to_cycle],
+            )
+        return to_cycle
 
     def commit_configuration(self):
         """Commit running configuration or pending configuration changes to the

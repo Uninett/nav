@@ -296,10 +296,15 @@ class Juniper(ManagementHandler):
 
         return SNMP_STATUS_MAP[admin]
 
-    def cycle_interface(self, interface: manage.Interface, wait: float = 5.0):
-        # It isn't clear yet how to do this on Juniper, since PortAdmin performs this
-        # step before the configuration alterations are actually committed.
-        pass
+    def cycle_interfaces(
+        self,
+        interfaces: Sequence[manage.Interface],
+        wait: float = 0,
+        commit: bool = False,
+    ):
+        # There is no need for waiting on Juniper; there is a need to commit,
+        # and that operation will likely delay at least as much as the wait would have
+        return super().cycle_interfaces(interfaces=interfaces, wait=0, commit=True)
 
     def set_interface_down(self, interface: manage.Interface):
         # does not set oper on logical units, only on physical masters

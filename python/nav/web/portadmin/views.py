@@ -605,33 +605,36 @@ def handle_trunk_edit(request, agent, interface):
 
 
 @require_POST
-def restart_interface(request):
+def restart_interfaces(request):
     """Restart the interface by setting admin status to down and up"""
     if not CONFIG.is_restart_interface_enabled():
-        _logger.debug('Not doing a restart of interface, it is configured off')
+        _logger.debug("Not doing a restart of interfaces, it is configured off")
         return HttpResponse()
 
-    interface = get_object_or_404(
-        Interface, pk=request.POST.get('interfaceid'))
+    interfaceids = request.POST.getlist("interfaceid", request.POST.getlist("interfaceid[]"))
+    if not interfaceids:
+        return HttpResponse(status=400, content=b"Missing interfaceid argument")
+    interfaces = Interface.objects.filter(pk__in=interfaceids).select_related("netbox")
+    if not interfaces:
+        return HttpResponse(status=400, content=b"No interfaces selected")
+    netboxes = set(i.netbox for i in interfaces)
+    if len(netboxes) > 1:
+        return HttpResponse(
+            status=400, content=b"Can't restart interfaces from different netboxes"
+        )
+    netbox = list(netboxes)[0]
 
-    handler = get_management_handler(interface.netbox)
+    handler = get_management_handler(netbox)
     if handler:
-        adminstatus = handler.get_interface_admin_status(interface)
-        if adminstatus == SNMPHandler.IF_ADMIN_STATUS_DOWN:
-            _logger.debug('Not restarting %s as it is down', interface)
-            return HttpResponse()
-
-        _logger.debug('Restarting interface %s', interface)
         try:
-            # Restart interface so that client fetches new address
-            handler.cycle_interface(interface)
+            # Restart interface so that clients fetch new addresses
+            handler.cycle_interfaces(interfaces)
         except NoResponseError:
-            # Swallow this exception as it is not important. Others should
-            # create an error
+            # Failures aren't grossly important here, we ignore them
             pass
         return HttpResponse()
     else:
-        return HttpResponse(status=500)
+        return HttpResponse(status=500, content=b"Could not create management handler")
 
 
 @require_POST
