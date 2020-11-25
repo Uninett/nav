@@ -34,7 +34,7 @@ dirty = []  # store failed imports here
 
 def register(key, module):
     if key not in checkers:
-        _logger.info("Registering checker %s from module %s", key, module)
+        _logger.debug("Registering checker %s from module %s", key, module)
         checkers[key] = module
 
 
