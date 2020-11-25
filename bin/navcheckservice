@@ -88,15 +88,15 @@ def parse_args():
 def read_checker_args(checker):
     args = {}
     if checker.ARGS:
-        print("Checker requires these arguments: {}".format(
-            ", ".join(arg[0] for arg in checker.ARGS)
+        print("{} requires these arguments: {}".format(
+            checker.__name__, ", ".join(arg[0] for arg in checker.ARGS)
         ))
     if checker.OPTARGS:
-        print("Checker takes these optional arguments: {}".format(
-            ", ".join(arg[0] for arg in checker.OPTARGS)
+        print("{} takes these optional arguments: {}".format(
+            checker.__name__, ", ".join(arg[0] for arg in checker.OPTARGS)
         ))
     if not (checker.ARGS or checker.OPTARGS):
-        print("Checker takes no extra arguments")
+        print("{} takes no extra arguments".format(checker.__name__))
         return args
 
     print("Input checker arguments (key=val), empty line to continue:")
