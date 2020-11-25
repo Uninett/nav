@@ -227,9 +227,9 @@ def create_csv(request):
         filename)
 
     writer = csv.writer(response)
-    rows = request.POST.get('rows', '').encode('utf-8')
+    rows = request.POST.get('rows', '')
     for row in rows.splitlines():
-        writer.writerow(row.split(b';'))
+        writer.writerow(row.split(';'))
     return response
 
 
