@@ -11,11 +11,11 @@ please go to https://github.com/uninett/nav/milestones .
 NAV 5.1 (unreleased)
 ====================
 
-Backwards incompatible changes
-------------------------------
-
 Dependency changes
 ------------------
+
+Changed versions
+~~~~~~~~~~~~~~~~
 
 NAV 5.1 moves to Django 2.2, resulting in several changes in version
 dependencies of related libraries:
@@ -31,11 +31,21 @@ Also, the Python library :mod:`Pillow` requirement has been moved to version
 the thumbnail API call is used, but the latest version is recommended due to
 reported security vulnerabilities in the older versions).
 
+New dependencies
+~~~~~~~~~~~~~~~~
+
 For NAPALM management profiles and Juniper support in PortAdmin, a dependency
 on the NAPALM_ library has been added:
 
 * :mod:`napalm` version 3.0
 
+Removed dependencies
+~~~~~~~~~~~~~~~~~~~~
+
+NAV no longer requires the :mod:`configparser` or :mod:`py2-ipaddress` Python
+modules. They were only needed under Python 2 to keep compatibility with both
+Python 2 and 3, but NAV 5.1 drops support for Python 2, as previously
+announced.
 
 Changed configuration files
 ---------------------------
