@@ -31,6 +31,11 @@ Also, the Python library :mod:`Pillow` requirement has been moved to version
 the thumbnail API call is used, but the latest version is recommended due to
 reported security vulnerabilities in the older versions).
 
+For NAPALM management profiles and Juniper support in PortAdmin, a dependency
+on the NAPALM_ library has been added:
+
+* :mod:`napalm` version 3.0
+
 
 Changed configuration files
 ---------------------------
