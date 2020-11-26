@@ -24,10 +24,15 @@ Fixed GitHub issues in this release:
 
   * #2078 ([BUG] NAV daemons are unnecessarily run as root)
   * #2103 (Support Django 2.2)
+  * #2139 ([BUG] fanState and psuState e-mail alerts say "no message
+           template is defined")
   * #2141 (Work around lack of entity names when collecting sensors from
            Arista devices)
   * #2174 ([BUG] PortAdmin never issues a "write mem" operation when
            editing trunks)
+  * #2190 ([BUG] Regression - mysql service check does not work)
+  * #2197 ([BUG] Bottom part of room images are obscured by image
+           caption)
   * #2198 ([BUG] CSV export from Netbox interfaces in Room view produce
            wrong filename and content.)
   * #2199 (Make servicemon HttpChecker use the port number from the URL,
