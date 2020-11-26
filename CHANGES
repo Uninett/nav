@@ -1,3 +1,47 @@
+Version 5.1.0
+(released 26 Nov 2020)
+
+User-visible features and improvements:
+
+  * #2021 (Add SeedDB action to clone netboxes and rooms)
+  * #2051 (Link to affected devices in Management profile)
+  * #2128 (Add device filtering options to ipdevpoll and pping, to
+           enable support for horizontal scaling and distributed
+           monitoring)
+  * #2175 (Implement NAPALM management profiles and connectivity)
+  * #2185 (Modernize the type dumping script and make it available as an
+           installable script for end user use)
+  * #2204 (Add support for configuring Juniper switch ports in
+           PortAdmin)
+    - #2173 (Clean up PortAdmin ManagementHandler interface)
+    - #2112 (Refactor PortAdmin's SNMP back-end classes and factories)
+    - #2115 (Refactor portadmin configuration parsing bits)
+    - #2121 (Use nav.config.NAVConfigParser for PortAdmin configuration)
+    - #2205 (Adapt Portadmin UI workflow to meet needs of multiple
+             backend protocols)
+
+Fixed GitHub issues in this release:
+
+  * #2078 ([BUG] NAV daemons are unnecessarily run as root)
+  * #2103 (Support Django 2.2)
+  * #2139 ([BUG] fanState and psuState e-mail alerts say "no message
+           template is defined")
+  * #2141 (Work around lack of entity names when collecting sensors from
+           Arista devices)
+  * #2174 ([BUG] PortAdmin never issues a "write mem" operation when
+           editing trunks)
+  * #2190 ([BUG] Regression - mysql service check does not work)
+  * #2197 ([BUG] Bottom part of room images are obscured by image
+           caption)
+  * #2198 ([BUG] CSV export from Netbox interfaces in Room view produce
+           wrong filename and content.)
+  * #2199 (Make servicemon HttpChecker use the port number from the URL,
+           if present)
+  * #2207 (Netbox reference is not passed to customization template for
+           the ipdevinfo "What if" tab)
+  * #2213 ([BUG] NAV does not import room position)
+
+
 Version 5.0.8
 (released 23 Oct 2020)
 
