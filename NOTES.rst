@@ -45,6 +45,20 @@ These configuration files changed:
 New features
 ------------
 
+Juniper support in PortAdmin
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+PortAdmin has gained the ability to configure Juniper switches. Juniper does
+not support configuration through SNMP writes, so the new management profile
+type NAPALM_ has been introduced, which enables PortAdmin to use Juniper
+specific NETCONF and RPC calls to get and set switch port configuration.
+
+Please read the :doc:`management profiles reference docs
+</reference/management-profiles>` for more details.
+
+.. _`NAPALM`: https://napalm.readthedocs.io/en/latest/
+
+
 Device filter options for distributed monitoring with pping and ipdevpoll
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
