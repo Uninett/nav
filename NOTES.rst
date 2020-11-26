@@ -33,7 +33,7 @@ reported security vulnerabilities in the older versions).
 
 
 Changed configuration files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 These configuration files changed:
 
