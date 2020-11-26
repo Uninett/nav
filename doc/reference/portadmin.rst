@@ -6,21 +6,28 @@ PortAdmin
 Introduction
 ============
 
-PortAdmin is a tool for configuring your switch ports by the help of a web
-interface. It does so by communicating with a network device over SNMP [#f1]_.
+PortAdmin is a tool for simple switch port configuration via NAV's web user
+interface. It is useful both to do simple switch port adjustments without using
+the switch CLI, but also for delegating simple switch port management to NAV
+users that do not have full CLI access to a switch.
+
+Configuring a switch from PortAdmin requires the switch to be configured with
+either an SNMP [#f1]_ write-enabled management profile in SeedDB, or an
+appropriate NAPALM profile for devices that do not support SNMP write
+operations.
+
 
 
 What can PortAdmin do?
 ======================
 
-Currently you can
+Currently, PortAdmin supports these operations:
 
-* change a port's description
-* change a port's access VLAN
-* toggle a port between trunk and access mode
-* when an interface is a trunk, you can change which VLANs are tagged on the
-  trunk.
-* configure a voice VLAN on an interface (:ref:`more_about_voice_vlan`)
+* Changing a port's description
+* Changing a port's access VLAN
+* Toggling a port between trunk and access mode
+  * Configure tagged and untagged/native VLANs on ports in trunk mode
+* Configure a Voice VLAN on a port (:ref:`more_about_voice_vlan`)
 
 
 What the interface tells you
@@ -133,8 +140,8 @@ See above.
 The Config File
 ===============
 
-PortAdmin has a config file. Some of the options that can be set in this file
-are:
+The way in which PortAdmin operates can be configured through
+:file:`portadmin.conf`. Some of the options that can be set in this file are:
 
 **voice_vlans**
     Voice VLANs are the VLANs you use for IP telephone traffic. If

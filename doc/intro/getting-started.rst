@@ -137,6 +137,16 @@ devices can be managed using SNMP v2c and a default community string of
 .. image:: seeddb-add-profile.png
 
 
+NAPALM profiles
+~~~~~~~~~~~~~~~
+
+NAPALM_ management profiles can also be created. At the moment, these are only
+used by :doc:`PortAdmin </reference/portadmin>` to configure switch ports on
+Juniper switches.
+
+.. _`NAPALM`: https://napalm.readthedocs.io/en/latest/
+
+
 Adding your first device to NAV
 -------------------------------
 
