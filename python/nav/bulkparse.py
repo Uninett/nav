@@ -25,6 +25,7 @@ import json
 from django.utils import six
 from IPy import IP
 
+from nav.django.validators import is_valid_point_string
 from nav.errors import GeneralException
 from nav.models.manage import Location, Room, Organization, Vendor, Usage, ManagementProfile
 
@@ -295,6 +296,10 @@ class RoomBulkParser(BulkParser):
     @classmethod
     def _validate_roomid(cls, value):
         return len(value) <= cls.roomid_maxlength
+
+    @classmethod
+    def _validate_position(cls, value):
+        return is_valid_point_string(value)
 
 
 class ServiceBulkParser(BulkParser):
