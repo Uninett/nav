@@ -144,6 +144,9 @@ NAPALM_ management profiles can also be created. At the moment, these are only
 used by :doc:`PortAdmin </reference/portadmin>` to configure switch ports on
 Juniper switches.
 
+Please see the :doc:`management profiles reference documentation
+</reference/management-profiles>` for more details.
+
 .. _`NAPALM`: https://napalm.readthedocs.io/en/latest/
 
 
