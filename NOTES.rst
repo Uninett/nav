@@ -56,6 +56,17 @@ These configuration files changed:
   to ``commit``, for the sake of a a more platform and management protocol
   agnostic view of the world.
 
+Things to be aware of
+---------------------
+
+.. note:: NAV 5.1 fixes a bug where some NAV daemons were run as root, giving
+          them an unnecessarily high privilege level (never a good
+          idea™). After upgrading, you may find some of these daemons failing
+          to start because their existing log files are only writeable by the
+          ``root`` user. You should ensure the NAV log files are all writable
+          by the user NAV runs as (``navcron``, in most cases).
+
+
 
 New features
 ------------
