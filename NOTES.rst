@@ -56,6 +56,16 @@ These configuration files changed:
   to ``commit``, for the sake of a a more platform and management protocol
   agnostic view of the world.
 
+* :file:`daemons.yml`: Daemon entries now support the config option
+  ``privileged``, which defaults to ``false``. A daemon with ``privileged`` set
+  to ``true`` will be run as ``root``. Only :program:`snmptrapd` and
+  :program:`pping` will need to run using ``privileged: true``, as these
+  daemons need to create privileged communication sockets at startup (but they
+  will drop root privileges immediately after the sockets have been
+  created). **This means snmptrapd and pping will not start if you keep
+  the old version of this config file unchanged.**
+
+
 Things to be aware of
 ---------------------
 
