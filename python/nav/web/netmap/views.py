@@ -14,10 +14,10 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Netmap views"""
+import json
+
 from django.db.models import Q
 from django.views.generic import TemplateView, ListView
-
-from rest_framework.renderers import JSONRenderer
 
 from nav.django.utils import get_account
 from nav.models.profiles import (
@@ -58,14 +58,14 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
                 'owner',
             )
 
-        netmap_views_json = JSONRenderer().render(
+        netmap_views_json = json.dumps(
             NetmapViewSerializer(netmap_views, many=True).data
         )
 
         categories = list(Category.objects.values_list('id', flat=True))
         categories.append('ELINK')
 
-        rooms_locations = JSONRenderer().render(
+        rooms_locations = json.dumps(
             list(Room.objects.values_list('id', flat=True)) +
             list(Location.objects.values_list('id', flat=True))
         )
