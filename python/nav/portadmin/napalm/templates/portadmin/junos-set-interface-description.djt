@@ -1,5 +1,7 @@
+{% autoescape off %}
 {% if description %}
 set interfaces {{ ifname }} description "{{ description }}"
 {% else %}
 delete interfaces {{ ifname }} description
 {% endif %}
+{% endautoescape %}
