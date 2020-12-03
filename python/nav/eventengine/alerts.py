@@ -166,14 +166,16 @@ class AlertGenerator(dict):
     def _post_alert_messages(self, obj):
         msg_class = obj.messages.model
         for details, text in self._make_messages():
-            msg = msg_class(type=details.msgtype,
-                            language=details.language,
-                            message=text)
-            if hasattr(msg_class, 'alert_queue'):
-                msg.alert_queue = obj
-            elif hasattr(msg_class, 'alert_history'):
-                msg.alert_history = obj
-                msg.state = self.state
+            kwargs = {"type": details.msgtype, "language": details.language}
+            if hasattr(msg_class, "alert_queue"):
+                kwargs["alert_queue"] = obj
+            elif hasattr(msg_class, "alert_history"):
+                kwargs["alert_history"] = obj
+                kwargs["state"] = self.state
+
+            msg, _created = msg_class.objects.get_or_create(
+                **kwargs, defaults={"message": text},
+            )
             msg.save()
 
     def _make_messages(self):
