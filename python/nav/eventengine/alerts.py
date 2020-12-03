@@ -143,7 +143,11 @@ class AlertGenerator(dict):
             if not alert:
                 alert = self.make_alert()
                 alert.history = history
-            export.exporter.export(alert)
+            try:
+                export.exporter.export(alert)
+            except Exception:
+                # we don't want to derail everything internally if external export fails
+                _logger.exception("Ignoring unhandled exception on alert export")
 
     def _post_alert(self, history=None):
         """Generates and posts an alert on the alert queue only"""
