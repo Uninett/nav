@@ -56,6 +56,27 @@ These configuration files changed:
   to ``commit``, for the sake of a a more platform and management protocol
   agnostic view of the world.
 
+* :file:`daemons.yml`: Daemon entries now support the config option
+  ``privileged``, which defaults to ``false``. A daemon with ``privileged`` set
+  to ``true`` will be run as ``root``. Only :program:`snmptrapd` and
+  :program:`pping` will need to run using ``privileged: true``, as these
+  daemons need to create privileged communication sockets at startup (but they
+  will drop root privileges immediately after the sockets have been
+  created). **This means snmptrapd and pping will not start if you keep
+  the old version of this config file unchanged.**
+
+
+Things to be aware of
+---------------------
+
+.. note:: NAV 5.1 fixes a bug where some NAV daemons were run as root, giving
+          them an unnecessarily high privilege level (never a good
+          idea™). After upgrading, you may find some of these daemons failing
+          to start because their existing log files are only writeable by the
+          ``root`` user. You should ensure the NAV log files are all writable
+          by the user NAV runs as (``navcron``, in most cases).
+
+
 
 New features
 ------------

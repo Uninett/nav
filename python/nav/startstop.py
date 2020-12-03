@@ -124,7 +124,7 @@ class DaemonService(Service):
         if not self.service_dict.get("privileged", False):
             # run command as regular nav user
             user = NAV_CONFIG.get("NAV_USER", "navcron")
-            command = 'su -c "{command}" {user}'.format(
+            command = 'su - {user} -c "{command}"'.format(
                 command=self._command, user=user
             )
         else:
