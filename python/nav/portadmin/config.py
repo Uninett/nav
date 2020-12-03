@@ -95,7 +95,7 @@ enabled = false
 
     def is_dot1x_enabled(self):
         """Checks if dot1x config option is true"""
-        self.getboolean("dot1x", "enabled", fallback=False)
+        return self.getboolean("dot1x", "enabled", fallback=False)
 
     def is_cisco_voice_enabled(self):
         """Checks if the Cisco config option is enabled"""
