@@ -2166,8 +2166,8 @@ class GatewayPeerSession(models.Model):
     protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
     peer = models.GenericIPAddressField()
     state = VarcharField()
-    local_as = models.IntegerField(null=True)
-    remote_as = models.IntegerField(null=True)
+    local_as = models.BigIntegerField(null=True)
+    remote_as = models.BigIntegerField(null=True)
     adminstatus = VarcharField()
 
     class Meta(object):
