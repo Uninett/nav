@@ -70,7 +70,7 @@ class NetboxTypeSerializer(serializers.ModelSerializer):
     """Serializer for the type model"""
 
     class Meta(object):
-        model = manage.NetboxType()
+        model = manage.NetboxType
         fields = '__all__'
 
 
