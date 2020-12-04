@@ -201,5 +201,5 @@ class PrefixFinderSet(viewsets.ViewSet):
 
 
 router = routers.SimpleRouter()
-router.register(r"^/find", PrefixFinderSet, base_name="ipam-api-finder")
-router.register(r"^", PrefixViewSet, base_name="ipam-api")
+router.register(r"^/find", PrefixFinderSet, basename="ipam-api-finder")
+router.register(r"^", PrefixViewSet, basename="ipam-api")

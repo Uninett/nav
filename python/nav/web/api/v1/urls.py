@@ -25,26 +25,26 @@ from nav.web.api.v1 import views
 router = routers.SimpleRouter()
 router.register(r'account', views.AccountViewSet)
 router.register(r'accountgroup', views.AccountGroupViewSet,
-                base_name='accountgroup')
+                basename='accountgroup')
 router.register(r'rack', views.RackViewSet)
 router.register(r'room', views.RoomViewSet)
 router.register(r'location', views.LocationViewSet)
 router.register(r'management-profile', views.ManagementProfileViewSet,
-                base_name="management-profile")
+                basename="management-profile")
 router.register(r'netbox', views.NetboxViewSet)
 router.register(r'interface', views.InterfaceViewSet)
 router.register(r'prefix', views.PrefixViewSet)
 router.register(r'vlan', views.VlanViewSet)
-router.register(r'cabling', views.CablingViewSet, base_name='cabling')
-router.register(r'patch', views.PatchViewSet, base_name='patch')
-router.register(r'cam', views.CamViewSet, base_name='cam')
-router.register(r'arp', views.ArpViewSet, base_name='arp')
+router.register(r'cabling', views.CablingViewSet, basename='cabling')
+router.register(r'patch', views.PatchViewSet, basename='patch')
+router.register(r'cam', views.CamViewSet, basename='cam')
+router.register(r'arp', views.ArpViewSet, basename='arp')
 router.register(r'servicehandler', views.ServiceHandlerViewSet,
-                base_name='servicehandler')
-router.register(r'alert', views.AlertHistoryViewSet, base_name='alert')
+                basename='servicehandler')
+router.register(r'alert', views.AlertHistoryViewSet, basename='alert')
 router.register(r'unrecognized-neighbor', views.UnrecognizedNeighborViewSet,
-                base_name='unrecognized-neighbor')
-router.register(r'auditlog', auditlogapi.LogEntryViewSet, base_name='auditlog')
+                basename='unrecognized-neighbor')
+router.register(r'auditlog', auditlogapi.LogEntryViewSet, basename='auditlog')
 
 
 urlpatterns = [
