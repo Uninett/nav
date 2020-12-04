@@ -215,9 +215,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = ('foundation-5')
 CRISPY_TEMPLATE_PACK = 'foundation-5'
 
 INSTALLED_APPS = (
-    'nav.models',
-    'nav.web',
-    'nav.django',
+    'django.contrib.postgres',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',
@@ -225,12 +223,14 @@ INSTALLED_APPS = (
     'crispy_forms',
     'crispy_forms_foundation',
     'rest_framework',
+    'nav.models',
+    'nav.web',
+    'nav.django',
     'nav.auditlog',
     'nav.web.macwatch',
     'nav.web.geomap',
     'nav.portadmin.napalm',
     'nav.web.portadmin',
-    'django.contrib.postgres',
 )
 
 REST_FRAMEWORK = {
