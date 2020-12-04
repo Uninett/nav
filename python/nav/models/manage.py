@@ -36,9 +36,9 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.fields import HStoreField
 
 from nav import util
-from nav.adapters import HStoreField
 from nav.bitvector import BitVector
 from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url, Graph

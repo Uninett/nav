@@ -30,8 +30,8 @@ from django.db import models, transaction
 from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.forms.models import model_to_dict
+from django.contrib.postgres.fields import HStoreField
 
-from nav.adapters import HStoreField
 import nav.buildconf
 import nav.pwhash
 from nav.config import getconfig as get_alertengine_config

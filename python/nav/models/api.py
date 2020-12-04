@@ -20,8 +20,8 @@ from datetime import datetime
 from django.db import models
 from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
+from django.contrib.postgres.fields import HStoreField
 
-from nav.adapters import HStoreField
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
 
