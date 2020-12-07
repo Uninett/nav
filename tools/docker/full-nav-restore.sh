@@ -24,3 +24,7 @@ WHERE pg_stat_activity.datname = 'nav'
 
 navsyncdb --drop-database --create --restore -
 echo "NOT starting NAV after db restore, please do it manually!"
+
+# If Django runserver is running, this ensures it reloads after the database is
+# replaced:
+test -f /source/python/nav/__init__.py && touch /source/python/nav/__init__.py
