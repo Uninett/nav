@@ -299,7 +299,7 @@ class RoomBulkParser(BulkParser):
 
     @classmethod
     def _validate_position(cls, value):
-        return is_valid_point_string(value)
+        return is_valid_point_string(value) if value is not None else True
 
 
 class ServiceBulkParser(BulkParser):
