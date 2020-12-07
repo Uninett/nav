@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2018 Uninett AS
+# Copyright (C) 2018, 2020 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,6 +16,7 @@
 """HTTP Service Checker"""
 import contextlib
 import socket
+import base64
 
 from django.utils.six.moves.urllib.parse import urlsplit
 from django.utils.six.moves import http_client
@@ -77,8 +78,9 @@ class HttpChecker(AbstractChecker):
             i.putheader('User-Agent',
                         'NAV/servicemon; version %s' % buildconf.VERSION)
             if username:
-                auth = "%s:%s" % (username, password)
-                i.putheader("Authorization", "Basic %s" % auth.encode("base64"))
+                auth = "{}:{}".format(username, password).encode("utf-8")
+                auth = base64.b64encode(auth).decode("utf-8")
+                i.putheader("Authorization", "Basic {}".format(auth))
             i.endheaders()
             response = i.getresponse()
             if 200 <= response.status < 400 or (response.status == 401 and not username):

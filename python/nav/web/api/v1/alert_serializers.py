@@ -136,7 +136,8 @@ class AlertSerializerBase(serializers.ModelSerializer):
         """Returns all the device groups for the netbox if any"""
         try:
             netbox = obj.netbox
-            return netbox.groups.values_list('id', flat=True) or None
+            values = netbox.groups.values_list('id', flat=True)
+            return list(values) if values else None
         except Exception:
             pass
 
