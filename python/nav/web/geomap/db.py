@@ -342,7 +342,7 @@ def get_data(db_cursor, bounds, time_interval=None):
     for netbox in netboxes:
         netbox['load'] = float('nan')
         netbox['real_sysname'] = netbox['sysname']
-        if netbox['sysname'].endswith(_domain_suffix):
+        if _domain_suffix and netbox['sysname'].endswith(_domain_suffix):
             hostname_length = len(netbox['sysname']) - len(_domain_suffix)
             netbox['sysname'] = netbox['sysname'][0:hostname_length]
 
