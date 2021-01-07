@@ -496,7 +496,8 @@ class ExpressionForm(forms.ModelForm):
             # Get all operators and make a choice field
             operators = match_field.operator_set.all()
             self.fields['operator'] = forms.models.ChoiceField(
-                [(o.type, o) for o in operators])
+                choices=[(o.type, o) for o in operators]
+            )
 
             if match_field.show_list:
                 # Values are selected from a multiple choice list.
