@@ -23,6 +23,13 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
+**Tracebacks**
+If applicable, add a full traceback message.
+
+```pytb
+Paste Python traceback here...
+```
+
 **Environment (please complete the following information):**
  - If the problem is with the web ui: Your OS, Browser and browser version [e.g. Windows, Chrome 64]
  - OS on the NAV server [e.g. Debian 10]
