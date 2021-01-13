@@ -135,4 +135,6 @@ class PowerNetMib(UpsMib):
         for c in candidates:
             serial = yield self.get_next(c)
             if serial:
+                if isinstance(serial, bytes):
+                    serial = serial.decode("utf-8")
                 defer.returnValue(serial)
