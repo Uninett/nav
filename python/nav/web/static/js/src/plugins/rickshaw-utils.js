@@ -82,7 +82,9 @@ define([], function () {
         else if (value >= 1000000000) { return convert(value, 1000000000) + space + "G"; }
         else if (value >= 1000000) { return convert(value, 1000000) + space + "M"; }
         else if (value >= 1000) { return convert(value, 1000) + space + "k"; }
-        else if (value <= 0.000001) { return convert(value, 1/1000000 ) + space + "µ"; }
+        else if (value <= 0.0000000001) { return convert(value, 1/1000000000000 ) + space + "p"; }
+        else if (value <= 0.0000001) { return convert(value, 1/1000000000 ) + space + "n"; }
+        else if (value <= 0.0001) { return convert(value, 1/1000000 ) + space + "µ"; }
         else if (value <= 0.01) { return convert(value, 1/1000) + space + "m"; }
         else if (value <= 1) { return value.toFixed(3); }  // This is inconsistent
         else { return value.toFixed(precision); }
