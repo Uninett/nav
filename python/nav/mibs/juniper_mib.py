@@ -53,6 +53,8 @@ class JuniperMib(MibRetriever):
         """Tries to get a serial number from a Juniper device"""
         serial = yield self.get_next("jnxBoxSerialNo")
         if serial:
+            if isinstance(serial, bytes):
+                serial = serial.decode("utf-8")
             defer.returnValue(serial)
 
     @defer.inlineCallbacks

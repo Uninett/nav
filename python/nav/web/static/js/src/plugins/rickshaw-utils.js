@@ -78,16 +78,29 @@ define([], function () {
         };
 
         var value = Number(y);
-        if (value >= 1000000000000) { return convert(value, 1000000000000) + space + "T"; }
-        else if (value >= 1000000000) { return convert(value, 1000000000) + space + "G"; }
-        else if (value >= 1000000) { return convert(value, 1000000) + space + "M"; }
-        else if (value >= 1000) { return convert(value, 1000) + space + "k"; }
-        else if (value <= 0.000001) { return convert(value, 1/1000000 ) + space + "µ"; }
-        else if (value <= 0.01) { return convert(value, 1/1000) + space + "m"; }
-        else if (value <= 1) { return value.toFixed(3); }  // This is inconsistent
+        var absvalue = Math.abs(value);
+        if (absvalue >= 1000000000000) { return convert(value, 1000000000000) + space + "T"; }
+        else if (absvalue >= 1000000000) { return convert(value, 1000000000) + space + "G"; }
+        else if (absvalue >= 1000000) { return convert(value, 1000000) + space + "M"; }
+        else if (absvalue >= 1000) { return convert(value, 1000) + space + "k"; }
+        else if (absvalue <= 0.0000000001) { return convert(value, 1/1000000000000 ) + space + "p"; }
+        else if (absvalue <= 0.0000001) { return convert(value, 1/1000000000 ) + space + "n"; }
+        else if (absvalue <= 0.0001) { return convert(value, 1/1000000 ) + space + "µ"; }
+        else if (absvalue <= 0.01) { return convert(value, 1/1000) + space + "m"; }
         else { return value.toFixed(precision); }
     }
 
+    // Replaces Rickshaw's builtin formatKMBT for tick formatting (as the B makes no sense)
+    function formatKMGT(y) {
+        var abs_y = Math.abs(y);
+        if (abs_y >= 1000000000000) { return y / 1000000000000 + "T" }
+        else if (abs_y >= 1000000000) { return y / 1000000000 + "G" }
+        else if (abs_y >= 1000000) { return y / 1000000 + "M" }
+        else if (abs_y >= 1000) { return y / 1000 + "K" }
+        else if (abs_y < 1 && y > 0) { return y.toFixed(2) }
+        else if (abs_y === 0) { return '' }
+        else { return y }
+    };
 
     function resizeGraph(graph) {
         var boundingRect = graph.element.getBoundingClientRect();
@@ -105,7 +118,8 @@ define([], function () {
         filterFunctionCalls: filterFunctionCalls,
         removeFunctionCalls: removeFunctionCalls,
         resizeGraph: resizeGraph,
-        siNumbers: siNumbers
+        siNumbers: siNumbers,
+        formatKMGT: formatKMGT
     };
 
 });
