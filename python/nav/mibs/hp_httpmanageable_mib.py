@@ -27,4 +27,6 @@ class HPHTTPManageableMib(MibRetriever):
         """Tries to get a chassis serial number from old HP switches"""
         serial = yield self.get_next('hpHttpMgSerialNumber')
         if serial:
+            if isinstance(serial, bytes):
+                serial = serial.decode("utf-8")
             defer.returnValue(serial)
