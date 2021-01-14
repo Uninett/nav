@@ -87,7 +87,7 @@ define([
             graph: graph,
             orientation: 'left',
             element: $element.siblings('.rickshaw-y-axis')[0],
-            tickFormat: Rickshaw.Fixtures.Number.formatKMBT
+            tickFormat: RickshawUtils.formatKMGT
         });
 
         // Display information about series when hovering over the graph

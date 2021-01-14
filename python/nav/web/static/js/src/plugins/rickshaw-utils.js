@@ -90,6 +90,17 @@ define([], function () {
         else { return value.toFixed(precision); }
     }
 
+    // Replaces Rickshaw's builtin formatKMBT for tick formatting (as the B makes no sense)
+    function formatKMGT(y) {
+        var abs_y = Math.abs(y);
+        if (abs_y >= 1000000000000) { return y / 1000000000000 + "T" }
+        else if (abs_y >= 1000000000) { return y / 1000000000 + "G" }
+        else if (abs_y >= 1000000) { return y / 1000000 + "M" }
+        else if (abs_y >= 1000) { return y / 1000 + "K" }
+        else if (abs_y < 1 && y > 0) { return y.toFixed(2) }
+        else if (abs_y === 0) { return '' }
+        else { return y }
+    };
 
     function resizeGraph(graph) {
         var boundingRect = graph.element.getBoundingClientRect();
@@ -107,7 +118,8 @@ define([], function () {
         filterFunctionCalls: filterFunctionCalls,
         removeFunctionCalls: removeFunctionCalls,
         resizeGraph: resizeGraph,
-        siNumbers: siNumbers
+        siNumbers: siNumbers,
+        formatKMGT: formatKMGT
     };
 
 });
