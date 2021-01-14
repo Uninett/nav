@@ -1,17 +1,16 @@
-#!/bin/bash
+#!/bin/bash -e
 if [ ! -n "$1" ]; then
     echo "Need path to workspace"
     exit 1
 fi
 
-WORKSPACE=$1
+WORKSPACE="$(realpath $1)"
 JSDIR="python/nav/web/static/js"
 REPORTDIR="$WORKSPACE/reports"
 
 NPM=`which npm`
 
 cd ${JSDIR}
-npm cache clean
 npm install
 
 echo "Running jshint"
