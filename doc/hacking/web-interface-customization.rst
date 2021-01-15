@@ -119,6 +119,15 @@ insert information at the bottom of this tab:
        </a>
    </section>
 
+Adding custom information to the port details tab
+-------------------------------------------------
+
+On the page displaying details about a port, a custom template named
+``ipdevinfo/custom-port-tabs.html`` can be used to add additional
+custom tabs. These tabs can be used to display additional information
+about the port, using data from a Network Inventory System for
+example.
+
 
 Adding custom tabs to the room overview page
 --------------------------------------------
