@@ -36,7 +36,7 @@
             {% for box in room.netboxes %}
               <li>
                 <h5>
-                  <a href="{% url 'ipdevinfo-details-by-name' box.sysname %}"
+                  <a href="{% url 'ipdevinfo-details-by-name' box.real_sysname %}"
                      target="_blank"
                      title="View in IP Device Info">{{ box.sysname }}</a>
                 </h5>
