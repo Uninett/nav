@@ -1,3 +1,23 @@
+Version 5.1.2
+(released 15 Jan 2021)
+
+Fixed GitHub issues in this release:
+
+  * #2210 ([BUG] Traffic graphs use the SI unit system rather than
+           binary prefixes)
+  * #2215 ([BUG] NAV will refuse to identify LLDP remote port names that
+           contain trailing NUL bytes)
+  * #2235 ([BUG] TypeError at /alertprofiles/filters/add-expression/
+           _init__() takes 1 positional argument but 2 were given)
+  * #2238 ([BUG] Geomap doesn't work if DOMAIN_SUFFIX is not set in
+           nav.conf)
+  * #2239 ([BUG] using DOMAIN_SUFFIX  breaks netbox links in Geomap)
+  * #2241 (Allow custom tabs for port details view)
+  * #2250 (Fix formatting of small and negative numbers in Rickshaw
+           graphs)
+  * #2252 (Fix broken serial numbers for Juniper, APC PowerNet and old
+           HP devices)
+
 Version 5.1.1
 (released 07 Dec 2020)
 
