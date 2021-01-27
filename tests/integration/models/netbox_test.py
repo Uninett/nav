@@ -1,6 +1,12 @@
 import pytest
 
-from nav.models.manage import ManagementProfile, NetboxProfile
+from nav.models.manage import (
+    ManagementProfile,
+    NetboxProfile,
+    NetboxEntity,
+    Netbox,
+    Device,
+)
 
 
 def test_get_snmp_config_should_pick_highest_available_snmp_version(
@@ -26,6 +32,25 @@ def test_get_snmp_config_should_pick_highest_available_snmp_version(
         localhost._get_snmp_config(variable="community")
         == wanted_profile.configuration["community"]
     )
+
+
+def test_netbox_should_be_annotated_with_chassis_serial(db, localhost):
+    """Mainly, this verifies that regressions haven't rendered the raw SQL used to
+    annotate netboxes with serial numbers incompatible with the current schema.
+    """
+    for index, serial in enumerate(["first", "second"]):
+        device = Device(serial=serial)
+        device.save()
+        chassis = NetboxEntity(
+            netbox=localhost,
+            device=device,
+            index=index,
+            physical_class=NetboxEntity.CLASS_CHASSIS
+        )
+        chassis.save()
+
+    netbox = Netbox.objects.with_chassis_serials().filter(id=localhost.id)[0]
+    assert netbox.chassis_serial == "first"
 
 
 @pytest.fixture
