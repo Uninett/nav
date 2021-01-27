@@ -33,6 +33,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.db.models.expressions import RawSQL
 from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import JSONField
@@ -74,6 +75,13 @@ class UpsManager(models.Manager):
 
 
 class NetboxQuerySet(models.QuerySet):
+    chassis_serialnum_sql = (
+        "SELECT device.serial FROM device "
+        "JOIN netboxentity ne USING (deviceid) "
+        "WHERE ne.netboxid=netbox.netboxid AND ne.physical_class=%s "
+        "ORDER BY index ASC "
+        "LIMIT 1"
+    )
 
     def on_maintenance(self, on_maintenance):
         """Filter on whether a netbox is in maintenance mode or not"""
@@ -88,6 +96,20 @@ class NetboxQuerySet(models.QuerySet):
         if on_maintenance:
             return netboxes
         return self.difference(netboxes)
+
+    def with_chassis_serials(self):
+        """Annotates every Netbox with the serial number of its chassis,
+        if applicable. Stacked netboxes will typically have multiple chassis - in
+        this case, the one with the lowest index is considered the "master", and its
+        serial number is used.
+
+        Each object will be annotated with the attribute `chassis_serial`
+        """
+        return self.annotate(
+            chassis_serial=RawSQL(
+                self.chassis_serialnum_sql, (NetboxEntity.CLASS_CHASSIS,)
+            )
+        )
 
 
 @python_2_unicode_compatible
