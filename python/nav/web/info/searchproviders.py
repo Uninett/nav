@@ -114,7 +114,7 @@ class NetboxSearchProvider(SearchProvider):
     link = 'Sysname'
 
     def fetch_results(self):
-        if is_valid_ip(self.query):
+        if is_valid_ip(self.query, strict=True):
             results = Netbox.objects.filter(ip=self.query)
         else:
             results = Netbox.objects.filter(sysname__icontains=self.query)
