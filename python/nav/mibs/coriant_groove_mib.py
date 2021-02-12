@@ -81,6 +81,8 @@ SENSOR_GROUPS = [
         "alias_from": "portServiceLabel",
         # lookup portName using the first 4 items of the oid index
         "index_translation": lambda x: x[:4],
+        "filter_function": filter_port_by_adminstatus,
+        "filter_columns": ["portAdminStatus"],
         "columns": {
             "inOpticalPowerInstant": {
                 "unit_of_measurement": Sensor.UNIT_DBM,
@@ -99,6 +101,8 @@ SENSOR_GROUPS = [
     {
         "name_from": "portName",
         "alias_from": "portServiceLabel",
+        "filter_function": filter_port_by_adminstatus,
+        "filter_columns": ["portAdminStatus"],
         "columns": {
             "inOpticalPowerLaneTotalInstant": {
                 "unit_of_measurement": Sensor.UNIT_DBM,
