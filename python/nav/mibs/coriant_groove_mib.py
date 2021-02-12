@@ -25,6 +25,15 @@ UNIT_DECIBEL = "dB"  # This is actually not defined in Sensor
 UNIT_PS = "ps"
 UNIT_PS_PER_NM = "ps/nm"
 
+
+def filter_port_by_adminstatus(index, _, filter_data):
+    """Filters a port sensor based on admin state of said port"""
+    port_index = index[:4]
+    if port_index in filter_data:
+        return filter_data[port_index].get("portAdminStatus") == "up"
+    return True
+
+
 SENSOR_GROUPS = [
     {
         "name_from": "ochOsAliasName",
