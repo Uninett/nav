@@ -401,7 +401,7 @@
               {% for key, value in netbox.data.items %}
                 <tr>
                   <th>{{ key }}</th>
-                  <td>{{ value }}</td>
+                  <td>{{ value|urlize }}</td>
                 </tr>
               {% endfor %}
             </tbody>
