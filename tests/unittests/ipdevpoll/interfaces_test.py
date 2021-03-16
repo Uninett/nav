@@ -2,6 +2,8 @@ from unittest import TestCase
 from mock import Mock
 from django.utils import six
 
+import pytest
+
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.plugins.interfaces import Interfaces
 
@@ -26,3 +28,15 @@ class EncodingTests(TestCase):
 
         interface = plugin._convert_row_to_container(netbox, 1, row)
         self.assertTrue(isinstance(interface.ifalias, six.text_type))
+
+
+class TestExtractInterfaceSpeed:
+    def test_should_use_highspeed_value_when_speed_is_maxed_out(self):
+        assert Interfaces._extract_interface_speed(4294967295, 10000) == pytest.approx(
+            10000.0
+        )
+
+    def test_should_use_speed_value_when_not_maxed_out(self):
+        assert Interfaces._extract_interface_speed(1073741824, 0) == pytest.approx(
+            1073.741824
+        )
