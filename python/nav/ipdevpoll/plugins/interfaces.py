@@ -92,13 +92,9 @@ class Interfaces(Plugin):
         interface.ifdescr = row['ifDescr']
         interface.iftype = row['ifType']
 
-        # ifSpeed spec says to use ifHighSpeed if the 32-bit unsigned
-        # integer is maxed out
-        if isinstance(row['ifSpeed'], int):
-            if row['ifSpeed'] < 4294967295:
-                interface.speed = row['ifSpeed'] / 1000000.0
-            elif isinstance(row['ifHighSpeed'], int):
-                interface.speed = float(row['ifHighSpeed'])
+        speed = self._extract_interface_speed(row["ifSpeed"], row["ifHighSpeed"])
+        if speed is not None:
+            interface.speed = interface.speed
 
         interface.ifphysaddress = typesafe_binary_mac_to_hex(row['ifPhysAddress'])
         interface.ifadminstatus = row['ifAdminStatus']
@@ -116,6 +112,20 @@ class Interfaces(Plugin):
 
         interface.netbox = netbox
         return interface
+
+    @staticmethod
+    def _extract_interface_speed(speed, highspeed):
+        """Determines the interface speed from a combination of ifSpeed and ifHighSpeed
+        values.
+
+        The IF-MIB spec says to use the ifHighSpeed value if the 32-bit unsigned
+        ifSpeed value is maxed out.
+        """
+        if isinstance(speed, int):
+            if speed < 4294967295:
+                return speed / 1000000.0
+            elif isinstance(highspeed, int):
+                return float(highspeed)
 
     @defer.inlineCallbacks
     def _get_stack_status(self, interfaces):
