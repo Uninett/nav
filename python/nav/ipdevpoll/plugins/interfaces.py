@@ -119,10 +119,12 @@ class Interfaces(Plugin):
         values.
 
         The IF-MIB spec says to use the ifHighSpeed value if the 32-bit unsigned
-        ifSpeed value is maxed out.
+        ifSpeed value is maxed out. However, some devices, like Cisco SG350X-24T
+        running 2.5.5.47 firmware, have an incorrect implementation that causes
+        ifSpeed=ifHighSpeed.
         """
         if isinstance(speed, int):
-            if speed < 4294967295:
+            if 4294967295 > speed != highspeed:
                 return speed / 1000000.0
             elif isinstance(highspeed, int):
                 return float(highspeed)

@@ -40,3 +40,7 @@ class TestExtractInterfaceSpeed:
         assert Interfaces._extract_interface_speed(1073741824, 0) == pytest.approx(
             1073.741824
         )
+
+    def test_should_use_highspeed_value_when_equal_to_speed(self):
+        """Tests the behavior when agent implementation is buggy"""
+        assert Interfaces._extract_interface_speed(1000, 1000) == pytest.approx(1000.0)
