@@ -21,6 +21,7 @@ from nav.mibs.power_ethernet_mib import PowerEthernetMib
 from nav.mibs.cisco_power_ethernet_ext_mib import CiscoPowerEthernetExtMib
 from nav.mibs.entity_mib import EntityMib
 
+from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
@@ -41,7 +42,7 @@ class Poe(Plugin):
             returnValue(None)
 
         poemib = PowerEthernetMib(self.agent)
-        if self.netbox.type and self.netbox.type.vendor.id == 'cisco':
+        if self._is_cisco():
             cisco_mib = CiscoPowerEthernetExtMib(self.agent)
             port_phy_index = yield cisco_mib.retrieve_column(
                 "cpeExtPsePortEntPhyIndex")
@@ -60,6 +61,12 @@ class Poe(Plugin):
         ports = yield poemib.get_ports_table()
         self._process_ports(ports, port_ifindices)
         self._log_invalid_portgroups()
+
+    def _is_cisco(self):
+        return (
+            self.netbox.type
+            and self.netbox.type.get_enterprise_id() == VENDOR_ID_CISCOSYSTEMS
+        )
 
     def _process_groups(self, groups, phy_indices):
         netbox = self.containers.factory(None, shadows.Netbox)
