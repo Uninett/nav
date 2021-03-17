@@ -102,9 +102,15 @@ class UpsWidget(Navlet):
         context['output'] = zip(output_voltages, output_power)
 
         # Battery
-        context['battery_times'] = netbox.sensor_set.filter(
-            internal_name__in=['upsEstimatedMinutesRemaining',
-                               'upsAdvBatteryRunTimeRemaining'])
+        context['battery_times'] = (
+            BatteryTimesProxy(sensor)
+            for sensor in netbox.sensor_set.filter(
+                internal_name__in=[
+                    'upsEstimatedMinutesRemaining',
+                    'upsAdvBatteryRunTimeRemaining',
+                ]
+            )
+        )
 
         context['battery_capacity'] = netbox.sensor_set.filter(
             internal_name__in=['upsHighPrecBatteryCapacity',
