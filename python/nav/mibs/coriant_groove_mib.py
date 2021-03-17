@@ -25,6 +25,15 @@ UNIT_DECIBEL = "dB"  # This is actually not defined in Sensor
 UNIT_PS = "ps"
 UNIT_PS_PER_NM = "ps/nm"
 
+
+def filter_port_by_adminstatus(index, _, filter_data):
+    """Filters a port sensor based on admin state of said port"""
+    port_index = index[:4]
+    if port_index in filter_data:
+        return filter_data[port_index].get("portAdminStatus") == "up"
+    return True
+
+
 SENSOR_GROUPS = [
     {
         "name_from": "ochOsAliasName",
@@ -72,6 +81,8 @@ SENSOR_GROUPS = [
         "alias_from": "portServiceLabel",
         # lookup portName using the first 4 items of the oid index
         "index_translation": lambda x: x[:4],
+        "filter_function": filter_port_by_adminstatus,
+        "filter_columns": ["portAdminStatus"],
         "columns": {
             "inOpticalPowerInstant": {
                 "unit_of_measurement": Sensor.UNIT_DBM,
@@ -90,6 +101,8 @@ SENSOR_GROUPS = [
     {
         "name_from": "portName",
         "alias_from": "portServiceLabel",
+        "filter_function": filter_port_by_adminstatus,
+        "filter_columns": ["portAdminStatus"],
         "columns": {
             "inOpticalPowerLaneTotalInstant": {
                 "unit_of_measurement": Sensor.UNIT_DBM,
@@ -136,13 +149,21 @@ class CoriantGrooveMib(MibRetriever):
                 group["name_from"],
                 group.get("alias_from"),
                 index_translator=group.get("index_translation", lambda x: x),
+                filter_function=group.get("filter_function"),
+                filter_columns=group.get("filter_columns"),
             )
             sensors.extend(response)
         returnValue(sensors)
 
     @defer.inlineCallbacks
     def _discover_sensors(
-        self, config, subject_names_from, subject_aliases_from, index_translator
+        self,
+        config,
+        subject_names_from,
+        subject_aliases_from,
+        index_translator,
+        filter_columns=None,
+        filter_function=None,
     ):
         """Returns sensor definitions for a given set of statistics values.
 
@@ -154,6 +175,13 @@ class CoriantGrooveMib(MibRetriever):
         :param index_translator: A function to translate column indexes into a index
                                  that can be used to look up the subject name from the
                                  subject_names_from object.
+        :param filter_function: An optional function that will filter the returned
+                                sensor records. If provided, only records that cause
+                                this filter to return a True value will be included in
+                                the result.
+        :type filter_function: func(index:OID, columns:dict, filter_columns:dict)
+        :param filter_columns: Extra table columns to fetch and feed as an argument to
+                               the filter function.
 
         """
         name_map = yield self.retrieve_column(subject_names_from)
@@ -163,6 +191,12 @@ class CoriantGrooveMib(MibRetriever):
             self._logger.debug("alias map %s: %r", subject_aliases_from, alias_map)
         else:
             alias_map = {}
+        filter_data = None
+        if filter_columns:
+            filter_data = yield self.retrieve_columns(filter_columns).addCallback(
+                self.translate_result
+            )
+
         response = yield self.retrieve_columns(list(config.keys()))
         self._logger.debug("Found columns: %r", response)
 
@@ -172,6 +206,12 @@ class CoriantGrooveMib(MibRetriever):
             name = name_map.get(_index, str(index))
             alias = alias_map.get(_index)
             alias = " ({})".format(alias) if alias else ""
+            if filter_function and not filter_function(index, columns, filter_data):
+                self._logger.debug(
+                    "ignoring %s based on %s", name, filter_function.__name__
+                )
+                continue
+
             sensors.extend(
                 [
                     self._make_sensor(

@@ -36,14 +36,14 @@ from nav.web.devicehistory.forms import DeviceHistoryViewFilter
 DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS = {
     'button': 'View %s history',
     'module': True,
-    'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
+    'netbox_label': '%(sysname)s [%(ip)s - %(chassis_serial)s]',
 }
 DEVICEQUICKSELECT_POST_ERROR_KWARGS = {
     'button': 'Add %s error event',
     'location': False,
     'room': False,
     'module': True,
-    'netbox_label': '%(sysname)s [%(ip)s - %(device__serial)s]',
+    'netbox_label': '%(sysname)s [%(ip)s - %(chassis_serial)s]',
 }
 
 

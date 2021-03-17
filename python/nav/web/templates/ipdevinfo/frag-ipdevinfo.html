@@ -329,7 +329,7 @@
                   <ul class="normalize-font-size">
                     {% for task in current_maintenance_tasks %}
                       <li>
-                        <a href="{% url 'maintenance-edit' task.id %}">
+                        <a href="{% url 'maintenance-view' task.id %}">
                           {{ task.description }}
 
                         </a>
@@ -368,7 +368,7 @@
                   <ul class="normalize-font-size">
                     {% for task in future_maintenance_tasks %}
                       <li>
-                        <a href="{% url 'maintenance-edit' task.id %}">
+                        <a href="{% url 'maintenance-view' task.id %}">
                           {{ task.description }}
                         </a>
                         <div>
@@ -401,7 +401,7 @@
               {% for key, value in netbox.data.items %}
                 <tr>
                   <th>{{ key }}</th>
-                  <td>{{ value }}</td>
+                  <td>{{ value|urlize }}</td>
                 </tr>
               {% endfor %}
             </tbody>
