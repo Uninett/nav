@@ -114,7 +114,7 @@ class Interfaces(Plugin):
         return interface
 
     @staticmethod
-    def _extract_interface_speed(speed, highspeed):
+    def _extract_interface_speed(speed, highspeed, always_use_highspeed=False):
         """Determines the interface speed from a combination of ifSpeed and ifHighSpeed
         values.
 
@@ -122,7 +122,13 @@ class Interfaces(Plugin):
         ifSpeed value is maxed out. However, some devices, like Cisco SG350X-24T
         running 2.5.5.47 firmware, have an incorrect implementation that causes
         ifSpeed=ifHighSpeed.
+
+        Yet other buggy implementations even have no discernable correlation between
+        the two values, and only their ifHighSpeed value can be trusted.
         """
+        if always_use_highspeed and isinstance(highspeed, int):
+            return float(highspeed)
+
         if isinstance(speed, int):
             if 4294967295 > speed != highspeed:
                 return speed / 1000000.0
