@@ -41,7 +41,6 @@ from django.contrib.postgres.fields import JSONField
 from nav import util
 from nav.adapters import HStoreField
 from nav.bitvector import BitVector
-from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url, Graph
 from nav.metrics.names import get_all_leaves_below
@@ -755,6 +754,7 @@ class NetboxEntity(models.Model):
 
     def _get_applicable_software_revision(self):
         """Gets an aggregated software revision for this entity"""
+        from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
         if self.netbox.type.get_enterprise_id() == VENDOR_ID_CISCOSYSTEMS:
             return self._get_cisco_sup_software_version()
 
