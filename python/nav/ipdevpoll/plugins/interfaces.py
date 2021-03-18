@@ -92,7 +92,13 @@ class Interfaces(Plugin):
         interface.ifdescr = row['ifDescr']
         interface.iftype = row['ifType']
 
-        speed = self._extract_interface_speed(row["ifSpeed"], row["ifHighSpeed"])
+        speed = self._extract_interface_speed(
+            row["ifSpeed"],
+            row["ifHighSpeed"],
+            always_use_highspeed=self.config.getboolean(
+                "interfaces", "always_use_ifhighspeed"
+            ),
+        )
         if speed is not None:
             interface.speed = interface.speed
 

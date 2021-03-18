@@ -4,6 +4,7 @@ from django.utils import six
 
 import pytest
 
+from nav.ipdevpoll import IpdevpollConfig
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.plugins.interfaces import Interfaces
 
@@ -13,7 +14,7 @@ class EncodingTests(TestCase):
         netbox = Mock('Netbox')
         agent = Mock('AgentProxy')
         containers = ContainerRepository()
-        plugin = Interfaces(netbox, agent, containers)
+        plugin = Interfaces(netbox, agent, containers, FakeConfig())
 
         row = {
             'ifDescr': 'GigabitEthernet0/1',
@@ -49,3 +50,10 @@ class TestExtractInterfaceSpeed:
         assert Interfaces._extract_interface_speed(
             69, 42, always_use_highspeed=True
         ) == pytest.approx(42.0)
+
+
+class FakeConfig(IpdevpollConfig):
+    """Represents the default ipdevpoll config, but prevents the parent from attempting
+    a read from the file system
+    """
+    DEFAULT_CONFIG_FILES = []
