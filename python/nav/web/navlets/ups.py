@@ -19,7 +19,7 @@ from django import forms
 from django.db.models import Q
 from django.utils.six.moves.urllib.parse import urlparse
 
-from nav.models.manage import Netbox
+from nav.models.manage import Netbox, Sensor
 from . import Navlet
 
 
@@ -102,9 +102,15 @@ class UpsWidget(Navlet):
         context['output'] = zip(output_voltages, output_power)
 
         # Battery
-        context['battery_times'] = netbox.sensor_set.filter(
-            internal_name__in=['upsEstimatedMinutesRemaining',
-                               'upsAdvBatteryRunTimeRemaining'])
+        context['battery_times'] = (
+            BatteryTimesProxy(sensor)
+            for sensor in netbox.sensor_set.filter(
+                internal_name__in=[
+                    'upsEstimatedMinutesRemaining',
+                    'upsAdvBatteryRunTimeRemaining',
+                ]
+            )
+        )
 
         context['battery_capacity'] = netbox.sensor_set.filter(
             internal_name__in=['upsHighPrecBatteryCapacity',
@@ -120,3 +126,35 @@ class UpsWidget(Navlet):
         """Save preferences"""
         return super(UpsWidget, self).post(
             request, form=UpsWidgetForm(request.POST))
+
+
+class BatteryTimesProxy:
+    """Proxies access to Sensor objects that represent remaining battery time.
+
+    For consistency, we want the widget to always display remaining time in minutes,
+    but we need to scale the value for sensors that report the remaining time in
+    seconds.
+    """
+    def __init__(self, proxied_sensor: Sensor):
+        self.__proxied = proxied_sensor
+
+    def __getattr__(self, name):
+        return getattr(self.__proxied, name)
+
+    @property
+    def unit_of_measurement(self):
+        """Reports unit as minutes for sensors that measure seconds"""
+        if self.__proxied.unit_of_measurement == Sensor.UNIT_SECONDS:
+            return Sensor.UNIT_MINUTES
+        else:
+            return self.__proxied.unit_of_measurement
+
+    def get_metric_name(self):
+        """Surrounds the metric name in Graphite scale expressions if conversion from
+        seconds to minutes is needed for the proxied sensor.
+        """
+        name = self.__proxied.get_metric_name()
+        if self.__proxied.unit_of_measurement == Sensor.UNIT_SECONDS:
+            return f"round(scale({name},0.0166),0)"
+        else:
+            return name
