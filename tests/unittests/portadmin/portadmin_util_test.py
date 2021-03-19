@@ -1,8 +1,11 @@
 """Testing"""
 import unittest
 from mock import Mock
-from nav.web.portadmin.utils import (find_allowed_vlans_for_user,
-                                     find_vlans_in_org, filter_vlans)
+from nav.web.portadmin.utils import (
+    find_allowed_vlans_for_user,
+    find_vlans_in_org,
+    filter_vlans,
+)
 from nav.portadmin.vlan import FantasyVlan
 
 
@@ -36,36 +39,49 @@ class TestPortAdminUtil(unittest.TestCase):
 
     def test_find_vlans_in_org_no_children(self):
         """Should return all vlans in this org"""
-        self.assertEqual(find_vlans_in_org(self.org3),
-                         [FantasyVlan(self.vlan3.vlan)])
+        self.assertEqual(find_vlans_in_org(self.org3), [FantasyVlan(self.vlan3.vlan)])
 
     def test_find_vlans_in_org_one_child(self):
         """Should return all vlans in this org and child org"""
-        self.assertEqual(sorted(find_vlans_in_org(self.org2)),
-                         sorted([FantasyVlan(self.vlan3.vlan),
-                                 FantasyVlan(self.vlan2.vlan)]))
+        self.assertEqual(
+            sorted(find_vlans_in_org(self.org2)),
+            sorted([FantasyVlan(self.vlan3.vlan), FantasyVlan(self.vlan2.vlan)]),
+        )
 
     def test_find_vlans_in_org_two_children(self):
         """Should return all vlans in this org and all children orgs"""
-        self.assertEqual(sorted(find_vlans_in_org(self.org1)),
-                         sorted([FantasyVlan(self.vlan3.vlan),
-                                 FantasyVlan(self.vlan2.vlan),
-                                 FantasyVlan(self.vlan1.vlan)]))
+        self.assertEqual(
+            sorted(find_vlans_in_org(self.org1)),
+            sorted(
+                [
+                    FantasyVlan(self.vlan3.vlan),
+                    FantasyVlan(self.vlan2.vlan),
+                    FantasyVlan(self.vlan1.vlan),
+                ]
+            ),
+        )
 
     def test_find_vlans_in_org_no_duplicates(self):
         """Should filter duplicates"""
         self.org3.vlan_set.all.return_value = [self.vlan3, self.vlan2]
-        self.assertEqual(sorted(find_vlans_in_org(self.org1)),
-                         sorted([FantasyVlan(self.vlan3.vlan),
-                                 FantasyVlan(self.vlan2.vlan),
-                                 FantasyVlan(self.vlan1.vlan)]))
+        self.assertEqual(
+            sorted(find_vlans_in_org(self.org1)),
+            sorted(
+                [
+                    FantasyVlan(self.vlan3.vlan),
+                    FantasyVlan(self.vlan2.vlan),
+                    FantasyVlan(self.vlan1.vlan),
+                ]
+            ),
+        )
 
     def test_find_vlans_in_org_filter_nonevalues(self):
         """Should filter vlans with no vlan value"""
         self.vlan1.vlan = None
-        self.assertEqual(sorted(find_vlans_in_org(self.org1)),
-                         sorted([FantasyVlan(self.vlan3.vlan),
-                                 FantasyVlan(self.vlan2.vlan)]))
+        self.assertEqual(
+            sorted(find_vlans_in_org(self.org1)),
+            sorted([FantasyVlan(self.vlan3.vlan), FantasyVlan(self.vlan2.vlan)]),
+        )
 
     def test_find_allowed_vlans_for_user(self):
         """Should return all vlans for this users org and child orgs"""
@@ -73,18 +89,26 @@ class TestPortAdminUtil(unittest.TestCase):
         account = Mock()
         account.organizations.all.return_value = [self.org1]
 
-        self.assertEqual(sorted(find_allowed_vlans_for_user(account)),
-                         sorted([FantasyVlan(self.vlan1.vlan),
-                                 FantasyVlan(self.vlan2.vlan),
-                                 FantasyVlan(self.vlan3.vlan)]))
+        self.assertEqual(
+            sorted(find_allowed_vlans_for_user(account)),
+            sorted(
+                [
+                    FantasyVlan(self.vlan1.vlan),
+                    FantasyVlan(self.vlan2.vlan),
+                    FantasyVlan(self.vlan3.vlan),
+                ]
+            ),
+        )
 
     def test_filter_vlans_add(self):
         vlans_from_request = [1, 2, 3]
         old_trunked_vlans = [3]  # Vlans from querying the netbox
         allowed_vlans = range(1, 10)
 
-        self.assertEqual(filter_vlans(vlans_from_request, old_trunked_vlans,
-                                      allowed_vlans), [1, 2, 3])
+        self.assertEqual(
+            filter_vlans(vlans_from_request, old_trunked_vlans, allowed_vlans),
+            [1, 2, 3],
+        )
 
     def test_filter_vlans_add_deny(self):
         """Only add vlans that are in allowed vlans"""
@@ -92,8 +116,9 @@ class TestPortAdminUtil(unittest.TestCase):
         old_trunked_vlans = [3]  # Vlans from querying the netbox
         allowed_vlans = [1]
 
-        self.assertEqual(filter_vlans(vlans_from_request, old_trunked_vlans,
-                                      allowed_vlans), [1, 3])
+        self.assertEqual(
+            filter_vlans(vlans_from_request, old_trunked_vlans, allowed_vlans), [1, 3]
+        )
 
     def test_filter_vlans_remove(self):
         """It should be possible to remove vlans by not including them"""
@@ -101,8 +126,9 @@ class TestPortAdminUtil(unittest.TestCase):
         old_trunked_vlans = [3]
         allowed_vlans = range(1, 10)
 
-        self.assertEqual(filter_vlans(vlans_from_request, old_trunked_vlans,
-                                      allowed_vlans), [1, 2])
+        self.assertEqual(
+            filter_vlans(vlans_from_request, old_trunked_vlans, allowed_vlans), [1, 2]
+        )
 
     def test_filter_vlans_remove_deny(self):
         """Only remove vlans that are in allowed vlans list"""
@@ -110,5 +136,6 @@ class TestPortAdminUtil(unittest.TestCase):
         old_trunked_vlans = [1, 2, 3]
         allowed_vlans = range(1, 3)
 
-        self.assertEqual(filter_vlans(vlans_from_request, old_trunked_vlans,
-                                      allowed_vlans), [2, 3])
+        self.assertEqual(
+            filter_vlans(vlans_from_request, old_trunked_vlans, allowed_vlans), [2, 3]
+        )

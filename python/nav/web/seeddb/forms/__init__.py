@@ -22,15 +22,21 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Field, Fieldset, Row,
-                                            Column)
+from crispy_forms_foundation.layout import Layout, Field, Fieldset, Row, Column
 
 from django.utils import six
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit
-from nav.models.manage import (Location, Room, Organization, NetboxType,
-                               Vendor, NetboxGroup, Netbox)
+from nav.models.manage import (
+    Location,
+    Room,
+    Organization,
+    NetboxType,
+    Vendor,
+    NetboxGroup,
+    Netbox,
+)
 from nav.models.cabling import Cabling
 
 _logger = logging.getLogger(__name__)
@@ -40,7 +46,7 @@ BOX_CHARS = {
     'SPACE': '&nbsp;',
     'VERTICAL': '&#9474;',  # │
     'UP_AND_RIGHT': '&#9492;',  # └
-    'VERTICAL_AND_RIGHT': '&#9500;'  # ├
+    'VERTICAL_AND_RIGHT': '&#9500;',  # ├
 }
 
 
@@ -70,16 +76,15 @@ def create_choices(element, ancestors, is_last_child=False):
     :returns: a list of tuples meant to be used as choices in a form select. The
               string element is padded to indicate placement in a tree-structure
     """
-    choices = [(element.pk,
-                tree_pad(six.text_type(element.pk), ancestors,
-                         last=is_last_child))]
+    choices = [
+        (element.pk, tree_pad(six.text_type(element.pk), ancestors, last=is_last_child))
+    ]
     child_ancestors = ancestors + [is_last_child]
     children = element.get_children()
     num_children = children.count()
     for index, child in enumerate(children):
         last = index == num_children - 1
-        choices = choices + create_choices(child, child_ancestors,
-                                           is_last_child=last)
+        choices = choices + create_choices(child, child_ancestors, is_last_child=last)
 
     return choices
 
@@ -96,7 +101,7 @@ def tree_pad(string, ancestors, last=False):
     """
     charmap = {
         True: BOX_CHARS['UP_AND_RIGHT'] + BOX_CHARS['SPACE'],  # └
-        False: BOX_CHARS['VERTICAL_AND_RIGHT'] + BOX_CHARS['SPACE']  # ├
+        False: BOX_CHARS['VERTICAL_AND_RIGHT'] + BOX_CHARS['SPACE'],  # ├
     }
 
     if ancestors:
@@ -108,7 +113,7 @@ def get_prefix(ancestors):
     """Adds characters based on ancestor last child status"""
     charmap = {
         True: 2 * BOX_CHARS['SPACE'],  # double space
-        False: BOX_CHARS['VERTICAL'] + BOX_CHARS['SPACE']  # │
+        False: BOX_CHARS['VERTICAL'] + BOX_CHARS['SPACE'],  # │
     }
     return "".join([charmap[x] for x in ancestors[1:]])
 
@@ -140,10 +145,13 @@ def get_layout(heading, rows):
 
 def get_single_layout(heading, row):
     """Get default layout for a single filter"""
-    return get_layout(heading, [
-        Column(row, css_class='medium-8'),
-        Column(get_submit_button(), css_class='medium-4')
-    ])
+    return get_layout(
+        heading,
+        [
+            Column(row, css_class='medium-8'),
+            Column(get_submit_button(), css_class='medium-4'),
+        ],
+    )
 
 
 def get_submit_button(value='Filter'):
@@ -153,8 +161,10 @@ def get_submit_button(value='Filter'):
 
 class RoomFilterForm(forms.Form):
     """Form for filtering rooms"""
+
     location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False)
+        Location.objects.order_by('id').all(), required=False
+    )
 
     def __init__(self, *args, **kwargs):
         super(RoomFilterForm, self).__init__(*args, **kwargs)
@@ -164,6 +174,7 @@ class RoomFilterForm(forms.Form):
 
 class RoomForm(forms.ModelForm):
     """Form for editing/adding rooms"""
+
     location = forms.ChoiceField(choices=())
     data = HStoreField(label='Attributes', required=False)
 
@@ -184,12 +195,15 @@ class RoomForm(forms.ModelForm):
 
 class RoomMoveForm(forms.Form):
     """Form for moving a room to a new location"""
+
     location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False)
+        Location.objects.order_by('id').all(), required=False
+    )
 
 
 class LocationForm(forms.ModelForm):
     """Form for editing and adding a location"""
+
     parent = forms.ChoiceField(required=False)
     data = HStoreField(label='Attributes', required=False)
 
@@ -225,22 +239,25 @@ class LocationForm(forms.ModelForm):
 
 class OrganizationFilterForm(forms.Form):
     """Form for filtering organizations by parent"""
+
     parent = forms.ModelChoiceField(
         Organization.objects.filter(
-            pk__in=Organization.objects.filter(
-                parent__isnull=False
-            ).values_list('parent', flat=True)
-        ).order_by('id'), required=False)
+            pk__in=Organization.objects.filter(parent__isnull=False).values_list(
+                'parent', flat=True
+            )
+        ).order_by('id'),
+        required=False,
+    )
 
     def __init__(self, *args, **kwargs):
         super(OrganizationFilterForm, self).__init__(*args, **kwargs)
         self.helper = get_formhelper()
-        self.helper.layout = get_single_layout('Filter organizations',
-                                               'parent')
+        self.helper.layout = get_single_layout('Filter organizations', 'parent')
 
 
 class OrganizationForm(forms.ModelForm):
     """Form for editing an organization"""
+
     parent = forms.ChoiceField(required=False)
     data = HStoreField(label='Attributes', required=False)
 
@@ -276,14 +293,16 @@ class OrganizationForm(forms.ModelForm):
 
 class OrganizationMoveForm(forms.Form):
     """Form for moving an organization to another parent"""
+
     parent = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all(), required=False)
+        Organization.objects.order_by('id').all(), required=False
+    )
 
 
 class NetboxTypeFilterForm(forms.Form):
     """Form for filtering a netbox type by vendor"""
-    vendor = forms.ModelChoiceField(
-        Vendor.objects.order_by('id').all(), required=False)
+
+    vendor = forms.ModelChoiceField(Vendor.objects.order_by('id').all(), required=False)
 
     def __init__(self, *args, **kwargs):
         super(NetboxTypeFilterForm, self).__init__(*args, **kwargs)
@@ -293,6 +312,7 @@ class NetboxTypeFilterForm(forms.Form):
 
 class NetboxTypeForm(forms.ModelForm):
     """Form for editing a netbox type"""
+
     class Meta(object):
         model = NetboxType
         fields = '__all__'
@@ -300,12 +320,11 @@ class NetboxTypeForm(forms.ModelForm):
 
 class CablingForm(forms.ModelForm):
     """Form for editing a cabling instance"""
+
     class Meta(object):
         model = Cabling
         fields = '__all__'
-        widgets = {
-            'room': forms.Select(attrs={'class': 'select2'})
-        }
+        widgets = {'room': forms.Select(attrs={'class': 'select2'})}
 
 
 class DeviceGroupForm(forms.ModelForm):
@@ -315,23 +334,22 @@ class DeviceGroupForm(forms.ModelForm):
     this is only created by Django on modelforms based on the model where the
     field is defined (in this case nav.models.manage.Netbox).
     """
+
     netboxes = forms.ModelMultipleChoiceField(
-        queryset=Netbox.objects.all(), required=False)
+        queryset=Netbox.objects.all(), required=False
+    )
 
     def __init__(self, *args, **kwargs):
         # If the form is based on an existing model instance, populate the
         # netboxes field with netboxes from the many to many relationship
         if 'instance' in kwargs and kwargs['instance'] is not None:
             initial = kwargs.setdefault('initial', {})
-            initial['netboxes'] = [n.pk for n in
-                                   kwargs['instance'].netbox_set.all()]
+            initial['netboxes'] = [n.pk for n in kwargs['instance'].netbox_set.all()]
         forms.ModelForm.__init__(self, *args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            'id',
-            'description',
-            Field('netboxes', css_class='select2'),
+            'id', 'description', Field('netboxes', css_class='select2'),
         )
 
     class Meta(object):
@@ -354,6 +372,7 @@ def get_netboxes_in_group(group):
 def get_netboxes_not_in_group(group):
     if group:
         return Netbox.objects.exclude(
-            pk__in=group.netbox_set.all().values_list('id', flat=True))
+            pk__in=group.netbox_set.all().values_list('id', flat=True)
+        )
     else:
         return Netbox.objects.all()

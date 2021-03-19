@@ -23,11 +23,13 @@ from crispy_forms_foundation.layout import Layout, Row, Column, Submit, Field
 
 class SearchForm(forms.Form):
     """The searchform used for base searches"""
+
     query = forms.CharField(max_length=100, label='', required=False)
 
     def __init__(self, *args, **kwargs):
-        self.helper = get_formhelper(kwargs.pop('form_action', ''),
-                                     kwargs.pop('placeholder', 'Search'))
+        self.helper = get_formhelper(
+            kwargs.pop('form_action', ''), kwargs.pop('placeholder', 'Search')
+        )
         super(SearchForm, self).__init__(*args, **kwargs)
 
     def clean_query(self):
@@ -43,11 +45,11 @@ def get_formhelper(form_action, placeholder='Search'):
     helper.form_class = 'search-form'
     helper.layout = Layout(
         Row(
-            Column(Field('query', placeholder=placeholder),
-                   css_class='medium-9'),
-            Column(Submit('submit', 'Search', css_class='postfix'),
-                   css_class='medium-3'),
-            css_class='collapse'
+            Column(Field('query', placeholder=placeholder), css_class='medium-9'),
+            Column(
+                Submit('submit', 'Search', css_class='postfix'), css_class='medium-3'
+            ),
+            css_class='collapse',
         )
     )
     return helper

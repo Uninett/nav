@@ -24,13 +24,15 @@ from nav.web.api.v1 import views
 
 router = routers.SimpleRouter()
 router.register(r'account', views.AccountViewSet)
-router.register(r'accountgroup', views.AccountGroupViewSet,
-                base_name='accountgroup')
+router.register(r'accountgroup', views.AccountGroupViewSet, base_name='accountgroup')
 router.register(r'rack', views.RackViewSet)
 router.register(r'room', views.RoomViewSet)
 router.register(r'location', views.LocationViewSet)
-router.register(r'management-profile', views.ManagementProfileViewSet,
-                base_name="management-profile")
+router.register(
+    r'management-profile',
+    views.ManagementProfileViewSet,
+    base_name="management-profile",
+)
 router.register(r'netbox', views.NetboxViewSet)
 router.register(r'interface', views.InterfaceViewSet)
 router.register(r'prefix', views.PrefixViewSet)
@@ -39,11 +41,15 @@ router.register(r'cabling', views.CablingViewSet, base_name='cabling')
 router.register(r'patch', views.PatchViewSet, base_name='patch')
 router.register(r'cam', views.CamViewSet, base_name='cam')
 router.register(r'arp', views.ArpViewSet, base_name='arp')
-router.register(r'servicehandler', views.ServiceHandlerViewSet,
-                base_name='servicehandler')
+router.register(
+    r'servicehandler', views.ServiceHandlerViewSet, base_name='servicehandler'
+)
 router.register(r'alert', views.AlertHistoryViewSet, base_name='alert')
-router.register(r'unrecognized-neighbor', views.UnrecognizedNeighborViewSet,
-                base_name='unrecognized-neighbor')
+router.register(
+    r'unrecognized-neighbor',
+    views.UnrecognizedNeighborViewSet,
+    base_name='unrecognized-neighbor',
+)
 router.register(r'auditlog', auditlogapi.LogEntryViewSet, base_name='auditlog')
 
 
@@ -51,11 +57,16 @@ urlpatterns = [
     url(r'^$', views.api_root),
     url(r'^token/$', views.get_or_create_token, name="token"),
     url(r'^version/$', views.get_nav_version, name="version"),
-    url(r"^prefix/routed/?$", views.RoutedPrefixList.as_view(),
-        name="prefix-routed-list"),
-    url(r"^prefix/usage/?$", views.PrefixUsageList.as_view(),
-        name="prefix-usage-list"),
-    url(r"^prefix/usage/(?P<prefix>.*)$", views.PrefixUsageDetail.as_view(),
-        name="prefix-usage-detail"),
+    url(
+        r"^prefix/routed/?$",
+        views.RoutedPrefixList.as_view(),
+        name="prefix-routed-list",
+    ),
+    url(r"^prefix/usage/?$", views.PrefixUsageList.as_view(), name="prefix-usage-list"),
+    url(
+        r"^prefix/usage/(?P<prefix>.*)$",
+        views.PrefixUsageDetail.as_view(),
+        name="prefix-usage-detail",
+    ),
     url(r'^', include(router.urls)),
 ]

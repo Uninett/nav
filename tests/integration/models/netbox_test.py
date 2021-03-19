@@ -45,7 +45,7 @@ def test_netbox_should_be_annotated_with_chassis_serial(db, localhost):
             netbox=localhost,
             device=device,
             index=index,
-            physical_class=NetboxEntity.CLASS_CHASSIS
+            physical_class=NetboxEntity.CLASS_CHASSIS,
         )
         chassis.save()
 

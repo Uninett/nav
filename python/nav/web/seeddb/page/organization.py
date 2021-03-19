@@ -48,47 +48,67 @@ class OrganizationInfo(SeeddbInfo):
 
 
 def organization(request):
-    return view_switcher(request,
-                         list_view=organization_list,
-                         move_view=organization_move,
-                         delete_view=organization_delete)
+    return view_switcher(
+        request,
+        list_view=organization_list,
+        move_view=organization_move,
+        delete_view=organization_delete,
+    )
 
 
 def organization_list(request):
     info = OrganizationInfo()
     context = info.template_context
-    context.update({
-        'roots': Organization.objects.filter(parent=None).order_by('id'),
-        'edit_url_name': 'seeddb-organization-edit'
-    })
+    context.update(
+        {
+            'roots': Organization.objects.filter(parent=None).order_by('id'),
+            'edit_url_name': 'seeddb-organization-edit',
+        }
+    )
     return render(request, 'seeddb/list_tree.html', context)
 
 
 def organization_move(request):
     info = OrganizationInfo()
-    return move(request, Organization, OrganizationMoveForm,
-                'seeddb-organization',
-                extra_context=info.template_context)
+    return move(
+        request,
+        Organization,
+        OrganizationMoveForm,
+        'seeddb-organization',
+        extra_context=info.template_context,
+    )
 
 
 def organization_delete(request, object_id=None):
     info = OrganizationInfo()
-    return render_delete(request, Organization, 'seeddb-organization',
-                         whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context,
-                         object_id=object_id)
+    return render_delete(
+        request,
+        Organization,
+        'seeddb-organization',
+        whitelist=SEEDDB_EDITABLE_MODELS,
+        extra_context=info.template_context,
+        object_id=object_id,
+    )
 
 
 def organization_edit(request, organization_id=None):
     info = OrganizationInfo()
-    return render_edit(request, Organization, OrganizationForm,
-                       organization_id, 'seeddb-organization-edit',
-                       extra_context=info.template_context)
+    return render_edit(
+        request,
+        Organization,
+        OrganizationForm,
+        organization_id,
+        'seeddb-organization-edit',
+        extra_context=info.template_context,
+    )
 
 
 def organization_bulk(request):
     info = OrganizationInfo()
     return render_bulkimport(
-        request, OrgBulkParser, OrgImporter,
+        request,
+        OrgBulkParser,
+        OrgImporter,
         'seeddb-organization',
-        extra_context=info.template_context)
+        extra_context=info.template_context,
+    )

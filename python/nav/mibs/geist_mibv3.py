@@ -39,9 +39,9 @@ class GeistMibV3(ItWatchDogsMibV3):
     objects for anything, so we don't need to care about this name change here.
 
     """
+
     mib = get_mib('GEIST-MIB-V3')
 
-    oid_name_map = {OID(attrs['oid']): name
-                    for name, attrs in mib['nodes'].items()}
+    oid_name_map = {OID(attrs['oid']): name for name, attrs in mib['nodes'].items()}
 
     lowercase_nodes = {key.lower(): key for key in mib['nodes']}

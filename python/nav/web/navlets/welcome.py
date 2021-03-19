@@ -22,6 +22,7 @@ from nav.web.webfront.utils import quick_read
 
 class WelcomeNavlet(Navlet):
     """A navlet that displays welcome information to the user"""
+
     title = "Site welcome"
     description = "Displays welcome messages from the site administrators"
 

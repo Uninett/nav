@@ -7,12 +7,10 @@ from nav.snmptrapd.plugin import load_handler_modules, ModuleLoadError
 
 class SnmptrapdPluginTest(TestCase):
     def setUp(self):
-        self.plugin_a = Mock(
-            name='snmptrapd plugin a')
+        self.plugin_a = Mock(name='snmptrapd plugin a')
         self.plugin_a.strip.return_value = 'nav.snmptrapd.handlers.foo'
 
-        self.plugin_b = Mock(
-            name='snmptrapd plguin b')
+        self.plugin_b = Mock(name='snmptrapd plguin b')
         self.plugin_b.strip.return_value = 'nav.snmptrapd.handlers.bar'
         del self.plugin_b.initialize
 
@@ -21,32 +19,35 @@ class SnmptrapdPluginTest(TestCase):
 
         self.bad_plugin = Mock(name='snmptrapd plugin which is bad')
         self.bad_plugin.strip.return_value = 'nav.snmptrapd.handlers.bad_plugin'
-        self.bad_plugin.initialize=raise_exception
+        self.bad_plugin.initialize = raise_exception
 
-        self.patcher = patch.dict(sys.modules, {
-            'nav.snmptrapd.handlers.foo': self.plugin_a,
-            'nav.snmptrapd.handlers.bar': self.plugin_b,
-            'nav.snmptrapd.handlers.bad_plugin': self.bad_plugin,
-            'nav.snmptrapd.handlers.non_existent': None
-        })
+        self.patcher = patch.dict(
+            sys.modules,
+            {
+                'nav.snmptrapd.handlers.foo': self.plugin_a,
+                'nav.snmptrapd.handlers.bar': self.plugin_b,
+                'nav.snmptrapd.handlers.bad_plugin': self.bad_plugin,
+                'nav.snmptrapd.handlers.non_existent': None,
+            },
+        )
         self.patcher.start()
 
     def tearDown(self):
         self.patcher.stop()
 
-    def test_plugin_loader_raises_no_exception_if_plugin_has_initialize_method(
-            self):
+    def test_plugin_loader_raises_no_exception_if_plugin_has_initialize_method(self):
         loader = load_handler_modules([self.plugin_a])
-        assert loader[0] == __import__('nav.snmptrapd.handlers.foo',
-                                       globals(), locals(), ['foo'])
+        assert loader[0] == __import__(
+            'nav.snmptrapd.handlers.foo', globals(), locals(), ['foo']
+        )
 
         assert hasattr(loader[0], 'initialize')
 
-    def test_plugin_loader_raises_no_exception_if_plugin_has_no_initialize_method(
-            self):
+    def test_plugin_loader_raises_no_exception_if_plugin_has_no_initialize_method(self):
         loader = load_handler_modules([self.plugin_b])
-        assert loader[0] == __import__('nav.snmptrapd.handlers.bar',
-                                       globals(), locals(), ['bar'])
+        assert loader[0] == __import__(
+            'nav.snmptrapd.handlers.bar', globals(), locals(), ['bar']
+        )
 
         assert not hasattr(loader[0], 'initialize')
 

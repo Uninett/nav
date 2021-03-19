@@ -29,7 +29,7 @@ PATTERNS = [
     re.compile(r"SW:(?P<version>v?[0-9]+[0-9A-Za-z.]*)"),
     re.compile(r" (?P<version>[0-9]+\.[0-9A-Za-z.]+)"),
     re.compile(r" (?P<version>[A-Z]+\.[0-9]+\.[0-9]+)"),
-    ]
+]
 
 
 class System(Plugin):
@@ -51,9 +51,12 @@ class System(Plugin):
         chassis = shadows.NetboxEntity.get_chassis_entities(self.containers)
         if chassis and len(chassis) == 1:
             entity = chassis[0]
-            self._logger.debug("found a pre-existing chassis: %s/%s (%s)",
-                               entity.name, entity.source,
-                               entity.device.serial if entity.device else "N/A")
+            self._logger.debug(
+                "found a pre-existing chassis: %s/%s (%s)",
+                entity.name,
+                entity.source,
+                entity.device.serial if entity.device else "N/A",
+            )
             if not entity.software_revision:
                 entity.software_revision = version
                 self._logger.debug("set pre-existing entity software revision")
@@ -66,13 +69,13 @@ class System(Plugin):
             if roots:
                 self._logger.debug(
                     "device has root entities, but none are chassis. doing "
-                    "nothing about the software revisions I found")
+                    "nothing about the software revisions I found"
+                )
                 return
 
             device = self.containers.factory(None, shadows.Device)
             if not device.software_version:
-                self._logger.debug(
-                    "didn't find a pre-existing chassis, making one")
+                self._logger.debug("didn't find a pre-existing chassis, making one")
                 device.software_version = version
 
                 entity = self.containers.factory(None, shadows.NetboxEntity)

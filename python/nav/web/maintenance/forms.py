@@ -33,12 +33,17 @@ class MaintenanceTaskForm(forms.Form):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
-                Column(Field('start_time', css_class='datetimepicker'),
-                       css_class="medium-6"),
-                Column(Field('end_time', css_class='datetimepicker'),
-                       css_class="medium-6"),
+                Column(
+                    Field('start_time', css_class='datetimepicker'),
+                    css_class="medium-6",
+                ),
+                Column(
+                    Field('end_time', css_class='datetimepicker'), css_class="medium-6"
+                ),
             ),
-            'no_end_time', 'description')
+            'no_end_time',
+            'description',
+        )
 
         # If end_time infinity, check no_end time and disable input
         try:
@@ -58,12 +63,12 @@ class MaintenanceTaskForm(forms.Form):
         end_time = self.cleaned_data['end_time']
         no_end_time = self.cleaned_data['no_end_time']
         if not no_end_time and not end_time:
-            raise forms.ValidationError(
-                "End time or no end time must be specified")
+            raise forms.ValidationError("End time or no end time must be specified")
         return self.cleaned_data
 
 
 class MaintenanceAddSingleNetbox(forms.Form):
     """A form used for error-checking only; less code than writing
     a custom variable-checker"""
+
     netboxid = forms.IntegerField(required=True)

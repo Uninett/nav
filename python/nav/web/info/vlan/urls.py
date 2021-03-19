@@ -21,16 +21,16 @@ from nav.web.info.vlan import views
 
 
 urlpatterns = [
-    url(r'^$',
-        views.index,
-        name='vlan-index'),
-    url(r'^(?P<vlanid>\d+)/$',
-        views.vlan_details,
-        name='vlan-details'),
-    url(r'^graph/prefix/(?P<prefixid>\d+)$',
+    url(r'^$', views.index, name='vlan-index'),
+    url(r'^(?P<vlanid>\d+)/$', views.vlan_details, name='vlan-details'),
+    url(
+        r'^graph/prefix/(?P<prefixid>\d+)$',
         views.create_prefix_graph,
-        name='vlan-graph-prefix'),
-    url(r'^graph/vlan/(?P<vlanid>\d+)/(?P<family>\d)?$',
+        name='vlan-graph-prefix',
+    ),
+    url(
+        r'^graph/vlan/(?P<vlanid>\d+)/(?P<family>\d)?$',
         views.create_vlan_graph,
-        name='vlan-graph-prefix'),
+        name='vlan-graph-prefix',
+    ),
 ]

@@ -33,6 +33,7 @@ class BitVector(object):
     device.  Everything in this class is 0 based though, so index 0 is
     the most significant bit here.
     """
+
     def __init__(self, octetstring):
         self.vector = array.array("B", octetstring)
 
@@ -40,7 +41,7 @@ class BitVector(object):
         return encode_array(self.vector)
 
     def __len__(self):
-        return len(self.vector)*8
+        return len(self.vector) * 8
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, repr(self.to_bytes()))
@@ -83,7 +84,7 @@ class BitVector(object):
         hexstring = cls._hexdigits.sub("", hexstring)
         if len(hexstring) % 2 != 0:
             raise ValueError("hexstring must contain an even number of digits")
-        hex_octets = [hexstring[i:i+2] for i in range(0, len(hexstring), 2)]
+        hex_octets = [hexstring[i : i + 2] for i in range(0, len(hexstring), 2)]
         octetstring = b''.join([six.int2byte(int(octet, 16)) for octet in hex_octets])
         return cls(octetstring)
 
@@ -94,7 +95,7 @@ class BitVector(object):
         """
         bits = []
         for octet in self.vector:
-            bits = bits + [str((octet >> y) & 1) for y in range(8-1, -1, -1)]
+            bits = bits + [str((octet >> y) & 1) for y in range(8 - 1, -1, -1)]
         return "".join(bits)
 
     def to_hex(self):

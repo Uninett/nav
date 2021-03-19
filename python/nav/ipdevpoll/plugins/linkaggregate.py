@@ -25,6 +25,7 @@ from nav.mibs.if_mib import IfMib
 
 class LinkAggregate(Plugin):
     """Collects information about link aggregation"""
+
     def __init__(self, *args, **kwargs):
         super(LinkAggregate, self).__init__(*args, **kwargs)
         self.ifmib = IfMib(self.agent)
@@ -50,13 +51,11 @@ class LinkAggregate(Plugin):
 
     @inlineCallbacks
     def _get_interface(self, ifindex):
-        ifc = self.containers.factory(ifindex, shadows.Interface,
-                                      ifindex=ifindex)
+        ifc = self.containers.factory(ifindex, shadows.Interface, ifindex=ifindex)
         if not ifc.ifname:
             # In case no other plugins ran before us to collect this:
             self._logger.debug("retrieving ifName.%s", ifindex)
-            ifc.ifname = yield self.ifmib.retrieve_column_by_index('ifName',
-                                                                   (ifindex,))
+            ifc.ifname = yield self.ifmib.retrieve_column_by_index('ifName', (ifindex,))
         returnValue(ifc)
 
     def _log_aggregates(self, aggregates):
@@ -68,8 +67,9 @@ class LinkAggregate(Plugin):
             aggr[aggregator.ifname].append(ifc.ifname)
 
         for aggregator, ports in aggr.items():
-            self._logger.debug("%s aggregates these ports: %s", aggregator,
-                               ', '.join(ports))
+            self._logger.debug(
+                "%s aggregates these ports: %s", aggregator, ', '.join(ports)
+            )
 
     def _create_aggregate_containers(self, aggregates):
         for interface, aggregator in aggregates:

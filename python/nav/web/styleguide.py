@@ -23,12 +23,14 @@ from crispy_forms_foundation.layout import Layout, Column, Row, Fieldset
 
 class StyleFormOne(forms.Form):
     """Form displaying use of helptext"""
+
     name = forms.CharField(help_text='Your name')
     address = forms.CharField(help_text='Your address')
 
 
 class StyleFormTwo(forms.Form):
     """More complex form"""
+
     name = forms.CharField(help_text='Your name')
     address = forms.CharField(help_text='Your address')
 
@@ -42,17 +44,14 @@ class StyleFormTwo(forms.Form):
                 'Address form',
                 Row(
                     Column('name', css_class='small-6'),
-                    Column('address', css_class='small-6')
-                )
+                    Column('address', css_class='small-6'),
+                ),
             )
         )
 
 
 def styleguide_index(request):
     """Controller for rendering the styleguide"""
-    context = {
-        'form1': StyleFormOne(),
-        'form2': StyleFormTwo()
-    }
+    context = {'form1': StyleFormOne(), 'form2': StyleFormTwo()}
 
     return render(request, 'styleguide.html', context)

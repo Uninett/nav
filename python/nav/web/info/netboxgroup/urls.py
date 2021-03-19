@@ -20,10 +20,7 @@ from nav.web.info.netboxgroup import views
 
 
 urlpatterns = [
-    url(r'^$', views.index,
-        name='netbox-group'),
-    url(r'^(?P<groupid>.+)/edit/', views.group_edit,
-        name='netbox-group-edit'),
-    url(r'^(?P<groupid>.+)', views.group_detail,
-        name='netbox-group-detail'),
+    url(r'^$', views.index, name='netbox-group'),
+    url(r'^(?P<groupid>.+)/edit/', views.group_edit, name='netbox-group-edit'),
+    url(r'^(?P<groupid>.+)', views.group_detail, name='netbox-group-detail'),
 ]

@@ -11,8 +11,7 @@ from nav.models.fields import INFINITY
 import pytest
 
 
-def test_roomstatus_should_not_fail_on_multiple_messages(
-        alerthist_with_two_messages):
+def test_roomstatus_should_not_fail_on_multiple_messages(alerthist_with_two_messages):
     widget = RoomStatus()
     result = widget.get_context_data_view({})
     print(result)
@@ -33,11 +32,12 @@ def test_feedreader_widget_should_get_nav_blog_posts():
 def test_get_navlet_should_return_200(client, admin_navlet):
     """Tests a GET request against each of the admin user's navlets"""
     url = reverse('get-user-navlet', kwargs={'navlet_id': admin_navlet.id})
-    print("Testing admin navlet instance of {!r} at {!r}".format(
-        admin_navlet.navlet, url)
+    print(
+        "Testing admin navlet instance of {!r} at {!r}".format(admin_navlet.navlet, url)
     )
     response = client.get(url)
     assert response.status_code == 200
+
 
 #
 # Fixtures
@@ -49,7 +49,7 @@ def alerthist_with_two_messages(localhost):
     alert = AlertHistory(
         source_id='ipdevpoll',
         netbox=localhost,
-        start_time=datetime.now()-timedelta(hours=1),
+        start_time=datetime.now() - timedelta(hours=1),
         end_time=INFINITY,
         event_type_id='boxState',
         value=100,
@@ -59,14 +59,16 @@ def alerthist_with_two_messages(localhost):
     msg1 = AlertHistoryMessage(
         alert_history=alert,
         state=AlertHistoryMessage.STATE_START,
-        type='sms', language='en',
+        type='sms',
+        language='en',
         message='Problem detected',
     )
     msg1.save()
     msg2 = AlertHistoryMessage(
         alert_history=alert,
         state=AlertHistoryMessage.STATE_END,
-        type='sms', language='en',
+        type='sms',
+        language='en',
         message='Problem resolved',
     )
     msg2.save()

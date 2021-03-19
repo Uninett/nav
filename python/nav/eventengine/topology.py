@@ -33,8 +33,10 @@ def netbox_appears_reachable(netbox):
     target_path = get_path_to_netbox(netbox)
     nav = NAVServer.make_for(netbox.ip)
     nav_path = get_path_to_netbox(nav) if nav else True
-    _logger.debug("reachability paths, target_path=%(target_path)r, "
-                  "nav_path=%(nav_path)r", locals())
+    _logger.debug(
+        "reachability paths, target_path=%(target_path)r, " "nav_path=%(nav_path)r",
+        locals(),
+    )
     return bool(target_path and nav_path)
 
 
@@ -60,8 +62,9 @@ def get_path_to_netbox(netbox):
         return True
 
     router = router_port.interface.netbox
-    _logger.debug("reachability check for %s on %s (router: %s)",
-                  netbox, prefix, router)
+    _logger.debug(
+        "reachability check for %s on %s (router: %s)", netbox, prefix, router
+    )
 
     graph = get_graph_for_vlan(prefix.vlan)
     try:
@@ -71,8 +74,12 @@ def get_path_to_netbox(netbox):
 
     # first, see if any path exists
     if not _path_exists(graph, netbox, router):
-        _logger.warning("cannot find a path between %s and %s on VLAN %s",
-                        netbox, router, prefix.vlan)
+        _logger.warning(
+            "cannot find a path between %s and %s on VLAN %s",
+            netbox,
+            router,
+            prefix.vlan,
+        )
         return True
 
     # now, remove nodes that are down and see if a path still exists
@@ -80,19 +87,26 @@ def get_path_to_netbox(netbox):
 
     if netbox not in graph or router not in graph:
         if router.up == router.UP_UP:
-            _logger.warning("%(netbox)s topology problem: router %(router)s "
-                            "is up, but not in VLAN graph for %(prefix)r. "
-                            "Defaulting to 'reachable' status.", locals())
+            _logger.warning(
+                "%(netbox)s topology problem: router %(router)s "
+                "is up, but not in VLAN graph for %(prefix)r. "
+                "Defaulting to 'reachable' status.",
+                locals(),
+            )
             return True
-        _logger.debug("%s not reachable, router or box not in graph: %r",
-                      netbox, graph.edges())
+        _logger.debug(
+            "%s not reachable, router or box not in graph: %r", netbox, graph.edges()
+        )
         return False
 
     try:
         path = networkx.shortest_path(graph, netbox, router)
     except NetworkXException as error:
-        _logger.debug("an internal networkx exception was raised in "
-                      "shortest_path, assuming no path was found: %s", error)
+        _logger.debug(
+            "an internal networkx exception was raised in "
+            "shortest_path, assuming no path was found: %s",
+            error,
+        )
         path = []
     else:
         _logger.debug("path to %s: %r", netbox, path)
@@ -117,8 +131,11 @@ def get_graph_for_vlan(vlan):
 
     """
     swpvlan = SwPortVlan.objects.filter(vlan=vlan).select_related(
-        'interface', 'interface__netbox', 'interface__to_netbox',
-        'interface__to_interface')
+        'interface',
+        'interface__netbox',
+        'interface__to_netbox',
+        'interface__to_interface',
+    )
     graph = networkx.MultiGraph(name='graph for vlan %s' % vlan)
     for swp in swpvlan:
         source = swp.interface.netbox
@@ -127,13 +144,12 @@ def get_graph_for_vlan(vlan):
         target_ifc = swp.interface.to_interface
         if target:
             # ensure key ordering is always consistent:
-            key = tuple(sorted(
-                (
-                    source_ifc.id,
-                    target_ifc.id if target_ifc else None,
-                ),
-                key=lambda x: x if x else 0,
-            ))
+            key = tuple(
+                sorted(
+                    (source_ifc.id, target_ifc.id if target_ifc else None,),
+                    key=lambda x: x if x else 0,
+                )
+            )
             data = {source_ifc, target_ifc}
             graph.add_edge(source, target, key=key, data=data)
     return graph
@@ -145,8 +161,9 @@ def strip_down_nodes_from_graph(graph, keep=None):
     :param keep: A node to keep regardless of its current status.
 
     """
-    removable = set(node for node in graph.nodes()
-                    if node.up != node.UP_UP and node != keep)
+    removable = set(
+        node for node in graph.nodes() if node.up != node.UP_UP and node != keep
+    )
     graph.remove_nodes_from(removable)
     return len(removable)
 
@@ -156,6 +173,7 @@ def strip_down_links_from_graph(graph):
     interfaces are down.
 
     """
+
     def _is_down(data):
         ifcs = data.get('data', [])
         return any(ifc and ifc.ifoperstatus == ifc.OPER_DOWN for ifc in ifcs)
@@ -168,6 +186,7 @@ def strip_down_links_from_graph(graph):
     graph.remove_edges_from(removable)
     return len(removable)
 
+
 ###
 ### Functions for locating the NAV server itself
 ###
@@ -175,6 +194,7 @@ def strip_down_links_from_graph(graph):
 
 class NAVServer(object):
     """A simple mockup of a Netbox representing the NAV server itself"""
+
     UP_UP = Netbox.UP_UP
 
     @classmethod
@@ -210,8 +230,7 @@ class NAVServer(object):
         mac = self.get_mac_from_arp()
         if mac:
             records = Cam.objects.filter(
-                mac=mac,
-                end_time__gte=datetime.datetime.max
+                mac=mac, end_time__gte=datetime.datetime.max
             ).select_related('netbox')
             return list(set(cam.netbox for cam in records))
         else:
@@ -219,10 +238,9 @@ class NAVServer(object):
 
     def get_mac_from_arp(self):
         """Finds the NAV server's MAC address based on its IP address"""
-        arp = Arp.objects.extra(
-            where=['ip = %s'],
-            params=[self.ip]
-        ).filter(end_time__gte=datetime.datetime.max)
+        arp = Arp.objects.extra(where=['ip = %s'], params=[self.ip]).filter(
+            end_time__gte=datetime.datetime.max
+        )
         if arp:
             return arp[0].mac
 
@@ -243,8 +261,11 @@ def get_source_address_for(dest):
     try:
         sock.connect(sockaddr)
     except socket.error as err:
-        _logger.warning("Error when getting NAV's source address for "
-                        "connecting to %(dest)s: %(err)s", locals())
+        _logger.warning(
+            "Error when getting NAV's source address for "
+            "connecting to %(dest)s: %(err)s",
+            locals(),
+        )
         return
     addrinfo = sock.getsockname()
     sock.close()
@@ -256,8 +277,8 @@ def _get_target_dgram_addr(target):
     a SOCK_DGRAM socket type.
 
     """
-    for (family, socktype,
-         _proto, _canonname,
-         sockaddr) in socket.getaddrinfo(target, 1):
+    for (family, socktype, _proto, _canonname, sockaddr) in socket.getaddrinfo(
+        target, 1
+    ):
         if socktype == socket.SOCK_DGRAM:
             return family, sockaddr

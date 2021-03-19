@@ -25,27 +25,33 @@ def test_short_outage(localhost, db):
         yield job.run()
     assert agent.walk.called
     assert localhost.info_set.filter(
-        key=snmpcheck.INFO_KEY_NAME,
-        variable=snmpcheck.INFO_VARIABLE_NAME,
-        value="down").exists()
-    assert EventQueue.objects.filter(
-        source_id='ipdevpoll',
-        target_id='eventEngine',
-        event_type='snmpAgentState',
-        netbox_id=localhost.pk,
-        state=EventQueue.STATE_START).count() == 1
+        key=snmpcheck.INFO_KEY_NAME, variable=snmpcheck.INFO_VARIABLE_NAME, value="down"
+    ).exists()
+    assert (
+        EventQueue.objects.filter(
+            source_id='ipdevpoll',
+            target_id='eventEngine',
+            event_type='snmpAgentState',
+            netbox_id=localhost.pk,
+            state=EventQueue.STATE_START,
+        ).count()
+        == 1
+    )
     with pytest.raises(SuggestedReschedule):
         yield job.run()
     assert localhost.info_set.filter(
-        key=snmpcheck.INFO_KEY_NAME,
-        variable=snmpcheck.INFO_VARIABLE_NAME,
-        value="down").exists()
-    assert EventQueue.objects.filter(
-        source_id='ipdevpoll',
-        target_id='eventEngine',
-        event_type='snmpAgentState',
-        netbox_id=localhost.pk,
-        state=EventQueue.STATE_START).count() == 2
+        key=snmpcheck.INFO_KEY_NAME, variable=snmpcheck.INFO_VARIABLE_NAME, value="down"
+    ).exists()
+    assert (
+        EventQueue.objects.filter(
+            source_id='ipdevpoll',
+            target_id='eventEngine',
+            event_type='snmpAgentState',
+            netbox_id=localhost.pk,
+            state=EventQueue.STATE_START,
+        ).count()
+        == 2
+    )
 
     # now fake an AlertHist entry from event engine
     AlertHistory(
@@ -62,12 +68,15 @@ def test_short_outage(localhost, db):
     agent.walk.return_value = defer.succeed(True)
     yield job.run()
     assert localhost.info_set.filter(
-        key=snmpcheck.INFO_KEY_NAME,
-        variable=snmpcheck.INFO_VARIABLE_NAME,
-        value="up").exists()
-    assert EventQueue.objects.filter(
-        source_id='ipdevpoll',
-        target_id='eventEngine',
-        event_type='snmpAgentState',
-        netbox_id=localhost.pk,
-        state=EventQueue.STATE_END).count() == 1
+        key=snmpcheck.INFO_KEY_NAME, variable=snmpcheck.INFO_VARIABLE_NAME, value="up"
+    ).exists()
+    assert (
+        EventQueue.objects.filter(
+            source_id='ipdevpoll',
+            target_id='eventEngine',
+            event_type='snmpAgentState',
+            netbox_id=localhost.pk,
+            state=EventQueue.STATE_END,
+        ).count()
+        == 1
+    )

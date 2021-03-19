@@ -5,8 +5,12 @@ import nav.mailin
 class Plugin(nav.mailin.Plugin):
     def init(self):
         nav.event.create_type_hierarchy(
-            {('kake', 'Kake paa pauserommet!', False):
-                 [('kake', 'kake paa pauserommet')]})
+            {
+                ('kake', 'Kake paa pauserommet!', False): [
+                    ('kake', 'kake paa pauserommet')
+                ]
+            }
+        )
 
     def accept(self, msg):
         return 'kake' in msg['Subject'].lower()

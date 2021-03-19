@@ -54,6 +54,7 @@ def consume(sequence, *consumers):
     for consumer in consumers:
         yield consumer(iterator)
 
+
 ####################
 # Helper functions #
 ####################
@@ -86,10 +87,11 @@ def oid_to_ipv4(oid):
     if len(oid) != 4:
         raise ValueError("IPv4 address must be 4 octets, not %d" % len(oid))
     try:
-        addr, = unpack("!I", encode_array(array.array("B", oid)))
+        (addr,) = unpack("!I", encode_array(array.array("B", oid)))
     except OverflowError as error:
         raise ValueError(error)
     return IP(addr, ipversion=4)
+
 
 #############################################################################
 # Varios OID consumer functions, which can be fed to the consume() function #
@@ -136,10 +138,10 @@ def TypedFixedInetAddress(iterator):
     """
     addr_type = next(iterator)
     if addr_type == IPV4_ID:
-        addr, = consume(iterator, InetAddressIPv4)
+        (addr,) = consume(iterator, InetAddressIPv4)
         return oid_to_ipv4(addr)
     elif addr_type == IPV6_ID:
-        addr, = consume(iterator, InetAddressIPv6)
+        (addr,) = consume(iterator, InetAddressIPv6)
         return oid_to_ipv6(addr)
     else:
         raise ValueError("unsupported address type %s", addr_type)
@@ -150,7 +152,6 @@ def InetPrefix(iterator):
     Consumes and parses a InetAddressType.InetAddress.InetAddressPrefixLength
     combo into an IPy.IP network prefix address
     """
-    addr, mask = consume(iterator,
-                         TypedInetAddress, InetAddressPrefixLength)
+    addr, mask = consume(iterator, TypedInetAddress, InetAddressPrefixLength)
     if addr:
         return addr.make_net(mask)

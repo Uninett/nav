@@ -34,15 +34,22 @@ import getpass
 from datetime import datetime, timedelta
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 import nav.buildconf
 from nav.logs import init_generic_logging
-from nav.arnold import (find_computer_info, disable, quarantine,
-                        is_inside_vlans, NoDatabaseInformationError,
-                        GeneralException, open_port,
-                        raise_if_detainment_not_allowed,
-                        DetainmentNotAllowedError)
+from nav.arnold import (
+    find_computer_info,
+    disable,
+    quarantine,
+    is_inside_vlans,
+    NoDatabaseInformationError,
+    GeneralException,
+    open_port,
+    raise_if_detainment_not_allowed,
+    DetainmentNotAllowedError,
+)
 from nav.models.arnold import Identity, DetentionProfile
 
 LOG_FILE = "arnold/t1000.log"
@@ -52,9 +59,7 @@ _logger = logging.getLogger('nav.t1000')
 def main():
     """Main controller"""
     init_generic_logging(
-        logfile=LOG_FILE,
-        stderr=False,
-        read_config=True,
+        logfile=LOG_FILE, stderr=False, read_config=True,
     )
     _logger.info("Starting t1000")
 
@@ -64,16 +69,15 @@ def main():
 
     identities = Identity.objects.filter(
         last_changed__lte=datetime.now() - timedelta(hours=1),
-        status__in=['disabled', 'quarantined'])
+        status__in=['disabled', 'quarantined'],
+    )
 
     if len(identities) <= 0:
-        _logger.info("No detained ports in database where lastchanged > 1 "
-                    "hour.")
+        _logger.info("No detained ports in database where lastchanged > 1 " "hour.")
         sys.exit(0)
 
     for identity in identities:
-        _logger.info("%s is %s, checking for activity",
-                    identity.mac, identity.status)
+        _logger.info("%s is %s, checking for activity", identity.mac, identity.status)
         try:
             candidate = find_computer_info(identity.mac)
         except NoDatabaseInformationError as error:
@@ -99,8 +103,7 @@ def pursue(identity, candidate):
     in the old code.
 
     """
-    _logger.info("%s is active on interface %s",
-                candidate.mac, candidate.interface)
+    _logger.info("%s is active on interface %s", candidate.mac, candidate.interface)
 
     # Check if this reason is a part of any detention profile. If it is we
     # need to fetch the vlans from that profile and see if the new ip is on
@@ -121,8 +124,7 @@ def pursue(identity, candidate):
 
     if profile and profile.keep_closed == 'n':
         try:
-            open_port(identity, getpass.getuser(),
-                      'Blocked on another interface')
+            open_port(identity, getpass.getuser(), 'Blocked on another interface')
         except GeneralException as error:
             _logger.error(error)
 
@@ -130,8 +132,7 @@ def pursue(identity, candidate):
 def is_detained_by_profile(identity):
     """Check that this identity is detained with a detention profile"""
     try:
-        return DetentionProfile.objects.get(
-            justification=identity.justification)
+        return DetentionProfile.objects.get(justification=identity.justification)
     except DetentionProfile.DoesNotExist:
         return None
 
@@ -139,8 +140,8 @@ def is_detained_by_profile(identity):
 def find_autoenable_step(identity):
     """Find and set autoenablestep"""
     event = identity.event_set.filter(
-        autoenablestep__isnull=False,
-        justification=identity.justification).order_by('-event_time')[0]
+        autoenablestep__isnull=False, justification=identity.justification
+    ).order_by('-event_time')[0]
 
     if event:
         return event.autoenablestep
@@ -171,14 +172,26 @@ def detain(identity, candidate):
     try:
         if identity.status == 'disabled':
             _logger.debug("Trying to disable %s", identity.mac)
-            disable(candidate, identity.justification, username, comment,
-                    identity.autoenablestep)
+            disable(
+                candidate,
+                identity.justification,
+                username,
+                comment,
+                identity.autoenablestep,
+            )
 
         elif identity.status == 'quarantined':
-            _logger.debug("Trying to quarantine %s with vlan %s",
-                         identity.mac, identity.tovlan)
-            quarantine(candidate, identity.tovlan, identity.justification,
-                       username, comment, identity.autoenablestep)
+            _logger.debug(
+                "Trying to quarantine %s with vlan %s", identity.mac, identity.tovlan
+            )
+            quarantine(
+                candidate,
+                identity.tovlan,
+                identity.justification,
+                username,
+                comment,
+                identity.autoenablestep,
+            )
     except GeneralException as error:
         _logger.error(error)
 

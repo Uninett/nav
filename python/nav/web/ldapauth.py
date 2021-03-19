@@ -87,9 +87,11 @@ def open_ldap():
     timeout = _config.getfloat('ldap', 'timeout')
     # Revert to no encryption if none of the valid settings are found
     if encryption not in ('ssl', 'tls', 'none'):
-        _logger.warning('Unknown encryption setting %r in config file, '
-                        'using no encryption instead',
-                        _config.get('ldap', 'encryption'))
+        _logger.warning(
+            'Unknown encryption setting %r in config file, '
+            'using no encryption instead',
+            _config.get('ldap', 'encryption'),
+        )
         encryption = 'none'
 
     # Debug tracing from python-ldap/openldap to stderr
@@ -108,8 +110,10 @@ def open_ldap():
         try:
             lconn.start_tls_s()
         except ldap.PROTOCOL_ERROR:
-            _logger.error('LDAP server %s does not support the STARTTLS '
-                          'extension.  Aborting.', server)
+            _logger.error(
+                'LDAP server %s does not support the STARTTLS ' 'extension.  Aborting.',
+                server,
+            )
             raise NoStartTlsError(server)
         except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR):
             _logger.exception("LDAP server is down")
@@ -134,19 +138,24 @@ def authenticate(login, password):
         _logger.exception("LDAP server is down")
         raise NoAnswerError(server)
     except ldap.INVALID_CREDENTIALS:
-        _logger.warning("Server %s reported invalid credentials for user %s",
-                        server, login)
+        _logger.warning(
+            "Server %s reported invalid credentials for user %s", server, login
+        )
         return False
     except ldap.TIMEOUT as error:
         _logger.error("Timed out waiting for LDAP bind operation")
         raise TimeoutError(error)
     except ldap.LDAPError:
-        _logger.exception("An LDAP error occurred when authenticating user %s "
-                          "against server %s", login, server)
+        _logger.exception(
+            "An LDAP error occurred when authenticating user %s " "against server %s",
+            login,
+            server,
+        )
         return False
     except UserNotFound:
-        _logger.exception("Username %s was not found in the LDAP catalog %s",
-                          login, server)
+        _logger.exception(
+            "Username %s was not found in the LDAP catalog %s", login, server
+        )
         return False
 
     _logger.debug("LDAP authenticated user %s", login)
@@ -156,12 +165,10 @@ def authenticate(login, password):
     group_dn = _config.get('ldap', 'require_group')
     if group_dn:
         if user.is_group_member(group_dn):
-            _logger.info("%s is verified to be a member of %s",
-                         login, group_dn)
+            _logger.info("%s is verified to be a member of %s", login, group_dn)
             return user
         else:
-            _logger.warning("Could NOT verify %s as a member of %s",
-                            login, group_dn)
+            _logger.warning("Could NOT verify %s as a member of %s", login, group_dn)
             return False
 
     # If successful so far, verify required entitlements before the final verdict
@@ -170,16 +177,12 @@ def authenticate(login, password):
     if require_entitlement:
         if user.has_entitlement(require_entitlement):
             _logger.info(
-                "%s is verified to be entitled to %s",
-                login,
-                require_entitlement
+                "%s is verified to be entitled to %s", login, require_entitlement
             )
             return user
         else:
             _logger.warning(
-                "Could NOT verify %s as entitled to %s",
-                login,
-                require_entitlement
+                "Could NOT verify %s as entitled to %s", login, require_entitlement
             )
             return False
 
@@ -197,6 +200,7 @@ class LDAPUser(object):
     webfront.conf config file.
 
     """
+
     def __init__(self, username, ldap_conn):
         self.username = username
         self.ldap = ldap_conn
@@ -212,8 +216,9 @@ class LDAPUser(object):
 
             self.ldap.simple_bind_s(user_dn, password)
         if suffix:
-            _logger.debug("Attempting authenticated bind as user %s",
-                          self.username + suffix)
+            _logger.debug(
+                "Attempting authenticated bind as user %s", self.username + suffix
+            )
 
             self.ldap.simple_bind_s(self.username + suffix, password)
 
@@ -228,7 +233,8 @@ class LDAPUser(object):
         method = _config.get('ldap', 'lookupmethod')
         if method not in ('direct', 'search'):
             raise LDAPConfigError(
-                'method must be "direct" or "search", not %s' % method)
+                'method must be "direct" or "search", not %s' % method
+            )
 
         if method == 'direct':
             self.user_dn = self.construct_dn()
@@ -257,12 +263,12 @@ class LDAPUser(object):
         manager = _config.get('ldap', 'manager')
         manager_password = _config.get('ldap', 'manager_password', raw=True)
         if manager:
-            _logger.debug("Attempting authenticated bind as manager to %s",
-                          manager)
+            _logger.debug("Attempting authenticated bind as manager to %s", manager)
             self.ldap.simple_bind_s(manager, manager_password)
         filter_ = "(%s=%s)" % (uid_attr, escape_filter_chars(self.username))
-        result = self.ldap.search_s(_config.get('ldap', 'basedn'),
-                                    ldap.SCOPE_SUBTREE, filter_)
+        result = self.ldap.search_s(
+            _config.get('ldap', 'basedn'), ldap.SCOPE_SUBTREE, filter_
+        )
         if not result or not result[0] or not result[0][0]:
             raise UserNotFound(filter_)
 
@@ -281,11 +287,14 @@ class LDAPUser(object):
         user_dn = self.get_user_dn()
         name_attr = _config.get('ldap', 'name_attr')
         try:
-            res = self.ldap.search_s(user_dn, ldap.SCOPE_BASE,
-                                     '(objectClass=*)', [name_attr])
+            res = self.ldap.search_s(
+                user_dn, ldap.SCOPE_BASE, '(objectClass=*)', [name_attr]
+            )
         except ldap.LDAPError:
-            _logger.exception("Caught exception while retrieving user name "
-                              "from LDAP, returning None as name")
+            _logger.exception(
+                "Caught exception while retrieving user name "
+                "from LDAP, returning None as name"
+            )
             return None
 
         # Just look at the first result record, since we are searching for
@@ -314,10 +323,8 @@ class LDAPUser(object):
             _logger.debug("groupOfNames results: %s", result)
             if not result:
                 # If no match, match posixGroup objects
-                filterstr = (
-                    '(memberUid=%s)' % escape_filter_chars(self.username))
-                result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE,
-                                            filterstr)
+                filterstr = '(memberUid=%s)' % escape_filter_chars(self.username)
+                result = self.ldap.search_s(group_dn, ldap.SCOPE_BASE, filterstr)
                 _logger.debug("posixGroup results: %s", result)
             return len(result) > 0
         except ldap.TIMEOUT as error:
@@ -398,6 +405,7 @@ def __test():
     Test user login if module is run as script on command line.
     """
     from getpass import getpass
+
     logging.basicConfig()
     logging.getLogger('').setLevel(logging.DEBUG)
 

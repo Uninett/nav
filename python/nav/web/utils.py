@@ -37,6 +37,7 @@ def create_title(navpath):
 
 class SubListView(ListView):
     """ Subclass of the generic list ListView to allow extra context """
+
     extra_context = {}
 
     def get_context_data(self, *args, **kwargs):
@@ -56,7 +57,10 @@ def require_param(parameter):
             if parameter in request.GET or parameter in request.POST:
                 return func(request, *args, **kwargs)
             else:
-                return HttpResponse("Missing parameter {}".format(parameter),
-                                    status=400)
+                return HttpResponse(
+                    "Missing parameter {}".format(parameter), status=400
+                )
+
         return wrapper
+
     return wrap

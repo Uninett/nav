@@ -27,7 +27,7 @@ GLOBAL_USED = 'hpGlobalMemAllocBytes'
 
 MEMORY_OIDS = {
     'local': [LOCAL_SLOT, LOCAL_FREE, LOCAL_USED],
-    'global': [GLOBAL_SLOT, GLOBAL_FREE, GLOBAL_USED]
+    'global': [GLOBAL_SLOT, GLOBAL_FREE, GLOBAL_USED],
 }
 
 
@@ -46,5 +46,5 @@ class NetswitchMib(mibretriever.MibRetriever):
         for kind, (slot_oid, free_oid, used_oid) in MEMORY_OIDS.items():
             slots = yield self.retrieve_columns([slot_oid, free_oid, used_oid])
             for row in slots.values():
-                result[kind+str(row[slot_oid])] = (row[used_oid], row[free_oid])
+                result[kind + str(row[slot_oid])] = (row[used_oid], row[free_oid])
         defer.returnValue(result)

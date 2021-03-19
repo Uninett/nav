@@ -6,10 +6,12 @@ from nav import natsort
 
 @pytest.mark.parametrize(
     "string,expected",
-    [("abc123def", ["abc", 123, "def"]),
-     ("123", [123]),
-     ("foo-123", ["foo-", 123]),
-     ("bar", ["bar"])],
+    [
+        ("abc123def", ["abc", 123, "def"]),
+        ("123", [123]),
+        ("foo-123", ["foo-", 123]),
+        ("bar", ["bar"]),
+    ],
 )
 def test_natsort_split_should_split_correctly(string, expected):
     assert natsort.split(string) == expected

@@ -25,6 +25,7 @@ _logger = logging.getLogger('netbiostrackerconfig')
 
 class NetbiosTrackerConfig(NAVConfigParser):
     """Configparser for Netbiostracker"""
+
     DEFAULT_CONFIG_FILES = ('netbiostracker.conf',)
     DEFAULT_CONFIG = u"""
 [main]

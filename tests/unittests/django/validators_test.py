@@ -1,6 +1,9 @@
 import pytest
 from nav.django.validators import (
-    is_valid_point_string, validate_hstore, ValidationError)
+    is_valid_point_string,
+    validate_hstore,
+    ValidationError,
+)
 
 
 class TestValidPointString(object):
@@ -30,7 +33,6 @@ class TestValidPointString(object):
 
 
 class TestValidHStoreField(object):
-
     def test_empty_hstore_field(self):
         inputs = ('', None, {})
         for input in inputs:

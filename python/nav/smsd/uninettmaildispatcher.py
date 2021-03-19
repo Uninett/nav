@@ -63,9 +63,9 @@ class UninettMailDispatcher(Dispatcher):
         (sms, sent, ignored) = self.formatsms(msgs)
 
         try:
-            message = EmailMessage(subject="sms {}".format(phone),
-                                   to=[self.mailaddr],
-                                   body=sms)
+            message = EmailMessage(
+                subject="sms {}".format(phone), to=[self.mailaddr], body=sms
+            )
             message.send(fail_silently=False)
         except smtplib.SMTPException as error:
             raise DispatcherError("SMTP error: %s" % error)

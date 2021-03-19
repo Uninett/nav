@@ -38,10 +38,8 @@ class QuickSelect(object):
         self.service = kwargs.pop('service', False)
         self.module = kwargs.pop('module', False)
 
-        self.location_label = kwargs.pop('location_label',
-                                         '%(id)s (%(description)s)')
-        self.room_label = kwargs.pop('room_label',
-                                     '%(id)s (%(description)s)')
+        self.location_label = kwargs.pop('location_label', '%(id)s (%(description)s)')
+        self.room_label = kwargs.pop('room_label', '%(id)s (%(description)s)')
         self.netbox_label = kwargs.pop('netbox_label', '%(sysname)s')
         self.netboxgroup_label = kwargs.pop('netboxgroup_label', '%(pk)s')
         self.service_label = kwargs.pop('service_label', '%(handler)s')
@@ -55,8 +53,7 @@ class QuickSelect(object):
         self.module_multi = kwargs.pop('module_multiple', True)
 
         for key in kwargs:
-            raise TypeError('__init__() got an unexpected keyword argument '
-                            '%s' % key)
+            raise TypeError('__init__() got an unexpected keyword argument ' '%s' % key)
 
         self.netbox_set = (
             Netbox.objects.with_chassis_serials().order_by('sysname').values()
@@ -79,20 +76,22 @@ class QuickSelect(object):
             if self.location:
                 locations = {'': []}
                 for location in self.location_set:
-                    location_name[location['id']] = (self.location_label %
-                                                     location)
-                    locations[''].append((location['id'],
-                                          location_name[location['id']]))
+                    location_name[location['id']] = self.location_label % location
+                    locations[''].append(
+                        (location['id'], location_name[location['id']])
+                    )
 
                 # use loc instead of location to avoid noscript XSS protection
-                output.append({
+                output.append(
+                    {
                         'label': 'Location',
                         'button': self.button % 'location',
                         'multi': self.location_multi,
                         'name': 'loc',
                         'collapse': True,
                         'objects': sorted(iteritems(locations)),
-                    })
+                    }
+                )
 
             if self.room:
                 rooms = {}
@@ -100,19 +99,20 @@ class QuickSelect(object):
                     location = location_name.get(room['location_id'])
                     room_name[room['id']] = self.room_label % room
                     if location in rooms:
-                        rooms[location].append((room['id'],
-                                                room_name[room['id']]))
+                        rooms[location].append((room['id'], room_name[room['id']]))
                     else:
                         rooms[location] = [(room['id'], room_name[room['id']])]
 
-                output.append({
+                output.append(
+                    {
                         'label': 'Room',
                         'button': self.button % 'room',
                         'multi': self.room_multi,
                         'name': 'room',
                         'collapse': True,
                         'objects': sorted(iteritems(rooms)),
-                    })
+                    }
+                )
 
             if self.netbox:
                 netboxes = {}
@@ -120,33 +120,35 @@ class QuickSelect(object):
                     room = room_name.get(netbox['room_id'])
                     netbox_name[netbox['id']] = self.netbox_label % netbox
                     if room in netboxes:
-                        netboxes[room].append((netbox['id'],
-                                               netbox_name[netbox['id']]))
+                        netboxes[room].append((netbox['id'], netbox_name[netbox['id']]))
                     else:
-                        netboxes[room] = [(netbox['id'],
-                                           netbox_name[netbox['id']])]
+                        netboxes[room] = [(netbox['id'], netbox_name[netbox['id']])]
 
-                output.append({
+                output.append(
+                    {
                         'label': 'IP device',
                         'button': self.button % 'IP device',
                         'multi': self.netbox_multi,
                         'name': 'netbox',
                         'objects': sorted(iteritems(netboxes)),
-                    })
+                    }
+                )
 
             if self.netboxgroup:
                 netboxgroups = {'': []}
                 for netboxgroup in self.netboxgroup_set:
                     netboxgroups[''].append((netboxgroup['id'], netboxgroup['id']))
 
-                output.append({
+                output.append(
+                    {
                         'label': 'Device Group',
                         'button': self.button % 'device group',
                         'multi': self.netboxgroup_multi,
                         'name': 'netboxgroup',
                         'collapse': True,
                         'objects': sorted(iteritems(netboxgroups)),
-                    })
+                    }
+                )
 
             if self.service:
                 services = {}
@@ -158,14 +160,16 @@ class QuickSelect(object):
                     else:
                         services[netbox] = [(service['id'], name)]
 
-                output.append({
+                output.append(
+                    {
                         'label': 'Service',
                         'button': self.button % 'service',
                         'multi': self.service_multi,
                         'name': 'service',
                         'collapse': True,
                         'objects': sorted(iteritems(services)),
-                    })
+                    }
+                )
 
             if self.module:
                 modules = {}
@@ -177,14 +181,16 @@ class QuickSelect(object):
                     else:
                         modules[netbox] = [(module['id'], name)]
 
-                output.append({
+                output.append(
+                    {
                         'label': 'Module',
                         'button': self.button % 'module',
                         'multi': self.module_multi,
                         'name': 'module',
                         'collapse': True,
                         'objects': sorted(iteritems(modules)),
-                    })
+                    }
+                )
 
             self.output = output
 

@@ -29,10 +29,10 @@ _logger = logging.getLogger(__name__)
 class MatrixIPv4(Matrix):
     """This class serves as an interface for the prefix matrix."""
 
-    def __init__(self, start_net, show_unused_addresses, end_net=None,
-                 bits_in_matrix=3):
-        Matrix.__init__(self, start_net, end_net=end_net,
-                        bits_in_matrix=bits_in_matrix)
+    def __init__(
+        self, start_net, show_unused_addresses, end_net=None, bits_in_matrix=3
+    ):
+        Matrix.__init__(self, start_net, end_net=end_net, bits_in_matrix=bits_in_matrix)
         self.column_headings = self._get_column_headers()
         self.visible_column_headings = self.column_headings[::4]
         self.num_columns = len(self.column_headings)
@@ -55,15 +55,14 @@ class MatrixIPv4(Matrix):
         """
 
         large_subnets = []  # When displaying unused addresses, we need to know
-                            # about the subnets that span more than one row
+        # about the subnets that span more than one row
         subnet_matrix = []  # The resulting list of rows to display
 
         # Initially, create the rows (subnets) we're going to display
         if self.show_unused_addresses:
             row_size = self._get_row_size()
             subnets = IPtools.create_subnet_range(net, row_size)
-            large_subnets = [x for x in nets.keys()
-                             if x.prefixlen() < row_size]
+            large_subnets = [x for x in nets.keys() if x.prefixlen() < row_size]
         else:
             subnets = IPtools.sort_nets_by_address(nets.keys())
 
@@ -88,9 +87,9 @@ class MatrixIPv4(Matrix):
                     index = self._find_large_net(subnet, large_subnets)
                     if index is not None:
                         num_extra_rows = self._add_large_subnet(
-                            large_subnets.pop(index), matrix_row)
-                        extra_rows = self._get_extra_rows(num_extra_rows,
-                                                          subnets)
+                            large_subnets.pop(index), matrix_row
+                        )
+                        extra_rows = self._get_extra_rows(num_extra_rows, subnets)
                     else:
                         matrix_row.append(self._create_empty_cell())
                 else:
@@ -139,15 +138,17 @@ class MatrixIPv4(Matrix):
     def _get_column_headers(self):
         netsize = self.end_net.len()
         factor = 32 - self.end_net.prefixlen()
-        return [str((2**factor)*i) for i in range(0, 256//netsize)]
+        return [str((2 ** factor) * i) for i in range(0, 256 // netsize)]
         # return [str((2**lsb)*i) for i in range(0, msb)]
 
     def __repr__(self):
-        return "%s(%r, %r, %r, %r)" % (self.__class__.__name__,
-                                       self.start_net,
-                                       self.show_unused_addresses,
-                                       self.end_net,
-                                       self.bits_in_matrix)
+        return "%s(%r, %r, %r, %r)" % (
+            self.__class__.__name__,
+            self.start_net,
+            self.show_unused_addresses,
+            self.end_net,
+            self.bits_in_matrix,
+        )
 
     @staticmethod
     def _get_content(nybble, ip):
@@ -159,7 +160,8 @@ class MatrixIPv4(Matrix):
         if append_term_and_prefix:
             url = reverse(
                 'report-matrix-scope',
-                kwargs={'scope': ip.strNormal().replace('/', '%2F')})
+                kwargs={'scope': ip.strNormal().replace('/', '%2F')},
+            )
             text = ip.strNormal()
         else:
             url = report("prefix", netaddr=nip + ".*", op_netaddr="like")
@@ -170,4 +172,5 @@ class MatrixIPv4(Matrix):
         return Cell(
             colspan=self.num_columns,
             color=self._get_color('large'),
-            content='Too many small nets')
+            content='Too many small nets',
+        )

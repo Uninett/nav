@@ -57,8 +57,7 @@ class PortadminResponseTest(unittest.TestCase):
 
     def test_management_factory_get_hp(self):
         self.handler = ManagementFactory.get_instance(self.netboxHP)
-        self.assertNotEqual(self.handler, None,
-                            'Could not get handler-object')
+        self.assertNotEqual(self.handler, None, 'Could not get handler-object')
         self.assertIsInstance(self.handler, HP, msg='Wrong handler-type')
 
     def test_get_vlan_hp(self):
@@ -69,8 +68,9 @@ class PortadminResponseTest(unittest.TestCase):
         # this get-method returns a vlan-number
         self.snmpReadOnlyHandler.get = Mock(return_value=666)
         ifc = Mock(baseport=1)
-        self.assertEqual(self.handler.get_interface_native_vlan(ifc), 666,
-                                "getVlan-test failed")
+        self.assertEqual(
+            self.handler.get_interface_native_vlan(ifc), 666, "getVlan-test failed"
+        )
         self.snmpReadOnlyHandler.get.assert_called_with(
             OID('.1.3.6.1.2.1.17.7.1.4.5.1.1.1')
         )
@@ -84,9 +84,9 @@ class PortadminResponseTest(unittest.TestCase):
         walkdata = [('.1', b'hjalmar'), ('.2', b'snorre'), ('.3', b'bjarne')]
         expected = {1: 'hjalmar', 2: 'snorre', 3: 'bjarne'}
         self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=walkdata)
-        self.assertEqual(self.handler._get_all_ifaliases(),
-                         expected,
-                         "getAllIfAlias failed.")
+        self.assertEqual(
+            self.handler._get_all_ifaliases(), expected, "getAllIfAlias failed."
+        )
 
     def test_set_ifalias_hp(self):
         self.handler = ManagementFactory.get_instance(self.netboxHP)
@@ -123,9 +123,12 @@ class PortadminResponseTest(unittest.TestCase):
         # this get-method returns a vlan-number
         self.snmpReadOnlyHandler.get = Mock(return_value=77)
         ifc = Mock(ifindex=1)
-        self.assertEqual(self.handler.get_interface_native_vlan(ifc), 77,
-                                "getVlan-test failed")
-        self.snmpReadOnlyHandler.get.assert_called_with('1.3.6.1.4.1.9.9.68.1.2.2.1.2.1')
+        self.assertEqual(
+            self.handler.get_interface_native_vlan(ifc), 77, "getVlan-test failed"
+        )
+        self.snmpReadOnlyHandler.get.assert_called_with(
+            '1.3.6.1.4.1.9.9.68.1.2.2.1.2.1'
+        )
 
     def test_get_ifaliases_cisco(self):
         self.handler = ManagementFactory.get_instance(self.netboxCisco)
@@ -136,8 +139,9 @@ class PortadminResponseTest(unittest.TestCase):
         walkdata = [('.1', b'jomar'), ('.2', b'knut'), ('.3', b'hjallis')]
         expected = {1: 'jomar', 2: 'knut', 3: 'hjallis'}
         self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=walkdata)
-        self.assertEqual(self.handler._get_all_ifaliases(),
-                         expected, "getAllIfAlias failed.")
+        self.assertEqual(
+            self.handler._get_all_ifaliases(), expected, "getAllIfAlias failed."
+        )
 
 
 if __name__ == '__main__':

@@ -36,6 +36,7 @@ class IbmPduMib(MibRetriever):
     """MibRetriever implementation for IBM-PDU-MIB, as used by IBM/Lenovo Power
     Distribution Units.
     """
+
     mib = get_mib('IBM-PDU-MIB')
 
     @inlineCallbacks
@@ -49,8 +50,9 @@ class IbmPduMib(MibRetriever):
 
     @inlineCallbacks
     def _get_phase_sensors(self):
-        phases = yield self.retrieve_columns(
-            [PHASE_LAST_POWER_READING]).addCallback(reduce_index)
+        phases = yield self.retrieve_columns([PHASE_LAST_POWER_READING]).addCallback(
+            reduce_index
+        )
         if phases:
             self._logger.debug("Got phase power readings: %r", phases)
 
@@ -63,28 +65,33 @@ class IbmPduMib(MibRetriever):
 
             name = "Phase %d" % index
 
-            result.append(dict(
-                oid=value_oid,
-                unit_of_measurement=Sensor.UNIT_WATTS,
-                precision=0,
-                scale=None,
-                description='%s power reading' % name,
-                name=name,
-                internal_name='%s_%s' % (PHASE_LAST_POWER_READING, index),
-                mib=self.get_module_name()
-            ))
+            result.append(
+                dict(
+                    oid=value_oid,
+                    unit_of_measurement=Sensor.UNIT_WATTS,
+                    precision=0,
+                    scale=None,
+                    description='%s power reading' % name,
+                    name=name,
+                    internal_name='%s_%s' % (PHASE_LAST_POWER_READING, index),
+                    mib=self.get_module_name(),
+                )
+            )
 
         returnValue(result)
 
     @inlineCallbacks
     def _get_outlet_sensors(self):
-        outlets = yield self.retrieve_columns([OUTLET_NAME,
-                                               OUTLET_DESCRIPTION,
-                                               OUTLET_VOLTAGE,
-                                               OUTLET_CURRENT,
-                                               OUTLET_MAX_CAPACITY,
-                                               OUTLET_LAST_POWER_READING
-                                               ]).addCallback(reduce_index)
+        outlets = yield self.retrieve_columns(
+            [
+                OUTLET_NAME,
+                OUTLET_DESCRIPTION,
+                OUTLET_VOLTAGE,
+                OUTLET_CURRENT,
+                OUTLET_MAX_CAPACITY,
+                OUTLET_LAST_POWER_READING,
+            ]
+        ).addCallback(reduce_index)
         if outlets:
             self._logger.debug("Got outlet power readings: %r", outlets)
 
@@ -106,7 +113,7 @@ class IbmPduMib(MibRetriever):
             description='%s voltage' % description,
             name='%s voltage' % name,
             internal_name='%s_%s' % (OUTLET_VOLTAGE, index),
-            mib=self.get_module_name()
+            mib=self.get_module_name(),
         )
         yield voltage
 
@@ -118,7 +125,7 @@ class IbmPduMib(MibRetriever):
             description='%s current' % description,
             name='%s current' % name,
             internal_name='%s_%s' % (OUTLET_CURRENT, index),
-            mib=self.get_module_name()
+            mib=self.get_module_name(),
         )
         yield current
 
@@ -130,6 +137,6 @@ class IbmPduMib(MibRetriever):
             description='%s power reading' % description,
             name='%s power reading' % name,
             internal_name='%s_%s' % (OUTLET_LAST_POWER_READING, index),
-            mib=self.get_module_name()
+            mib=self.get_module_name(),
         )
         yield power

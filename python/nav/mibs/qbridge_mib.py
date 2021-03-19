@@ -91,11 +91,13 @@ class QBridgeMib(mibretriever.MibRetriever):
     @defer.inlineCallbacks
     def get_forwarding_database(self):
         "Retrieves the forwarding databases of the device"
-        columns = yield self.retrieve_columns(['dot1qTpFdbPort',
-                                               'dot1qTpFdbStatus'])
+        columns = yield self.retrieve_columns(['dot1qTpFdbPort', 'dot1qTpFdbStatus'])
         columns = self.translate_result(columns)
-        valid = (row for row in columns.values()
-                 if row['dot1qTpFdbStatus'] not in ('self', 'invalid'))
+        valid = (
+            row
+            for row in columns.values()
+            if row['dot1qTpFdbStatus'] not in ('self', 'invalid')
+        )
         result = []
         for row in valid:
             index = row[0]
@@ -116,21 +118,21 @@ def filter_newest_current_entries(dot1qvlancurrenttable):
     for each VLAN.
 
     """
-    return dict((vlan_index, data)
-                for (time_index, vlan_index), data
-                in sorted(dot1qvlancurrenttable.items()))
+    return dict(
+        (vlan_index, data)
+        for (time_index, vlan_index), data in sorted(dot1qvlancurrenttable.items())
+    )
 
 
 def convert_data_to_portlist(result, juniper_hack):
-    return {key: portlist(data, juniper_hack)
-            for key, data in result.items()}
+    return {key: portlist(data, juniper_hack) for key, data in result.items()}
 
 
 def portlist_spec(data):
     """Return a set of port numbers represented by this PortList."""
     vector = nav.bitvector.BitVector(data)
     # a bitvector is indexed from 0, but ports are indexed from 1
-    return {b+1 for b in vector.get_set_bits()}
+    return {b + 1 for b in vector.get_set_bits()}
 
 
 def portlist_juniper(data):

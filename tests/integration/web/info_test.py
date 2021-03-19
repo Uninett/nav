@@ -22,14 +22,14 @@ def test_search_for_nonascii_characters_should_not_crash(client):
 
 
 def test_failing_searchprovider_should_not_crash_search_page(
-        client, failing_searchprovider):
+    client, failing_searchprovider
+):
     url = reverse('info-search') + '?query=Da%20Truf'
     response = client.get(url)
     assert response.status_code == 200
 
 
-def test_failures_should_be_mentioned_in_search_page(client,
-                                                     failing_searchprovider):
+def test_failures_should_be_mentioned_in_search_page(client, failing_searchprovider):
     url = reverse('info-search') + '?query=Da%20Truf'
     response = client.get(url)
     assert failing_searchprovider in response.content.decode('utf-8')
@@ -46,6 +46,7 @@ def test_room_csv_download_should_not_produce_bytestring_representations():
     response = create_csv(request)  # type: django.http.response.HttpResponse
     assert not response.content.startswith(b"b'")
 
+
 ############
 # Fixtures #
 ############
@@ -58,8 +59,10 @@ def failing_searchprovider():
     raises an exception.
     """
     from django.conf import settings
-    provider = '{module}.{klass}'.format(module=__name__,
-                                         klass=FailingSearchProvider.__name__)
+
+    provider = '{module}.{klass}'.format(
+        module=__name__, klass=FailingSearchProvider.__name__
+    )
     if provider not in settings.SEARCHPROVIDERS:
         settings.SEARCHPROVIDERS.append(provider)
 
@@ -72,5 +75,6 @@ def failing_searchprovider():
 
 class FailingSearchProvider(SearchProvider):
     """A search provider that only raises exceptions"""
+
     def fetch_results(self):
         raise Exception("Riddikulus")

@@ -19,22 +19,24 @@ _logger = logging.getLogger(__name__)
 
 class BusinessView(TemplateView):
     """A default business view"""
+
     template_name = 'business/base.html'
     report_name = ''
 
     def get_context_data(self, **kwargs):
         """Creates a common context for business pages"""
         context = super(BusinessView, self).get_context_data(**kwargs)
-        navpath = [('Home', '/'),
-                   ('Business reports', reverse('business-index'))]
+        navpath = [('Home', '/'), ('Business reports', reverse('business-index'))]
 
         if self.report_name:
             navpath.append((self.report_name,))
 
         context['navpath'] = navpath
         context['title'] = create_title(navpath)
-        context['available_reports'] = [DeviceAvailabilityReport,
-                                        LinkAvailabilityReport]
+        context['available_reports'] = [
+            DeviceAvailabilityReport,
+            LinkAvailabilityReport,
+        ]
         context['subscription_periods'] = ReportSubscription.PERIODS
         context['report_types'] = ReportSubscription.TYPES
 
@@ -43,6 +45,7 @@ class BusinessView(TemplateView):
 
 class AvailabilityReportView(BusinessView):
     """View for the availability report"""
+
     template_name = 'business/report-availability.html'
     report_name = 'Dummy report'
     description = 'Dummy description'
@@ -51,14 +54,16 @@ class AvailabilityReportView(BusinessView):
         context = super(AvailabilityReportView, self).get_context_data(**kwargs)
 
         if 'report-month' in self.request.GET:
-            year, month = [int(x) for x in
-                           self.request.GET.get('report-month').split('-')]
+            year, month = [
+                int(x) for x in self.request.GET.get('report-month').split('-')
+            ]
             sometime = datetime(year, month, 1)
             start, end = utils.get_interval(sometime, ReportSubscription.MONTH)
             context['start'] = start
             context['end'] = end
-            context['records'] = sorted(self.get_records(start, end),
-                                        key=attrgetter('availability'))
+            context['records'] = sorted(
+                self.get_records(start, end), key=attrgetter('availability')
+            )
 
         context['months'] = utils.get_months()
         context['report'] = self
@@ -88,9 +93,9 @@ class AvailabilityReportView(BusinessView):
 
 class DeviceAvailabilityReport(AvailabilityReportView):
     """Availability for IP Devices"""
+
     report_name = 'Device Availability'
-    description = 'Displays a report of IP Devices that ' \
-                  'have less than 100% uptime.'
+    description = 'Displays a report of IP Devices that ' 'have less than 100% uptime.'
 
     def get_url(self):
         return reverse('business-report-device-availability')
@@ -102,9 +107,9 @@ class DeviceAvailabilityReport(AvailabilityReportView):
 
 class LinkAvailabilityReport(AvailabilityReportView):
     """Availability for links"""
+
     report_name = 'Link Availability'
-    description = 'Displays a report of links that ' \
-                  'have less than 100% uptime.'
+    description = 'Displays a report of links that ' 'have less than 100% uptime.'
 
     def get_url(self):
         return reverse('business-report-link-availability')
@@ -124,20 +129,20 @@ def save_report_subscription(request):
 
     if new_address:
         email_sender = AlertSender.objects.get(name=AlertSender.EMAIL)
-        address = AlertAddress(account=request.account,
-                               type=email_sender,
-                               address=new_address)
+        address = AlertAddress(
+            account=request.account, type=email_sender, address=new_address
+        )
         address.save()
     else:
-        address = get_object_or_404(AlertAddress,
-                                    pk=int(request.POST.get('address')))
+        address = get_object_or_404(AlertAddress, pk=int(request.POST.get('address')))
 
     ReportSubscription(
         account=request.account,
         address=address,
         period=period,
         exclude_maintenance=exclude_maintenance,
-        report_type=report_type).save()
+        report_type=report_type,
+    ).save()
 
     return HttpResponse()
 
@@ -151,7 +156,8 @@ def remove_report_subscription(request):
     """Remove a report subscription"""
     subscription_id = request.POST.get('subscriptionId')
     subscription = get_object_or_404(
-        ReportSubscription, account=request.account, pk=subscription_id)
+        ReportSubscription, account=request.account, pk=subscription_id
+    )
     subscription.delete()
 
     return HttpResponse()

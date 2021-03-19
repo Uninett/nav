@@ -20,6 +20,7 @@ import logging
 import time
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.netbiostracker import tracker
@@ -44,8 +45,12 @@ def main():
     parsed_results = tracker.parse(scanresult, config.get_encoding())
     tracker.update_database(parsed_results)
 
-    _logger.info('Scanned %d addresses, got %d results in %.2f seconds',
-                 len(addresses), len(parsed_results), time.time() - start)
+    _logger.info(
+        'Scanned %d addresses, got %d results in %.2f seconds',
+        len(addresses),
+        len(parsed_results),
+        time.time() - start,
+    )
     _logger.info('Netbiostracker done')
 
 

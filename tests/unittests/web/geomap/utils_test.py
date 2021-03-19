@@ -2,7 +2,7 @@ from nav.web.geomap.utils import argmax
 
 
 def test_argmax_plus_one():
-    fun = lambda n: n+1
+    fun = lambda n: n + 1
     assert argmax(fun, [1, 2, 3]) == 3
 
 

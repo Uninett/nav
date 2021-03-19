@@ -39,13 +39,13 @@ class BitVectorTestCase(unittest.TestCase):
         self.assertEqual(True, bool(self.somebits[50]))
 
     def test_modified_string(self):
-        self.assertEqual(b'\x04\x00\x00\x00\x00\x00 \x00',
-                          self.somebits.to_bytes())
+        self.assertEqual(b'\x04\x00\x00\x00\x00\x00 \x00', self.somebits.to_bytes())
 
     def test_modified_binary_string(self):
-        self.assertEqual('00000100000000000000000000000000'
-                          '00000000000000000010000000000000',
-                          self.somebits.to_binary())
+        self.assertEqual(
+            '00000100000000000000000000000000' '00000000000000000010000000000000',
+            self.somebits.to_binary(),
+        )
 
     def test_unmodified_binary_string(self):
         self.assertEqual('0' * 64, self.zerobits.to_binary())

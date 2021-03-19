@@ -33,16 +33,20 @@ from nav.django.utils import get_account
 from nav.util import is_valid_ip
 from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface
-from nav.web.portadmin.utils import (get_and_populate_livedata,
-                                     find_and_populate_allowed_vlans,
-                                     get_aliastemplate, save_to_database,
-                                     check_format_on_ifalias,
-                                     find_allowed_vlans_for_user_on_netbox,
-                                     find_allowed_vlans_for_user,
-                                     filter_vlans, should_check_access_rights,
-                                     mark_detained_interfaces,
-                                     is_cisco,
-                                     add_dot1x_info)
+from nav.web.portadmin.utils import (
+    get_and_populate_livedata,
+    find_and_populate_allowed_vlans,
+    get_aliastemplate,
+    save_to_database,
+    check_format_on_ifalias,
+    find_allowed_vlans_for_user_on_netbox,
+    find_allowed_vlans_for_user,
+    filter_vlans,
+    should_check_access_rights,
+    mark_detained_interfaces,
+    is_cisco,
+    add_dot1x_info,
+)
 from nav.portadmin.config import CONFIG
 from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.management import ManagementFactory
@@ -67,17 +71,14 @@ def get_base_context(additional_paths=None, form=None):
     if additional_paths:
         navpath += additional_paths
     form = form if form else SearchForm()
-    return {
-        'navpath': navpath,
-        'title': create_title(navpath),
-        'form': form
-    }
+    return {'navpath': navpath, 'title': create_title(navpath), 'form': form}
 
 
 def default_render(request):
     """Default render for errors etc"""
-    return render(request, 'portadmin/base.html',
-                  get_base_context(form=get_form(request)))
+    return render(
+        request, 'portadmin/base.html', get_base_context(form=get_form(request))
+    )
 
 
 def get_form(request):
@@ -114,10 +115,10 @@ def search(query):
     ]
     if is_valid_ip(query, strict=True):
         netbox_filters.append(Q(ip=query))
-    netboxes = Netbox.objects.filter(
-        reduce(OR, netbox_filters)).order_by('sysname')
-    interfaces = Interface.objects.filter(
-        ifalias__icontains=query).order_by('netbox__sysname', 'ifname')
+    netboxes = Netbox.objects.filter(reduce(OR, netbox_filters)).order_by('sysname')
+    interfaces = Interface.objects.filter(ifalias__icontains=query).order_by(
+        'netbox__sysname', 'ifname'
+    )
     return netboxes, interfaces
 
 
@@ -136,9 +137,11 @@ def search_by_kwargs(request, **kwargs):
     try:
         netbox = Netbox.objects.get(**kwargs)
     except Netbox.DoesNotExist as do_not_exist_ex:
-        _logger.error("Netbox %s not found; DoesNotExist = %s",
-                      kwargs.get('sysname') or kwargs.get('ip'),
-                      do_not_exist_ex)
+        _logger.error(
+            "Netbox %s not found; DoesNotExist = %s",
+            kwargs.get('sysname') or kwargs.get('ip'),
+            do_not_exist_ex,
+        )
         messages.error(request, 'Could not find IP device')
         return default_render(request)
     else:
@@ -150,8 +153,11 @@ def search_by_kwargs(request, **kwargs):
         if not interfaces:
             messages.error(request, 'IP device has no ports (yet)')
             return default_render(request)
-        return render(request, 'portadmin/netbox.html',
-                      populate_infodict(request, netbox, interfaces))
+        return render(
+            request,
+            'portadmin/netbox.html',
+            populate_infodict(request, netbox, interfaces),
+        )
 
 
 def search_by_interfaceid(request, interfaceid):
@@ -159,11 +165,12 @@ def search_by_interfaceid(request, interfaceid):
     try:
         interface = Interface.objects.get(id=interfaceid)
     except Interface.DoesNotExist as do_not_exist_ex:
-        _logger.error("Interface %s not found; DoesNotExist = %s",
-                      interfaceid, do_not_exist_ex)
-        messages.error(request,
-                       'Could not find interface with id %s' %
-                       str(interfaceid))
+        _logger.error(
+            "Interface %s not found; DoesNotExist = %s", interfaceid, do_not_exist_ex
+        )
+        messages.error(
+            request, 'Could not find interface with id %s' % str(interfaceid)
+        )
         return default_render(request)
     else:
         netbox = interface.netbox
@@ -172,8 +179,11 @@ def search_by_interfaceid(request, interfaceid):
             return default_render(request)
 
         interfaces = [interface]
-        return render(request, 'portadmin/netbox.html',
-                      populate_infodict(request, netbox, interfaces))
+        return render(
+            request,
+            'portadmin/netbox.html',
+            populate_infodict(request, netbox, interfaces),
+        )
 
 
 def populate_infodict(request, netbox, interfaces):
@@ -186,7 +196,8 @@ def populate_infodict(request, netbox, interfaces):
     try:
         handler = get_and_populate_livedata(netbox, interfaces)
         allowed_vlans = find_and_populate_allowed_vlans(
-            request.account, netbox, interfaces, handler)
+            request.account, netbox, interfaces, handler
+        )
         voice_vlan = fetch_voice_vlan_for_netbox(request, handler)
         if voice_vlan:
             if CONFIG.is_cisco_voice_enabled() and is_cisco(netbox):
@@ -231,10 +242,10 @@ def populate_infodict(request, netbox, interfaces):
     auditlog_api_parameters = {
         'object_model': 'interface',
         'object_pks': ','.join([str(i.pk) for i in interfaces]),
-        'subsystem': 'portadmin'
+        'subsystem': 'portadmin',
     }
 
-    info_dict = get_base_context([(netbox.sysname, )], form=get_form(request))
+    info_dict = get_base_context([(netbox.sysname,)], form=get_form(request))
     info_dict.update(
         {
             'handlertype': type(handler).__name__,
@@ -245,7 +256,7 @@ def populate_infodict(request, netbox, interfaces):
             'readonly': readonly,
             'aliastemplate': aliastemplate,
             'trunk_edit': CONFIG.get_trunk_edit(),
-            'auditlog_api_parameters': json.dumps(auditlog_api_parameters)
+            'auditlog_api_parameters': json.dumps(auditlog_api_parameters),
         }
     )
     return info_dict
@@ -262,14 +273,12 @@ def fetch_voice_vlan_for_netbox(request: HttpRequest, handler: ManagementHandler
     if not voice_vlans:
         return
 
-    voice_vlans_on_netbox = list(set(voice_vlans) &
-                                 set(handler.get_netbox_vlan_tags()))
+    voice_vlans_on_netbox = list(set(voice_vlans) & set(handler.get_netbox_vlan_tags()))
     if not voice_vlans_on_netbox:
         # Should this be reported? At the moment I do not think so.
         return
     if len(voice_vlans_on_netbox) > 1:
-        messages.error(request, 'Multiple voice vlans configured on this '
-                                'netbox')
+        messages.error(request, 'Multiple voice vlans configured on this ' 'netbox')
         return
 
     return voice_vlans_on_netbox[0]
@@ -282,8 +291,9 @@ def set_voice_vlan_attribute(voice_vlan, interfaces):
             if not interface.trunk:
                 continue
             allowed_vlans = interface.swportallowedvlan.get_allowed_vlans()
-            interface.voice_activated = (len(allowed_vlans) == 1 and
-                                         voice_vlan in allowed_vlans)
+            interface.voice_activated = (
+                len(allowed_vlans) == 1 and voice_vlan in allowed_vlans
+            )
 
 
 def set_voice_vlan_attribute_cisco(voice_vlan, interfaces, handler: ManagementHandler):
@@ -320,9 +330,12 @@ def save_interfaceinfo(request):
         # Skip a lot of queries if access_control is not turned on
         if should_check_access_rights(account):
             _logger.info('Checking access rights for %s', account)
-            if interface.vlan in [v.vlan for v in
-                                  find_allowed_vlans_for_user_on_netbox(
-                                      account, interface.netbox)]:
+            if interface.vlan in [
+                v.vlan
+                for v in find_allowed_vlans_for_user_on_netbox(
+                    account, interface.netbox
+                )
+            ]:
                 set_interface_values(account, interface, request)
             else:
                 # Should only happen if user tries to avoid gui restrictions
@@ -356,11 +369,13 @@ def build_ajax_messages(request):
     """Create a structure suitable for converting to json from messages"""
     ajax_messages = []
     for message in messages.get_messages(request):
-        ajax_messages.append({
-            'level': message.level,
-            'message': message.message,
-            'extra_tags': message.tags
-        })
+        ajax_messages.append(
+            {
+                'level': message.level,
+                'message': message.message,
+                'extra_tags': message.tags,
+            }
+        )
     return ajax_messages
 
 
@@ -379,9 +394,13 @@ def set_ifalias(account, handler: ManagementHandler, interface, request):
                     subsystem=u'portadmin',
                     object=interface,
                 )
-                _logger.info('%s: %s:%s - ifalias set to "%s"', account.login,
-                             interface.netbox.get_short_sysname(),
-                             interface.ifname, ifalias)
+                _logger.info(
+                    '%s: %s:%s - ifalias set to "%s"',
+                    account.login,
+                    interface.netbox.get_short_sysname(),
+                    interface.ifname,
+                    ifalias,
+                )
             except ManagementError as error:
                 _logger.error('Error setting port description: %s', error)
                 messages.error(request, "Error setting port description: %s" % error)
@@ -395,8 +414,10 @@ def set_vlan(account, handler: ManagementHandler, interface, request):
         try:
             vlan = int(request.POST.get('vlan'))
         except ValueError:
-            messages.error(request, "Ignoring request to set vlan={}".format(
-                request.POST.get('vlan')))
+            messages.error(
+                request,
+                "Ignoring request to set vlan={}".format(request.POST.get('vlan')),
+            )
             return
 
         try:
@@ -419,9 +440,13 @@ def set_vlan(account, handler: ManagementHandler, interface, request):
                 subsystem=u'portadmin',
                 object=interface,
             )
-            _logger.info('%s: %s:%s - vlan set to %s', account.login,
-                         interface.netbox.get_short_sysname(),
-                         interface.ifname, vlan)
+            _logger.info(
+                '%s: %s:%s - vlan set to %s',
+                account.login,
+                interface.netbox.get_short_sysname(),
+                interface.ifname,
+                vlan,
+            )
         except (ManagementError, TypeError) as error:
             _logger.error('Error setting vlan: %s', error)
             messages.error(request, "Error setting vlan: %s" % error)
@@ -440,8 +465,9 @@ def set_voice_vlan(handler: ManagementHandler, interface, request):
     if 'voicevlan' in request.POST:
         cdp_changed = False
         voice_vlan = fetch_voice_vlan_for_netbox(request, handler)
-        use_cisco_voice_vlan = (CONFIG.is_cisco_voice_enabled() and
-                                is_cisco(interface.netbox))
+        use_cisco_voice_vlan = CONFIG.is_cisco_voice_enabled() and is_cisco(
+            interface.netbox
+        )
         enable_cdp_for_cisco_voice_port = CONFIG.is_cisco_voice_cdp_enabled()
 
         # Either the voicevlan is turned off or turned on
@@ -456,10 +482,14 @@ def set_voice_vlan(handler: ManagementHandler, interface, request):
                         cdp_changed = True
                 else:
                     handler.set_interface_voice_vlan(interface, voice_vlan)
-                _logger.info('%s: %s:%s - %s%s', account.login,
-                             interface.netbox.get_short_sysname(),
-                             interface.ifname, 'voice vlan enabled',
-                             ', CDP enabled' if cdp_changed else '')
+                _logger.info(
+                    '%s: %s:%s - %s%s',
+                    account.login,
+                    interface.netbox.get_short_sysname(),
+                    interface.ifname,
+                    'voice vlan enabled',
+                    ', CDP enabled' if cdp_changed else '',
+                )
             else:
                 if use_cisco_voice_vlan:
                     handler.disable_cisco_voice_vlan(interface)
@@ -468,10 +498,14 @@ def set_voice_vlan(handler: ManagementHandler, interface, request):
                         cdp_changed = True
                 else:
                     handler.set_access(interface, interface.vlan)
-                _logger.info('%s: %s:%s - %s%s', account.login,
-                             interface.netbox.get_short_sysname(),
-                             interface.ifname, 'voice vlan disabled',
-                             ', CDP disabled' if cdp_changed else '')
+                _logger.info(
+                    '%s: %s:%s - %s%s',
+                    account.login,
+                    interface.netbox.get_short_sysname(),
+                    interface.ifname,
+                    'voice vlan disabled',
+                    ', CDP disabled' if cdp_changed else '',
+                )
         except (ManagementError, ValueError, NotImplementedError) as error:
             messages.error(request, "Error setting voicevlan: %s" % error)
 
@@ -493,8 +527,12 @@ def set_admin_status(handler: ManagementHandler, interface, request: HttpRequest
                     subsystem=u'portadmin',
                     object=interface,
                 )
-                _logger.info('%s: Setting ifadminstatus for %s to %s',
-                             account.login, interface, 'up')
+                _logger.info(
+                    '%s: Setting ifadminstatus for %s to %s',
+                    account.login,
+                    interface,
+                    'up',
+                )
                 handler.set_interface_up(interface)
             elif adminstatus == status_down:
                 LogEntry.add_log_entry(
@@ -504,8 +542,12 @@ def set_admin_status(handler: ManagementHandler, interface, request: HttpRequest
                     subsystem=u'portadmin',
                     object=interface,
                 )
-                _logger.info('%s: Setting ifadminstatus for %s to %s',
-                             account.login, interface, 'down')
+                _logger.info(
+                    '%s: Setting ifadminstatus for %s to %s',
+                    account.login,
+                    interface,
+                    'down',
+                )
                 handler.set_interface_down(interface)
         except (ManagementError, ValueError) as error:
             messages.error(request, "Error setting ifadminstatus: %s" % error)
@@ -541,29 +583,38 @@ def render_trunk_edit(request, interfaceid):
     add_readonly_reason(request, handler)
     try:
         vlans = handler.get_netbox_vlans()  # All vlans on this netbox
-        native_vlan, trunked_vlans = handler.get_native_and_trunked_vlans(
-            interface)
+        native_vlan, trunked_vlans = handler.get_native_and_trunked_vlans(interface)
     except ManagementError as error:
         vlans = native_vlan = trunked_vlans = allowed_vlans = None
         messages.error(request, 'Error getting trunk information: {}'.format(error))
     else:
         if should_check_access_rights(account):
             allowed_vlans = find_allowed_vlans_for_user_on_netbox(
-                account, interface.netbox, handler)
+                account, interface.netbox, handler
+            )
         else:
             allowed_vlans = vlans
 
-    extra_path = [(netbox.sysname,
-                   reverse('portadmin-sysname',
-                           kwargs={'sysname': netbox.sysname})),
-                  ("Trunk %s" % interface,)]
+    extra_path = [
+        (
+            netbox.sysname,
+            reverse('portadmin-sysname', kwargs={'sysname': netbox.sysname}),
+        ),
+        ("Trunk %s" % interface,),
+    ]
 
     context = get_base_context(extra_path)
-    context.update({'interface': interface, 'available_vlans': vlans,
-                    'native_vlan': native_vlan, 'trunked_vlans': trunked_vlans,
-                    'allowed_vlans': allowed_vlans,
-                    'trunk_edit': CONFIG.get_trunk_edit(),
-                    'readonly': not handler.is_configurable()})
+    context.update(
+        {
+            'interface': interface,
+            'available_vlans': vlans,
+            'native_vlan': native_vlan,
+            'trunked_vlans': trunked_vlans,
+            'allowed_vlans': allowed_vlans,
+            'trunk_edit': CONFIG.get_trunk_edit(),
+            'readonly': not handler.is_configurable(),
+        }
+    )
 
     return render(request, 'portadmin/trunk_edit.html', context)
 
@@ -579,19 +630,21 @@ def handle_trunk_edit(request, agent, interface):
         # request Make sure only the allowed vlans are set
 
         old_native, old_trunked = agent.get_native_and_trunked_vlans(interface)
-        allowed_vlans = [v.vlan for v in
-                         find_allowed_vlans_for_user(get_account(request))]
+        allowed_vlans = [
+            v.vlan for v in find_allowed_vlans_for_user(get_account(request))
+        ]
 
         trunked_vlans = filter_vlans(trunked_vlans, old_trunked, allowed_vlans)
-        native_vlan = (native_vlan if native_vlan in allowed_vlans
-                       else old_native)
+        native_vlan = native_vlan if native_vlan in allowed_vlans else old_native
 
-    _logger.info('Interface %s - native: %s, trunk: %s', interface,
-                 native_vlan, trunked_vlans)
+    _logger.info(
+        'Interface %s - native: %s, trunk: %s', interface, native_vlan, trunked_vlans
+    )
     LogEntry.add_log_entry(
         request.account,
         u'set-vlan',
-        u'{actor}: {object} - native vlan: "%s", trunk vlans: "%s"' % (native_vlan, trunked_vlans),
+        u'{actor}: {object} - native vlan: "%s", trunk vlans: "%s"'
+        % (native_vlan, trunked_vlans),
         subsystem=u'portadmin',
         object=interface,
     )
@@ -611,7 +664,9 @@ def restart_interfaces(request):
         _logger.debug("Not doing a restart of interfaces, it is configured off")
         return HttpResponse()
 
-    interfaceids = request.POST.getlist("interfaceid", request.POST.getlist("interfaceid[]"))
+    interfaceids = request.POST.getlist(
+        "interfaceid", request.POST.getlist("interfaceid[]")
+    )
     if not interfaceids:
         return HttpResponse(status=400, content=b"Missing interfaceid argument")
     interfaces = Interface.objects.filter(pk__in=interfaceids).select_related("netbox")
@@ -644,8 +699,7 @@ def commit_configuration(request):
         _logger.debug('Not doing a configuration commit, it is configured off')
         return HttpResponse("Configuration commit is configured to not be done")
 
-    interface = get_object_or_404(
-        Interface, pk=request.POST.get('interfaceid'))
+    interface = get_object_or_404(Interface, pk=request.POST.get('interfaceid'))
 
     handler = get_management_handler(interface.netbox)
     if handler:
@@ -653,12 +707,14 @@ def commit_configuration(request):
             handler.commit_configuration()
         except ManagementError as error:
             error_message = 'Error committing configuration on {}: {}'.format(
-                handler.netbox, error)
+                handler.netbox, error
+            )
             _logger.error(error_message)
             return HttpResponse(error_message, status=500)
         except (AttributeError, NotImplementedError):
             error_message = 'Error committing configuration on {}: {}'.format(
-                handler.netbox, 'Configuration commit not supported')
+                handler.netbox, 'Configuration commit not supported'
+            )
             _logger.error(error_message)
             return HttpResponse(error_message, status=500)
 
@@ -673,8 +729,6 @@ def get_management_handler(netbox: Netbox) -> ManagementHandler:
     retries = CONFIG.getint("general", "retries", fallback=3)
 
     try:
-        return ManagementFactory.get_instance(netbox, timeout=timeout,
-                                              retries=retries)
+        return ManagementFactory.get_instance(netbox, timeout=timeout, retries=retries)
     except ManagementError as error:
-        _logger.error('Error getting ManagementHandler instance %s: %s',
-                      netbox, error)
+        _logger.error('Error getting ManagementHandler instance %s: %s', netbox, error)

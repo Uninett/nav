@@ -45,8 +45,9 @@ class ServiceStateHandler(EventHandler):
         """Update state of service directly based on event"""
         event = self.event
         service = Service.objects.get(pk=event.subid)
-        service.up = (Service.UP_DOWN if event.state == Event.STATE_START
-                      else Service.UP_UP)
+        service.up = (
+            Service.UP_DOWN if event.state == Event.STATE_START else Service.UP_UP
+        )
         service.save()
         return service
 
@@ -58,8 +59,7 @@ class ServiceStateHandler(EventHandler):
 
     def _populate_alert(self, alert):
         """Populate alert-dict with variables used in alertmessage"""
-        alert['deviceup'] = ('Yes' if self.event.netbox.up == Netbox.UP_UP
-                             else 'No')
+        alert['deviceup'] = 'Yes' if self.event.netbox.up == Netbox.UP_UP else 'No'
         try:
             service = Service.objects.get(pk=self.event.subid)
             alert['service'] = service

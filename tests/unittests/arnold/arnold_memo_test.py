@@ -7,6 +7,7 @@ from nav.arnold import Memo
 @patch('os.path.getmtime')
 class ArnoldMemoTest(unittest.TestCase):
     """Run the tests"""
+
     def setUp(self):
         self.fun = Mock()
         self.decorated_fun = Memo(self.fun)

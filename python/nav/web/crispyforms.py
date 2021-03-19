@@ -22,35 +22,42 @@ from crispy_forms_foundation.layout import Field, Submit, Button
 
 class NavSubmit(BaseInput):
     """Displays proper Foundation submit button"""
+
     input_type = 'submit'
     field_classes = 'button small'
 
 
 class NavButton(Button):
     """A normal nav size button"""
+
     field_classes = 'button small'
 
 
 class LabelSubmit(Submit):
     """Submitbutton with a label above it to align within a row"""
+
     template = 'custom_crispy_templates/submit.html'
 
 
 class CheckBox(Field):
     """Checkbox suited for the NAV layout"""
+
     template = 'custom_crispy_templates/horizontal_checkbox.html'
 
 
 class HelpField(Field):
     """Field that displays an icon with tooltip as helptext"""
+
     template = 'custom_crispy_templates/field_helptext_as_icon.html'
 
 
 class NumberInput(forms.TextInput):
     """Input widget with type set to number"""
+
     input_type = 'number'
 
 
 class NumberField(forms.IntegerField):
     """Input field with type set to number"""
+
     widget = NumberInput

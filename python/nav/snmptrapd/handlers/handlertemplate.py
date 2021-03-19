@@ -53,9 +53,15 @@ def handleTrap(trap, config=None):
         # event-module see "pydoc nav.event"
 
         # Create eventobject.
-        e = Event(source=source, target=target, netboxid=netboxid,
-                  deviceid=deviceid, subid=subid, eventtypeid=eventtypeid,
-                  state=state)
+        e = Event(
+            source=source,
+            target=target,
+            netboxid=netboxid,
+            deviceid=deviceid,
+            subid=subid,
+            eventtypeid=eventtypeid,
+            state=state,
+        )
 
         # These go to eventqvar.
         e['alerttype'] = 'linkUp'
@@ -76,6 +82,7 @@ def handleTrap(trap, config=None):
 
 # This function is a nice to run to make sure the event and alerttypes
 # exist in the database if you post events for alerting.
+
 
 def verifyEventtype():
     """

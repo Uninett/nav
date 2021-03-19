@@ -31,8 +31,7 @@ def index(request):
         form = ViewForm(request.GET)
         if form.is_valid():
             cls = CLASSMAP[form.cleaned_data['view']]
-            result = cls(form.cleaned_data['timeframe'],
-                         form.cleaned_data['rows'])
+            result = cls(form.cleaned_data['timeframe'], form.cleaned_data['rows'])
             result.collect()
 
     else:
@@ -42,7 +41,7 @@ def index(request):
         'title': 'Statistics',
         'navpath': [('Home', '/'), ('Statistics', False)],
         'result': result,
-        'form': form
+        'form': form,
     }
 
     return render(request, 'sortedstats/sortedstats.html', context)

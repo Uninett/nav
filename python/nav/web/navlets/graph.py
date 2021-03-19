@@ -22,14 +22,15 @@ from . import Navlet, REFRESH_INTERVAL
 
 class GraphEditForm(forms.Form):
     """Form for editing a graph widget"""
+
     url = forms.CharField(label='URL to image')
-    target = forms.CharField(required=False,
-                             label='Target URL when clicked')
+    target = forms.CharField(required=False, label='Target URL when clicked')
     refresh_interval = forms.IntegerField(
-        min_value=10,
-        label='Refresh interval in seconds (requires reload of page)')
-    show_controls = forms.BooleanField(required=False,
-                                       label='Show time interval controls')
+        min_value=10, label='Refresh interval in seconds (requires reload of page)'
+    )
+    show_controls = forms.BooleanField(
+        required=False, label='Show time interval controls'
+    )
 
     def clean_refresh_interval(self):
         """Convert refresh interval"""
@@ -60,12 +61,14 @@ class GraphWidget(Navlet):
 
     def get_context_data_edit(self, context):
         if self.preferences.get('url'):
-            self.preferences[REFRESH_INTERVAL] = self.preferences[
-                REFRESH_INTERVAL] / 1000
+            self.preferences[REFRESH_INTERVAL] = (
+                self.preferences[REFRESH_INTERVAL] / 1000
+            )
             context['form'] = GraphEditForm(self.preferences)
         else:
             context['form'] = GraphEditForm(
-                initial={REFRESH_INTERVAL: GraphWidget.refresh_interval / 1000})
+                initial={REFRESH_INTERVAL: GraphWidget.refresh_interval / 1000}
+            )
         return context
 
     def post(self, request):

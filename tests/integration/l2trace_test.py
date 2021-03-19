@@ -7,10 +7,8 @@ from nav.web import l2trace
 from nav.tests.cases import DjangoTransactionTestCase
 
 
-@patch('nav.web.l2trace.Host.get_host_by_name',
-       new=Mock(return_value=None))
-@patch('nav.web.l2trace.Host.get_host_by_addr',
-       new=Mock(return_value=None))
+@patch('nav.web.l2trace.Host.get_host_by_name', new=Mock(return_value=None))
+@patch('nav.web.l2trace.Host.get_host_by_addr', new=Mock(return_value=None))
 class L2TraceTestCase(DjangoTransactionTestCase):
     fixtures = ['l2trace_fixture.xml']
 
@@ -72,14 +70,10 @@ class NetboxFromHostTest(L2TraceTestCase):
 
 class GatewayTests(L2TraceTestCase):
     def test_foo_gw_is_router_for_employee_vlan(self):
-        self.assertEqual(
-            l2trace.get_vlan_gateway(self.employee_vlan),
-            self.foo_gw)
+        self.assertEqual(l2trace.get_vlan_gateway(self.employee_vlan), self.foo_gw)
 
     def test_foo_gw_is_router_for_admin_vlan(self):
-        self.assertEqual(
-            l2trace.get_vlan_gateway(self.admin_vlan),
-            self.foo_gw)
+        self.assertEqual(l2trace.get_vlan_gateway(self.admin_vlan), self.foo_gw)
 
     def test_foo_gw_is_router(self):
         self.assertTrue(l2trace.is_netbox_gateway(self.foo_gw))
@@ -93,8 +87,7 @@ class VlanEqualityTests(L2TraceTestCase):
         self.assertTrue(l2trace.are_hosts_on_same_vlan('10.0.0.1', '10.0.0.2'))
 
     def test_ips_should_not_be_on_same_vlan(self):
-        self.assertFalse(l2trace.are_hosts_on_same_vlan('10.0.20.1',
-                                                        '10.0.0.2'))
+        self.assertFalse(l2trace.are_hosts_on_same_vlan('10.0.20.1', '10.0.0.2'))
 
 
 class DownlinkTests(L2TraceTestCase):
@@ -116,8 +109,7 @@ class DownlinkTests(L2TraceTestCase):
         self.assertEqual(swpvlan.interface.netbox, self.foo_gw)
 
     def test_foo_sw1_employee_vlan_uplink_should_be_foo_gw_gi_0_13(self):
-        swpvlan = l2trace.get_vlan_downlink_to_netbox(self.foo_sw1,
-                                                      self.employee_vlan)
+        swpvlan = l2trace.get_vlan_downlink_to_netbox(self.foo_sw1, self.employee_vlan)
         self.assertTrue(swpvlan is not None)
         self.assertEqual(swpvlan.vlan.vlan, 20)
         self.assertEqual(swpvlan.interface.ifname, 'Gi0/13')
@@ -133,8 +125,7 @@ class UplinkTests(L2TraceTestCase):
 
     def test_foo_sw1_employee_vlan_uplink_should_be_gi_0_1(self):
         vlan = self.employee_vlan
-        swpvlan = l2trace.get_vlan_uplink_from_netbox(self.foo_sw1,
-                                                      vlan)
+        swpvlan = l2trace.get_vlan_uplink_from_netbox(self.foo_sw1, vlan)
         self.assertTrue(swpvlan is not None)
         self.assertEqual(swpvlan.vlan, vlan)
         self.assertEqual(swpvlan.interface.ifname, 'Gi0/1')
@@ -273,13 +264,13 @@ class JunctionTests(L2TraceTestCase):
             l2trace.PathNode(None, None, Host('10.0.20.10'), None),
             l2trace.PathNode(None, None, self.foo_sw1, None),
             l2trace.PathNode(None, None, self.foo_gw, None),
-            ]
+        ]
 
         self.to_path = [
             l2trace.PathNode(None, None, self.foo_gw, None),
             l2trace.PathNode(None, None, self.foo_sw1, None),
             l2trace.PathNode(None, None, Host('10.0.20.90'), None),
-            ]
+        ]
 
     def test_find_junction_should_return_same_host(self):
         (node1, node2) = l2trace.find_junction(self.from_path, self.to_path)
@@ -291,8 +282,7 @@ class JunctionTests(L2TraceTestCase):
         self.assertEqual(node2.host, self.foo_sw1)
 
     def test_find_junction_should_return_nodes_from_paths(self):
-        (from_node, to_node) = l2trace.find_junction(self.from_path,
-                                                     self.to_path)
+        (from_node, to_node) = l2trace.find_junction(self.from_path, self.to_path)
         self.assertTrue(from_node in self.from_path)
         self.assertTrue(to_node in self.to_path)
 

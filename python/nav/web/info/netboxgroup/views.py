@@ -31,8 +31,8 @@ class NetboxGroupForm(SearchForm):
 
     def __init__(self, *args, **kwargs):
         super(NetboxGroupForm, self).__init__(
-            *args, form_action='netbox-group', placeholder='Device group',
-            **kwargs)
+            *args, form_action='netbox-group', placeholder='Device group', **kwargs
+        )
 
 
 def get_netboxgroup_path(other=None):
@@ -65,17 +65,25 @@ def index(request):
             query = request.GET['query']
             id_filter = Q(pk__icontains=query)
             netbox_filter = Q(netbox__sysname__icontains=query)
-            groups = NetboxGroup.objects.filter(
-                id_filter | netbox_filter).distinct().order_by('id')
+            groups = (
+                NetboxGroup.objects.filter(id_filter | netbox_filter)
+                .distinct()
+                .order_by('id')
+            )
     else:
         form = NetboxGroupForm()
         groups = NetboxGroup.objects.all()
 
-    return render(request, 'info/netboxgroup/list_groups.html',
-                  {'netboxgroups': groups,
-                   'searchform': form,
-                   'navpath': navpath,
-                   'title': create_title(navpath)})
+    return render(
+        request,
+        'info/netboxgroup/list_groups.html',
+        {
+            'netboxgroups': groups,
+            'searchform': form,
+            'navpath': navpath,
+            'title': create_title(navpath),
+        },
+    )
 
 
 def group_detail(request, groupid):
@@ -86,19 +94,23 @@ def group_detail(request, groupid):
 
     """
     group = get_object_or_404(NetboxGroup, pk=groupid)
-    netboxes = group.netbox_set.select_related('organization', 'category',
-                                               'type')
+    netboxes = group.netbox_set.select_related('organization', 'category', 'type')
     availabilities = get_netboxes_availability(
-        netboxes, data_sources=['availability'], time_frames=['week', 'month'])
+        netboxes, data_sources=['availability'], time_frames=['week', 'month']
+    )
     navpath = get_netboxgroup_path([(group.pk,)])
 
-    return render(request, 'info/netboxgroup/group_detail.html',
-                  {
-                      'netboxgroup': group,
-                      'netboxes': netboxes,
-                      'availabilities': availabilities,
-                      'navpath': navpath,
-                      'title': create_title(navpath)})
+    return render(
+        request,
+        'info/netboxgroup/group_detail.html',
+        {
+            'netboxgroup': group,
+            'netboxes': netboxes,
+            'availabilities': availabilities,
+            'navpath': navpath,
+            'title': create_title(navpath),
+        },
+    )
 
 
 def group_edit(request, groupid):
@@ -116,11 +128,19 @@ def group_edit(request, groupid):
         return handle_edit_request(request, group)
 
     netboxes = Netbox.objects.exclude(
-        pk__in=group.netbox_set.all().values_list('id', flat=True))
+        pk__in=group.netbox_set.all().values_list('id', flat=True)
+    )
 
-    return render(request, 'info/netboxgroup/group_edit.html',
-                  {'netboxgroup': group, 'netboxes': netboxes,
-                   'navpath': navpath, 'title': create_title(navpath)})
+    return render(
+        request,
+        'info/netboxgroup/group_edit.html',
+        {
+            'netboxgroup': group,
+            'netboxes': netboxes,
+            'navpath': navpath,
+            'title': create_title(navpath),
+        },
+    )
 
 
 def handle_edit_request(request, group):
@@ -137,7 +157,8 @@ def handle_edit_request(request, group):
 
     # Delete existing netboxcategories that are not in request
     NetboxCategory.objects.filter(category=group).exclude(
-        netbox__pk__in=netboxids).delete()
+        netbox__pk__in=netboxids
+    ).delete()
 
     # Add new netboxcategories that are in request
     for netboxid in netboxids:

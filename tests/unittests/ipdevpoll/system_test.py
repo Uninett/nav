@@ -4,7 +4,6 @@ from nav.ipdevpoll.plugins.system import parse_version
 
 
 class SysDescrParseTests(TestCase):
-
     def test_should_parse_cisco2950_sysdescr(self):
         sysdescr = """Cisco Internetwork Operating System Software
 IOS (tm) C2950 Software (C2950-I6K2L2Q4-M), Version 12.1(22)EA11, RELEASE SOFTWARE (fc2)

@@ -57,6 +57,7 @@ Candidate = namedtuple("Candidate", "camid ip mac interface endtime")
 
 class Memo(object):
     """Simple config file memoization"""
+
     def __init__(self, func):
         self.func = func
         self.cache = {}
@@ -87,76 +88,91 @@ class Memo(object):
 
 class ChangePortStatusError(GeneralException):
     """An error occured when changing portadminstatus"""
+
     pass
 
 
 class ChangePortVlanError(GeneralException):
     """An error occured when changing portvlan"""
+
     pass
 
 
 class NoDatabaseInformationError(GeneralException):
     """No information available for id"""
+
     pass
 
 
 class PortNotFoundError(GeneralException):
     """Could not find port in database"""
+
     pass
 
 
 class UnknownTypeError(GeneralException):
     """Unknown type (not ip or mac)"""
+
     pass
 
 
 class DbError(GeneralException):
     """Error when querying database"""
+
     pass
 
 
 class NotSupportedError(GeneralException):
     """This vendor does not support snmp set of vlan"""
+
     pass
 
 
 class NoSuchProgramError(GeneralException):
     """No such program"""
+
     pass
 
 
 class DetainmentNotAllowedError(GeneralException):
     """Detainment not allowed"""
+
     pass
 
 
 class WrongCatidError(DetainmentNotAllowedError):
     """Arnold is not permitted to block ports on equipment of this category"""
+
     pass
 
 
 class AlreadyBlockedError(DetainmentNotAllowedError):
     """This port is already blocked or quarantined."""
+
     pass
 
 
 class InExceptionListError(DetainmentNotAllowedError):
     """This ip-address is in the exceptionlist and cannot be blocked."""
+
     pass
 
 
 class FileError(GeneralException):
     """Fileerror"""
+
     pass
 
 
 class BlockonTrunkError(DetainmentNotAllowedError):
     """No action on trunked interface allowed"""
+
     pass
 
 
 class NoReadWriteCommunityError(GeneralException):
     """No write community on switch"""
+
     pass
 
 
@@ -241,8 +257,7 @@ def find_input_type(ip_or_mac):
 def dictfetchall(cursor):
     "Returns all rows from a cursor as a dict"
     desc = cursor.description
-    return [dict(
-        zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
+    return [dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
 
 
 def create_candidates(caminfos, trunk_ok=False):
@@ -257,9 +272,15 @@ def create_candidates(caminfos, trunk_ok=False):
         except (Interface.DoesNotExist, DetainmentNotAllowedError):
             continue
         else:
-            candidates.append(Candidate(caminfo['camid'], caminfo['ip'],
-                                        caminfo['mac'], interface,
-                                        caminfo['endtime']))
+            candidates.append(
+                Candidate(
+                    caminfo['camid'],
+                    caminfo['ip'],
+                    caminfo['mac'],
+                    interface,
+                    caminfo['endtime'],
+                )
+            )
     return candidates
 
 
@@ -270,8 +291,12 @@ def find_computer_info(ip_or_mac, trunk_ok=False):
 
 def disable(candidate, justification, username, comment="", autoenablestep=0):
     """Disable a target by blocking the port"""
-    _logger.info('Disabling %s - %s on interface %s',
-                 candidate.ip, candidate.mac, candidate.interface)
+    _logger.info(
+        'Disabling %s - %s on interface %s',
+        candidate.ip,
+        candidate.mac,
+        candidate.interface,
+    )
 
     if not candidate.interface.netbox.read_write:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
@@ -281,15 +306,17 @@ def disable(candidate, justification, username, comment="", autoenablestep=0):
     update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
-    _logger.info("Successfully %s %s (%s)",
-                 identity.status, identity.ip, identity.mac)
+    _logger.info("Successfully %s %s (%s)", identity.status, identity.ip, identity.mac)
 
 
-def quarantine(candidate, qvlan, justification, username, comment="",
-               autoenablestep=0):
+def quarantine(candidate, qvlan, justification, username, comment="", autoenablestep=0):
     """Quarantine a target bu changing vlan on port"""
-    _logger.info('Quarantining %s - %s on interface %s',
-                 candidate.ip, candidate.mac, candidate.interface)
+    _logger.info(
+        'Quarantining %s - %s on interface %s',
+        candidate.ip,
+        candidate.mac,
+        candidate.interface,
+    )
 
     if not candidate.interface.netbox.read_write:
         raise NoReadWriteCommunityError(candidate.interface.netbox)
@@ -300,8 +327,7 @@ def quarantine(candidate, qvlan, justification, username, comment="",
     update_identity(identity, justification, autoenablestep)
     create_event(identity, comment, username)
 
-    _logger.info("Successfully %s %s (%s)",
-                 identity.status, identity.ip, identity.mac)
+    _logger.info("Successfully %s %s (%s)", identity.status, identity.ip, identity.mac)
 
 
 def check_target(target, trunk_ok=False):
@@ -315,8 +341,9 @@ def check_target(target, trunk_ok=False):
 def check_identity(candidate):
     """Create or return existing identity object based on target"""
     try:
-        identity = Identity.objects.get(interface=candidate.interface,
-                                        mac=candidate.mac)
+        identity = Identity.objects.get(
+            interface=candidate.interface, mac=candidate.mac
+        )
         if identity.status != 'enabled':
             raise AlreadyBlockedError
         identity.ip = candidate.ip
@@ -348,10 +375,14 @@ def update_identity(identity, justification, autoenablestep):
 
 def create_event(identity, comment, username):
     """Create event for the action specified in identity"""
-    event = Event(identity=identity, comment=comment, action=identity.status,
-                  justification=identity.justification,
-                  autoenablestep=identity.autoenablestep,
-                  executor=username)
+    event = Event(
+        identity=identity,
+        comment=comment,
+        action=identity.status,
+        justification=identity.justification,
+        autoenablestep=identity.autoenablestep,
+        executor=username,
+    )
     event.save()
 
 
@@ -359,8 +390,7 @@ def raise_if_detainment_not_allowed(interface, trunk_ok=False):
     """Raises an exception if this interface should not be detained"""
     netbox = interface.netbox
     config = get_config(find_configfile(CONFIGFILE))
-    allowtypes = [x.strip()
-                  for x in str(config.get('arnold', 'allowtypes')).split(',')]
+    allowtypes = [x.strip() for x in str(config.get('arnold', 'allowtypes')).split(',')]
 
     if netbox.category.id not in allowtypes:
         _logger.info("Not allowed to detain on %s", netbox.category.id)
@@ -387,8 +417,9 @@ def open_port(identity, username, eventcomment=""):
     except Interface.DoesNotExist:
         _logger.info("Interface did not exist, enabling in database only")
     else:
-        _logger.info("Trying to lift detention for %s on %s",
-                     identity.mac, identity.interface)
+        _logger.info(
+            "Trying to lift detention for %s on %s", identity.mac, identity.interface
+        )
         if identity.status == 'disabled':
             change_port_status('enable', identity)
         elif identity.status == 'quarantined':
@@ -401,8 +432,9 @@ def open_port(identity, username, eventcomment=""):
     identity.autoenable = None
     identity.save()
 
-    event = Event(identity=identity, comment=eventcomment, action='enabled',
-                  executor=username)
+    event = Event(
+        identity=identity, comment=eventcomment, action='enabled', executor=username
+    )
     event.save()
 
     _logger.info("openPort: Port successfully opened")
@@ -424,19 +456,18 @@ def change_port_status(action, identity):
 
     # Create snmp-object
     netbox = identity.interface.netbox
-    agent = nav.Snmp.Snmp(netbox.ip, netbox.read_write,
-                          version=netbox.snmp_version)
+    agent = nav.Snmp.Snmp(netbox.ip, netbox.read_write, version=netbox.snmp_version)
 
     # Disable or enable based on input
     try:
         if action == 'disable':
             agent.set(query, 'i', 2)
-            _logger.info('Setting ifadminstatus down on interface %s',
-                         identity.interface)
+            _logger.info(
+                'Setting ifadminstatus down on interface %s', identity.interface
+            )
         elif action == 'enable':
             agent.set(query, 'i', 1)
-            _logger.info('Setting ifadminstatus up on interface %s',
-                         identity.interface)
+            _logger.info('Setting ifadminstatus up on interface %s', identity.interface)
     except AgentError as why:
         _logger.error("Error when executing snmpquery: %s", why)
         raise ChangePortStatusError(why)
@@ -595,6 +626,7 @@ def is_inside_vlans(ip, vlans):
     for vlan in vlans:
         if vlan.isdigit() and is_valid_ip(ip):
             if Prefix.objects.filter(vlan__vlan=vlan).extra(
-                    where=['%s << netaddr'], params=[ip]):
+                where=['%s << netaddr'], params=[ip]
+            ):
                 return True
     return False

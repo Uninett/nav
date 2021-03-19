@@ -25,6 +25,7 @@ from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 
 class LinkStateHandler(delayedstate.DelayedStateHandler):
     """Accepts linkState events"""
+
     HAS_WARNING_ALERT = False
     ALERT_WAIT_TIME = 'linkDown.alert'
     handled_types = ('linkState',)
@@ -64,14 +65,14 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         ifc = self.get_target()
         if ifc.ifoperstatus != ifoperstatus:
             ifc.ifoperstatus = ifoperstatus
-            Interface.objects.filter(id=ifc.id).update(
-                ifoperstatus=ifoperstatus)
+            Interface.objects.filter(id=ifc.id).update(ifoperstatus=ifoperstatus)
 
     def _get_up_alert(self):
         alert = AlertGenerator(self.event)
         alert.alert_type = "linkUp"
-        self._logger.info("Posting %s alert for %s", alert.alert_type,
-                          self.get_target())
+        self._logger.info(
+            "Posting %s alert for %s", alert.alert_type, self.get_target()
+        )
         return alert
 
     def _get_down_alert(self):
@@ -79,10 +80,17 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         alert = AlertGenerator(self.event)
         alert.alert_type = "linkDown"
 
-        if any((self._hold_back_alert_due_to_vlan_mismatch(),
-                self._hold_back_alert_due_to_redundancy_limit())):
-            self._logger.info("%s: withholding %s alert because of unmatched "
-                              "criteria", self.get_target(), alert.alert_type)
+        if any(
+            (
+                self._hold_back_alert_due_to_vlan_mismatch(),
+                self._hold_back_alert_due_to_redundancy_limit(),
+            )
+        ):
+            self._logger.info(
+                "%s: withholding %s alert because of unmatched " "criteria",
+                self.get_target(),
+                alert.alert_type,
+            )
             return None
 
         return alert
@@ -95,9 +103,12 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
             partner = self.get_link_partner()
             redundancy_loss = partner and partner.up == Netbox.UP_UP
             if redundancy_loss:
-                self._logger.info("likely link redundancy degradation: %s is "
-                                  "down, but link partner %s is still up",
-                                  self.get_target(), partner)
+                self._logger.info(
+                    "likely link redundancy degradation: %s is "
+                    "down, but link partner %s is still up",
+                    self.get_target(),
+                    partner,
+                )
             else:
                 return True
         return False
@@ -107,13 +118,19 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         if limited_to_vlans:
             vlans = self._get_target_vlans()
             if vlans.intersection(limited_to_vlans):
-                self._logger.info("%s vlans %r intersects with list of "
-                                  "limited vlans %r",
-                                  self.get_target(), vlans, limited_to_vlans)
+                self._logger.info(
+                    "%s vlans %r intersects with list of " "limited vlans %r",
+                    self.get_target(),
+                    vlans,
+                    limited_to_vlans,
+                )
             elif vlans:
-                self._logger.info("%s vlans %r does not intersect with list "
-                                  "of limited vlans %r",
-                                  self.get_target(), vlans, limited_to_vlans)
+                self._logger.info(
+                    "%s vlans %r does not intersect with list " "of limited vlans %r",
+                    self.get_target(),
+                    vlans,
+                    limited_to_vlans,
+                )
                 return True
         return False
 
@@ -136,14 +153,18 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         if self.get_target().get_aggregator():
             self._logger.info(
                 "down event for %s, posting linkDegraded event for %s",
-                self.get_target(), self.get_target().get_aggregator())
+                self.get_target(),
+                self.get_target().get_aggregator(),
+            )
             return self._get_aggregate_link_event(start=True)
 
     def _post_event_if_aggregate_restored(self):
         if self.get_target().get_aggregator():
             self._logger.info(
                 "up event for %s, posting linkRestored event for %s",
-                self.get_target(), self.get_target().get_aggregator())
+                self.get_target(),
+                self.get_target().get_aggregator(),
+            )
             return self._get_aggregate_link_event(start=False)
 
     def _get_aggregate_link_event(self, start):
@@ -157,14 +178,18 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         event.state = event.STATE_START if start else event.STATE_END
         event.save()
 
-        EventVar(event_queue=event, variable='alerttype',
-                 value='linkDegraded' if start else 'linkRestored').save()
-        EventVar(event_queue=event, variable='aggregate',
-                 value=target.id).save()
-        EventVar(event_queue=event, variable='aggregate_ifname',
-                 value=target.ifname).save()
-        EventVar(event_queue=event, variable='aggregate_ifalias',
-                 value=target.ifalias or '').save()
+        EventVar(
+            event_queue=event,
+            variable='alerttype',
+            value='linkDegraded' if start else 'linkRestored',
+        ).save()
+        EventVar(event_queue=event, variable='aggregate', value=target.id).save()
+        EventVar(
+            event_queue=event, variable='aggregate_ifname', value=target.ifname
+        ).save()
+        EventVar(
+            event_queue=event, variable='aggregate_ifalias', value=target.ifalias or ''
+        ).save()
 
     #
     # Methods to handle duplication of events for virtualized netbox instances
@@ -182,11 +207,11 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
 
     def _copy_event_for_instance(self, netbox, instance, ifc):
         try:
-            other_ifc = Interface.objects.get(netbox=instance,
-                                              ifname=ifc.ifname)
+            other_ifc = Interface.objects.get(netbox=instance, ifname=ifc.ifname)
         except Interface.DoesNotExist:
-            self._logger.info("interface %s does not exist on instance %s",
-                              ifc.ifname, instance)
+            self._logger.info(
+                "interface %s does not exist on instance %s", ifc.ifname, instance
+            )
             return
 
         new_event = copy.copy(self.event)  # type: nav.models.event.EventQueue
@@ -195,13 +220,13 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
         new_event.device = None
         new_event.subid = other_ifc.pk
 
-        self._logger.info('duplicating linkState event for %s to %s',
-                          ifc, instance)
+        self._logger.info('duplicating linkState event for %s to %s', ifc, instance)
         new_event.save()
 
 
 class LinkStateConfiguration(object):
     """Retrieves configuration options for the LinkStateHandler"""
+
     def __init__(self, config):
         self.config = config
 

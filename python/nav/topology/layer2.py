@@ -51,17 +51,17 @@ def _update_interface_topology(source_node, dest_node):
 
     """
     _netboxid, interfaceid = source_node
-    ifc = Interface.objects.filter(id=interfaceid,
-                                   ifadminstatus=Interface.ADM_UP,
-                                   netbox__up=Netbox.UP_UP,
-                                   gone_since__isnull=True)
+    ifc = Interface.objects.filter(
+        id=interfaceid,
+        ifadminstatus=Interface.ADM_UP,
+        netbox__up=Netbox.UP_UP,
+        gone_since__isnull=True,
+    )
 
     if isinstance(dest_node, Port):
-        kwargs = {'to_netbox': int(dest_node[0]),
-                  'to_interface': int(dest_node[1])}
+        kwargs = {'to_netbox': int(dest_node[0]), 'to_interface': int(dest_node[1])}
     else:
-        kwargs = {'to_netbox': int(dest_node),
-                  'to_interface': None}
+        kwargs = {'to_netbox': int(dest_node), 'to_interface': None}
 
     ifc = ifc.exclude(**kwargs)
     ifc.update(**kwargs)
@@ -73,12 +73,12 @@ def _clear_topology_for_nontouched(touched_ifc_ids):
     have no associated topology information.
 
     """
-    up_or_disabled = (
-        Q(ifoperstatus=Interface.OPER_UP) |
-        Q(ifadminstatus=Interface.ADM_DOWN)
+    up_or_disabled = Q(ifoperstatus=Interface.OPER_UP) | Q(
+        ifadminstatus=Interface.ADM_DOWN
     )
-    up_or_disabled_ifcs = Interface.objects.filter(up_or_disabled,
-                                                   netbox__up=Netbox.UP_UP)
+    up_or_disabled_ifcs = Interface.objects.filter(
+        up_or_disabled, netbox__up=Netbox.UP_UP
+    )
     nontouched_ifcs = up_or_disabled_ifcs.exclude(id__in=touched_ifc_ids)
     clearable_ifcs = nontouched_ifcs.exclude(to_netbox__isnull=True)
     clearable_ifcs.update(to_netbox=None, to_interface=None)
@@ -93,11 +93,9 @@ def _clear_topology_for_mismatched_state_links():
     stale.
     """
     mismatched = Interface.objects.filter(
-        ifoperstatus=Interface.OPER_DOWN,
-        to_interface__ifoperstatus=Interface.OPER_UP,
+        ifoperstatus=Interface.OPER_DOWN, to_interface__ifoperstatus=Interface.OPER_UP,
     )
     count = mismatched.count()
     if count > 0:
-        _logger.debug("deleting stale topology for %d operDown interfaces",
-                      count)
+        _logger.debug("deleting stale topology for %d operDown interfaces", count)
     mismatched.update(to_netbox=None, to_interface=None)

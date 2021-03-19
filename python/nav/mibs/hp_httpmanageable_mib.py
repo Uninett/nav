@@ -20,6 +20,7 @@ from nav.mibs.mibretriever import MibRetriever
 
 class HPHTTPManageableMib(MibRetriever):
     """HP-httpManageable-MIB (SEMI-MIB) MibRetriever"""
+
     mib = get_mib('SEMI-MIB')
 
     @defer.inlineCallbacks

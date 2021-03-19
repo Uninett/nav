@@ -44,8 +44,7 @@ from itertools import chain
 import logging
 
 import networkx as nx
-from nav.models.manage import (AdjacencyCandidate, InterfaceAggregate,
-                               InterfaceStack)
+from nav.models.manage import AdjacencyCandidate, InterfaceAggregate, InterfaceStack
 
 _logger = logging.getLogger(__name__)
 
@@ -57,6 +56,7 @@ LLDP = 'lldp'
 
 class Box(int):
     """A Netbox' netboxid value"""
+
     name = None
 
     def __str__(self):
@@ -65,6 +65,7 @@ class Box(int):
 
 class Port(tuple):
     """An Interface's (netboxid, interfaceid) values"""
+
     name = None
 
     def __str__(self):
@@ -72,6 +73,7 @@ class Port(tuple):
 
 
 # Analyzers
+
 
 class AdjacencyAnalyzer(object):
     """Adjacency candidate graph analyzer and manipulator"""
@@ -115,9 +117,11 @@ class AdjacencyAnalyzer(object):
           A list of tuples: [(degree, node), ... ]
 
         """
-        result = [(self.graph.out_degree(n), n)
-                  for n in self.graph.nodes()
-                  if isinstance(n, Port)]
+        result = [
+            (self.graph.out_degree(n), n)
+            for n in self.graph.nodes()
+            if isinstance(n, Port)
+        ]
         return result
 
     def format_connections(self):
@@ -125,21 +129,27 @@ class AdjacencyAnalyzer(object):
         from ports.
 
         """
-        output = ["%s => %s" % (source, dest)
-                  for source, dest in self.get_single_edges_from_ports()]
+        output = [
+            "%s => %s" % (source, dest)
+            for source, dest in self.get_single_edges_from_ports()
+        ]
         output.sort()
         return "\n".join(output)
 
     def get_single_edges_from_ports(self):
         """Returns a list of edges from ports whose degree is 1"""
-        edges = [list(self.graph.edges(port))[0]
-                 for port in self.get_ports_by_degree(1)]
+        edges = [
+            list(self.graph.edges(port))[0] for port in self.get_ports_by_degree(1)
+        ]
         return edges
 
     def get_ports_by_degree(self, degree):
         """Returns a list of port nodes with a given out_degree"""
-        port_nodes = [n for n in self.graph.nodes()
-                      if isinstance(n, Port) and self.graph.out_degree(n) == degree]
+        port_nodes = [
+            n
+            for n in self.graph.nodes()
+            if isinstance(n, Port) and self.graph.out_degree(n) == degree
+        ]
         return port_nodes
 
 
@@ -206,7 +216,9 @@ class AdjacencyReducer(AdjacencyAnalyzer):
             for port in sorted(removeable, key=str):
                 _logger.debug(
                     "Ignoring aggregate %s [%s]",
-                    port, ', '.join(str(s) for s in self.aggregates[port]))
+                    port,
+                    ', '.join(str(s) for s in self.aggregates[port]),
+                )
             self.graph.remove_nodes_from(removeable)
 
     def _reduce_discovery_protocol(self, sourcetype):
@@ -214,17 +226,18 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         while not done:
             done = True
             for source, dest, proto in list(self.graph.edges(keys=True)):
-                if (not isinstance(source, Port) or not isinstance(dest, Port) or
-                        proto != sourcetype):
+                if (
+                    not isinstance(source, Port)
+                    or not isinstance(dest, Port)
+                    or proto != sourcetype
+                ):
                     continue
                 if source == dest:
-                    _logger.info("Ignoring apparent %s self-loop on %s",
-                                 proto, source)
+                    _logger.info("Ignoring apparent %s self-loop on %s", proto, source)
                     self.graph.remove_edge(source, dest, proto)
                     continue
                 if self.graph.has_edge(dest, source, proto):
-                    _logger.debug("Found connection from %s to %s", source,
-                                  dest)
+                    _logger.debug("Found connection from %s to %s", source, dest)
                     self.result.add_edge(source, dest)
                     self.result.add_edge(dest, source)
                     self.graph.remove_node(source)
@@ -232,8 +245,9 @@ class AdjacencyReducer(AdjacencyAnalyzer):
                     done = False
                     break
                 else:
-                    _logger.debug("Removing unmatched %s connection %s -> %s",
-                                  proto, source, dest)
+                    _logger.debug(
+                        "Removing unmatched %s connection %s -> %s", proto, source, dest
+                    )
                     self.graph.remove_edge(source, dest, proto)
 
     def _visit_unvisited(self, unvisited):
@@ -295,6 +309,7 @@ class AdjacencyReducer(AdjacencyAnalyzer):
         self.result.add_edge(i, j)
         self.result.add_edge(j, i)
 
+
 # Graph builder functions
 
 
@@ -305,7 +320,8 @@ def build_candidate_graph_from_db():
 
     """
     acs = AdjacencyCandidate.objects.select_related(
-        'netbox', 'interface', 'to_netbox', 'to_interface')
+        'netbox', 'interface', 'to_netbox', 'to_interface'
+    )
 
     graph = nx.MultiDiGraph(name="network adjacency candidates")
 
@@ -351,18 +367,21 @@ def get_aggregate_mapping(include_stacks=False):
 
 def _get_stacks():
     stacks = InterfaceStack.objects.select_related(
-        'higher', 'higher__netbox', 'lower', 'lower__netbox')
-    return ((interface_to_port(agg.higher),
-             interface_to_port(agg.lower))
-            for agg in stacks)
+        'higher', 'higher__netbox', 'lower', 'lower__netbox'
+    )
+    return (
+        (interface_to_port(agg.higher), interface_to_port(agg.lower)) for agg in stacks
+    )
 
 
 def _get_aggregates():
     aggregates = InterfaceAggregate.objects.select_related(
-        'aggregator', 'aggregator__netbox', 'interface', 'interface__netbox')
-    return ((interface_to_port(agg.aggregator),
-             interface_to_port(agg.interface))
-            for agg in aggregates)
+        'aggregator', 'aggregator__netbox', 'interface', 'interface__netbox'
+    )
+    return (
+        (interface_to_port(agg.aggregator), interface_to_port(agg.interface))
+        for agg in aggregates
+    )
 
 
 def interface_to_port(interface):

@@ -34,8 +34,10 @@ def make_geojson(featurelist):
     The result is a GeoJSON string.
 
     """
-    geojson = {'type': 'FeatureCollection',
-               'features': [make_geojson_feature(f) for f in featurelist]}
+    geojson = {
+        'type': 'FeatureCollection',
+        'features': [make_geojson_feature(f) for f in featurelist],
+    }
     return json.dumps(geojson)
 
 
@@ -43,37 +45,44 @@ def make_geojson_feature(feature):
     """Create a GeoJSON object for a feature."""
     popup = None
     if feature.popup:
-        popup = {'id': feature.popup.id,
-                 'size': feature.popup.size,
-                 'content': feature.popup.content,
-                 'closable': feature.popup.closable}
-    properties = {'type': feature.type,
-                  'color': feature.color,
-                  'size': feature.size,
-                  'popup': popup}
+        popup = {
+            'id': feature.popup.id,
+            'size': feature.popup.size,
+            'content': feature.popup.content,
+            'closable': feature.popup.closable,
+        }
+    properties = {
+        'type': feature.type,
+        'color': feature.color,
+        'size': feature.size,
+        'popup': popup,
+    }
     properties.update(feature.properties)
-    return {'type': 'Feature',
-            'id': feature.id,
-            'geometry': {
-                'type': feature.geometry.type,
-                'coordinates': feature.geometry.coordinates
-            },
-            'properties': properties}
+    return {
+        'type': 'Feature',
+        'id': feature.id,
+        'geometry': {
+            'type': feature.geometry.type,
+            'coordinates': feature.geometry.coordinates,
+        },
+        'properties': properties,
+    }
+
 
 # KML
 
 
 def make_kml(featurelist):
-    return render_to_string('geomap/geomap-data-kml.xml',
-                            {'features': featurelist})
+    return render_to_string('geomap/geomap-data-kml.xml', {'features': featurelist})
+
 
 # General
 
 
 _formats = {
     'geojson': (make_geojson, 'application/json'),
-    'kml': (make_kml, 'application/vnd.google-earth.kml+xml')
-    }
+    'kml': (make_kml, 'application/vnd.google-earth.kml+xml'),
+}
 
 
 def format_data(format, featurelist):

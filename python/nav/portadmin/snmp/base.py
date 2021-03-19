@@ -47,6 +47,7 @@ _logger = logging.getLogger(__name__)
 
 class SNMPHandler(ManagementHandler):
     """Implements PortAdmin management functions for SNMP-enabled switches"""
+
     VENDOR = None
 
     QBRIDGENODES = get_mib('Q-BRIDGE-MIB')['nodes']
@@ -70,7 +71,9 @@ class SNMPHandler(ManagementHandler):
     VLAN_EGRESS_PORTS = QBRIDGENODES['dot1qVlanStaticEgressPorts']['oid']
 
     # The .0 is the timefilter that we set to 0 to (hopefully) deactivate the filter
-    CURRENT_VLAN_EGRESS_PORTS = QBRIDGENODES['dot1qVlanCurrentEgressPorts']['oid'] + '.0'
+    CURRENT_VLAN_EGRESS_PORTS = (
+        QBRIDGENODES['dot1qVlanCurrentEgressPorts']['oid'] + '.0'
+    )
 
     # dot1x
 
@@ -97,8 +100,7 @@ class SNMPHandler(ManagementHandler):
         try:
             result = handle.bulkwalk(oid)
         except UnsupportedSnmpVersionError as unsup_ex:
-            _logger.info("_bulkwalk: UnsupportedSnmpVersionError = %s",
-                         unsup_ex)
+            _logger.info("_bulkwalk: UnsupportedSnmpVersionError = %s", unsup_ex)
             try:
                 result = handle.walk(oid)
             except SnmpError as ex:
@@ -127,11 +129,13 @@ class SNMPHandler(ManagementHandler):
     def _get_read_only_handle(self):
         """Get a read only SNMP-handle."""
         if self.read_only_handle is None:
-            self.read_only_handle = Snmp.Snmp(self.netbox.ip,
-                                              self.netbox.read_only,
-                                              self.netbox.snmp_version,
-                                              retries=self.retries,
-                                              timeout=self.timeout)
+            self.read_only_handle = Snmp.Snmp(
+                self.netbox.ip,
+                self.netbox.read_only,
+                self.netbox.snmp_version,
+                retries=self.retries,
+                timeout=self.timeout,
+            )
         return self.read_only_handle
 
     def _query_netbox(self, oid, if_index):
@@ -155,9 +159,12 @@ class SNMPHandler(ManagementHandler):
         """
         if self.read_write_handle is None:
             self.read_write_handle = Snmp.Snmp(
-                self.netbox.ip, self.netbox.read_write,
-                self.netbox.snmp_version, retries=self.retries,
-                timeout=self.timeout)
+                self.netbox.ip,
+                self.netbox.read_write,
+                self.netbox.snmp_version,
+                retries=self.retries,
+                timeout=self.timeout,
+            )
         return self.read_write_handle
 
     def _set_netbox_value(self, oid, if_index, value_type, value):
@@ -175,7 +182,7 @@ class SNMPHandler(ManagementHandler):
         hexes = bitvector.to_hex()
         chunksize = len(bitvector.to_hex()) // chunks
         for i in range(0, len(hexes), chunksize):
-            yield BitVector.from_hex(hexes[i:i + chunksize])
+            yield BitVector.from_hex(hexes[i : i + chunksize])
 
     def test_read(self):
         """Test if SNMP read works"""
@@ -284,11 +291,11 @@ class SNMPHandler(ManagementHandler):
         self._set_netbox_value(self.VlAN_OID, base_port, "u", vlan)
         # Remove port from list of ports on old vlan
         hexstring = self._query_netbox(self.VLAN_EGRESS_PORTS, fromvlan)
-        modified_hexport = self._compute_octet_string(hexstring, base_port,
-                                                      'disable')
+        modified_hexport = self._compute_octet_string(hexstring, base_port, 'disable')
         _logger.debug('Disabling port %s on old vlan %s', base_port, fromvlan)
-        return self._set_netbox_value(self.VLAN_EGRESS_PORTS,
-                                      fromvlan, 's', modified_hexport)
+        return self._set_netbox_value(
+            self.VLAN_EGRESS_PORTS, fromvlan, 's', modified_hexport
+        )
 
     def set_native_vlan(self, interface, vlan):
         self.set_vlan(interface, vlan)
@@ -332,7 +339,8 @@ class SNMPHandler(ManagementHandler):
     def get_netbox_vlans(self):
         numerical_vlans = self.get_netbox_vlan_tags()
         vlan_objects = Vlan.objects.filter(
-            swportvlan__interface__netbox=self.netbox).distinct()
+            swportvlan__interface__netbox=self.netbox
+        ).distinct()
         vlans = []
         for numerical_vlan in numerical_vlans:
             try:
@@ -340,9 +348,11 @@ class SNMPHandler(ManagementHandler):
             except (Vlan.DoesNotExist, Vlan.MultipleObjectsReturned):
                 fantasy_vlan = FantasyVlan(numerical_vlan)
             else:
-                fantasy_vlan = FantasyVlan(numerical_vlan,
-                                           netident=vlan_object.net_ident,
-                                           descr=vlan_object.description)
+                fantasy_vlan = FantasyVlan(
+                    numerical_vlan,
+                    netident=vlan_object.net_ident,
+                    descr=vlan_object.description,
+                )
             vlans.append(fantasy_vlan)
 
         return sorted(list(set(vlans)), key=attrgetter('vlan'))
@@ -352,7 +362,8 @@ class SNMPHandler(ManagementHandler):
             self.available_vlans = [
                 OID(oid)[-1]
                 for oid, status in self._bulkwalk(self.VLAN_ROW_STATUS)
-                if status == 1]
+                if status == 1
+            ]
         return self.available_vlans
 
     def get_native_and_trunked_vlans(self, interface):
@@ -363,17 +374,18 @@ class SNMPHandler(ManagementHandler):
         for vlan in self.get_netbox_vlan_tags():
             if vlan == native_vlan:
                 continue
-            octet_string = self._query_netbox(
-                self.CURRENT_VLAN_EGRESS_PORTS, vlan
-            ) or b''
+            octet_string = (
+                self._query_netbox(self.CURRENT_VLAN_EGRESS_PORTS, vlan) or b''
+            )
             bitvector = BitVector(octet_string)
 
             try:
                 if bitvector[bitvector_index]:
                     vlans.append(vlan)
             except IndexError:
-                _logger.error('Baseport index was out of bounds '
-                              'for StaticEgressPorts')
+                _logger.error(
+                    'Baseport index was out of bounds ' 'for StaticEgressPorts'
+                )
 
         return native_vlan, vlans
 
@@ -399,19 +411,25 @@ class SNMPHandler(ManagementHandler):
         native_vlan = self.get_interface_native_vlan(interface)
         bitvector_index = base_port - 1
 
-        _logger.debug('base_port: %s, native_vlan: %s, trunk_vlans: %s',
-                      base_port, native_vlan, vlans)
+        _logger.debug(
+            'base_port: %s, native_vlan: %s, trunk_vlans: %s',
+            base_port,
+            native_vlan,
+            vlans,
+        )
 
         vlans = [int(vlan) for vlan in vlans]
 
         for available_vlan in self.get_netbox_vlan_tags():
             if native_vlan == available_vlan:
-                _logger.debug('native vlan (%s) == available vlan (%s) - skip',
-                              native_vlan, available_vlan)
+                _logger.debug(
+                    'native vlan (%s) == available vlan (%s) - skip',
+                    native_vlan,
+                    available_vlan,
+                )
                 continue
 
-            bitvector = self._get_egress_interfaces_as_bitvector(
-                available_vlan)
+            bitvector = self._get_egress_interfaces_as_bitvector(available_vlan)
 
             original_value = bitvector[bitvector_index]
             if available_vlan in vlans:
@@ -420,23 +438,30 @@ class SNMPHandler(ManagementHandler):
                 bitvector[bitvector_index] = 0
 
             if bitvector[bitvector_index] != original_value:
-                _logger.debug('vlan %(vlan)s: state for port %(port)s changed',
-                              {'port': base_port, 'vlan': available_vlan})
+                _logger.debug(
+                    'vlan %(vlan)s: state for port %(port)s changed',
+                    {'port': base_port, 'vlan': available_vlan},
+                )
                 self._set_egress_interfaces(available_vlan, bitvector)
 
     def _set_egress_interfaces(self, vlan, bitvector):
         try:
-            _logger.debug('Setting egress ports for vlan %s, set bits: %s',
-                          vlan, bitvector.get_set_bits())
-            self._set_netbox_value(self.VLAN_EGRESS_PORTS,
-                                   vlan, 's', bitvector.to_bytes())
+            _logger.debug(
+                'Setting egress ports for vlan %s, set bits: %s',
+                vlan,
+                bitvector.get_set_bits(),
+            )
+            self._set_netbox_value(
+                self.VLAN_EGRESS_PORTS, vlan, 's', bitvector.to_bytes()
+            )
         except SnmpError as error:
             _logger.error("Error setting egress ports: %s", error)
             raise error
 
     def set_access(self, interface, access_vlan):
-        _logger.debug('Setting access mode vlan %s on interface %s',
-                      access_vlan, interface)
+        _logger.debug(
+            'Setting access mode vlan %s on interface %s', access_vlan, interface
+        )
         self.set_vlan(interface, access_vlan)
         self.set_trunk_vlans(interface, [])
         interface.vlan = access_vlan

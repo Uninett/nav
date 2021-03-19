@@ -24,12 +24,16 @@ from nav.statemon.event import Event
 
 class LdapChecker(AbstractChecker):
     """LDAP"""
+
     IPV6_SUPPORT = True
     DESCRIPTION = "LDAP"
     OPTARGS = (
-        ('url', "LDAP connection URL that will override the host's IP address"
-                " and the default port number 389. Example: ldap://myserver"
-                ".example.org:389/"),
+        (
+            'url',
+            "LDAP connection URL that will override the host's IP address"
+            " and the default port number 389. Example: ldap://myserver"
+            ".example.org:389/",
+        ),
         ('base', "The LDAP server's base DN. Default is dc=example,dc=org"),
         ('scope', "One of BASE, ONELEVEL, SUBTREE"),
         ('filter', "An LDAP search filter. Example: cn=monitor"),
@@ -64,8 +68,7 @@ class LdapChecker(AbstractChecker):
 
             base = args.get("base", "dc=example,dc=org")
             if base == "cn=monitor":
-                my_res = conn.search_st(base, ldap.SCOPE_BASE,
-                                        timeout=self.timeout)
+                my_res = conn.search_st(base, ldap.SCOPE_BASE, timeout=self.timeout)
                 versionstr = str(my_res[0][-1]['description'][0])
                 self.version = versionstr
                 return Event.UP, versionstr
@@ -78,13 +81,14 @@ class LdapChecker(AbstractChecker):
                 scope = ldap.SCOPE_SUBTREE
             filtr = args.get("filter", "objectClass=*")
             try:
-                conn.search_ext_s(base, scope, filterstr=filtr,
-                                  timeout=self.timeout)
+                conn.search_ext_s(base, scope, filterstr=filtr, timeout=self.timeout)
                 # pylint: disable=W0703
             except Exception as err:
-                return (Event.DOWN,
-                        "Failed ldapSearch on %s for %s: %s" % (
-                            self.get_address(), filtr, str(err)))
+                return (
+                    Event.DOWN,
+                    "Failed ldapSearch on %s for %s: %s"
+                    % (self.get_address(), filtr, str(err)),
+                )
         finally:
             try:
                 conn.unbind()

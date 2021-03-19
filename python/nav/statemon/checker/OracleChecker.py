@@ -57,6 +57,7 @@ class OracleChecker(AbstractChecker):
         return Event.DOWN, str(sys.exc_value)
 
     """
+
     DESCRIPTION = "Oracle database"
     OPTARGS = (
         ('port', ''),
@@ -73,18 +74,21 @@ class OracleChecker(AbstractChecker):
         ip, port = self.get_address()
         passwd = self.args.get("password", "")
         sid = self.args.get("sid", "")
-        connect_string = ("%s/%s@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=("
-                          "COMMUNITY=TCP)(PROTOCOL=TCP)(Host=%s)(Port=%s)))("
-                          "CONNECT_DATA=(SID=%s)(GLOBAL_NAME=%s)))") % (
-            user, passwd, ip, port, sid, sid)
+        connect_string = (
+            "%s/%s@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=("
+            "COMMUNITY=TCP)(PROTOCOL=TCP)(Host=%s)(Port=%s)))("
+            "CONNECT_DATA=(SID=%s)(GLOBAL_NAME=%s)))"
+        ) % (user, passwd, ip, port, sid, sid)
         print("Connecting with: %s" % connect_string)
         try:
             connection = cx_Oracle.connect(connect_string)
             cursor = connection.cursor()
             cursor.arraysize = 50
-            cursor.execute("""
+            cursor.execute(
+                """
                 select version
-                from sys.v_$instance""")
+                from sys.v_$instance"""
+            )
             row = cursor.fetchone()
             version = row[0]
             # pylint: disable=W0703

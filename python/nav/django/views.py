@@ -29,11 +29,16 @@ def custom_500(request):
 
     type, value, tb = sys.exc_info()
 
-    return HttpResponseServerError(template.render(context={
-        'type': type.__name__,
-        'value': value,
-        'traceback': traceback.format_exception(type, value, tb)
-        }, request=request))
+    return HttpResponseServerError(
+        template.render(
+            context={
+                'type': type.__name__,
+                'value': value,
+                'traceback': traceback.format_exception(type, value, tb),
+            },
+            request=request,
+        )
+    )
 
 
 def force_500(request):
@@ -41,4 +46,3 @@ def force_500(request):
     error handler
     """
     raise Exception("This error was thrown on purpose, please ignore")
-

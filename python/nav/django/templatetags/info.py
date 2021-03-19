@@ -13,11 +13,7 @@ register = template.Library()
 def time_since(timestamp):
     """Convert a timestamp to human readable time since"""
 
-    mapping = {'minute': 'min',
-               'hour': 'hr',
-               'week': 'wk',
-               'month': 'mo',
-               'year': 'yr'}
+    mapping = {'minute': 'min', 'hour': 'hr', 'week': 'wk', 'month': 'mo', 'year': 'yr'}
 
     if timestamp is None:
         return "Never"

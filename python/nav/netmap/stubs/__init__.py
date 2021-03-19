@@ -21,6 +21,7 @@
 
 class Netbox(object):
     """Netbox stub"""
+
     id = None  # we need this, but it should always be empty
 
     def __str__(self):
@@ -50,6 +51,7 @@ class Netbox(object):
 
 class GwPortPrefix(object):
     """Gwport stub"""
+
     def __init__(self):
         self.virtual = None
 
@@ -76,11 +78,9 @@ class GwPortPrefix(object):
 
 class Interface(object):
     """Interface stub"""
+
     def __str__(self):
-        return "{0} ({1})".format(
-            str(self.ifname),
-            str(self.netbox)
-        )
+        return "{0} ({1})".format(str(self.ifname), str(self.netbox))
 
     def __unicode__(self):
         return u'%s' % self.ifname, self.netbox

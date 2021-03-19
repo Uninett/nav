@@ -37,9 +37,11 @@ def pytest_unconfigure(config):
 def start_gunicorn():
     global gunicorn
     gunicorn_log = open("reports/gunicorn.log", "ab")
-    gunicorn = subprocess.Popen(['gunicorn', 'navtest_wsgi:application'],
-                                stdout=gunicorn_log,
-                                stderr=subprocess.STDOUT)
+    gunicorn = subprocess.Popen(
+        ['gunicorn', 'navtest_wsgi:application'],
+        stdout=gunicorn_log,
+        stderr=subprocess.STDOUT,
+    )
 
 
 def stop_gunicorn():
@@ -53,6 +55,7 @@ def stop_gunicorn():
 #          #
 ############
 
+
 @pytest.fixture
 def selenium(selenium, base_url):
     """Fixture to initialize the selenium web driver with a NAV session logged
@@ -60,6 +63,7 @@ def selenium(selenium, base_url):
 
     """
     from nav.bootstrap import bootstrap_django
+
     bootstrap_django(__file__)
 
     from nav.web.auth import create_session_cookie
@@ -70,8 +74,7 @@ def selenium(selenium, base_url):
     cookie = create_session_cookie(USERNAME)
     # visit a non-existent URL just to set the site context for cookies
     selenium.get('{}/images/400'.format(base_url))
-    wait.until(EC.text_to_be_present_in_element((By.TAG_NAME, "h1"),
-                                                "Not found"))
+    wait.until(EC.text_to_be_present_in_element((By.TAG_NAME, "h1"), "Not found"))
 
     print("Cookies after first fetch: {!r}".format(selenium.get_cookies()))
     selenium.delete_all_cookies()
@@ -81,8 +84,7 @@ def selenium(selenium, base_url):
     # wait for the cookie to become present in the browser before we continue!
     wait.until(_session_cookie_is_present(cookie))
 
-    print("Cookies after set, before refresh: {!r}".format(
-        selenium.get_cookies()))
+    print("Cookies after set, before refresh: {!r}".format(selenium.get_cookies()))
     selenium.refresh()
 
     print("Cookies after refresh: {!r}".format(selenium.get_cookies()))
@@ -93,6 +95,7 @@ def selenium(selenium, base_url):
 
 class _session_cookie_is_present(object):
     """Selenium expectation for verifying that a session cookie is set"""
+
     def __init__(self, session_cookie):
         self.session_cookie = session_cookie
 
@@ -111,12 +114,28 @@ def base_url():
 def chrome_options(chrome_options):
     # All options stolen from https://stackoverflow.com/questions/48450594/selenium-timed-out-receiving-message-from-renderer
     # AGGRESSIVE: options.setPageLoadStrategy(PageLoadStrategy.NONE)  # https://www.skptricks.com/2018/08/timed-out-receiving-message-from-renderer-selenium.html
-    chrome_options.add_argument("start-maximized")  # https://stackoverflow.com/a/26283818/1689770
-    chrome_options.add_argument("enable-automation")  # https://stackoverflow.com/a/43840128/1689770
-    chrome_options.add_argument("--headless")  # only if you are ACTUALLY running headless
-    chrome_options.add_argument("--no-sandbox")  # https://stackoverflow.com/a/50725918/1689770
-    chrome_options.add_argument("--disable-infobars")  # https://stackoverflow.com/a/43840128/1689770
-    chrome_options.add_argument("--disable-dev-shm-usage")  # https://stackoverflow.com/a/50725918/1689770
-    chrome_options.add_argument("--disable-browser-side-navigation")  # https://stackoverflow.com/a/49123152/1689770
-    chrome_options.add_argument("--disable-gpu")  # https://stackoverflow.com/questions/51959986/how-to-solve-selenium-chromedriver-timed-out-receiving-message-from-renderer-exc
+    chrome_options.add_argument(
+        "start-maximized"
+    )  # https://stackoverflow.com/a/26283818/1689770
+    chrome_options.add_argument(
+        "enable-automation"
+    )  # https://stackoverflow.com/a/43840128/1689770
+    chrome_options.add_argument(
+        "--headless"
+    )  # only if you are ACTUALLY running headless
+    chrome_options.add_argument(
+        "--no-sandbox"
+    )  # https://stackoverflow.com/a/50725918/1689770
+    chrome_options.add_argument(
+        "--disable-infobars"
+    )  # https://stackoverflow.com/a/43840128/1689770
+    chrome_options.add_argument(
+        "--disable-dev-shm-usage"
+    )  # https://stackoverflow.com/a/50725918/1689770
+    chrome_options.add_argument(
+        "--disable-browser-side-navigation"
+    )  # https://stackoverflow.com/a/49123152/1689770
+    chrome_options.add_argument(
+        "--disable-gpu"
+    )  # https://stackoverflow.com/questions/51959986/how-to-solve-selenium-chromedriver-timed-out-receiving-message-from-renderer-exc
     return chrome_options

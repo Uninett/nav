@@ -59,6 +59,7 @@ class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
     limit imposed in getTable calls"""
 
     if pynetsnmp_limits_results():
+
         def getTable(self, *args, **kwargs):
             if 'limit' not in kwargs:
                 kwargs['limit'] = six.MAXSIZE
@@ -70,12 +71,14 @@ class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
         except netsnmp.SnmpError:
             raise common.SnmpError(
                 "could not open session for %s:%s, maybe too many open file "
-                "descriptors?" % (self.ip, self.port))
+                "descriptors?" % (self.ip, self.port)
+            )
 
     @classmethod
     def count_open_sessions(cls):
         "Returns a count of the number of open SNMP sessions in this process"
         import gc
+
         mykind = (o for o in gc.get_objects() if isinstance(o, cls))
         open_sessions = [o for o in mykind if getattr(o.session, 'sess', None)]
         return len(open_sessions)

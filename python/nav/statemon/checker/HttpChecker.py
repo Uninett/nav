@@ -28,18 +28,19 @@ from nav.statemon.abstractchecker import AbstractChecker
 
 class HTTPConnection(http_client.HTTPConnection):
     """Customized HTTP protocol interface"""
+
     def __init__(self, timeout, host, port=80):
         http_client.HTTPConnection.__init__(self, host, port)
         self.timeout = timeout
         self.connect()
 
     def connect(self):
-        self.sock = socket.create_connection((self.host, self.port),
-                                             self.timeout)
+        self.sock = socket.create_connection((self.host, self.port), self.timeout)
 
 
 class HttpChecker(AbstractChecker):
     """HTTP"""
+
     IPV6_SUPPORT = True
     DESCRIPTION = "HTTP"
     OPTARGS = (
@@ -75,15 +76,16 @@ class HttpChecker(AbstractChecker):
             if '?' in url:
                 path = path + '?' + query
             i.putrequest('GET', path)
-            i.putheader('User-Agent',
-                        'NAV/servicemon; version %s' % buildconf.VERSION)
+            i.putheader('User-Agent', 'NAV/servicemon; version %s' % buildconf.VERSION)
             if username:
                 auth = "{}:{}".format(username, password).encode("utf-8")
                 auth = base64.b64encode(auth).decode("utf-8")
                 i.putheader("Authorization", "Basic {}".format(auth))
             i.endheaders()
             response = i.getresponse()
-            if 200 <= response.status < 400 or (response.status == 401 and not username):
+            if 200 <= response.status < 400 or (
+                response.status == 401 and not username
+            ):
                 status = Event.UP
                 version = response.getheader('SERVER')
                 self.version = version

@@ -59,8 +59,7 @@ class Dispatcher(object):
     def get_message(self, alert, language, message_type):
         """Gets the message to be sent"""
         try:
-            return alert.messages.get(language=language,
-                                      type=message_type).message
+            return alert.messages.get(language=language, type=message_type).message
         except AlertQueueMessage.DoesNotExist:
             return self.get_fallback_message(alert, language, message_type)
 
@@ -80,8 +79,7 @@ class Dispatcher(object):
             if messages:
                 return messages[-1].message
 
-        return "%s: No '%s' message for %d" % (alert.netbox, message_type,
-                                               alert.id)
+        return "%s: No '%s' message for %d" % (alert.netbox, message_type, alert.id)
 
     @staticmethod
     def is_valid_address(address):
@@ -92,12 +90,14 @@ class Dispatcher(object):
 class DispatcherException(Exception):
     """Raised when alert could not be sent temporarily and sending should be
     retried """
+
     pass
 
 
 class FatalDispatcherException(DispatcherException):
     """Raised when alert could not be sent and further attempts at sending
     should be ditched """
+
     pass
 
 

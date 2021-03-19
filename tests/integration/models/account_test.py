@@ -3,7 +3,6 @@ from nav.models.profiles import Account
 
 
 class AccountTest(unittest.TestCase):
-
     def setUp(self):
         self.admin_user = Account.objects.get(pk=Account.ADMIN_ACCOUNT)
         self.default_user = Account.objects.get(pk=Account.DEFAULT_ACCOUNT)

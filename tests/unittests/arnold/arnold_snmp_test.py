@@ -44,7 +44,8 @@ class TestArnoldSnmp(unittest.TestCase):
 
         snmp.assert_called_once_with(self.ip, self.read_write, version=1)
         instance.set.assert_called_once_with(
-            self.port_status_oid + '.' + str(self.ifindex), 'i', 1)
+            self.port_status_oid + '.' + str(self.ifindex), 'i', 1
+        )
 
     def test_change_port_status_disable(self, snmp):
         """Test disabling of a port"""
@@ -55,4 +56,5 @@ class TestArnoldSnmp(unittest.TestCase):
 
         snmp.assert_called_once_with(self.ip, self.read_write, version=1)
         instance.set.assert_called_once_with(
-            self.port_status_oid + '.' + str(self.ifindex), 'i', 2)
+            self.port_status_oid + '.' + str(self.ifindex), 'i', 2
+        )

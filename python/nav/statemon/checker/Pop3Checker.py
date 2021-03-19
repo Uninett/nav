@@ -23,6 +23,7 @@ from nav.statemon.event import Event
 
 class Pop3Checker(AbstractChecker):
     """Post office protocol"""
+
     IPV6_SUPPORT = True
     DESCRIPTION = "Post office protocol"
     ARGS = (
@@ -65,6 +66,7 @@ class Pop3Checker(AbstractChecker):
 
 class PopConnection(poplib.POP3):
     """Customized POP3 protocol interface"""
+
     # pylint: disable=W0231
     def __init__(self, timeout, ip, port):
         self.ip = ip

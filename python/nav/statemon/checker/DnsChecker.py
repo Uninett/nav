@@ -27,11 +27,10 @@ from nav.statemon.event import Event
 
 class DnsChecker(AbstractChecker):
     """Domain Name Service"""
+
     IPV6_SUPPORT = True
     DESCRIPTION = "Domain Name Service"
-    ARGS = (
-        ('request', ''),
-    )
+    ARGS = (('request', ''),)
     OPTARGS = (
         ('port', ''),
         ('timeout', ''),
@@ -71,11 +70,11 @@ class DnsChecker(AbstractChecker):
             # servers. We just put a exception handler around it, and ignore
             # the resulting timeout.
             try:
-                query = dns.message.make_query("version.bind", rdclass="CH",
-                                               rdtype='txt')
+                query = dns.message.make_query(
+                    "version.bind", rdclass="CH", rdtype='txt'
+                )
                 response = dns.query.udp(query, ip, timeout=self.timeout)
-                if (response.rcode() == dns.rcode.NOERROR and
-                        len(response.answer) > 1):
+                if response.rcode() == dns.rcode.NOERROR and len(response.answer) > 1:
                     self.version = response.answer[0][0]
             except dns.exception.Timeout:
                 pass

@@ -80,11 +80,16 @@ class HttpGetDispatcher(Dispatcher):
             urlopen(url)
             result = True
         except HTTPError as ex:
-            self.logger.error('HTTP error: <%s>: %s (%s).' %
-                              (ex.url, ex.msg, ex.code))
+            self.logger.error('HTTP error: <%s>: %s (%s).' % (ex.url, ex.msg, ex.code))
             result = False
 
         smsid = 0
-        self.logger.debug('HttpGetDispatcher response: %s, %s, %s, %s, %s',
-                          sms, sent, ignored, result, smsid)
+        self.logger.debug(
+            'HttpGetDispatcher response: %s, %s, %s, %s, %s',
+            sms,
+            sent,
+            ignored,
+            result,
+            smsid,
+        )
         return (sms, sent, ignored, result, smsid)

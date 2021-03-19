@@ -25,7 +25,7 @@ class SnmpAgentStateHandler(DelayedStateHandler):
 
     HAS_WARNING_ALERT = False
     ALERT_WAIT_TIME = 'snmpAgentDown.alert'
-    handled_types = ('snmpAgentState', )
+    handled_types = ('snmpAgentState',)
 
     def get_target(self):
         return self.event.netbox
@@ -41,13 +41,13 @@ class SnmpAgentStateHandler(DelayedStateHandler):
             alert.alert_type = 'snmpAgentDown'
             return alert
         else:
-            self._logger.info("%s has gone down in the meantime, "
-                              "not posting snmpAgentDown alert",
-                              self.get_target())
+            self._logger.info(
+                "%s has gone down in the meantime, " "not posting snmpAgentDown alert",
+                self.get_target(),
+            )
 
     def _is_netbox_currently_up(self):
-        row = Netbox.objects.filter(
-            id=self.get_target().id).values_list('up')[0]
+        row = Netbox.objects.filter(id=self.get_target().id).values_list('up')[0]
         return row[0] == Netbox.UP_UP
 
     def _post_down_warning(self):

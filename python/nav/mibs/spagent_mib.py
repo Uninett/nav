@@ -79,6 +79,7 @@ SENSOR_TABLES = {
 
 class SPAgentMib(MibRetriever):
     """SPAGENT-MIB MibRetriever"""
+
     mib = get_mib('SPAGENT-MIB')
 
     @defer.inlineCallbacks
@@ -101,11 +102,15 @@ class SPAgentMib(MibRetriever):
         if 'unit' in config:
             columns.append(config['unit'])
 
-        result = yield self.retrieve_columns(columns).addCallback(
-            self.translate_result).addCallback(reduce_index)
+        result = (
+            yield self.retrieve_columns(columns)
+            .addCallback(self.translate_result)
+            .addCallback(reduce_index)
+        )
 
-        sensors = (self._row_to_sensor(config, index, row)
-                   for index, row in iteritems(result))
+        sensors = (
+            self._row_to_sensor(config, index, row) for index, row in iteritems(result)
+        )
 
         defer.returnValue([s for s in sensors if s])
 

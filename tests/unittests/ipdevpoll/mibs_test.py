@@ -77,28 +77,77 @@ class TestIpMib(object):
 
     def test_ipv4_prefix_rowpointer_should_be_parsed_correctly(self):
         rowpointer = self._ipAddressPrefixEntry + (
-            5, 439541760, 1, 4, 192, 168, 70, 0, 24)
+            5,
+            439541760,
+            1,
+            4,
+            192,
+            168,
+            70,
+            0,
+            24,
+        )
         expected = IP('192.168.70/24')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
         assert prefix == expected
 
     def test_ipv6_prefix_rowpointer_should_be_parsed_correctly(self):
         rowpointer = self._ipAddressPrefixEntry + (
-            5, 11, 2, 16, 32, 1, 7, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64)
+            5,
+            11,
+            2,
+            16,
+            32,
+            1,
+            7,
+            0,
+            0,
+            0,
+            5,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            64,
+        )
         expected = IP('2001:700:0:500::/64')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
         assert prefix == expected
 
     def test_nxos_ipv4_prefix_rowpointer_should_be_parsed_correctly(self):
-        rowpointer = self._ipAddressPrefixEntry + (
-            439541760, 1, 4, 192, 168, 70, 0, 24)
+        rowpointer = self._ipAddressPrefixEntry + (439541760, 1, 4, 192, 168, 70, 0, 24)
         expected = IP('192.168.70/24')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
         assert prefix == expected
 
     def test_nxos_ipv6_prefix_rowpointer_should_be_parsed_correctly(self):
         rowpointer = self._ipAddressPrefixEntry + (
-            11, 2, 16, 32, 1, 7, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64)
+            11,
+            2,
+            16,
+            32,
+            1,
+            7,
+            0,
+            0,
+            0,
+            5,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            64,
+        )
         expected = IP('2001:700:0:500::/64')
         prefix = IpMib.prefix_index_to_ip(rowpointer)
         assert prefix == expected
@@ -118,10 +167,14 @@ class TestEntityMib(object):
 
         def mock_retrieve(columns):
             return defer.succeed(
-                {1: {'entLogicalDescr': None,
-                     'entLogicalType': None,
-                     'entLogicalCommunity': None}}
-                )
+                {
+                    1: {
+                        'entLogicalDescr': None,
+                        'entLogicalType': None,
+                        'entLogicalCommunity': None,
+                    }
+                }
+            )
 
         mib.retrieve_columns = mock_retrieve
         df = mib.retrieve_alternate_bridge_mibs()
@@ -202,10 +255,9 @@ class TestCiscoHSRPMib(object):
     def test_virtual_address_map(self):
         class MockedMib(CiscoHSRPMib):
             def retrieve_column(self, column):
-                return defer.succeed({
-                    OID('.153.1'): '10.0.1.1',
-                    OID('.155.1'): '10.0.42.1',
-                    })
+                return defer.succeed(
+                    {OID('.153.1'): '10.0.1.1', OID('.155.1'): '10.0.42.1',}
+                )
 
         mib = MockedMib(None)
         df = mib.get_virtual_addresses()
@@ -242,9 +294,10 @@ def is_col_of(mib, col, table):
     return mib['nodes'][table]['oid'].is_a_prefix_of(mib['nodes'][col]['oid'])
 
 
-@pytest.mark.parametrize('cls', [itw_mib.ItWatchDogsMib,
-                                 itw_mibv3.ItWatchDogsMibV3,
-                                 itw_mibv4.ItWatchDogsMibV4])
+@pytest.mark.parametrize(
+    'cls',
+    [itw_mib.ItWatchDogsMib, itw_mibv3.ItWatchDogsMibV3, itw_mibv4.ItWatchDogsMibV4],
+)
 def test_itw_tables(cls):
     mib = cls.mib
     for table, groups in cls.TABLES.items():

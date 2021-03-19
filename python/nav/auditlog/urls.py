@@ -21,6 +21,9 @@ from .views import AuditlogOverview, AuditlogNetboxDetail
 
 urlpatterns = [
     url(r'^$', AuditlogOverview.as_view(), name='auditlog-home'),
-    url(r'^netbox/(?P<netboxid>\d+)$', AuditlogNetboxDetail.as_view(),
-        name='auditlog-netbox-detail'),
+    url(
+        r'^netbox/(?P<netboxid>\d+)$',
+        AuditlogNetboxDetail.as_view(),
+        name='auditlog-netbox-detail',
+    ),
 ]

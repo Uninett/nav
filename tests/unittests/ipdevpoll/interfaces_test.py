@@ -17,10 +17,17 @@ class EncodingTests(TestCase):
             'ifDescr': 'GigabitEthernet0/1',
             'ifName': 'Gi0/1',
             'ifAlias': 'The Larch',
-            }
-        required_keys = ('ifType', 'ifSpeed', 'ifSpeed', 'ifHighSpeed',
-                         'ifAdminStatus', 'ifOperStatus', 'ifPhysAddress',
-                         'ifConnectorPresent')
+        }
+        required_keys = (
+            'ifType',
+            'ifSpeed',
+            'ifSpeed',
+            'ifHighSpeed',
+            'ifAdminStatus',
+            'ifOperStatus',
+            'ifPhysAddress',
+            'ifConnectorPresent',
+        )
         for k in required_keys:
             row[k] = None
 

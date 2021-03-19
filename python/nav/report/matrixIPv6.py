@@ -38,8 +38,7 @@ class MatrixIPv6(Matrix):
     def build(self):
         nets = IPtools.sort_nets_by_address(self.tree_nets.keys())
         self.nodes = [
-            self.Node(net, self._write_subnets(self.tree_nets[net]))
-            for net in nets
+            self.Node(net, self._write_subnets(self.tree_nets[net])) for net in nets
         ]
 
     def _write_subnets(self, net):

@@ -35,7 +35,7 @@ from nav.web.auth import sudo
 from nav.web.useradmin import forms
 
 
-DEFAULT_NAVPATH = {'navpath': [('Home', '/'), ('User Administration', )]}
+DEFAULT_NAVPATH = {'navpath': [('Home', '/'), ('User Administration',)]}
 
 
 def account_list(request):
@@ -44,7 +44,7 @@ def account_list(request):
     context = {
         'active': {'account_list': 1},
         'accounts': accounts,
-        'auditlog_api_parameters': {'object_model': 'account'}
+        'auditlog_api_parameters': {'object_model': 'account'},
     }
     context.update(DEFAULT_NAVPATH)
     return render(request, 'useradmin/account_list.html', context)
@@ -154,7 +154,8 @@ def save_account(request, account_form, old_account):
     should_set_password = (
         'password1' in account_form.cleaned_data
         and account_form.cleaned_data['password1']
-        and not account.ext_sync)
+        and not account.ext_sync
+    )
 
     if should_set_password:
         account.set_password(account_form.cleaned_data['password1'])
@@ -163,8 +164,7 @@ def save_account(request, account_form, old_account):
     log_account_change(request.account, old_account, account)
 
     messages.success(request, '"%s" has been saved.' % (account))
-    return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                        args=[account.id]))
+    return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
 
 def save_account_org(request, account, org_form):
@@ -173,17 +173,17 @@ def save_account_org(request, account, org_form):
 
     try:
         account.organizations.get(id=organization.id)
-        messages.warning(request,
-                         'Organization was not added as it has '
-                         'already been added.')
+        messages.warning(
+            request, 'Organization was not added as it has ' 'already been added.'
+        )
     except Organization.DoesNotExist:
         account.organizations.add(organization)
         log_add_account_to_org(request, organization, account)
-        messages.success(request, 'Added organization "%s" to account "%s"' %
-                         (organization, account))
+        messages.success(
+            request, 'Added organization "%s" to account "%s"' % (organization, account)
+        )
 
-    return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                        args=[account.id]))
+    return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
 
 def save_account_group(request, account, group_form):
@@ -191,26 +191,23 @@ def save_account_group(request, account, group_form):
     group = group_form.cleaned_data['group']
 
     special_case = (
-        (group.is_admin_group() or group.is_protected_group())
-        and account.is_default_account())
+        group.is_admin_group() or group.is_protected_group()
+    ) and account.is_default_account()
 
     if special_case:
-        messages.error(
-            request, 'Default user may not be added to "%s" group.' % group)
+        messages.error(request, 'Default user may not be added to "%s" group.' % group)
     else:
         try:
             account.accountgroup_set.get(id=group.id)
-            messages.warning(request,
-                             'Group was not added as it has already '
-                             'been added.')
+            messages.warning(
+                request, 'Group was not added as it has already ' 'been added.'
+            )
         except AccountGroup.DoesNotExist:
             account.accountgroup_set.add(group)
-            messages.success(
-                request, 'Added "%s" to group "%s"' % (account, group))
+            messages.success(request, 'Added "%s" to group "%s"' % (account, group))
             log_add_account_to_group(request, group, account)
 
-    return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                        args=[account.id]))
+    return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
 
 
 def sudo_to_user(request):
@@ -234,17 +231,19 @@ def account_delete(request, account_id):
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     if account.is_system_account():
-        messages.error(request,
-                       'Account %s can not be deleted as it is a system '
-                       'account.' % (account.name))
-        return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                            args=[account.id]))
+        messages.error(
+            request,
+            'Account %s can not be deleted as it is a system '
+            'account.' % (account.name),
+        )
+        return HttpResponseRedirect(
+            reverse('useradmin-account_detail', args=[account.id])
+        )
 
     if request.method == 'POST':
         account.delete()
         LogEntry.add_delete_entry(request.account, account)
-        messages.success(request,
-                         'Account %s has been deleted.' % (account.name))
+        messages.success(request, 'Account %s has been deleted.' % (account.name))
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     context = {
@@ -268,27 +267,34 @@ def account_organization_remove(request, account_id, org_id):
     try:
         organization = account.organizations.get(id=org_id)
     except Organization.DoesNotExist:
-        messages.error(request,
-                       'Organization %s does not exist or it is not associated '
-                       'with %s.' % (org_id, account))
-        return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                            args=[account.id]))
+        messages.error(
+            request,
+            'Organization %s does not exist or it is not associated '
+            'with %s.' % (org_id, account),
+        )
+        return HttpResponseRedirect(
+            reverse('useradmin-account_detail', args=[account.id])
+        )
 
     if request.method == 'POST':
         account.organizations.remove(organization)
-        messages.success(request,
-                         'Organization %s has been removed from account %s.' %
-                         (organization, account))
+        messages.success(
+            request,
+            'Organization %s has been removed from account %s.'
+            % (organization, account),
+        )
 
         LogEntry.add_log_entry(
             request.account,
             u'edit-account-remove-org',
             u'{actor} removed user {object} from organization {target}',
             target=organization,
-            object=account)
+            object=account,
+        )
 
-        return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                            args=[account.id]))
+        return HttpResponseRedirect(
+            reverse('useradmin-account_detail', args=[account.id])
+        )
 
     context = {
         'name': 'in %s from %s' % (organization, account),
@@ -324,33 +330,36 @@ def account_group_remove(request, account_id, group_id, caller='account'):
     try:
         group = account.accountgroup_set.get(id=group_id)
     except AccountGroup.DoesNotExist:
-        messages.warning(request,
-                         'Group %s does not exist or it is not '
-                         'associated with %s.' % (group_id, account))
+        messages.warning(
+            request,
+            'Group %s does not exist or it is not '
+            'associated with %s.' % (group_id, account),
+        )
         return detail_redirect
 
     if group.is_protected_group():
-        messages.error(request,
-                       '%s can not be removed from %s as it is a '
-                       'protected group.' % (account, group))
+        messages.error(
+            request,
+            '%s can not be removed from %s as it is a '
+            'protected group.' % (account, group),
+        )
         return detail_redirect
 
     if group.is_admin_group() and account.is_admin_account():
-        messages.error(
-            request, '%s can not be removed from %s.' % (account, group))
+        messages.error(request, '%s can not be removed from %s.' % (account, group))
         return detail_redirect
 
     if request.method == 'POST':
         account.accountgroup_set.remove(group)
-        messages.success(
-            request, '%s has been removed from %s.' % (account, group))
+        messages.success(request, '%s has been removed from %s.' % (account, group))
 
         LogEntry.add_log_entry(
             request.account,
             u'edit-account-remove-group',
             u'{actor} removed user {object} from group {target}',
             target=group,
-            object=account)
+            object=account,
+        )
 
         return detail_redirect
 
@@ -395,8 +404,9 @@ def group_detail(request, group_id=None):
                 group = group_form.save()
 
                 messages.success(request, '"%s" has been saved.' % (group))
-                return HttpResponseRedirect(reverse('useradmin-group_detail',
-                                                    args=[group.id]))
+                return HttpResponseRedirect(
+                    reverse('useradmin-group_detail', args=[group.id])
+                )
 
         elif 'submit_privilege' in request.POST:
             privilege_form = forms.PrivilegeForm(request.POST)
@@ -407,15 +417,16 @@ def group_detail(request, group_id=None):
 
                 try:
                     group.privilege_set.get(type=message_type, target=target)
-                    messages.warning(request,
-                                     'Privilege was not added as it '
-                                     'already exists.')
+                    messages.warning(
+                        request, 'Privilege was not added as it ' 'already exists.'
+                    )
                 except Privilege.DoesNotExist:
                     group.privilege_set.create(type=message_type, target=target)
                     messages.success(request, 'Privilege has been added.')
 
-                return HttpResponseRedirect(reverse('useradmin-group_detail',
-                                                    args=[group.id]))
+                return HttpResponseRedirect(
+                    reverse('useradmin-group_detail', args=[group.id])
+                )
         elif 'submit_account' in request.POST:
             account_form = forms.AccountAddForm(group, request.POST)
 
@@ -423,26 +434,28 @@ def group_detail(request, group_id=None):
                 try:
                     account = account_form.cleaned_data['account']
                     group.accounts.get(login=account.login)
-                    messages.warning(request,
-                                     'Account %s was not added as it is '
-                                     'already a member of the group.' % account)
+                    messages.warning(
+                        request,
+                        'Account %s was not added as it is '
+                        'already a member of the group.' % account,
+                    )
                 except Account.DoesNotExist:
                     group.accounts.add(account)
                     log_add_account_to_group(request, group, account)
-                    messages.success(request,
-                                     'Account %s has been added.' % account)
+                    messages.success(request, 'Account %s has been added.' % account)
 
-                return HttpResponseRedirect(reverse('useradmin-group_detail',
-                                                    args=[group.id]))
+                return HttpResponseRedirect(
+                    reverse('useradmin-group_detail', args=[group.id])
+                )
 
     active = {'group_detail': True} if group else {'group_new': True}
 
     context = {
-            'active': active,
-            'group': group,
-            'group_form': group_form,
-            'account_form': account_form,
-            'privilege_form': privilege_form,
+        'active': active,
+        'group': group,
+        'group_form': group_form,
+        'account_form': account_form,
+        'privilege_form': privilege_form,
     }
     context.update(DEFAULT_NAVPATH)
     return render(request, 'useradmin/group_detail.html', context)
@@ -457,11 +470,10 @@ def group_delete(request, group_id):
         return HttpResponseRedirect(reverse('useradmin-group_list'))
 
     if group.is_system_group():
-        messages.error(request,
-                       'Group %s is a system group and can not be '
-                       'deleted.' % (group))
-        return HttpResponseRedirect(reverse('useradmin-group_detail',
-                                            args=[group.id]))
+        messages.error(
+            request, 'Group %s is a system group and can not be ' 'deleted.' % (group)
+        )
+        return HttpResponseRedirect(reverse('useradmin-group_detail', args=[group.id]))
 
     if request.method == 'POST':
         group.delete()
@@ -494,19 +506,21 @@ def group_privilege_remove(request, group_id, privilege_id):
     try:
         privilege = group.privilege_set.get(id=privilege_id)
     except Privilege.DoesNotExist:
-        messages.warning(request,
-                         'Privilege %s does not exist or it is not associated '
-                         'with %s.' % (privilege_id, group))
-        return HttpResponseRedirect(reverse('useradmin-account_detail',
-                                            args=[request.account.id]))
+        messages.warning(
+            request,
+            'Privilege %s does not exist or it is not associated '
+            'with %s.' % (privilege_id, group),
+        )
+        return HttpResponseRedirect(
+            reverse('useradmin-account_detail', args=[request.account.id])
+        )
 
     if request.method == 'POST':
         privilege.delete()
-        messages.success(request,
-                         'Privilege %s has been removed from group %s.' %
-                         (privilege, group))
-        return HttpResponseRedirect(reverse('useradmin-group_detail',
-                                            args=[group.id]))
+        messages.success(
+            request, 'Privilege %s has been removed from group %s.' % (privilege, group)
+        )
+        return HttpResponseRedirect(reverse('useradmin-group_detail', args=[group.id]))
 
     context = {
         'name': '%s from %s' % (privilege, group),
@@ -520,6 +534,7 @@ def group_privilege_remove(request, group_id, privilege_id):
 
 # The Django generic views are heavy on mixins - disable warning about ancestors
 # pylint: disable=too-many-ancestors
+
 
 class NavPathMixin(object):
     def get_context_data(self, **kwargs):
@@ -566,8 +581,11 @@ class TokenEdit(NavPathMixin, generic.UpdateView):
         response = super(TokenEdit, self).post(request, *args, **kwargs)
         messages.success(request, 'Token saved')
         LogEntry.compare_objects(
-            request.account, old_object, self.get_object(),
-            ['expires', 'permission', 'endpoints', 'comment'])
+            request.account,
+            old_object,
+            self.get_object(),
+            ['expires', 'permission', 'endpoints', 'comment'],
+        )
         return response
 
 
@@ -581,8 +599,7 @@ class TokenDelete(generic.DeleteView):
 
     def delete(self, request, *args, **kwargs):
         old_object = copy.deepcopy(self.get_object())
-        response = super(TokenDelete, self).delete(
-            self, request, *args, **kwargs)
+        response = super(TokenDelete, self).delete(self, request, *args, **kwargs)
         messages.success(request, 'Token deleted')
         LogEntry.add_delete_entry(request.account, old_object)
         return response
@@ -607,8 +624,11 @@ def token_expire(request, pk):
     token.save()
 
     LogEntry.add_log_entry(
-        request.account, 'edit-apitoken-expiry',
-        '{actor} expired {object}', object=token)
+        request.account,
+        'edit-apitoken-expiry',
+        '{actor} expired {object}',
+        object=token,
+    )
     messages.success(request, 'Token has been manually expired')
     return redirect(token)
 
@@ -620,8 +640,9 @@ def log_account_change(actor, old, new):
         return
 
     attribute_list = ['login', 'name', 'password', 'ext_sync']
-    LogEntry.compare_objects(actor, old, new, attribute_list,
-                             censored_attributes=['password'])
+    LogEntry.compare_objects(
+        actor, old, new, attribute_list, censored_attributes=['password']
+    )
 
 
 def log_add_account_to_group(request, group, account):
@@ -630,7 +651,8 @@ def log_add_account_to_group(request, group, account):
         u'edit-account-add-group',
         u'{actor} added user {object} to group {target}',
         target=group,
-        object=account)
+        object=account,
+    )
 
 
 def log_add_account_to_org(request, organization, account):
@@ -639,4 +661,5 @@ def log_add_account_to_org(request, organization, account):
         u'edit-account-add-org',
         u'{actor} added user {object} to organization {target}',
         target=organization,
-        object=account)
+        object=account,
+    )

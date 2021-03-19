@@ -25,8 +25,7 @@ from nav.web.message import Messages
 from nav.web.seeddb.forms.bulk import BulkImportForm
 
 
-def render_bulkimport(request, parser_cls, importer_cls, redirect,
-                      extra_context=None):
+def render_bulkimport(request, parser_cls, importer_cls, redirect, extra_context=None):
     """Renders the bulkimport interface"""
     extra_context = extra_context or {}
     processed = []

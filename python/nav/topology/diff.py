@@ -20,8 +20,11 @@ from __future__ import absolute_import
 
 from nav.models.manage import Interface
 
-from .analyze import (AdjacencyReducer, build_candidate_graph_from_db,
-                      get_aggregate_mapping)
+from .analyze import (
+    AdjacencyReducer,
+    build_candidate_graph_from_db,
+    get_aggregate_mapping,
+)
 from .analyze import Box, Port
 
 
@@ -37,8 +40,7 @@ def printdiffs():
 
     connections = reducer.get_single_edges_from_ports()
 
-    ifcs = Interface.objects.select_related(
-        'netbox', 'to_netbox', 'to_interface')
+    ifcs = Interface.objects.select_related('netbox', 'to_netbox', 'to_interface')
 
     saved_links = ifcs.filter(to_netbox__isnull=False)
     saved_links = dict((l.id, l) for l in saved_links)
@@ -63,35 +65,48 @@ def printdiffs():
             diff = False
             if isinstance(found_link, Box) and port.to_netbox.id != found_link:
                 diff = True
-            elif (isinstance(found_link, Port) and
-                  (port.to_netbox.id != found_link[0] or
-                   not port.to_interface or
-                   port.to_interface.id != found_link[1])):
+            elif isinstance(found_link, Port) and (
+                port.to_netbox.id != found_link[0]
+                or not port.to_interface
+                or port.to_interface.id != found_link[1]
+            ):
                 diff = True
             if diff:
                 output.append(
-                    "%s (%s): %s%s -> %s" %
-                    (port.netbox.sysname, port.ifname,
-                     port.to_netbox.sysname,
-                     ((" (%s)" % port.to_interface.ifname) if port.to_interface
-                      else ''),
-                     found_link))
+                    "%s (%s): %s%s -> %s"
+                    % (
+                        port.netbox.sysname,
+                        port.ifname,
+                        port.to_netbox.sysname,
+                        (
+                            (" (%s)" % port.to_interface.ifname)
+                            if port.to_interface
+                            else ''
+                        ),
+                        found_link,
+                    )
+                )
 
         elif port_id in new_links:
             port = new_links[port_id]
             found_link = found_links[port_id]
 
-            output.append("%s (%s): no link -> %s" %
-                          (port.netbox.sysname, port.ifname, found_link))
+            output.append(
+                "%s (%s): no link -> %s"
+                % (port.netbox.sysname, port.ifname, found_link)
+            )
 
         elif port_id in saved_links and port_id not in found_links:
             port = saved_links[port_id]
             output.append(
-                "%s (%s): %s%s -> no link" %
-                (port.netbox.sysname, port.ifname,
-                 port.to_netbox.sysname,
-                 ((" (%s)" % port.to_interface.ifname) if port.to_interface
-                  else '')))
+                "%s (%s): %s%s -> no link"
+                % (
+                    port.netbox.sysname,
+                    port.ifname,
+                    port.to_netbox.sysname,
+                    ((" (%s)" % port.to_interface.ifname) if port.to_interface else ''),
+                )
+            )
 
     output.sort()
     print('\n'.join(output))

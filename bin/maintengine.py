@@ -25,6 +25,7 @@ import time
 import logging
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.logs import init_generic_logging
@@ -39,20 +40,17 @@ def main():
     before = time.time()
     fmt = logging.Formatter(LOG_FORMAT)
     init_generic_logging(
-        logfile=LOG_FILE,
-        stderr=False,
-        formatter=fmt,
-        read_config=True,
+        logfile=LOG_FILE, stderr=False, formatter=fmt, read_config=True,
     )
     _logger = logging.getLogger('')
 
-    _logger.debug('-'*60)  # Visual separation line
+    _logger.debug('-' * 60)  # Visual separation line
     try:
         check_devices_on_maintenance()
     except Exception:
         _logger.exception("An unhandled exception occurred:")
     _logger.debug('Finished in %.3fs' % (time.time() - before))
-    _logger.debug('-'*60)  # Visual separation line
+    _logger.debug('-' * 60)  # Visual separation line
 
 
 if __name__ == '__main__':

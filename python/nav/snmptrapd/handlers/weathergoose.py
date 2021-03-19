@@ -45,16 +45,22 @@ class WeatherGoose1(object):
         'cmClimateAirflowTRAP': 'weathergoose_airflow',
         'cmClimateLightTRAP': 'weathergoose_light',
         'cmClimateSoundTRAP': 'weathergoose_sound',
-        }
+    }
     CLEARTRAPS = {
         'cmClimateTempCCLEAR': 'weathergoose_temperature',
         'cmClimateHumidityCLEAR': 'weathergoose_humidity',
         'cmClimateAirflowCLEAR': 'weathergoose_airflow',
         'cmClimateLightCLEAR': 'weathergoose_light',
         'cmClimateSoundCLEAR': 'weathergoose_sound',
-        }
-    CLIMATEOIDS = ['climateTempC', 'climateHumidity', 'climateAirflow',
-                   'climateLight', 'climateSound', 'tempSensorTempC']
+    }
+    CLIMATEOIDS = [
+        'climateTempC',
+        'climateHumidity',
+        'climateAirflow',
+        'climateLight',
+        'climateSound',
+        'tempSensorTempC',
+    ]
     SENSORNAMES = ['climateName']
     TRIPTYPES = {0: 'None', 1: 'Low', 2: 'High', 3: 'Unplugged'}
 
@@ -64,8 +70,7 @@ class WeatherGoose1(object):
 
     @classmethod
     def map_oid_to_trigger(cls, oid):
-        for trigger in itertools.chain(cls.TRIGGERTRAPS.keys(),
-                                       cls.CLEARTRAPS.keys()):
+        for trigger in itertools.chain(cls.TRIGGERTRAPS.keys(), cls.CLEARTRAPS.keys()):
             if oid == str(cls.TRAPS[trigger]['oid']):
                 return trigger
 
@@ -88,8 +93,7 @@ class WeatherGoose1(object):
 
         self.goosename = self.trap.varbinds.get(self.GOOSENAME, 'N/A')
 
-        self.triptype = self.TRIPTYPES.get(self.trap.varbinds[self.TRIPTYPE],
-                                           'N/A')
+        self.triptype = self.TRIPTYPES.get(self.trap.varbinds[self.TRIPTYPE], 'N/A')
 
         self.climatevalue, self.climatedescr = self._get_trigger_values()
 
@@ -103,17 +107,19 @@ class WeatherGoose1(object):
             # table has only one row
             possiblekey = str(self.NODES[c]['oid'] + '.1')
             if possiblekey in self.trap.varbinds:
-                return (self.trap.varbinds[possiblekey],
-                        self.NODES[c]['description'])
+                return (self.trap.varbinds[possiblekey], self.NODES[c]['description'])
         return (None, None)
 
     def post_event(self):
         # Create and populate event
-        e = nav.event.Event(source="snmptrapd", target="eventEngine",
-                            netboxid=self.netboxid,
-                            eventtypeid=self._get_event_type(),
-                            subid=self._get_subid(),
-                            state=self._get_event_state())
+        e = nav.event.Event(
+            source="snmptrapd",
+            target="eventEngine",
+            netboxid=self.netboxid,
+            eventtypeid=self._get_event_type(),
+            subid=self._get_subid(),
+            state=self._get_event_state(),
+        )
         e['alerttype'] = self._get_alert_type()
         e['triptype'] = self.triptype
         e['climatedescr'] = self.climatedescr
@@ -181,11 +187,12 @@ class WeatherGoose2(WeatherGoose1):
         'cmClimateLightNOTIFY': 'weathergoose_light',
         'cmClimateSoundNOTIFY': 'weathergoose_sound',
         'cmTempSensorTempCNOTIFY': 'weathergoose_temperature',
-        }
+    }
 
     CLEARTRAPS = WeatherGoose1.CLEARTRAPS.copy()
-    CLEARTRAPS.update({'cmTempSensorTempCCLEAR':
-                       'weathergoose_temperature', })
+    CLEARTRAPS.update(
+        {'cmTempSensorTempCCLEAR': 'weathergoose_temperature',}
+    )
 
 
 # IT Watchdogs -> Geist transition pattern
@@ -194,6 +201,7 @@ _geistpattern = re.compile("^cm")
 
 class GeistWeatherGoose(WeatherGoose2):
     """The rebranded MIB after IT Watchdogs merged with Geist"""
+
     MIB = get_mib('GEIST-MIB-V3')
 
     # Define supported traps and relations

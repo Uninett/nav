@@ -165,6 +165,7 @@ class Navlet(TemplateView):
 
 def list_navlets():
     """All Navlets that should be listed to the user"""
+
     def should_be_listed(navlet):
         """
         Returns if this widget should be listed to the user as a potential
@@ -190,8 +191,7 @@ def get_navlet_from_name(navletmodule):
     """Returns the correct class based on the modulestring"""
     lastmod, clsname = navletmodule.split('.')[-2:]
     try:
-        module = __import__(navletmodule[:navletmodule.rfind('.')],
-                            fromlist=[lastmod])
+        module = __import__(navletmodule[: navletmodule.rfind('.')], fromlist=[lastmod])
         cls = getattr(module, clsname)
     except (AttributeError, ImportError):
         _logger.error('Could not import %s', navletmodule)
@@ -224,14 +224,17 @@ def create_navlet_object(usernavlet):
     image_reload = navlet_class.image_reload
     ajax_reload = navlet_class.ajax_reload
 
-    return {'id': usernavlet.id, 'url': url,
-            'column': usernavlet.column,
-            'preferences': usernavlet.preferences,
-            'highlight': highlight,
-            'navlet_class': navlet_module.split('.')[-1],
-            'image_reload': image_reload,
-            'ajax_reload': ajax_reload,
-            'is_title_editable': is_title_editable}
+    return {
+        'id': usernavlet.id,
+        'url': url,
+        'column': usernavlet.column,
+        'preferences': usernavlet.preferences,
+        'highlight': highlight,
+        'navlet_class': navlet_module.split('.')[-1],
+        'image_reload': image_reload,
+        'ajax_reload': ajax_reload,
+        'is_title_editable': is_title_editable,
+    }
 
 
 def dispatcher(request, navlet_id):
@@ -242,19 +245,21 @@ def dispatcher(request, navlet_id):
     """
     account = request.account
     try:
-        account_navlet = AccountNavlet.objects.get(
-            account=account, pk=navlet_id)
+        account_navlet = AccountNavlet.objects.get(account=account, pk=navlet_id)
     except AccountNavlet.DoesNotExist as error:
-        _logger.error('%s tried to fetch widget with id %s: %s',
-                      account, navlet_id, error)
+        _logger.error(
+            '%s tried to fetch widget with id %s: %s', account, navlet_id, error
+        )
         return HttpResponse(status=404)
     else:
         cls = get_navlet_from_name(account_navlet.navlet)
         if not cls:
             cls = get_navlet_from_name(ERROR_WIDGET)
-        view = cls.as_view(preferences=account_navlet.preferences,
-                           navlet_id=navlet_id,
-                           account_navlet=account_navlet)
+        view = cls.as_view(
+            preferences=account_navlet.preferences,
+            navlet_id=navlet_id,
+            account_navlet=account_navlet,
+        )
         return view(request)
 
 
@@ -277,15 +282,14 @@ def add_navlet(account, navlet, preferences=None, dashboard=None):
     if preferences is None:
         preferences = {}
     if dashboard is None:
-        dashboard = AccountDashboard.objects.get(account=account,
-                                                 is_default=True)
+        dashboard = AccountDashboard.objects.get(account=account, is_default=True)
 
-    accountnavlet = AccountNavlet(account=account, navlet=navlet,
-                                  dashboard=dashboard)
+    accountnavlet = AccountNavlet(account=account, navlet=navlet, dashboard=dashboard)
     accountnavlet.column, accountnavlet.order = find_new_placement()
 
-    accountnavlet.preferences = get_default_preferences(
-        get_navlet_from_name(navlet)) or {}
+    accountnavlet.preferences = (
+        get_default_preferences(get_navlet_from_name(navlet)) or {}
+    )
     accountnavlet.preferences.update(preferences)
 
     accountnavlet.save()
@@ -337,8 +341,7 @@ def remove_user_navlet(request):
     """Remove a navlet-subscription from this user"""
     if request.method == 'POST' and 'navletid' in request.POST:
         account = get_account(request)
-        return modify_navlet(remove_navlet, account, request,
-                             "Error removing Navlet")
+        return modify_navlet(remove_navlet, account, request, "Error removing Navlet")
 
     return HttpResponse(status=400)
 
@@ -354,8 +357,7 @@ def save_navlet_order(request):
     """Save the order of the navlets after a sort"""
     if request.method == 'POST':
         account = get_account(request)
-        return modify_navlet(save_order, account, request,
-                             "Error saving order")
+        return modify_navlet(save_order, account, request, "Error saving order")
 
     return HttpResponse(status=400)
 
@@ -393,8 +395,7 @@ def render_base_template(request):
         return HttpResponse(status=400)
     else:
         account = get_account(request)
-        accountnavlet = get_object_or_404(AccountNavlet,
-                                          account=account, pk=navlet_id)
+        accountnavlet = get_object_or_404(AccountNavlet, account=account, pk=navlet_id)
         _logger.error(accountnavlet)
         cls = get_navlet_from_name(accountnavlet.navlet)
         navlet = cls(request=request)
@@ -407,8 +408,11 @@ def add_user_navlet_graph(request):
         url = request.POST.get('url')
         target = request.POST.get('target')
         if url:
-            add_navlet(request.account, 'nav.web.navlets.graph.GraphWidget',
-                       {'url': url, 'target': target})
+            add_navlet(
+                request.account,
+                'nav.web.navlets.graph.GraphWidget',
+                {'url': url, 'target': target},
+            )
             return HttpResponse(status=200)
 
     return HttpResponse(status=400)
@@ -423,8 +427,7 @@ ALERT_TYPES = {
 def add_user_navlet_sensor(request):
     """Add a sensor widget with sensor id set"""
     if request.method == 'POST':
-        sensor = get_object_or_404(
-            Sensor, pk=int(request.GET.get('sensor_id')))
+        sensor = get_object_or_404(Sensor, pk=int(request.GET.get('sensor_id')))
         if sensor.unit_of_measurement == sensor.UNIT_TRUTHVALUE:
             navlet = 'nav.web.navlets.alert.AlertWidget'
             preferences = {
@@ -437,10 +440,7 @@ def add_user_navlet_sensor(request):
             }
         else:
             navlet = 'nav.web.navlets.sensor.SensorWidget'
-            preferences = {
-                'sensor_id': sensor.pk,
-                'title': sensor.netbox.sysname
-            }
+            preferences = {'sensor_id': sensor.pk, 'title': sensor.netbox.sysname}
         add_navlet(request.account, navlet, preferences)
         return HttpResponse(status=200)
 
@@ -453,8 +453,7 @@ def set_navlet_preferences(request):
         try:
             preferences = json.loads(request.POST.get('preferences'))
             navletid = request.POST.get('id')
-            navlet = AccountNavlet.objects.get(pk=navletid,
-                                               account=request.account)
+            navlet = AccountNavlet.objects.get(pk=navletid, account=request.account)
         except AccountNavlet.DoesNotExist:
             return HttpResponse(status=400)
         else:
@@ -470,10 +469,10 @@ def set_navlet_preferences(request):
 @require_param('dashboard_id')
 def set_navlet_dashboard(request, navlet_id):
     """Set the dashboard the navlet should appear in"""
-    navlet = get_object_or_404(AccountNavlet, account=request.account,
-                               pk=navlet_id)
-    dashboard = get_object_or_404(AccountDashboard, account=request.account,
-                                  pk=request.POST.get('dashboard_id'))
+    navlet = get_object_or_404(AccountNavlet, account=request.account, pk=navlet_id)
+    dashboard = get_object_or_404(
+        AccountDashboard, account=request.account, pk=request.POST.get('dashboard_id')
+    )
     navlet.dashboard = dashboard
     navlet.save()
 

@@ -37,9 +37,11 @@ from nav.metrics.data import get_metric_average
 from nav.metrics.errors import GraphiteUnreachableError
 from nav.metrics.graphs import get_metric_meta
 from nav.metrics.names import escape_metric_name
-from nav.metrics.templates import (metric_path_for_interface,
-                                   metric_path_for_cpu_load,
-                                   metric_path_for_cpu_utilization)
+from nav.metrics.templates import (
+    metric_path_for_interface,
+    metric_path_for_cpu_load,
+    metric_path_for_cpu_utilization,
+)
 from nav.web.geomap.utils import lazy_dict, subdict, is_nan
 from nav.util import chunks
 
@@ -266,16 +268,19 @@ def get_data(db_cursor, bounds, time_interval=None):
     if not db_cursor:
         raise nav.errors.GeneralException("No db-cursor given")
 
-    bounds_list = [bounds['minLon'], bounds['minLat'],
-                   bounds['maxLon'], bounds['maxLat']]
+    bounds_list = [
+        bounds['minLon'],
+        bounds['minLat'],
+        bounds['maxLon'],
+        bounds['maxLat'],
+    ]
 
     network_length_limit = 0
 
     network_query_args = bounds_list + bounds_list + [network_length_limit]
 
     if time_interval is None:
-        time_interval = {'start': '-10min',
-                         'end': 'now'}
+        time_interval = {'start': '-10min', 'end': 'now'}
 
     connections = {}
 
@@ -290,29 +295,50 @@ def get_data(db_cursor, bounds, time_interval=None):
     results.extend([lazy_dict(row) for row in db_cursor.fetchall()])
 
     for res in results:
-        assert (res.get('remote_swportid', None) is not None or
-                res.get('remote_gwportid', None) is not None)
+        assert (
+            res.get('remote_swportid', None) is not None
+            or res.get('remote_gwportid', None) is not None
+        )
 
     # Go through all the connections and add them to the connections
     # dictionary:
     for res in results:
         # Remove all data we are not interested in keeping:
-        network_properties = \
-            ['capacity', 'nettype', 'netident', 'layer', 'vlan',
-             'local_sysname', 'local_netboxid', 'local_interface',
-             'local_portid', 'local_gwportid', 'local_swportid',
-             'remote_sysname', 'remote_netboxid', 'remote_interface',
-             'remote_portid', 'remote_gwportid', 'remote_swportid']
+        network_properties = [
+            'capacity',
+            'nettype',
+            'netident',
+            'layer',
+            'vlan',
+            'local_sysname',
+            'local_netboxid',
+            'local_interface',
+            'local_portid',
+            'local_gwportid',
+            'local_swportid',
+            'remote_sysname',
+            'remote_netboxid',
+            'remote_interface',
+            'remote_portid',
+            'remote_gwportid',
+            'remote_swportid',
+        ]
         res = subdict(res, network_properties)
 
         # Create a reversed version of the connection (this has all
         # remote_*/local_* swapped and has load data from the opposite
         # end):
         reverse = res.copy()
-        reversable_properties = ['sysname', 'netboxid', 'interface',
-                                 'portid', 'gwportid', 'swportid']
+        reversable_properties = [
+            'sysname',
+            'netboxid',
+            'interface',
+            'portid',
+            'gwportid',
+            'swportid',
+        ]
         for prop in reversable_properties:
-            reverse.swap('local_'+prop, 'remote_'+prop)
+            reverse.swap('local_' + prop, 'remote_' + prop)
 
         for d in res, reverse:
             d['load'] = (float('nan'), float('nan'))
@@ -326,8 +352,7 @@ def get_data(db_cursor, bounds, time_interval=None):
 
         connection = {'forward': res, 'reverse': reverse}
 
-        if (connection_id not in connections and
-            connection_rid not in connections):
+        if connection_id not in connections and connection_rid not in connections:
             connections[connection_id] = connection
         else:
             for existing_id, existing_conn in connections.items():
@@ -353,7 +378,7 @@ def get_data(db_cursor, bounds, time_interval=None):
 
 MEGABIT = 1e6
 METRIC_CHUNK_SIZE = 500  # number of metrics to ask for in a single request
-CACHE_TIMEOUT = 5*60  # 5 minutes
+CACHE_TIMEOUT = 5 * 60  # 5 minutes
 
 
 def get_cached_multiple_link_load(items, time_interval):
@@ -363,11 +388,13 @@ def get_cached_multiple_link_load(items, time_interval):
     cached = cache.get_many(item_map.values())
     _logger.debug(
         "get_cached_multiple_link_load: got %d/%d values from cache (%r)",
-        len(cached), len(items), time_interval)
+        len(cached),
+        len(items),
+        time_interval,
+    )
 
     # retrieve data for cache misses
-    misses = {k: v
-              for k, v in iteritems(items) if item_map[k] not in cached}
+    misses = {k: v for k, v in iteritems(items) if item_map[k] not in cached}
     if misses:
         get_multiple_link_load(misses, time_interval)
 
@@ -379,11 +406,11 @@ def get_cached_multiple_link_load(items, time_interval):
         properties['load_in'], properties['load_out'] = value
 
     # add new data to cache
-    missed_data = {item_map[key]: (properties['load_in'],
-                                   properties['load_out'])
-                   for key, properties in iteritems(misses)}
-    _logger.debug("get_cached_multiple_link_load: caching %d values",
-                  len(missed_data))
+    missed_data = {
+        item_map[key]: (properties['load_in'], properties['load_out'])
+        for key, properties in iteritems(misses)
+    }
+    _logger.debug("get_cached_multiple_link_load: caching %d values", len(missed_data))
     cache.set_many(missed_data, CACHE_TIMEOUT)
 
 
@@ -407,13 +434,16 @@ def get_multiple_link_load(items, time_interval):
         if not (sysname and ifname):
             continue
 
-        targets = [metric_path_for_interface(sysname, ifname, counter)
-                   for counter in ('ifInOctets', 'ifOutOctets')]
+        targets = [
+            metric_path_for_interface(sysname, ifname, counter)
+            for counter in ('ifInOctets', 'ifOutOctets')
+        ]
         targets = [get_metric_meta(t)['target'] for t in targets]
         target_map.update({t: properties for t in targets})
 
-    _logger.debug("getting %s graphite traffic targets in chunks",
-                  len(target_map.keys()))
+    _logger.debug(
+        "getting %s graphite traffic targets in chunks", len(target_map.keys())
+    )
     data = {}
     for chunk in chunks(target_map.keys(), METRIC_CHUNK_SIZE):
         data.update(_get_metric_average(chunk, time_interval))
@@ -429,8 +459,8 @@ def get_multiple_link_load(items, time_interval):
                     properties['load_out'] = bps
         else:
             _logger.error(
-                "no match for key %r (%r) in data returned from graphite",
-                key, value)
+                "no match for key %r (%r) in data returned from graphite", key, value
+            )
 
     missing = set(target_map).difference(data)
     if missing:
@@ -444,11 +474,13 @@ def get_cached_multiple_cpu_load(items, time_interval):
     cached = cache.get_many(item_map.values())
     _logger.debug(
         "get_cached_multiple_cpu_load: got %d/%d values from cache (%r)",
-        len(cached), len(items), time_interval)
+        len(cached),
+        len(items),
+        time_interval,
+    )
 
     # retrieve data for cache misses
-    misses = {k: v
-              for k, v in iteritems(items) if item_map[k] not in cached}
+    misses = {k: v for k, v in iteritems(items) if item_map[k] not in cached}
     if misses:
         get_multiple_cpu_load(misses, time_interval)
 
@@ -460,10 +492,10 @@ def get_cached_multiple_cpu_load(items, time_interval):
         properties['load'] = value
 
     # add new data to cache
-    missed_data = {item_map[key]: properties['load']
-                   for key, properties in iteritems(misses)}
-    _logger.debug("get_cached_multiple_cpu_load: caching %d values",
-                  len(missed_data))
+    missed_data = {
+        item_map[key]: properties['load'] for key, properties in iteritems(misses)
+    }
+    _logger.debug("get_cached_multiple_cpu_load: caching %d values", len(missed_data))
     cache.set_many(missed_data, CACHE_TIMEOUT)
 
 
@@ -476,21 +508,25 @@ def get_multiple_cpu_load(items, time_interval):
     :param time_interval: A dict(start=..., end=...) describing the desired
                           time interval in terms valid to Graphite web.
     """
-    target_map = {escape_metric_name(sysname): netbox
-                  for sysname, netbox in iteritems(items)}
+    target_map = {
+        escape_metric_name(sysname): netbox for sysname, netbox in iteritems(items)
+    }
     targets = []
     for sysname, netbox in iteritems(items):
         if not sysname:
             continue
 
-        targets.extend([
-            'highestMax(%s,1)' % path
-            for path in (metric_path_for_cpu_load(sysname, '*', interval=5),
-                         metric_path_for_cpu_utilization(sysname, '*'))
-        ])
+        targets.extend(
+            [
+                'highestMax(%s,1)' % path
+                for path in (
+                    metric_path_for_cpu_load(sysname, '*', interval=5),
+                    metric_path_for_cpu_utilization(sysname, '*'),
+                )
+            ]
+        )
 
-    _logger.debug("getting %s graphite cpu targets in chunks",
-                  len(targets))
+    _logger.debug("getting %s graphite cpu targets in chunks", len(targets))
     data = {}
     for chunk in chunks(targets, METRIC_CHUNK_SIZE):
         data.update(_get_metric_average(chunk, time_interval))
@@ -505,16 +541,20 @@ def get_multiple_cpu_load(items, time_interval):
 
 def _get_metric_average(targets, time_interval):
     try:
-        data = get_metric_average(targets,
-                                  start=time_interval['start'],
-                                  end=time_interval['end'])
-        _logger.debug("graphite returned %s metrics from %s targets",
-                      len(data), len(targets))
+        data = get_metric_average(
+            targets, start=time_interval['start'], end=time_interval['end']
+        )
+        _logger.debug(
+            "graphite returned %s metrics from %s targets", len(data), len(targets)
+        )
         return data
     except GraphiteUnreachableError as err:
-        _logger.error("graphite unreachable on load query for %s targets "
-                      "(%r): %s",
-                      len(targets), time_interval, err)
+        _logger.error(
+            "graphite unreachable on load query for %s targets " "(%r): %s",
+            len(targets),
+            time_interval,
+            err,
+        )
         if isinstance(err.cause, HTTPError):
             _logger.debug("error cause: %s", err.cause.read())
         return {}

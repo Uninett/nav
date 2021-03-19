@@ -37,40 +37,48 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
     mib = get_mib('CISCO-ENVMON-MIB')
 
     def _get_voltage_sensors(self):
-        df = self.retrieve_columns([
+        df = self.retrieve_columns(
+            [
                 'ciscoEnvMonVoltageStatusDescr',
                 'ciscoEnvMonVoltageStatusValue',
                 'ciscoEnvMonVoltageState',
-                ])
+            ]
+        )
         df.addCallback(reduce_index)
         return df
 
     def _get_temperature_sensors(self):
-        df = self.retrieve_columns([
+        df = self.retrieve_columns(
+            [
                 'ciscoEnvMonTemperatureStatusIndex',
                 'ciscoEnvMonTemperatureStatusDescr',
                 'ciscoEnvMonTemperatureStatusValue',
                 'ciscoEnvMonTemperatureState',
-                ])
+            ]
+        )
         df.addCallback(reduce_index)
         return df
 
     def _get_fanstate_sensors(self):
-        df = self.retrieve_columns([
+        df = self.retrieve_columns(
+            [
                 'ciscoEnvMonFanStatusIndex',
                 'ciscoEnvMonFanStatusDescr',
                 'ciscoEnvMonFanState',
-                ])
+            ]
+        )
         df.addCallback(reduce_index)
         return df
 
     def _get_powersupply_sensors(self):
-        df = self.retrieve_columns([
+        df = self.retrieve_columns(
+            [
                 'ciscoEnvMonSupplyStatusIndex',
                 'ciscoEnvMonSupplyStatusDescr',
                 'ciscoEnvMonSupplyState',
                 'ciscoEnvMonSupplySource',
-                ])
+            ]
+        )
         df.addCallback(reduce_index)
         return df
 
@@ -82,49 +90,54 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             oid = str(voltage_mib.oid) + str(voltage_sensor_oid)
             unit_of_measurement = Sensor.UNIT_VOLTS_DC
             precision = 0
-            scale = self.mib.get('nodes').get(
-                    'ciscoEnvMonVoltageStatusValue').get('units').strip()
+            scale = (
+                self.mib.get('nodes')
+                .get('ciscoEnvMonVoltageStatusValue')
+                .get('units')
+                .strip()
+            )
             scale = re.sub('volts$', '', scale)
-            description = voltage_sensor.get(
-                    'ciscoEnvMonVoltageStatusDescr').strip()
+            description = voltage_sensor.get('ciscoEnvMonVoltageStatusDescr').strip()
             name = description
             internal_name = description
-            sensors.append({
-                            'oid': oid,
-                            'unit_of_measurement': unit_of_measurement,
-                            'precision': precision,
-                            'scale': scale,
-                            'description': description,
-                            'name': name,
-                            'internal_name': internal_name,
-                            'mib': self.get_module_name(),
-                            })
+            sensors.append(
+                {
+                    'oid': oid,
+                    'unit_of_measurement': unit_of_measurement,
+                    'precision': precision,
+                    'scale': scale,
+                    'description': description,
+                    'name': name,
+                    'internal_name': internal_name,
+                    'mib': self.get_module_name(),
+                }
+            )
         return sensors
 
     def _get_temperature_sensor_params(self, temperature_sensors):
         sensors = []
         for idx, temp_sensor in temperature_sensors.items():
             temp_sensor_oid = temp_sensor.get(0, None)
-            temp_mib = self.nodes.get(
-                            'ciscoEnvMonTemperatureStatusValue', None)
+            temp_mib = self.nodes.get('ciscoEnvMonTemperatureStatusValue', None)
             oid = str(temp_mib.oid) + str(temp_sensor_oid)
             unit_of_measurement = Sensor.UNIT_CELSIUS
             precision = 0
             scale = None
-            description = temp_sensor.get(
-                    'ciscoEnvMonTemperatureStatusDescr').strip()
+            description = temp_sensor.get('ciscoEnvMonTemperatureStatusDescr').strip()
             name = description
             internal_name = description
-            sensors.append({
-                            'oid': oid,
-                            'unit_of_measurement': unit_of_measurement,
-                            'precision': precision,
-                            'scale': scale,
-                            'description': description,
-                            'name': name,
-                            'internal_name': internal_name,
-                            'mib': self.get_module_name(),
-                            })
+            sensors.append(
+                {
+                    'oid': oid,
+                    'unit_of_measurement': unit_of_measurement,
+                    'precision': precision,
+                    'scale': scale,
+                    'description': description,
+                    'name': name,
+                    'internal_name': internal_name,
+                    'mib': self.get_module_name(),
+                }
+            )
         return sensors
 
     def _get_fanstate_sensor_params(self, fanstate_sensors):
@@ -136,20 +149,21 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             unit_of_measurement = Sensor.UNIT_TRUTHVALUE
             precision = 0
             scale = None
-            description = fanstate_sensor.get(
-                    'ciscoEnvMonFanStatusDescr').strip()
+            description = fanstate_sensor.get('ciscoEnvMonFanStatusDescr').strip()
             name = description
             internal_name = description
-            sensors.append({
-                            'oid': oid,
-                            'unit_of_measurement': unit_of_measurement,
-                            'precision': precision,
-                            'scale': scale,
-                            'description': description,
-                            'name': name,
-                            'internal_name': internal_name,
-                            'mib': self.get_module_name(),
-                            })
+            sensors.append(
+                {
+                    'oid': oid,
+                    'unit_of_measurement': unit_of_measurement,
+                    'precision': precision,
+                    'scale': scale,
+                    'description': description,
+                    'name': name,
+                    'internal_name': internal_name,
+                    'mib': self.get_module_name(),
+                }
+            )
         return sensors
 
     def _get_powersupply_sensor_params(self, powersupply_sensors):
@@ -168,16 +182,18 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
             if not description:
                 description = name
             internal_name = name
-            sensors.append({
-                            'oid': oid,
-                            'unit_of_measurement': unit_of_measurement,
-                            'precision': precision,
-                            'scale': scale,
-                            'description': description,
-                            'name': name,
-                            'internal_name': internal_name,
-                            'mib': self.get_module_name(),
-                            })
+            sensors.append(
+                {
+                    'oid': oid,
+                    'unit_of_measurement': unit_of_measurement,
+                    'precision': precision,
+                    'scale': scale,
+                    'description': description,
+                    'name': name,
+                    'internal_name': internal_name,
+                    'mib': self.get_module_name(),
+                }
+            )
         return sensors
 
     @defer.inlineCallbacks

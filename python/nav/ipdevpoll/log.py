@@ -29,14 +29,18 @@ class ContextFormatter(Formatter):
     Only recognizes the attributes 'job' and 'sysname' as context data.
 
     """
+
     prefix = 'nav.ipdevpoll.'
 
     def __init__(self, pidlog=False):
         pidlog = "[%(process)s] " if pidlog else ""
-        self._normal_fmt = ("%(asctime)s " + pidlog +
-                            "[%(levelname)s %(name)s] %(message)s")
-        self._context_fmt = ("%(asctime)s " + pidlog + "[%(levelname)s "
-                             "%(name)s] [%(context)s] %(message)s")
+        self._normal_fmt = (
+            "%(asctime)s " + pidlog + "[%(levelname)s %(name)s] %(message)s"
+        )
+        self._context_fmt = (
+            "%(asctime)s " + pidlog + "[%(levelname)s "
+            "%(name)s] [%(context)s] %(message)s"
+        )
         Formatter.__init__(self, self._normal_fmt)
 
     def format(self, record):
@@ -46,9 +50,11 @@ class ContextFormatter(Formatter):
         return Formatter.format(self, record)
 
     def _set_context(self, record):
-        context = [getattr(record, attr)
-                   for attr in ('job', 'sysname')
-                   if hasattr(record, attr)]
+        context = [
+            getattr(record, attr)
+            for attr in ('job', 'sysname')
+            if hasattr(record, attr)
+        ]
         if context:
             record.__dict__['context'] = ' '.join(context)
             self._set_format(self._context_fmt)
@@ -61,13 +67,15 @@ class ContextFormatter(Formatter):
         def _set_format(self, fmt):
             self._fmt = fmt
             self._style._fmt = fmt
+
     else:
+
         def _set_format(self, fmt):
             self._fmt = fmt
 
     def _strip_logger_prefix(self, record):
         if record.name.startswith(self.prefix):
-            record.name = record.name[len(self.prefix):]
+            record.name = record.name[len(self.prefix) :]
 
 
 # pylint: disable=R0903
@@ -92,6 +100,7 @@ class ContextLogger(object):
     copied permanently to this instance.
 
     """
+
     log_attr = '_logger_object'
 
     def __init__(self, suffix=None, context_vars=None):
@@ -109,8 +118,7 @@ class ContextLogger(object):
         logger = logging.getLogger(self._logger_name(owner))
         if target is obj:
             if self.context_vars:
-                extra = dict((k, getattr(target, k, None))
-                             for k in self.context_vars)
+                extra = dict((k, getattr(target, k, None)) for k in self.context_vars)
             elif hasattr(target, '_log_context'):
                 extra = getattr(target, '_log_context')
             else:
@@ -132,12 +140,10 @@ class ContextLogger(object):
         return name.lower()
 
     def __set__(self, obj, value):
-        raise AttributeError(
-            "cannot reassign a %s attribute" % self.__class__.__name__)
+        raise AttributeError("cannot reassign a %s attribute" % self.__class__.__name__)
 
     def __delete__(self, obj):
-        raise AttributeError(
-            "cannot delete a %s attribute" % self.__class__.__name__)
+        raise AttributeError("cannot delete a %s attribute" % self.__class__.__name__)
 
 
 #

@@ -25,10 +25,13 @@ from . import Navlet
 
 class UpsWidgetForm(forms.Form):
     """Form for choosing an UPS"""
-    netboxid = forms.ModelChoiceField(queryset=Netbox.ups_objects.all(),
-                                      label='Choose UPS')
+
+    netboxid = forms.ModelChoiceField(
+        queryset=Netbox.ups_objects.all(), label='Choose UPS'
+    )
     external_link = forms.CharField(
-        required=False, label='External link (must start with http)')
+        required=False, label='External link (must start with http)'
+    )
 
     def clean_netboxid(self):
         """Cheat and return the netboxid instead of the object
@@ -41,8 +44,7 @@ class UpsWidgetForm(forms.Form):
     def clean_external_link(self):
         link = self.cleaned_data.get('external_link')
         if link and not urlparse(link).scheme.startswith('http'):
-            raise forms.ValidationError(
-                'Link needs to start with http or https')
+            raise forms.ValidationError('Link needs to start with http or https')
         return link
 
 
@@ -85,17 +87,16 @@ class UpsWidget(Navlet):
 
         # Input
         context['input_voltages'] = netbox.sensor_set.filter(
-            Q(internal_name__contains="InputVoltage") |
-            Q(internal_name__contains="InputLineVoltage")
+            Q(internal_name__contains="InputVoltage")
+            | Q(internal_name__contains="InputLineVoltage")
         ).filter(precision__isnull=True)
 
         # Output
         output_voltages = netbox.sensor_set.filter(
-            Q(internal_name__contains="OutputVoltage") |
-            Q(internal_name__contains="OutputLineVoltage")
+            Q(internal_name__contains="OutputVoltage")
+            | Q(internal_name__contains="OutputLineVoltage")
         ).filter(precision__isnull=True)
-        output_power = netbox.sensor_set.filter(
-            internal_name__contains="OutputPower")
+        output_power = netbox.sensor_set.filter(internal_name__contains="OutputPower")
 
         if len(output_voltages) != len(output_power):
             output_power = [None] * len(output_voltages)
@@ -113,19 +114,21 @@ class UpsWidget(Navlet):
         )
 
         context['battery_capacity'] = netbox.sensor_set.filter(
-            internal_name__in=['upsHighPrecBatteryCapacity',
-                               'upsEstimatedChargeRemaining'])
+            internal_name__in=[
+                'upsHighPrecBatteryCapacity',
+                'upsEstimatedChargeRemaining',
+            ]
+        )
 
         context['temperatures'] = netbox.sensor_set.filter(
-            internal_name__in=['upsHighPrecBatteryTemperature',
-                               'upsBatteryTemperature'])
+            internal_name__in=['upsHighPrecBatteryTemperature', 'upsBatteryTemperature']
+        )
 
         return context
 
     def post(self, request, **kwargs):
         """Save preferences"""
-        return super(UpsWidget, self).post(
-            request, form=UpsWidgetForm(request.POST))
+        return super(UpsWidget, self).post(request, form=UpsWidgetForm(request.POST))
 
 
 class BatteryTimesProxy:
@@ -135,6 +138,7 @@ class BatteryTimesProxy:
     but we need to scale the value for sensors that report the remaining time in
     seconds.
     """
+
     def __init__(self, proxied_sensor: Sensor):
         self.__proxied = proxied_sensor
 

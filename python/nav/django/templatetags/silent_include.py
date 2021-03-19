@@ -20,8 +20,9 @@ class IncludeNode(template.Node):
             # Loading the template and rendering it
             if isinstance(context, RequestContext):
                 context = context.flatten()
-            included_template = template.loader.get_template(
-                self.template_name).render(context)
+            included_template = template.loader.get_template(self.template_name).render(
+                context
+            )
         except template.TemplateDoesNotExist:
             included_template = ''
         return included_template
@@ -37,6 +38,7 @@ def try_to_include(_, token):
         _, template_name = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError(
-            "%r tag requires a single argument" % token.contents.split()[0])
+            "%r tag requires a single argument" % token.contents.split()[0]
+        )
 
     return IncludeNode(template_name[1:-1])

@@ -42,6 +42,7 @@ class ConnectionObject(nav.CacheableObject):
     Specialization of nav.CacheableObject to implement psycopg
     connection caching.
     """
+
     def __init__(self, object_, key):
         super(ConnectionObject, self).__init__(object_)
         self.key = key
@@ -58,13 +59,13 @@ class ConnectionObject(nav.CacheableObject):
                     self.last_validated = time.time()
                     return False
             except (psycopg2.ProgrammingError, psycopg2.OperationalError):
-                _logger.debug('Invalid connection object (%r), age=%s',
-                              self.key, self.age())
+                _logger.debug(
+                    'Invalid connection object (%r), age=%s', self.key, self.age()
+                )
                 self.object.close()
                 return True
         except psycopg2.InterfaceError:
-            _logger.debug('Connection may already be closed (%r)',
-                          self.key)
+            _logger.debug('Connection may already be closed (%r)', self.key)
             return True
 
     def ping(self):
@@ -107,15 +108,20 @@ def get_connection_parameters(script_name='default', database='nav'):
 
     db_option = 'db_%s' % database
     if db_option not in conf:
-        _logger.debug("connection parameter for database %s doesn't exist, "
-                      "reverting to default 'db_nav'", database)
+        _logger.debug(
+            "connection parameter for database %s doesn't exist, "
+            "reverting to default 'db_nav'",
+            database,
+        )
         db_option = 'db_nav'
     dbname = conf[db_option]
 
     user_option = 'script_%s' % script_name
     if user_option not in conf:
-        _logger.debug("connection parameter for script %s doesn't exist, "
-                      "reverting to default", script_name)
+        _logger.debug(
+            "connection parameter for script %s doesn't exist, " "reverting to default",
+            script_name,
+        )
         user_option = 'script_default'
     user = conf[user_option]
 
@@ -140,9 +146,11 @@ def get_connection_string(db_params=None, script_name='default'):
         db_params = get_connection_parameters(script_name)
     dbhost, dbport, dbname, dbuser, dbpasswd = db_params
     appname = os.path.basename(sys.argv[0]) or script_name
-    conn_string = ("host={dbhost} port={dbport} dbname={dbname} user={dbuser}"
-                   " password={dbpasswd}"
-                   " application_name='{appname} (NAV legacy)'")
+    conn_string = (
+        "host={dbhost} port={dbport} dbname={dbname} user={dbuser}"
+        " password={dbpasswd}"
+        " application_name='{appname} (NAV legacy)'"
+    )
     return conn_string.format(**locals())
 
 
@@ -154,7 +162,8 @@ def getConnection(scriptName, database='nav'):
     connection.
     """
     (dbhost, port, dbname, user, password) = get_connection_parameters(
-        scriptName, database)
+        scriptName, database
+    )
     cache_key = (dbname, user)
 
     # First, invalidate any dead connections.  Return a connection
@@ -163,10 +172,15 @@ def getConnection(scriptName, database='nav'):
     try:
         connection = _connection_cache[cache_key].object
     except KeyError:
-        connection = psycopg2.connect(get_connection_string(
-                (dbhost, port, dbname, user, password)))
-        _logger.debug("Opened a new database connection, scriptName=%s, "
-                      "dbname=%s, user=%s", scriptName, dbname, user)
+        connection = psycopg2.connect(
+            get_connection_string((dbhost, port, dbname, user, password))
+        )
+        _logger.debug(
+            "Opened a new database connection, scriptName=%s, " "dbname=%s, user=%s",
+            scriptName,
+            dbname,
+            user,
+        )
         # Se transaction isolation level READ COMMITTED
         connection.set_isolation_level(1)
         connection.set_client_encoding('utf8')
@@ -220,8 +234,10 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
                     return func(*args, **kwargs)
                 except handled:
                     remaining -= 1
-                    _logger.error("cannot establish db connection. "
-                                  "retries remaining: %d", remaining)
+                    _logger.error(
+                        "cannot establish db connection. " "retries remaining: %d",
+                        remaining,
+                    )
                     if remaining:
                         time.sleep(delay)
                         continue
@@ -229,8 +245,11 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
                         fallback()
                     else:
                         raise
+
         return wraps(func)(_retrier)
+
     return _retry_decorator
+
 
 ###### Initialization ######
 
@@ -262,8 +281,10 @@ class ConnectionParameters(object):
     @classmethod
     def from_environment(cls):
         """Initializes and returns parameters from environment vars"""
-        params = [os.environ.get(v, None) for v in
-                  ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD')]
+        params = [
+            os.environ.get(v, None)
+            for v in ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD')
+        ]
         return cls(*params)
 
     @classmethod
@@ -287,20 +308,19 @@ class ConnectionParameters(object):
         Supply os.environ to export to subprocesses.
 
         """
-        added_environ = dict(zip(
-            ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD'),
-            self.as_tuple()))
+        added_environ = dict(
+            zip(
+                ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD'),
+                self.as_tuple(),
+            )
+        )
         for var, val in added_environ.items():
             if val:
                 environ[var] = val
 
     def as_tuple(self):
         """Returns parameters as a tuple"""
-        return (self.dbhost,
-                self.dbport,
-                self.dbname,
-                self.user,
-                self.password)
+        return (self.dbhost, self.dbport, self.dbname, self.user, self.password)
 
     def __str__(self):
         return get_connection_string(self.as_tuple())

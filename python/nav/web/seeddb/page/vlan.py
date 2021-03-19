@@ -41,11 +41,12 @@ class VlanInfo(SeeddbInfo):
 
 class VlanFilterForm(forms.Form):
     net_type = forms.ModelChoiceField(
-        NetType.objects.order_by('id').all(), required=False)
+        NetType.objects.order_by('id').all(), required=False
+    )
     organization = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all(), required=False)
-    usage = forms.ModelChoiceField(
-        Usage.objects.order_by('id').all(), required=False)
+        Organization.objects.order_by('id').all(), required=False
+    )
+    usage = forms.ModelChoiceField(Usage.objects.order_by('id').all(), required=False)
 
     def __init__(self, *args, **kwargs):
         super(VlanFilterForm, self).__init__(*args, **kwargs)
@@ -61,10 +62,11 @@ class VlanFilterForm(forms.Form):
                     Column('net_type', css_class=col_class),
                     Column('organization', css_class=col_class),
                     Column('usage', css_class=col_class),
-                    Column(LabelSubmit('submit', 'Filter',
-                                       css_class='postfix'),
-                           css_class=col_class)
-                )
+                    Column(
+                        LabelSubmit('submit', 'Filter', css_class='postfix'),
+                        css_class=col_class,
+                    ),
+                ),
             )
         )
 
@@ -79,24 +81,41 @@ def vlan_list(request):
     info = VlanInfo()
     query = Vlan.objects.extra(
         select={
-            'prefixes': ("array_to_string("
-                         "ARRAY(SELECT netaddr FROM prefix "
-                         "WHERE vlanid=vlan.vlanid), ', ')"
-                         )
+            'prefixes': (
+                "array_to_string("
+                "ARRAY(SELECT netaddr FROM prefix "
+                "WHERE vlanid=vlan.vlanid), ', ')"
+            )
         }
     ).all()
     filter_form = VlanFilterForm(request.GET)
     value_list = (
-        'net_type', 'vlan', 'organization', 'usage', 'net_ident',
-        'description', 'prefixes')
-    return render_list(request, query, value_list, 'seeddb-vlan-edit',
-                       filter_form=filter_form,
-                       extra_context=info.template_context)
+        'net_type',
+        'vlan',
+        'organization',
+        'usage',
+        'net_ident',
+        'description',
+        'prefixes',
+    )
+    return render_list(
+        request,
+        query,
+        value_list,
+        'seeddb-vlan-edit',
+        filter_form=filter_form,
+        extra_context=info.template_context,
+    )
 
 
 def vlan_edit(request, vlan_id=None):
     info = VlanInfo()
-    return render_edit(request, Vlan, VlanForm, vlan_id,
-                       'seeddb-vlan-edit',
-                       template='seeddb/edit_vlan.html',
-                       extra_context=info.template_context)
+    return render_edit(
+        request,
+        Vlan,
+        VlanForm,
+        vlan_id,
+        'seeddb-vlan-edit',
+        template='seeddb/edit_vlan.html',
+        extra_context=info.template_context,
+    )

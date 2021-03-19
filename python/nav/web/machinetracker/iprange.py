@@ -4,7 +4,6 @@ from nav.web.machinetracker.utils import get_prefix_info
 
 
 class MachinetrackerIPRange(util.IPRange):
-
     @classmethod
     def get_mask_for_network(cls, network):
         """ Lookup prefix from NAV database """

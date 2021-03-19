@@ -25,10 +25,9 @@ class DefaultNetmapViewMixin(object):
     Mixin for returning either a global or user specific
     default view
     """
+
     def get_context_data(self, user, **_kwargs):
-        netmap_views = NetmapViewDefaultView.objects.select_related(
-            'view',
-        )
+        netmap_views = NetmapViewDefaultView.objects.select_related('view',)
         try:
             view = netmap_views.get(owner=user).view
         except NetmapViewDefaultView.DoesNotExist:
@@ -41,11 +40,8 @@ class DefaultNetmapViewMixin(object):
 
 class AdminRequiredMixin(object):
     """Mixin for limiting view access to an admin user"""
+
     def dispatch(self, request, *args, **kwargs):
         if not get_account(request).is_admin():
             raise PermissionDenied
-        return super(AdminRequiredMixin, self).dispatch(
-            request,
-            *args,
-            **kwargs
-        )
+        return super(AdminRequiredMixin, self).dispatch(request, *args, **kwargs)

@@ -36,15 +36,17 @@ def handleTrap(trap, config=None):
     if trap.snmpTrapOID not in (LINKDOWN, LINKUP):
         return False
 
-    _logger.debug("Module linkupdown got trap %s %s",
-                  trap.snmpTrapOID, trap.genericType)
+    _logger.debug(
+        "Module linkupdown got trap %s %s", trap.snmpTrapOID, trap.genericType
+    )
 
     ifindex = get_ifindex_from_trap(trap, config)
     if not trap.netbox:
         _logger.error("Could not find agent %s in database", trap.agent)
         return False
-    (interfaceid, deviceid, modulename, ifname,
-     ifalias) = get_interface_details(trap.netbox.netboxid, ifindex)
+    (interfaceid, deviceid, modulename, ifname, ifalias) = get_interface_details(
+        trap.netbox.netboxid, ifindex
+    )
     if not interfaceid:
         _logger.error(
             "Ignoring link trap from %s. Could not identify interface with ifindex=%s.",
@@ -55,9 +57,9 @@ def handleTrap(trap, config=None):
 
     # Check for traptype, post event on queue
     down = trap.snmpTrapOID == LINKDOWN
-    success = post_link_event(down,
-                              trap.netbox.netboxid, deviceid, interfaceid,
-                              modulename, ifname, ifalias)
+    success = post_link_event(
+        down, trap.netbox.netboxid, deviceid, interfaceid, modulename, ifname, ifalias
+    )
     if success:
         _logger.info(
             "Interface %s (%s) on %s is %s.",
@@ -98,21 +100,24 @@ def get_interface_details(netboxid, ifindex):
         if cursor.rowcount > 0:
             return cursor.fetchone()
         else:
-            _logger.debug('Could not find ifindex %s on %s',
-                          ifindex, netboxid)
+            _logger.debug('Could not find ifindex %s on %s', ifindex, netboxid)
 
     return (None, None, None, None, None)
 
 
-def post_link_event(down, netboxid, deviceid, interfaceid, modulename, ifname,
-                    ifalias):
+def post_link_event(down, netboxid, deviceid, interfaceid, modulename, ifname, ifalias):
     """Posts a linkState event on the event qeueue"""
     state = 's' if down else 'e'
 
-    event = Event(source="snmptrapd", target="eventEngine",
-                  netboxid=netboxid, deviceid=deviceid,
-                  subid=interfaceid, eventtypeid="linkState",
-                  state=state)
+    event = Event(
+        source="snmptrapd",
+        target="eventEngine",
+        netboxid=netboxid,
+        deviceid=deviceid,
+        subid=interfaceid,
+        eventtypeid="linkState",
+        state=state,
+    )
     event['alerttype'] = 'linkDown' if down else 'linkUp'
     event['module'] = modulename or ''
     event['interface'] = ifname or ''

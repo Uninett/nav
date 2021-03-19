@@ -51,19 +51,22 @@ def django_debug_cleanup():
     if query_count:
         runtime = sum_django_queries_runtime()
         thread = threading.current_thread()
-        _logger.debug("Thread %s/%s: Removing %d logged Django queries "
-                      "(total time %.03f):\n%s",
-                      thread.ident, thread.name,
-                      query_count, runtime,
-                      pformat(django.db.connection.queries))
+        _logger.debug(
+            "Thread %s/%s: Removing %d logged Django queries "
+            "(total time %.03f):\n%s",
+            thread.ident,
+            thread.name,
+            query_count,
+            runtime,
+            pformat(django.db.connection.queries),
+        )
         django.db.reset_queries()
         gc.collect()
 
 
 def sum_django_queries_runtime():
     """Sums the runtime of all queries logged by django.db.connection.queries"""
-    runtimes = (float(query['time'])
-                for query in django.db.connection.queries)
+    runtimes = (float(query['time']) for query in django.db.connection.queries)
     return sum(runtimes)
 
 
@@ -73,11 +76,13 @@ def cleanup_django_debug_after(func):
     Even if func raises an exception, the cleanup will be run.
 
     """
+
     def _cleanup(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         finally:
             django_debug_cleanup()
+
     return wraps(func)(_cleanup)
 
 
@@ -86,8 +91,9 @@ def run_in_thread(func, *args, **kwargs):
     database errors.
 
     """
-    return threads.deferToThread(reset_connection_on_interface_error(func),
-                                 *args, **kwargs)
+    return threads.deferToThread(
+        reset_connection_on_interface_error(func), *args, **kwargs
+    )
 
 
 def reset_connection_on_interface_error(func):
@@ -95,21 +101,28 @@ def reset_connection_on_interface_error(func):
     connection on exceptions that appear to come from connection resets.
 
     """
+
     def _reset(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except (InterfaceError, OperationalError,
-                DjangoInterfaceError, DjangoOperationalError) as error:
+        except (
+            InterfaceError,
+            OperationalError,
+            DjangoInterfaceError,
+            DjangoOperationalError,
+        ) as error:
             thread = threading.current_thread()
-            _logger.warning("it appears this thread's database connection was "
-                            "dropped, resetting it now - you may see further "
-                            "errors about this until the situation is fully "
-                            "resolved for all threads "
-                            "(this thread is '%s', error was '%s')",
-                            thread.name, error)
+            _logger.warning(
+                "it appears this thread's database connection was "
+                "dropped, resetting it now - you may see further "
+                "errors about this until the situation is fully "
+                "resolved for all threads "
+                "(this thread is '%s', error was '%s')",
+                thread.name,
+                error,
+            )
             django.db.connection.connection = None
-            raise ResetDBConnectionError("The database connection was reset",
-                                         error)
+            raise ResetDBConnectionError("The database connection was reset", error)
 
     return wraps(func)(_reset)
 
@@ -119,6 +132,7 @@ def synchronous_db_access(func):
     Decorates a function to run in a separate thread for synchronous database
     access
     """
+
     def _thread_it(*args, **kwargs):
         return run_in_thread(func, *args, **kwargs)
 
@@ -141,4 +155,5 @@ def purge_old_job_log_entries():
                         FROM ipdevpoll_job_log)
         DELETE FROM ipdevpoll_job_log USING ranked
               WHERE ipdevpoll_job_log.id = ranked.id AND rank > 100;
-        """)
+        """
+    )

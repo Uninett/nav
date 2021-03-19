@@ -23,10 +23,13 @@ from nav.util import which
 
 class RpcChecker(AbstractChecker):
     """RPC portmapper"""
+
     DESCRIPTION = "RPC portmapper"
     OPTARGS = (
-        ('required', 'A comma separated list of require services. Example: '
-                     'nfs,nlockmgr'),
+        (
+            'required',
+            'A comma separated list of require services. Example: ' 'nfs,nlockmgr',
+        ),
     )
 
     def __init__(self, service, **kwargs):
@@ -36,12 +39,12 @@ class RpcChecker(AbstractChecker):
     def execute(self):
         # map service to t=tcp or u=udp
         mapper = {
-            'nfs':      't',
-            'status':   't',
+            'nfs': 't',
+            'status': 't',
             'nlockmgr': 'u',
-            'mountd':   't',
-            'ypserv':   'u',
-            'ypbind':   'u',
+            'mountd': 't',
+            'ypserv': 'u',
+            'ypbind': 'u',
         }
         default = ['nfs', 'nlockmgr', 'mountd', 'status']
         required = self.args.get('required', '')
@@ -53,24 +56,27 @@ class RpcChecker(AbstractChecker):
         cmd = 'rpcinfo'
         cmdpath = which(cmd)
         if not cmdpath:
-            return (Event.DOWN,
-                    'Command %s not found in %s' % (cmd, os.environ['PATH']))
+            return (
+                Event.DOWN,
+                'Command %s not found in %s' % (cmd, os.environ['PATH']),
+            )
 
         ip, _port = self.get_address()
         for service in required:
             protocol = mapper.get(service, '')
             if not protocol:
-                return (Event.DOWN,
-                        "Unknown argument: [%s], can only check "
-                        "%s" % (service, str(mapper.keys())))
+                return (
+                    Event.DOWN,
+                    "Unknown argument: [%s], can only check "
+                    "%s" % (service, str(mapper.keys())),
+                )
 
             try:
-                proc = subprocess.Popen([cmdpath,
-                                         '-'+protocol,
-                                         ip,
-                                         service],
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
+                proc = subprocess.Popen(
+                    [cmdpath, '-' + protocol, ip, service],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
                 proc.wait()
             except OSError as msg:
                 return Event.DOWN, 'could not run rpcinfo: %s' % msg

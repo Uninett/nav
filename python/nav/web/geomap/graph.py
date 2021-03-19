@@ -20,9 +20,17 @@
 import logging
 
 from math import sqrt
-from nav.web.geomap.utils import (map_dict, nansafe_max, identity, first,
-                                  group, avg, filter_dict, subdict,
-                                  map_dict_lazy)
+from nav.web.geomap.utils import (
+    map_dict,
+    nansafe_max,
+    identity,
+    first,
+    group,
+    avg,
+    filter_dict,
+    subdict,
+    map_dict_lazy,
+)
 
 _logger = logging.getLogger('nav.web.geomap.graph')
 
@@ -34,7 +42,7 @@ AGGREGATE_PROPERTIES_PLACE = {
     'load': (nansafe_max, 'load'),
     'num_rooms': len,
     'num_netboxes': (sum, 'num_netboxes'),
-    'rooms': identity
+    'rooms': identity,
 }
 
 AGGREGATE_PROPERTIES_ROOM = {
@@ -42,7 +50,7 @@ AGGREGATE_PROPERTIES_ROOM = {
     'descr': (first, 'room_descr'),
     'load': (nansafe_max, 'load'),
     'num_netboxes': len,
-    'netboxes': identity
+    'netboxes': identity,
 }
 
 AGGREGATE_PROPERTIES_EDGE = {
@@ -51,7 +59,7 @@ AGGREGATE_PROPERTIES_EDGE = {
     'capacity': (sum, 'capacity'),
     'load_in': (sum, 'load_in'),
     'load_out': (sum, 'load_out'),
-    'subedges': identity
+    'subedges': identity,
 }
 
 
@@ -63,21 +71,25 @@ def build_graph(db_results):
 
     # create Node objects:
     for netbox in netboxes:
-        graph.add_node(Node(netbox['netboxid'], netbox['lon'], netbox['lat'],
-                            netbox))
+        graph.add_node(Node(netbox['netboxid'], netbox['lon'], netbox['lat'], netbox))
 
     # create Edge objects:
     for connection in connections.values():
-        if (not connection['forward']['local_netboxid'] in graph.nodes or
-                not connection['reverse']['local_netboxid'] in graph.nodes):
+        if (
+            not connection['forward']['local_netboxid'] in graph.nodes
+            or not connection['reverse']['local_netboxid'] in graph.nodes
+        ):
             continue
         graph.add_edge(
-            Edge(connection['forward']['id'],
-                 connection['reverse']['id'],
-                 graph.nodes[connection['forward']['local_netboxid']],
-                 graph.nodes[connection['reverse']['local_netboxid']],
-                 connection['forward'],
-                 connection['reverse']))
+            Edge(
+                connection['forward']['id'],
+                connection['reverse']['id'],
+                graph.nodes[connection['forward']['local_netboxid']],
+                graph.nodes[connection['reverse']['local_netboxid']],
+                connection['forward'],
+                connection['reverse'],
+            )
+        )
 
     return graph
 
@@ -127,21 +139,25 @@ def area_filter(graph, bounds):
     describing the bounds of the interesting region.
 
     """
+
     def in_bounds(node):
         """Check if node is within bounds"""
-        return (bounds['minLon'] <= node.lon <= bounds['maxLon'] and
-                bounds['minLat'] <= node.lat <= bounds['maxLat'])
+        return (
+            bounds['minLon'] <= node.lon <= bounds['maxLon']
+            and bounds['minLat'] <= node.lat <= bounds['maxLat']
+        )
 
     def edge_connected_to(edge, nodehash):
         """Check if edge is connected to a node in the nodehash"""
         return edge.source.id in nodehash or edge.target.id in nodehash
 
     nodes = filter_dict(in_bounds, graph.nodes)
-    edges = filter_dict(lambda edge: edge_connected_to(edge, nodes),
-                        graph.edges)
-    node_ids = (set(nodes.keys())
-                | {e.source.id for e in edges.values()}
-                | {e.target.id for e in edges.values()})
+    edges = filter_dict(lambda edge: edge_connected_to(edge, nodes), graph.edges)
+    node_ids = (
+        set(nodes.keys())
+        | {e.source.id for e in edges.values()}
+        | {e.target.id for e in edges.values()}
+    )
     graph.nodes = subdict(graph.nodes, node_ids)
     graph.edges = edges
 
@@ -160,10 +176,11 @@ def create_rooms(graph):
     graph -- a Graph object.  It is destructively modified.
 
     """
-    collapse_nodes(graph,
-                   group(lambda node: node.properties['roomid'],
-                         graph.nodes.values()),
-                   AGGREGATE_PROPERTIES_ROOM)
+    collapse_nodes(
+        graph,
+        group(lambda node: node.properties['roomid'], graph.nodes.values()),
+        AGGREGATE_PROPERTIES_ROOM,
+    )
 
 
 def create_places(graph, bounds, viewport_size, limit):
@@ -209,8 +226,10 @@ def create_places(graph, bounds, viewport_size, limit):
 
     def distance(node1, node2):
         """Calculate distance from node1 to node2"""
-        return sqrt(square((node1.lon - node2.lon) * lon_scale) +
-                    square((node1.lat - node2.lat) * lat_scale))
+        return sqrt(
+            square((node1.lon - node2.lon) * lon_scale)
+            + square((node1.lat - node2.lat) * lat_scale)
+        )
 
     places = []
     for node in graph.nodes.values():
@@ -221,11 +240,12 @@ def create_places(graph, bounds, viewport_size, limit):
                 place['position'].lat = avg([n.lat for n in place['rooms']])
                 break
         else:
-            places.append({'position': Node(None, node.lon, node.lat, None),
-                           'rooms': [node]})
-    collapse_nodes(graph,
-                   [place['rooms'] for place in places],
-                   AGGREGATE_PROPERTIES_PLACE)
+            places.append(
+                {'position': Node(None, node.lon, node.lat, None), 'rooms': [node]}
+            )
+    collapse_nodes(
+        graph, [place['rooms'] for place in places], AGGREGATE_PROPERTIES_PLACE
+    )
 
 
 def collapse_nodes(graph, node_sets, property_aggregators):
@@ -268,12 +288,14 @@ def collapse_nodes(graph, node_sets, property_aggregators):
     nodehash = {}
     for node_set in node_sets:
         properties = aggregate_properties(
-            [x.properties for x in node_set],
-            property_aggregators)
-        new_node = Node('cn[%s]' % combine_ids(node_set),
-                        avg([n.lon for n in node_set]),
-                        avg([n.lat for n in node_set]),
-                        properties)
+            [x.properties for x in node_set], property_aggregators
+        )
+        new_node = Node(
+            'cn[%s]' % combine_ids(node_set),
+            avg([n.lon for n in node_set]),
+            avg([n.lat for n in node_set]),
+            properties,
+        )
         for node in node_set:
             nodehash[node.id] = new_node
         graph.add_node(new_node)
@@ -317,6 +339,7 @@ def aggregate_properties(objects, aggregators):
     on a list containing each object's value for property prop.
 
     """
+
     def apply_aggregator(aggr):
         """Run aggregator with objects as arguments"""
         if isinstance(aggr, tuple):
@@ -327,6 +350,7 @@ def aggregate_properties(objects, aggregators):
             fun = aggr
             lst = objects
         return fun(lst)
+
     return map_dict_lazy(apply_aggregator, aggregators)
 
 
@@ -354,8 +378,7 @@ def combine_edges(graph, property_aggregators):
     for edge in graph.edges.values():
         if edge.id in edge_sets:
             continue
-        eset = list(edges_by_node[edge.source.id] &
-                    edges_by_node[edge.target.id])
+        eset = list(edges_by_node[edge.source.id] & edges_by_node[edge.target.id])
         for edge_set in eset:
             edge_sets[edge_set] = eset
 
@@ -367,14 +390,14 @@ def combine_edges(graph, property_aggregators):
 
 def create_edge(eset, property_aggregators):
     """Creates edge from the edge set and applies properties"""
-    return Edge('ce[%s]' % combine_ids(eset),
-                'ce[%s]' % combine_ids(eset, lambda e: e.reverse_id),
-                eset[0].source,
-                eset[0].target,
-                aggregate_properties([x.source_data for x in eset],
-                                     property_aggregators),
-                aggregate_properties([x.target_data for x in eset],
-                                     property_aggregators))
+    return Edge(
+        'ce[%s]' % combine_ids(eset),
+        'ce[%s]' % combine_ids(eset, lambda e: e.reverse_id),
+        eset[0].source,
+        eset[0].target,
+        aggregate_properties([x.source_data for x in eset], property_aggregators),
+        aggregate_properties([x.target_data for x in eset], property_aggregators),
+    )
 
 
 def equalize_edge_orientation(edges):
@@ -392,6 +415,7 @@ def equalize_edge_orientation(edges):
         if edge.source != reference.source:
             return reverse_edge(edge)
         return edge
+
     return [fix_orientation(x) for x in edges]
 
 
@@ -401,13 +425,19 @@ def reverse_edge(edge):
     Returns a new Edge object; the argument is not modified.
 
     """
-    return Edge(edge.reverse_id, edge.id,
-                edge.target, edge.source,
-                edge.target_data, edge.source_data)
+    return Edge(
+        edge.reverse_id,
+        edge.id,
+        edge.target,
+        edge.source,
+        edge.target_data,
+        edge.source_data,
+    )
 
 
 class Node:
     """Representation of a node in a graph."""
+
     def __init__(self, node_id, lon, lat, properties):
         self.id = node_id
         self.lon = lon
@@ -420,8 +450,8 @@ class Node:
 
 class Edge:
     """Representation of an edge in a graph."""
-    def __init__(self, edge_id, reverse_id, source, target, source_data,
-                 target_data):
+
+    def __init__(self, edge_id, reverse_id, source, target, source_data, target_data):
         self.id = edge_id
         self.reverse_id = reverse_id
         self.source = source
@@ -435,6 +465,7 @@ class Edge:
 
 class Graph:
     """Representation of a graph of geographical positions."""
+
     def __init__(self):
         self.nodes = {}
         self.edges = {}

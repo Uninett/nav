@@ -41,6 +41,7 @@ SOCKET_ERROR_MESSAGE_INTERVAL = 1
 
 class CarbonWarning(UserWarning):
     """Custom warning class for Carbon connection related warnings"""
+
     pass
 
 
@@ -62,8 +63,7 @@ def send_metrics_to(metric_tuples, host, port=2003):
         carbon = socket.socket(_socktype_from_addr(host), socket.SOCK_DGRAM)
         carbon.connect((host, port))
 
-    _logger.debug("sending carbon metrics to [%s]:%s: %r",
-                  host, port, metric_tuples)
+    _logger.debug("sending carbon metrics to [%s]:%s: %r", host, port, metric_tuples)
     try:
         for packet in metrics_to_packets(metric_tuples):
             carbon.send(packet)
@@ -79,8 +79,7 @@ def _handle_error(error, host, port):
     # pylint: disable=W0601
     global _error_timestamp
     root = logging.getLogger('')
-    msg = "unable to send metrics to carbon ([%s]:%s): %s" % (host, port,
-                                                              error)
+    msg = "unable to send metrics to carbon ([%s]:%s): %s" % (host, port, error)
 
     if _error_timestamp < time.time() - SOCKET_ERROR_MESSAGE_INTERVAL:
         # Reset the timestamp of the last logged socket error

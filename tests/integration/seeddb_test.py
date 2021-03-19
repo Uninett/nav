@@ -31,8 +31,13 @@ def test_editing_deleted_netboxes_should_raise_404():
 
 @pytest.fixture()
 def netbox(management_profile):
-    box = Netbox(ip='10.254.254.254', sysname='downhost.example.org',
-                 organization_id='myorg', room_id='myroom', category_id='SRV')
+    box = Netbox(
+        ip='10.254.254.254',
+        sysname='downhost.example.org',
+        organization_id='myorg',
+        room_id='myroom',
+        category_id='SRV',
+    )
     box.save()
     yield box
     print("teardown test device")
@@ -53,4 +58,3 @@ def test_dependencies_no_whitelist(netbox):
     deps = dependencies(qs, [])
     assert Netbox.objects.get(pk=netbox.pk)
     assert deps == {}
-

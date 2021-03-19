@@ -41,6 +41,7 @@ class Cam(Plugin):
     2. Otherwise, the found forwarding entries are stored in NAV's cam table.
 
     """
+
     bridge = None
     fdb = None
     monitored = None
@@ -60,8 +61,7 @@ class Cam(Plugin):
 
     @classmethod
     def _has_interfaces(cls, netbox):
-        return manage.Interface.objects.filter(
-            netbox__id=netbox.id).count() > 0
+        return manage.Interface.objects.filter(netbox__id=netbox.id).count() > 0
 
     @defer.inlineCallbacks
     def handle(self):
@@ -79,8 +79,11 @@ class Cam(Plugin):
         self.fdb = fdb
 
         self.monitored = yield db.run_in_thread(get_netbox_macs)
-        self.my_macs = set(mac for mac, netboxid in self.monitored.items()
-                           if netboxid == self.netbox.id)
+        self.my_macs = set(
+            mac
+            for mac, netboxid in self.monitored.items()
+            if netboxid == self.netbox.id
+        )
         self._classify_ports()
         self._store_cam_records()
         self._store_adjacency_candidates()
@@ -137,14 +140,16 @@ class Cam(Plugin):
 
     def _log_fdb_stats(self, prefix, fdb):
         mac_count = sum(len(v) for v in fdb.values())
-        self._logger.debug("%s: %d MAC addresses found on %d ports",
-                           prefix, mac_count, len(fdb))
+        self._logger.debug(
+            "%s: %d MAC addresses found on %d ports", prefix, mac_count, len(fdb)
+        )
 
     def _classify_ports(self):
         def _is_linkport(portmacs):
             _port, macs = portmacs
-            return any(mac in self.monitored and mac not in self.my_macs
-                       for mac in macs)
+            return any(
+                mac in self.monitored and mac not in self.my_macs for mac in macs
+            )
 
         linkports, accessports = splitby(_is_linkport, self.fdb.items())
         self.linkports = dict(linkports)
@@ -167,8 +172,8 @@ class Cam(Plugin):
             macs = macs.intersection(self.monitored).difference(self.my_macs)
             if macs:
                 self._logger.debug(
-                    "%r sees the following monitored mac addresses: %r",
-                    port, macs)
+                    "%r sees the following monitored mac addresses: %r", port, macs
+                )
                 candidates = [self.monitored[mac] for mac in macs]
                 self._make_candidates(port, candidates)
 
@@ -194,8 +199,9 @@ class Cam(Plugin):
         return ifc
 
     def _factory_candidate(self, port, candidate):
-        candidate = self.containers.factory((port, candidate, None, 'cam'),
-                                            shadows.AdjacencyCandidate)
+        candidate = self.containers.factory(
+            (port, candidate, None, 'cam'), shadows.AdjacencyCandidate
+        )
         candidate.netbox = self.netbox
         return candidate
 
@@ -218,8 +224,9 @@ class Cam(Plugin):
         # current blocking ports:
         self.containers.add(shadows.SwPortBlocked)
 
-        translated = [(baseports[port], vlan) for port, vlan in blocking
-                      if port in baseports]
+        translated = [
+            (baseports[port], vlan) for port, vlan in blocking if port in baseports
+        ]
         if translated:
             self._log_blocking_ports(translated)
             self._store_blocking_ports(translated)
@@ -228,8 +235,12 @@ class Cam(Plugin):
     def _log_blocking_ports(self, blocking):
         ifc_count = len(set(ifc for ifc, vlan in blocking))
         vlan_count = len(set(vlan for ifc, vlan in blocking))
-        self._logger.debug("found %d STP blocking ports on %d vlans: %r",
-                           ifc_count, vlan_count, blocking)
+        self._logger.debug(
+            "found %d STP blocking ports on %d vlans: %r",
+            ifc_count,
+            vlan_count,
+            blocking,
+        )
 
     VLAN_PATTERN = re.compile('(vlan)?(?P<vlan>[0-9]+)', re.IGNORECASE)
 
@@ -242,7 +253,6 @@ class Cam(Plugin):
             ifc = self.containers.factory(ifindex, shadows.Interface)
             ifc.ifindex = ifindex
 
-            block = self.containers.factory((ifindex, vlan),
-                                            shadows.SwPortBlocked)
+            block = self.containers.factory((ifindex, vlan), shadows.SwPortBlocked)
             block.interface = ifc
             block.vlan = vlan

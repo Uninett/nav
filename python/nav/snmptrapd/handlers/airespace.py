@@ -38,8 +38,10 @@ def handleTrap(trap, config=None):
     # Two interesting traps:
     # bsnAPAssociated and bsnAPDisassociated
 
-    if trap.snmpTrapOID not in [str(TRAPS['bsnAPAssociated']['oid']),
-                                str(TRAPS['bsnAPDisassociated']['oid'])]:
+    if trap.snmpTrapOID not in [
+        str(TRAPS['bsnAPAssociated']['oid']),
+        str(TRAPS['bsnAPDisassociated']['oid']),
+    ]:
         return False
 
     _logger.debug("Got trap %s", trap.snmpTrapOID)
@@ -71,8 +73,9 @@ def handleTrap(trap, config=None):
         state = 's'
         alerttype = 'apDown'
 
-    e = Event(source=source, target=target, subid=subid,
-              eventtypeid=eventtypeid, state=state)
+    e = Event(
+        source=source, target=target, subid=subid, eventtypeid=eventtypeid, state=state
+    )
     e['alerttype'] = alerttype
     e['mac'] = mac
     e['apname'] = apname

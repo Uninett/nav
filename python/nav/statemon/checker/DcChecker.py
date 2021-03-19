@@ -25,10 +25,9 @@ from nav.util import which
 
 class DcChecker(AbstractChecker):
     """Domain Controller"""
+
     DESCRIPTION = "Domain Controller"
-    ARGS = (
-        ('username', ''),
-    )
+    ARGS = (('username', ''),)
 
     def execute(self):
         username = self.args.get('username', '')
@@ -40,17 +39,17 @@ class DcChecker(AbstractChecker):
         cmd = 'rpcclient'
         cmdpath = which(cmd)
         if not cmdpath:
-            return (Event.DOWN,
-                    'Command %s not found in %s' % (cmd, os.environ['PATH']))
+            return (
+                Event.DOWN,
+                'Command %s not found in %s' % (cmd, os.environ['PATH']),
+            )
 
         try:
-            proc = subprocess.Popen([cmdpath,
-                                     '-U', '%',
-                                     '-c',
-                                     'lookupnames ' + username,
-                                     ip],
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
+            proc = subprocess.Popen(
+                [cmdpath, '-U', '%', '-c', 'lookupnames ' + username, ip],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
 
             proc.wait()
         except OSError as msg:
@@ -58,8 +57,10 @@ class DcChecker(AbstractChecker):
 
         if proc.returncode != 0:
             errline = proc.stdout.readline()
-            return (Event.DOWN,
-                    "rpcclient returned %s: %s" % (proc.returncode, errline))
+            return (
+                Event.DOWN,
+                "rpcclient returned %s: %s" % (proc.returncode, errline),
+            )
 
         output = proc.stdout.readlines()
         lastline = output[-1]

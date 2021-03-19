@@ -32,6 +32,7 @@ import nav.db
 # pylint: disable=W0703
 class NAVDBQueue(object):
     """The smsd queue for the NAV database."""
+
     def __init__(self):
         # Create logger
         self.logger = logging.getLogger("nav.smsd.queue")
@@ -40,8 +41,7 @@ class NAVDBQueue(object):
         try:
             self._connect()
         except Exception as error:
-            self.logger.exception("Queue failed to initialize. Exiting. (%s)",
-                                  error)
+            self.logger.exception("Queue failed to initialize. Exiting. (%s)", error)
             sys.exit(1)
 
     def cancel(self, minage='0'):
@@ -66,13 +66,16 @@ class NAVDBQueue(object):
             try:
                 db.execute(sql, data)
             except nav.db.driver.ProgrammingError:
-                self.logger.warning("'autocancel' value (%s) is not valid. " +
-                                    "Check config for errors.",
-                                    minage)
+                self.logger.warning(
+                    "'autocancel' value (%s) is not valid. "
+                    + "Check config for errors.",
+                    minage,
+                )
                 return 0
             except Exception:
-                self.logger.exception("Unknown exception caught in " +
-                                      "cancel(). Exiting.")
+                self.logger.exception(
+                    "Unknown exception caught in " + "cancel(). Exiting."
+                )
                 sys.exit(1)
 
         # Ignore messages
@@ -156,8 +159,11 @@ class NAVDBQueue(object):
 
         result = []
         for (smsqid, name, msg, time) in db.fetchall():
-            result.append(dict(id=smsqid, name=name, msg=msg,
-                               time=time.strftime("%Y-%m-%d %H:%M")))
+            result.append(
+                dict(
+                    id=smsqid, name=name, msg=msg, time=time.strftime("%Y-%m-%d %H:%M")
+                )
+            )
 
         # Rollback so we don't have old open transactions which foobars the
         # usage of now() in setsentstatus()

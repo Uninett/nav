@@ -1,4 +1,3 @@
-
 # Copyright (C) 2006-2008, 2011 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -48,8 +47,10 @@ _logger = logging.getLogger('nav.daemon')
 
 # Exception classes
 
+
 class DaemonError(Exception):
     """Base class for all exceptions raised by nav.daemon."""
+
     pass
 
 
@@ -61,8 +62,7 @@ class UserNotFoundError(DaemonError):
         self.username = username
 
     def __str__(self):
-        return "User (%s) not found, can't switch process user." % (
-            self.username)
+        return "User (%s) not found, can't switch process user." % (self.username)
 
 
 class SwitchUserError(DaemonError):
@@ -77,7 +77,11 @@ class SwitchUserError(DaemonError):
 
     def __str__(self):
         return "Failed to switch uid/gid from %d/%d to %d/%d." % (
-            self.olduid, self.oldgid, self.newuid, self.newgid)
+            self.olduid,
+            self.oldgid,
+            self.newuid,
+            self.newgid,
+        )
 
 
 class AlreadyRunningError(DaemonError):
@@ -112,7 +116,9 @@ class PidFileWriteError(DaemonError):
 
     def __str__(self):
         return "Can't write pid to or remove pidfile (%s). (%s)" % (
-            self.pidfile, self.error)
+            self.pidfile,
+            self.error,
+        )
 
 
 class ForkError(DaemonError):
@@ -128,6 +134,7 @@ class ForkError(DaemonError):
 
 
 # Daemon functions
+
 
 def switchuser(username):
     """
@@ -173,13 +180,19 @@ def switchuser(username):
                 os.setuid(uid)
             except OSError:
                 # Failed changing uid/gid
-                _logger.debug("Failed changing uid/gid from %d/%d to %d/%d.",
-                              olduid, oldgid, uid, gid)
+                _logger.debug(
+                    "Failed changing uid/gid from %d/%d to %d/%d.",
+                    olduid,
+                    oldgid,
+                    uid,
+                    gid,
+                )
                 raise SwitchUserError(olduid, oldgid, uid, gid)
             else:
                 # Switch successful
-                _logger.debug("uid/gid changed from %d/%d to %d/%d.",
-                              olduid, oldgid, uid, gid)
+                _logger.debug(
+                    "uid/gid changed from %d/%d to %d/%d.", olduid, oldgid, uid, gid
+                )
                 return True
         else:
             # Already running as the given user
@@ -250,8 +263,9 @@ def writepidfile(pidfile):
     try:
         pid_fd = open(pidfile, 'w+')
     except IOError as error:
-        _logger.debug('Cannot open pidfile %s for writing. Exiting. (%s)',
-                      pidfile, error)
+        _logger.debug(
+            'Cannot open pidfile %s for writing. Exiting. (%s)', pidfile, error
+        )
         raise PidFileWriteError(pidfile, error)
 
     pid_fd.write("%d\n" % pid)
@@ -411,14 +425,17 @@ def safesleep(delay):
         time.sleep(delay)
     except IOError as error:
         if error.errno == 514:
-            _logger.exception("Ignoring possible Linux kernel bug in "
-                              "time.sleep(): IOError=514. See LP#352316")
+            _logger.exception(
+                "Ignoring possible Linux kernel bug in "
+                "time.sleep(): IOError=514. See LP#352316"
+            )
         else:
             raise
 
 
 def signame(signum):
     """Looks up signal name from signal number"""
-    lookup = dict((num, name) for name, num in vars(signal).items()
-                  if name.startswith('SIG'))
+    lookup = dict(
+        (num, name) for name, num in vars(signal).items() if name.startswith('SIG')
+    )
     return lookup.get(signum, signum)

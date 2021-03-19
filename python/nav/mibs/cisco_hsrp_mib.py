@@ -24,12 +24,14 @@ from . import mibretriever
 
 class CiscoHSRPMib(mibretriever.MibRetriever):
     """A MibRetriever for handling CISCO-HSRP-MIB"""
+
     mib = get_mib('CISCO-HSRP-MIB')
 
     @defer.inlineCallbacks
     def get_virtual_addresses(self):
         """Retrieves a map of virtual HSRP addresses->ifindex"""
         index_addrs = yield self.retrieve_column('cHsrpGrpVirtualIpAddr')
-        addr_map = dict((IP(ip), ifindex)
-                        for (ifindex, group), ip in index_addrs.items())
+        addr_map = dict(
+            (IP(ip), ifindex) for (ifindex, group), ip in index_addrs.items()
+        )
         defer.returnValue(addr_map)

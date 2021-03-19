@@ -31,9 +31,7 @@ def make_event(**kw):
     Keyword arguments are the same as for nav.event.Event().
 
     """
-    return nav.event.Event(source='mailin',
-                           target='eventEngine',
-                           **kw)
+    return nav.event.Event(source='mailin', target='eventEngine', **kw)
 
 
 class Plugin(object):

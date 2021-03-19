@@ -24,21 +24,24 @@ def test_profile_with_nonascii_name_should_be_saved(db):
     assert set_active_profile(request, profile) is None
 
 
-@pytest.mark.parametrize("view", [
-    'alertprofiles-overview',
-    'alertprofiles-profile',
-    'alertprofiles-profile-new',
-    'alertprofiles-sms',
-    'alertprofiles-address',
-    'alertprofiles-address-new',
-    'alertprofiles-filters',
-    'alertprofiles-filters-new',
-    'alertprofiles-filter_groups',
-    'alertprofiles-filter_groups-new',
-    'alertprofiles-matchfields',
-    'alertprofiles-matchfields-new',
-    'alertprofiles-permissions',
-])
+@pytest.mark.parametrize(
+    "view",
+    [
+        'alertprofiles-overview',
+        'alertprofiles-profile',
+        'alertprofiles-profile-new',
+        'alertprofiles-sms',
+        'alertprofiles-address',
+        'alertprofiles-address-new',
+        'alertprofiles-filters',
+        'alertprofiles-filters-new',
+        'alertprofiles-filter_groups',
+        'alertprofiles-filter_groups-new',
+        'alertprofiles-matchfields',
+        'alertprofiles-matchfields-new',
+        'alertprofiles-permissions',
+    ],
+)
 def test_alertprofiles_view(client, view):
     """Simple GET tests for various non-modifying alertprofiles views"""
     url = reverse(view)
@@ -50,12 +53,16 @@ def test_alertprofiles_save_profile(db, client):
     url = reverse('alertprofiles-profile-save')
     profile_name = 'Catch 22'
 
-    response = client.post(url, follow=True, data={
-        'name': profile_name,
-        'daily_dispatch_time': '08:00',
-        'weekly_dispatch_time': '08:00',
-        'weekly_dispatch_day': AlertProfile.MONDAY,
-    })
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            'name': profile_name,
+            'daily_dispatch_time': '08:00',
+            'weekly_dispatch_time': '08:00',
+            'weekly_dispatch_day': AlertProfile.MONDAY,
+        },
+    )
 
     assert response.status_code == 200
     print(response.content)
@@ -65,32 +72,28 @@ def test_alertprofiles_save_profile(db, client):
 
 def test_alertprofiles_confirm_remove_profile(db, client, dummy_profile):
     url = reverse('alertprofiles-profile-remove')
-    response = client.post(url, follow=True, data={
-        'confirm': '1',
-        'element': [dummy_profile.id],
-    })
+    response = client.post(
+        url, follow=True, data={'confirm': '1', 'element': [dummy_profile.id],}
+    )
     assert response.status_code == 200
     assert AlertProfile.objects.filter(pk=dummy_profile.pk).count() == 0
 
 
 def test_alertprofiles_remove_profile(db, client, activated_dummy_profile):
     url = reverse('alertprofiles-profile-remove')
-    response = client.post(url, follow=True, data={
-        'profile': [activated_dummy_profile.id],
-    })
+    response = client.post(
+        url, follow=True, data={'profile': [activated_dummy_profile.id],}
+    )
     assert response.status_code == 200
     assert "Confirm deletion" in smart_text(response.content)
     assert activated_dummy_profile.name in smart_text(response.content)
-    assert AlertProfile.objects.filter(
-        pk=activated_dummy_profile.pk).count() == 1
+    assert AlertProfile.objects.filter(pk=activated_dummy_profile.pk).count() == 1
 
 
 def test_alertprofiles_activate_profile(db, client, dummy_profile):
     # remarkably, activation/deactivation of profiles belong in the remove view!
     url = reverse('alertprofiles-profile-remove')
-    response = client.post(url, follow=True, data={
-        'activate': dummy_profile.id,
-    })
+    response = client.post(url, follow=True, data={'activate': dummy_profile.id,})
     assert response.status_code == 200
     assert "Active profile set" in smart_text(response.content)
     assert dummy_profile.name in smart_text(response.content)
@@ -101,15 +104,14 @@ def test_alertprofiles_activate_profile(db, client, dummy_profile):
 def test_alertprofiles_deactivate_profile(db, client, activated_dummy_profile):
     # remarkably, activation/deactivation of profiles belong in the remove view!
     url = reverse('alertprofiles-profile-remove')
-    response = client.post(url, follow=True, data={
-        'deactivate': activated_dummy_profile.id,
-    })
+    response = client.post(
+        url, follow=True, data={'deactivate': activated_dummy_profile.id,}
+    )
     assert response.status_code == 200
     print(type(response.content))
     assert "was deactivated" in smart_text(response.content)
     assert activated_dummy_profile.name in smart_text(response.content)
-    preference = AlertPreference.objects.get(
-        account=activated_dummy_profile.account)
+    preference = AlertPreference.objects.get(account=activated_dummy_profile.account)
     assert preference.active_profile is None
 
 
@@ -135,6 +137,7 @@ def test_alertprofiles_add_public_filter_should_succeed(client):
     response = client.post(url, data=data, follow=True)
     assert response.status_code == 200
 
+
 #
 # fixtures and helpers
 #
@@ -143,15 +146,15 @@ def test_alertprofiles_add_public_filter_should_succeed(client):
 @pytest.fixture(scope='function')
 def dummy_profile():
     account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
-    profile = AlertProfile(account=account,
-                           name=u'ÆØÅ Profile %d' % randint(1, 1000))
+    profile = AlertProfile(account=account, name=u'ÆØÅ Profile %d' % randint(1, 1000))
     profile.save()
     return profile
 
 
 @pytest.fixture(scope='function')
 def activated_dummy_profile(dummy_profile):
-    preference = AlertPreference(account=dummy_profile.account,
-                                 active_profile=dummy_profile)
+    preference = AlertPreference(
+        account=dummy_profile.account, active_profile=dummy_profile
+    )
     preference.save()
     return dummy_profile

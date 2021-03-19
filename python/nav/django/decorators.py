@@ -20,6 +20,7 @@ from django.http import HttpResponse
 
 def require_admin(func):
     """Decorator for requiring admin on a request"""
+
     @wraps(func)
     def _wrapper(request, *args, **kwargs):
         if request.account.is_admin():

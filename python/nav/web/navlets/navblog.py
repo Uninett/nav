@@ -38,7 +38,7 @@ class NavBlogNavlet(Navlet):
         feed = feedparser.parse(blogurl)
         feed['maxentries'] = feed['entries'][:maxposts]
 
-        context.update({
-            'feed': feed,
-        })
+        context.update(
+            {'feed': feed,}
+        )
         return context

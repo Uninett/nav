@@ -29,6 +29,7 @@ SNMP_TRUTH_VALUES = {1: True, 2: False}
 
 class Poe(Plugin):
     """Monitors power over ethernet status"""
+
     def __init__(self, *args, **kwargs):
         super(Poe, self).__init__(*args, **kwargs)
         self.invalid_groups = defaultdict(list)
@@ -36,17 +37,18 @@ class Poe(Plugin):
     @inlineCallbacks
     def handle(self):
         if self.netbox.master:
-            self._logger.debug("this is a virtual instance of %s, not polling",
-                               self.netbox.master)
+            self._logger.debug(
+                "this is a virtual instance of %s, not polling", self.netbox.master
+            )
             returnValue(None)
 
         poemib = PowerEthernetMib(self.agent)
         if self.netbox.type and self.netbox.type.vendor.id == 'cisco':
             cisco_mib = CiscoPowerEthernetExtMib(self.agent)
-            port_phy_index = yield cisco_mib.retrieve_column(
-                "cpeExtPsePortEntPhyIndex")
+            port_phy_index = yield cisco_mib.retrieve_column("cpeExtPsePortEntPhyIndex")
             group_phy_index = yield cisco_mib.retrieve_column(
-                "cpeExtMainPseEntPhyIndex")
+                "cpeExtMainPseEntPhyIndex"
+            )
             entity_mib = EntityMib(self.agent)
             alias_mapping = yield entity_mib.get_alias_mapping()
             port_ifindices = self._resolve_ifindex(port_phy_index, alias_mapping)
@@ -98,8 +100,7 @@ class Poe(Plugin):
         if not ifindex and vendor == 'hp':
             ifindex = portindex
         if ifindex:
-            port.interface = self.containers.factory(ifindex,
-                                                     shadows.Interface)
+            port.interface = self.containers.factory(ifindex, shadows.Interface)
             port.interface.netbox = netbox
             port.interface.ifindex = ifindex
 
@@ -111,7 +112,8 @@ class Poe(Plugin):
                 if len(ifindices) != 1:
                     self._logger.warning(
                         "Found unexpected number of ifindices for phy_index %s",
-                        phy_index)
+                        phy_index,
+                    )
                     continue
                 result[portindex] = ifindices[0]
         return result
@@ -120,13 +122,17 @@ class Poe(Plugin):
         if not self.invalid_groups:
             return
 
-        valid_groups = (list(self.containers[shadows.POEGroup].keys())
-                        if shadows.POEGroup in self.containers else [])
+        valid_groups = (
+            list(self.containers[shadows.POEGroup].keys())
+            if shadows.POEGroup in self.containers
+            else []
+        )
 
         for group in self.invalid_groups:
             self.invalid_groups[group].sort()
             self._logger.info(
                 "ignoring PoE ports in invalid PoE groups: group=%s ports=%s",
-                group, self.invalid_groups[group])
-        self._logger.info("Valid PoE groups for this device are: %s",
-                          valid_groups)
+                group,
+                self.invalid_groups[group],
+            )
+        self._logger.info("Valid PoE groups for this device are: %s", valid_groups)

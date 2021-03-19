@@ -63,13 +63,15 @@ class MultipleFilter(filters.BaseFilterBackend):
     object_pks: comma-separated list of pks to filter on
     object_model: supports multiple object_models
     """
+
     def filter_queryset(self, request, queryset, view):
         if 'object_pks' in request.query_params:
             ids = request.query_params.get('object_pks').split(',')
             queryset = queryset.filter(object_pk__in=ids)
         if 'object_model' in request.query_params:
             queryset = queryset.filter(
-                object_model__in=request.query_params.getlist('object_model'))
+                object_model__in=request.query_params.getlist('object_model')
+            )
         return queryset
 
 
@@ -81,9 +83,11 @@ class CustomOrderingFilter(filters.BaseFilterBackend):
         """
         ordering = request.query_params.get('ordering')
         if ordering in ['-actor', 'actor']:
-            return sorted(queryset,
-                          key=operator.attrgetter('actor.login'),
-                          reverse=ordering.startswith('-'))
+            return sorted(
+                queryset,
+                key=operator.attrgetter('actor.login'),
+                reverse=ordering.startswith('-'),
+            )
         return queryset
 
 
@@ -98,12 +102,17 @@ class NetboxFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if 'netboxid' in request.query_params:
             netboxid = request.query_params.get('netboxid')
-            interface_pks = [str(pk) for pk in Interface.objects.filter(
-                netbox__pk=netboxid).values_list('pk', flat=True)]
+            interface_pks = [
+                str(pk)
+                for pk in Interface.objects.filter(netbox__pk=netboxid).values_list(
+                    'pk', flat=True
+                )
+            ]
 
             is_netbox = Q(object_model='netbox', object_pk=netboxid)
-            is_netbox_interface = Q(object_model='interface',
-                                    object_pk__in=interface_pks)
+            is_netbox_interface = Q(
+                object_model='interface', object_pk__in=interface_pks
+            )
             queryset = queryset.filter(is_netbox | is_netbox_interface)
 
         return queryset
@@ -122,9 +131,12 @@ class LogEntryViewSet(NAVDefaultsMixin, viewsets.ReadOnlyModelViewSet):
     Logentries are created behind the scenes by the subsystems themselves."""
 
     filter_backends = NAVDefaultsMixin.filter_backends + (
-        MultipleFilter, CustomOrderingFilter, NetboxFilter)
+        MultipleFilter,
+        CustomOrderingFilter,
+        NetboxFilter,
+    )
     queryset = LogEntry.objects.all()
     serializer_class = LogEntrySerializer
     filter_fields = ('subsystem', 'object_pk', 'verb')
-    search_fields = ('summary', )
+    search_fields = ('summary',)
     ordering = ('timestamp',)

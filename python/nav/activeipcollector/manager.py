@@ -45,7 +45,7 @@ def store(data):
 
     # Suspecting package drop - dividing into chunks and giving some
     # breathing room for each batch of updates.
-    chunks = [data[x:x+100] for x in range(0, len(data), 100)]
+    chunks = [data[x : x + 100] for x in range(0, len(data), 100)]
     for chunk in chunks:
         for db_tuple in chunk:
             store_tuple(db_tuple)
@@ -68,7 +68,7 @@ def store_tuple(db_tuple):
     metrics = [
         (metric_path_for_prefix(prefix, 'ip_count'), (when, ip_count)),
         (metric_path_for_prefix(prefix, 'mac_count'), (when, mac_count)),
-        (metric_path_for_prefix(prefix, 'ip_range'), (when, ip_range))
+        (metric_path_for_prefix(prefix, 'ip_range'), (when, ip_range)),
     ]
     _logger.debug(metrics)
     send_metrics(metrics)

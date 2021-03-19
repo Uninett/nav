@@ -20,5 +20,5 @@ from nav.web.interface_browser import views
 
 urlpatterns = [
     url(r'^$', views.index),
-    url(r'^(?P<netboxid>\d+)', views.by_netboxid, name='interface_browser-netbox')
+    url(r'^(?P<netboxid>\d+)', views.by_netboxid, name='interface_browser-netbox'),
 ]

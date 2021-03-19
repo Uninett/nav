@@ -23,16 +23,27 @@ from IPy import IP
 from django.shortcuts import render, redirect
 from django.db.models import Q
 
-from nav.arnold import (open_port, disable, quarantine, GeneralException,
-                        find_id_information, find_input_type, check_target)
-from nav.models.arnold import (Identity, Justification, QuarantineVlan,
-                               DetentionProfile)
+from nav.arnold import (
+    open_port,
+    disable,
+    quarantine,
+    GeneralException,
+    find_id_information,
+    find_input_type,
+    check_target,
+)
+from nav.models.arnold import Identity, Justification, QuarantineVlan, DetentionProfile
 from nav.models.manage import Cam, Interface
 from nav.django.utils import get_account
-from nav.web.arnold.forms import (SearchForm, HistorySearchForm,
-                                  JustificationForm, ManualDetentionForm,
-                                  ManualDetentionTargetForm,
-                                  DetentionProfileForm, QuarantineVlanForm)
+from nav.web.arnold.forms import (
+    SearchForm,
+    HistorySearchForm,
+    JustificationForm,
+    ManualDetentionForm,
+    ManualDetentionTargetForm,
+    DetentionProfileForm,
+    QuarantineVlanForm,
+)
 from nav.web.utils import create_title
 
 NAVPATH = [('Home', '/'), ('Arnold', '/arnold')]
@@ -43,10 +54,7 @@ _logger = logging.getLogger(__name__)
 def create_context(path, context):
     """Create a dictionary for use in context based on path"""
     navpath = NAVPATH + [(path,)]
-    path_context = {
-        'navpath': navpath,
-        'title': create_title(navpath)
-    }
+    path_context = {'navpath': navpath, 'title': create_title(navpath)}
     path_context.update(context)
     return path_context
 
@@ -62,29 +70,29 @@ def render_history(request):
     form = HistorySearchForm(initial={'days': days})
 
     identities = Identity.objects.filter(
-        last_changed__gte=datetime.now() - timedelta(days=days))
+        last_changed__gte=datetime.now() - timedelta(days=days)
+    )
 
     return render(
         request,
         'arnold/history.html',
-        create_context('History',
-                       {'active': {'history': True},
-                        'form': form,
-                        'identities': identities}),
+        create_context(
+            'History',
+            {'active': {'history': True}, 'form': form, 'identities': identities},
+        ),
     )
 
 
 def render_detained_ports(request):
     """Controller for rendering detained ports"""
-    identities = Identity.objects.filter(
-        Q(status='disabled') | Q(status='quarantined'))
+    identities = Identity.objects.filter(Q(status='disabled') | Q(status='quarantined'))
 
     return render(
         request,
         'arnold/detainedports.html',
-        create_context('Detentions',
-                       {'active': {'detentions': True},
-                        'identities': identities}),
+        create_context(
+            'Detentions', {'active': {'detentions': True}, 'identities': identities}
+        ),
     )
 
 
@@ -96,17 +104,15 @@ def render_search(request):
         if form.is_valid():
             search_result = process_searchform(form)
     else:
-        form = SearchForm(initial={'searchtype': 'ip', 'status': 'any',
-                                   'days': 7})
+        form = SearchForm(initial={'searchtype': 'ip', 'status': 'any', 'days': 7})
 
     return render(
         request,
         'arnold/search.html',
-        create_context('Search', {
-            'form': form,
-            'search_result': search_result,
-            'active': {'search': True}
-        })
+        create_context(
+            'Search',
+            {'form': form, 'search_result': search_result, 'active': {'search': True}},
+        ),
     )
 
 
@@ -114,8 +120,7 @@ def process_searchform(form):
     """Get searchresults based on form data"""
     extra = {}
     kwargs = {
-        'last_changed__gte': datetime.now() - timedelta(
-            days=form.cleaned_data['days'])
+        'last_changed__gte': datetime.now() - timedelta(days=form.cleaned_data['days'])
     }
 
     if form.cleaned_data['searchtype'] == 'ip':
@@ -143,11 +148,13 @@ def render_justifications(request, jid=None):
             return redirect('arnold-justificatons')
     elif jid:
         justification = Justification.objects.get(pk=jid)
-        form = JustificationForm(initial={
-            'justificationid': justification.id,
-            'name': justification.name,
-            'description': justification.description
-        })
+        form = JustificationForm(
+            initial={
+                'justificationid': justification.id,
+                'name': justification.name,
+                'description': justification.description,
+            }
+        )
     else:
         form = JustificationForm()
 
@@ -158,10 +165,14 @@ def render_justifications(request, jid=None):
     return render(
         request,
         'arnold/justifications.html',
-        create_context('Justifications',
-                       {'active': {'justifications': True},
-                        'form': form,
-                        'justifications': justifications}),
+        create_context(
+            'Justifications',
+            {
+                'active': {'justifications': True},
+                'form': form,
+                'justifications': justifications,
+            },
+        ),
     )
 
 
@@ -218,8 +229,9 @@ def render_manual_detention_step_one(request):
         if form.is_valid():
             try:
                 check_target(form.cleaned_data['target'], trunk_ok=True)
-                return redirect('arnold-manual-detention-step-two',
-                                form.cleaned_data['target'])
+                return redirect(
+                    'arnold-manual-detention-step-two', form.cleaned_data['target']
+                )
             except GeneralException as err:
                 error = err
     else:
@@ -228,11 +240,10 @@ def render_manual_detention_step_one(request):
     return render(
         request,
         'arnold/manualdetain.html',
-        create_context('Manual detention', {
-            'active': {'manualdetention': True},
-            'form': form,
-            'error': error
-        })
+        create_context(
+            'Manual detention',
+            {'active': {'manualdetention': True}, 'form': form, 'error': error},
+        ),
     )
 
 
@@ -257,14 +268,17 @@ def render_manual_detention_step_two(request, target):
     return render(
         request,
         'arnold/manualdetain-step2.html',
-        create_context('Manual detention', {
-            'active': {'manualdetention': True},
-            'target': target,
-            'candidates': candidates,
-            'form': form,
-            'now': datetime.now(),
-            'error': error
-        })
+        create_context(
+            'Manual detention',
+            {
+                'active': {'manualdetention': True},
+                'target': target,
+                'candidates': candidates,
+                'form': form,
+                'now': datetime.now(),
+                'error': error,
+            },
+        ),
     )
 
 
@@ -285,8 +299,7 @@ def process_manual_detention_form(form, account):
     _logger.debug('process_manual_detention_form')
 
     target = form.cleaned_data['target']
-    justification = Justification.objects.get(
-        pk=form.cleaned_data['justification'])
+    justification = Justification.objects.get(pk=form.cleaned_data['justification'])
     username = account.login
     comment = form.cleaned_data['comment']
     days = form.cleaned_data['days']
@@ -294,8 +307,7 @@ def process_manual_detention_form(form, account):
 
     cam = Cam.objects.get(pk=camtuple)
     try:
-        interface = Interface.objects.get(
-            netbox=cam.netbox, ifindex=cam.ifindex)
+        interface = Interface.objects.get(netbox=cam.netbox, ifindex=cam.ifindex)
     except Interface.DoesNotExist as error:
         return error
 
@@ -307,15 +319,22 @@ def process_manual_detention_form(form, account):
 
     if form.cleaned_data['method'] == 'disable':
         try:
-            disable(identity, justification, username, comment=comment,
-                    autoenablestep=days)
+            disable(
+                identity, justification, username, comment=comment, autoenablestep=days
+            )
         except GeneralException as error:
             return error
     elif form.cleaned_data['method'] == 'quarantine':
         qvlan = QuarantineVlan.objects.get(pk=form.cleaned_data['qvlan'])
         try:
-            quarantine(identity, qvlan, justification,
-                       username, comment=comment, autoenablestep=days)
+            quarantine(
+                identity,
+                qvlan,
+                justification,
+                username,
+                comment=comment,
+                autoenablestep=days,
+            )
         except GeneralException as error:
             return error
 
@@ -324,13 +343,13 @@ def choose_detentions(request, did):
     """Find all detentions for the mac-address in the given detention"""
     detention = Identity.objects.get(pk=did)
     detentions = Identity.objects.filter(
-        mac=detention.mac, status__in=['disabled', 'quarantined'])
+        mac=detention.mac, status__in=['disabled', 'quarantined']
+    )
 
     return render(
         request,
         'arnold/choose_detentions.html',
-        create_context('Enable',
-                       {'detentions': detentions}),
+        create_context('Enable', {'detentions': detentions}),
     )
 
 
@@ -355,10 +374,10 @@ def render_detention_profiles(request):
     return render(
         request,
         'arnold/detention_profiles.html',
-        create_context('Detention Profiles',
-                       {'active': {
-                           'detentionprofiles': True},
-                        'profiles': profiles}),
+        create_context(
+            'Detention Profiles',
+            {'active': {'detentionprofiles': True}, 'profiles': profiles},
+        ),
     )
 
 
@@ -379,30 +398,29 @@ def render_edit_detention_profile(request, did=None):
         incremental = True if profile.incremental == 'y' else False
         qid = profile.quarantine_vlan.id if profile.quarantine_vlan else None
 
-        form = DetentionProfileForm(initial={
-            'detention_id': profile.id,
-            'detention_type': profile.detention_type,
-            'title': profile.name,
-            'description': profile.description,
-            'justification': profile.justification.id,
-            'mail': profile.mailfile,
-            'qvlan': qid,
-            'keep_closed': profile.keep_closed,
-            'exponential': incremental,
-            'duration': profile.duration,
-            'active_on_vlans': profile.active_on_vlans,
-            'active': active
-        })
+        form = DetentionProfileForm(
+            initial={
+                'detention_id': profile.id,
+                'detention_type': profile.detention_type,
+                'title': profile.name,
+                'description': profile.description,
+                'justification': profile.justification.id,
+                'mail': profile.mailfile,
+                'qvlan': qid,
+                'keep_closed': profile.keep_closed,
+                'exponential': incremental,
+                'duration': profile.duration,
+                'active_on_vlans': profile.active_on_vlans,
+                'active': active,
+            }
+        )
     else:
         form = DetentionProfileForm()
 
     return render(
         request,
         'arnold/edit_detention_profile.html',
-        create_context('Detention Profile',
-                       {'form': form,
-                        'profile': profile}),
-
+        create_context('Detention Profile', {'form': form, 'profile': profile}),
     )
 
 
@@ -418,7 +436,8 @@ def process_detention_profile_form(form, account):
     profile.description = form.cleaned_data['description']
     profile.mailfile = form.cleaned_data['mail']
     profile.justification = Justification.objects.get(
-        pk=form.cleaned_data['justification'])
+        pk=form.cleaned_data['justification']
+    )
     profile.keep_closed = form.cleaned_data['keep_closed']
     profile.incremental = 'y' if form.cleaned_data['exponential'] else 'n'
     profile.duration = form.cleaned_data['duration']
@@ -429,7 +448,8 @@ def process_detention_profile_form(form, account):
     profile.detention_type = form.cleaned_data['detention_type']
     if form.cleaned_data['qvlan']:
         profile.quarantine_vlan = QuarantineVlan.objects.get(
-            pk=form.cleaned_data['qvlan'])
+            pk=form.cleaned_data['qvlan']
+        )
 
     profile.save()
 
@@ -443,11 +463,13 @@ def render_quarantine_vlans(request, qid=None):
             return redirect('arnold-quarantinevlans')
     elif qid:
         qvlan = QuarantineVlan.objects.get(pk=qid)
-        form = QuarantineVlanForm(initial={
-            'qid': qvlan.id,
-            'vlan': qvlan.vlan,
-            'description': qvlan.description
-        })
+        form = QuarantineVlanForm(
+            initial={
+                'qid': qvlan.id,
+                'vlan': qvlan.vlan,
+                'description': qvlan.description,
+            }
+        )
     else:
         form = QuarantineVlanForm()
 
@@ -456,10 +478,10 @@ def render_quarantine_vlans(request, qid=None):
     return render(
         request,
         'arnold/quarantinevlans.html',
-        create_context('Quarantine Vlans',
-                       {'active': {'quarantinevlans': True},
-                        'form': form,
-                        'qvlans': qvlans}),
+        create_context(
+            'Quarantine Vlans',
+            {'active': {'quarantinevlans': True}, 'form': form, 'qvlans': qvlans},
+        ),
     )
 
 
@@ -493,7 +515,5 @@ def render_details(request, did):
     return render(
         request,
         'arnold/details.html',
-        create_context('Details',
-                       {'identity': identity,
-                        'error': error}),
+        create_context('Details', {'identity': identity, 'error': error}),
     )

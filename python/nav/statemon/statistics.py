@@ -28,14 +28,13 @@ from nav.metrics.templates import (
     metric_path_for_packet_loss,
     metric_path_for_roundtrip_time,
     metric_path_for_service_availability,
-    metric_path_for_service_response_time
+    metric_path_for_service_response_time,
 )
 
 from . import event
 
 
-def update(sysname, timestamp, status, responsetime, serviceid=None,
-           handler=""):
+def update(sysname, timestamp, status, responsetime, serviceid=None, handler=""):
     """Sends metric updates to graphite.
 
     :param sysname: Sysname of the device in question.
@@ -50,10 +49,10 @@ def update(sysname, timestamp, status, responsetime, serviceid=None,
 
     """
     if serviceid:
-        status_name = metric_path_for_service_availability(
-            sysname, handler, serviceid)
+        status_name = metric_path_for_service_availability(sysname, handler, serviceid)
         response_name = metric_path_for_service_response_time(
-            sysname, handler, serviceid)
+            sysname, handler, serviceid
+        )
     else:
         status_name = metric_path_for_packet_loss(sysname)
         response_name = metric_path_for_roundtrip_time(sysname)
@@ -63,6 +62,6 @@ def update(sysname, timestamp, status, responsetime, serviceid=None,
 
     metrics = [
         (status_name, (timestamp, 0 if status == event.Event.UP else 1)),
-        (response_name, (timestamp, responsetime))
+        (response_name, (timestamp, responsetime)),
     ]
     send_metrics(metrics)

@@ -25,9 +25,15 @@ from datetime import datetime, timedelta
 from django.db import transaction, reset_queries
 from django.utils.lru_cache import lru_cache
 
-from nav.models.profiles import (Account, AccountAlertQueue, AlertSubscription,
-                                 AlertAddress, FilterGroup, AlertPreference,
-                                 TimePeriod)
+from nav.models.profiles import (
+    Account,
+    AccountAlertQueue,
+    AlertSubscription,
+    AlertAddress,
+    FilterGroup,
+    AlertPreference,
+    TimePeriod,
+)
 from nav.models.event import AlertQueue
 
 
@@ -68,8 +74,7 @@ def check_alerts(debug=False):
 
     initial_alerts = AlertQueue.objects.values_list('id', flat=True)
 
-    _logger.debug('Starting alertengine run, checking %d new alerts',
-                  num_new_alerts)
+    _logger.debug('Starting alertengine run, checking %d new alerts', num_new_alerts)
 
     if num_new_alerts:
         handle_new_alerts(new_alerts)
@@ -80,48 +85,66 @@ def check_alerts(debug=False):
     _logger.debug('Checking %d queued alerts', len(queued_alerts))
 
     if queued_alerts:
-        (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends,
-         num_resolved_alerts_ignored) = handle_queued_alerts(queued_alerts,
-                                                             now)
+        (
+            sent_daily,
+            sent_weekly,
+            num_sent_alerts,
+            num_failed_sends,
+            num_resolved_alerts_ignored,
+        ) = handle_queued_alerts(queued_alerts, now)
     else:
-        (sent_daily, sent_weekly, num_sent_alerts, num_failed_sends,
-         num_resolved_alerts_ignored) = [], [], 0, 0, 0
+        (
+            sent_daily,
+            sent_weekly,
+            num_sent_alerts,
+            num_failed_sends,
+            num_resolved_alerts_ignored,
+        ) = ([], [], 0, 0, 0)
 
     # Update the when the user last recieved daily or weekly alerts.
     if sent_daily:
-        AlertPreference.objects.filter(account__in=sent_daily).update(
-            last_sent_day=now)
+        AlertPreference.objects.filter(account__in=sent_daily).update(last_sent_day=now)
     if sent_weekly:
         AlertPreference.objects.filter(account__in=sent_weekly).update(
-            last_sent_week=now)
+            last_sent_week=now
+        )
 
     # Get id's of alerts that have been queued for users.
     alerts_in_account_queues = AccountAlertQueue.objects.values_list(
-        'alert_id', flat=True)
+        'alert_id', flat=True
+    )
 
     # Delete handeled alerts that are not in an AccountAlertQueue
     if num_new_alerts:
         if not debug:
             to_delete = AlertQueue.objects.filter(
-                id__in=[a.id for a in new_alerts]).exclude(
-                id__in=alerts_in_account_queues)
-            _logger.debug('Deleted following alerts from alert queue: %s',
-                          [a.id for a in to_delete])
+                id__in=[a.id for a in new_alerts]
+            ).exclude(id__in=alerts_in_account_queues)
+            _logger.debug(
+                'Deleted following alerts from alert queue: %s',
+                [a.id for a in to_delete],
+            )
             to_delete.delete()
         else:
             _logger.debug(
                 'In testing mode: would have deleted following alerts '
-                'from alert queue: %s', [a.id for a in new_alerts]
+                'from alert queue: %s',
+                [a.id for a in new_alerts],
             )
 
-    num_deleted = len(initial_alerts) - AlertQueue.objects.filter(
-        id__in=initial_alerts).count()
+    num_deleted = (
+        len(initial_alerts) - AlertQueue.objects.filter(id__in=initial_alerts).count()
+    )
 
     _logger.info(
         '%d new alert(s), sent %d alert(s), %d queued alert(s), '
         '%d alert(s) deleted, %d failed send(s), %d ignored',
-        num_new_alerts, num_sent_alerts, len(alerts_in_account_queues),
-        num_deleted, num_failed_sends, num_resolved_alerts_ignored
+        num_new_alerts,
+        num_sent_alerts,
+        len(alerts_in_account_queues),
+        num_deleted,
+        num_failed_sends,
+        num_resolved_alerts_ignored,
     )
 
     if num_failed_sends:
@@ -149,7 +172,7 @@ def handle_new_alerts(new_alerts):
             AlertSubscription.NEXT,
             AlertSubscription.DAILY,
             AlertSubscription.WEEKLY,
-            ]
+        ]
         try:
             return sort_order.index(subscription.type)
         except ValueError:
@@ -158,7 +181,8 @@ def handle_new_alerts(new_alerts):
     # Build datastructure that contains accounts and corresponding
     # filtergroupcontent_set so that we don't redo db queries to much
     for account in Account.objects.filter(
-            alertpreference__active_profile__isnull=False):
+        alertpreference__active_profile__isnull=False
+    ):
         profile = account.get_active_profile()
         time_period = profile.get_active_timeperiod() if profile else None
 
@@ -166,19 +190,23 @@ def handle_new_alerts(new_alerts):
             continue
 
         current_alertsubscriptions = sorted(
-            time_period.alertsubscription_set.all(),
-            key=subscription_sort_key)
+            time_period.alertsubscription_set.all(), key=subscription_sort_key
+        )
 
         tmp = []
         for alertsubscription in current_alertsubscriptions:
             tmp.append(
-                (alertsubscription,
-                 alertsubscription.filter_group.filtergroupcontent_set.all()))
+                (
+                    alertsubscription,
+                    alertsubscription.filter_group.filtergroupcontent_set.all(),
+                )
+            )
 
         if tmp:
             permissions = []
             for filtergroup in FilterGroup.objects.filter(
-                    group_permissions__accounts__in=[account]):
+                group_permissions__accounts__in=[account]
+            ):
                 permissions.append(filtergroup.filtergroupcontent_set.all())
 
             accounts.append((account, tmp, permissions))
@@ -196,9 +224,15 @@ def handle_new_alerts(new_alerts):
         _logger.debug("Checking new alerts for account '%s'", account)
 
         for alert in new_alerts:
-            _check_match_and_permission(account, alert, alertsubscriptions,
-                                        dupemap, _logger, memoized_check_alert,
-                                        permissions)
+            _check_match_and_permission(
+                account,
+                alert,
+                alertsubscriptions,
+                dupemap,
+                _logger,
+                memoized_check_alert,
+                permissions,
+            )
             del alert
         del account
         del permissions
@@ -208,50 +242,78 @@ def handle_new_alerts(new_alerts):
     gc.collect()
 
 
-def _check_match_and_permission(account, alert, alertsubscriptions, dupemap,
-                                _logger, memoized_check_alert, permissions):
+def _check_match_and_permission(
+    account,
+    alert,
+    alertsubscriptions,
+    dupemap,
+    _logger,
+    memoized_check_alert,
+    permissions,
+):
     for alertsubscription, filtergroupcontents in alertsubscriptions:
         # Check if alert matches, and if user has permission
         if memoized_check_alert(alert, filtergroupcontents, 'match check'):
-            queued = _check_permissions(account, alert, alertsubscription,
-                                        dupemap, _logger, memoized_check_alert,
-                                        permissions)
+            queued = _check_permissions(
+                account,
+                alert,
+                alertsubscription,
+                dupemap,
+                _logger,
+                memoized_check_alert,
+                permissions,
+            )
 
             if not queued:
                 _logger.warning(
-                    'alert %d not queued to %s due to lacking permissions' % (
-                        alert.id, account))
+                    'alert %d not queued to %s due to lacking permissions'
+                    % (alert.id, account)
+                )
         else:
             _logger.debug(
                 'alert %d: did not match the alertsubscription %d of user %s',
-                alert.id, alertsubscription.id, account)
+                alert.id,
+                alertsubscription.id,
+                account,
+            )
 
         del alertsubscription
         del filtergroupcontents
 
 
-def _check_permissions(account, alert, alertsubscription, dupemap, _logger,
-                       memoized_check_alert, permissions):
+def _check_permissions(
+    account,
+    alert,
+    alertsubscription,
+    dupemap,
+    _logger,
+    memoized_check_alert,
+    permissions,
+):
     for permission in permissions:
         if memoized_check_alert(alert, permission, 'permission check'):
-            _logger.debug(
-                "Matched permission subscription %d" % alertsubscription.id)
+            _logger.debug("Matched permission subscription %d" % alertsubscription.id)
 
             # Queue all alerts, avoiding duplicates. The individual users'
             # queues will be processed later.
             if (alert.id, alertsubscription.alert_address_id) not in dupemap:
                 AccountAlertQueue.objects.get_or_create(
-                    account=account,
-                    alert=alert,
-                    subscription=alertsubscription)
+                    account=account, alert=alert, subscription=alertsubscription
+                )
                 dupemap.add((alert.id, alertsubscription.alert_address_id))
-                _logger.info('alert %d queued for %s due to subscription %d',
-                             alert.id, account, alertsubscription.id)
+                _logger.info(
+                    'alert %d queued for %s due to subscription %d',
+                    alert.id,
+                    account,
+                    alertsubscription.id,
+                )
             else:
                 _logger.debug(
                     'alert %d was already queued for %s (address %s)',
-                    alert.id, account,
-                    alertsubscription.alert_address_id)
+                    alert.id,
+                    account,
+                    alertsubscription.alert_address_id,
+                )
 
             return True
     return False
@@ -315,8 +377,13 @@ def handle_queued_alerts(queued_alerts, now=None):
 
     del queued_alerts
 
-    return (accounts_sent_daily, accounts_sent_weekly, num_sent_alerts,
-            num_failed_sends, num_resolved_alerts_ignored)
+    return (
+        accounts_sent_daily,
+        accounts_sent_weekly,
+        num_sent_alerts,
+        num_failed_sends,
+        num_resolved_alerts_ignored,
+    )
 
 
 def process_single_queued_notification(queued_alert, now):
@@ -331,13 +398,20 @@ def process_single_queued_notification(queued_alert, now):
     try:
         subscription = queued_alert.subscription
     except AlertSubscription.DoesNotExist:
-        _logger.error('account queued alert %d does not have subscription, '
-                      'probably a legacy table row', queued_alert.id)
+        _logger.error(
+            'account queued alert %d does not have subscription, '
+            'probably a legacy table row',
+            queued_alert.id,
+        )
         return
 
-    _logger.debug('Stored alert %d: Checking %s %s subscription %d',
-                  queued_alert.alert_id, queued_alert.account,
-                  subscription.get_type_display(), subscription.id)
+    _logger.debug(
+        'Stored alert %d: Checking %s %s subscription %d',
+        queued_alert.alert_id,
+        queued_alert.account,
+        subscription.get_type_display(),
+        subscription.id,
+    )
 
     try:
         subscription.time_period.profile.alertpreference
@@ -345,8 +419,10 @@ def process_single_queued_notification(queued_alert, now):
         subscription = None
 
     if subscription is None:
-        _logger.info('Sending alert %d right away as the users profile has '
-                     'been disabled', queued_alert.alert_id)
+        _logger.info(
+            'Sending alert %d right away as the users profile has ' 'been disabled',
+            queued_alert.alert_id,
+        )
         send = True
 
     elif subscription.type == AlertSubscription.NOW:
@@ -367,15 +443,17 @@ def process_single_queued_notification(queued_alert, now):
             send = True
 
     else:
-        _logger.error('Account %s has an invalid subscription type in '
-                      'subscription %d',
-                      subscription.account, subscription.id)
+        _logger.error(
+            'Account %s has an invalid subscription type in ' 'subscription %d',
+            subscription.account,
+            subscription.id,
+        )
 
     if send:
         if alert_should_be_ignored(queued_alert, subscription, now):
             _logger.info(
                 'Ignoring resolved alert %d due to user preference',
-                queued_alert.alert_id
+                queued_alert.alert_id,
             )
             queued_alert.delete()
             return DISPATCH_IGNORED
@@ -395,19 +473,22 @@ def _verify_daily_dispatch(queued_alert, now, _logger=_logger):
     subscription = queued_alert.subscription
     daily_time = subscription.time_period.profile.daily_dispatch_time
     last_sent = (
-            subscription.time_period.profile.alertpreference.last_sent_day
-            or datetime.min)
+        subscription.time_period.profile.alertpreference.last_sent_day or datetime.min
+    )
     # If the last sent date is less than the current date, and we are
     # past the daily time and the alert was added to the queue before
     # this time
     last_sent_test = last_sent.date() < now.date()
     daily_time_test = daily_time < now.time()
-    insertion_time_test = (
-            queued_alert.insertion_time < datetime.combine(now.date(),
-                                                           daily_time))
-    _logger.debug('Tests: last sent %s, daily time %s, insertion time '
-                  '%s', last_sent_test, daily_time_test,
-                  insertion_time_test)
+    insertion_time_test = queued_alert.insertion_time < datetime.combine(
+        now.date(), daily_time
+    )
+    _logger.debug(
+        'Tests: last sent %s, daily time %s, insertion time ' '%s',
+        last_sent_test,
+        daily_time_test,
+        insertion_time_test,
+    )
     return last_sent_test and daily_time_test and insertion_time_test
 
 
@@ -416,8 +497,8 @@ def _verify_weekly_dispatch(queued_alert, now, _logger=_logger):
     weekly_time = subscription.time_period.profile.weekly_dispatch_time
     weekly_day = subscription.time_period.profile.weekly_dispatch_day
     last_sent = (
-            subscription.time_period.profile.alertpreference.last_sent_week
-            or datetime.min)
+        subscription.time_period.profile.alertpreference.last_sent_week or datetime.min
+    )
 
     # Check that we are at the correct weekday, and that the last sent
     # time is less than today, and that alert was inserted before the
@@ -426,13 +507,17 @@ def _verify_weekly_dispatch(queued_alert, now, _logger=_logger):
     weekday_test = weekly_day == now.weekday()
     last_sent_test = last_sent.date() < now.date()
     weekly_time_test = weekly_time < now.time()
-    insertion_time_test = (
-            queued_alert.insertion_time < datetime.combine(now.date(),
-                                                           weekly_time))
+    insertion_time_test = queued_alert.insertion_time < datetime.combine(
+        now.date(), weekly_time
+    )
 
-    _logger.debug('Tests: weekday %s, last sent %s, weekly time %s, '
-                  'insertion time %s', weekday_test, last_sent_test,
-                  weekly_time_test, insertion_time_test)
+    _logger.debug(
+        'Tests: weekday %s, last sent %s, weekly time %s, ' 'insertion time %s',
+        weekday_test,
+        last_sent_test,
+        weekly_time_test,
+        insertion_time_test,
+    )
 
     return weekday_test and last_sent_test and weekly_time_test and insertion_time_test
 
@@ -456,7 +541,7 @@ def _verify_next_dispatch(queued_alert, now, _logger=_logger):
             was_inserted_before = insertion_time < start_time
             _logger.debug(
                 "Tests: Only one time period, inserted in previous iteration: %s",
-                was_inserted_before
+                was_inserted_before,
             )
         else:
             was_inserted_before = queued_alert_time_period.id != current_time_period.id
@@ -502,19 +587,22 @@ def alert_should_be_ignored(queued_alert, subscription, now):
     be ignored.
 
     """
-    return (queued_alert.alert.history is not None and
-            queued_alert.alert.history.end_time is not None and
-            queued_alert.alert.history.end_time < now and
-            subscription is not None and
-            subscription.ignore_resolved_alerts and
-            subscription.type != AlertSubscription.NOW)
+    return (
+        queued_alert.alert.history is not None
+        and queued_alert.alert.history.end_time is not None
+        and queued_alert.alert.history.end_time < now
+        and subscription is not None
+        and subscription.ignore_resolved_alerts
+        and subscription.type != AlertSubscription.NOW
+    )
 
 
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, atype):
     """Checks a given alert against an array of filtergroupcontents"""
 
     _logger = logging.getLogger(
-        'nav.alertengine.check_alert_against_filtergroupcontents')
+        'nav.alertengine.check_alert_against_filtergroupcontents'
+    )
 
     if not filtergroupcontents:
         _logger.debug("Emtpy filtergroup")
@@ -531,8 +619,12 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents, atype):
             matches = content.filter.verify(alert) == content.positive
 
             if matches:
-                _logger.debug('alert %d: got included by filter %d in %s',
-                              alert.id, content.filter.id, atype)
+                _logger.debug(
+                    'alert %d: got included by filter %d in %s',
+                    alert.id,
+                    content.filter.id,
+                    atype,
+                )
 
         # If the alert has been matched try excluding it
         elif matches and not content.include:
@@ -540,11 +632,19 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents, atype):
 
             # Log that we excluded the alert
             if not matches:
-                _logger.debug('alert %d got: excluded by filter %d in %s',
-                              alert.id, content.filter.id, atype)
+                _logger.debug(
+                    'alert %d got: excluded by filter %d in %s',
+                    alert.id,
+                    content.filter.id,
+                    atype,
+                )
 
         if original_macthes == matches:
-            _logger.debug('alert %d: unaffected by filter %d in %s',
-                          alert.id, content.filter.id, atype)
+            _logger.debug(
+                'alert %d: unaffected by filter %d in %s',
+                alert.id,
+                content.filter.id,
+                atype,
+            )
 
     return matches

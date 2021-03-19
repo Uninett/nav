@@ -4,6 +4,7 @@ from mock import Mock
 from unittest import TestCase
 import random
 import logging
+
 logging.raiseExceptions = False
 
 from nav import logengine
@@ -30,15 +31,18 @@ Oct 28 13:15:46 10.0.42.103 1041: Oct 28 13:15:46.379 CEST: %LINEPROTO-5-UPDOWN:
 Oct 28 13:15:52 10.0.42.103 1042: Oct 28 13:15:51.915 CEST: %LINK-3-UPDOWN: Interface GigabitEthernet1/0/30, changed state to up
 Oct 28 13:15:52 10.0.128.13 71781: *Oct 28 2010 12:08:49 CET: %MV64340_ETHERNET-5-LATECOLLISION: GigabitEthernet0/1, late collision error
 Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/30, changed state to up
-""".strip().split("\n")
+""".strip().split(
+        "\n"
+    )
 
 
 def test_parse_without_exceptions(loglines):
     for line in loglines:
         msg = logengine.create_message(line)
         assert msg, "unparseable: %s" % line
-        assert msg.facility is not None, \
-            "Message has no facility: {0!r}\n{1!r}".format(line, vars(msg))
+        assert msg.facility is not None, "Message has no facility: {0!r}\n{1!r}".format(
+            line, vars(msg)
+        )
 
 
 def test_insert(loglines):
@@ -48,12 +52,11 @@ def test_insert(loglines):
 
         def execute(sql, params=()):
             return sql % params
+
         database.execute = execute
         message = logengine.create_message(line)
         assert message, "unparseable: %s" % line
-        logengine.insert_message(message, database,
-                                 {}, {}, {},
-                                 {}, {}, {})
+        logengine.insert_message(message, database, {}, {}, {}, {}, {}, {})
 
 
 def test_swallow_generic_exceptions():
@@ -90,8 +93,9 @@ class TestParsing(object):
     facility = 'LINEPROTO'
     priority = 5
     mnemonic = 'UPDOWN'
-    description = ("Line protocol on Interface GigabitEthernet1/0/30,"
-                   " changed state to up")
+    description = (
+        "Line protocol on Interface GigabitEthernet1/0/30," " changed state to up"
+    )
 
     def test_should_parse_without_exception(self):
         assert logengine.create_message(self.message)
@@ -129,6 +133,7 @@ class TestParseMessageWithStrangeGarbage(TestParsing):
 
 class TestParseMessageEndingWithColon(TestParsing):
     """Regression test for issue LP#720024"""
+
     message = "Feb 16 11:55:08 10.0.1.15 22877425: Feb 16 11:55:09.436 MET: %HA_EM-6-LOG: on_high_cpu: CPU utilization is over 80%:"
 
     timestamp = datetime.datetime(now.year, 2, 16, 11, 55, 9)
@@ -145,7 +150,9 @@ class TestParseMessageWithNoOriginTimestamp(TestParsing):
     facility = 'ASA'
     priority = 3
     mnemonic = '321007'
-    description = "System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)"
+    description = (
+        "System is low on free memory blocks of size 8192 (0 CNT out of 250 MAX)"
+    )
 
 
 non_conforming_lines = [

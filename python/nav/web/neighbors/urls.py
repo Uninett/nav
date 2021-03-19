@@ -21,8 +21,6 @@ from nav.web.neighbors import views
 
 
 urlpatterns = [
-    url(r'^$', views.index,
-        name='neighbors-index'),
-    url(r'neighbor-state/', views.set_ignored_state,
-        name='neighbors-set-state'),
+    url(r'^$', views.index, name='neighbors-index'),
+    url(r'neighbor-state/', views.set_ignored_state, name='neighbors-set-state'),
 ]

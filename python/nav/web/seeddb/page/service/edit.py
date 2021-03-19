@@ -32,17 +32,17 @@ from nav.web.seeddb.page.service import ServiceInfo
 
 class ServiceChoiceForm(forms.Form):
     """For for editing services"""
+
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
         # NB: Setting the TextInput to hidden is done to display the label.
         #     The HiddenInput widget will remove the label
         self.fields['netbox'] = forms.CharField(
-            label='IP Device',
-            widget=forms.TextInput(attrs={'type': 'hidden'})
+            label='IP Device', widget=forms.TextInput(attrs={'type': 'hidden'})
         )
         self.fields['service'] = forms.ChoiceField(
             choices=sorted(self._build_checker_choices()),
-            widget=forms.Select(attrs={'class': 'select2'})
+            widget=forms.Select(attrs={'class': 'select2'}),
         )
 
         self.helper = FormHelper(self)
@@ -66,18 +66,15 @@ class ServiceChoiceForm(forms.Form):
 
     @staticmethod
     def _build_netbox_choices():
-        return [(n.id, n.sysname)
-                for n in Netbox.objects.all().order_by('sysname')]
+        return [(n.id, n.sysname) for n in Netbox.objects.all().order_by('sysname')]
 
 
 class ServiceForm(forms.Form):
     """Form for adding hidden fields to a service property edit"""
-    service = forms.IntegerField(
-        widget=forms.HiddenInput, required=False)
-    handler = forms.CharField(
-        widget=forms.HiddenInput)
-    netbox = forms.IntegerField(
-        widget=forms.HiddenInput)
+
+    service = forms.IntegerField(widget=forms.HiddenInput, required=False)
+    handler = forms.CharField(widget=forms.HiddenInput)
+    netbox = forms.IntegerField(widget=forms.HiddenInput)
 
     def __init__(self, *args, **kwargs):
         super(ServiceForm, self).__init__(*args, **kwargs)
@@ -87,6 +84,7 @@ class ServiceForm(forms.Form):
 
 class ServicePropertyForm(forms.Form):
     """Form for editing service properties"""
+
     def __init__(self, *args, **kwargs):
         service_description = kwargs.pop('service_args')
         super(ServicePropertyForm, self).__init__(*args, **kwargs)
@@ -95,12 +93,10 @@ class ServicePropertyForm(forms.Form):
 
         if args:
             for arg, descr in args:
-                self.fields[arg] = forms.CharField(required=True,
-                                                   help_text=descr)
+                self.fields[arg] = forms.CharField(required=True, help_text=descr)
         if opt_args:
             for arg, descr in opt_args:
-                self.fields[arg] = forms.CharField(required=False,
-                                                   help_text=descr)
+                self.fields[arg] = forms.CharField(required=False, help_text=descr)
 
         self.helper = FormHelper(self)
         self.helper.form_tag = False
@@ -120,7 +116,8 @@ def service_edit(request, service_id=None):
         if service_form.is_valid():
             handler = service_form.cleaned_data['handler']
             property_form = ServicePropertyForm(
-                request.POST, service_args=get_description(handler))
+                request.POST, service_args=get_description(handler)
+            )
             if property_form.is_valid():
                 return service_save(request, service_form, property_form)
     else:
@@ -130,26 +127,30 @@ def service_edit(request, service_id=None):
             handler = service.handler
             netbox = service.netbox
             service_prop = ServiceProperty.objects.filter(service=service)
-            service_form = ServiceForm(initial={
-                'service': service.pk,
-                'netbox': netbox.pk,
-                'handler': handler,
-            })
+            service_form = ServiceForm(
+                initial={
+                    'service': service.pk,
+                    'netbox': netbox.pk,
+                    'handler': handler,
+                }
+            )
             initial = {prop.property: prop.value for prop in service_prop}
             property_form = ServicePropertyForm(
-                service_args=get_description(service.handler),
-                initial=initial)
+                service_args=get_description(service.handler), initial=initial
+            )
 
     info = ServiceInfo()
     context = info.template_context
-    context.update({
-        'object': service,
-        'handler': handler,
-        'netbox': netbox,
-        'sub_active': {'edit': True},
-        'service_form': service_form,
-        'property_form': property_form,
-    })
+    context.update(
+        {
+            'object': service,
+            'handler': handler,
+            'netbox': netbox,
+            'sub_active': {'edit': True},
+            'service_form': service_form,
+            'property_form': property_form,
+        }
+    )
     return render(request, 'seeddb/service_property_form.html', context)
 
 
@@ -165,29 +166,30 @@ def service_add(request):
             netbox = Netbox.objects.get(pk=netbox_id)
 
             property_form = ServicePropertyForm(
-                service_args=get_description(service_id))
-            service_form = ServiceForm(initial={
-                'netbox': netbox_id,
-                'handler': service_id,
-            })
+                service_args=get_description(service_id)
+            )
+            service_form = ServiceForm(
+                initial={'netbox': netbox_id, 'handler': service_id,}
+            )
 
             context = info.template_context
-            context.update({
-                'service_form': service_form,
-                'property_form': property_form,
-                'sub_active': {'add': True},
-                'handler': service_id,
-                'netbox': netbox,
-            })
+            context.update(
+                {
+                    'service_form': service_form,
+                    'property_form': property_form,
+                    'sub_active': {'add': True},
+                    'handler': service_id,
+                    'netbox': netbox,
+                }
+            )
             return render(request, 'seeddb/service_property_form.html', context)
     else:
         choice_form = ServiceChoiceForm()
 
     context = info.template_context
-    context.update({
-        'choice_form': choice_form,
-        'sub_active': {'add': True},
-    })
+    context.update(
+        {'choice_form': choice_form, 'sub_active': {'add': True},}
+    )
     return render(request, 'seeddb/service_netbox_form.html', context)
 
 
@@ -196,25 +198,20 @@ def service_save(request, service_form, property_form):
     """Saves a service based on two form inputs"""
     service_id = service_form.cleaned_data.get('service')
     if service_id:
-        service = Service.objects.select_related(
-            'netbox').get(pk=service_id)
+        service = Service.objects.select_related('netbox').get(pk=service_id)
         ServiceProperty.objects.filter(service=service).delete()
         netbox = service.netbox
     else:
         netbox = Netbox.objects.get(pk=service_form.cleaned_data['netbox'])
         service = Service.objects.create(
-            netbox=netbox,
-            handler=service_form.cleaned_data['handler']
+            netbox=netbox, handler=service_form.cleaned_data['handler']
         )
     for (prop, value) in property_form.cleaned_data.items():
         if value:
-            ServiceProperty.objects.create(
-                service=service,
-                property=prop,
-                value=value
-            )
-    new_message(request,
-                "Saved service for handler %s on %s" % (service.handler,
-                                                        netbox),
-                Messages.SUCCESS)
+            ServiceProperty.objects.create(service=service, property=prop, value=value)
+    new_message(
+        request,
+        "Saved service for handler %s on %s" % (service.handler, netbox),
+        Messages.SUCCESS,
+    )
     return HttpResponseRedirect(reverse('seeddb-service'))

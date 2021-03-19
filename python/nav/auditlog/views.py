@@ -32,9 +32,11 @@ class AuditlogOverview(TemplateView):
     template_name = 'auditlog/overview.html'
 
     def get_context_data(self, **kwargs):
-        verbs = list(LogEntry.objects.order_by().values_list('verb', flat=True).distinct())
+        verbs = list(
+            LogEntry.objects.order_by().values_list('verb', flat=True).distinct()
+        )
         verbs.sort()
-        navpath = (get_navpath_root(), ('Audit Log', ))
+        navpath = (get_navpath_root(), ('Audit Log',))
         context = {
             'auditlog_verbs': verbs,
             'navpath': navpath,
@@ -49,10 +51,12 @@ class AuditlogNetboxDetail(AuditlogOverview):
 
     def get_context_data(self, **kwargs):
         context = super(AuditlogNetboxDetail, self).get_context_data(**kwargs)
-        context.update({
-            'auditlog_api_parameters': self.get_api_parameters(),
-            'netbox': get_object_or_404(Netbox, pk=self.kwargs.get('netboxid'))
-        })
+        context.update(
+            {
+                'auditlog_api_parameters': self.get_api_parameters(),
+                'netbox': get_object_or_404(Netbox, pk=self.kwargs.get('netboxid')),
+            }
+        )
         return context
 
     def get_api_parameters(self):

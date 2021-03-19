@@ -93,9 +93,11 @@ class CamManager(DefaultManager):
         match_open = Q(end_time__gte=INFINITY) | Q(miss_count__gte=0)
         camlist = manage.Cam.objects.filter(netbox__id=self.netbox.id)
         camlist = camlist.filter(match_open).values_list(
-            'ifindex', 'mac', 'id', 'end_time', 'miss_count')
-        self._previously_open = dict((Cam(*cam[0:2]), CamDetails(*cam[2:]))
-                                     for cam in camlist)
+            'ifindex', 'mac', 'id', 'end_time', 'miss_count'
+        )
+        self._previously_open = dict(
+            (Cam(*cam[0:2]), CamDetails(*cam[2:])) for cam in camlist
+        )
 
     def _map_found_to_open(self):
         self._now_open = set(self.get_managed())
@@ -109,21 +111,29 @@ class CamManager(DefaultManager):
     def _log_stats(self):
         if not self._logger.isEnabledFor(logging.DEBUG):
             return
-        reclaimable_count = sum(1 for cam in self._previously_open.values()
-                                if cam.end_time < INFINITY)
+        reclaimable_count = sum(
+            1 for cam in self._previously_open.values() if cam.end_time < INFINITY
+        )
         self._logger.debug(
-            "existing=%d (reclaimable=%d) / "
-            "found=%d (known=%d new=%d missing=%d)",
-            len(self._previously_open), reclaimable_count, len(self._now_open),
-            len(self._keepers), len(self._new), len(self._missing))
+            "existing=%d (reclaimable=%d) / " "found=%d (known=%d new=%d missing=%d)",
+            len(self._previously_open),
+            reclaimable_count,
+            len(self._now_open),
+            len(self._keepers),
+            len(self._new),
+            len(self._missing),
+        )
 
     @transaction.atomic()
     def save(self):
         # Reuse the same object over and over in an attempt to avoid the
         # overhead of Python object creation
         record = manage.Cam(
-            netbox_id=self.netbox.id, sysname=self.netbox.sysname,
-            start_time=datetime.datetime.now(), end_time=INFINITY)
+            netbox_id=self.netbox.id,
+            sysname=self.netbox.sysname,
+            start_time=datetime.datetime.now(),
+            end_time=INFINITY,
+        )
         for cam in self._new:
             record.id = None
             record.port = self._get_port_for(cam.ifindex)
@@ -137,7 +147,8 @@ class CamManager(DefaultManager):
         if reclaim:
             self._logger.debug("reclaiming %r", reclaim)
             manage.Cam.objects.filter(id__in=reclaim).update(
-                end_time=INFINITY, miss_count=0)
+                end_time=INFINITY, miss_count=0
+            )
 
     def _get_port_for(self, ifindex):
         """Gets a port name from an ifindex, either from newly collected or
@@ -154,10 +165,10 @@ class CamManager(DefaultManager):
         if not self._ifnames:
             ifcs = manage.Interface.objects.filter(
                 netbox__id=self.netbox.id, ifindex__isnull=False
-                ).values('ifindex', 'ifname', 'ifdescr')
+            ).values('ifindex', 'ifname', 'ifdescr')
             self._ifnames = dict(
-                (row['ifindex'], row['ifname'] or row['ifdescr'])
-                for row in ifcs)
+                (row['ifindex'], row['ifname'] or row['ifdescr']) for row in ifcs
+            )
 
         return self._ifnames.get(ifindex, '')
 
@@ -174,8 +185,7 @@ class CamManager(DefaultManager):
 
         if cam_detail.miss_count >= 0:
             miss_count = cam_detail.miss_count + 1
-            upd['miss_count'] = (miss_count if miss_count < MAX_MISS_COUNT
-                                 else None)
+            upd['miss_count'] = miss_count if miss_count < MAX_MISS_COUNT else None
 
         if upd:
             manage.Cam.objects.filter(id=cam_detail.id).update(**upd)

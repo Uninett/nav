@@ -28,8 +28,12 @@ from nav.models.event import AlertHistory
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 from nav.web.devicehistory.utils.history import (
-    fetch_history, get_messages_for_history, group_history_and_messages,
-    describe_search_params, add_descendants)
+    fetch_history,
+    get_messages_for_history,
+    group_history_and_messages,
+    describe_search_params,
+    add_descendants,
+)
 from nav.web.devicehistory.utils.error import register_error_events
 from nav.web.devicehistory.forms import DeviceHistoryViewFilter
 
@@ -73,24 +77,24 @@ def devicehistory_search(request):
         'quickselect': device_quickselect,
         'navpath': [('Home', '/'), ('Device History', '')],
         'title': 'NAV - Device History',
-        'form': form
+        'form': form,
     }
     return render(request, 'devicehistory/history_search.html', info_dict)
 
 
 def devicehistory_view_location(request, location_id):
     url = reverse('devicehistory-view')
-    return redirect(url+'?loc=%s' % location_id)
+    return redirect(url + '?loc=%s' % location_id)
 
 
 def devicehistory_view_netbox(request, netbox_id):
     url = reverse('devicehistory-view')
-    return redirect(url+'?netbox=%s' % netbox_id)
+    return redirect(url + '?netbox=%s' % netbox_id)
 
 
 def devicehistory_view_room(request, room_id):
     url = reverse('devicehistory-view')
-    return redirect(url+'?room=%s' % room_id)
+    return redirect(url + '?room=%s' % room_id)
 
 
 def devicehistory_view(request, **_):
@@ -104,26 +108,24 @@ def devicehistory_view(request, **_):
         'netbox': request.GET.getlist('netbox'),
         'groups': request.GET.getlist('netboxgroup'),
         'module': request.GET.getlist('module'),
-        'mode': request.GET.getlist('mode')
+        'mode': request.GET.getlist('mode'),
     }
 
     grouped_history = None
-    valid_params = ['to_date', 'from_date', 'eventtype', 'group_by',
-                    'netbox', 'room']
+    valid_params = ['to_date', 'from_date', 'eventtype', 'group_by', 'netbox', 'room']
     if len(set(valid_params) & set(request.GET.keys())) >= 1:
         form = DeviceHistoryViewFilter(request.GET)
     else:
         form = DeviceHistoryViewFilter()
     if form.is_valid():
         # We need to handle locations as they are tree-based
-        selection['room__location'] = add_descendants(
-            selection['room__location'])
+        selection['room__location'] = add_descendants(selection['room__location'])
 
         alert_history = fetch_history(selection, form)
         grouped_history = group_history_and_messages(
             alert_history,
             get_messages_for_history(alert_history),
-            form.cleaned_data['group_by']
+            form.cleaned_data['group_by'],
         )
 
         # Quickselect expects 'loc' and not 'location'
@@ -140,7 +142,7 @@ def devicehistory_view(request, **_):
             ('Home', '/'),
             ('Device History', reverse('devicehistory-search')),
         ],
-        'form': form
+        'form': form,
     }
     return render(request, 'devicehistory/history_view.html', info_dict)
 
@@ -159,10 +161,7 @@ def error_form(request):
             'quickselect': device_quickselect,
             'error_comment': error_comment,
             'title': 'NAV - Device History - Register error',
-            'navpath': [
-                ('Home', '/'),
-                ('Register error event', ''),
-            ]
+            'navpath': [('Home', '/'), ('Register error event', ''),],
         },
     )
 
@@ -174,9 +173,7 @@ def confirm_error_form(request):
         'module': request.POST.getlist('module'),
     }
 
-    netbox = Netbox.objects.select_related(
-        'netbox'
-    ).filter(id__in=selection['netbox'])
+    netbox = Netbox.objects.select_related('netbox').filter(id__in=selection['netbox'])
     module = Module.objects.filter(id__in=selection['module'])
 
     return render(
@@ -190,8 +187,7 @@ def confirm_error_form(request):
             'title': 'NAV - Device History - Confirm error event',
             'navpath': [
                 ('Home', '/'),
-                ('Register error event',
-                 reverse('devicehistory-registererror')),
+                ('Register error event', reverse('devicehistory-registererror')),
             ],
         },
     )
@@ -210,9 +206,14 @@ def register_error(request):
         new_message(request, _("No devices selected."), Messages.WARNING)
         return error_form(request)
     if not error_comment and not confirmed:
-        new_message(request, _("There's no error message supplied. Are you "
-                               "sure you want to continue?"),
-                    Messages.WARNING)
+        new_message(
+            request,
+            _(
+                "There's no error message supplied. Are you "
+                "sure you want to continue?"
+            ),
+            Messages.WARNING,
+        )
         return confirm_error_form(request)
 
     register_error_events(request, selection=selection, comment=error_comment)
@@ -239,14 +240,16 @@ def delete_module(request):
     result = []
     for alert in history:
         if alert.module:
-            result.append({
-                'sysname': alert.netbox.sysname,
-                'moduleid': alert.module.id,
-                'name': alert.module.name,
-                'module_number': alert.module.module_number,
-                'descr': alert.module.description,
-                'start_time': alert.start_time,
-            })
+            result.append(
+                {
+                    'sysname': alert.netbox.sysname,
+                    'moduleid': alert.module.id,
+                    'name': alert.module.name,
+                    'module_number': alert.module.module_number,
+                    'descr': alert.module.description,
+                    'start_time': alert.start_time,
+                }
+            )
 
     info_dict = {
         'active': {'module': True},
@@ -287,7 +290,8 @@ def do_delete_module(request):
     for hist in history:
         cursor.execute(
             "DELETE FROM netboxentity WHERE netboxid = %s and deviceid = %s",
-            [hist.module.netbox.id, hist.module.device.id])
+            [hist.module.netbox.id, hist.module.device.id],
+        )
 
     return HttpResponseRedirect(reverse('devicehistory-module'))
 
@@ -299,16 +303,15 @@ def _get_unresolved_module_states(limit_to=None):
     which will be the referenced Module instance.
 
     """
-    history = AlertHistory.objects.select_related(
-        'device', 'netbox'
-    ).filter(
-        event_type__id='moduleState',
-        alert_type__name='moduleDown',
-        end_time__gte=INFINITY
-    ).exclude(
-        subid=''
-    ).extra(
-        select={'module': 'NULL'}
+    history = (
+        AlertHistory.objects.select_related('device', 'netbox')
+        .filter(
+            event_type__id='moduleState',
+            alert_type__name='moduleDown',
+            end_time__gte=INFINITY,
+        )
+        .exclude(subid='')
+        .extra(select={'module': 'NULL'})
     )
 
     if limit_to:
@@ -318,5 +321,4 @@ def _get_unresolved_module_states(limit_to=None):
     for module in Module.objects.filter(id__in=history.keys()):
         history[module.id].module = module
 
-    return sorted(history.values(),
-                  key=attrgetter('start_time'))
+    return sorted(history.values(), key=attrgetter('start_time'))

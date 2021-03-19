@@ -53,8 +53,9 @@ def retry_on_db_loss():
     """Returns a nav.db.retry_on_db_loss decorator with eventengine's default
     parameters.
     """
-    return nav.db.retry_on_db_loss(count=3, delay=5, fallback=harakiri,
-                                   also_handled=(DatabaseError,))
+    return nav.db.retry_on_db_loss(
+        count=3, delay=5, fallback=harakiri, also_handled=(DatabaseError,)
+    )
 
 
 def swallow_unhandled_exceptions(func):
@@ -80,6 +81,7 @@ class EventEngine(object):
     Only one instance of this class should ever be needed.
 
     """
+
     # interval for regularly scheduled queue checks. these don't need to be
     # too often, since we rely on PostgreSQL notification when new events are
     # inserted into the queue.
@@ -93,10 +95,12 @@ class EventEngine(object):
         self.target = target
         self.config = config
         self.handlers = EventHandler.load_and_find_subclasses()
-        self._logger.debug("found %d event handler%s: %r",
-                           len(self.handlers),
-                           's' if len(self.handlers) > 1 else '',
-                           self.handlers)
+        self._logger.debug(
+            "found %d event handler%s: %r",
+            len(self.handlers),
+            's' if len(self.handlers) > 1 else '',
+            self.handlers,
+        )
 
     def _notifysleep(self, delay):
         """Sleeps up to delay number of seconds, but will schedule an
@@ -161,8 +165,8 @@ class EventEngine(object):
     def _load_new_events_and_reschedule(self):
         self.load_new_events()
         self._schedule_next_queuecheck(
-            self.CHECK_INTERVAL,
-            action=self._load_new_events_and_reschedule)
+            self.CHECK_INTERVAL, action=self._load_new_events_and_reschedule
+        )
 
     def _schedule_next_queuecheck(self, delay=0, action=None):
         if not action:
@@ -177,20 +181,22 @@ class EventEngine(object):
         self._logger.debug("checking for new events on queue")
         events = Event.objects.filter(target=self.target).order_by('id')
         if events:
-            old_events = [event for event in events
-                          if event.id in self._unfinished]
-            new_events = [event for event in events
-                          if event.id not in self._unfinished]
-            self._logger.info("found %d new and %d old events in queue db",
-                              len(new_events), len(old_events))
+            old_events = [event for event in events if event.id in self._unfinished]
+            new_events = [event for event in events if event.id not in self._unfinished]
+            self._logger.info(
+                "found %d new and %d old events in queue db",
+                len(new_events),
+                len(old_events),
+            )
             for event in new_events:
                 unresolved.update()
                 try:
                     self.handle_event(event)
                 except Exception:
-                    self._logger.exception("Unhandled exception while "
-                                           "handling %s, deleting event",
-                                           event)
+                    self._logger.exception(
+                        "Unhandled exception while " "handling %s, deleting event",
+                        event,
+                    )
                     if event.id:
                         event.delete()
 
@@ -203,13 +209,13 @@ class EventEngine(object):
             return
 
         modified_queue = [
-            e for e in self._scheduler.queue
+            e
+            for e in self._scheduler.queue
             if e.action != self._load_new_events_and_reschedule
         ]
         if modified_queue:
             logtime = time.time()
-            _logger.debug("%d tasks in queue at %s",
-                          len(modified_queue), logtime)
+            _logger.debug("%d tasks in queue at %s", len(modified_queue), logtime)
             for event in modified_queue:
                 _logger.debug("In %s seconds: %r", event.time - logtime, event)
 
@@ -221,16 +227,20 @@ class EventEngine(object):
         is_stateless = event.state == Event.STATE_STATELESS
         if is_stateless or not alert.is_event_duplicate():
             if self._box_is_on_maintenance(event):
-                self._logger.debug('%s is on maintenance, only posting to '
-                                   'alert history for %s event',
-                                   event.netbox, event.event_type)
+                self._logger.debug(
+                    '%s is on maintenance, only posting to '
+                    'alert history for %s event',
+                    event.netbox,
+                    event.event_type,
+                )
                 alert.post(post_alert=False)
             else:
                 self._logger.debug('Posting %s event', event.event_type)
                 alert.post()
         else:
-            self._logger.info('Ignoring duplicate %s event for %s',
-                              event.event_type, event.netbox)
+            self._logger.info(
+                'Ignoring duplicate %s event for %s', event.event_type, event.netbox
+            )
             self._logger.debug('ignored alert details: %r', event)
         event.delete()
 
@@ -239,8 +249,10 @@ class EventEngine(object):
         """Returns True if the event's associated netbox is currently on
         maintenance.
         """
-        return event.netbox and event.netbox.get_unresolved_alerts(
-            'maintenanceState').count() > 0
+        return (
+            event.netbox
+            and event.netbox.get_unresolved_alerts('maintenanceState').count() > 0
+        )
 
     @transaction.atomic()
     def handle_event(self, event):
@@ -248,8 +260,7 @@ class EventEngine(object):
         original_id = event.id
 
         self._logger.debug("handling %r", event)
-        queue = [cls(event, self) for cls in self.handlers
-                 if cls.can_handle(event)]
+        queue = [cls(event, self) for cls in self.handlers if cls.can_handle(event)]
         self._logger.debug("plugins that can handle: %r", queue)
         if not queue:
             self._post_generic_alert(event)
@@ -259,16 +270,19 @@ class EventEngine(object):
             try:
                 handler.handle()
             except Exception:
-                self._logger.exception("Unhandled exception in plugin "
-                                       "%s; ignoring it", handler)
+                self._logger.exception(
+                    "Unhandled exception in plugin " "%s; ignoring it", handler
+                )
                 if len(queue) == 1 and event.id:
                     # there's only one handler and it failed,
                     # this will probably never be handled, so we delete it
                     event.delete()
 
         if event.id:
-            self._logger.debug("event wasn't disposed of, "
-                               "maybe held for later processing? %r", event)
+            self._logger.debug(
+                "event wasn't disposed of, " "maybe held for later processing? %r",
+                event,
+            )
             self._unfinished.add(event.id)
         elif original_id in self._unfinished:
             self._unfinished.remove(original_id)
@@ -278,9 +292,12 @@ class EventEngine(object):
         self._logger.debug(
             "scheduling delayed task in %s seconds: %r (args=%r)", delay, action, args
         )
-        return self._scheduler.enter(delay, self.PLUGIN_TASKS_PRIORITY,
-                                     swallow_unhandled_exceptions(action),
-                                     args)
+        return self._scheduler.enter(
+            delay,
+            self.PLUGIN_TASKS_PRIORITY,
+            swallow_unhandled_exceptions(action),
+            args,
+        )
 
     def cancel(self, task):
         """Cancel the current scheduled task"""

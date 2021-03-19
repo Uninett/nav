@@ -15,6 +15,7 @@ FAILURE_BACKOFF = 25  # seconds
 
 class Slack(Dispatcher):
     """Dispatch messages to Slack"""
+
     _failures = {}
 
     def __init__(self, *args, **kwargs):
@@ -37,13 +38,14 @@ class Slack(Dispatcher):
             'text': alert.messages.get(language=language, type='sms').message,
             'username': self.username,
             'channel': self.channel,
-            'icon_emoji': self.emoji
+            'icon_emoji': self.emoji,
         }
         payload = json.dumps(params)
         if isinstance(payload, six.text_type):
             payload = payload.encode("utf-8")
-        request = Request(address.address, payload,
-                          {'Content-Type': 'application/json'})
+        request = Request(
+            address.address, payload, {'Content-Type': 'application/json'}
+        )
 
         try:
             urlopen(request)

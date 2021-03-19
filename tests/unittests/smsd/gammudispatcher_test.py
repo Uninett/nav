@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 # mock/patch/hack/workaround: gammudispatcher normally requires gammu to be
 # installed, but we're only testing functionality from the module that is not
 # dependent on this. If there is no gammu module, we fake it so we can import
@@ -7,6 +8,7 @@ try:
     import gammu
 except ImportError:
     import sys
+
     gammu = sys.modules['gammu'] = type(sys)('gammu')
 from nav.smsd.gammudispatcher import decode_sms_to_unicode
 
@@ -26,4 +28,4 @@ class EncodingTests(TestCase):
         sms = b'A m\xc3\xb8\xc3\xb8se once bit my sister'
         unicode_sms = decode_sms_to_unicode(sms)
         expected = u'A m\xf8\xf8se once bit my sister'
-        self.assertEqual( unicode_sms, expected)
+        self.assertEqual(unicode_sms, expected)

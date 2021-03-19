@@ -24,8 +24,8 @@ def test_alerthist_varmap_can_be_retrieved_after_save(simple_alerthist):
         EventQueue.STATE_END: {'test': 'endvalue'},
     }
     hist_copy = AlertHistory.objects.get(pk=simple_alerthist.pk)
-    assert EventQueue.STATE_START in  hist_copy.varmap
-    assert EventQueue.STATE_END in  hist_copy.varmap
+    assert EventQueue.STATE_START in hist_copy.varmap
+    assert EventQueue.STATE_END in hist_copy.varmap
     assert 'test' in hist_copy.varmap[EventQueue.STATE_START]
     assert hist_copy.varmap[EventQueue.STATE_START]['test'] == 'startvalue'
 
@@ -69,11 +69,13 @@ def test_alerthist_varmap_single_key_can_be_updated_after_reload(simple_alerthis
 
 @pytest.fixture
 def simple_alerthist():
-    hist = AlertHistory(source_id='ipdevpoll',
-                        event_type_id='info',
-                        start_time=datetime.now(),
-                        value=0,
-                        severity=0)
+    hist = AlertHistory(
+        source_id='ipdevpoll',
+        event_type_id='info',
+        start_time=datetime.now(),
+        value=0,
+        severity=0,
+    )
     yield hist
     if hist.pk:
         hist.delete()

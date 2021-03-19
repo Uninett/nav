@@ -28,4 +28,5 @@ class NAVWebAppConfig(AppConfig):
         # Initialize logging if running directly inside Django runserver,
         # otherwise, the wsgi module will take care of it.
         from nav.web import loginit
+
         loginit()

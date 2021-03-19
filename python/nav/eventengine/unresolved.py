@@ -35,8 +35,7 @@ def update():
     # pylint: disable=W0603
     global _unresolved_alerts_map
     unresolved = AlertHistory.objects.filter(end_time__gte=INFINITY)
-    _unresolved_alerts_map = dict((alert.get_key(), alert)
-                                  for alert in unresolved)
+    _unresolved_alerts_map = dict((alert.get_key(), alert) for alert in unresolved)
 
 
 def refers_to_unresolved_alert(event):
@@ -51,7 +50,10 @@ def refers_to_unresolved_alert(event):
         result = _unresolved_alerts_map[event.get_key()]
         return result
     except KeyError:
-        _logger.debug("no match for (%r) %r among list of unresolved alerts",
-                      event.get_key(), event)
+        _logger.debug(
+            "no match for (%r) %r among list of unresolved alerts",
+            event.get_key(),
+            event,
+        )
         _logger.debug("unresolved map contains: %r", _unresolved_alerts_map)
         return False

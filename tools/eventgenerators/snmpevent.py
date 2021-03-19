@@ -30,13 +30,19 @@ def handler(nblist, state):
 
     for netboxid in nblist:
 
-        e = Event('ipdevpoll', 'eventEngine', netboxid=netboxid,
-                  eventtypeid='snmpAgentState', state=state, severity=100)
+        e = Event(
+            'ipdevpoll',
+            'eventEngine',
+            netboxid=netboxid,
+            eventtypeid='snmpAgentState',
+            state=state,
+            severity=100,
+        )
         e['alerttype'] = 'snmpAgentDown' if state == 's' else 'snmpAgentUp'
         e.post()
 
 
-if (len(sys.argv) <= 2):
+if len(sys.argv) <= 2:
     print("Not enough arguments (%d), <match spec> <up|down>" % len(sys.argv))
     sys.exit(0)
 
@@ -44,28 +50,34 @@ nb = []
 nbdup = set()
 sysnames = []
 
-for ii in range(1, len(sys.argv)-1):
-    sql = "SELECT netboxid,sysname,typeid FROM netbox JOIN room USING(roomid) WHERE ip IS NOT NULL";
+for ii in range(1, len(sys.argv) - 1):
+    sql = "SELECT netboxid,sysname,typeid FROM netbox JOIN room USING(roomid) WHERE ip IS NOT NULL"
     qn = sys.argv[ii]
-    if (qn.startswith("_") or qn.startswith("-") or qn.startswith("%") or qn.find(",") >= 0):
-        if (qn.startswith("-")):
-            qn = qn[1:len(qn)]
+    if (
+        qn.startswith("_")
+        or qn.startswith("-")
+        or qn.startswith("%")
+        or qn.find(",") >= 0
+    ):
+        if qn.startswith("-"):
+            qn = qn[1 : len(qn)]
             sql += " AND typeid IN ("
-        elif (qn.startswith("_")):
-            qn = qn[1:len(qn)]
+        elif qn.startswith("_"):
+            qn = qn[1 : len(qn)]
             sql += " AND catid IN ("
-        elif (qn.startswith("%")):
-            qn = qn[1:len(qn)]
+        elif qn.startswith("%"):
+            qn = qn[1 : len(qn)]
             sql += " AND roomid IN ("
         else:
             sql += " AND sysname IN ("
         ids = qn.split(",")
         for i in range(0, len(ids)):
             sql += "'" + ids[i] + "',"
-        if len(ids) > 0: sql = sql[0:len(sql)-1]
+        if len(ids) > 0:
+            sql = sql[0 : len(sql) - 1]
         sql += ")"
     else:
-        sql += " AND sysname LIKE '"+qn+"'"
+        sql += " AND sysname LIKE '" + qn + "'"
 
     database.execute(sql)
     for netboxid, sysname, typeid in database.fetchall():
@@ -74,15 +86,19 @@ for ii in range(1, len(sys.argv)-1):
             sysnames.append(sysname)
         nbdup.add(netboxid)
 
-if sys.argv[len(sys.argv)-1].startswith("u"): state = "e"
-elif sys.argv[len(sys.argv)-1].startswith("d"): state = "s"
+if sys.argv[len(sys.argv) - 1].startswith("u"):
+    state = "e"
+elif sys.argv[len(sys.argv) - 1].startswith("d"):
+    state = "s"
 else:
-    print("Unknown state: " + sys.argv[len(sys.argv)-1])
+    print("Unknown state: " + sys.argv[len(sys.argv) - 1])
     sys.exit(0)
 
 
-if (state=="e"): updown = "up"
-else: updown="down"
+if state == "e":
+    updown = "up"
+else:
+    updown = "down"
 print("SNMP agents going %s on: %r" % (updown, sysnames))
 handler(nb, state)
 connection.commit()

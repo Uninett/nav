@@ -15,18 +15,25 @@
 #
 """Useful crap"""
 
-from .statmodules import (StatCpuAverage, StatUptime, StatIfInOctets,
-                          StatIfOutOctets, StatIfOutErrors, StatIfInErrors,
-                          StatMinFreeAddresses)
+from .statmodules import (
+    StatCpuAverage,
+    StatUptime,
+    StatIfInOctets,
+    StatIfOutOctets,
+    StatIfOutErrors,
+    StatIfInErrors,
+    StatMinFreeAddresses,
+)
 
-CLASSMAP = {'cpu_routers_highestmax': StatCpuAverage,
-            'uptime': StatUptime,
-            'ifinoctets': StatIfInOctets,
-            'ifoutoctets': StatIfOutOctets,
-            'ifouterrors': StatIfOutErrors,
-            'ifinerrors': StatIfInErrors,
-            'leastfreeaddresses': StatMinFreeAddresses,
-            }
+CLASSMAP = {
+    'cpu_routers_highestmax': StatCpuAverage,
+    'uptime': StatUptime,
+    'ifinoctets': StatIfInOctets,
+    'ifoutoctets': StatIfOutOctets,
+    'ifouterrors': StatIfOutErrors,
+    'ifinerrors': StatIfInErrors,
+    'leastfreeaddresses': StatMinFreeAddresses,
+}
 
 TIMEFRAMES = (
     ('-1h', 'Last Hour'),

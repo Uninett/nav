@@ -19,7 +19,7 @@ def xref(typ, rawtext, text, lineno, inliner, options={}, content=[]):
             title = m.group(1)
         else:
             # fallback: everything after '<' is the target
-            target = text[brace+1:]
+            target = text[brace + 1 :]
             title = text[:brace]
 
     link = xref.links[target]

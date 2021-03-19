@@ -42,8 +42,7 @@ class DispatcherHandler(object):
         self.logger = logging.getLogger("nav.smsd.dispatcher")
 
         exit_on_permanent_error = config['main']['exit_on_permanent_error']
-        self.cull_dead_dispatcher = (exit_on_permanent_error.lower()
-                                     in ('yes', 'true'))
+        self.cull_dead_dispatcher = exit_on_permanent_error.lower() in ('yes', 'true')
 
         # Get dispatchers
         self.dispatchers = []
@@ -59,8 +58,7 @@ class DispatcherHandler(object):
                     module = self.importbyname(modulename)
                     self.logger.debug("Imported module %s", modulename)
                 except DispatcherError as error:
-                    self.logger.warning("Failed to import %s: %s",
-                                        dispatcher, error)
+                    self.logger.warning("Failed to import %s: %s", dispatcher, error)
                     continue
                 except Exception as error:
                     self.logger.exception("Unknown exception: %s", error)
@@ -72,8 +70,7 @@ class DispatcherHandler(object):
                     self.dispatchers.append((dispatcher, instance))
                     self.logger.debug("Dispatcher loaded: %s", dispatcher)
                 except DispatcherError as error:
-                    self.logger.warning("Failed to init %s: %s",
-                                        dispatcher, error)
+                    self.logger.warning("Failed to init %s: %s", dispatcher, error)
                     continue
                 except Exception as error:
                     self.logger.exception("Unknown exception: %s", error)
@@ -81,8 +78,9 @@ class DispatcherHandler(object):
         # Fail if no dispatchers are available
         if not self.dispatchers:
             raise PermanentDispatcherError(
-                  "No dispatchers available. None configured "
-                  "or all dispatchers failed permanently.")
+                "No dispatchers available. None configured "
+                "or all dispatchers failed permanently."
+            )
 
     def importbyname(self, name):
         """Imports Python module given by name.
@@ -123,32 +121,33 @@ class DispatcherHandler(object):
 
             try:
                 self.logger.debug("Trying %s...", dispatchername)
-                (sms, sent, ignored, result, smsid) = \
-                    dispatcher.sendsms(phone, msgs)
+                (sms, sent, ignored, result, smsid) = dispatcher.sendsms(phone, msgs)
             except PermanentDispatcherError as error:
                 self.logger.error(
                     "%s reports a possibly permanent SMS dispatch failure: %s",
-                    dispatchername, error)
+                    dispatchername,
+                    error,
+                )
                 if self.cull_dead_dispatcher:
                     self.logger.error(
-                        "Removing permanently failed dispatcher %s",
-                        dispatchername)
+                        "Removing permanently failed dispatcher %s", dispatchername
+                    )
                     del self.dispatchers[i]
                 continue  # Skip to next dispatcher
             except DispatcherError as error:
-                self.logger.warning("%s failed to send SMS: %s",
-                                    dispatchername, error)
+                self.logger.warning("%s failed to send SMS: %s", dispatchername, error)
                 continue  # Skip to next dispatcher
             except Exception as error:
                 self.logger.exception(
-                    "Unknown dispatcher exception during send: %s", error)
+                    "Unknown dispatcher exception during send: %s", error
+                )
                 continue
 
             else:
                 if result is False:
                     self.logger.warning(
-                        "%s failed to send SMS: Returned false.",
-                        dispatchername)
+                        "%s failed to send SMS: Returned false.", dispatchername
+                    )
                     continue  # Skip to next dispatcher
 
             # No exception and true result? Success!
@@ -157,8 +156,9 @@ class DispatcherHandler(object):
         # Still running? All dispatchers failed permanently.
         if not self.dispatchers:
             raise PermanentDispatcherError(
-                  "No dispatchers available. None configured "
-                  "or all dispatchers failed permanently.")
+                "No dispatchers available. None configured "
+                "or all dispatchers failed permanently."
+            )
 
         # Still running? All dispatchers failed!
         raise DispatcherError("All dispatchers failed to send SMS.")

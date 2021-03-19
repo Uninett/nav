@@ -41,15 +41,17 @@ def make_sockets():
 
     """
     try:
-        socketv6 = socket.socket(socket.AF_INET6, socket.SOCK_RAW,
-                                 socket.getprotobyname('ipv6-icmp'))
+        socketv6 = socket.socket(
+            socket.AF_INET6, socket.SOCK_RAW, socket.getprotobyname('ipv6-icmp')
+        )
     except Exception:
         _logger.error("Could not create v6 socket")
         raise
 
     try:
-        socketv4 = socket.socket(socket.AF_INET, socket.SOCK_RAW,
-                                 socket.getprotobyname('icmp'))
+        socketv4 = socket.socket(
+            socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp')
+        )
     except Exception:
         _logger.error("Could not create v6 socket")
         raise
@@ -61,12 +63,13 @@ class Host(object):
     """
     Contains the destination address and current sequence number of a host.
     """
+
     COOKIE_LENGTH = len(hashlib.new('md5').digest())
 
     def __init__(self, ip):
         self.ip = ip
         # Random value for the cookie
-        self.rnd = random.randint(10000, 2**16-1)
+        self.rnd = random.randint(10000, 2 ** 16 - 1)
         # Time the echo was sent
         self.time = 0
         # Used in nextseq
@@ -87,7 +90,7 @@ class Host(object):
         """Makes the next echo reply packet"""
         if not cookie:
             cookie = self.make_cookie()
-        self.packet.data = cookie.ljust(size-ICMP_MINLEN)
+        self.packet.data = cookie.ljust(size - ICMP_MINLEN)
         return self.packet.assemble(), cookie
 
     def make_cookie(self):
@@ -129,13 +132,15 @@ class Host(object):
         Wrap around at 65536 (values must be unsigned short).
 
         """
-        self.packet.sequence = (self.packet.sequence + 1) % 2**16
+        self.packet.sequence = (self.packet.sequence + 1) % 2 ** 16
         if not self.certain and self.packet.sequence > 2:
             self.certain = 1
 
     def __repr__(self):
         return "Host instance for IP %s with sequence number %s " % (
-            self.ip, self.packet.sequence)
+            self.ip,
+            self.packet.sequence,
+        )
 
 
 class MegaPing(object):
@@ -147,6 +152,7 @@ class MegaPing(object):
     timeUsed = pinger.ping()
     results = pinger.results()
     """
+
     _requests = _sender = _getter = _sender_finished = None
 
     def __init__(self, sockets, conf=None):
@@ -162,7 +168,7 @@ class MegaPing(object):
             self._conf = conf
 
         # Delay between each packet is transmitted
-        self._delay = float(self._conf.get('delay', 2))/1000  # convert from ms
+        self._delay = float(self._conf.get('delay', 2)) / 1000  # convert from ms
         # Timeout before considering hosts as down
         self._timeout = int(self._conf.get('timeout', 5))
         # Dictionary with all the hosts, populated by set_hosts()
@@ -170,8 +176,13 @@ class MegaPing(object):
 
         packetsize = int(self._conf.get('packetsize', 64))
         if packetsize < 44:
-            raise ValueError(("Packetsize (%s) too small to create a proper "
-                              "cookie; Must be at least 44.") % packetsize)
+            raise ValueError(
+                (
+                    "Packetsize (%s) too small to create a proper "
+                    "cookie; Must be at least 44."
+                )
+                % packetsize
+            )
         self._packetsize = packetsize
         self._pid = os.getpid() % 65536
 
@@ -223,10 +234,8 @@ class MegaPing(object):
         """
         # Start working
         self.reset()
-        self._sender = threading.Thread(target=self._send_requests,
-                                        name="sender")
-        self._getter = threading.Thread(target=self._get_responses,
-                                        name="getter")
+        self._sender = threading.Thread(target=self._send_requests, name="sender")
+        self._getter = threading.Thread(target=self._get_responses, name="getter")
         self._sender.daemon = True
         self._getter.daemon = True
         self._sender.start()
@@ -271,8 +280,9 @@ class MegaPing(object):
                     timeout = self._timeout - runtime
 
             # Listen for incoming data on sockets
-            readable, _wt, _er = select.select([self._sock6, self._sock4],
-                                               [], [], timeout)
+            readable, _wt, _er = select.select(
+                [self._sock6, self._sock4], [], [], timeout
+            )
 
             # If data found
             if readable:
@@ -306,37 +316,44 @@ class MegaPing(object):
         try:
             pong = packet_class(raw_pong)
         except Exception as error:
-            _logger.critical("could not disassemble packet from %r: %s",
-                             sender, error)
+            _logger.critical("could not disassemble packet from %r: %s", sender, error)
             return
 
         if pong.type != pong.ICMP_ECHO_REPLY:
             # we only care about echo replies
-            _logger.debug("Packet from %s was not an echo reply, but %s",
-                          sender, pong)
+            _logger.debug("Packet from %s was not an echo reply, but %s", sender, pong)
             return
 
         if not pong.id == self._pid:
-            _logger.debug("packet from %r doesn't match our id (%s): %r (raw "
-                          "packet: %r)", sender, self._pid, pong, raw_pong)
+            _logger.debug(
+                "packet from %r doesn't match our id (%s): %r (raw " "packet: %r)",
+                sender,
+                self._pid,
+                pong,
+                raw_pong,
+            )
             return
 
-        cookie = pong.data[:Host.COOKIE_LENGTH]
+        cookie = pong.data[: Host.COOKIE_LENGTH]
 
         # Find the host with this cookie
         try:
             host = self._requests[cookie]
         except KeyError:
-            _logger.debug("packet from %r does not match any outstanding "
-                          "request: %r (raw packet: %r cookie: %r)",
-                          sender, pong, raw_pong, cookie)
+            _logger.debug(
+                "packet from %r does not match any outstanding "
+                "request: %r (raw packet: %r cookie: %r)",
+                sender,
+                pong,
+                raw_pong,
+                cookie,
+            )
             return
 
         # Delete the entry of the host who has replied and add the pingtime
         pingtime = arrival - host.time
         host.reply = pingtime
-        _logger.debug("Response from %-16s in %03.3f ms",
-                      sender, pingtime*1000)
+        _logger.debug("Response from %-16s in %03.3f ms", sender, pingtime * 1000)
         del self._requests[cookie]
 
     def results(self):
@@ -345,5 +362,6 @@ class MegaPing(object):
         (ip, roundtriptime) for all hosts.
         Unreachable hosts will have roundtriptime = -1
         """
-        return [(host.ip, host.reply if host.reply else -1)
-                for host in self._hosts.values()]
+        return [
+            (host.ip, host.reply if host.reply else -1) for host in self._hosts.values()
+        ]

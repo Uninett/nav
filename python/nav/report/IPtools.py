@@ -65,16 +65,26 @@ def getLastbitsIpMap(ip_list):
 
 
 def _ipv4_getLastbitsMap(ip_list):
-    return dict(zip([i.net().strNormal()[i.net().strNormal().rfind('.')+1:]
-                     for i in ip_list], ip_list))
+    return dict(
+        zip(
+            [
+                i.net().strNormal()[i.net().strNormal().rfind('.') + 1 :]
+                for i in ip_list
+            ],
+            ip_list,
+        )
+    )
 
 
 def _ipv6_getNybblesMap(ip_list):
     """Finds the column where the IPs in the list should be displayed"""
     nybble_index = (ip_list[0].prefixlen() // 4) - 1
     return dict(
-        zip([i.net().strFullsize().replace(':', '')[nybble_index]
-             for i in ip_list], ip_list))
+        zip(
+            [i.net().strFullsize().replace(':', '')[nybble_index] for i in ip_list],
+            ip_list,
+        )
+    )
 
 
 def andIpMask(ip, mask):
@@ -125,8 +135,7 @@ def getLastSubnet(network, last_network_prefix_len=None):
     """
     if last_network_prefix_len is None:
         last_network_prefix_len = network.netmask().prefixlen()
-    return IP(''.join([network.net().strNormal(), "/",
-                       str(last_network_prefix_len)]))
+    return IP(''.join([network.net().strNormal(), "/", str(last_network_prefix_len)]))
 
 
 def get_next_subnet(net):
@@ -140,7 +149,7 @@ def create_subnet_range(net, prefixlen):
     # Return self as the net cannot be divided further
     if net.prefixlen() == prefixlen:
         return [net]
-    subnet = IP("{}/{}" .format(net.net().strNormal(), prefixlen))
+    subnet = IP("{}/{}".format(net.net().strNormal(), prefixlen))
     subnet_range = []
     while net.overlaps(subnet):
         subnet_range.append(subnet)

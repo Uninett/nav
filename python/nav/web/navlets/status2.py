@@ -47,8 +47,7 @@ class Status2Widget(Navlet):
         self.add_formatted_time(results)
         self.add_netbox(results)
         context['extra_columns'] = self.find_extra_columns(status_filter)
-        context['results'] = sorted(
-            results, key=itemgetter('start_time'), reverse=True)
+        context['results'] = sorted(results, key=itemgetter('start_time'), reverse=True)
         context['last_updated'] = datetime.now()
         return context
 
@@ -81,8 +80,9 @@ class Status2Widget(Navlet):
         """Adds the netbox object to the result objects"""
         for result in results:
             try:
-                netbox = Netbox.objects.select_related(
-                    'room', 'room__location').get(pk=int(result['netbox']))
+                netbox = Netbox.objects.select_related('room', 'room__location').get(
+                    pk=int(result['netbox'])
+                )
             except (Netbox.DoesNotExist, TypeError):
                 pass
             else:
@@ -114,8 +114,9 @@ class Status2Widget(Navlet):
         if form.is_valid():
             navlet.preferences['status_filter'] = request.POST.urlencode()
             try:
-                navlet.preferences['refresh_interval'] = int(
-                    request.POST['interval']) * 1000
+                navlet.preferences['refresh_interval'] = (
+                    int(request.POST['interval']) * 1000
+                )
             except Exception:
                 pass
             navlet.save()

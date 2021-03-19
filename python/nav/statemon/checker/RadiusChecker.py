@@ -65,6 +65,7 @@ class RadiusChecker(AbstractChecker):
     Failure to connect:
         return Event.DOWN, str(sys.exc_value)
     """
+
     # TODO: Check for IPv6 compatibility in pyrad
     DESCRIPTION = "RADIUS"
     ARGS = ()
@@ -73,8 +74,11 @@ class RadiusChecker(AbstractChecker):
         ('password', 'Clear-text password for username'),
         ('identifier', "This client's RADIUS identifier"),
         ('secret', 'A RADIUS secret for this client'),
-        ('dictionary', 'Full path to a file containing an optional dictionary file for '
-                       'this radius server'),
+        (
+            'dictionary',
+            'Full path to a file containing an optional dictionary file for '
+            'this radius server',
+        ),
     )
 
     def __init__(self, service, **kwargs):
@@ -90,17 +94,19 @@ class RadiusChecker(AbstractChecker):
             identifier = args.get("identifier", "")
             dictionary = args.get("dictionary", DEFAULT_DICTIONARY)
             ip, _port = self.get_address()
-            srv = Client(server=ip, secret=rad_secret,
-                         dict=Dictionary(dictionary))
-            req = srv.CreateAuthPacket(code=pyrad.packet.AccessRequest,
-                                       User_Name=username,
-                                       NAS_Identifier=identifier)
+            srv = Client(server=ip, secret=rad_secret, dict=Dictionary(dictionary))
+            req = srv.CreateAuthPacket(
+                code=pyrad.packet.AccessRequest,
+                User_Name=username,
+                NAS_Identifier=identifier,
+            )
             req["User-Password"] = req.PwCrypt(password)
             srv.SendPacket(req)
         except Exception as err:
-            return (Event.DOWN,
-                    "Failed connecting to %s: %s)" %
-                    (self.get_address(), str(err)))
+            return (
+                Event.DOWN,
+                "Failed connecting to %s: %s)" % (self.get_address(), str(err)),
+            )
         version = "FreeRadius 1.0"  # Fetch from radiusmonitor later.
         self.version = version
         return Event.UP, "Radius: " + version

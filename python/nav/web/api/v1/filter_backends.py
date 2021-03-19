@@ -16,6 +16,7 @@
 """Custom filter backends"""
 
 import operator
+
 # reduce is removed in python 3, import it from functools
 from functools import reduce as reduce3
 from rest_framework import filters
@@ -49,12 +50,13 @@ class IfClassFilter(filters.BaseFilterBackend):
             'swport': Q(baseport__isnull=False),
             'gwport': Q(gwportprefix__isnull=False),
             'physicalport': Q(ifconnectorpresent=True),
-            'trunk': Q(trunk=True)
+            'trunk': Q(trunk=True),
         }
 
         if 'ifclass' in request.query_params:
-            matching_filters = (set(request.query_params.getlist('ifclass'))
-                                & set(filters))
+            matching_filters = set(request.query_params.getlist('ifclass')) & set(
+                filters
+            )
             if matching_filters:
                 q = reduce3(operator.or_, [filters[f] for f in matching_filters])
                 queryset = queryset.filter(q).distinct()
@@ -74,7 +76,7 @@ class NaturalIfnameFilter(filters.OrderingFilter):
         if not ordering:
             return queryset
 
-        intersection = (set(ordering) & set(interface_ifnames + ifnames))
+        intersection = set(ordering) & set(interface_ifnames + ifnames)
 
         try:
             match_field = intersection.pop()
@@ -85,9 +87,7 @@ class NaturalIfnameFilter(filters.OrderingFilter):
                 lookup = lambda x: natsort.split(x.interface.ifname)
             if match_field in ifnames:
                 lookup = lambda x: natsort.split(x.ifname)
-            return sorted(queryset,
-                          key=lookup,
-                          reverse=match_field.startswith('-'))
+            return sorted(queryset, key=lookup, reverse=match_field.startswith('-'))
 
 
 class AlertHistoryFilterBackend(filters.BaseFilterBackend):
@@ -98,6 +98,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
     which is what we want for several of the fields in the AlertHistory
     model; therefore we customize everythin. Egads, Brain!
     """
+
     MULTIVALUE_FILTERS = {
         'event_type': 'event_type',
         'organization': 'netbox__organization',
@@ -147,7 +148,8 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
         on_maintenance = request.query_params.get("on_maintenance", False)
         if not on_maintenance:
             is_on_maintenance = (
-                alert_serializers.AlertHistorySerializer.is_on_maintenance)
+                alert_serializers.AlertHistorySerializer.is_on_maintenance
+            )
 
             # It's time we stop being a queryset, since we now need to filter
             # on computed values
@@ -158,6 +160,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
 
 class NetboxIsOnMaintenanceFilterBackend(filters.BaseFilterBackend):
     """ """
+
     def filter_queryset(self, request, queryset, view):
         show_on_maintenance = request.query_params.get('maintenance', None)
         if show_on_maintenance not in ('yes', 'no'):
@@ -175,9 +178,8 @@ def _get_descendants(parents):
         except Location.DoesNotExist:
             pass
         else:
-            locations.extend([l.pk for l in
-                              location.get_descendants(include_self=True)])
+            locations.extend(
+                [l.pk for l in location.get_descendants(include_self=True)]
+            )
 
     return list(set(locations))
-
-

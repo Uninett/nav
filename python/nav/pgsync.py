@@ -58,31 +58,46 @@ def main():
 def parse_args():
     """Builds an OptionParser and returns parsed program arguments"""
     parser = OptionParser(
-        description=
-        "Synchronizes your NAV database schema with the latest changes.",
-
-        epilog=
-        "To create the database, this program assumes it can access the "
+        description="Synchronizes your NAV database schema with the latest changes.",
+        epilog="To create the database, this program assumes it can access the "
         "PostgreSQL client binaries as the postgres superuser.  Either run "
         "this program under the postgres shell account, or set the environment "
         "variables required to connect as the superuser to your PostgreSQL "
-        "server (PGHOST, PGPASSWORD, and if necessary, PGPORT)"
+        "server (PGHOST, PGPASSWORD, and if necessary, PGPORT)",
     )
-    parser.add_option("-c", "--create",
-                      action="store_true", dest="create_database",
-                      help="Create NAV database")
-    parser.add_option("-r", "--restore", metavar="FILE",
-                      action="store", type="string", dest="restore_file",
-                      help="Restore a database from the SQL dump in FILE. To "
-                           "use input from stdin, specify - as the filename.")
-    parser.add_option("--drop-database",
-                      action="store_true", dest="drop_database",
-                      help="Drops the NAV database if it already exists. THIS "
-                           "IS A DESTRUCTIVE OPERATION!")
-    parser.add_option("-o", "--out-of-order", default=False,
-                      action="store_true", dest="apply_out_of_order_changes",
-                      help="Apply missing schema changes even when they are "
-                           "older than the newest applied change")
+    parser.add_option(
+        "-c",
+        "--create",
+        action="store_true",
+        dest="create_database",
+        help="Create NAV database",
+    )
+    parser.add_option(
+        "-r",
+        "--restore",
+        metavar="FILE",
+        action="store",
+        type="string",
+        dest="restore_file",
+        help="Restore a database from the SQL dump in FILE. To "
+        "use input from stdin, specify - as the filename.",
+    )
+    parser.add_option(
+        "--drop-database",
+        action="store_true",
+        dest="drop_database",
+        help="Drops the NAV database if it already exists. THIS "
+        "IS A DESTRUCTIVE OPERATION!",
+    )
+    parser.add_option(
+        "-o",
+        "--out-of-order",
+        default=False,
+        action="store_true",
+        dest="apply_out_of_order_changes",
+        help="Apply missing schema changes even when they are "
+        "older than the newest applied change",
+    )
     return parser.parse_args()
 
 
@@ -103,11 +118,12 @@ def create_database():
         create_user(nav_opts.user, nav_opts.password)
 
     print("Creating database %s owned by %s" % (nav_opts.dbname, nav_opts.user))
-    trap_and_die(subprocess.CalledProcessError,
-                 "Failed creating database %s" % nav_opts.dbname,
-                 check_call, ["createdb",
-                              "--owner=%s" % nav_opts.user,
-                              "--encoding=utf-8", nav_opts.dbname])
+    trap_and_die(
+        subprocess.CalledProcessError,
+        "Failed creating database %s" % nav_opts.dbname,
+        check_call,
+        ["createdb", "--owner=%s" % nav_opts.user, "--encoding=utf-8", nav_opts.dbname],
+    )
 
 
 def drop_database():
@@ -117,9 +133,12 @@ def drop_database():
     postgres_opts.export(os.environ)
 
     print("Dropping database %s" % nav_opts.dbname)
-    trap_and_die(subprocess.CalledProcessError,
-                 "Failed to drop database %s" % nav_opts.dbname,
-                 check_call, ["dropdb", nav_opts.dbname])
+    trap_and_die(
+        subprocess.CalledProcessError,
+        "Failed to drop database %s" % nav_opts.dbname,
+        check_call,
+        ["dropdb", nav_opts.dbname],
+    )
 
 
 def restore_from_dump(filename):
@@ -131,9 +150,10 @@ def restore_from_dump(filename):
     print("Restoring database %s from file %s" % (nav_opts.dbname, filename))
     trap_and_die(
         subprocess.CalledProcessError,
-        "Failed to restore database %s from file %s" % (nav_opts.dbname,
-                                                        filename),
-        check_call, ["psql", "--quiet", "-f", filename, nav_opts.dbname])
+        "Failed to restore database %s from file %s" % (nav_opts.dbname, filename),
+        check_call,
+        ["psql", "--quiet", "-f", filename, nav_opts.dbname],
+    )
 
 
 def user_exists(username):
@@ -144,12 +164,17 @@ def user_exists(username):
     """
     try:
         output = popen(
-            ["psql",
-             "-P", "tuples_only",
-             "--no-align",
-             "-c", "SELECT rolname FROM pg_roles WHERE rolname='%s'" % username,
-             "template1"],
-            stdout=subprocess.PIPE).communicate()[0]
+            [
+                "psql",
+                "-P",
+                "tuples_only",
+                "--no-align",
+                "-c",
+                "SELECT rolname FROM pg_roles WHERE rolname='%s'" % username,
+                "template1",
+            ],
+            stdout=subprocess.PIPE,
+        ).communicate()[0]
     except subprocess.CalledProcessError:
         die("Failed checking for the existence of user %s" % username)
 
@@ -164,26 +189,32 @@ def create_user(username, password):
 
     """
     print("Creating database user %s" % username)
-    trap_and_die(subprocess.CalledProcessError,
-                 "Failed creating user %s" % username,
-                 check_call,
-                 ["createuser",
-                  "--no-superuser", "--no-createdb",
-                  "--no-createrole", username])
-    trap_and_die(subprocess.CalledProcessError,
-                 "Failed setting %s user's password",
-                 check_call,
-                 ["psql", "--quiet", "-c",
-                  "ALTER USER %s WITH PASSWORD '%s';" % (username, password),
-                  "template1"])
+    trap_and_die(
+        subprocess.CalledProcessError,
+        "Failed creating user %s" % username,
+        check_call,
+        ["createuser", "--no-superuser", "--no-createdb", "--no-createrole", username],
+    )
+    trap_and_die(
+        subprocess.CalledProcessError,
+        "Failed setting %s user's password",
+        check_call,
+        [
+            "psql",
+            "--quiet",
+            "-c",
+            "ALTER USER %s WITH PASSWORD '%s';" % (username, password),
+            "template1",
+        ],
+    )
 
 
 def handle_missing_binaries(func):
     """Decorates func to handle errors from the subprocess module."""
     messages = {
         ENOENT: "Cannot find PostgreSQL client program",
-        EACCES: "No permission to run PostgreSQL client program"
-        }
+        EACCES: "No permission to run PostgreSQL client program",
+    }
 
     def _decorator(*args, **kwargs):
         try:
@@ -194,6 +225,7 @@ def handle_missing_binaries(func):
                 die("%s: %s" % (messages[err.errno], program))
             else:
                 raise
+
     return _decorator
 
 
@@ -230,13 +262,14 @@ def die(errormsg, exit_code=1):
 
 class Synchronizer(object):
     """Handles schema synchronization for a database."""
+
     required_namespaces = (
         'manage',
         'profiles',
         'logger',
         'arnold',
         'radius',
-        )
+    )
 
     schemas = [
         ('manage', 'manage.sql', 'types.sql'),
@@ -246,7 +279,7 @@ class Synchronizer(object):
         ('radius', 'radius.sql'),
         ('manage', 'manage2.sql'),
         (None, 'indexes.sql'),
-        ]
+    ]
 
     def __init__(self, resource_module, apply_out_of_order_changes=False):
         self.resource_module = resource_module
@@ -285,16 +318,26 @@ class Synchronizer(object):
         search_path = self.cursor.fetchone()[0]
         schemas = [s.strip() for s in search_path.split(',')]
 
-        add_schemas = [wanted
-                       for wanted in self.required_namespaces
-                       if wanted not in schemas]
+        add_schemas = [
+            wanted for wanted in self.required_namespaces if wanted not in schemas
+        ]
 
         if add_schemas:
-            print(("Existing namespaces in %s search path: %s. Adding %s." %
-                   (self.connect_options.dbname, ", ".join(schemas), ", ".join(add_schemas))))
+            print(
+                (
+                    "Existing namespaces in %s search path: %s. Adding %s."
+                    % (
+                        self.connect_options.dbname,
+                        ", ".join(schemas),
+                        ", ".join(add_schemas),
+                    )
+                )
+            )
             schemas.extend(add_schemas)
-            sql = ('ALTER DATABASE "%s" SET search_path TO %s' %
-                   (self.connect_options.dbname, ", ".join(schemas)))
+            sql = 'ALTER DATABASE "%s" SET search_path TO %s' % (
+                self.connect_options.dbname,
+                ", ".join(schemas),
+            )
             self.cursor.execute(sql)
         self.connection.commit()
         self.connect()  # must reconnect to activate the new search path
@@ -304,13 +347,17 @@ class Synchronizer(object):
         self.cursor.execute('SELECT nspname FROM pg_namespace')
         namespaces = [r[0] for r in self.cursor.fetchall()]
 
-        add_namespaces = [wanted
-                          for wanted in self.required_namespaces
-                          if wanted not in namespaces]
+        add_namespaces = [
+            wanted for wanted in self.required_namespaces if wanted not in namespaces
+        ]
 
         if add_namespaces:
-            print(("Adding namespaces to database %s: %s" %
-                   (self.connect_options.dbname, ", ".join(add_namespaces))))
+            print(
+                (
+                    "Adding namespaces to database %s: %s"
+                    % (self.connect_options.dbname, ", ".join(add_namespaces))
+                )
+            )
             for namespace in add_namespaces:
                 self.cursor.execute("CREATE SCHEMA %s" % namespace)
         self.connection.commit()
@@ -322,16 +369,16 @@ class Synchronizer(object):
     def is_legacy_database(self):
         """Returns True if the legacy nav_schema_version table is present"""
         self.cursor.execute(
-            "SELECT COUNT(*) FROM pg_tables "
-            "WHERE tablename = 'nav_schema_version'")
+            "SELECT COUNT(*) FROM pg_tables " "WHERE tablename = 'nav_schema_version'"
+        )
         count = self.cursor.fetchone()[0]
         return count == 1
 
     def is_schema_logged(self):
         """Returns True if the schema_change_log table is present"""
         self.cursor.execute(
-            "SELECT COUNT(*) FROM pg_tables "
-            "WHERE tablename = 'schema_change_log'")
+            "SELECT COUNT(*) FROM pg_tables " "WHERE tablename = 'schema_change_log'"
+        )
         count = self.cursor.fetchone()[0]
         return count == 1
 
@@ -346,22 +393,30 @@ class Synchronizer(object):
         postgres_opts = ConnectionParameters.for_postgres_user()
         postgres_opts.export(os.environ)
 
-        self.cursor.execute(
-            "SELECT COUNT(*) FROM pg_extension WHERE extname='hstore'")
-        count, = self.cursor.fetchone()
+        self.cursor.execute("SELECT COUNT(*) FROM pg_extension WHERE extname='hstore'")
+        (count,) = self.cursor.fetchone()
         if count > 0:
             return
 
-        print("Creating hstore extension in database {0}".format(
-            self.connect_options.dbname))
+        print(
+            "Creating hstore extension in database {0}".format(
+                self.connect_options.dbname
+            )
+        )
 
-        trap_and_die(subprocess.CalledProcessError,
-                     "Failed to install the hstore extension, maybe you need "
-                     "to run as the postgres superuser?",
-                     check_call,
-                     ["psql", "--quiet", "-c", "CREATE EXTENSION hstore "
-                                               "WITH SCHEMA manage;",
-                      self.connect_options.dbname])
+        trap_and_die(
+            subprocess.CalledProcessError,
+            "Failed to install the hstore extension, maybe you need "
+            "to run as the postgres superuser?",
+            check_call,
+            [
+                "psql",
+                "--quiet",
+                "-c",
+                "CREATE EXTENSION hstore " "WITH SCHEMA manage;",
+                self.connect_options.dbname,
+            ],
+        )
 
     def install_baseline(self):
         """Installs the baseline NAV schema"""
@@ -391,11 +446,16 @@ class Synchronizer(object):
                 print("Applying outstanding schema changes out of order")
                 self.apply_versions(old_versions)
             else:
-                print("\n".join(wrap(
-                        "There are outstanding schema changes older than the "
-                        "newest applied one.  The ordering of schema changes "
-                        "may be significant, so I'm not applying these changes "
-                        "unless you force me with the -o option:")))
+                print(
+                    "\n".join(
+                        wrap(
+                            "There are outstanding schema changes older than the "
+                            "newest applied one.  The ordering of schema changes "
+                            "may be significant, so I'm not applying these changes "
+                            "unless you force me with the -o option:"
+                        )
+                    )
+                )
                 print()
                 self.print_script_list(old_versions)
                 if new_versions:
@@ -444,7 +504,8 @@ class Synchronizer(object):
             SELECT major, minor, point
             FROM schema_change_log
             ORDER BY major ASC, minor ASC, point ASC
-            """)
+            """
+        )
         return self.cursor.fetchall()
 
     def apply_change_script(self, version, script):
@@ -462,8 +523,8 @@ class Synchronizer(object):
             INSERT INTO schema_change_log (major, minor, point, script_name)
             VALUES (%s, %s, %s, %s)
             """,
-            (major, minor, point, basename)
-            )
+            (major, minor, point, basename),
+        )
 
     def execute_sql_file(self, filename):
         """Executes a single SQL file.
@@ -484,8 +545,10 @@ class Synchronizer(object):
 
 class ChangeScriptFinder(list):
     """Handles locating change scripts"""
+
     script_pattern = re.compile(
-        r"^sc\.(?P<major>\d+)\.(?P<minor>\d+)\.(?P<point>\d+)\.(?P<type>sql)$")
+        r"^sc\.(?P<major>\d+)\.(?P<minor>\d+)\.(?P<point>\d+)\.(?P<type>sql)$"
+    )
 
     def __init__(self, resource_module):
         super(ChangeScriptFinder, self).__init__()
@@ -494,9 +557,11 @@ class ChangeScriptFinder(list):
 
     def _find_change_scripts(self):
         changes_dir = 'sql/changes'
-        scripts = [os.path.join(changes_dir, f)
-                   for f in resource_listdir(self.resource_module, changes_dir)
-                   if self.script_pattern.match(f)]
+        scripts = [
+            os.path.join(changes_dir, f)
+            for f in resource_listdir(self.resource_module, changes_dir)
+            if self.script_pattern.match(f)
+        ]
         self[:] = scripts
 
     def get_missing_changes(self, versions):
@@ -520,8 +585,7 @@ class ChangeScriptFinder(list):
         :returns: {(major, minor, point): 'scriptfile'}
 
         """
-        return dict((self.script_to_version(script), script)
-                    for script in self)
+        return dict((self.script_to_version(script), script) for script in self)
 
     @classmethod
     def script_to_version(cls, filename):
@@ -531,9 +595,11 @@ class ChangeScriptFinder(list):
         """
         filename = os.path.basename(filename)
         match = cls.script_pattern.match(filename)
-        return (int(match.group('major')),
-                int(match.group('minor')),
-                int(match.group('point')))
+        return (
+            int(match.group('major')),
+            int(match.group('minor')),
+            int(match.group('point')),
+        )
 
 
 if __name__ == '__main__':

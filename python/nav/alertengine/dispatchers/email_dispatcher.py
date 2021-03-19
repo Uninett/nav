@@ -21,9 +21,12 @@ from smtplib import SMTPException, SMTPRecipientsRefused
 
 from django.core.mail import EmailMessage
 
-from nav.alertengine.dispatchers import (Dispatcher, DispatcherException,
-                                         FatalDispatcherException,
-                                         is_valid_email)
+from nav.alertengine.dispatchers import (
+    Dispatcher,
+    DispatcherException,
+    FatalDispatcherException,
+    is_valid_email,
+)
 
 _logger = logging.getLogger('nav.alertengine.dispatchers.email')
 
@@ -52,18 +55,22 @@ class Email(Dispatcher):
 
         try:
             if not address.DEBUG_MODE:
-                email = EmailMessage(subject=subject, body=message,
-                                     to=[address.address], headers=headers)
+                email = EmailMessage(
+                    subject=subject, body=message, to=[address.address], headers=headers
+                )
                 email.send(fail_silently=False)
             else:
-                _logger.debug('alert %d: In testing mode, would have sent '
-                              'email to %s', alert.id, address.address)
+                _logger.debug(
+                    'alert %d: In testing mode, would have sent ' 'email to %s',
+                    alert.id,
+                    address.address,
+                )
 
         except SMTPException as err:
             msg = 'Could not send email: %s" ' % err
-            if (isinstance(err, SMTPRecipientsRefused) or
-                (hasattr(err, "smtp_code") and
-                 str(err.smtp_code).startswith('5'))):
+            if isinstance(err, SMTPRecipientsRefused) or (
+                hasattr(err, "smtp_code") and str(err.smtp_code).startswith('5')
+            ):
                 raise FatalDispatcherException(msg)
 
             # Reraise as DispatcherException so that we can catch it further up

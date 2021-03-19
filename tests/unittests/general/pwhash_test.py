@@ -36,7 +36,9 @@ class TestPwHash(object):
 
     def test_pbkdf25_hash(self):
         hash = pwhash.Hash('pbkdf2', 'e7MaFMQE', 'foobar')
-        assert '{pbkdf2}e7MaFMQE$7j7bgQb8xED7mEY+8g1QM2zs/ispKZVeNEv/nMCYPX0=' == str(hash)
+        assert '{pbkdf2}e7MaFMQE$7j7bgQb8xED7mEY+8g1QM2zs/ispKZVeNEv/nMCYPX0=' == str(
+            hash
+        )
 
     def test_unknown_hash(self):
         with pytest.raises(pwhash.UnknownHashMethodError):

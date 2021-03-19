@@ -57,9 +57,11 @@ class Prefix(Plugin):
     ipdevpoll-plugin for collecting prefix information from monitored
     equipment.
     """
+
     @classmethod
     def on_plugin_load(cls):
         from nav.ipdevpoll.config import ipdevpoll_conf
+
         cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
 
     @defer.inlineCallbacks
@@ -80,8 +82,7 @@ class Prefix(Plugin):
         # CISCO-IETF-IP-MIB in that order.
         addresses = set()
         for mib in ipmib, ipv6mib, ciscoip:
-            self._logger.debug("Trying address tables from %s",
-                               mib.mib['moduleName'])
+            self._logger.debug("Trying address tables from %s", mib.mib['moduleName'])
             df = mib.get_interface_addresses()
             # Special case; some devices will time out while building a bulk
             # response outside our scope when it has no proprietary MIB support
@@ -89,44 +90,51 @@ class Prefix(Plugin):
                 df.addErrback(self._ignore_timeout, set())
             df.addErrback(self._ignore_index_exceptions, mib)
             new_addresses = yield df
-            self._logger.debug("Found %d addresses in %s: %r",
-                               len(new_addresses), mib.mib['moduleName'],
-                               new_addresses)
+            self._logger.debug(
+                "Found %d addresses in %s: %r",
+                len(new_addresses),
+                mib.mib['moduleName'],
+                new_addresses,
+            )
             addresses.update(new_addresses)
 
         adminup_ifcs = yield self._get_adminup_ifcs()
         for ifindex, ip, prefix in addresses:
             if ifindex not in adminup_ifcs:
                 self._logger.debug(
-                    "ignoring collected address %s on admDown ifindex %s",
-                    ip, ifindex)
+                    "ignoring collected address %s on admDown ifindex %s", ip, ifindex
+                )
                 continue
             if self._prefix_should_be_ignored(prefix):
                 self._logger.debug("ignoring prefix %s as configured", prefix)
                 continue
-            self.create_containers(netbox, ifindex, prefix, ip,
-                                   vlan_interfaces, ifc_aliases)
+            self.create_containers(
+                netbox, ifindex, prefix, ip, vlan_interfaces, ifc_aliases
+            )
 
     def _get_ifc_aliases(self):
         return IfMib(self.agent).get_ifaliases()
 
     def _ignore_index_exceptions(self, failure, mib):
         failure.trap(IndexToIpException)
-        self._logger.warning("device has strange SNMP implementation of %s; "
-                             "ignoring retrieved IP address data: %s",
-                             mib.mib['moduleName'], failure.getErrorMessage())
+        self._logger.warning(
+            "device has strange SNMP implementation of %s; "
+            "ignoring retrieved IP address data: %s",
+            mib.mib['moduleName'],
+            failure.getErrorMessage(),
+        )
         return set()
 
     @defer.inlineCallbacks
     def _get_adminup_ifcs(self):
         ifmib = IfMib(self.agent)
         statuses = yield ifmib.get_admin_status()
-        result = set(ifindex for ifindex, status in statuses.items()
-                     if status == 'up')
+        result = set(ifindex for ifindex, status in statuses.items() if status == 'up')
         defer.returnValue(result)
 
-    def create_containers(self, netbox, ifindex, net_prefix, ip,
-                          vlan_interfaces, ifc_aliases=None):
+    def create_containers(
+        self, netbox, ifindex, net_prefix, ip, vlan_interfaces, ifc_aliases=None
+    ):
         """
         Utitilty method for creating the shadow-objects
         """
@@ -217,8 +225,8 @@ def _convert_string_to_prefix(string):
         return IgnoredPrefix(string)
     except ValueError:
         logging.getLogger(__name__).error(
-            "Ignoring invalid prefix in ignore list: %s",
-            string)
+            "Ignoring invalid prefix in ignore list: %s", string
+        )
 
 
 class IgnoredPrefix(IP):
@@ -238,6 +246,7 @@ class IgnoredPrefix(IP):
     True
 
     """
+
     EQUALS_OPERATOR = '='
     CONTAINED_IN_OPERATOR = '<<='
     OPERATORS = (EQUALS_OPERATOR, CONTAINED_IN_OPERATOR)
@@ -251,7 +260,7 @@ class IgnoredPrefix(IP):
         for oper in self.OPERATORS:
             if string.startswith(oper):
                 self.match_operator = oper
-                string = string[len(oper):]
+                string = string[len(oper) :]
                 break
 
         IP.__init__(self, string)  # stupid old-style class implementation!

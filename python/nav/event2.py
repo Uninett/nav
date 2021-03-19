@@ -26,8 +26,8 @@ from nav.models.event import EventQueue
 
 class EventFactory(object):
     """A factory for NAV event dispatching"""
-    def __init__(self, source, target, event_type,
-                 start_type=None, end_type=None):
+
+    def __init__(self, source, target, event_type, start_type=None, end_type=None):
         """
         Initialize a template for event generation.
 
@@ -43,8 +43,7 @@ class EventFactory(object):
         self.start_type = start_type
         self.end_type = end_type
 
-    def base(self, device=None, netbox=None, subid='', varmap=None,
-             alert_type=None):
+    def base(self, device=None, netbox=None, subid='', varmap=None, alert_type=None):
         """Creates and returns an event base template
 
         :param device: A nav.models.manage.Device object or primary key.
@@ -79,26 +78,20 @@ class EventFactory(object):
 
         return event
 
-    def start(self, device=None, netbox=None, subid='', varmap=None,
-              alert_type=None):
+    def start(self, device=None, netbox=None, subid='', varmap=None, alert_type=None):
         """Creates and returns a start event"""
-        event = self.base(device, netbox, subid, varmap,
-                          alert_type or self.start_type)
+        event = self.base(device, netbox, subid, varmap, alert_type or self.start_type)
         event.state = event.STATE_START
         return event
 
-    def end(self, device=None, netbox=None, subid='', varmap=None,
-            alert_type=None):
+    def end(self, device=None, netbox=None, subid='', varmap=None, alert_type=None):
         """Creates and returns an end event"""
-        event = self.base(device, netbox, subid, varmap,
-                          alert_type or self.end_type)
+        event = self.base(device, netbox, subid, varmap, alert_type or self.end_type)
         event.state = event.STATE_END
         return event
 
-    def notify(self, device=None, netbox=None, subid='', varmap=None,
-               alert_type=None):
+    def notify(self, device=None, netbox=None, subid='', varmap=None, alert_type=None):
         """Creates and returns a stateless event"""
-        event = self.base(device, netbox, subid, varmap,
-                          alert_type or self.start_type)
+        event = self.base(device, netbox, subid, varmap, alert_type or self.start_type)
         event.event_type = event.STATE_STATELESS
         return event

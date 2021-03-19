@@ -41,16 +41,14 @@ class Modules(Plugin):
         super(Modules, self).__init__(*args, **kwargs)
         self.alias_mapping = {}
         self.entitymib = EntityMib(self.agent)
-        self.stampcheck = TimestampChecker(self.agent, self.containers,
-                                           INFO_VAR_NAME)
+        self.stampcheck = TimestampChecker(self.agent, self.containers, INFO_VAR_NAME)
 
     @defer.inlineCallbacks
     def handle(self):
         self._logger.debug("Collecting ENTITY-MIB module data")
         need_to_collect = yield self._need_to_collect()
         if need_to_collect:
-            physical_table = (
-                yield self.entitymib.get_entity_physical_table())
+            physical_table = yield self.entitymib.get_entity_physical_table()
 
             self.alias_mapping = yield self.entitymib.get_alias_mapping()
             self._process_entities(physical_table)
@@ -66,8 +64,7 @@ class Modules(Plugin):
 
     def _device_from_entity(self, ent):
         serial_column = 'entPhysicalSerialNum'
-        if serial_column in ent and ent[serial_column] and \
-            ent[serial_column].strip():
+        if serial_column in ent and ent[serial_column] and ent[serial_column].strip():
             serial_number = ent[serial_column].strip()
             device_key = serial_number
         else:
@@ -87,8 +84,7 @@ class Modules(Plugin):
         return device
 
     def _module_from_entity(self, ent):
-        module = self.containers.factory(ent['entPhysicalSerialNum'],
-                                         shadows.Module)
+        module = self.containers.factory(ent['entPhysicalSerialNum'], shadows.Module)
         netbox = self.containers.factory(None, shadows.Netbox)
 
         module.netbox = netbox
@@ -111,8 +107,7 @@ class Modules(Plugin):
             module.device = device
 
             module_containers[entity_index] = module
-            self._logger.debug("module (entPhysIndex=%s): %r",
-                               entity_index, module)
+            self._logger.debug("module (entPhysIndex=%s): %r", entity_index, module)
 
         return module_containers
 
@@ -131,8 +126,7 @@ class Modules(Plugin):
                     module = module_containers[module_entity[0]]
                     indices = self.alias_mapping[entity_index]
                     for ifindex in indices:
-                        interface = self.containers.factory(ifindex,
-                                                            shadows.Interface)
+                        interface = self.containers.factory(ifindex, shadows.Interface)
                         interface.netbox = netbox
                         interface.ifindex = ifindex
                         interface.module = module
@@ -143,8 +137,7 @@ class Modules(Plugin):
                             module_ifindex_map[module.name] = [ifindex]
 
         if module_ifindex_map:
-            self._logger.debug("module/ifindex mapping: %r",
-                               module_ifindex_map)
+            self._logger.debug("module/ifindex mapping: %r", module_ifindex_map)
 
     def _process_entities(self, result):
         """Process the list of collected entities."""

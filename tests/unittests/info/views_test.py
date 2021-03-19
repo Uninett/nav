@@ -45,9 +45,7 @@ class ViewsTest(unittest.TestCase):
     def test_has_results(self):
         """ Tests for the has_results function """
 
-        providers = [self.searchprovider0,
-                     self.searchprovider1,
-                     self.searchprovider2]
+        providers = [self.searchprovider0, self.searchprovider1, self.searchprovider2]
 
         self.assertTrue(has_results(providers))
         self.assertTrue(len(has_results(providers)) == 2)
@@ -58,12 +56,15 @@ class ViewsTest(unittest.TestCase):
 
         self.assertFalse(has_only_one_result([self.searchprovider0]))
 
-        self.assertTrue(has_only_one_result([self.searchprovider0,
-                                             self.searchprovider1]))
+        self.assertTrue(
+            has_only_one_result([self.searchprovider0, self.searchprovider1])
+        )
 
-        self.assertFalse(has_only_one_result([self.searchprovider0,
-                                              self.searchprovider1,
-                                              self.searchprovider2]))
+        self.assertFalse(
+            has_only_one_result(
+                [self.searchprovider0, self.searchprovider1, self.searchprovider2]
+            )
+        )
 
         self.assertFalse(has_only_one_result([self.searchprovider2]))
 

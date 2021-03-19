@@ -42,15 +42,19 @@ class VlanSearchForm(SearchForm):
 
     def __init__(self, *args, **kwargs):
         super(VlanSearchForm, self).__init__(
-            *args, form_action='vlan-index', placeholder='Vlan', **kwargs)
+            *args, form_action='vlan-index', placeholder='Vlan', **kwargs
+        )
 
 
 def get_path(extra=None):
     """Return breadcrumb list"""
     if not extra:
         extra = []
-    return [('Home', '/'), ('Search', reverse('info-search')),
-            ('Vlan', reverse('vlan-index'))] + extra
+    return [
+        ('Home', '/'),
+        ('Search', reverse('info-search')),
+        ('Vlan', reverse('vlan-index')),
+    ] + extra
 
 
 def index(request):
@@ -61,7 +65,7 @@ def index(request):
     if "query" in request.GET:
         searchform = VlanSearchForm(request.GET)
         if searchform.is_valid():
-            navpath = get_path([('Search for "%s"' % request.GET['query'], )])
+            navpath = get_path([('Search for "%s"' % request.GET['query'],)])
             vlans = process_searchform(searchform)
     else:
         searchform = VlanSearchForm()
@@ -75,8 +79,8 @@ def index(request):
             'navpath': navpath,
             'title': create_title(navpath),
             'form': searchform,
-            'vlans': vlans
-        }
+            'vlans': vlans,
+        },
     )
 
 
@@ -88,18 +92,17 @@ def process_searchform(form):
         return Vlan.objects.all()
     else:
         return Vlan.objects.filter(
-            Q(vlan__icontains=query) |
-            Q(net_type__description__icontains=query) |
-            Q(description__icontains=query) |
-            Q(net_ident__icontains=query)
+            Q(vlan__icontains=query)
+            | Q(net_type__description__icontains=query)
+            | Q(description__icontains=query)
+            | Q(net_ident__icontains=query)
         ).order_by("vlan")
 
 
 def vlan_details(request, vlanid):
     """Render details for a vlan"""
     vlan = get_object_or_404(Vlan, pk=vlanid)
-    prefixes = sorted(vlan.prefix_set.all(),
-                      key=methodcaller('get_prefix_size'))
+    prefixes = sorted(vlan.prefix_set.all(), key=methodcaller('get_prefix_size'))
 
     has_v6 = False
     has_v4 = False
@@ -122,8 +125,8 @@ def vlan_details(request, vlanid):
             'navpath': navpath,
             'has_v4': has_v4,
             'has_v6': has_v6,
-            'title': create_title(navpath)
-        }
+            'title': create_title(navpath),
+        },
     )
 
 
@@ -138,17 +141,20 @@ def create_prefix_graph(request, prefixid):
         '0.8)'
     ).format(path('ip_count'))
     ip_range = 'color(cactiStyle(alias({0}, "Max addresses")), "red")'.format(
-        path('ip_range'))
+        path('ip_range')
+    )
     mac_count = 'color(cactiStyle(alias({0}, "MAC addresses")), "blue")'.format(
-        path('mac_count'))
+        path('mac_count')
+    )
 
     metrics = [ip_count, mac_count]
     if IP(prefix.net_address).version() == 4:
         metrics.append(ip_range)
 
     timeframe = "1" + request.GET.get('timeframe', 'day')
-    url = get_simple_graph_url(metrics, timeframe, title=prefix.net_address,
-                               width=397, height=201)
+    url = get_simple_graph_url(
+        metrics, timeframe, title=prefix.net_address, width=397, height=201
+    )
     if url:
         return redirect(url)
     else:
@@ -177,17 +183,22 @@ def get_vlan_graph_url(vlanid, family=4, timeframe="day"):
         family = 4
 
     extra = {'where': ['family(netaddr) = %s' % family]}
-    prefixes = sorted(vlan.prefix_set.all().extra(**extra),
-                      key=methodcaller('get_prefix_size'),
-                      reverse=True)
+    prefixes = sorted(
+        vlan.prefix_set.all().extra(**extra),
+        key=methodcaller('get_prefix_size'),
+        reverse=True,
+    )
     if not prefixes:
         return None
 
     metrics = _vlan_metrics_from_prefixes(prefixes, family)
     return get_simple_graph_url(
-        metrics, "1" + timeframe,
+        metrics,
+        "1" + timeframe,
         title="Total IPv{0} addresses on VLAN {1}".format(family, vlan),
-        width=597, height=251)
+        width=597,
+        height=251,
+    )
 
 
 def _vlan_metrics_from_prefixes(prefixes, ip_version):
@@ -200,14 +211,17 @@ def _vlan_metrics_from_prefixes(prefixes, ip_version):
         ip_counts.append(ip_count)
         ip_ranges.append(ip_range)
         series = 'alpha(stacked(cactiStyle(alias({0}, "{1}"))),0.8)'.format(
-            ip_count, prefix.net_address)
-        series = (r'aliasSub(aliasSub(aliasSub({0},"stacked",""),'
-                  r'"\(",""),"\)","")').format(series)
+            ip_count, prefix.net_address
+        )
+        series = (
+            r'aliasSub(aliasSub(aliasSub({0},"stacked",""),' r'"\(",""),"\)","")'
+        ).format(series)
         metrics.append(series)
 
     if ip_version == 4:
         series = 'alias(color(sumSeries({0}), "red"), "MAX")'.format(
-            join_series(ip_ranges))
+            join_series(ip_ranges)
+        )
         metrics.append(series)
 
     if len(prefixes) > 1:
@@ -222,6 +236,9 @@ def find_gwportprefixes(vlan):
     """Find routers that defines this vlan"""
     gwportprefixes = []
     for prefix in vlan.prefix_set.all():
-        gwportprefixes.extend(prefix.gwportprefix_set.filter(
-            interface__netbox__category__id__in=['GSW', 'GW']))
+        gwportprefixes.extend(
+            prefix.gwportprefix_set.filter(
+                interface__netbox__category__id__in=['GSW', 'GW']
+            )
+        )
     return sorted(gwportprefixes, key=attrgetter('gw_ip'))

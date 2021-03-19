@@ -32,8 +32,10 @@ def pytest_configure(config):
     start_gunicorn()
 
     from nav.bootstrap import bootstrap_django
+
     bootstrap_django('pytest')
     from django.test.utils import setup_test_environment
+
     setup_test_environment()
 
 
@@ -46,10 +48,16 @@ def start_gunicorn():
     workspace = os.path.join(os.environ.get('WORKSPACE', ''), 'reports')
     errorlog = os.path.join(workspace, 'gunicorn-error.log')
     accesslog = os.path.join(workspace, 'gunicorn-access.log')
-    gunicorn = subprocess.Popen(['gunicorn',
-                                 '--error-logfile', errorlog,
-                                 '--access-logfile', accesslog,
-                                 'navtest_wsgi:application'])
+    gunicorn = subprocess.Popen(
+        [
+            'gunicorn',
+            '--error-logfile',
+            errorlog,
+            '--access-logfile',
+            accesslog,
+            'navtest_wsgi:application',
+        ]
+    )
 
 
 def stop_gunicorn():
@@ -64,10 +72,9 @@ def stop_gunicorn():
 #                                                                      #
 ########################################################################
 TESTARGS_PATTERN = re.compile(
-    r'^# +-\*-\s*testargs:\s*(?P<args>.*?)\s*(-\*-)?\s*$',
-    re.MULTILINE)
-NOTEST_PATTERN = re.compile(
-    r'^# +-\*-\s*notest\s*(-\*-)?\s*$', re.MULTILINE)
+    r'^# +-\*-\s*testargs:\s*(?P<args>.*?)\s*(-\*-)?\s*$', re.MULTILINE
+)
+NOTEST_PATTERN = re.compile(r'^# +-\*-\s*notest\s*(-\*-)?\s*$', re.MULTILINE)
 BINDIR = './bin'
 
 
@@ -78,6 +85,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("binary", _nav_binary_tests(), ids=ids)
     elif 'admin_navlet' in metafunc.fixturenames:
         from nav.models.profiles import AccountNavlet
+
         navlets = AccountNavlet.objects.filter(account__login='admin')
         metafunc.parametrize("admin_navlet", navlets)
 
@@ -90,15 +98,18 @@ def _nav_binary_tests():
 
 
 def _nav_binary_list():
-    files = sorted(os.path.join(BINDIR, f)
-                   for f in os.listdir(BINDIR)
-                   if not _is_excluded(f))
+    files = sorted(
+        os.path.join(BINDIR, f) for f in os.listdir(BINDIR) if not _is_excluded(f)
+    )
     return (f for f in files if os.path.isfile(f))
 
 
 def _is_excluded(filename):
-    return (filename.endswith('~') or filename.startswith('.') or
-            filename.startswith('Makefile'))
+    return (
+        filename.endswith('~')
+        or filename.startswith('.')
+        or filename.startswith('Makefile')
+    )
 
 
 def _scan_testargs(filename):
@@ -122,6 +133,7 @@ def _scan_testargs(filename):
         else:
             return []
 
+
 ##################
 #                #
 # Other fixtures #
@@ -132,14 +144,11 @@ def _scan_testargs(filename):
 @pytest.fixture()
 def management_profile():
     from nav.models.manage import ManagementProfile
+
     profile = ManagementProfile(
         name="Test connection profile",
         protocol=ManagementProfile.PROTOCOL_SNMP,
-        configuration={
-            "version": 2,
-            "community": "public",
-            "write": False,
-        }
+        configuration={"version": 2, "community": "public", "write": False,},
     )
     profile.save()
     yield profile
@@ -149,8 +158,14 @@ def management_profile():
 @pytest.fixture()
 def localhost(management_profile):
     from nav.models.manage import Netbox, NetboxProfile
-    box = Netbox(ip='127.0.0.1', sysname='localhost.example.org',
-                 organization_id='myorg', room_id='myroom', category_id='SRV')
+
+    box = Netbox(
+        ip='127.0.0.1',
+        sysname='localhost.example.org',
+        organization_id='myorg',
+        room_id='myroom',
+        category_id='SRV',
+    )
     box.save()
     NetboxProfile(netbox=box, profile=management_profile).save()
     yield box
@@ -168,8 +183,7 @@ def client():
     url = reverse('webfront-login')
     username = os.environ.get('ADMINUSERNAME', 'admin')
     password = os.environ.get('ADMINPASSWORD', 'admin')
-    client_.post(url, {'username': username,
-                       'password': password})
+    client_.post(url, {'username': username, 'password': password})
     return client_
 
 
@@ -220,10 +234,12 @@ def token():
     from nav.models.api import APIToken
     from datetime import datetime, timedelta
 
-    token = APIToken(token='xxxxxx',
-                     expires=datetime.now() + timedelta(days=1),
-                     client_id=1,
-                     permission='write')
+    token = APIToken(
+        token='xxxxxx',
+        expires=datetime.now() + timedelta(days=1),
+        client_id=1,
+        permission='write',
+    )
     token.save()
     return token
 
@@ -233,6 +249,7 @@ def api_client(token):
     """Creates a client for API access"""
 
     from rest_framework.test import APIClient
+
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION='Token ' + token.token)
     return client

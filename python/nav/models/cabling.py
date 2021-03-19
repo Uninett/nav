@@ -29,10 +29,7 @@ class Cabling(models.Model):
     closet's jack number to the end user's room number."""
 
     id = models.AutoField(db_column='cablingid', primary_key=True)
-    room = models.ForeignKey(
-        Room,
-        on_delete=models.CASCADE,
-        db_column='roomid')
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, db_column='roomid')
     jack = VarcharField()
     building = VarcharField(blank=True)
     target_room = VarcharField(db_column='targetroom', blank=True)
@@ -48,9 +45,20 @@ class Cabling(models.Model):
 
     def verbose(self):
         """Returns a more verbose description of this cable"""
-        return u'jack {}'.format(", ".join(
-            [x for x in [self.jack, self.building, self.target_room,
-                         self.description] if x]))
+        return u'jack {}'.format(
+            ", ".join(
+                [
+                    x
+                    for x in [
+                        self.jack,
+                        self.building,
+                        self.target_room,
+                        self.description,
+                    ]
+                    if x
+                ]
+            )
+        )
 
 
 @python_2_unicode_compatible
@@ -63,12 +71,10 @@ class Patch(models.Model):
         Interface,
         on_delete=models.CASCADE,
         db_column='interfaceid',
-        related_name='patches'
+        related_name='patches',
     )
     cabling = models.ForeignKey(
-        Cabling,
-        on_delete=models.CASCADE,
-        db_column='cablingid'
+        Cabling, on_delete=models.CASCADE, db_column='cablingid'
     )
     split = VarcharField(default='no')
 

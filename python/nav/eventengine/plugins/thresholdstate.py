@@ -22,7 +22,7 @@ from nav.eventengine.alerts import AlertGenerator
 class ThresholdStateHandler(EventHandler):
     """Accepts thresholdState events"""
 
-    handled_types = ('thresholdState', )
+    handled_types = ('thresholdState',)
 
     def handle(self):
         event = self.event
@@ -37,8 +37,10 @@ class ThresholdStateHandler(EventHandler):
     def _post_alert(self, event):
         alert = AlertGenerator(event)
         alert.alert_type = (
-            'exceededThreshold' if event.state == event.STATE_START
-            else 'belowThreshold')
+            'exceededThreshold'
+            if event.state == event.STATE_START
+            else 'belowThreshold'
+        )
 
         if alert.is_event_duplicate():
             self._logger.info('Ignoring duplicate alert')

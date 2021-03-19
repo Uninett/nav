@@ -37,8 +37,7 @@ class EventHandler(object):
                   accepted event type ids.
 
         """
-        return (event.event_type_id in cls.handled_types
-                if cls.handled_types else True)
+        return event.event_type_id in cls.handled_types if cls.handled_types else True
 
     def __init__(self, event, engine):
         """Initializes an event plugin instance.
@@ -47,12 +46,14 @@ class EventHandler(object):
         :type engine: nav.eventengine.engine.EventEngine
         """
         if not self.can_handle(event):
-            raise UnsupportedEvent("%s can't handle %s" % (
-                    self.__class__.__name__, event.event_type_id))
+            raise UnsupportedEvent(
+                "%s can't handle %s" % (self.__class__.__name__, event.event_type_id)
+            )
         self.event = event
         self.engine = engine
-        self._logger = logging.getLogger("%s.%s" % (self.__class__.__module__,
-                                                    self.__class__.__name__))
+        self._logger = logging.getLogger(
+            "%s.%s" % (self.__class__.__module__, self.__class__.__name__)
+        )
 
     def handle(self):
         "Handles the attached event"
@@ -66,6 +67,7 @@ class EventHandler(object):
         """
         if not package_names:
             from . import plugins
+
             package_names = [plugins.__name__]
 
         for name in package_names:
@@ -75,13 +77,13 @@ class EventHandler(object):
     def _box_is_on_maintenance(self):
         """Returns True if the target netbox is currently on maintenance"""
 
-        return self.event.netbox.get_unresolved_alerts(
-            'maintenanceState').count() > 0
+        return self.event.netbox.get_unresolved_alerts('maintenanceState').count() > 0
 
 
 def _load_all_modules_in_package(package_name):
-    modnames = ('%s.%s' % (package_name, mod)
-                for mod in _find_package_modules(package_name))
+    modnames = (
+        '%s.%s' % (package_name, mod) for mod in _find_package_modules(package_name)
+    )
     for name in modnames:
         __import__(name, fromlist=['*'])
 
@@ -90,8 +92,11 @@ def _find_package_modules(package_name):
     extensions = ('.py', '.pyc')
     package = __import__(package_name, fromlist=['*'])
     directory = os.path.dirname(package.__file__)
-    files = (os.path.splitext(f) for f in os.listdir(directory)
-             if not f.startswith('.') and not f.startswith('_'))
+    files = (
+        os.path.splitext(f)
+        for f in os.listdir(directory)
+        if not f.startswith('.') and not f.startswith('_')
+    )
     modnames = set(name for name, ext in files if ext in extensions)
     return list(modnames)
 

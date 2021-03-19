@@ -60,18 +60,18 @@ def _json_layer2(load_traffic=False, view=None):
             'to_interface__netbox',
             'to_interface__netbox__room',
             'to_netbox__room',
-            'netbox__room', 'to_interface__netbox__room__location',
+            'netbox__room',
+            'to_interface__netbox__room__location',
             'to_netbox__room__location',
             'netbox__room__location',
         )
     )
 
-    vlan_by_interface, vlan_by_netbox = _get_vlans_map_layer2(
-        topology_without_metadata)
+    vlan_by_interface, vlan_by_netbox = _get_vlans_map_layer2(topology_without_metadata)
 
-    graph = build_netmap_layer2_graph(topology_without_metadata,
-                                      vlan_by_interface, vlan_by_netbox,
-                                      load_traffic, view)
+    graph = build_netmap_layer2_graph(
+        topology_without_metadata, vlan_by_interface, vlan_by_netbox, load_traffic, view
+    )
 
     def get_edge_from_meta(meta):
         edge = meta['metadata'][0]
@@ -80,22 +80,21 @@ def _json_layer2(load_traffic=False, view=None):
     result = {
         'vlans': get_vlan_lookup_json(vlan_by_interface),
         'nodes': _get_nodes(node_to_json_layer2, graph),
-        'links': [edge_to_json_layer2(get_edge_from_meta(meta), meta) for
-                  u, v, meta in graph.edges(data=True)]
+        'links': [
+            edge_to_json_layer2(get_edge_from_meta(meta), meta)
+            for u, v, meta in graph.edges(data=True)
+        ],
     }
     return result
 
 
 @cache_topology("layer 3")
 def _json_layer3(load_traffic=False, view=None):
-    topology_without_metadata = vlan.build_layer3_graph(
-        ('prefix__vlan__net_type',)
-    )
+    topology_without_metadata = vlan.build_layer3_graph(('prefix__vlan__net_type',))
 
     vlans_map = _get_vlans_map_layer3(topology_without_metadata)
 
-    graph = build_netmap_layer3_graph(topology_without_metadata, load_traffic,
-                                      view)
+    graph = build_netmap_layer3_graph(topology_without_metadata, load_traffic, view)
 
     def get_edge_from_meta(meta):
         edges = next(iter(meta['metadata'].values()))
@@ -105,8 +104,10 @@ def _json_layer3(load_traffic=False, view=None):
     result = {
         'vlans': [vlan_to_json(prefix.vlan) for prefix in vlans_map],
         'nodes': _get_nodes(node_to_json_layer3, graph),
-        'links': [edge_to_json_layer3(get_edge_from_meta(meta), meta) for
-                  u, v, meta in graph.edges(data=True)]
+        'links': [
+            edge_to_json_layer3(get_edge_from_meta(meta), meta)
+            for u, v, meta in graph.edges(data=True)
+        ],
     }
     return result
 
@@ -122,9 +123,7 @@ def get_traffic_gradient():
     """Builds a dictionary of rgb values from green to red"""
     keys = ('r', 'g', 'b')
 
-    return [
-        dict(zip(keys, get_traffic_rgb(percent))) for percent in range(0, 101)
-    ]
+    return [dict(zip(keys, get_traffic_rgb(percent))) for percent in range(0, 101)]
 
 
 @cache_traffic("layer 2")
@@ -134,15 +133,11 @@ def get_layer2_traffic(location_or_room_id=None):
 
     # TODO: Handle missing?
     if location_or_room_id is None or not location_or_room_id:
-        interfaces = Interface.objects.filter(
-            to_netbox__isnull=False
-        ).select_related(
+        interfaces = Interface.objects.filter(to_netbox__isnull=False).select_related(
             'netbox', 'to_netbox', 'to_interface__netbox'
         )
     else:
-        interfaces = Interface.objects.filter(
-            to_netbox__isnull=False,
-        ).select_related(
+        interfaces = Interface.objects.filter(to_netbox__isnull=False,).select_related(
             'netbox', 'to_netbox', 'to_interface__netbox'
         )
 
@@ -176,18 +171,17 @@ def get_layer2_traffic(location_or_room_id=None):
         edge_traffic = []
         for interface in edge_interfaces:
             to_interface = interface.to_interface
-            data = get_traffic_data(
-                (interface, to_interface), traffic_cache).to_json()
-            data.update({
-                'source_ifname': interface.ifname if interface else '',
-                'target_ifname': to_interface.ifname if to_interface else ''
-            })
+            data = get_traffic_data((interface, to_interface), traffic_cache).to_json()
+            data.update(
+                {
+                    'source_ifname': interface.ifname if interface else '',
+                    'target_ifname': to_interface.ifname if to_interface else '',
+                }
+            )
             edge_traffic.append(data)
-        traffic.append({
-            'source': source,
-            'target': target,
-            'edges': edge_traffic,
-        })
+        traffic.append(
+            {'source': source, 'target': target, 'edges': edge_traffic,}
+        )
 
     _logger.debug('Total time used: %s', datetime.now() - start)
     return traffic
@@ -206,10 +200,7 @@ def get_layer3_traffic(location_or_room_id=None):
         router_ports = GwPortPrefix.objects.filter(
             prefix__in=prefixes,
             interface__netbox__category__in=('GW', 'GSW'),  # Or might be faster
-        ).select_related(
-            'interface',
-            'interface__to_interface',
-        )
+        ).select_related('interface', 'interface__to_interface',)
     else:
         # Sanity check: Does the room exist?
         room = Room.objects.filter(id=location_or_room_id)
@@ -222,10 +213,7 @@ def get_layer3_traffic(location_or_room_id=None):
             prefix__in=prefixes,
             interface__netbox__room__location=location,
             interface__netbox__category__in=('GW', 'GSW'),  # Or might be faster
-        ).select_related(
-            'interface',
-            'interface__to_interface',
-        )
+        ).select_related('interface', 'interface__to_interface',)
 
     router_ports_prefix_map = defaultdict(list)
     for router_port in router_ports:
@@ -250,17 +238,17 @@ def get_layer3_traffic(location_or_room_id=None):
                                 interface_a.netbox_id,
                                 interface_b.netbox_id,
                                 interface_a,
-                                interface_b
+                                interface_b,
                             )
                         )
     for source, target, interface, to_interface in interfaces:
-        traffic.append({
-            'source': source,
-            'target': target,
-            'source_ifname': interface.ifname,
-            'target_ifname': to_interface.ifname,
-            'traffic_data': get_traffic_data(
-                (interface, to_interface,)
-            ).to_json()
-        })
+        traffic.append(
+            {
+                'source': source,
+                'target': target,
+                'source_ifname': interface.ifname,
+                'target_ifname': to_interface.ifname,
+                'traffic_data': get_traffic_data((interface, to_interface,)).to_json(),
+            }
+        )
     return traffic

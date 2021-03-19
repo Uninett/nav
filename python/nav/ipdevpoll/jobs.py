@@ -44,13 +44,13 @@ ports = cycle([snmpprotocol.port() for i in range(50)])
 
 class AbortedJobError(Exception):
     """Signals an aborted collection job."""
+
     def __init__(self, msg, cause=None):
         Exception.__init__(self, msg, cause)
         self.cause = cause
 
     def __str__(self):
-        return (str(self.args[0]) +
-                (" (cause=%r)" % self.cause if self.cause else ""))
+        return str(self.args[0]) + (" (cause=%r)" % self.cause if self.cause else "")
 
 
 class SuggestedReschedule(AbortedJobError):
@@ -58,11 +58,12 @@ class SuggestedReschedule(AbortedJobError):
     later time, without necessarily logging it as a job failure.
 
     """
+
     def __init__(self, msg=None, cause=None, delay=60):
         self.delay = delay
         super(SuggestedReschedule, self).__init__(
-            msg="Job was suggested rescheduled in %d seconds" % self.delay,
-            cause=cause)
+            msg="Job was suggested rescheduled in %d seconds" % self.delay, cause=cause
+        )
 
 
 class JobHandler(object):
@@ -75,6 +76,7 @@ class JobHandler(object):
     information for the job.
 
     """
+
     _logger = ContextLogger()
     _queue_logger = ContextLogger(suffix='queue')
     _timing_logger = ContextLogger(suffix='timings')
@@ -104,11 +106,12 @@ class JobHandler(object):
 
         port = next(ports)
         self.agent = AgentProxy(
-            self.netbox.ip, 161,
+            self.netbox.ip,
+            161,
             community=self.netbox.read_only,
             snmpVersion='v%s' % self.netbox.snmp_version,
             protocol=port.protocol,
-            snmp_parameters=snmp_parameter_factory(self.netbox)
+            snmp_parameters=snmp_parameter_factory(self.netbox),
         )
         try:
             self.agent.open()
@@ -118,11 +121,15 @@ class JobHandler(object):
             job_count = self.get_instance_count()
             self._logger.error(
                 "%s (%d currently open SNMP sessions, %d job handlers)",
-                error, session_count, job_count)
+                error,
+                session_count,
+                job_count,
+            )
             raise AbortedJobError("Cannot open SNMP session", cause=error)
         else:
-            self._logger.debug("AgentProxy created for %s: %s",
-                               self.netbox.sysname, self.agent)
+            self._logger.debug(
+                "AgentProxy created for %s: %s", self.netbox.sysname, self.agent
+            )
 
     def _destroy_agentproxy(self):
         if self.agent:
@@ -134,13 +141,18 @@ class JobHandler(object):
         """Populate the internal plugin list with plugin class instances."""
         from nav.ipdevpoll.config import ipdevpoll_conf
 
-        plugin_classes = [plugin_registry[name]
-                          for name in self._get_valid_plugins()]
+        plugin_classes = [plugin_registry[name] for name in self._get_valid_plugins()]
         willing_plugins = yield self._get_willing_plugins(plugin_classes)
 
-        plugins = [cls(self.netbox, agent=self.agent,
-                       containers=self.containers, config=ipdevpoll_conf)
-                   for cls in willing_plugins]
+        plugins = [
+            cls(
+                self.netbox,
+                agent=self.agent,
+                containers=self.containers,
+                config=ipdevpoll_conf,
+            )
+            for cls in willing_plugins
+        ]
 
         if not plugins:
             defer.returnValue(None)
@@ -149,12 +161,15 @@ class JobHandler(object):
 
     def _get_valid_plugins(self):
         valid_plugins, invalid_plugins = splitby(
-            lambda name: name in plugin_registry,
-            self.plugins)
+            lambda name: name in plugin_registry, self.plugins
+        )
         if list(invalid_plugins):
-            self._logger.error("Non-existent plugins were configured for job "
-                               "%r (ignoring them): %r", self.name,
-                               list(invalid_plugins))
+            self._logger.error(
+                "Non-existent plugins were configured for job "
+                "%r (ignoring them): %r",
+                self.name,
+                list(invalid_plugins),
+            )
         return valid_plugins
 
     @defer.inlineCallbacks
@@ -163,24 +178,25 @@ class JobHandler(object):
         unwilling_plugins = []
         for cls in plugin_classes:
             try:
-                can_handle = yield defer.maybeDeferred(cls.can_handle,
-                                                       self.netbox)
+                can_handle = yield defer.maybeDeferred(cls.can_handle, self.netbox)
             except db.ResetDBConnectionError:
                 raise
             except Exception:
-                self._logger.exception(
-                    "Unhandled exception from can_handle(): %r", cls)
+                self._logger.exception("Unhandled exception from can_handle(): %r", cls)
                 can_handle = False
             if can_handle:
                 willing_plugins.append(cls)
             else:
                 unwilling_plugins.append(cls)
 
-        for (willingness, plugins) in [('unwilling', unwilling_plugins),
-                                       ('willing', willing_plugins)]:
+        for (willingness, plugins) in [
+            ('unwilling', unwilling_plugins),
+            ('willing', willing_plugins),
+        ]:
             if plugins:
-                self._logger.debug("%s plugins: %r", willingness,
-                                   [cls.__name__ for cls in plugins])
+                self._logger.debug(
+                    "%s plugins: %r", willingness, [cls.__name__ for cls in plugins]
+                )
             else:
                 self._logger.debug("no %s plugins", willingness)
 
@@ -192,21 +208,27 @@ class JobHandler(object):
 
         def log_plugin_failure(failure, plugin_instance):
             if failure.check(TimeoutError, defer.TimeoutError):
-                self._logger.debug("Plugin %s reported a timeout",
-                                   plugin_instance.alias, exc_info=True)
+                self._logger.debug(
+                    "Plugin %s reported a timeout", plugin_instance.alias, exc_info=True
+                )
                 raise AbortedJobError(
-                    "Plugin %s reported a timeout" % plugin_instance.alias)
+                    "Plugin %s reported a timeout" % plugin_instance.alias
+                )
             elif failure.check(SuggestedReschedule):
-                self._logger.debug("Plugin %s suggested a reschedule in "
-                                   "%d seconds",
-                                   plugin_instance, failure.value.delay)
+                self._logger.debug(
+                    "Plugin %s suggested a reschedule in " "%d seconds",
+                    plugin_instance,
+                    failure.value.delay,
+                )
             elif failure.check(db.ResetDBConnectionError):
                 pass
             else:
-                log_unhandled_failure(self._logger,
-                                      failure,
-                                      "Plugin %s reported an unhandled failure",
-                                      plugin_instance)
+                log_unhandled_failure(
+                    self._logger,
+                    failure,
+                    "Plugin %s reported an unhandled failure",
+                    plugin_instance,
+                )
             return failure
 
         def next_plugin(result=None):
@@ -237,16 +259,18 @@ class JobHandler(object):
                   plugins ran).
 
         """
-        self.netbox = yield db.run_in_thread(dataloader.load_netbox,
-                                             self.netbox_id)
-        self._log_context.update(dict(job=self.name,
-                                      sysname=self.netbox.sysname))
-        self._logger.debug("Job %r started for netbox %s with plugins: %r",
-                           self.name, self.netbox_id, self.plugins)
+        self.netbox = yield db.run_in_thread(dataloader.load_netbox, self.netbox_id)
+        self._log_context.update(dict(job=self.name, sysname=self.netbox.sysname))
+        self._logger.debug(
+            "Job %r started for netbox %s with plugins: %r",
+            self.name,
+            self.netbox_id,
+            self.plugins,
+        )
         # Initialize netbox in container
-        self._container_factory(shadows.Netbox, key=None,
-                                id=self.netbox.id,
-                                sysname=self.netbox.sysname)
+        self._container_factory(
+            shadows.Netbox, key=None, id=self.netbox.id, sysname=self.netbox.sysname
+        )
 
         self._create_agentproxy()
         plugins = yield self._find_plugins()
@@ -255,38 +279,41 @@ class JobHandler(object):
             self._destroy_agentproxy()
             defer.returnValue(False)
 
-        self._logger.debug("Starting job %r for %s",
-                           self.name, self.netbox.sysname)
+        self._logger.debug("Starting job %r for %s", self.name, self.netbox.sysname)
 
         def wrap_up_job(_result):
-            self._logger.debug("Job %s for %s done.", self.name,
-                               self.netbox.sysname)
+            self._logger.debug("Job %s for %s done.", self.name, self.netbox.sysname)
             self._log_timings()
             return True
 
         def plugin_failure(failure):
             self._log_timings()
             if not failure.check(AbortedJobError):
-                raise AbortedJobError("Job aborted due to plugin failure",
-                                      cause=failure.value)
+                raise AbortedJobError(
+                    "Job aborted due to plugin failure", cause=failure.value
+                )
             return failure
 
         def save_failure(failure):
             if not failure.check(db.ResetDBConnectionError):
-                log_unhandled_failure(self._logger,
-                                      failure,
-                                      "Save stage failed with unhandled error")
+                log_unhandled_failure(
+                    self._logger, failure, "Save stage failed with unhandled error"
+                )
             self._log_timings()
-            raise AbortedJobError("Job aborted due to save failure",
-                                  cause=failure.value)
+            raise AbortedJobError(
+                "Job aborted due to save failure", cause=failure.value
+            )
 
         def log_abort(failure):
             if failure.check(SuggestedReschedule):
                 return failure
             if failure.check(AbortedJobError):
-                self._logger.error("Job %r for %s aborted: %s",
-                                   self.name, self.netbox.sysname,
-                                   failure.value)
+                self._logger.error(
+                    "Job %r for %s aborted: %s",
+                    self.name,
+                    self.netbox.sysname,
+                    failure.value,
+                )
             return failure
 
         def save(result):
@@ -301,7 +328,8 @@ class JobHandler(object):
         # pylint is unable to find reactor members:
         # pylint: disable=E1101
         shutdown_trigger_id = reactor.addSystemEventTrigger(
-            "before", "shutdown", self.cancel)
+            "before", "shutdown", self.cancel
+        )
 
         def cleanup(result):
             self._destroy_agentproxy()
@@ -350,10 +378,9 @@ class JobHandler(object):
 
     def _log_timings(self):
         stop_time = datetime.datetime.now()
-        job_total = stop_time-self._start_time
+        job_total = stop_time - self._start_time
 
-        times = [(plugin, stop-start)
-                 for (plugin, start, stop) in self._plugin_times]
+        times = [(plugin, stop - start) for (plugin, start, stop) in self._plugin_times]
         plugin_total = sum((i[1] for i in times), datetime.timedelta(0))
 
         times.append(("Plugin total", plugin_total))
@@ -371,8 +398,7 @@ class JobHandler(object):
         log_text.insert(-3, dashes)
         log_text.insert(-2, dashes)
 
-        log_text.insert(0, "Job %r timings for %s:" %
-                        (self.name, self.netbox.sysname))
+        log_text.insert(0, "Job %r timings for %s:" % (self.name, self.netbox.sysname))
 
         self._timing_logger.debug("\n".join(log_text))
 
@@ -386,6 +412,7 @@ class JobHandler(object):
         so we get ForeignKeys stored before the objects that are using them
         are stored.
         """
+
         @db.cleanup_django_debug_after
         def complete_save_cycle():
             # Traverse all the classes in the container repository and
@@ -410,8 +437,11 @@ class JobHandler(object):
 
     def _cleanup_containers_after_save(self):
         """Runs every queued manager's cleanup routine"""
-        self._logger.debug("Running cleanup routines for %d managers: %r",
-                           len(self.storage_queue), self.storage_queue)
+        self._logger.debug(
+            "Running cleanup routines for %d managers: %r",
+            len(self.storage_queue),
+            self.storage_queue,
+        )
         try:
             for manager in self.storage_queue:
                 self._raise_if_cancelled()
@@ -419,13 +449,15 @@ class JobHandler(object):
         except AbortedJobError:
             raise
         except Exception:
-            self._logger.exception("Caught exception during cleanup. "
-                                   "Last manager = %r",
-                                   manager)
+            self._logger.exception(
+                "Caught exception during cleanup. " "Last manager = %r", manager
+            )
             import django.db
+
             if django.db.connection.queries:
-                self._logger.error("The last query was: %s",
-                                   django.db.connection.queries[-1])
+                self._logger.error(
+                    "The last query was: %s", django.db.connection.queries[-1]
+                )
             raise
 
     def _log_timed_result(self, res, msg):
@@ -450,22 +482,26 @@ class JobHandler(object):
         except AbortedJobError:
             raise
         except Exception:
-            self._logger.exception("Caught exception during save. "
-                                   "Last manager = %s. Last model = %s",
-                                   manager, getattr(manager, 'cls', None))
+            self._logger.exception(
+                "Caught exception during save. " "Last manager = %s. Last model = %s",
+                manager,
+                getattr(manager, 'cls', None),
+            )
             import django.db
+
             if django.db.connection.queries:
-                self._logger.error("The last query was: %s",
-                                   django.db.connection.queries[-1])
+                self._logger.error(
+                    "The last query was: %s", django.db.connection.queries[-1]
+                )
             raise
 
     def _log_containers(self, prefix=None):
         log = self._queue_logger
         if not log.isEnabledFor(logging.DEBUG):
             return
-        log.debug("%s%s",
-                  prefix and "%s: " % prefix,
-                  pprint.pformat(dict(self.containers)))
+        log.debug(
+            "%s%s", prefix and "%s: " % prefix, pprint.pformat(dict(self.containers))
+        )
 
     def _populate_storage_queue(self):
         """Naive population of the storage queue.
@@ -502,16 +538,19 @@ class JobHandler(object):
     def _log_job_externally(self, success=True):
         """Logs a job to the database"""
         duration = self.get_current_runtime()
-        duration_in_seconds = (duration.days * 86400 +
-                               duration.seconds +
-                               duration.microseconds / 1e6)
+        duration_in_seconds = (
+            duration.days * 86400 + duration.seconds + duration.microseconds / 1e6
+        )
         timestamp = time.time()
 
         def _create_record(timestamp):
             netbox = manage.Netbox.objects.get(id=self.netbox.id)
             if netbox.deleted_at:
-                _logger.info("Not logging job to db; delete of this IP device"
-                             " was requested at %s", netbox.deleted_at)
+                _logger.info(
+                    "Not logging job to db; delete of this IP device"
+                    " was requested at %s",
+                    netbox.deleted_at,
+                )
                 return
 
             log = manage.IpdevpollJobLog(
@@ -520,13 +559,12 @@ class JobHandler(object):
                 end_time=datetime.datetime.fromtimestamp(timestamp),
                 duration=duration_in_seconds,
                 success=success,
-                interval=self.interval
+                interval=self.interval,
             )
             log.save()
 
         def _log_to_graphite():
-            prefix = metric_prefix_for_ipdevpoll_job(self.netbox.sysname,
-                                                     self.name)
+            prefix = metric_prefix_for_ipdevpoll_job(self.netbox.sysname, self.name)
             runtime_path = prefix + ".runtime"
             runtime = (runtime_path, (timestamp, duration_in_seconds))
             send_metrics([runtime])

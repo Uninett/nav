@@ -55,10 +55,14 @@ def get_netbox_macs():
 def _get_netbox_macs():
     """Actual implementation of get_netbox_macs()"""
     from django.db import connection
+
     cursor = connection.cursor()
     cursor.execute('SELECT mac, netboxid FROM netboxmac')
-    netbox_macs = dict((mac, netboxid) for (mac, netboxid) in cursor.fetchall()
-                       if not _mac_is_ignored(mac))
+    netbox_macs = dict(
+        (mac, netboxid)
+        for (mac, netboxid) in cursor.fetchall()
+        if not _mac_is_ignored(mac)
+    )
     return netbox_macs
 
 
@@ -78,12 +82,17 @@ def get_netbox_catids():
 
 def _get_netbox_catids():
     """Actual implementation of get_netbox_catids()"""
-    catids = dict((i['id'], i['category__id'])
-                  for i in manage.Netbox.objects.values('id', 'category__id'))
+    catids = dict(
+        (i['id'], i['category__id'])
+        for i in manage.Netbox.objects.values('id', 'category__id')
+    )
     return catids
 
 
-INVALID_IPS = ('None', '0.0.0.0',)
+INVALID_IPS = (
+    'None',
+    '0.0.0.0',
+)
 
 
 # pylint: disable=R0903
@@ -144,15 +153,17 @@ class Neighbor(object):
         try:
             ip = six.text_type(IP(ip))
         except ValueError:
-            self._logger.warning("Invalid IP (%s) in neighbor record: %r",
-                                 ip, self.record)
+            self._logger.warning(
+                "Invalid IP (%s) in neighbor record: %r", ip, self.record
+            )
             return
 
         assert ip
         if ip in self._invalid_neighbor_ips:
             return
-        return (self._netbox_query(Q(ip=ip)) or
-                self._netbox_query(Q(interface__gwportprefix__gw_ip=ip)))
+        return self._netbox_query(Q(ip=ip)) or self._netbox_query(
+            Q(interface__gwportprefix__gw_ip=ip)
+        )
 
     ID_PATTERN = re.compile(r'(.*\()?(?P<sysname>[^\)]+)\)?')
 
@@ -193,8 +204,10 @@ class Neighbor(object):
         except manage.Netbox.DoesNotExist:
             return None
         except manage.Netbox.MultipleObjectsReturned:
-            self._logger.info("found multiple matching neighbors on remote, "
-                              "cannot decide: %s", query)
+            self._logger.info(
+                "found multiple matching neighbors on remote, " "cannot decide: %s",
+                query,
+            )
             return None
         return shadows.Netbox(**netbox)
 
@@ -216,8 +229,9 @@ class Neighbor(object):
         name = name.rstrip('\x00')
 
         if is_invalid_database_string(name):
-            self._logger.warning("cannot search database for malformed "
-                                 "neighboring port name %r", name)
+            self._logger.warning(
+                "cannot search database for malformed " "neighboring port name %r", name
+            )
             return
 
         queries = [Q(ifdescr=name), Q(ifname=name), Q(ifalias=name)]
@@ -234,7 +248,8 @@ class Neighbor(object):
         netbox = Q(netbox__id=self.netbox.id)
         result = []
         for ifc in manage.Interface.objects.values(
-                'id', 'ifname', 'ifdescr', 'iftype').filter(netbox & query):
+            'id', 'ifname', 'ifdescr', 'iftype'
+        ).filter(netbox & query):
 
             ifc = shadows.Interface(**ifc)
             ifc.netbox = self.netbox
@@ -242,9 +257,9 @@ class Neighbor(object):
         return result
 
     def __repr__(self):
-        return ('<{myclass} '
-                'identified={identified} '
-                'netbox={netbox} '
-                'interfaces={interfaces}>'
-                ).format(myclass=self.__class__.__name__,
-                         **vars(self))
+        return (
+            '<{myclass} '
+            'identified={identified} '
+            'netbox={netbox} '
+            'interfaces={interfaces}>'
+        ).format(myclass=self.__class__.__name__, **vars(self))

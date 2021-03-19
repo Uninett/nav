@@ -45,9 +45,11 @@ _logger = logging.getLogger(__name__)
 
 class Sensors(Plugin):
     """Plugin to detect environmental sensors in netboxes"""
+
     @classmethod
     def on_plugin_load(cls):
         from nav.ipdevpoll.config import ipdevpoll_conf
+
         loadmodules(ipdevpoll_conf)
         cls.mib_map = get_mib_map(ipdevpoll_conf)
 
@@ -55,8 +57,9 @@ class Sensors(Plugin):
     def handle(self):
         """Collects sensors and feed them in to persistent store."""
         mibs = yield self.mibfactory()
-        self._logger.debug("Discovering sensors sensors using: %r",
-                           [type(m).__name__ for m in mibs])
+        self._logger.debug(
+            "Discovering sensors sensors using: %r", [type(m).__name__ for m in mibs]
+        )
         for mib in mibs:
             self._logger.debug("Trying %r", type(mib).__name__)
             try:
@@ -70,8 +73,9 @@ class Sensors(Plugin):
             if all_sensors:
                 # Store and jump out on the first MIB that give
                 # any results
-                self._logger.debug("Found %d sensors from %s",
-                                   len(all_sensors), type(mib).__name__)
+                self._logger.debug(
+                    "Found %d sensors from %s", len(all_sensors), type(mib).__name__
+                )
                 self._store_sensors(all_sensors)
                 break
 
@@ -111,8 +115,7 @@ class Sensors(Plugin):
                 sensor = self.containers.factory(oid, shadows.Sensor)
                 sensor.netbox = self.netbox
                 sensor.oid = oid
-                sensor.unit_of_measurement = row.get('unit_of_measurement',
-                                                     None)
+                sensor.unit_of_measurement = row.get('unit_of_measurement', None)
                 sensor.precision = row.get('precision', 0)
                 sensor.data_scale = row.get('scale', None)
                 sensor.human_readable = row.get('description', None)
@@ -132,6 +135,7 @@ class Sensors(Plugin):
                 sensors.append(sensors)
         return sensors
 
+
 ####################
 # Helper functions #
 ####################
@@ -148,12 +152,13 @@ def loadmodules(config):
 
 def get_mib_map(config):
     """:type config: ConfigParser.ConfigParser"""
-    candidate_classes = {k: v for k, v in
-                         mibretriever.MibRetrieverMaker.modules.items()
-                         if hasattr(v, 'get_all_sensors')}
+    candidate_classes = {
+        k: v
+        for k, v in mibretriever.MibRetrieverMaker.modules.items()
+        if hasattr(v, 'get_all_sensors')
+    }
     _logger.debug("sensor candidate classes: %r", candidate_classes)
-    candidate_classes.update({cls.__name__: cls
-                              for cls in candidate_classes.values()})
+    candidate_classes.update({cls.__name__: cls for cls in candidate_classes.values()})
 
     mib_map = defaultdict(list)
     for opt in config.options('sensors:vendormibs'):
@@ -164,8 +169,9 @@ def get_mib_map(config):
 
         for mib in names:
             if mib not in candidate_classes:
-                raise ConfigurationError("No known MIB implementation with "
-                                         "sensor support: %s", mib)
+                raise ConfigurationError(
+                    "No known MIB implementation with " "sensor support: %s", mib
+                )
             cls = candidate_classes[mib]
             mib_map[enterprise].append(cls)
 
@@ -196,9 +202,11 @@ def _expand_module_names(names):
 def _find_submodules(name):
     package = importlib.import_module(name)
     directory = os.path.dirname(package.__file__)
-    pyfiles = (n for n in os.listdir(directory)
-               if (n.endswith('.py') or n.endswith('.pyc')) and
-               not n[0] in '_.')
+    pyfiles = (
+        n
+        for n in os.listdir(directory)
+        if (n.endswith('.py') or n.endswith('.pyc')) and not n[0] in '_.'
+    )
     names = (os.path.splitext(n)[0] for n in pyfiles)
     return ["{}.{}".format(name, n) for n in names]
 

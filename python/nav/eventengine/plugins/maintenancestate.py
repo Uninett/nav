@@ -22,7 +22,7 @@ from nav.eventengine.alerts import AlertGenerator
 class MaintenanceStateHandler(EventHandler):
     """Accepts maintenanceState events"""
 
-    handled_types = ('maintenanceState', )
+    handled_types = ('maintenanceState',)
 
     def handle(self):
         event = self.event
@@ -37,8 +37,8 @@ class MaintenanceStateHandler(EventHandler):
     def _post_alert(self, event):
         alert = AlertGenerator(event)
         alert.alert_type = (
-            'onMaintenance' if event.state == event.STATE_START
-            else 'offMaintenance')
+            'onMaintenance' if event.state == event.STATE_START else 'offMaintenance'
+        )
         alert.history_vars = dict(alert)
         if alert.is_event_duplicate():
             self._logger.info('Ignoring duplicate event')

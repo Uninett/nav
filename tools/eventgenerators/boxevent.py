@@ -21,6 +21,7 @@ import argparse
 import sys
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django()
 
 from nav.models.event import EventQueue as Event, Subsystem, EventType
@@ -31,7 +32,7 @@ from django.db import transaction
 DEFAULT_KWARGS = {
     'source': Subsystem.objects.get(pk='pping'),
     'target': Subsystem.objects.get(pk='eventEngine'),
-    'event_type': EventType.objects.get(pk='boxState')
+    'event_type': EventType.objects.get(pk='boxState'),
 }
 
 
@@ -53,13 +54,17 @@ def main():
 def create_parser():
     """Create a parser for the script arguments"""
     parser = argparse.ArgumentParser(
-        description='Script to simulate up/down events from pping')
-    parser.add_argument('event', help='Type of event to simulate',
-                        choices=['up', 'down'])
-    parser.add_argument('sysname', nargs='+',
-                        help='Sysname used to filter netboxes')
-    parser.add_argument('--dry-run', action='store_false',
-                        help='Print the events to be sent without sending them')
+        description='Script to simulate up/down events from pping'
+    )
+    parser.add_argument(
+        'event', help='Type of event to simulate', choices=['up', 'down']
+    )
+    parser.add_argument('sysname', nargs='+', help='Sysname used to filter netboxes')
+    parser.add_argument(
+        '--dry-run',
+        action='store_false',
+        help='Print the events to be sent without sending them',
+    )
     return parser
 
 

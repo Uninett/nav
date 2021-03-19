@@ -8,7 +8,7 @@ from .metaclass_testcase import MetaClassTestCase
 
 class MetaClassesTests(MetaClassTestCase):
     def test_group_does_not_raise_exception_when_interface_is_none(self):
-        foo  = Group(Mock(name='netbox', spec=Netbox), None)
+        foo = Group(Mock(name='netbox', spec=Netbox), None)
 
     def test_edge_allows_both_interface_linkspeed_in_group_to_be_none(self):
         netbox_a = Mock(name='netbox a', sepc=Netbox)
@@ -50,11 +50,13 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
         first, second = list(self._get_metadata(self.a, self.b))
         self.assertEqual(
             frozenset((self.a1, self.b1)),
-            frozenset((first.u.interface, first.v.interface)))
+            frozenset((first.u.interface, first.v.interface)),
+        )
 
         self.assertEqual(
             frozenset((self.a2, self.b2)),
-            frozenset((second.u.interface, second.v.interface)))
+            frozenset((second.u.interface, second.v.interface)),
+        )
 
     def test_netmap_metadata_shows_2_links_for_edge_between_a_and_b(self):
         self.assertEqual(2, len(self._get_metadata(self.a, self.b)))
@@ -62,37 +64,55 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
     def test_netmap_metadata_is_correct_for_2_links_edge_between_a_and_b(self):
         self.maxDiff = None
         metadata = (self.netmap_graph.get_edge_data(self.a, self.b) or {}).get(
-            'metadata')
-        assert Edge(nx_edge=(self.a, self.b),
-                    meta_edge=(self.a1, self.b1)) in metadata
-        assert Edge(nx_edge=(self.a, self.b),
-                    meta_edge=(self.a2, self.b2)) in metadata
+            'metadata'
+        )
+        assert Edge(nx_edge=(self.a, self.b), meta_edge=(self.a1, self.b1)) in metadata
+        assert Edge(nx_edge=(self.a, self.b), meta_edge=(self.a2, self.b2)) in metadata
 
 
 class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
     def test_link_between_a_and_c_contains_both_v4_and_v6_prefix(self):
         prefixes = {
-            edge.prefix for edge in self.netmap_graph.get_edge_data(
-                self.a, self.c).get('metadata').get(2112)}
+            edge.prefix
+            for edge in self.netmap_graph.get_edge_data(self.a, self.c)
+            .get('metadata')
+            .get(2112)
+        }
         expected = {self.prefix_bar, self.prefix_bar_ipv6}
         self.assertSetEqual(prefixes, expected)
 
     def test_link_got_prefixed_attached(self):
-        self.assertEqual(self.prefix_foo, self.netmap_graph.get_edge_data(
-            self.a, self.b
-        ).get('metadata').get(self.prefix_foo.vlan.id)[0].prefix)
+        self.assertEqual(
+            self.prefix_foo,
+            self.netmap_graph.get_edge_data(self.a, self.b)
+            .get('metadata')
+            .get(self.prefix_foo.vlan.id)[0]
+            .prefix,
+        )
 
-        self.assertEqual(self.prefix_baz, self.netmap_graph.get_edge_data(
-            self.b, self.d
-        ).get('metadata').get(self.prefix_baz.vlan.id)[0].prefix)
+        self.assertEqual(
+            self.prefix_baz,
+            self.netmap_graph.get_edge_data(self.b, self.d)
+            .get('metadata')
+            .get(self.prefix_baz.vlan.id)[0]
+            .prefix,
+        )
 
-        self.assertEqual(self.prefix_baz, self.netmap_graph.get_edge_data(
-            self.b, self.e
-        ).get('metadata').get(self.prefix_baz.vlan.id)[0].prefix)
+        self.assertEqual(
+            self.prefix_baz,
+            self.netmap_graph.get_edge_data(self.b, self.e)
+            .get('metadata')
+            .get(self.prefix_baz.vlan.id)[0]
+            .prefix,
+        )
 
-        self.assertEqual(self.prefix_zar, self.netmap_graph.get_edge_data(
-            self.f, self.unknown
-        ).get('metadata').get(self.prefix_zar.vlan.id)[0].prefix)
+        self.assertEqual(
+            self.prefix_zar,
+            self.netmap_graph.get_edge_data(self.f, self.unknown)
+            .get('metadata')
+            .get(self.prefix_zar.vlan.id)[0]
+            .prefix,
+        )
 
     def test_edge_has_correct_metadata(self):
         # 2111 is VLAN.id
@@ -121,37 +141,38 @@ class Layer3NetworkXMetadataTests(TopologyLayer3TestCase):
     def test_uplink_has_all_layer3_properties_it_should_for_source(self):
         should_have = ('gw_ip', 'virtual')
 
-        for edge in self.netmap_graph.get_edge_data(self.a, self.b).get('metadata').get(2111):
+        for edge in (
+            self.netmap_graph.get_edge_data(self.a, self.b).get('metadata').get(2111)
+        ):
             self.assertTrue(
                 all([hasattr(edge.u, attribute) for attribute in should_have]),
                 msg="Didn't find all keys {0}, only found: {1}".format(
-                    should_have,
-                    edge.__dict__.keys()
-                )
+                    should_have, edge.__dict__.keys()
+                ),
             )
 
     def test_uplink_has_all_layer3_properties_it_should_for_target(self):
         should_have = ('gw_ip', 'virtual')
 
-        for edge in self.netmap_graph.get_edge_data(self.a, self.b).get('metadata').get(
-            2111):
+        for edge in (
+            self.netmap_graph.get_edge_data(self.a, self.b).get('metadata').get(2111)
+        ):
             self.assertTrue(
                 all([hasattr(edge.v, attribute) for attribute in should_have]),
                 msg="Didn't find all keys {0}, only found: {1}".format(
-                    should_have,
-                    edge.__dict__.keys()
-                )
+                    should_have, edge.__dict__.keys()
+                ),
             )
 
     def test_uplink_has_all_layer3_properties_it_should(self):
         should_have = ('prefix', 'vlan')
 
-        for edge in self.netmap_graph.get_edge_data(self.a, self.b).get('metadata').get(2111):
+        for edge in (
+            self.netmap_graph.get_edge_data(self.a, self.b).get('metadata').get(2111)
+        ):
             self.assertTrue(
-                all(
-                    [hasattr(edge, y) for y in should_have]
-                ),
+                all([hasattr(edge, y) for y in should_have]),
                 msg="Didn't find all keys {0}, only found: {1}".format(
-                should_have,
-                edge.__dict__.keys()
-            ))
+                    should_have, edge.__dict__.keys()
+                ),
+            )

@@ -30,6 +30,7 @@ from nav.web.macwatch.utils import add_zeros_to_mac_addr
 
 class MacWatchForm(forms.Form):
     """A class to clean and sanitize input-data for macwatch."""
+
     prefix_length = None
     macaddress = forms.CharField(max_length=17)
     description = forms.CharField(max_length=200, required=False)
@@ -39,14 +40,8 @@ class MacWatchForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_action = '.'
         self.helper.layout = Layout(
-            Fieldset(
-                'Add mac to watch list',
-                'macaddress',
-                'description'
-            ),
-            ButtonHolder(
-                NavSubmit('submit', 'Add')
-            )
+            Fieldset('Add mac to watch list', 'macaddress', 'description'),
+            ButtonHolder(NavSubmit('submit', 'Add')),
         )
 
     def clean_macaddress(self):
@@ -63,14 +58,13 @@ class MacWatchForm(forms.Form):
         # get specified in hex-digits.
         # Set when a mac-address prefix is given.
         addr_len = len(filteredmacaddress)
-        if (addr_len >= MAC_ADDR_MIN_LEN and addr_len < MAC_ADDR_MAX_LEN):
+        if addr_len >= MAC_ADDR_MIN_LEN and addr_len < MAC_ADDR_MAX_LEN:
             self.prefix_length = addr_len
 
         filteredmacaddress = add_zeros_to_mac_addr(filteredmacaddress)
 
         if not has_legal_values(filteredmacaddress):
-            raise forms.ValidationError(
-                "Illegal values or format for mac address.")
+            raise forms.ValidationError("Illegal values or format for mac address.")
 
         if int(MacWatch.objects.filter(mac=filteredmacaddress).count()) > 0:
             raise forms.ValidationError("This mac address is already watched.")

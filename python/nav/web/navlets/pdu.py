@@ -38,8 +38,7 @@ class PduWidget(Navlet):
 
     def get_context_data_edit(self, context):
         roomid = self.preferences.get('room_id')
-        context['form'] = (PduWidgetForm(self.preferences)
-                           if roomid else PduWidgetForm())
+        context['form'] = PduWidgetForm(self.preferences) if roomid else PduWidgetForm()
         return context
 
     def get_context_data_view(self, context):
@@ -54,13 +53,20 @@ class PduWidget(Navlet):
             context["doesnotexist"] = roomid
             return context
 
-        pdus = room.netbox_set.filter(category='POWER').filter(
-            sensor__internal_name__startswith='rPDULoadStatusLoad'
-        ).prefetch_related('sensor_set').distinct()
+        pdus = (
+            room.netbox_set.filter(category='POWER')
+            .filter(sensor__internal_name__startswith='rPDULoadStatusLoad')
+            .prefetch_related('sensor_set')
+            .distinct()
+        )
         sorted_pdus = sorted(pdus, key=lambda x: nav.natsort.split(x.sysname))
-        metrics = [s.get_metric_name() for pdu in pdus
-                   for s in pdu.sensor_set.filter(
-                       internal_name__startswith='rPDULoadStatusLoad')]
+        metrics = [
+            s.get_metric_name()
+            for pdu in pdus
+            for s in pdu.sensor_set.filter(
+                internal_name__startswith='rPDULoadStatusLoad'
+            )
+        ]
         context['pdus'] = sorted_pdus
         context['metrics'] = metrics
         context['data_url'] = reverse('graphite-render')

@@ -11,6 +11,7 @@ from django.db import connection
 try:
     # Django >= 1.8
     import django.apps
+
     get_models = django.apps.apps.get_models
     del django.apps
 except ImportError:

@@ -83,8 +83,7 @@ class StatPorts(Plugin):
         timestamp = time.time()
         stats = yield self._get_stats()
         netboxes = yield db.run_in_thread(self._get_netbox_list)
-        tuples = list(self._make_metrics(stats, netboxes=netboxes,
-                                         timestamp=timestamp))
+        tuples = list(self._make_metrics(stats, netboxes=netboxes, timestamp=timestamp))
         if tuples:
             self._logger.debug("Counters collected")
             send_metrics(tuples)
@@ -94,11 +93,13 @@ class StatPorts(Plugin):
         ifmib = IfMib(self.agent)
         ipmib = IpMib(self.agent)
         stats = yield ifmib.retrieve_columns(
-            ("ifName", "ifDescr") + USED_COUNTERS).addCallback(reduce_index)
+            ("ifName", "ifDescr") + USED_COUNTERS
+        ).addCallback(reduce_index)
         ipv6stats = yield ipmib.get_ipv6_octet_counters()
         if ipv6stats:
-            self._logger.debug("found ipv6 octet counters for %d interfaces",
-                               len(ipv6stats))
+            self._logger.debug(
+                "found ipv6 octet counters for %d interfaces", len(ipv6stats)
+            )
         for ifindex, (in_octets, out_octets) in ipv6stats.items():
             if ifindex in stats:
                 stats[ifindex][IF_IN_OCTETS_IPV6] = in_octets
@@ -120,7 +121,8 @@ class StatPorts(Plugin):
                     for netbox in netboxes:
                         # duplicate metrics for all involved netboxes
                         path = metric_path_for_interface(
-                            netbox, row['ifName'] or row['ifDescr'], key)
+                            netbox, row['ifName'] or row['ifDescr'], key
+                        )
                         yield (path, (timestamp, value))
 
         if stats:
@@ -135,15 +137,15 @@ class StatPorts(Plugin):
             netbox = manage.Netbox.objects.get(id=self.netbox.id)
 
             my_ifcs = netbox.interface_set.values_list('ifname', flat=True)
-            masters_ifcs = netbox.master.interface_set.values_list(
-                'ifname', flat=True)
+            masters_ifcs = netbox.master.interface_set.values_list('ifname', flat=True)
             local_ifcs = set(masters_ifcs) - set(my_ifcs)
             return netbox.master.sysname, local_ifcs
 
         if self._logger.isEnabledFor(logging.DEBUG):
             master, ifcs = yield db.run_in_thread(_get_master_and_instance_list)
-            self._logger.debug("local interfaces (that do not exist on master "
-                               "%s): %r", master, ifcs)
+            self._logger.debug(
+                "local interfaces (that do not exist on master " "%s): %r", master, ifcs
+            )
 
 
 def use_hc_counters(row):

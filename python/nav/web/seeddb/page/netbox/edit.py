@@ -54,10 +54,22 @@ def log_netbox_change(account, old, new):
         return
 
     # Compare changes from old to new
-    attribute_list = ['read_only', 'read_write', 'category', 'ip',
-                      'room', 'organization', 'snmp_version']
-    LogEntry.compare_objects(account, old, new, attribute_list,
-                             censored_attributes=['read_only', 'read_write'])
+    attribute_list = [
+        'read_only',
+        'read_write',
+        'category',
+        'ip',
+        'room',
+        'organization',
+        'snmp_version',
+    ]
+    LogEntry.compare_objects(
+        account,
+        old,
+        new,
+        attribute_list,
+        censored_attributes=['read_only', 'read_write'],
+    )
 
 
 def netbox_edit(request, netbox_id=None, suggestion=None, action='edit'):
@@ -69,8 +81,7 @@ def netbox_edit(request, netbox_id=None, suggestion=None, action='edit'):
         netbox = get_object_or_404(Netbox, pk=netbox_id)
         if action == 'edit':
             copy_url = reverse_lazy(
-                info.copy_url_name,
-                kwargs={ 'action': 'copy', 'netbox_id': netbox_id }
+                info.copy_url_name, kwargs={'action': 'copy', 'netbox_id': netbox_id}
             )
 
     if request.method == 'POST':
@@ -103,17 +114,19 @@ def netbox_edit(request, netbox_id=None, suggestion=None, action='edit'):
         if action == 'copy':
             page_title = "Copy IP Device"
     context = info.template_context
-    context.update({
-        'object': netbox,
-        'form': form,
-        'title': page_title,
-        '_navpath': [('Edit Device', reverse_lazy('seeddb-netbox-edit'))],
-        'sub_active': netbox and {'edit': True} or {'add': True},
-        'tab_template': 'seeddb/tabs_generic.html',
-        'copy_url': copy_url,
-        'copy_title': 'Use this netbox as a template for creating a new netbox',
-        'action': action,
-    })
+    context.update(
+        {
+            'object': netbox,
+            'form': form,
+            'title': page_title,
+            '_navpath': [('Edit Device', reverse_lazy('seeddb-netbox-edit'))],
+            'sub_active': netbox and {'edit': True} or {'add': True},
+            'tab_template': 'seeddb/tabs_generic.html',
+            'copy_url': copy_url,
+            'copy_title': 'Use this netbox as a template for creating a new netbox',
+            'action': action,
+        }
+    )
     return render(request, 'seeddb/netbox_wizard.html', context)
 
 
@@ -179,7 +192,7 @@ def snmp_write_test(ip, profile):
         'error_message': '',
         'custom_error': '',
         'status': False,
-        'syslocation': ''
+        'syslocation': '',
     }
 
     syslocation = '1.3.6.1.2.1.1.6.0'
@@ -243,8 +256,9 @@ def get_sysname(ip_address):
 
 def get_type_id(ip_addr, profile):
     """Gets the id of the type of the ip_addr"""
-    netbox_type = snmp_type(ip_addr, profile.configuration.get("community"),
-                            profile.snmp_version)
+    netbox_type = snmp_type(
+        ip_addr, profile.configuration.get("community"), profile.snmp_version
+    )
     if netbox_type:
         return netbox_type.id
 
@@ -281,8 +295,7 @@ def netbox_do_save(form):
         try:
             func = NetboxInfo.objects.get(netbox=netbox, variable='function')
         except NetboxInfo.DoesNotExist:
-            func = NetboxInfo(
-                netbox=netbox, variable='function', value=function)
+            func = NetboxInfo(netbox=netbox, variable='function', value=function)
         else:
             func.value = function
         func.save()
@@ -316,11 +329,10 @@ def get_address_info(request):
             return JsonResponse({'is_ip': True})
 
         try:
-            address_tuples = socket.getaddrinfo(
-                address, None, 0, socket.SOCK_STREAM)
-            sorted_tuples = sorted(address_tuples,
-                                   key=lambda item:
-                                   socket.inet_pton(item[0], item[4][0]))
+            address_tuples = socket.getaddrinfo(address, None, 0, socket.SOCK_STREAM)
+            sorted_tuples = sorted(
+                address_tuples, key=lambda item: socket.inet_pton(item[0], item[4][0])
+            )
             addresses = [x[4][0] for x in sorted_tuples]
         except socket.error as error:
             context = {'error': str(error)}

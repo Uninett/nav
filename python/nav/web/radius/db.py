@@ -9,12 +9,14 @@ from django.db import connection, transaction
 from twisted.names.dns import Message, Query
 
 from nav.asyncdns import reverse_lookup
-from .radius_config import (DATEFORMAT_SEARCH,
-                            LOG_SEARCHRESULTFIELDS,
-                            ACCT_DETAILSFIELDS,
-                            LOG_DETAILFIELDS,
-                            ACCT_TABLE,
-                            LOG_TABLE)
+from .radius_config import (
+    DATEFORMAT_SEARCH,
+    LOG_SEARCHRESULTFIELDS,
+    ACCT_DETAILSFIELDS,
+    LOG_DETAILFIELDS,
+    ACCT_TABLE,
+    LOG_TABLE,
+)
 
 from . import radiuslib
 
@@ -53,9 +55,7 @@ class SQLQuery(object):
         cursor = get_named_cursor()
         with transaction.atomic():
             cursor.execute(self.query, self.parameters)
-            self.result = [
-                self.result_tuple._make(self._format(row))
-                for row in cursor]
+            self.result = [self.result_tuple._make(self._format(row)) for row in cursor]
 
     def _format(self, row):
         """
@@ -79,10 +79,7 @@ class LogDetailQuery(SQLQuery):
         logid   - ID of the log entry we want to get details on.
         """
 
-        self.result_tuple = namedtuple(
-            'LogDetailQueryResult',
-            fields
-        )
+        self.result_tuple = namedtuple('LogDetailQueryResult', fields)
 
         self.logid = logid
 
@@ -90,7 +87,10 @@ class LogDetailQuery(SQLQuery):
                         %s
                         FROM %s
                         WHERE id = %%s
-                     """ % (','.join(fields), LOG_TABLE)
+                     """ % (
+            ','.join(fields),
+            LOG_TABLE,
+        )
         self.parameters = (self.logid,)
 
     def _format(self, row):
@@ -98,9 +98,11 @@ class LogDetailQuery(SQLQuery):
         try:
             message = row[LOG_DETAILFIELDS.index('message')]
             return map(
-                lambda x: x if x != message else x.replace(
-                    '[', '[<b>').replace(']', '</b>]'),
-                row)
+                lambda x: x
+                if x != message
+                else x.replace('[', '[<b>').replace(']', '</b>]'),
+                row,
+            )
         except ValueError:
             return row
 
@@ -110,9 +112,19 @@ class LogSearchQuery(SQLQuery):
     Get search result
     """
 
-    def __init__(self, searchstring, searchtype, logentrytype, timemode,
-                 timestamp, timestampslack, hours, sortfield, sortorder,
-                 fields=LOG_SEARCHRESULTFIELDS):
+    def __init__(
+        self,
+        searchstring,
+        searchtype,
+        logentrytype,
+        timemode,
+        timestamp,
+        timestampslack,
+        hours,
+        sortfield,
+        sortorder,
+        fields=LOG_SEARCHRESULTFIELDS,
+    ):
         """
         Construct search query from user input
         """
@@ -122,9 +134,7 @@ class LogSearchQuery(SQLQuery):
             fields_extended.extend(list(fields))
             fields = fields_extended
 
-        self.result_tuple = namedtuple(
-            'LogSearchQueryResult',
-            fields)
+        self.result_tuple = namedtuple('LogSearchQueryResult', fields)
 
         # Make "*" wildcard character
         if searchstring:
@@ -133,10 +143,12 @@ class LogSearchQuery(SQLQuery):
         self.query = """SELECT
                      %s
                      FROM %s
-                     """ % (','.join(fields), LOG_TABLE)
+                     """ % (
+            ','.join(fields),
+            LOG_TABLE,
+        )
 
-        if (searchstring and searchstring != "%") or logentrytype \
-                or timemode:
+        if (searchstring and searchstring != "%") or logentrytype or timemode:
             self.query += " WHERE"
 
         # Contains all parameters we want to escape
@@ -164,10 +176,10 @@ class LogSearchQuery(SQLQuery):
 
             if timemode == "hours":
                 # Search for entries active from x*24 hours ago, until now.
-                searchtime = float(hours)*3600
+                searchtime = float(hours) * 3600
                 searchstart = time.strftime(
-                        DATEFORMAT_SEARCH, time.localtime(
-                            time.time()-searchtime))
+                    DATEFORMAT_SEARCH, time.localtime(time.time() - searchtime)
+                )
 
                 self.query += " (time >= timestamp '%s') " % searchstart
 
@@ -177,33 +189,40 @@ class LogSearchQuery(SQLQuery):
 
                 # Search for entries between (given timestamp - slack)
                 # and (given timestamp + slack)
-                unixtimestamp = time.mktime(
-                        time.strptime(timestamp, DATEFORMAT_SEARCH))
+                unixtimestamp = time.mktime(time.strptime(timestamp, DATEFORMAT_SEARCH))
                 searchstart = time.strftime(
-                        DATEFORMAT_SEARCH, time.localtime(
-                            unixtimestamp-(int(timestampslack)*60)))
+                    DATEFORMAT_SEARCH,
+                    time.localtime(unixtimestamp - (int(timestampslack) * 60)),
+                )
                 searchstop = time.strftime(
-                        DATEFORMAT_SEARCH, time.localtime(
-                            unixtimestamp+(int(timestampslack)*60)))
+                    DATEFORMAT_SEARCH,
+                    time.localtime(unixtimestamp + (int(timestampslack) * 60)),
+                )
 
                 self.query += """ (
                         -- Finding sessions that ended within our interval
                         time BETWEEN timestamp '%(searchstart)s'
                             AND timestamp '%(searchstop)s'
-                        ) """ \
-                    % {"searchstart": searchstart, "searchstop": searchstop}
+                        ) """ % {
+                    "searchstart": searchstart,
+                    "searchstop": searchstop,
+                }
 
-        self.query += (" ORDER BY %(sortfield)s %(sortorder)s" %
-                       {"sortfield": sortfield, "sortorder": sortorder})
+        self.query += " ORDER BY %(sortfield)s %(sortorder)s" % {
+            "sortfield": sortfield,
+            "sortorder": sortorder,
+        }
 
     def _format(self, row):
 
         try:
             message = row[LOG_SEARCHRESULTFIELDS.index('message')]
             return map(
-                lambda x: x if x != message else x.replace(
-                    '[', '[<b>').replace(']', '</b>]'),
-                row)
+                lambda x: x
+                if x != message
+                else x.replace('[', '[<b>').replace(']', '</b>]'),
+                row,
+            )
         except ValueError:
             return row
 
@@ -227,13 +246,24 @@ class AcctSearchQuery(SQLQuery):
             'acctstoptime',
             'acctsessiontime',
             'acctoutputoctets',
-            'acctinputoctets'
-        )
+            'acctinputoctets',
+        ),
     )
 
-    def __init__(self, searchstring, searchtype, nasporttype, timemode,
-                 timestamp, timestampslack, days, userdns, nasdns, sortfield,
-                 sortorder):
+    def __init__(
+        self,
+        searchstring,
+        searchtype,
+        nasporttype,
+        timemode,
+        timestamp,
+        timestampslack,
+        days,
+        userdns,
+        nasdns,
+        sortfield,
+        sortorder,
+    ):
         """
         Construct search query from user input
         """
@@ -246,7 +276,8 @@ class AcctSearchQuery(SQLQuery):
         self.nasdns = nasdns
         self.ips_to_lookup = set()
 
-        self.query = """(SELECT
+        self.query = (
+            """(SELECT
                         radacctid,
                         acctuniqueid,
                         username,
@@ -260,11 +291,11 @@ class AcctSearchQuery(SQLQuery):
                         acctoutputoctets,
                         acctinputoctets
                         FROM %s
-                        """ % ACCT_TABLE
+                        """
+            % ACCT_TABLE
+        )
 
-        if (searchstring and searchstring != "%") \
-                or nasporttype \
-                or timemode:
+        if (searchstring and searchstring != "%") or nasporttype or timemode:
             self.query += " WHERE"
 
         # Contains all parameters we want to escape
@@ -273,19 +304,18 @@ class AcctSearchQuery(SQLQuery):
         # Check what we are searching for. It's either a username, realm,
         # or an IP address/hostname. If searching for all users, skip this
         # where clause all together.
-        if (searchtype == "username" or searchtype == "realm") \
-                and searchstring != "%":
+        if (searchtype == "username" or searchtype == "realm") and searchstring != "%":
             self.query += " LOWER(%s) LIKE %%s" % searchtype
             self.parameters += (searchstring,)
 
         # Address
-        if (searchtype == "framedipaddress"
-                or searchtype == "nasipaddress"):
+        if searchtype == "framedipaddress" or searchtype == "nasipaddress":
             # Split search string into hostname and, if entered, cisco nas
             # port.
-            match = re.search(r"^(?P<host>[[a-zA-Z0-9\.\-]+)[\:\/]{0,1}"
-                              r"(?P<swport>[\S]+){0,1}$",
-                              searchstring)
+            match = re.search(
+                r"^(?P<host>[[a-zA-Z0-9\.\-]+)[\:\/]{0,1}" r"(?P<swport>[\S]+){0,1}$",
+                searchstring,
+            )
             # Get all ip addresses, if a hostname is entered
             try:
                 addresses = gethostbyname_ex(match.group("host"))[2]
@@ -305,18 +335,21 @@ class AcctSearchQuery(SQLQuery):
             # Search for Cisco NAS port, if it has been entered
             if match.group("swport"):
                 self.query += " AND LOWER(cisconasport) = %s"
-                self.parameters += tuple(
-                    match.group("swport").lower().split())
+                self.parameters += tuple(match.group("swport").lower().split())
 
         if searchtype == "iprange":
             if searchstring.find('%'):
                 if re.search('/32', searchstring):
-                    self.query += (" (%s = INET(%%s) OR %s = INET(%%s))" %
-                                   ('framedipaddress', 'nasipaddress'))
+                    self.query += " (%s = INET(%%s) OR %s = INET(%%s))" % (
+                        'framedipaddress',
+                        'nasipaddress',
+                    )
                     self.parameters += (searchstring[:-3], searchstring[:-3])
                 else:
-                    self.query += (" (%s << INET(%%s) OR %s = INET(%%s))" %
-                                   ('framedipaddress', 'nasipaddress'))
+                    self.query += " (%s << INET(%%s) OR %s = INET(%%s))" % (
+                        'framedipaddress',
+                        'nasipaddress',
+                    )
                     self.parameters += (searchstring, searchstring)
 
         if nasporttype:
@@ -368,9 +401,10 @@ class AcctSearchQuery(SQLQuery):
 
             if timemode == "days":
                 # Search for entries active from x*24 hours ago, until now.
-                searchtime = float(days)*86400
+                searchtime = float(days) * 86400
                 searchstart = time.strftime(
-                    DATEFORMAT_SEARCH, time.localtime(time.time()-searchtime))
+                    DATEFORMAT_SEARCH, time.localtime(time.time() - searchtime)
+                )
                 # searchstop = time.strftime(DATEFORMAT_SEARCH,
                 # time.localtime(time.time()))
 
@@ -389,7 +423,9 @@ class AcctSearchQuery(SQLQuery):
                         acctstarttime >= timestamp '%(searchstart)s')
                     )
                     )
-                    UNION """ % {"searchstart": searchstart}
+                    UNION """ % {
+                    "searchstart": searchstart
+                }
                 self.query += tmp_where_clause + self.query
                 self.parameters += self.parameters
                 self.query += """
@@ -401,7 +437,9 @@ class AcctSearchQuery(SQLQuery):
                         (acctstarttime + (acctsessiontime * interval '1 sec'
                         )) >= timestamp '%(searchstart)s')
                     )
-                                """ % {"searchstart": searchstart}
+                                """ % {
+                    "searchstart": searchstart
+                }
 
             if timemode == "timestamp":
 
@@ -410,14 +448,15 @@ class AcctSearchQuery(SQLQuery):
 
                 # Search for entries between (given timestamp -
                 # timestampslack) and (given timestamp + timestampslack)
-                unixtimestamp = time.mktime(
-                        time.strptime(timestamp, DATEFORMAT_SEARCH))
+                unixtimestamp = time.mktime(time.strptime(timestamp, DATEFORMAT_SEARCH))
                 searchstart = time.strftime(
-                        DATEFORMAT_SEARCH, time.localtime(
-                            unixtimestamp-(int(timestampslack)*60)))
+                    DATEFORMAT_SEARCH,
+                    time.localtime(unixtimestamp - (int(timestampslack) * 60)),
+                )
                 searchstop = time.strftime(
-                        DATEFORMAT_SEARCH, time.localtime(
-                            unixtimestamp+(int(timestampslack)*60)))
+                    DATEFORMAT_SEARCH,
+                    time.localtime(unixtimestamp + (int(timestampslack) * 60)),
+                )
 
                 # We pull the same trick here as in the section where
                 # timemode == "days", and UNION two queries together, to
@@ -459,11 +498,16 @@ class AcctSearchQuery(SQLQuery):
                         )
                 )
             )
-            """ % {"searchstart": searchstart, "searchstop": searchstop}
+            """ % {
+                    "searchstart": searchstart,
+                    "searchstop": searchstop,
+                }
 
         self.query += ")"  # End select
-        self.query += (" ORDER BY %(sortfield)s %(sortorder)s" %
-                       {"sortfield": sortfield, "sortorder": sortorder})
+        self.query += " ORDER BY %(sortfield)s %(sortorder)s" % {
+            "sortfield": sortfield,
+            "sortorder": sortorder,
+        }
 
     def execute(self):
         super(AcctSearchQuery, self).execute()
@@ -497,24 +541,37 @@ class AcctSearchQuery(SQLQuery):
         if self.nasdns and row[5]:
             self.ips_to_lookup.add(row[5])
 
-        acctstarttime = radiuslib.remove_fractions(
-            row[7])
+        acctstarttime = radiuslib.remove_fractions(row[7])
 
-        acctstoptime = radiuslib.calculate_stop_time(
-            row[7],
-            row[8],
-            row[9])
+        acctstoptime = radiuslib.calculate_stop_time(row[7], row[8], row[9])
 
-        return (row[0], row[1], row[2], row[3],
-                row[4], row[5], row[6], acctstarttime,
-                acctstoptime, row[9], row[10], row[11])
+        return (
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5],
+            row[6],
+            acctstarttime,
+            acctstoptime,
+            row[9],
+            row[10],
+            row[11],
+        )
 
     def _replace_ip_with_hostname(self, result, lookup_result):
 
-        useraddr = (lookup_result.get(result.framedipaddress, [''])[0]
-                    if self.userdns else result.framedipaddress)
-        nasaddr = (lookup_result.get(result.nasipaddress, [''])[0]
-                   if self.nasdns else result.nasipaddress)
+        useraddr = (
+            lookup_result.get(result.framedipaddress, [''])[0]
+            if self.userdns
+            else result.framedipaddress
+        )
+        nasaddr = (
+            lookup_result.get(result.nasipaddress, [''])[0]
+            if self.nasdns
+            else result.nasipaddress
+        )
 
         # TODO: Maybe we can show the user something more informative
         if isinstance(useraddr, Message) or isinstance(useraddr, Query):
@@ -522,9 +579,7 @@ class AcctSearchQuery(SQLQuery):
         if isinstance(nasaddr, Message) or isinstance(useraddr, Query):
             nasaddr = ''
 
-        return result._replace(
-            framedipaddress=useraddr,
-            nasipaddress=nasaddr)
+        return result._replace(framedipaddress=useraddr, nasipaddress=nasaddr)
 
 
 class AcctDetailQuery(SQLQuery):
@@ -540,16 +595,16 @@ class AcctDetailQuery(SQLQuery):
 
         """
 
-        self.result_tuple = namedtuple(
-            'AccountDetailQueryResult',
-            ACCT_DETAILSFIELDS
-        )
+        self.result_tuple = namedtuple('AccountDetailQueryResult', ACCT_DETAILSFIELDS)
 
         self.rad_acct_id = rad_acct_id
 
         self.query = """
             SELECT %s FROM %s
-            WHERE radacctid = %%s""" % (','.join(fields), ACCT_TABLE)
+            WHERE radacctid = %%s""" % (
+            ','.join(fields),
+            ACCT_TABLE,
+        )
 
         self.parameters = (self.rad_acct_id,)
 
@@ -561,27 +616,31 @@ class AcctDetailQuery(SQLQuery):
             field = fields['nasipaddress']
             fields['nasipaddress'] = '%s (%s)' % (
                 field,
-                self._host_cache.lookup_ip_address(field))
+                self._host_cache.lookup_ip_address(field),
+            )
         if 'framedipaddress' in fields:
             field = fields['framedipaddress']
             fields['framedipaddress'] = '%s (%s)' % (
                 field,
-                self._host_cache.lookup_ip_address(field))
+                self._host_cache.lookup_ip_address(field),
+            )
         if 'acctstoptime' in fields:
             start = fields['acctstarttime']
             stop = fields['acctstoptime']
             session = fields['acctsessiontime']
-            fields['acctstoptime'] = radiuslib.calculate_stop_time(
-                start, stop, session)
+            fields['acctstoptime'] = radiuslib.calculate_stop_time(start, stop, session)
         if 'acctsessiontime' in fields:
             fields['acctsessiontime'] = radiuslib.humanize_time(
-                fields['acctsessiontime'])
+                fields['acctsessiontime']
+            )
         if 'acctoutputoctets' in fields:
             fields['acctoutputoctets'] = radiuslib.humanize_bytes(
-                fields['acctoutputoctets'])
+                fields['acctoutputoctets']
+            )
         if 'acctinputoctets' in fields:
             fields['acctinputoctets'] = radiuslib.humanize_bytes(
-                fields['acctinputoctets'])
+                fields['acctinputoctets']
+            )
 
         # dict does not preserve order so we cant use dict.values()
         return tuple([fields[field] for field in ACCT_DETAILSFIELDS])
@@ -597,13 +656,8 @@ class AcctChartsQuery(SQLQuery):
 
     result_tuple = namedtuple(
         'AccountChartsQueryResult',
-        (
-            'username',
-            'realm',
-            'sortfield',
-            'acctsessiontime',
-            'fieldisnull',
-        ))
+        ('username', 'realm', 'sortfield', 'acctsessiontime', 'fieldisnull',),
+    )
 
     def __init__(self, chart, days=None, topx="10"):
         """
@@ -661,6 +715,12 @@ class AcctChartsQuery(SQLQuery):
                     GROUP BY username, realm
                     ORDER BY fieldisnull, sortfield DESC
                     LIMIT %s
-                    """ % (field, field, ACCT_TABLE, days, topx)
+                    """ % (
+                field,
+                field,
+                ACCT_TABLE,
+                days,
+                topx,
+            )
 
             self.parameters = ()

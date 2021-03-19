@@ -22,82 +22,85 @@ from nav.web.ipdevinfo import views
 
 urlpatterns = [
     # Search
-    url(r'^$',
-        views.search,
-        name='ipdevinfo-search'),
-
+    url(r'^$', views.search, name='ipdevinfo-search'),
     # Service list
-    url(r'^service/$',
+    url(r'^service/$', views.service_list, name='ipdevinfo-service-list-all'),
+    url(
+        r'^service/handler=(?P<handler>\w+)/$',
         views.service_list,
-        name='ipdevinfo-service-list-all'),
-    url(r'^service/handler=(?P<handler>\w+)/$',
-        views.service_list,
-        name='ipdevinfo-service-list-handler'),
-
+        name='ipdevinfo-service-list-handler',
+    ),
     # Service matrix
-    url(r'^service/matrix/$',
-        views.service_matrix,
-        name='ipdevinfo-service-matrix'),
-
+    url(r'^service/matrix/$', views.service_matrix, name='ipdevinfo-service-matrix'),
     # IP Device details
-    url(r'^ip=(?P<addr>[a-f\d\.:]+)/$',
+    url(
+        r'^ip=(?P<addr>[a-f\d\.:]+)/$',
         views.ipdev_details,
-        name='ipdevinfo-details-by-addr'),
-    url(r'^id=(?P<netbox_id>\d+)/$',
-        views.ipdev_details,
-        name='ipdevinfo-details-by-id'),
-    url(r'^(?P<name>[^/]+)/$',
-        views.ipdev_details,
-        name='ipdevinfo-details-by-name'),
-    url(r'^save_port_layout_pref',
+        name='ipdevinfo-details-by-addr',
+    ),
+    url(
+        r'^id=(?P<netbox_id>\d+)/$', views.ipdev_details, name='ipdevinfo-details-by-id'
+    ),
+    url(r'^(?P<name>[^/]+)/$', views.ipdev_details, name='ipdevinfo-details-by-name'),
+    url(
+        r'^save_port_layout_pref',
         views.save_port_layout_pref,
-        name='ipdevinfo-save-port-layout'),
-
+        name='ipdevinfo-save-port-layout',
+    ),
     # Module details
-    url(r'^(?P<netbox_sysname>[^/]+)/module=(?P<module_name>.+)/$',
+    url(
+        r'^(?P<netbox_sysname>[^/]+)/module=(?P<module_name>.+)/$',
         views.module_details,
-        name='ipdevinfo-module-details'),
-
+        name='ipdevinfo-module-details',
+    ),
     # PoE details
-    url(r'^(?P<netbox_sysname>[^/]+)/poegroup=(?P<grpindex>.+)/$',
+    url(
+        r'^(?P<netbox_sysname>[^/]+)/poegroup=(?P<grpindex>.+)/$',
         views.poegroup_details,
-        name='ipdevinfo-poegroup-details'),
-
+        name='ipdevinfo-poegroup-details',
+    ),
     # Interface details
-    url(r'^(?P<netbox_sysname>[^/]+)/interface=(?P<port_id>\d+)/$',
+    url(
+        r'^(?P<netbox_sysname>[^/]+)/interface=(?P<port_id>\d+)/$',
         views.port_details,
-        name='ipdevinfo-interface-details'),
-    url(r'^(?P<netbox_sysname>[^/]+)/ifname=(?P<port_name>[^&]+)/$',
+        name='ipdevinfo-interface-details',
+    ),
+    url(
+        r'^(?P<netbox_sysname>[^/]+)/ifname=(?P<port_name>[^&]+)/$',
         views.port_details,
-        name='ipdevinfo-interface-details-by-name'),
-    url(r'^g/port/(?P<interfaceid>\d+)/$',
+        name='ipdevinfo-interface-details-by-name',
+    ),
+    url(
+        r'^g/port/(?P<interfaceid>\d+)/$',
         views.port_counter_graph,
-        name='interface-counter-graph'),
-    url(r'^g/port/(?P<interfaceid>\d+)/(?P<kind>[^/]+)/$',
+        name='interface-counter-graph',
+    ),
+    url(
+        r'^g/port/(?P<interfaceid>\d+)/(?P<kind>[^/]+)/$',
         views.port_counter_graph,
-        name='interface-counter-graph'),
-
+        name='interface-counter-graph',
+    ),
     # Modules
-    url(r'^(?P<netbox_sysname>.+)/modules/(?P<perspective>\w+)/$',
+    url(
+        r'^(?P<netbox_sysname>.+)/modules/(?P<perspective>\w+)/$',
         views.get_port_view,
-        name='ipdevinfo-get-port-view'),
-
+        name='ipdevinfo-get-port-view',
+    ),
     # What happens if the device goes down
-    url(r'(?P<netboxid>\d+)/affected',
-        views.render_affected,
-        name="ipdevinfo-affected"),
-
+    url(
+        r'(?P<netboxid>\d+)/affected', views.render_affected, name="ipdevinfo-affected"
+    ),
     # DNS
-    url(r'hostinfo/(?P<identifier>.+)',
+    url(
+        r'hostinfo/(?P<identifier>.+)',
         views.render_host_info,
-        name="ipdevinfo-hostinfo"),
-
+        name="ipdevinfo-hostinfo",
+    ),
     # Sensors
-    url(r'sensor/(?P<identifier>.+)',
-        views.sensor_details,
-        name="sensor-details"),
-
-    url(r'^(?P<netboxid>\d+)/unrecognized_neighbors',
+    url(r'sensor/(?P<identifier>.+)', views.sensor_details, name="sensor-details"),
+    url(
+        r'^(?P<netboxid>\d+)/unrecognized_neighbors',
         views.unrecognized_neighbors,
-        name='ipdevinfo-unrecognized_neighbors')
+        name='ipdevinfo-unrecognized_neighbors',
+    ),
 ]

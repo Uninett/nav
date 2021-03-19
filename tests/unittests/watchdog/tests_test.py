@@ -35,14 +35,17 @@ def netboxes():
         yield netbox
 
 
-@patch('nav.watchdog.tests.reverse_lookup',
-       new=Mock(return_value={
+@patch(
+    'nav.watchdog.tests.reverse_lookup',
+    new=Mock(
+        return_value={
             '129.241.23.23': ['netbox1'],
             '129.241.23.24': ['netbox1'],
             "10.0.0.42": ValueError("DNS Error when looking up 10.0.0.42"),
-       }))
+        }
+    ),
+)
 class TestDuplicateHostname(object):
-
     def test_get_status(self, netboxes):
         self.test = tests.TestDuplicateHostnameForIP()
         assert self.test.get_status() == tests.STATUS_NOT_OK
@@ -68,12 +71,12 @@ class TestDuplicateHostname(object):
 
 @patch('nav.watchdog.tests.TestNewCamAndArpRecords.get_latest')
 class TestNewCamAndArp(object):
-
     def create_mock_time(self, seconds, endtime=None):
         if endtime is None:
             endtime = datetime.max
-        return Mock(start_time=datetime.now() - timedelta(seconds=seconds),
-                    end_time=endtime)
+        return Mock(
+            start_time=datetime.now() - timedelta(seconds=seconds), end_time=endtime
+        )
 
     def test_no_arp_or_cam_records(self, get_latest):
         get_latest.return_value = None
@@ -82,38 +85,44 @@ class TestNewCamAndArp(object):
 
     def test_cam_not_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            tests.TestNewCamAndArpRecords.slack + 10)
+            tests.TestNewCamAndArpRecords.slack + 10
+        )
         test = tests.TestNewCamAndArpRecords()
         assert isinstance(test.test_cam(), tests.TestResult)
 
     def test_cam_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            tests.TestNewCamAndArpRecords.slack - 10)
+            tests.TestNewCamAndArpRecords.slack - 10
+        )
         test = tests.TestNewCamAndArpRecords()
         assert test.test_cam() is None
 
     def test_arp_not_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            tests.TestNewCamAndArpRecords.slack + 10)
+            tests.TestNewCamAndArpRecords.slack + 10
+        )
         test = tests.TestNewCamAndArpRecords()
         assert isinstance(test.test_arp(), tests.TestResult)
 
     def test_arp_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            tests.TestNewCamAndArpRecords.slack - 10)
+            tests.TestNewCamAndArpRecords.slack - 10
+        )
         test = tests.TestNewCamAndArpRecords()
         assert test.test_arp() is None
 
     def test_both_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            tests.TestNewCamAndArpRecords.slack - 10)
+            tests.TestNewCamAndArpRecords.slack - 10
+        )
         test = tests.TestNewCamAndArpRecords()
         assert test.get_status() == tests.STATUS_OK
         assert len(test.errors) == 0
 
     def test_none_collected(self, get_latest):
         get_latest.return_value = self.create_mock_time(
-            tests.TestNewCamAndArpRecords.slack + 10)
+            tests.TestNewCamAndArpRecords.slack + 10
+        )
         test = tests.TestNewCamAndArpRecords()
         assert test.get_status() == tests.STATUS_NOT_OK
         assert len(test.errors) == 2

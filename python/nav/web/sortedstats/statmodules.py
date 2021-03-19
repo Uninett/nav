@@ -22,8 +22,7 @@ from operator import itemgetter
 from django.utils.six.moves.urllib.parse import urlencode
 from django.urls import reverse
 
-from nav.metrics.data import (get_metric_average, get_metric_max,
-                              get_metric_data)
+from nav.metrics.data import get_metric_average, get_metric_max, get_metric_data
 from nav.metrics.lookup import lookup
 
 _logger = logging.getLogger(__name__)
@@ -35,6 +34,7 @@ TIMETICKS_IN_DAY = 100 * 3600 * 24
 
 class Stat(object):
     """Superclass for statistics generation"""
+
     title = "Statistics"
     serieslist = None
     data_filter = ''
@@ -43,11 +43,7 @@ class Stat(object):
     def __init__(self, timeframe='-1d', rows=5):
         self.timeframe = timeframe
         self.rows = rows
-        self.graph_args = {
-            'width': 1046,
-            'height': 448,
-            'template': 'nav'
-        }
+        self.graph_args = {'width': 1046, 'height': 448, 'template': 'nav'}
         self.scale = None
         self.data = None
         self.graph_url = None
@@ -68,8 +64,7 @@ class Stat(object):
 
     def get_data(self):
         """Gets the relevant data for this statistics"""
-        target = self.data_filter.format(serieslist=self.serieslist,
-                                         rows=self.rows)
+        target = self.data_filter.format(serieslist=self.serieslist, rows=self.rows)
         data = get_metric_average(target, start=self.timeframe)
         if self.scale:
             data = self.upscale(data)
@@ -87,15 +82,21 @@ class Stat(object):
         """Gets the graph url to display the statistics as a graph"""
         metrics = self.get_graph_metrics()
         if self.scale:
-            targets = ["alias(scale(%s, %s), '%s')" %
-                       (self.graph_filter.format(target=x),
-                        "%.20f" % self.scale,
-                        self.get_metric_name(x))
-                       for x in metrics]
+            targets = [
+                "alias(scale(%s, %s), '%s')"
+                % (
+                    self.graph_filter.format(target=x),
+                    "%.20f" % self.scale,
+                    self.get_metric_name(x),
+                )
+                for x in metrics
+            ]
         else:
-            targets = ["alias(%s, '%s')" % (self.graph_filter.format(target=x),
-                                            self.get_metric_name(x))
-                       for x in metrics]
+            targets = [
+                "alias(%s, '%s')"
+                % (self.graph_filter.format(target=x), self.get_metric_name(x))
+                for x in metrics
+            ]
 
         self.graph_args['target'] = targets
         self.graph_args['from'] = self.timeframe
@@ -103,17 +104,18 @@ class Stat(object):
 
     def create_graph_url(self):
         """Create url for getting a graph from Graphite"""
-        return reverse("graphite-render") + "?" + urlencode(self.graph_args,
-                                                            True)
+        return reverse("graphite-render") + "?" + urlencode(self.graph_args, True)
 
     def get_display_data(self):
         """Gets the human readable version of the raw data"""
         display_data = []
         for key, value in self.data:
             display_data.append(
-                (self.get_metric_name(key),
-                 self.humanize(value),
-                 self.metric_lookups[key])
+                (
+                    self.get_metric_name(key),
+                    self.humanize(value),
+                    self.metric_lookups[key],
+                )
             )
         return display_data
 
@@ -160,6 +162,7 @@ class Stat(object):
 
 class StatMinFreeAddresses(Stat):
     """Generates statistics for prefixes with high fill levels"""
+
     title = "Prefix utilization"
     netsize_to_skip = 16
 
@@ -171,7 +174,9 @@ class StatMinFreeAddresses(Stat):
     def get_data(self):
         targets = self.get_targets()
         target = "substr(highestAverage(group(%s), %s),0)" % (
-            ",".join(targets), self.rows)
+            ",".join(targets),
+            self.rows,
+        )
         data = get_metric_average(target, start=self.timeframe)
         return data
 
@@ -179,12 +184,14 @@ class StatMinFreeAddresses(Stat):
         """Queries for prefixes that has a ip-range > than netsize_to_skip"""
         results = get_metric_data(
             'maximumAbove(nav.prefixes.*.ip_range, %s)' % self.netsize_to_skip,
-            self.timeframe)
+            self.timeframe,
+        )
         targets = []
         for result in results:
             metric = result['target']
-            targets.append('asPercent(%s, %s)' % (
-                metric.replace('ip_range', 'ip_count'), metric))
+            targets.append(
+                'asPercent(%s, %s)' % (metric.replace('ip_range', 'ip_count'), metric)
+            )
         return targets
 
     def get_graph_url(self):
@@ -193,8 +200,10 @@ class StatMinFreeAddresses(Stat):
         targets = []
         for ip_count in metrics:
             ip_range = ip_count.replace('ip_count', 'ip_range')
-            targets.append("alias(asPercent(%s, %s), '%s')" % (
-                ip_count, ip_range, self.get_metric_name(ip_range)))
+            targets.append(
+                "alias(asPercent(%s, %s), '%s')"
+                % (ip_count, ip_range, self.get_metric_name(ip_range))
+            )
 
         self.graph_args['target'] = targets
         self.graph_args['from'] = self.timeframe
@@ -210,11 +219,13 @@ class StatMinFreeAddresses(Stat):
 
 class StatCpuAverage(Stat):
     """Generates statistics for the CPU view"""
+
     title = 'CPU Highest Average'
     data_filter = 'highestAverage({serieslist}, {rows})'
     graph_filter = '{target}'
-    serieslist = 'group(nav.devices.*.cpu.*.loadavg5min,' \
-                 'nav.devices.*.cpu.cpu.utilization)'
+    serieslist = (
+        'group(nav.devices.*.cpu.*.loadavg5min,' 'nav.devices.*.cpu.cpu.utilization)'
+    )
 
     def __init__(self, *args, **kwargs):
         super(StatCpuAverage, self).__init__(*args, **kwargs)
@@ -227,6 +238,7 @@ class StatCpuAverage(Stat):
 
 class StatUptime(Stat):
     """Generates statistics for the Uptime view"""
+
     title = "Highest uptime"
     data_filter = 'highestMax({serieslist}, {rows})'
     graph_filter = '{target}'
@@ -239,8 +251,7 @@ class StatUptime(Stat):
         self.graph_args['vtitle'] = 'Days'
 
     def get_data(self):
-        target = self.data_filter.format(serieslist=self.serieslist,
-                                         rows=self.rows)
+        target = self.data_filter.format(serieslist=self.serieslist, rows=self.rows)
         data = get_metric_max(target, start=self.timeframe)
         data = self.upscale(data)
         return data
@@ -257,6 +268,7 @@ class StatUptime(Stat):
 #   INTERFACE STATISTICS
 # ------------------------
 
+
 class StatIf(Stat):
     """Common methods for interface statistics"""
 
@@ -270,8 +282,11 @@ class StatIf(Stat):
 
 class StatIfOctets(StatIf):
     """Generates statistics for the Octets views"""
-    data_filter = 'substr(highestAverage(scaleToSeconds(' \
-                  'nonNegativeDerivative({serieslist}),1), {rows}), 0)'
+
+    data_filter = (
+        'substr(highestAverage(scaleToSeconds('
+        'nonNegativeDerivative({serieslist}),1), {rows}), 0)'
+    )
     graph_filter = 'nonNegativeDerivative(scaleToSeconds({target},1))'
 
     def __init__(self, *args, **kwargs):
@@ -282,6 +297,7 @@ class StatIfOctets(StatIf):
 
 class StatIfInOctets(StatIfOctets):
     """Generates statistics for the Ifinoctets view"""
+
     title = 'Most traffic in to interface'
     serieslist = 'nav.devices.*.ports.*.ifInOctets'
 
@@ -292,6 +308,7 @@ class StatIfInOctets(StatIfOctets):
 
 class StatIfOutOctets(StatIfOctets):
     """Generates statistics for the ifoutoctets view"""
+
     title = 'Most traffic out of interface'
     serieslist = 'nav.devices.*.ports.*.ifOutOctets'
 
@@ -302,8 +319,11 @@ class StatIfOutOctets(StatIfOctets):
 
 class StatIfErrors(StatIf):
     """Generates statistics for all the error views"""
-    data_filter = ('substr(highestAverage(scaleToSeconds('
-                   'nonNegativeDerivative({serieslist}),1),{rows}),0)')
+
+    data_filter = (
+        'substr(highestAverage(scaleToSeconds('
+        'nonNegativeDerivative({serieslist}),1),{rows}),0)'
+    )
     graph_filter = 'scaleToSeconds(nonNegativeDerivative({target}),1)'
 
     def __init__(self, *args, **kwargs):
@@ -311,14 +331,14 @@ class StatIfErrors(StatIf):
         self.graph_args['vtitle'] = 'Errors/s'
 
     def get_data(self):
-        target = self.data_filter.format(serieslist=self.serieslist,
-                                         rows=self.rows)
+        target = self.data_filter.format(serieslist=self.serieslist, rows=self.rows)
         data = get_metric_average(target, start=self.timeframe)
         return data
 
 
 class StatIfOutErrors(StatIfErrors):
     """Generates statistics for the ifouterrors view"""
+
     title = 'Most errors on traffic out of interface'
     serieslist = 'nav.devices.*.ports.*.ifOutErrors'
 
@@ -329,6 +349,7 @@ class StatIfOutErrors(StatIfErrors):
 
 class StatIfInErrors(StatIfErrors):
     """Generates statistics for the ifinerrors view"""
+
     title = 'Most errors on traffic in to interface'
     serieslist = 'nav.devices.*.ports.*.ifInErrors'
 

@@ -20,22 +20,33 @@ from nav.web.devicehistory import views
 
 
 urlpatterns = [
-    url(r'^$', views.devicehistory_search,
-        name='devicehistory-search'),
-    url(r'^history/$', views.devicehistory_view,
-        name='devicehistory-view'),
-    url(r'^history/room/(?P<room_id>.+)/$', views.devicehistory_view_room,
-        name='devicehistory-view-room'),
-    url(r'^history/netbox/(?P<netbox_id>\d+)/$', views.devicehistory_view_netbox,
-        name='devicehistory-view-netbox'),
-    url(r'^history/location/(?P<location_id>.+)/$', views.devicehistory_view_location,
-        name='devicehistory-view-location'),
-    url(r'^registererror/$', views.error_form,
-        name='devicehistory-registererror'),
-    url(r'^do_registererror/$', views.register_error,
-        name='devicehistory-do-registererror'),
-    url(r'^delete_module/$', views.delete_module,
-        name='devicehistory-module'),
-    url(r'^do_delete_module/$', views.do_delete_module,
-        name='devicehistory-do_delete_module'),
+    url(r'^$', views.devicehistory_search, name='devicehistory-search'),
+    url(r'^history/$', views.devicehistory_view, name='devicehistory-view'),
+    url(
+        r'^history/room/(?P<room_id>.+)/$',
+        views.devicehistory_view_room,
+        name='devicehistory-view-room',
+    ),
+    url(
+        r'^history/netbox/(?P<netbox_id>\d+)/$',
+        views.devicehistory_view_netbox,
+        name='devicehistory-view-netbox',
+    ),
+    url(
+        r'^history/location/(?P<location_id>.+)/$',
+        views.devicehistory_view_location,
+        name='devicehistory-view-location',
+    ),
+    url(r'^registererror/$', views.error_form, name='devicehistory-registererror'),
+    url(
+        r'^do_registererror/$',
+        views.register_error,
+        name='devicehistory-do-registererror',
+    ),
+    url(r'^delete_module/$', views.delete_module, name='devicehistory-module'),
+    url(
+        r'^do_delete_module/$',
+        views.do_delete_module,
+        name='devicehistory-do_delete_module',
+    ),
 ]

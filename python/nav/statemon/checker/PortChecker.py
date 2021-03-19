@@ -23,11 +23,10 @@ from nav.statemon.event import Event
 
 class PortChecker(AbstractChecker):
     """Generic TCP port checker"""
+
     IPV6_SUPPORT = True
     DESCRIPTION = "Generic port checker"
-    ARGS = (
-        ('port', ''),
-    )
+    ARGS = (('port', ''),)
 
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, service, port=23, **kwargs)

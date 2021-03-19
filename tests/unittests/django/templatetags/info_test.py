@@ -6,9 +6,12 @@ from datetime import timedelta, datetime
 
 from django.utils import six
 
-from nav.django.templatetags.info import (time_since,
-                                          is_max_timestamp,
-                                          get_attr, find_attr)
+from nav.django.templatetags.info import (
+    time_since,
+    is_max_timestamp,
+    get_attr,
+    find_attr,
+)
 
 
 class DummyObject(object):
@@ -33,21 +36,15 @@ class TemplateTagsTest(unittest.TestCase):
         minute = 60
         hour = minute * 60
 
+        self.assertEqual(time_since(None), "Never")
         self.assertEqual(
-            time_since(None),
-            "Never")
+            time_since(timestamp_calc(seconds=(10 * minute + 10))), u"10\xa0mins"
+        )
         self.assertEqual(
-            time_since(timestamp_calc(seconds=(10 * minute + 10))),
-            u"10\xa0mins")
-        self.assertEqual(
-            time_since(timestamp_calc(seconds=(1 * minute + 5))),
-            u"1\xa0min")
-        self.assertEqual(
-            time_since(timestamp_calc(0)),
-            u"Now")
-        self.assertEqual(
-            time_since(datetime.max),
-            u"Now")
+            time_since(timestamp_calc(seconds=(1 * minute + 5))), u"1\xa0min"
+        )
+        self.assertEqual(time_since(timestamp_calc(0)), u"Now")
+        self.assertEqual(time_since(datetime.max), u"Now")
 
     def test_is_max_timestamp(self):
         self.assertTrue(is_max_timestamp(datetime.max))
@@ -58,45 +55,47 @@ class TemplateTagsTest(unittest.TestCase):
 
         self.assertTrue(isinstance(get_attr(self.dummy, 'test'), six.text_type))
         self.assertTrue(
-            isinstance(get_attr(self.dummy, 'dummyobject'), AnotherDummyObject))
+            isinstance(get_attr(self.dummy, 'dummyobject'), AnotherDummyObject)
+        )
         self.assertEqual(get_attr(self.dummy, 'tes'), "")
 
     def test_get_attr_chained_lookup(self):
         """Test template filter for getting attributes from objects"""
 
         self.assertTrue(
-            isinstance(get_attr(self.dummy, 'dummyobject.test'), six.text_type))
+            isinstance(get_attr(self.dummy, 'dummyobject.test'), six.text_type)
+        )
 
     def test_get_attr_chained_lookup_error(self):
         """Test template filter for getting attributes from objects"""
 
-        self.assertEqual(get_attr(self.dummy, 'dummyobject.tes'),"")
+        self.assertEqual(get_attr(self.dummy, 'dummyobject.tes'), "")
 
     def test_find_attr_basic_lookup(self):
         """Test helper function for getting attributes from objects"""
 
-        self.assertTrue(isinstance(find_attr(self.dummy, ['dummyobject']),
-                                   AnotherDummyObject))
+        self.assertTrue(
+            isinstance(find_attr(self.dummy, ['dummyobject']), AnotherDummyObject)
+        )
 
     def test_find_attr_chained_lookup(self):
         """Test helper function for getting attributes from objects"""
 
         self.assertTrue(
-            isinstance(find_attr(self.dummy, ['dummyobject', 'test']), six.text_type))
+            isinstance(find_attr(self.dummy, ['dummyobject', 'test']), six.text_type)
+        )
 
     def test_find_attr_error_lookup(self):
         """Test helper function for getting attributes from objects"""
 
-        self.assertEqual(find_attr(self.dummy, ['dummyobjec']),"")
+        self.assertEqual(find_attr(self.dummy, ['dummyobjec']), "")
 
     def test_find_attr_chained_error_lookup(self):
         """Test helper function for getting attributes from objects"""
 
-        self.assertEqual(
-            find_attr(self.dummy, ['dummyobject', 'test', 'nothere']), "")
+        self.assertEqual(find_attr(self.dummy, ['dummyobject', 'test', 'nothere']), "")
 
     def test_find_attr_middle_chained_error_lookup(self):
         """Test helper function for getting attributes from objects"""
 
-        self.assertEqual(
-            find_attr(self.dummy, ['dummyobjec', 'test', 'nothere']), "")
+        self.assertEqual(find_attr(self.dummy, ['dummyobjec', 'test', 'nothere']), "")

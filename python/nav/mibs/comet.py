@@ -39,6 +39,7 @@ UNIT_MAP = {
 
 class Comet(MibRetriever):
     """MibRetriever for Comet Web Sensors"""
+
     mib = get_mib('P8652-MIB')
 
     @defer.inlineCallbacks
@@ -66,19 +67,20 @@ class Comet(MibRetriever):
             if not name and not unit:
                 continue
             unit = UNIT_MAP.get(unit, unit)
-            self._logger.debug("channel %s name/unit: %r/%r",
-                               channel, name, unit)
+            self._logger.debug("channel %s name/unit: %r/%r", channel, name, unit)
 
-            result.append(dict(
-                oid=str(value_oid) + '.0',
-                unit_of_measurement=unit,
-                precision=1,
-                scale=None,
-                description=name,
-                name="Channel %s" % channel,
-                internal_name="channel%s" % channel,
-                mib=self.get_module_name(),
-            ))
+            result.append(
+                dict(
+                    oid=str(value_oid) + '.0',
+                    unit_of_measurement=unit,
+                    precision=1,
+                    scale=None,
+                    description=name,
+                    name="Channel %s" % channel,
+                    internal_name="channel%s" % channel,
+                    mib=self.get_module_name(),
+                )
+            )
         returnValue(result)
 
     @defer.inlineCallbacks
@@ -96,39 +98,45 @@ class Comet(MibRetriever):
             name = yield self.get_next(o_name).addCallback(safestring)
             value = yield self.get_next(o_value)
             if value is None:
-                self._logger.debug("Ignoring BIN input %s (%s), it has no value",
-                                   binary, name)
+                self._logger.debug(
+                    "Ignoring BIN input %s (%s), it has no value", binary, name
+                )
                 continue
             self._logger.debug("BIN input %s name: %r", binary, name)
 
-            result.append(dict(
-                oid=str(value_oid) + '.0',
-                unit_of_measurement=Sensor.UNIT_TRUTHVALUE,
-                precision=0,
-                scale=None,
-                description=name,
-                name="BIN %s" % binary,
-                internal_name="bin%s" % binary,
-                mib=self.get_module_name(),
-            ))
-            result.append(dict(
-                oid=str(alarm_oid) + '.0',
-                unit_of_measurement=Sensor.UNIT_TRUTHVALUE,
-                precision=0,
-                scale=None,
-                description="%s alarm" % name,
-                name="BIN %s Alarm" % binary,
-                internal_name="bin%sAlarm" % binary,
-                mib=self.get_module_name(),
-                on_message='%s alarm triggered' % name,
-                off_message='%s alarm not triggered' % name,
-                on_state=1,
-            ))
+            result.append(
+                dict(
+                    oid=str(value_oid) + '.0',
+                    unit_of_measurement=Sensor.UNIT_TRUTHVALUE,
+                    precision=0,
+                    scale=None,
+                    description=name,
+                    name="BIN %s" % binary,
+                    internal_name="bin%s" % binary,
+                    mib=self.get_module_name(),
+                )
+            )
+            result.append(
+                dict(
+                    oid=str(alarm_oid) + '.0',
+                    unit_of_measurement=Sensor.UNIT_TRUTHVALUE,
+                    precision=0,
+                    scale=None,
+                    description="%s alarm" % name,
+                    name="BIN %s Alarm" % binary,
+                    internal_name="bin%sAlarm" % binary,
+                    mib=self.get_module_name(),
+                    on_message='%s alarm triggered' % name,
+                    off_message='%s alarm not triggered' % name,
+                    on_state=1,
+                )
+            )
         returnValue(result)
 
 
 class CometMS(MibRetriever):
     """MibRetriever for Comet Web Sensors"""
+
     mib = get_mib('COMETMS-MIB')
 
     @defer.inlineCallbacks
@@ -152,14 +160,16 @@ class CometMS(MibRetriever):
             unit = row['channelUnit']
             unit = UNIT_MAP.get(unit, unit)
             name = row['channelName']
-            result.append(dict(
-                oid=str(value_oid + index),
-                unit_of_measurement=unit,
-                precision=2,
-                scale=None,
-                description=name,
-                name=name,
-                internal_name="channel%s" % index,
-                mib=self.get_module_name(),
-            ))
+            result.append(
+                dict(
+                    oid=str(value_oid + index),
+                    unit_of_measurement=unit,
+                    precision=2,
+                    scale=None,
+                    description=name,
+                    name=name,
+                    internal_name="channel%s" % index,
+                    mib=self.get_module_name(),
+                )
+            )
         returnValue(result)

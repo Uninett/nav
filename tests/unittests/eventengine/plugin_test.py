@@ -43,6 +43,7 @@ def test_find_package_modules_is_list():
 
 def test_boxstate_plugin_should_be_found():
     from nav.eventengine.plugins.boxstate import BoxStateHandler
+
     classes = EventHandler.load_and_find_subclasses()
     assert BoxStateHandler in classes
 

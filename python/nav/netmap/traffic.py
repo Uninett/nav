@@ -45,8 +45,7 @@ class InterfaceLoad(object):
         self.load_in_percent = get_traffic_load_in_percent(in_bps, link_speed)
         self.rgb = get_traffic_rgb(self.load_in_percent)
         if self.load_in_percent is not None:
-            self.formatted_load_in_percent = "{0:.2f}".format(
-                self.load_in_percent)
+            self.formatted_load_in_percent = "{0:.2f}".format(self.load_in_percent)
         else:
             self.formatted_load_in_percent = None
 
@@ -78,14 +77,13 @@ class Traffic(object):
         self.target = None
 
     def __repr__(self):
-        return "<Traffic source={0!r} target={1!r}>".format(
-            self.source, self.target)
+        return "<Traffic source={0!r} target={1!r}>".format(self.source, self.target)
 
     def to_json(self):
         """to_json presentation for given Traffic in an edge"""
         return {
             'source': self.source and self.source.to_json() or None,
-            'target': self.target and self.target.to_json() or None
+            'target': self.target and self.target.to_json() or None,
         }
 
 
@@ -163,7 +161,7 @@ def _merge_metrics(metrics):
             emit = "%s.{%s}.{%s}" % (
                 ".".join(current_prefix),
                 ",".join(interfaces),
-                ",".join((INOCTETS, OUTOCTETS))
+                ",".join((INOCTETS, OUTOCTETS)),
             )
             current_prefix = prefix
             interfaces.clear()

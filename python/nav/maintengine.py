@@ -45,8 +45,8 @@ _logger = logging.getLogger('nav.maintengine')
 def schedule():
     """Changes invalid task states to 'scheduled'"""
     tasks = MaintenanceTask.objects.filter(
-        Q(state__isnull=True) |
-        ~Q(state__in=[s[0] for s in MaintenanceTask.STATES]))
+        Q(state__isnull=True) | ~Q(state__in=[s[0] for s in MaintenanceTask.STATES])
+    )
     tasks.update(state=MaintenanceTask.STATE_SCHEDULED)
 
 
@@ -57,7 +57,7 @@ def check_tasks_without_end():
     for longer than the set minimum time.
     """
     for task in MaintenanceTask.objects.endless().filter(
-            state=MaintenanceTask.STATE_ACTIVE
+        state=MaintenanceTask.STATE_ACTIVE
     ):
         currently_or_too_recently_down = []
         threshold = datetime.datetime.now() - MINIMUM_UPTIME
@@ -70,13 +70,17 @@ def check_tasks_without_end():
             _logger.debug(
                 "Endless maintenance task %d: Things that haven't been up "
                 "longer than the threshold: %r",
-                task.id, currently_or_too_recently_down)
+                task.id,
+                currently_or_too_recently_down,
+            )
         else:
             now = datetime.datetime.now()
             _logger.debug(
                 "Endless maintenance task %d: All components have been up "
                 "longer than the threshold, setting end time to %s",
-                task.id, now)
+                task.id,
+                now,
+            )
             task.end_time = now
             task.save()
 
@@ -89,10 +93,7 @@ def do_state_transitions():
     as active.
     """
     tasks = MaintenanceTask.objects.past().filter(
-        state__in=[
-            MaintenanceTask.STATE_ACTIVE,
-            MaintenanceTask.STATE_SCHEDULED
-        ]
+        state__in=[MaintenanceTask.STATE_ACTIVE, MaintenanceTask.STATE_SCHEDULED]
     )
     tasks.update(state=MaintenanceTask.STATE_PASSED)
 
@@ -116,9 +117,7 @@ def check_state_differences():
     should_be_on_maintenance = set()
     task_subject_mapper = {}
 
-    for task in MaintenanceTask.objects.filter(
-            state=MaintenanceTask.STATE_ACTIVE
-    ):
+    for task in MaintenanceTask.objects.filter(state=MaintenanceTask.STATE_ACTIVE):
         for subject in task.get_event_subjects():
             task_subject_mapper[subject] = task.id
             should_be_on_maintenance.add(subject)
@@ -132,21 +131,25 @@ def check_state_differences():
 
     # Set on maintenance that which is not and should be
     to_be_put_on_maintenance = should_be_on_maintenance - is_on_maintenance
-    _logger.debug("Subjects that should be on maintenance but weren't: %r",
-                  to_be_put_on_maintenance)
+    _logger.debug(
+        "Subjects that should be on maintenance but weren't: %r",
+        to_be_put_on_maintenance,
+    )
 
     for subject in to_be_put_on_maintenance:
         create_event(
             subject,
             state=Event.STATE_START,
             value=100,
-            taskid=task_subject_mapper[subject]
+            taskid=task_subject_mapper[subject],
         )
 
     # Set off maintenance that which is and should not be
     to_be_taken_off_maintenance = is_on_maintenance - should_be_on_maintenance
-    _logger.debug("Subjects that should not be on maintenance but were: %r",
-                  to_be_taken_off_maintenance)
+    _logger.debug(
+        "Subjects that should not be on maintenance but were: %r",
+        to_be_taken_off_maintenance,
+    )
 
     for subject in to_be_taken_off_maintenance:
         create_event(subject, state=Event.STATE_END, value=0)

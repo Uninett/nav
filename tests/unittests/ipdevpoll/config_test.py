@@ -23,8 +23,12 @@ from configparser import NoOptionError
 import pytest
 
 from nav.config import NAVConfigParser
-from nav.ipdevpoll.config import (get_job_sections, get_jobs,
-                                  get_job_descriptions, JobDescriptor)
+from nav.ipdevpoll.config import (
+    get_job_sections,
+    get_jobs,
+    get_job_descriptions,
+    JobDescriptor,
+)
 
 
 @pytest.fixture
@@ -50,11 +54,11 @@ interval = 5m
 plugins = foo
 description = blepp
 """
+
     return TestConfig()
 
 
 class TestConfig(object):
-
     def test_find_all_job_sections(self, config):
         assert len(get_job_sections(config)) == 3
 
@@ -99,11 +103,11 @@ interval = 5m
 plugins =
 
 """
+
     return TestConfig()
 
 
 class TestJobDescriptor(object):
-
     def test_should_raise_on_no_interval(self, invalid_config):
         with pytest.raises(NoOptionError):
             JobDescriptor.from_config_section(invalid_config, 'job_one')

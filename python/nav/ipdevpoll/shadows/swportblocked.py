@@ -38,13 +38,13 @@ class SwPortBlockedManager(DefaultManager):
 
     def _load_and_map_existing_objects(self):
         blocking = manage.SwPortBlocked.objects.filter(
-            interface__netbox__id=self.netbox.id)
-        self._db_blocks = dict(((b.interface_id, b.vlan), b)
-                               for b in blocking)
+            interface__netbox__id=self.netbox.id
+        )
+        self._db_blocks = dict(((b.interface_id, b.vlan), b) for b in blocking)
 
         self._found_existing_map = dict(
-            (found, self._find_existing_for(found))
-            for found in self.get_managed())
+            (found, self._find_existing_for(found)) for found in self.get_managed()
+        )
 
         for found, existing in self._found_existing_map.items():
             if existing:
@@ -57,12 +57,10 @@ class SwPortBlockedManager(DefaultManager):
     def cleanup(self):
         "remove blocking states that weren't found anymore"
         matched_existing = set(self._found_existing_map.values())
-        gone = [b for b in self._db_blocks.values()
-                if b not in matched_existing]
+        gone = [b for b in self._db_blocks.values() if b not in matched_existing]
         if gone:
             self._logger.debug("removing stp blocking states: %r", gone)
-            manage.SwPortBlocked.objects.filter(
-                id__in=[b.id for b in gone]).delete()
+            manage.SwPortBlocked.objects.filter(id__in=[b.id for b in gone]).delete()
 
 
 # pylint: disable=W0201,E0203,C0111
@@ -84,7 +82,6 @@ class SwPortBlocked(Shadow):
     def save(self, containers):
         "refuses to save if vlan is not set; logs an error instead"
         if not self.vlan:
-            self._logger.debug(
-                "missing vlan value for STP block, ignoring: %r", self)
+            self._logger.debug("missing vlan value for STP block, ignoring: %r", self)
         else:
             super(SwPortBlocked, self).save(containers)

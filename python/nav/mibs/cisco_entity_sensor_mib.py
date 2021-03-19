@@ -19,6 +19,7 @@ from nav.mibs.entity_sensor_mib import EntitySensorMib
 
 class CiscoEntitySensorMib(EntitySensorMib):
     """This MIB should collect all present sensors from Cisco NEXUS boxes."""
+
     mib = get_mib('CISCO-ENTITY-SENSOR-MIB')
     TYPE_COLUMN = 'entSensorType'
     SCALE_COLUMN = 'entSensorScale'

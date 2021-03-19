@@ -37,14 +37,14 @@ def gradient(start, stop, steps):
     gradient from the start value to the stop value.
 
     The more steps, the smoother the gradient."""
-    distance = (stop - start)
+    distance = stop - start
     # Reduce by 1 step to include both endpoints, but never reduce it
     # to zero (we always want at least to values)
     steps = steps - 1 if steps > 1 else 1
     increment = distance / float(steps)
     grad = []
     for i in range(steps):
-        grad.append(int(round(start + i*increment)))
+        grad.append(int(round(start + i * increment)))
     grad.append(stop)
     return grad
 
@@ -125,8 +125,7 @@ def is_valid_cidr(cidr):
 
     Uses the IPy library to verify addresses.
     """
-    if (isinstance(cidr, six.string_types) and
-            not cidr.isdigit() and '/' in cidr):
+    if isinstance(cidr, six.string_types) and not cidr.isdigit() and '/' in cidr:
         try:
             valid_cidr = IPy.IP(cidr) is not None
         except (ValueError, TypeError):
@@ -196,8 +195,7 @@ def mergedicts(*dicts):
 
     """
     keys = chain(*dicts)
-    return dict((k, [d.get(k, None) for d in dicts])
-                for k in keys)
+    return dict((k, [d.get(k, None) for d in dicts]) for k in keys)
 
 
 def splitby(predicate, iterable):
@@ -256,8 +254,7 @@ class IPRange(object):
         self._max = max(start, stop)
 
     def __repr__(self):
-        return "%s(%r, %r)" % (self.__class__.__name__,
-                               self._min, self._max)
+        return "%s(%r, %r)" % (self.__class__.__name__, self._min, self._max)
 
     def __contains__(self, item):
         return item >= self._min and item <= self._max
@@ -278,15 +275,15 @@ class IPRange(object):
     def __iter__(self):
         count = self.len()
         for offset in range(0, count):
-            yield IPy.IP(self._min.int()+offset)
+            yield IPy.IP(self._min.int() + offset)
 
     def __getitem__(self, index):
         if index >= self.len() or index < -self.len():
             raise IndexError('index out of range')
         if index >= 0:
-            return IPy.IP(self._min.int()+index)
+            return IPy.IP(self._min.int() + index)
         else:
-            return IPy.IP(self._max.int()+index+1)
+            return IPy.IP(self._max.int() + index + 1)
 
     @classmethod
     def from_string(cls, rangestring):
@@ -374,6 +371,7 @@ class cachedfor(object):
     of time.
 
     """
+
     def __init__(self, max_age):
         self.max_age = max_age
         self.value = None
@@ -403,6 +401,7 @@ def synchronized(lock):
     :param lock: A threading.Lock object.
 
     """
+
     def _decorator(func):
         @wraps(func)
         def _wrapper(*args, **kwargs):
@@ -411,7 +410,9 @@ def synchronized(lock):
                 return func(*args, **kwargs)
             finally:
                 lock.release()
+
         return _wrapper
+
     return _decorator
 
 
@@ -446,9 +447,9 @@ def parse_interval(string):
     string, unit = int(string[:-1]), string[-1:].lower()
 
     if unit == 'd':
-        return string * 60*60*24
+        return string * 60 * 60 * 24
     elif unit == 'h':
-        return string * 60*60
+        return string * 60 * 60
     elif unit == 'm':
         return string * 60
     elif unit == 's':
@@ -472,6 +473,7 @@ def address_to_string(ip, port):
 def auth_token():
     """Generates a hash that can be used as an OAuth API token"""
     from django.conf import settings
+
     _hash = hashlib.sha1(six.text_type(uuid.uuid4()).encode('utf-8'))
     _hash.update(settings.SECRET_KEY.encode('utf-8'))
     return _hash.hexdigest()
@@ -493,6 +495,7 @@ class NumberRange(object):
     Represents a sequence of numbers that can be compacted to a series of
     number ranges.
     """
+
     def __init__(self, sequence):
         self.ranges = list(consecutive(sequence))
 

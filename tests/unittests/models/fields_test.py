@@ -19,7 +19,6 @@ from nav.models.fields import PointField
 
 
 class TestCIDRField(object):
-
     def test_to_python_empty(self):
         falsey = (None, u'', 0, False, [], {}, set(), 0.0)
         field = CIDRField()
@@ -67,7 +66,6 @@ class TestCIDRField(object):
 
 
 class TestDateTimeInfinityField(object):
-
     def test_get_db_prep_value_infinity(self):
         field = DateTimeInfinityField()
         result_min = field.get_db_prep_value(dt.min, connection)
@@ -83,7 +81,8 @@ class TestDateTimeInfinityField(object):
         # The actual result here will vary with Django versions and which
         # database engine has been selected in the Django settings!
         expected = super(DateTimeInfinityField, field).get_db_prep_value(
-            test_val, connection, prepared=True)
+            test_val, connection, prepared=True
+        )
 
         assert result == expected
 
@@ -95,13 +94,13 @@ class TestDateTimeInfinityField(object):
         # The actual result here will vary with Django versions and which
         # database engine has been selected in the Django settings!
         expected = super(DateTimeInfinityField, field).get_db_prep_value(
-            test_val, connection, prepared=False)
+            test_val, connection, prepared=False
+        )
 
         assert result == expected
 
 
 class TestDictAsJsonField(object):
-
     def test_to_python_dict(self):
         field = DictAsJsonField()
         value = {'a': 'b'}
@@ -149,7 +148,6 @@ class TestDictAsJsonField(object):
 
 
 class TestLegacyGenericForeignKey(object):
-
     def test_get_model_class_unknown_model(self):
         mc = LegacyGenericForeignKey.get_model_class('doesnotexistindb')
         assert mc is None

@@ -25,8 +25,14 @@ from django.utils import six
 import nav.config
 import nav.buildconf
 from nav.django.utils import get_account, is_admin
-from nav.models.profiles import Filter, FilterGroup, FilterGroupContent, \
-    Account, AlertSubscription, TimePeriod
+from nav.models.profiles import (
+    Filter,
+    FilterGroup,
+    FilterGroupContent,
+    Account,
+    AlertSubscription,
+    TimePeriod,
+)
 
 ADMINGROUP = 1
 CONFIGDIR = 'alertprofiles'
@@ -87,8 +93,8 @@ def order_filter_group_content(filter_group):
     Returns the last filters priority (0 if there are no filters)
     """
     filter_group_content = FilterGroupContent.objects.filter(
-            filter_group=filter_group.id
-        ).order_by('priority')
+        filter_group=filter_group.id
+    ).order_by('priority')
 
     if filter_group_content:
         prev_priority = 0
@@ -126,9 +132,7 @@ def alert_subscriptions_table(periods):
 
     alert_subscriptions = AlertSubscription.objects.select_related(
         'time_period', 'filter_group', 'alert_address'
-    ).filter(
-        time_period__in=periods
-    )
+    ).filter(time_period__in=periods)
 
     for p in periods:
         valid_during = p.valid_during
@@ -152,15 +156,13 @@ def alert_subscriptions_table(periods):
         # must make sure at least one of them is a copy, so changes to one of
         # them don't apply to both.
         if valid_during in (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK):
-            weekday_subscriptions.append({
-                'time_period': p,
-                'alert_subscriptions': subscriptions,
-            })
+            weekday_subscriptions.append(
+                {'time_period': p, 'alert_subscriptions': subscriptions,}
+            )
         if valid_during in (TimePeriod.WEEKENDS, TimePeriod.ALL_WEEK):
-            weekend_subscriptions.append({
-                'time_period': p,
-                'alert_subscriptions': subscriptions,
-            })
+            weekend_subscriptions.append(
+                {'time_period': p, 'alert_subscriptions': subscriptions,}
+            )
 
     subscriptions = [
         {'title': 'Weekdays', 'subscriptions': weekday_subscriptions},
@@ -174,7 +176,7 @@ def alert_subscriptions_table(periods):
         subscription = type['subscriptions']
         for i, s in enumerate(subscription):
             if i < len(subscription) - 1:
-                end_time = subscription[i+1]['time_period'].start
+                end_time = subscription[i + 1]['time_period'].start
             else:
                 end_time = subscription[0]['time_period'].start
             s['time_period'].end = end_time

@@ -7,7 +7,6 @@ from nav.django.forms import JSONWidget
 
 
 class JSONWidgetTest(TestCase):
-
     def test_render_empty_value(self):
         widget = JSONWidget()
         expected = u''

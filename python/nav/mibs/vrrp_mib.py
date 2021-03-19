@@ -24,6 +24,7 @@ from . import mibretriever
 
 class VRRPMib(mibretriever.MibRetriever):
     """A MibRetriever for handling VRRP-MIB"""
+
     mib = get_mib('VRRP-MIB')
 
     @defer.inlineCallbacks

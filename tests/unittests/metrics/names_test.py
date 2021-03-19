@@ -27,7 +27,7 @@ class MetricNamingTests(TestCase):
         ('temperature [chassis 1]', 'temperature__chassis_1_'),
         ('something in (parens)', 'something_in__parens_'),
         ('temperature, top', 'temperature__top'),
-    ]
+    ],
 )
 def test_escape_metric_name(test_input, expected):
     assert escape_metric_name(test_input) == expected

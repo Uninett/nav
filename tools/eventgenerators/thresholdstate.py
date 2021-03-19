@@ -26,6 +26,7 @@ from __future__ import print_function
 import sys
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django()
 
 from nav.models.event import EventQueue as Event, Subsystem, EventType
@@ -61,11 +62,16 @@ def main():
 
     state = 's' if eventstate.startswith('d') else 'e'
 
-#    oid = 'cpu1min'
-#    value = '90'
-    event = Event(source=source, target=target, subid=subid,
-                  netbox=netbox, event_type=eventtype,
-                  state=state)
+    #    oid = 'cpu1min'
+    #    value = '90'
+    event = Event(
+        source=source,
+        target=target,
+        subid=subid,
+        netbox=netbox,
+        event_type=eventtype,
+        state=state,
+    )
     event.save()
 
 

@@ -28,7 +28,7 @@ class SensorWidget(Navlet):
     is_editable = True
     is_title_editable = True
     can_be_added = False  # Can only be added from the sensors on the
-                          # "Environment sensors" tab in room info
+    # "Environment sensors" tab in room info
 
     def get_template_basename(self):
         return 'sensor'

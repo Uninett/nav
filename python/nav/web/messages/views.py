@@ -32,12 +32,24 @@ HISTORIC_TITLE = 'NAV - Messages - Archive'
 SAVE_TITLE = 'NAV - Messages - Save'
 VIEW_TITLE = 'NAV - Messages - View message - '
 
-ACTIVE_DEFAULTS = {'title': ACTIVE_TITLE, 'navpath': NAVBAR,
-                   'active': {'active': True}, 'caption': 'Active'}
-PLANNED_DEFAULTS = {'title': PLANNED_TITLE, 'navpath': NAVBAR,
-                    'active': {'scheduled': True}, 'caption': 'Scheduled'}
-HISTORIC_DEFAULTS = {'title': HISTORIC_TITLE, 'navpath': NAVBAR,
-                     'active': {'archive': True}, 'caption': 'Archive'}
+ACTIVE_DEFAULTS = {
+    'title': ACTIVE_TITLE,
+    'navpath': NAVBAR,
+    'active': {'active': True},
+    'caption': 'Active',
+}
+PLANNED_DEFAULTS = {
+    'title': PLANNED_TITLE,
+    'navpath': NAVBAR,
+    'active': {'scheduled': True},
+    'caption': 'Scheduled',
+}
+HISTORIC_DEFAULTS = {
+    'title': HISTORIC_TITLE,
+    'navpath': NAVBAR,
+    'active': {'archive': True},
+    'caption': 'Archive',
+}
 SAVE_DEFAULTS = {'title': SAVE_TITLE, 'navpath': NAVBAR}
 VIEW_DEFAULTS = {'title': VIEW_TITLE, 'navpath': NAVBAR}
 
@@ -82,8 +94,8 @@ def planned(request):
 def historic(request):
     """ Displays ended or replaced messages """
     historic_messages = Message.objects.filter(
-        Q(publish_end__lt=datetime.datetime.now()) |
-        Q(replaced_by__isnull=False))
+        Q(publish_end__lt=datetime.datetime.now()) | Q(replaced_by__isnull=False)
+    )
 
     info_dict = {'messages': historic_messages}
     info_dict.update(HISTORIC_DEFAULTS)
@@ -97,8 +109,11 @@ def view(request, message_id):
 
     info_dict = {'message': message, 'now': datetime.datetime.now()}
     info_dict.update(VIEW_DEFAULTS)
-    info_dict['navpath'] = [NAVBAR[0], ('Messages', reverse('messages-home')),
-                            (message,)]
+    info_dict['navpath'] = [
+        NAVBAR[0],
+        ('Messages', reverse('messages-home')),
+        (message,),
+    ]
     info_dict['title'] += message.title
 
     return render(request, 'messages/view.html', info_dict)
@@ -110,8 +125,7 @@ def expire(_request, message_id):
     message.publish_end = datetime.datetime.now()
     message.save()
 
-    return HttpResponseRedirect(
-        reverse('messages-view', args=(message_id,)))
+    return HttpResponseRedirect(reverse('messages-view', args=(message_id,)))
 
 
 def followup(request, message_id):
@@ -161,7 +175,8 @@ def save(request, message_id=None, replaces=None):
             form.instance.author = account.login
             form.save()
             return HttpResponseRedirect(
-                reverse('messages-view', args=(form.instance.id,)))
+                reverse('messages-view', args=(form.instance.id,))
+            )
 
     info_dict.update({'form': form, 'navpath': navpath})
 

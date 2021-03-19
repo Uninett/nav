@@ -16,6 +16,7 @@
 """Tags and filters for manipulation tools"""
 
 from django import template
+
 register = template.Library()
 
 

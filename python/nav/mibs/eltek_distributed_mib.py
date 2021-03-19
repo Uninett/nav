@@ -42,6 +42,7 @@ UNIT_TRANSLATION = {
 
 class EltekDistributedMib(MibRetriever):
     """MibRetriever for ELTEK-DISTRIBUTED-MIB"""
+
     mib = get_mib('ELTEK-DISTRIBUTED-MIB')
 
     @inlineCallbacks
@@ -62,13 +63,14 @@ class EltekDistributedMib(MibRetriever):
             node = self.nodes[object_name]
             oid = node.oid + OID('.0')
             description = node.raw_mib_data.get('description', object_name)
-            sensor = {'oid': str(oid),
-                      'internal_name': object_name,
-                      'name': object_name,
-                      'description': description,
-                      'mib': self.mib['moduleName'],
-                      'scale': None,
-                      }
+            sensor = {
+                'oid': str(oid),
+                'internal_name': object_name,
+                'name': object_name,
+                'description': description,
+                'mib': self.mib['moduleName'],
+                'scale': None,
+            }
             units = node.raw_mib_data.get('units', '')
             sensor['unit_of_measurement'] = units
             for mibunits, navunits in UNIT_TRANSLATION.items():

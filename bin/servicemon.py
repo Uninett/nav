@@ -95,11 +95,12 @@ class Controller:
 
             wait = self._looptime - (time.time() - start)
             if wait <= 0:
-                _logger.warning("System clock has drifted backwards, "
-                               "resetting loop delay")
+                _logger.warning(
+                    "System clock has drifted backwards, " "resetting loop delay"
+                )
                 wait = self._looptime
             if self._checkers:
-                pause = wait/(len(self._checkers)*2)
+                pause = wait / (len(self._checkers) * 2)
             else:
                 pause = 0
             for checker in self._checkers:
@@ -109,8 +110,10 @@ class Controller:
             wait = self._looptime - (time.time() - start)
             _logger.debug("Waiting %i seconds.", wait)
             if wait <= 0:
-                _logger.critical("Only superman can do this. Humans cannot "
-                                "wait for %i seconds.", wait)
+                _logger.critical(
+                    "Only superman can do this. Humans cannot " "wait for %i seconds.",
+                    wait,
+                )
                 wait %= self._looptime
                 sleep(wait)
             else:
@@ -159,13 +162,14 @@ def main(foreground):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Service monitor for NAV (Network Administration "
-                    "Visualized)",
+        description="Service monitor for NAV (Network Administration " "Visualized)",
     )
-    parser.add_argument('--version', action='version',
-                        version='NAV ' + buildconf.VERSION)
-    parser.add_argument('-f', '--foreground', action="store_true",
-                        help="run in foreground")
+    parser.add_argument(
+        '--version', action='version', version='NAV ' + buildconf.VERSION
+    )
+    parser.add_argument(
+        '-f', '--foreground', action="store_true", help="run in foreground"
+    )
     return parser.parse_args()
 
 

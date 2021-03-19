@@ -33,6 +33,7 @@ class CiscoIetfIpMib(IpMib):
     IP-MIB.
 
     """
+
     mib = get_mib('CISCO-IETF-IP-MIB')
 
     @classmethod
@@ -68,7 +69,8 @@ class CiscoIetfIpMib(IpMib):
 
         """
         mappings = yield self._get_ifindex_ip_mac_mappings(
-                column='cInetNetToMediaPhysAddress')
+            column='cInetNetToMediaPhysAddress'
+        )
 
         defer.returnValue(mappings)
 
@@ -83,9 +85,10 @@ class CiscoIetfIpMib(IpMib):
 
         """
         addresses = yield self._get_interface_addresses(
-                ifindex_column='cIpAddressIfIndex',
-                prefix_column='cIpAddressPrefix',
-                prefix_entry='cIpAddressPfxOrigin')
+            ifindex_column='cIpAddressIfIndex',
+            prefix_column='cIpAddressPrefix',
+            prefix_entry='cIpAddressPfxOrigin',
+        )
 
         defer.returnValue(addresses)
 

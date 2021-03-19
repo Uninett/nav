@@ -13,8 +13,7 @@ def test_invalid_serialized_value_should_be_interpreted_as_change():
     ts = TimestampChecker(Mock(), Mock(), 'uptime')
     invalid_time_pickle = 'foobar'
     with patch(
-        'nav.models.manage.NetboxInfo.objects.get',
-        return_value=invalid_time_pickle
+        'nav.models.manage.NetboxInfo.objects.get', return_value=invalid_time_pickle
     ):
         yield ts.load()
         assert ts.is_changed()
@@ -43,15 +42,31 @@ def test_representation_inconsistencies_should_not_matter():
     [
         ((1559904661.0, 0), (1559904661.0, 0), 60, False, "identical timestamps"),
         ((1559904661.0, 0), (1559904671.0, 1000), 60, False, "10 seconds have passed"),
-        ((1559904661.0, 0), (1559904760.0, 0), 100, False, "deviation less than 100 seconds is acceptable"),
-        ((1559904661.0, 0), (1559905661.0, 1000), 60, True, "1000 seconds have passed, but only 10 on agent"),
-        (None, (1559904671.0, 424242), 60, True, "no previously saved timestamps were available"),
-
-    ]
+        (
+            (1559904661.0, 0),
+            (1559904760.0, 0),
+            100,
+            False,
+            "deviation less than 100 seconds is acceptable",
+        ),
+        (
+            (1559904661.0, 0),
+            (1559905661.0, 1000),
+            60,
+            True,
+            "1000 seconds have passed, but only 10 on agent",
+        ),
+        (
+            None,
+            (1559904671.0, 424242),
+            60,
+            True,
+            "no previously saved timestamps were available",
+        ),
+    ],
 )
 def test_is_changed(loaded, collected, max_deviation, expected, description):
     ts = TimestampChecker(Mock(), Mock(), 'sometime')
     ts.loaded_times = [loaded] if loaded else None
     ts.collected_times = [collected]
     assert ts.is_changed(max_deviation=max_deviation) == expected, description
-

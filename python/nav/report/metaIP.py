@@ -55,21 +55,28 @@ class MetaIP:
     def _getTreeNetIpv4(self):
         """Remove host octet."""
         netaddr_string = self.netaddr.net().strNormal()
-        return netaddr_string[:netaddr_string.rfind(".")]
+        return netaddr_string[: netaddr_string.rfind(".")]
 
     def _getTreeNetIpv6(self):
         netaddr = self.netaddr
         index = self.netaddr.prefixlen() // 4  # Index for where the addresses start
         address_part = netaddr.strFullsize().replace(':', '')[:index]
-        ipstr = ":".join([address_part[i:i+4].lstrip('0')
-                          for i in range(0, len(address_part), 4)])
+        ipstr = ":".join(
+            [
+                address_part[i : i + 4].lstrip('0')
+                for i in range(0, len(address_part), 4)
+            ]
+        )
         return re.sub(':{3,}', '::', ipstr)  # remove superfluous colon
 
     @staticmethod
     def _createMetaMap(family):
-        sql = """SELECT prefixid, nettype, netaddr
+        sql = (
+            """SELECT prefixid, nettype, netaddr
                  FROM prefix LEFT JOIN vlan USING (vlanid)
-                 WHERE family(netaddr) = %s""" % family
+                 WHERE family(netaddr) = %s"""
+            % family
+        )
         cursor = db.getConnection('default', 'manage').cursor()
         cursor.execute(sql)
         rows = cursor.fetchall()

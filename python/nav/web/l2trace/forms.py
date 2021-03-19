@@ -24,6 +24,7 @@ from . import L2TraceQuery
 
 class L2TraceForm(forms.Form):
     """Form for l2traceroute search"""
+
     host_from = forms.CharField(label='From')
     host_to = forms.CharField(label='To', required=False)
     l2tracer = None
@@ -39,12 +40,15 @@ class L2TraceForm(forms.Form):
 
         self.helper.layout = Layout(
             Row(
-                Column(Field('host_from', placeholder=placeholder_text),
-                       css_class='medium-6'),
-                Column(Field('host_to', placeholder=placeholder_text),
-                       css_class='medium-6'),
+                Column(
+                    Field('host_from', placeholder=placeholder_text),
+                    css_class='medium-6',
+                ),
+                Column(
+                    Field('host_to', placeholder=placeholder_text), css_class='medium-6'
+                ),
             ),
-            Submit('submit', 'Trace')
+            Submit('submit', 'Trace'),
         )
 
     def clean(self):

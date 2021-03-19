@@ -23,6 +23,7 @@ from django.urls import reverse
 
 class UsageResult(object):
     """Container for creating usage results for serializing"""
+
     def __init__(self, prefix, active_addresses, starttime=None, endtime=None):
         """
 
@@ -41,7 +42,8 @@ class UsageResult(object):
         self.vlan_id = prefix.vlan.vlan
         self.endtime = endtime if self.starttime else None
         self.url_machinetracker = reverse(
-            'machinetracker-prefixid_search_active', args=[prefix.pk])
+            'machinetracker-prefixid_search_active', args=[prefix.pk]
+        )
         self.url_report = prefix.get_absolute_url()
         self.url_vlan = reverse('vlan-details', args=[prefix.vlan.pk])
 
@@ -88,19 +90,28 @@ def collect_active_ip(prefix, starttime=None, endtime=None):
     prefix = prefix.net_address
 
     if starttime and endtime:
-        query = basequery + """
+        query = (
+            basequery
+            + """
         WHERE (ip << %s AND (start_time, end_time) OVERLAPS (%s, %s))
         """
+        )
         cursor.execute(query, (prefix, starttime, endtime))
     elif starttime:
-        query = basequery + """
+        query = (
+            basequery
+            + """
         WHERE (ip << %s AND %s BETWEEN start_time AND end_time)
         """
+        )
         cursor.execute(query, (prefix, starttime))
     else:
-        query = basequery + """
+        query = (
+            basequery
+            + """
         WHERE (ip << %s AND end_time = 'infinity')
         """
+        )
         cursor.execute(query, (prefix,))
 
     result = cursor.fetchone()

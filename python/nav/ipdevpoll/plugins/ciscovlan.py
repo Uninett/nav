@@ -25,8 +25,7 @@ from twisted.internet import defer
 from nav.mibs.if_mib import IfMib
 from nav.mibs.cisco_vtp_mib import CiscoVTPMib
 from nav.mibs.cisco_vlan_membership_mib import CiscoVlanMembershipMib
-from nav.mibs.cisco_vlan_iftable_relationship_mib \
-    import CiscoVlanIftableRelationshipMib
+from nav.mibs.cisco_vlan_iftable_relationship_mib import CiscoVlanIftableRelationshipMib
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
@@ -35,6 +34,7 @@ from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
 class CiscoVlan(Plugin):
     """Collect 802.1q info from CISCO-VTP-MIB and CISCO-VLAN-MEMBERSHIP-MIB."""
+
     _valid_ifindexes = ()
 
     @classmethod
@@ -52,8 +52,7 @@ class CiscoVlan(Plugin):
         ciscovm = CiscoVlanMembershipMib(self.agent)
         ciscovlanif = CiscoVlanIftableRelationshipMib(self.agent)
 
-        enabled_vlans = yield ciscovtp.get_trunk_enabled_vlans(
-            as_bitvector=True)
+        enabled_vlans = yield ciscovtp.get_trunk_enabled_vlans(as_bitvector=True)
         native_vlans = yield ciscovtp.get_trunk_native_vlans()
         vlan_membership = yield ciscovm.get_vlan_membership()
         vlan_ifindex = yield ciscovlanif.get_routed_vlan_ifindexes()
@@ -79,8 +78,7 @@ class CiscoVlan(Plugin):
         """Store vlan memberships for all ports."""
         for ifindex, vlan in vlan_membership.items():
             if ifindex not in self._valid_ifindexes:
-                self._logger.debug("ignoring info for invalid ifindex %s",
-                                   ifindex)
+                self._logger.debug("ignoring info for invalid ifindex %s", ifindex)
                 continue
 
             interface = self.containers.factory(ifindex, shadows.Interface)
@@ -93,8 +91,7 @@ class CiscoVlan(Plugin):
         """Store the set of enabled vlans for each trunk port."""
         for ifindex, vector in enabled_vlans.items():
             if ifindex not in self._valid_ifindexes:
-                self._logger.debug("ignoring info for invalid ifindex %s",
-                                   ifindex)
+                self._logger.debug("ignoring info for invalid ifindex %s", ifindex)
                 continue
 
             interface = self.containers.factory(ifindex, shadows.Interface)
@@ -102,12 +99,13 @@ class CiscoVlan(Plugin):
             if ifindex in native_vlans:
                 interface.vlan = native_vlans[ifindex]
 
-            self._logger.debug("Trunk port %r enabled VLAN count: %s",
-                               interface.ifname,
-                               len(vector.get_set_bits()))
+            self._logger.debug(
+                "Trunk port %r enabled VLAN count: %s",
+                interface.ifname,
+                len(vector.get_set_bits()),
+            )
 
-            allowed = self.containers.factory(ifindex,
-                                              shadows.SwPortAllowedVlan)
+            allowed = self.containers.factory(ifindex, shadows.SwPortAllowedVlan)
             allowed.interface = interface
             allowed.hex_string = vector.to_hex()
 
@@ -118,6 +116,5 @@ class CiscoVlan(Plugin):
             vlan = self.containers.factory(route.virtual, shadows.Vlan)
             vlan.vlan = route.vlan
             if route.physical:
-                phys_ifc = self.containers.factory(route.physical,
-                                                   shadows.Interface)
+                phys_ifc = self.containers.factory(route.physical, shadows.Interface)
                 phys_ifc.trunk = True

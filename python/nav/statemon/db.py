@@ -24,6 +24,7 @@ is used at a time.
 from __future__ import absolute_import
 
 import threading
+
 try:
     import queue
 except ImportError:
@@ -120,15 +121,19 @@ class _DB(threading.Thread):
                     _logger.critical("Rolling back aborted transaction...")
                     self.db.rollback()
                 else:
-                    _logger.critical("PostgreSQL reported an internal error "
-                                     "I don't know how to handle: %s "
-                                     "(code=%s)", pg_err_lookup(err.pgcode),
-                                     err.pgcode)
+                    _logger.critical(
+                        "PostgreSQL reported an internal error "
+                        "I don't know how to handle: %s "
+                        "(code=%s)",
+                        pg_err_lookup(err.pgcode),
+                        err.pgcode,
+                    )
                     raise
         except Exception as err:
             if self.db is not None:
-                _logger.critical("Could not get cursor. Trying to reconnect...",
-                                 exc_info=True)
+                _logger.critical(
+                    "Could not get cursor. Trying to reconnect...", exc_info=True
+                )
             self.close()
             self.connect()
             cursor = self.db.cursor()
@@ -166,9 +171,11 @@ class _DB(threading.Thread):
                 self.db.commit()
             return cursor.fetchall()
         except Exception:
-            _logger.critical("Failed to execute query: %s",
-                             cursor.query if cursor else statement,
-                             exc_info=True)
+            _logger.critical(
+                "Failed to execute query: %s",
+                cursor.query if cursor else statement,
+                exc_info=True,
+            )
             if commit:
                 try:
                     self.db.rollback()
@@ -194,15 +201,18 @@ class _DB(threading.Thread):
                 except Exception:
                     _logger.critical("Failed to commit")
         except psycopg2.IntegrityError:
-            _logger.critical("Database integrity error, throwing away update",
-                             exc_info=True)
+            _logger.critical(
+                "Database integrity error, throwing away update", exc_info=True
+            )
             _logger.debug("Tried to execute: %s", cursor.query)
             if commit:
                 self.db.rollback()
         except Exception:
-            _logger.critical("Could not execute statement: %s",
-                             cursor.query if cursor else statement,
-                             exc_info=True)
+            _logger.critical(
+                "Could not execute statement: %s",
+                cursor.query if cursor else statement,
+                exc_info=True,
+            )
             if commit:
                 self.db.rollback()
             raise DbError()
@@ -237,8 +247,16 @@ class _DB(threading.Thread):
                        (eventqid, subid, netboxid, eventtypeid,
                         state, value, source, target)
                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-        values = (nextid, event.serviceid, event.netboxid,
-                  event.eventtype, state, value, event.source, "eventEngine")
+        values = (
+            nextid,
+            event.serviceid,
+            event.netboxid,
+            event.eventtype,
+            state,
+            value,
+            event.source,
+            "eventEngine",
+        )
         self.execute(statement, values)
 
         statement = """INSERT INTO eventqvar
@@ -268,11 +286,12 @@ class _DB(threading.Thread):
 
         if groups_excluded:
             query += " AND " if groups_included else " WHERE "
-            query += "(netboxcategory.category IS NULL OR netboxcategory.category NOT IN %s)"
+            query += (
+                "(netboxcategory.category IS NULL OR netboxcategory.category NOT IN %s)"
+            )
             params.append(tuple(groups_excluded))
 
         return query, params
-
 
     def hosts_to_ping(self, groups_included=None, groups_excluded=None):
         """Returns a list of netboxes to ping, from the database
@@ -322,8 +341,16 @@ class _DB(threading.Thread):
             return self._checkers
 
         self._checkers = []
-        for (serviceid, netboxid, active, handler, version, ip,
-             sysname, upstate) in fromdb:
+        for (
+            serviceid,
+            netboxid,
+            active,
+            handler,
+            version,
+            ip,
+            sysname,
+            upstate,
+        ) in fromdb:
             checker = checkermap.get(handler)
             if not checker:
                 _logger.critical("no such checker: %s", handler)
@@ -334,8 +361,8 @@ class _DB(threading.Thread):
                 'ip': ip,
                 'sysname': sysname,
                 'args': properties[serviceid],
-                'version': version
-                }
+                'version': version,
+            }
 
             kwargs = {}
             if use_db_status:
@@ -348,9 +375,13 @@ class _DB(threading.Thread):
             try:
                 new_checker = checker(service, **kwargs)
             except Exception:
-                _logger.critical("Checker %s (%s) failed to init. This checker "
-                                 "will remain DISABLED:", handler, checker,
-                                 exc_info=True)
+                _logger.critical(
+                    "Checker %s (%s) failed to init. This checker "
+                    "will remain DISABLED:",
+                    handler,
+                    checker,
+                    exc_info=True,
+                )
                 continue
 
             if onlyactive and not active:

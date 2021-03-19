@@ -30,7 +30,8 @@ from .mixins import (
     ExpandRouterContextMixin,
     ExpandGWPortMixin,
     ExpandSwitchContextMixin,
-    ExpandSWPortContextMixin)
+    ExpandSWPortContextMixin,
+)
 
 
 PATH = [("Home", "/"), ("Network Explorer", "/networkexplorer/")]
@@ -38,6 +39,7 @@ PATH = [("Home", "/"), ("Network Explorer", "/networkexplorer/")]
 
 class IndexView(TemplateView):
     """Basic view of the network"""
+
     template_name = 'networkexplorer/base.html'
 
     def get_context_data(self, **kwargs):
@@ -53,36 +55,36 @@ class RouterJSONView(JSONResponseMixin, GetRoutersMixin, BaseListView):
         return self.render_json_response(context)
 
 
-class ExpandRouterView(
-        JSONResponseMixin, ExpandRouterContextMixin, BaseDetailView):
+class ExpandRouterView(JSONResponseMixin, ExpandRouterContextMixin, BaseDetailView):
     """Returns a JSON-response of a router's gwports"""
+
     model = Netbox
 
     def render_to_response(self, context):
         return self.render_json_response(context)
 
 
-class ExpandGWPortView(
-        JSONResponseMixin, ExpandGWPortMixin, BaseDetailView):
+class ExpandGWPortView(JSONResponseMixin, ExpandGWPortMixin, BaseDetailView):
     """Returns a JSON-response of a gwport's swports and switches"""
+
     model = Interface
 
     def render_to_response(self, context):
         return self.render_json_response(context)
 
 
-class ExpandSwitchView(
-        JSONResponseMixin, ExpandSwitchContextMixin, BaseDetailView):
+class ExpandSwitchView(JSONResponseMixin, ExpandSwitchContextMixin, BaseDetailView):
     """Returns a JSON-response of a switch's swport-vlans"""
+
     model = Netbox
 
     def render_to_response(self, context):
         return self.render_json_response(context)
 
 
-class ExpandSWPortView(
-        JSONResponseMixin, ExpandSWPortContextMixin, BaseDetailView):
+class ExpandSWPortView(JSONResponseMixin, ExpandSWPortContextMixin, BaseDetailView):
     """Returns a JSON-response of a swport's services and active hosts"""
+
     model = Interface
 
     def render_to_response(self, context):
@@ -90,7 +92,6 @@ class ExpandSWPortView(
 
 
 class SearchView(JSONResponseMixin, View):
-
     def form_invalid(self, form):
         return {'error': form.errors}
 

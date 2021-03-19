@@ -31,7 +31,7 @@ def _process_room_position(rooms):
         roomdata = {
             'name': room.id,
             'position': ",".join([str(pos) for pos in room.position]),
-            'status': get_room_status(room)
+            'status': get_room_status(room),
         }
         data['rooms'].append(roomdata)
 
@@ -86,29 +86,31 @@ def get_neighbors(_request, netboxid):
     interfaces = netbox.interface_set.filter(to_netbox__isnull=False)
     for interface in interfaces:
         to_netbox = interface.to_netbox
-        to_interfacename = (interface.to_interface.ifname
-                            if interface.to_interface else '')
+        to_interfacename = (
+            interface.to_interface.ifname if interface.to_interface else ''
+        )
         if interface.to_netbox in link_candidates:
-            link_candidates[to_netbox]['ifname'].append(
-                interface.ifname)
-            link_candidates[interface.to_netbox]['to_ifname'].append(
-                to_interfacename)
+            link_candidates[to_netbox]['ifname'].append(interface.ifname)
+            link_candidates[interface.to_netbox]['to_ifname'].append(to_interfacename)
         else:
             nodes.append(create_object_from(interface.to_netbox))
             link_candidates[interface.to_netbox] = {
                 "source": netbox.id,
                 "target": to_netbox.id,
                 "ifname": [interface.ifname],
-                "to_ifname": [to_interfacename]}
+                "to_ifname": [to_interfacename],
+            }
 
     # Unrecognized neighbors
     unrecognized_nodes = []
     un_candidates = {}
     for unrecognized in netbox.unrecognizedneighbor_set.filter(
-            ignored_since__isnull=True):
+        ignored_since__isnull=True
+    ):
         if unrecognized.remote_id in un_candidates:
             un_candidates[unrecognized.remote_id]['ifname'].append(
-                unrecognized.interface.ifname)
+                unrecognized.interface.ifname
+            )
         else:
             nodes.append(create_unrecognized_object_from(unrecognized))
             unrecognized_nodes.append(unrecognized)
@@ -116,7 +118,7 @@ def get_neighbors(_request, netboxid):
                 "source": netbox.id,
                 "target": unrecognized.remote_id,
                 "ifname": [unrecognized.interface.ifname],
-                "to_ifname": ""
+                "to_ifname": "",
             }
 
     data = {
@@ -133,7 +135,7 @@ def create_object_from(netbox):
         "netboxid": netbox.id,
         "name": netbox.get_short_sysname(),
         "sysname": netbox.sysname,
-        "category": netbox.category.id
+        "category": netbox.category.id,
     }
 
 
@@ -143,5 +145,5 @@ def create_unrecognized_object_from(node):
         "netboxid": node.remote_id,
         "name": node.remote_name,
         "sysname": node.remote_name,
-        "category": 'UNRECOGNIZED'
+        "category": 'UNRECOGNIZED',
     }

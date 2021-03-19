@@ -39,6 +39,7 @@ from nav.ipdevpoll import shadows
 
 class Dot1q(Plugin):
     """Collect 802.1q info from BRIDGE and Q-BRIDGE MIBs."""
+
     baseports = {}
     pvids = {}
 
@@ -88,13 +89,11 @@ class Dot1q(Plugin):
     def _set_port_pvid(self, port, pvid):
         if port in self.baseports:
             ifindex = self.baseports[port]
-            interface = self.containers.factory(ifindex,
-                                                shadows.Interface)
+            interface = self.containers.factory(ifindex, shadows.Interface)
             interface.vlan = pvid
             interface.trunk = False  # default all ports to non-tagging at first
         else:
-            self._logger.debug("saw reference to non-existant baseport %s",
-                               port)
+            self._logger.debug("saw reference to non-existant baseport %s", port)
 
     @inlineCallbacks
     def _get_tagging_info(self):
@@ -131,14 +130,18 @@ class Dot1q(Plugin):
             try:
                 tagged = egress - untagged
             except ValueError:
-                self._logger.error("vlan %s subtraction mismatch between "
-                                   "EgressPorts and UntaggedPorts", vlan)
+                self._logger.error(
+                    "vlan %s subtraction mismatch between "
+                    "EgressPorts and UntaggedPorts",
+                    vlan,
+                )
             else:
                 for port in tagged:
                     trunkports[port].append(vlan)
             finally:
-                self._logger.debug("vlan: %s egress: %r untagged: %r",
-                                   vlan, egress, untagged)
+                self._logger.debug(
+                    "vlan: %s egress: %r untagged: %r", vlan, egress, untagged
+                )
 
         return trunkports
 
@@ -148,8 +151,7 @@ class Dot1q(Plugin):
 
     def _set_trunkport(self, port, vlans):
         if port not in self.baseports:
-            self._logger.debug("saw reference to non-existant baseport %s",
-                               port)
+            self._logger.debug("saw reference to non-existant baseport %s", port)
             return
 
         # Mark as trunk
@@ -171,7 +173,7 @@ class Dot1q(Plugin):
                 vlannum = self._remap_vlan(vlannum)
                 suffix = '+{}'.format(vlannum)
                 if name.endswith(suffix):
-                    name = name[:-len(suffix)]
+                    name = name[: -len(suffix)]
                 vlan = self.containers.factory(name, shadows.Vlan)
                 vlan.net_type = shadows.NetType.get('lan')
                 vlan.vlan = vlannum

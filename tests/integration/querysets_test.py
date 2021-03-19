@@ -14,13 +14,12 @@ from nav.models.manage import Organization
 
 
 class NetboxQuerysetTest(TestCase):
-
     def setUp(self):
         # Some rows have already been created
         _netbox_data = {
             "room": Room.objects.get(id="myroom"),
             "organization": Organization.objects.get(id="myorg"),
-            "category": Category.objects.get(id="SW")
+            "category": Category.objects.get(id="SW"),
         }
         TEST_NETBOX_DATA = [
             dict(sysname="foo.bar.com", ip="158.38.152.169", **_netbox_data),
@@ -28,20 +27,19 @@ class NetboxQuerysetTest(TestCase):
             dict(sysname="spam.bar.com", ip="158.38.152.9", **_netbox_data),
         ]
 
-
-        self.netboxes = [Netbox.objects.create(**netbox_data)
-                         for netbox_data in TEST_NETBOX_DATA]
+        self.netboxes = [
+            Netbox.objects.create(**netbox_data) for netbox_data in TEST_NETBOX_DATA
+        ]
         ah = AlertHistory.objects.create(
             source=Subsystem.objects.first(),
             netbox=self.netboxes[2],
             event_type=EventType.objects.get(id="maintenanceState"),
-            start_time=dt.datetime.now(), value=0,
+            start_time=dt.datetime.now(),
+            value=0,
             end_time=INFINITY,  # UNRESOLVED
-            severity=0
+            severity=0,
         )
-        AlertHistoryVariable.objects.create(alert_history=ah,
-                                            variable="netbox")
-
+        AlertHistoryVariable.objects.create(alert_history=ah, variable="netbox")
 
     def test_on_maintenance_true(self):
         on_maintenance = Netbox.objects.on_maintenance(True)

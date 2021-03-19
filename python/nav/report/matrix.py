@@ -33,6 +33,7 @@ _logger = logging.getLogger(__name__)
 
 class Cell(object):
     """Represents a table cell in subnet matrix"""
+
     def __init__(self, **kwargs):
         self.prefixid = kwargs.get('prefixid', '')
         self.colspan = kwargs.get('colspan', 1)
@@ -57,10 +58,7 @@ class Matrix(object):
             nav.report.matrixIPv4
     """
 
-    Node = namedtuple(
-        'Node',
-        'net subnets'
-    )
+    Node = namedtuple('Node', 'net subnets')
 
     def __init__(self, start_net, end_net=None, bits_in_matrix=3):
 
@@ -70,10 +68,8 @@ class Matrix(object):
         self.end_net = end_net
         self.bits_in_matrix = bits_in_matrix
         self.tree = IPtree.build_tree(
-            start_net,
-            end_net,
-            bits_in_matrix=bits_in_matrix,
-            add_missing_nets=True)
+            start_net, end_net, bits_in_matrix=bits_in_matrix, add_missing_nets=True
+        )
         self.tree_nets = self.extract_tree_nets()
         self.matrix_nets = self.extract_matrix_nets()
         self.heading_colspan = 1
@@ -101,16 +97,20 @@ class Matrix(object):
     def extract_matrix_nets(self):
         """These should be shown as horizontal rows in the matrix."""
         return IPtree.extract_subtrees_with_prefix_length(
-            self.tree, self.end_net.prefixlen()-self.bits_in_matrix)
+            self.tree, self.end_net.prefixlen() - self.bits_in_matrix
+        )
 
     def extract_tree_nets(self):
         """These should be listed vertically in the leftmost column."""
         return IPtree.remove_subnets_with_prefixlength(
-            self.tree, self.end_net.prefixlen()-self.bits_in_matrix+1)
+            self.tree, self.end_net.prefixlen() - self.bits_in_matrix + 1
+        )
 
     def _colspan(self, ip):
-        return min(self.num_columns,
-                   int(math.pow(2, self.end_net.prefixlen() - ip.prefixlen())))
+        return min(
+            self.num_columns,
+            int(math.pow(2, self.end_net.prefixlen() - ip.prefixlen())),
+        )
 
     def _get_row_size(self):
         """Gets the prefixlength for a row"""
@@ -148,8 +148,7 @@ class Matrix(object):
                 ip = host_nybbles_map[key]
                 meta = metaIP.MetaIP(ip)
                 matrix_cell = self._create_cell(ip, meta, key=key)
-                next_header_idx = (self.column_headings.index(i)
-                                   + int(self._colspan(ip)))
+                next_header_idx = self.column_headings.index(i) + int(self._colspan(ip))
             else:
                 matrix_cell = Cell(is_empty=True)
             cells.append(matrix_cell)
@@ -164,7 +163,8 @@ class Matrix(object):
             rowspan=rowspan,
             content=self._get_content(key, ip),
             dataurl=self._get_prefix_url(ip),
-            netaddr=ip)
+            netaddr=ip,
+        )
 
     @staticmethod
     def _create_empty_cell():
@@ -186,7 +186,8 @@ class Matrix(object):
         return Cell(
             colspan=self.num_columns,
             color=self._get_color('large'),
-            link=self._get_too_small_net_link())
+            link=self._get_too_small_net_link(),
+        )
 
     def _add_large_subnet(self, subnet, matrix_row):
         """Adds correct rowspan to cell for large nets """
@@ -202,8 +203,7 @@ class Matrix(object):
         row_net = IPy.IP('{}/{}'.format(subnet.net(), self._get_row_size()))
         for _ in range(num_extra_rows):
             row_net = IPtools.get_next_subnet(row_net)
-            extra_nets.append(
-                [self._create_index_cell(row_net, link=False)])
+            extra_nets.append([self._create_index_cell(row_net, link=False)])
         return extra_nets
 
     @staticmethod
@@ -217,8 +217,7 @@ class Matrix(object):
     def _get_too_small_net_link(self):
         """Creates a link to the next drill down net"""
         link = reverse('report-matrix-scope', args=[self.end_net])
-        return Link(link, 'Too many small nets',
-                    'Go to matrix for smaller prefix')
+        return Link(link, 'Too many small nets', 'Go to matrix for smaller prefix')
 
     @staticmethod
     def _get_color(nettype):
@@ -232,5 +231,5 @@ class Matrix(object):
     @staticmethod
     def _get_prefix_url(prefix):
         return get_simple_graph_url(
-            [metric_path_for_prefix(prefix.strCompressed(), 'ip_count')],
-            format='json')
+            [metric_path_for_prefix(prefix.strCompressed(), 'ip_count')], format='json'
+        )

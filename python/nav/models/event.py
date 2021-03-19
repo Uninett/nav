@@ -54,6 +54,7 @@ class Subsystem(models.Model):
     def __str__(self):
         return self.name
 
+
 #######################################################################
 ### Event system
 
@@ -66,6 +67,7 @@ class VariableMapBase(object):
     assigned a dict value for a db update to take place.
 
     """
+
     def __init__(self):
         self.cachename = "_cached_variables"
 
@@ -127,8 +129,7 @@ class VariableMap(VariableMapBase):
                     varmap[key].save()
             else:
                 obj.variables.create(
-                    variable=key,
-                    value=value,
+                    variable=key, value=value,
                 )
 
 
@@ -140,6 +141,7 @@ class StateVariableMap(VariableMapBase):
     assigned a dict value for a db update to take place.
 
     """
+
     def _as_dict(self, obj):
         variables = obj.variables
         varmap = defaultdict(dict)
@@ -165,15 +167,14 @@ class StateVariableMap(VariableMapBase):
                         varmap[state][key].save()
                 else:
                     obj.variables.create(
-                        state=state,
-                        variable=key,
-                        value=value,
+                        state=state, variable=key, value=value,
                     )
 
 
 @python_2_unicode_compatible
 class UnknownEventSubject(object):
     """Representation of unknown alert/event subjects"""
+
     def __init__(self, alert):
         self._alert = alert
         self.netbox = alert.netbox
@@ -253,10 +254,7 @@ class EventMixIn(object):
 
             subid = self.subid
             if self.event_type_id in self.SUBID_MAP:
-                model = apps.get_model(
-                    'models',
-                    self.SUBID_MAP[self.event_type_id]
-                )
+                model = apps.get_model('models', self.SUBID_MAP[self.event_type_id])
             elif (
                 self.event_type_id == 'maintenanceState'
                 and 'service' in self.varmap.get(EventQueue.STATE_START, {})
@@ -272,9 +270,7 @@ class EventMixIn(object):
                     return model.objects.get(pk=subid)
                 except model.DoesNotExist:
                     _logger.warning(
-                        "alert subid %s points to non-existant %s",
-                        subid,
-                        model,
+                        "alert subid %s points to non-existant %s", subid, model,
                     )
                     return UnknownEventSubject(self)
 
@@ -288,6 +284,7 @@ class ThresholdEvent(object):
     Magic class to act as a threshold event subject that produces useful
     descriptions and relations to the event.
     """
+
     def __init__(self, event):
         from django.apps import apps
 
@@ -306,6 +303,7 @@ class ThresholdEvent(object):
 
         if self.metric:
             from nav.metrics.lookup import lookup
+
             self.subject = lookup(self.metric)
         else:
             self.subject = None
@@ -327,8 +325,9 @@ class ThresholdEvent(object):
         if self.subject:
             if hasattr(self.subject, 'get_absolute_url'):
                 return self.subject.get_absolute_url()
-            elif (hasattr(self.subject, 'netbox') and
-                  hasattr(self.subject.netbox, 'get_absolute_url')):
+            elif hasattr(self.subject, 'netbox') and hasattr(
+                self.subject.netbox, 'get_absolute_url'
+            ):
                 return self.subject.netbox.get_absolute_url()
 
 
@@ -349,35 +348,28 @@ class EventQueue(models.Model, EventMixIn):
         'Subsystem',
         on_delete=models.CASCADE,
         db_column='source',
-        related_name='source_of_events'
+        related_name='source_of_events',
     )
     target = models.ForeignKey(
         'Subsystem',
         on_delete=models.CASCADE,
         db_column='target',
-        related_name='target_of_events'
+        related_name='target_of_events',
     )
     device = models.ForeignKey(
-        'models.Device',
-        on_delete=models.CASCADE,
-        db_column='deviceid',
-        null=True
+        'models.Device', on_delete=models.CASCADE, db_column='deviceid', null=True
     )
     netbox = models.ForeignKey(
-        'models.Netbox',
-        on_delete=models.CASCADE,
-        db_column='netboxid',
-        null=True
+        'models.Netbox', on_delete=models.CASCADE, db_column='netboxid', null=True
     )
     subid = VarcharField(default='')
     time = models.DateTimeField(default=dt.datetime.now)
     event_type = models.ForeignKey(
-        'EventType',
-        on_delete=models.CASCADE,
-        db_column='eventtypeid'
+        'EventType', on_delete=models.CASCADE, db_column='eventtypeid'
     )
-    state = models.CharField(max_length=1, choices=STATE_CHOICES,
-                             default=STATE_STATELESS)
+    state = models.CharField(
+        max_length=1, choices=STATE_CHOICES, default=STATE_STATELESS
+    )
     value = models.IntegerField(default=100)
     severity = models.IntegerField(default=50)
 
@@ -389,15 +381,25 @@ class EventQueue(models.Model, EventMixIn):
     def __repr__(self):
         return "<EventQueue: %s>" % u", ".join(
             u"%s=%r" % (attr, getattr(self, attr))
-            for attr in ('id', 'event_type_id', 'source_id', 'target_id',
-                         'netbox', 'subid', 'state', 'time'))
+            for attr in (
+                'id',
+                'event_type_id',
+                'source_id',
+                'target_id',
+                'netbox',
+                'subid',
+                'state',
+                'time',
+            )
+        )
 
     def __str__(self):
-        string = ("{self.event_type} {state} event for {self.netbox} "
-                  "(subid={self.subid}) from {self.source} to {self.target} "
-                  "at {self.time}")
-        return string.format(self=self,
-                             state=dict(self.STATE_CHOICES)[self.state])
+        string = (
+            "{self.event_type} {state} event for {self.netbox} "
+            "(subid={self.subid}) from {self.source} to {self.target} "
+            "at {self.time}"
+        )
+        return string.format(self=self, state=dict(self.STATE_CHOICES)[self.state])
 
     def save(self, *args, **kwargs):
         new_object = self.pk is None
@@ -418,8 +420,7 @@ class EventType(models.Model):
         (STATEFUL_FALSE, 'stateless'),
     )
 
-    id = models.CharField(db_column='eventtypeid', max_length=32,
-                          primary_key=True)
+    id = models.CharField(db_column='eventtypeid', max_length=32, primary_key=True)
     description = VarcharField(db_column='eventtypedesc')
     stateful = models.CharField(max_length=1, choices=STATEFUL_CHOICES)
 
@@ -439,7 +440,7 @@ class EventQueueVar(models.Model):
         'EventQueue',
         on_delete=models.CASCADE,
         db_column='eventqid',
-        related_name='variables'
+        related_name='variables',
     )
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
@@ -450,6 +451,7 @@ class EventQueueVar(models.Model):
 
     def __str__(self):
         return u'%s=%s' % (self.variable, self.value)
+
 
 #######################################################################
 ### Alert system
@@ -471,37 +473,25 @@ class AlertQueue(models.Model, EventMixIn):
 
     id = models.AutoField(db_column='alertqid', primary_key=True)
     source = models.ForeignKey(
-        'Subsystem',
-        on_delete=models.CASCADE,
-        db_column='source'
+        'Subsystem', on_delete=models.CASCADE, db_column='source'
     )
     device = models.ForeignKey(
-        'models.Device',
-        on_delete=models.CASCADE,
-        db_column='deviceid',
-        null=True
+        'models.Device', on_delete=models.CASCADE, db_column='deviceid', null=True
     )
     netbox = models.ForeignKey(
-        'models.Netbox',
-        on_delete=models.CASCADE,
-        db_column='netboxid',
-        null=True
+        'models.Netbox', on_delete=models.CASCADE, db_column='netboxid', null=True
     )
     subid = VarcharField(default='')
     time = models.DateTimeField()
     event_type = models.ForeignKey(
-        'EventType',
-        on_delete=models.CASCADE,
-        db_column='eventtypeid'
+        'EventType', on_delete=models.CASCADE, db_column='eventtypeid'
     )
     alert_type = models.ForeignKey(
-        'AlertType',
-        on_delete=models.CASCADE,
-        db_column='alerttypeid',
-        null=True
+        'AlertType', on_delete=models.CASCADE, db_column='alerttypeid', null=True
     )
-    state = models.CharField(max_length=1, choices=STATE_CHOICES,
-                             default=STATE_STATELESS)
+    state = models.CharField(
+        max_length=1, choices=STATE_CHOICES, default=STATE_STATELESS
+    )
     value = models.IntegerField()
     severity = models.IntegerField()
 
@@ -510,7 +500,7 @@ class AlertQueue(models.Model, EventMixIn):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        db_column='alerthistid'
+        db_column='alerthistid',
     )
 
     varmap = VariableMap()
@@ -520,7 +510,10 @@ class AlertQueue(models.Model, EventMixIn):
 
     def __str__(self):
         return u'Source %s, state %s, severity %d' % (
-            self.source, self.get_state_display(), self.severity)
+            self.source,
+            self.get_state_display(),
+            self.severity,
+        )
 
     def save(self, *args, **kwargs):
         new_object = self.pk is None
@@ -537,9 +530,7 @@ class AlertType(models.Model):
 
     id = models.AutoField(db_column='alerttypeid', primary_key=True)
     event_type = models.ForeignKey(
-        'EventType',
-        on_delete=models.CASCADE,
-        db_column='eventtypeid'
+        'EventType', on_delete=models.CASCADE, db_column='eventtypeid'
     )
     name = VarcharField(db_column='alerttype')
     description = VarcharField(db_column='alerttypedesc')
@@ -564,7 +555,7 @@ class AlertQueueMessage(models.Model):
         'AlertQueue',
         on_delete=models.CASCADE,
         db_column='alertqid',
-        related_name='messages'
+        related_name='messages',
     )
     type = VarcharField(db_column='msgtype')
     language = VarcharField()
@@ -589,7 +580,7 @@ class AlertQueueVariable(models.Model):
         'AlertQueue',
         on_delete=models.CASCADE,
         db_column='alertqid',
-        related_name='variables'
+        related_name='variables',
     )
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
@@ -624,39 +615,27 @@ class AlertHistory(models.Model, EventMixIn):
     """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
     with the start and end time of the event."""
+
     objects = AlertHistoryQuerySet.as_manager()
 
     id = models.AutoField(db_column='alerthistid', primary_key=True)
     source = models.ForeignKey(
-        'Subsystem',
-        on_delete=models.CASCADE,
-        db_column='source'
+        'Subsystem', on_delete=models.CASCADE, db_column='source'
     )
     device = models.ForeignKey(
-        'models.Device',
-        on_delete=models.CASCADE,
-        db_column='deviceid',
-        null=True
+        'models.Device', on_delete=models.CASCADE, db_column='deviceid', null=True
     )
     netbox = models.ForeignKey(
-        'models.Netbox',
-        on_delete=models.CASCADE,
-        db_column='netboxid',
-        null=True
+        'models.Netbox', on_delete=models.CASCADE, db_column='netboxid', null=True
     )
     subid = VarcharField(default='')
     start_time = models.DateTimeField()
     end_time = DateTimeInfinityField(null=True)
     event_type = models.ForeignKey(
-        'EventType',
-        on_delete=models.CASCADE,
-        db_column='eventtypeid'
+        'EventType', on_delete=models.CASCADE, db_column='eventtypeid'
     )
     alert_type = models.ForeignKey(
-        'AlertType',
-        on_delete=models.CASCADE,
-        db_column='alerttypeid',
-        null=True
+        'AlertType', on_delete=models.CASCADE, db_column='alerttypeid', null=True
     )
     value = models.IntegerField()
     severity = models.IntegerField()
@@ -667,9 +646,7 @@ class AlertHistory(models.Model, EventMixIn):
         db_table = 'alerthist'
 
     def __str__(self):
-        return u'Id %s Source %s, severity %d' % (
-            self.id, self.source, self.severity
-        )
+        return u'Id %s Source %s, severity %d' % (self.id, self.source, self.severity)
 
     def is_stateful(self):
         """Returns true if the alert is stateful."""
@@ -689,10 +666,10 @@ class AlertHistory(models.Model, EventMixIn):
         if self.is_stateful():
             if self.is_open():
                 # Open alert
-                return (dt.datetime.now() - self.start_time)
+                return dt.datetime.now() - self.start_time
             else:
                 # Closed alert
-                return (self.end_time - self.start_time)
+                return self.end_time - self.start_time
         else:
             # Stateless alert
             return None
@@ -747,10 +724,11 @@ class AlertHistoryMessage(models.Model):
         'AlertHistory',
         on_delete=models.CASCADE,
         db_column='alerthistid',
-        related_name='messages'
+        related_name='messages',
     )
-    state = models.CharField(max_length=1, choices=STATE_CHOICES,
-                             default=STATE_STATELESS)
+    state = models.CharField(
+        max_length=1, choices=STATE_CHOICES, default=STATE_STATELESS
+    )
     type = VarcharField(db_column='msgtype')
     language = VarcharField()
     message = models.TextField(db_column='msg')
@@ -778,10 +756,11 @@ class AlertHistoryVariable(models.Model):
         'AlertHistory',
         on_delete=models.CASCADE,
         db_column='alerthistid',
-        related_name='variables'
+        related_name='variables',
     )
-    state = models.CharField(max_length=1, choices=STATE_CHOICES,
-                             default=STATE_STATELESS)
+    state = models.CharField(
+        max_length=1, choices=STATE_CHOICES, default=STATE_STATELESS
+    )
     variable = VarcharField(db_column='var')
     value = models.TextField(db_column='val')
 
@@ -796,18 +775,16 @@ class AlertHistoryVariable(models.Model):
 @python_2_unicode_compatible
 class Acknowledgement(models.Model):
     """Alert acknowledgements"""
+
     alert = models.OneToOneField(
         'AlertHistory',
         on_delete=models.CASCADE,
         null=False,
         blank=False,
-        primary_key=True
+        primary_key=True,
     )
     account = models.ForeignKey(
-        'Account',
-        on_delete=models.CASCADE,
-        null=False,
-        blank=False
+        'Account', on_delete=models.CASCADE, null=False, blank=False
     )
     comment = VarcharField(blank=True)
     date = models.DateTimeField(null=False, default=dt.datetime.now)
@@ -816,5 +793,4 @@ class Acknowledgement(models.Model):
         db_table = 'alerthist_ack'
 
     def __str__(self):
-        return u"%r acknowledged by %s at %s" % (self.alert, self.account,
-                                                 self.date)
+        return u"%r acknowledged by %s at %s" % (self.alert, self.account, self.date)

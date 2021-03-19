@@ -21,15 +21,12 @@ from IPy import IP
 
 class TestGradient(object):
     """ tests for the gradient function """
+
     gradient_start = 0
     gradient_stop = 952
     gradient_steps = 20
-    gradient = util.gradient(gradient_start,
-                             gradient_stop,
-                             gradient_steps)
-    reverse_gradient = util.gradient(gradient_stop,
-                                     gradient_start,
-                                     gradient_steps)
+    gradient = util.gradient(gradient_start, gradient_stop, gradient_steps)
+    reverse_gradient = util.gradient(gradient_stop, gradient_start, gradient_steps)
 
     def test_gradient_size(self):
         assert self.gradient_steps == len(self.gradient)
@@ -52,8 +49,7 @@ def test_colortohex():
 
 
 def test_is_valid_ip():
-    valid_ips = ['129.241.75.1', '10.0.25.62', '2001:700:1::abcd',
-                 'fe80::baad']
+    valid_ips = ['129.241.75.1', '10.0.25.62', '2001:700:1::abcd', 'fe80::baad']
     invalid_ips = ['www.uninett.no', '92835235', '5:4', '-5325']
 
     for ip in valid_ips:

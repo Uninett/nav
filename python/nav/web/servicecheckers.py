@@ -28,7 +28,7 @@ _ASSIGNMENT_PATTERN = re.compile(r"^([^#=]+)\s*=\s*([^#\n]+)", re.M)
 
 def get_checkers():
     """Returns a list of available servicemon checkers"""
-    return [f[:-len(_CHECKER_PATTERN)].lower() for f in get_checker_modules()]
+    return [f[: -len(_CHECKER_PATTERN)].lower() for f in get_checker_modules()]
 
 
 def get_descriptions(checker_names):
@@ -64,15 +64,16 @@ def load_checker_classes():
     :returns: A list of AbstractChecker subclasses.
 
     """
-    module_names = ("nav.statemon.checker.%s" % os.path.splitext(f)[0]
-                    for f in get_checker_modules())
+    module_names = (
+        "nav.statemon.checker.%s" % os.path.splitext(f)[0]
+        for f in get_checker_modules()
+    )
     modules = (m for m in (_import_or_none(n) for n in module_names) if m)
     checkers = set()
     for mod in modules:
         for value in vars(mod).values():
             try:
-                if (issubclass(value, AbstractChecker)
-                    and value is not AbstractChecker):
+                if issubclass(value, AbstractChecker) and value is not AbstractChecker:
                     checkers.add(value)
             except TypeError:
                 pass
@@ -94,5 +95,8 @@ def get_checker_modules():
     except OSError:
         return []
 
-    return [f for f in files
-            if len(f) > len(_CHECKER_PATTERN) and f.endswith(_CHECKER_PATTERN)]
+    return [
+        f
+        for f in files
+        if len(f) > len(_CHECKER_PATTERN) and f.endswith(_CHECKER_PATTERN)
+    ]

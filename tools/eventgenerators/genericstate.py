@@ -18,6 +18,7 @@
 from argparse import ArgumentParser
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django()
 
 from nav.event import Event
@@ -31,11 +32,14 @@ def main():
 
     netbox = Netbox.objects.get(sysname__icontains=namespace.sysname)
     eventtype = EventType.objects.get(pk__icontains=namespace.eventtype)
-    event = Event(source="ipdevpoll", target="eventEngine",
-                  netboxid=netbox.id,
-                  subid=namespace.subid,
-                  eventtypeid=eventtype.id,
-                  state=get_state(namespace))
+    event = Event(
+        source="ipdevpoll",
+        target="eventEngine",
+        netboxid=netbox.id,
+        subid=namespace.subid,
+        eventtypeid=eventtype.id,
+        state=get_state(namespace),
+    )
 
     if namespace.alerttype:
         event['alerttype'] = namespace.alerttype
@@ -45,16 +49,17 @@ def main():
 def parse_options():
     """Parse command line options and args"""
     parser = ArgumentParser()
-    parser.add_argument('-e', dest='eventtype', required=True,
-                        help='The name of the event type')
-    parser.add_argument('-n', dest='sysname', required=True,
-                        help='Netbox sysname')
-    parser.add_argument('-a', dest='alerttype',
-                        help='The name of the alert type')
-    parser.add_argument('--subid', dest='subid', default=None,
-                        help='The subid to use')
-    parser.add_argument('state', choices=('s', 'e'),
-                        help='The state of the event (nothing if stateless)')
+    parser.add_argument(
+        '-e', dest='eventtype', required=True, help='The name of the event type'
+    )
+    parser.add_argument('-n', dest='sysname', required=True, help='Netbox sysname')
+    parser.add_argument('-a', dest='alerttype', help='The name of the alert type')
+    parser.add_argument('--subid', dest='subid', default=None, help='The subid to use')
+    parser.add_argument(
+        'state',
+        choices=('s', 'e'),
+        help='The state of the event (nothing if stateless)',
+    )
     return parser.parse_args()
 
 
@@ -63,8 +68,11 @@ def get_state(args):
     if not args:
         return EventQueue.STATE_STATELESS
     else:
-        return (EventQueue.STATE_START if args.state.startswith('s')
-                else EventQueue.STATE_END)
+        return (
+            EventQueue.STATE_START
+            if args.state.startswith('s')
+            else EventQueue.STATE_END
+        )
 
 
 if __name__ == '__main__':

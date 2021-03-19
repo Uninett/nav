@@ -21,6 +21,7 @@ from nav.models.manage import Netbox
 
 class BoxStateHandler(delayedstate.DelayedStateHandler):
     """Accepts boxState events"""
+
     handled_types = ('boxState',)
     WARNING_WAIT_TIME = 'boxDown.warning'
     ALERT_WAIT_TIME = 'boxDown.alert'
@@ -63,8 +64,7 @@ class BoxStateHandler(delayedstate.DelayedStateHandler):
         else:
             alert.alert_type = 'boxDownWarning'
 
-        self._logger.info("%s: Posting %s alert",
-                          self.event.netbox, alert.alert_type)
+        self._logger.info("%s: Posting %s alert", self.event.netbox, alert.alert_type)
         alert.post()
 
     def _get_down_alert(self):

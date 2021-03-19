@@ -24,6 +24,7 @@ class Netbox(object):
     """
     Class representing a NAV netbox
     """
+
     def __init__(self, netboxid, sysname, ip, up):
         self.netboxid = netboxid
         self.sysname = sysname

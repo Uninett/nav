@@ -31,8 +31,9 @@ class Netbox(Shadow):
         if args:
             obj = args[0]
             self.snmp_up = getattr(obj, 'snmp_up', not obj.is_snmp_down())
-            self.last_updated = getattr(obj, 'last_updated',
-                                        self._translate_last_jobs(obj))
+            self.last_updated = getattr(
+                obj, 'last_updated', self._translate_last_jobs(obj)
+            )
             self.read_only = getattr(obj, 'read_only')
             self.snmp_version = getattr(obj, 'snmp_version')
 
@@ -51,8 +52,7 @@ class Netbox(Shadow):
                   nav.ipdevpoll.dataloader.load_last_updated_times()
 
         """
-        return {job.job_name: job.end_time
-                for job in netbox.get_last_jobs()}
+        return {job.job_name: job.end_time for job in netbox.get_last_jobs()}
 
     def is_up(self):
         return self.up == manage.Netbox.UP_UP
@@ -74,8 +74,9 @@ class Netbox(Shadow):
 
     def _handle_sysname_conflicts(self, containers):
         if self.id and self.sysname:
-            other = manage.Netbox.objects.filter(~Q(id=self.id),
-                                                 Q(sysname=self.sysname))
+            other = manage.Netbox.objects.filter(
+                ~Q(id=self.id), Q(sysname=self.sysname)
+            )
             if not other:
                 return
             else:
@@ -85,7 +86,11 @@ class Netbox(Shadow):
             self._logger.warning(
                 "%s and %s both appear to resolve to the same DNS name (%s)."
                 "Are they the same device? Setting sysname = IP Address to "
-                "avoid conflicts", liveself.ip, other.ip, self.sysname)
+                "avoid conflicts",
+                liveself.ip,
+                other.ip,
+                self.sysname,
+            )
             self.sysname = liveself.ip
 
     @classmethod
@@ -109,8 +114,7 @@ class Netbox(Shadow):
             type_.save()
 
         netbox = manage.Netbox.objects.get(id=netbox_id)
-        cls._logger.warning("Removing stored inventory info for %s",
-                            netbox.sysname)
+        cls._logger.warning("Removing stored inventory info for %s", netbox.sysname)
         netbox.type = type_
         netbox.up_to_date = False
 

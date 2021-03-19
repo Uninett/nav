@@ -27,11 +27,19 @@ from IPy import IP
 
 from nav.django.validators import is_valid_point_string
 from nav.errors import GeneralException
-from nav.models.manage import Location, Room, Organization, Vendor, Usage, ManagementProfile
+from nav.models.manage import (
+    Location,
+    Room,
+    Organization,
+    Vendor,
+    Usage,
+    ManagementProfile,
+)
 
 
 class BulkParser(six.Iterator):
     """Abstract base class for bulk parsers"""
+
     format = ()
     required = 0
     restkey = None
@@ -51,8 +59,9 @@ class BulkParser(six.Iterator):
 
         if delimiter is None:
             try:
-                self.dialect = csv.Sniffer().sniff(self.data.read(200),
-                                                   delimiters=';:,')
+                self.dialect = csv.Sniffer().sniff(
+                    self.data.read(200), delimiters=';:,'
+                )
             except csv.Error:
                 self.dialect = None
                 self.delimiter = ':'
@@ -61,12 +70,14 @@ class BulkParser(six.Iterator):
             finally:
                 self.data.seek(0)
 
-        self.reader = csv.DictReader(CommentStripper(self.data),
-                                     fieldnames=self.format,
-                                     delimiter=self.delimiter,
-                                     restkey=self.restkey,
-                                     doublequote=True,
-                                     quoting=csv.QUOTE_ALL)
+        self.reader = csv.DictReader(
+            CommentStripper(self.data),
+            fieldnames=self.format,
+            delimiter=self.delimiter,
+            restkey=self.restkey,
+            doublequote=True,
+            quoting=csv.QUOTE_ALL,
+        )
         self.line_num = 0
 
     def __iter__(self):
@@ -97,8 +108,7 @@ class BulkParser(six.Iterator):
     def is_valid_fieldvalue(self, fieldname, value):
         """Verify the validity of a specific value"""
         validatorname = "_validate_%s" % fieldname
-        if (hasattr(self, validatorname) and
-                callable(getattr(self, validatorname))):
+        if hasattr(self, validatorname) and callable(getattr(self, validatorname)):
             return getattr(self, validatorname)(value)
         else:
             return True
@@ -112,10 +122,9 @@ class BulkParser(six.Iterator):
 
         """
         separator = ':'
-        required = separator.join(cls.format[:cls.required])
-        optional = separator.join(cls.format[cls.required:])
-        restkey_format = (cls.restkey_format if cls.restkey_format else
-                          cls.restkey)
+        required = separator.join(cls.format[: cls.required])
+        optional = separator.join(cls.format[cls.required :])
+        restkey_format = cls.restkey_format if cls.restkey_format else cls.restkey
         rest = "%s%s..." % (restkey_format, separator)
 
         header = "#" + required
@@ -132,6 +141,7 @@ class BulkParser(six.Iterator):
 # pylint: disable=R0903
 class CommentStripper(six.Iterator):
     """Iterator that strips comments from the input iterator"""
+
     COMMENT_PATTERN = re.compile(r'\W*#[^\n\r]*')
 
     def __init__(self, source_iterator):
@@ -165,8 +175,17 @@ def validate_attribute_list(value):
 
 class NetboxBulkParser(BulkParser):
     """Parses the netbox bulk format"""
-    format = ('roomid', 'ip', 'orgid', 'catid', 'management_profiles',
-              'master', 'function', 'data')
+
+    format = (
+        'roomid',
+        'ip',
+        'orgid',
+        'catid',
+        'management_profiles',
+        'master',
+        'function',
+        'data',
+    )
     required = 4
     restkey = 'netboxgroup'
 
@@ -201,6 +220,7 @@ class ManagementProfileBulkParser(BulkParser):
     bulk formats.
 
     """
+
     format = ('name', 'protocol', 'configuration')
     required = 3
 
@@ -216,15 +236,13 @@ class ManagementProfileBulkParser(BulkParser):
 
     @staticmethod
     def _validate_protocol(protocol):
-        allowable = set(
-            name
-            for value, name in ManagementProfile.PROTOCOL_CHOICES
-        )
+        allowable = set(name for value, name in ManagementProfile.PROTOCOL_CHOICES)
         return protocol in allowable
 
 
 class UsageBulkParser(BulkParser):
     """Parses the usage bulk format"""
+
     format = ('usageid', 'descr')
     required = 2
     restkey = None
@@ -237,6 +255,7 @@ class UsageBulkParser(BulkParser):
 
 class LocationBulkParser(BulkParser):
     """Parses the location bulk format"""
+
     format = ('locationid', 'parent', 'descr')
     required = 1
     locationid_maxlength = getattr(Location, '_meta').get_field('id').max_length
@@ -248,6 +267,7 @@ class LocationBulkParser(BulkParser):
 
 class OrgBulkParser(BulkParser):
     """Parses the organization bulk format"""
+
     format = ('orgid', 'parent', 'description')
     restkey = 'attr'
     required = 1
@@ -261,8 +281,8 @@ class OrgBulkParser(BulkParser):
 
 class PrefixBulkParser(BulkParser):
     """Parses the prefix bulk format"""
-    format = ('netaddr', 'nettype',
-              'orgid', 'netident', 'usage', 'description', 'vlan')
+
+    format = ('netaddr', 'nettype', 'orgid', 'netident', 'usage', 'description', 'vlan')
     required = 2
 
     @staticmethod
@@ -287,6 +307,7 @@ class PrefixBulkParser(BulkParser):
 
 class RoomBulkParser(BulkParser):
     """Parses the room bulk format"""
+
     format = ('roomid', 'locationid', 'descr', 'position')
     restkey = 'attr'
     required = 2
@@ -304,6 +325,7 @@ class RoomBulkParser(BulkParser):
 
 class ServiceBulkParser(BulkParser):
     """Parses the service bulk format"""
+
     format = ('host', 'service')
     restkey = 'arg'
     required = 2
@@ -312,19 +334,21 @@ class ServiceBulkParser(BulkParser):
 
 class NetboxGroupBulkParser(BulkParser):
     """Parses the netboxgroup bulk format"""
+
     format = ('netboxgroupid', 'description')
     required = 2
 
 
 class NetboxTypeBulkParser(BulkParser):
     """Parses the type bulk format"""
-    format = ('vendorid', 'typename', 'sysobjectid',
-              'description')
+
+    format = ('vendorid', 'typename', 'sysobjectid', 'description')
     required = 3
 
 
 class VendorBulkParser(BulkParser):
     """Parses the vendor bulk format"""
+
     format = ('vendorid',)
     required = 1
     vendorid_maxlength = getattr(Vendor, '_meta').get_field('id').max_length
@@ -336,15 +360,15 @@ class VendorBulkParser(BulkParser):
 
 class CablingBulkParser(BulkParser):
     """Parses the cabling bulk format"""
-    format = ('roomid', 'jack', 'building', 'targetroom', 'category',
-              'descr')
+
+    format = ('roomid', 'jack', 'building', 'targetroom', 'category', 'descr')
     required = 5
 
 
 class PatchBulkParser(BulkParser):
     """Parses the patch bulk format"""
-    format = ('sysname', 'port', 'roomid', 'jack',
-              'split')
+
+    format = ('sysname', 'port', 'roomid', 'jack', 'split')
     required = 4
 
 
@@ -367,10 +391,11 @@ class RequiredFieldMissing(BulkParseError):
         self.missing_field = missing_field
 
     def __str__(self):
-        return "%s: '%s' on line %d" % (self.__doc__,
-                                        self.missing_field,
-                                        self.line_num,
-                                        )
+        return "%s: '%s' on line %d" % (
+            self.__doc__,
+            self.missing_field,
+            self.line_num,
+        )
 
 
 class InvalidFieldValue(BulkParseError):
@@ -383,5 +408,9 @@ class InvalidFieldValue(BulkParseError):
         self.value = value
 
     def __str__(self):
-        return ("%s: '%s' is invalid value for field '%s' on line %d" %
-                (self.__doc__, self.value, self.field, self.line_num))
+        return "%s: '%s' is invalid value for field '%s' on line %d" % (
+            self.__doc__,
+            self.value,
+            self.field,
+            self.line_num,
+        )

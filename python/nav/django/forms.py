@@ -32,8 +32,7 @@ class CIDRField(forms.CharField):
 
     def clean(self, value):
         if value and not is_valid_cidr(value):
-            raise forms.ValidationError(
-                "Value must be a valid CIDR address")
+            raise forms.ValidationError("Value must be a valid CIDR address")
         else:
             return super(CIDRField, self).clean(value)
 
@@ -44,20 +43,19 @@ class PointField(forms.CharField):
     def clean(self, value):
         if not value or validators.is_valid_point_string(value):
             return super(PointField, self).clean(value)
-        raise forms.ValidationError(
-            "Invalid format. Point field format is '(x,y)'.")
+        raise forms.ValidationError("Invalid format. Point field format is '(x,y)'.")
 
 
 class JSONWidget(Textarea):
-
     def _render_value(self, value):
         """Convert the value to JSON
 
         Falsey values are converted to an empty string. Bytestrings are
         considered to be encoded as utf-8 and converted to text."""
         if value and not isinstance(value, six.string_types):
-            value = json.dumps(value, sort_keys=True, indent=4,
-                               cls=validators.JSONBytesEncoder)
+            value = json.dumps(
+                value, sort_keys=True, indent=4, cls=validators.JSONBytesEncoder
+            )
         else:
             value = u''
         return value
@@ -69,7 +67,6 @@ class JSONWidget(Textarea):
 
 
 class HStoreField(Field):
-
     def __init__(self, **params):
         params['widget'] = params.get('widget', JSONWidget)
         super(HStoreField, self).__init__(**params)

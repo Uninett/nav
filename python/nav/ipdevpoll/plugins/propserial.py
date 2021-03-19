@@ -24,9 +24,11 @@ from nav.models import manage
 from nav.mibs.hp_httpmanageable_mib import HPHTTPManageableMib
 from nav.mibs.juniper_mib import JuniperMib
 from nav.mibs.powernet_mib import PowerNetMib
-from nav.enterprise.ids import (VENDOR_ID_HEWLETT_PACKARD,
-                                VENDOR_ID_AMERICAN_POWER_CONVERSION_CORP,
-                                VENDOR_ID_JUNIPER_NETWORKS_INC)
+from nav.enterprise.ids import (
+    VENDOR_ID_HEWLETT_PACKARD,
+    VENDOR_ID_AMERICAN_POWER_CONVERSION_CORP,
+    VENDOR_ID_JUNIPER_NETWORKS_INC,
+)
 
 
 VENDOR_MIBS = {
@@ -38,6 +40,7 @@ VENDOR_MIBS = {
 
 class ProprietarySerial(Plugin):
     """retrieves chassis serial numbers from various proprietary MIBs"""
+
     RESTRICT_TO_VENDORS = VENDOR_MIBS.keys()
 
     @defer.inlineCallbacks
@@ -48,8 +51,11 @@ class ProprietarySerial(Plugin):
             mib = mibclass(self.agent)
             serial = yield mib.get_serial_number()
             if serial:
-                self._logger.debug("got a chassis serial number from %s: %r",
-                                   mib.mib.get('moduleName', None), serial)
+                self._logger.debug(
+                    "got a chassis serial number from %s: %r",
+                    mib.mib.get('moduleName', None),
+                    serial,
+                )
                 self._set_chassis_serial(serial, mib.mib.get('moduleName'))
 
     def _set_chassis_serial(self, serial, source):

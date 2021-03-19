@@ -55,12 +55,19 @@ def make_option_parser():
     "Makes an OptionParser instance for the program"
     parser = OptionParser(
         version="NAV " + buildconf.VERSION,
-        epilog=("This program monitors NAV's event queue and decides which "
-                "actions to take when events occur")
-        )
+        epilog=(
+            "This program monitors NAV's event queue and decides which "
+            "actions to take when events occur"
+        ),
+    )
     opt = parser.add_option
-    opt("-f", "--foreground", action="store_true", dest="foreground",
-        help="run in foreground instead of daemonizing")
+    opt(
+        "-f",
+        "--foreground",
+        action="store_true",
+        dest="foreground",
+        help="run in foreground instead of daemonizing",
+    )
 
     return parser
 
@@ -92,8 +99,9 @@ def install_signal_handlers():
 
 def sigterm_handler(signum, _frame):
     """Logs the imminent shutdown"""
-    _logger.info("--- %s received: shutting down eventengine ---",
-                 nav.daemon.signame(signum))
+    _logger.info(
+        "--- %s received: shutting down eventengine ---", nav.daemon.signame(signum)
+    )
     sys.exit(0)
 
 

@@ -64,6 +64,7 @@ SENSOR_COLUMNS = [
 
 class PDU2Mib(MibRetriever):
     """MibRetriever for Raritan PDU2"""
+
     mib = get_mib('PDU2-MIB')
 
     @defer.inlineCallbacks
@@ -86,15 +87,14 @@ class PDU2Mib(MibRetriever):
         scale = UNIT_SCALE.get(unit, 0)
         unit = UNIT_MAP.get(unit, unit)
         captable = table.replace(table[0], table[0].capitalize(), 1)
-        value_oid = self.nodes['measurements{table}Value'.format(
-            table=captable)].oid
+        value_oid = self.nodes['measurements{table}Value'.format(table=captable)].oid
         precision = row['{table}DecimalDigits'.format(table=table)] + scale
-        minimum = row['{table}Minimum'.format(table=table)] / (10.**precision)
+        minimum = row['{table}Minimum'.format(table=table)] / (10.0 ** precision)
         maximum = row['{table}Maximum'.format(table=table)]
         if maximum == 4294967295:
             maximum = None
         else:
-            maximum = maximum / (10.**precision)
+            maximum = maximum / (10.0 ** precision)
         sensor = dict(
             oid=str(value_oid + index),
             unit_of_measurement=unit,
@@ -123,11 +123,12 @@ class PDU2Mib(MibRetriever):
             inlet = inlets.get(index[:2], inlet_id)
             sensor_type = self.nodes['sensorType'].to_python(sensor_type)
             name = "pdu {pdu} inlet {inlet} {sensor}".format(
-                pdu=pdu_id, inlet=inlet, sensor=sensor_type)
+                pdu=pdu_id, inlet=inlet, sensor=sensor_type
+            )
             internal_name = "pdu{pdu}_{inlet}_{sensor}".format(
-                pdu=pdu_id, inlet=inlet, sensor=sensor_type)
-            sensor = self.get_sensor(table, index, row, name, name,
-                                     internal_name)
+                pdu=pdu_id, inlet=inlet, sensor=sensor_type
+            )
+            sensor = self.get_sensor(table, index, row, name, name, internal_name)
             result.append(sensor)
         returnValue((result, inlets))
 
@@ -140,24 +141,22 @@ class PDU2Mib(MibRetriever):
         channels = yield self.retrieve_sensor_columns(table)
         channels = self.translate_result(channels)
         pole_lines = yield self.retrieve_column('inletPoleLine')
-        pole_lines = {index: self.nodes['inletPoleLine'].to_python(value)
-                      for index, value in pole_lines.items()}
+        pole_lines = {
+            index: self.nodes['inletPoleLine'].to_python(value)
+            for index, value in pole_lines.items()
+        }
         for index, row in channels.items():
             pdu_id, inlet_id, inlet_pole_index, sensor_type = index
             inlet = inlets.get(index[:2], inlet_id)
             sensor_type = self.nodes['sensorType'].to_python(sensor_type)
-            pole_line = pole_lines.get(index[:3],
-                                       "Unknown lines %s" % inlet_pole_index)
+            pole_line = pole_lines.get(index[:3], "Unknown lines %s" % inlet_pole_index)
             name = "pdu {pdu} inlet {inlet} {pole} {sensor}".format(
-                pdu=pdu_id, inlet=inlet, sensor=sensor_type,
-                pole=pole_line)
+                pdu=pdu_id, inlet=inlet, sensor=sensor_type, pole=pole_line
+            )
             internal_name = "pdu{pdu}_{inlet}_{line}_{sensor}".format(
-                pdu=pdu_id,
-                inlet=inlet,
-                line=pole_line,
-                sensor=sensor_type)
-            sensor = self.get_sensor(table, index, row, name, name,
-                                     internal_name)
+                pdu=pdu_id, inlet=inlet, line=pole_line, sensor=sensor_type
+            )
+            sensor = self.get_sensor(table, index, row, name, name, internal_name)
             result.append(sensor)
         returnValue(result)
 
@@ -174,15 +173,16 @@ class PDU2Mib(MibRetriever):
         for index, row in channels.items():
             pdu_id, protector_index, sensor_type = index
             sensor_type = self.nodes['sensorType'].to_python(sensor_type)
-            label = labels.get(index[:2],
-                               "unlabeled protector {}".format(
-                                   protector_index))
+            label = labels.get(
+                index[:2], "unlabeled protector {}".format(protector_index)
+            )
             name = "pdu {pdu} overCurrentProtector {protector} {sensor}".format(
-                pdu=pdu_id, protector=label, sensor=sensor_type)
+                pdu=pdu_id, protector=label, sensor=sensor_type
+            )
             internal_name = "pdu{pdu}_ocp{label}_{sensor}".format(
-                pdu=pdu_id, label=label, sensor=sensor_type)
-            sensor = self.get_sensor(table, index, row, name, name,
-                                     internal_name)
+                pdu=pdu_id, label=label, sensor=sensor_type
+            )
+            sensor = self.get_sensor(table, index, row, name, name, internal_name)
             if sensor_type == 'trip':
                 sensor['unit_of_measurement'] = Sensor.UNIT_TRUTHVALUE
             result.append(sensor)

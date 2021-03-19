@@ -53,6 +53,7 @@ class TimestampChecker(object):
     table re-collection should occur.
 
     """
+
     _logger = ContextLogger()
 
     def __init__(self, agent, containers, var_name):
@@ -73,9 +74,9 @@ class TimestampChecker(object):
                            should return integer results.
 
         """
-        result = yield defer.DeferredList([
-                self.snmpv2mib.get_timestamp_and_uptime()
-                ] + list(collectors))
+        result = yield defer.DeferredList(
+            [self.snmpv2mib.get_timestamp_and_uptime()] + list(collectors)
+        )
         tup = []
         for success, value in result:
             if success:
@@ -90,6 +91,7 @@ class TimestampChecker(object):
     @defer.inlineCallbacks
     def load(self):
         """Loads existing timestamps from db"""
+
         def _deserialize():
             try:
                 info = manage.NetboxInfo.objects.get(
@@ -110,8 +112,9 @@ class TimestampChecker(object):
     def save(self):
         """Saves timestamps to a ContainerRepository"""
         netbox = self._get_netbox()
-        info = self.containers.factory((INFO_KEY_NAME, self.var_name),
-                                       shadows.NetboxInfo)
+        info = self.containers.factory(
+            (INFO_KEY_NAME, self.var_name), shadows.NetboxInfo
+        )
         info.netbox = netbox
         info.key = INFO_KEY_NAME
         info.variable = self.var_name
@@ -133,35 +136,41 @@ class TimestampChecker(object):
 
         """
         if not self.loaded_times:
-            self._logger.debug("%r: no previous collection times found",
-                               self.var_name)
+            self._logger.debug("%r: no previous collection times found", self.var_name)
             return True
 
-        old_uptime, old_times = (self.loaded_times[0],
-                                 self.loaded_times[1:])
-        new_uptime, new_times = (self.collected_times[0],
-                                 self.collected_times[1:])
-        uptime_deviation = self.snmpv2mib.get_uptime_deviation(
-            old_uptime, new_uptime)
+        old_uptime, old_times = (self.loaded_times[0], self.loaded_times[1:])
+        new_uptime, new_times = (self.collected_times[0], self.collected_times[1:])
+        uptime_deviation = self.snmpv2mib.get_uptime_deviation(old_uptime, new_uptime)
 
         if None in new_times:
-            self._logger.debug("%r: None in timestamp list: %r",
-                               self.var_name, new_times)
+            self._logger.debug(
+                "%r: None in timestamp list: %r", self.var_name, new_times
+            )
             return True
         if uptime_deviation is None:
-            self._logger.debug("%r: unable to calculate uptime deviation for "
-                               "old/new: %r/%r",
-                               self.var_name, old_times, new_times)
+            self._logger.debug(
+                "%r: unable to calculate uptime deviation for " "old/new: %r/%r",
+                self.var_name,
+                old_times,
+                new_times,
+            )
             return True
         if list(old_times) != list(new_times):
-            self._logger.debug("%r: timestamps have changed: %r / %r",
-                               self.var_name, old_times, new_times)
+            self._logger.debug(
+                "%r: timestamps have changed: %r / %r",
+                self.var_name,
+                old_times,
+                new_times,
+            )
             return True
         elif abs(uptime_deviation) > max_deviation:
-            self._logger.debug("%r: sysUpTime deviation detected, possible "
-                               "reboot", self.var_name)
+            self._logger.debug(
+                "%r: sysUpTime deviation detected, possible " "reboot", self.var_name
+            )
             return True
         else:
-            self._logger.debug("%r: timestamps appear unchanged since last run",
-                               self.var_name)
+            self._logger.debug(
+                "%r: timestamps appear unchanged since last run", self.var_name
+            )
             return False

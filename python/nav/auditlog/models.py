@@ -44,6 +44,7 @@ class LogEntry(models.Model):
         object=interface,                                      # optional
     )
     """
+
     actor_model = VarcharField()
     actor_pk = VarcharField()
     actor = LegacyGenericForeignKey('actor_model', 'actor_pk')
@@ -68,7 +69,17 @@ class LogEntry(models.Model):
     after = models.TextField(blank=True, null=True)
 
     @classmethod
-    def add_log_entry(cls, actor, verb, template, subsystem=None, object=None, target=None, before=None, after=None):
+    def add_log_entry(
+        cls,
+        actor,
+        verb,
+        template,
+        subsystem=None,
+        object=None,
+        target=None,
+        before=None,
+        after=None,
+    ):
         """LogEntry factory"""
         self = cls()
         dict = {'actor': actor, 'object': object, 'target': target}
@@ -105,7 +116,7 @@ class LogEntry(models.Model):
             u'create-{}'.format(model),
             u'{actor} created {object}',
             after=obj,
-            object=obj
+            object=obj,
         )
 
     @staticmethod
@@ -114,11 +125,7 @@ class LogEntry(models.Model):
         model = obj.__class__.__name__.lower()
         template = template or u'{actor} deleted {object}'
         LogEntry.add_log_entry(
-            actor,
-            u'delete-{}'.format(model),
-            template,
-            before=obj,
-            object=obj
+            actor, u'delete-{}'.format(model), template, before=obj, object=obj
         )
 
     @staticmethod
@@ -127,6 +134,7 @@ class LogEntry(models.Model):
 
         :type attribute: str
         """
+
         def dict_to_string(d):
             """
             {"a": "b", "c": "d"} => "a=b, c=d"
@@ -144,7 +152,8 @@ class LogEntry(models.Model):
             if isinstance(new_value, dict):
                 new_value = dict_to_string(new_value)
             summary = u"{} changed from '{}' to '{}'".format(
-                attribute, old_value, new_value)
+                attribute, old_value, new_value
+            )
         else:
             summary = u"{} changed".format(attribute)
 
@@ -154,7 +163,7 @@ class LogEntry(models.Model):
             u'{}: {}'.format(prefix, summary),
             before=old,
             after=new,
-            object=new
+            object=new,
         )
 
     @staticmethod
@@ -176,8 +185,9 @@ class LogEntry(models.Model):
             new_value = getattr(new, attribute)
             if old_value != new_value:
                 include_values = attribute not in censored_attributes
-                LogEntry.add_edit_entry(actor, old, new, attribute,
-                                        include_values=include_values)
+                LogEntry.add_edit_entry(
+                    actor, old, new, attribute, include_values=include_values
+                )
 
     def __str__(self):
         return self.summary

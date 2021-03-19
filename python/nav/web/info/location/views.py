@@ -18,7 +18,7 @@
 import logging
 
 from django.db.models import Q
-from django.shortcuts import (redirect, render, get_object_or_404)
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 
 from nav.models.manage import Location
@@ -34,15 +34,20 @@ _logger = logging.getLogger('nav.web.info.location')
 
 class LocationSearchForm(SearchForm):
     """Searchform for locations"""
+
     def __init__(self, *args, **kwargs):
         super(LocationSearchForm, self).__init__(
-            *args, form_action='location-search', placeholder='Location', **kwargs)
+            *args, form_action='location-search', placeholder='Location', **kwargs
+        )
 
 
 def get_path():
     """Get the path for this subsystem"""
-    return [('Home', '/'), ('Search', reverse('info-search')),
-            ('Location', reverse('location-search'))]
+    return [
+        ('Home', '/'),
+        ('Search', reverse('info-search')),
+        ('Location', reverse('location-search')),
+    ]
 
 
 def search(request):
@@ -67,7 +72,7 @@ def search(request):
             "searchform": searchform,
             "locations": locations,
             "navpath": navpath,
-            "title": create_title(titles)
+            "title": create_title(titles),
         },
     )
 
@@ -79,9 +84,9 @@ def process_searchform(form):
         return Location.objects.all()
     else:
         return Location.objects.filter(
-            Q(id__icontains=query) |
-            Q(description__icontains=query) |
-            Q(location__id__icontains=query)
+            Q(id__icontains=query)
+            | Q(description__icontains=query)
+            | Q(location__id__icontains=query)
         ).order_by("id")
 
 
@@ -98,8 +103,8 @@ def locationinfo(request, locationid):
             "location": location,
             "navpath": navpath,
             "images": location.image_set.all(),
-            "title": create_title(navpath)
-        }
+            "title": create_title(navpath),
+        },
     )
 
 
@@ -108,9 +113,8 @@ def upload_image(request, locationid):
 
     location = get_object_or_404(Location, pk=locationid)
     navpath = get_path() + [
-        (location.id,
-         reverse('location-info', kwargs={'locationid': location.id})),
-        ('Edit images',)
+        (location.id, reverse('location-info', kwargs={'locationid': location.id})),
+        ('Edit images',),
     ]
 
     if request.method == 'POST':
@@ -121,8 +125,5 @@ def upload_image(request, locationid):
     return render(
         request,
         "info/location/upload.html",
-        {
-            "object": location, "navpath": navpath,
-            "title": create_title(navpath)
-        }
+        {"object": location, "navpath": navpath, "title": create_title(navpath)},
     )

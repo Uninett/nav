@@ -20,35 +20,32 @@ from nav.web.networkexplorer import views
 
 
 urlpatterns = [
-    url(r'^$',
-        views.IndexView.as_view(),
-        name='networkexplorer-index'),
-
-    url(r'^search/$',
-        views.SearchView.as_view(),
-        name="networkexplorer-search"),
-
-    url(r'^routers/$',
-        views.RouterJSONView.as_view(),
-        name='networkexplorer-routers'),
-
-    url(r'^expand/router/(?P<pk>\d+)/$',
+    url(r'^$', views.IndexView.as_view(), name='networkexplorer-index'),
+    url(r'^search/$', views.SearchView.as_view(), name="networkexplorer-search"),
+    url(r'^routers/$', views.RouterJSONView.as_view(), name='networkexplorer-routers'),
+    url(
+        r'^expand/router/(?P<pk>\d+)/$',
         views.ExpandRouterView.as_view(),
-        name='networkexplorer-expand-router'),
-
-    url(r'^expand/gwport/(?P<pk>\d+)/$',
+        name='networkexplorer-expand-router',
+    ),
+    url(
+        r'^expand/gwport/(?P<pk>\d+)/$',
         views.ExpandGWPortView.as_view(),
-        name='networkexplorer-expand-gwport'),
-
-    url(r'^expand/switch/(?P<pk>\d+)/$',
+        name='networkexplorer-expand-gwport',
+    ),
+    url(
+        r'^expand/switch/(?P<pk>\d+)/$',
         views.ExpandSwitchView.as_view(),
-        name='networkexplorer-expand-switch'),
-
-    url(r'^expand/switch/(?P<pk>\d+)/vlan/(?P<vlan_id>\d+)/$',
+        name='networkexplorer-expand-switch',
+    ),
+    url(
+        r'^expand/switch/(?P<pk>\d+)/vlan/(?P<vlan_id>\d+)/$',
         views.ExpandSwitchView.as_view(),
-        name='networkexplorer-expand-switch-vlan'),
-
-    url(r'^expand/swport/(?P<pk>\d+)/$',
+        name='networkexplorer-expand-switch-vlan',
+    ),
+    url(
+        r'^expand/swport/(?P<pk>\d+)/$',
         views.ExpandSWPortView.as_view(),
-        name='networkexplorer-expand-swport'),
+        name='networkexplorer-expand-swport',
+    ),
 ]

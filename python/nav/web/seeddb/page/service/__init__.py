@@ -43,32 +43,46 @@ class ServiceInfo(SeeddbInfo):
 
 
 def service(request):
-    return view_switcher(request,
-                         list_view=service_list,
-                         move_view=not_implemented,
-                         delete_view=service_delete)
+    return view_switcher(
+        request,
+        list_view=service_list,
+        move_view=not_implemented,
+        delete_view=service_delete,
+    )
 
 
 def service_list(request):
     info = ServiceInfo()
     query = Service.objects.all()
     value_list = ('netbox__sysname', 'handler', 'version')
-    return render_list(request, query, value_list, 'seeddb-service-edit',
-                       extra_context=info.template_context,
-                       add_descriptions=True)
+    return render_list(
+        request,
+        query,
+        value_list,
+        'seeddb-service-edit',
+        extra_context=info.template_context,
+        add_descriptions=True,
+    )
 
 
 def service_delete(request, object_id=None):
     info = ServiceInfo()
-    return render_delete(request, Service, 'seeddb-service',
-                         whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context,
-                         object_id=object_id)
+    return render_delete(
+        request,
+        Service,
+        'seeddb-service',
+        whitelist=SEEDDB_EDITABLE_MODELS,
+        extra_context=info.template_context,
+        object_id=object_id,
+    )
 
 
 def service_bulk(request):
     info = ServiceInfo()
     return render_bulkimport(
-        request, ServiceBulkParser, ServiceImporter,
+        request,
+        ServiceBulkParser,
+        ServiceImporter,
         'seeddb-service',
-        extra_context=info.template_context)
+        extra_context=info.template_context,
+    )
