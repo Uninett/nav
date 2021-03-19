@@ -185,6 +185,13 @@ you ``git commit``, your code will be automatically formatted using Black, and
 the commit will fail, so that you can inspect the changes before attempting to
 commit again.
 
+.. note:: Legacy NAV code was reformatted using Black in revision
+          ``e6634e512c8ecf283c85a701366620e724806ab7``. The reformatting
+          changes can be ignored by ``git blame`` if you have at least Git
+          2.23. See `this blog post for more information
+          <https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame>`_.
+          *TL;DR*: Run :samp:`git config blame.ignoreRevsFile
+          .git-blame-ignore-revs`
 
 Python boilerplate headers
 --------------------------
