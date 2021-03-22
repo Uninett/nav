@@ -105,9 +105,16 @@ class QBridgeMib(mibretriever.MibRetriever):
             result.append((mac, port))
         defer.returnValue(result)
 
+    @defer.inlineCallbacks
     def get_vlan_static_names(self):
-        df = self.retrieve_column('dot1qVlanStaticName')
-        return df.addCallback(reduce_index)
+        names = yield self.retrieve_column('dot1qVlanStaticName').addCallback(
+            reduce_index
+        )
+        # Workaround for faulty SNMP agents: strip null bytes
+        for key, value in names.items():
+            if isinstance(value, str) and "\x00" in value:
+                names[key] = value.replace("\x00", "")
+        defer.returnValue(names)
 
 
 def filter_newest_current_entries(dot1qvlancurrenttable):
