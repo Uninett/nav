@@ -61,6 +61,9 @@ filter = topology
 [bgp]
 alert_ibgp = yes
 
+[interfaces]
+always_use_ifhighspeed = false
+
 [sensors]
 loadmodules = nav.mibs.*
 

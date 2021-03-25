@@ -738,7 +738,9 @@ class NetboxEntity(models.Model):
 
     def _get_applicable_software_revision(self):
         """Gets an aggregated software revision for this entity"""
-        if self.netbox.type.vendor.id == 'cisco':
+        from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
+
+        if self.netbox.type.get_enterprise_id() == VENDOR_ID_CISCOSYSTEMS:
             return self._get_cisco_sup_software_version()
 
     def _get_cisco_sup_software_version(self):

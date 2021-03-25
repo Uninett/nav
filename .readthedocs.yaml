@@ -1,0 +1,14 @@
+version: 2
+
+sphinx:
+    configuration: doc/conf.py
+    builder: html
+
+python:
+    version: 3.7
+    install:
+      - requirements: doc/requirements.txt
+      - method: pip
+        path: .
+        extra_requirements:
+          - setuptools_scm
