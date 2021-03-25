@@ -11,7 +11,6 @@ twisted>=16.6.0,<18
 networkx>=2.2,<2.3
 Pillow>3.3.2,<8.1
 pyrad==2.1
-python-ldap==3.0.0 # optional for LDAP authentication, requires libldap (OpenLDAP) to build
 sphinx==3.3.1
 feedparser>=5.2.1,<5.3
 markdown==2.5.1
