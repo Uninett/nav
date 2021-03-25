@@ -21,6 +21,7 @@ Packages:
 
 """
 from nav.models import manage
+from nav.ipdevpoll.config import IpdevpollConfig
 from .log import ContextLogger, ContextFormatter
 
 
@@ -34,7 +35,7 @@ class Plugin(object):
     _logger = ContextLogger()
     RESTRICT_TO_VENDORS = []
 
-    def __init__(self, netbox, agent, containers, config=None):
+    def __init__(self, netbox, agent, containers, config:IpdevpollConfig = None):
         """
 
         :type netbox: nav.ipdevpoll.shadows.Netbox

@@ -92,13 +92,15 @@ class Interfaces(Plugin):
         interface.ifdescr = row['ifDescr']
         interface.iftype = row['ifType']
 
-        # ifSpeed spec says to use ifHighSpeed if the 32-bit unsigned
-        # integer is maxed out
-        if isinstance(row['ifSpeed'], int):
-            if row['ifSpeed'] < 4294967295:
-                interface.speed = row['ifSpeed'] / 1000000.0
-            elif isinstance(row['ifHighSpeed'], int):
-                interface.speed = float(row['ifHighSpeed'])
+        speed = self._extract_interface_speed(
+            row["ifSpeed"],
+            row["ifHighSpeed"],
+            always_use_highspeed=self.config.getboolean(
+                "interfaces", "always_use_ifhighspeed"
+            ),
+        )
+        if speed is not None:
+            interface.speed = interface.speed
 
         interface.ifphysaddress = typesafe_binary_mac_to_hex(row['ifPhysAddress'])
         interface.ifadminstatus = row['ifAdminStatus']
@@ -116,6 +118,28 @@ class Interfaces(Plugin):
 
         interface.netbox = netbox
         return interface
+
+    @staticmethod
+    def _extract_interface_speed(speed, highspeed, always_use_highspeed=False):
+        """Determines the interface speed from a combination of ifSpeed and ifHighSpeed
+        values.
+
+        The IF-MIB spec says to use the ifHighSpeed value if the 32-bit unsigned
+        ifSpeed value is maxed out. However, some devices, like Cisco SG350X-24T
+        running 2.5.5.47 firmware, have an incorrect implementation that causes
+        ifSpeed=ifHighSpeed.
+
+        Yet other buggy implementations even have no discernable correlation between
+        the two values, and only their ifHighSpeed value can be trusted.
+        """
+        if always_use_highspeed and isinstance(highspeed, int):
+            return float(highspeed)
+
+        if isinstance(speed, int):
+            if 4294967295 > speed != highspeed:
+                return speed / 1000000.0
+            elif isinstance(highspeed, int):
+                return float(highspeed)
 
     @defer.inlineCallbacks
     def _get_stack_status(self, interfaces):
