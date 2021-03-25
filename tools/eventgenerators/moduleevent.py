@@ -29,17 +29,27 @@ def handler(cursor, boxlist, state):
                    (source, target, deviceid, netboxid, subid, eventtypeid,
                     state,severity)
                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-        cursor.execute(sql, ('moduleMon', 'eventEngine', deviceid,
-                             netboxid, subid, 'moduleState', state, 100))
+        cursor.execute(
+            sql,
+            (
+                'moduleMon',
+                'eventEngine',
+                deviceid,
+                netboxid,
+                subid,
+                'moduleState',
+                state,
+                100,
+            ),
+        )
 
 
 def main():
-    if (len(sys.argv) <= 2):
-        print("Not enough arguments (%d), <match spec> <up|down>" % (
-            len(sys.argv),))
+    if len(sys.argv) <= 2:
+        print("Not enough arguments (%d), <match spec> <up|down>" % (len(sys.argv),))
         sys.exit(0)
 
-    connection = db.getConnection('getDeviceData','manage')
+    connection = db.getConnection('getDeviceData', 'manage')
     cursor = connection.cursor()
 
     netboxes = []
@@ -55,8 +65,7 @@ def main():
 
         box, module = spec.split(":")
         cursor.execute(sql, (box, module))
-        for (deviceid, netboxid, moduleid,
-             sysname, modulename) in cursor.fetchall():
+        for (deviceid, netboxid, moduleid, sysname, modulename) in cursor.fetchall():
             if not deviceid in device_dupes:
                 netboxes.append((deviceid, netboxid, moduleid))
                 sysnames.append((sysname, modulename))
@@ -70,10 +79,11 @@ def main():
         print("Unknown state: " + sys.argv[-1])
         sys.exit(0)
 
-    updown = "up" if (state=="e") else "down"
+    updown = "up" if (state == "e") else "down"
     print("Modules going %s: %r" % (updown, sysnames))
     handler(cursor, netboxes, state)
     connection.commit()
+
 
 if __name__ == '__main__':
     main()

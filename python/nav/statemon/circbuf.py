@@ -26,7 +26,7 @@ added, the first item is removed.
 class CircBuf(object):
     def __init__(self, size=10, *_args, **_kwargs):
         self._size = size
-        self._data = [None]*self._size
+        self._data = [None] * self._size
 
     def push(self, value):
         self._data.pop()
@@ -43,4 +43,4 @@ class CircBuf(object):
 
     def reset_all_to(self, value):
         """Resets all slots in the buffer to value"""
-        self._data = [value]*self._size
+        self._data = [value] * self._size

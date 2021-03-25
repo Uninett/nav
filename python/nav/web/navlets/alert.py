@@ -28,8 +28,10 @@ class AlertWidget(Navlet):
     is_editable = True
     is_title_editable = True
     ajax_reload = True
-    description = 'Displays the state of a metric, for instance if ' \
-                  'a security system is on or off.'
+    description = (
+        'Displays the state of a metric, for instance if '
+        'a security system is on or off.'
+    )
     refresh_interval = 30000  # 30 seconds
 
     def get_template_basename(self):
@@ -59,7 +61,8 @@ class AlertWidget(Navlet):
             if not metric:
                 return context
             context['data_url'] = get_simple_graph_url(
-                metric, time_frame='10minutes', format='json')
+                metric, time_frame='10minutes', format='json'
+            )
             context.update(self.preferences)
         return context
 

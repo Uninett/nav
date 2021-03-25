@@ -12,12 +12,11 @@ from nav.models.fields import LegacyGenericForeignKey
 
 
 class LegacyGenericForeignKeyTest(DjangoTransactionTestCase):
-
     def setUp(self):
 
         self.task = MaintenanceTask(
-            start_time=dt(2018,1,1),
-            end_time=dt(2018,12,1),
+            start_time=dt(2018, 1, 1),
+            end_time=dt(2018, 12, 1),
             description='blbl',
             author='barbar',
             state=MaintenanceTask.STATE_ACTIVE,

@@ -22,8 +22,15 @@ from django.urls import reverse
 
 from IPy import IP
 
-from nav.models.manage import (Room, Location, Netbox, Interface, Vlan,
-                               UnrecognizedNeighbor, NetboxGroup)
+from nav.models.manage import (
+    Room,
+    Location,
+    Netbox,
+    Interface,
+    Vlan,
+    UnrecognizedNeighbor,
+    NetboxGroup,
+)
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.views import is_valid_hostname
 from nav.web.info.prefix.views import get_query_results as get_prefix_results
@@ -44,9 +51,7 @@ class SearchProvider(object):
     name = "SearchProvider"
     """Used as the caption of results from this provider"""
 
-    headers = (
-        ('Column title', 'result instance attribute name'),
-    )
+    headers = (('Column title', 'result instance attribute name'),)
     """Defines the result table columns; what the column titles should be,
     and which attribute from the SearchResult.inst object to extract the
     values for this column from. """
@@ -72,45 +77,41 @@ class SearchProvider(object):
 
 class RoomSearchProvider(SearchProvider):
     """Searchprovider for rooms"""
+
     name = "Rooms"
-    headers = [
-        ('Roomid', 'id'),
-        ('Description', 'description')
-    ]
+    headers = [('Roomid', 'id'), ('Description', 'description')]
     link = 'Roomid'
 
     def fetch_results(self):
         results = Room.objects.filter(id__icontains=self.query).order_by("id")
         for result in results:
-            self.results.append(SearchResult(
-                reverse('room-info', kwargs={'roomid': result.id}),
-                result)
+            self.results.append(
+                SearchResult(reverse('room-info', kwargs={'roomid': result.id}), result)
             )
 
 
 class LocationSearchProvider(SearchProvider):
     """Searchprovider for locations"""
+
     name = "Locations"
-    headers = [
-        ('Locationid', 'id'),
-        ('Description', 'description')
-    ]
+    headers = [('Locationid', 'id'), ('Description', 'description')]
     link = 'Locationid'
 
     def fetch_results(self):
         results = Location.objects.filter(id__icontains=self.query).order_by("id")
         for result in results:
-            self.results.append(SearchResult(
-                reverse('location-info', kwargs={'locationid': result.id}),
-                result)
+            self.results.append(
+                SearchResult(
+                    reverse('location-info', kwargs={'locationid': result.id}), result
+                )
             )
 
 
 class NetboxSearchProvider(SearchProvider):
     """Searchprovider for netboxes"""
+
     name = "IP devices"
-    headers = [('Sysname', 'sysname'),
-               ('IP', 'ip')]
+    headers = [('Sysname', 'sysname'), ('IP', 'ip')]
     link = 'Sysname'
 
     def fetch_results(self):
@@ -121,15 +122,19 @@ class NetboxSearchProvider(SearchProvider):
 
         results.order_by("sysname")
         for result in results:
-            self.results.append(SearchResult(
-                reverse('ipdevinfo-details-by-name',
-                        kwargs={'name': result.sysname}),
-                result)
+            self.results.append(
+                SearchResult(
+                    reverse(
+                        'ipdevinfo-details-by-name', kwargs={'name': result.sysname}
+                    ),
+                    result,
+                )
             )
 
 
 class InterfaceSearchProvider(SearchProvider):
     """Searchprovider for interfaces"""
+
     name = "Interfaces"
     headers = [
         ('IP Device', 'netbox.sysname'),
@@ -140,17 +145,21 @@ class InterfaceSearchProvider(SearchProvider):
 
     def fetch_results(self):
         results = Interface.objects.filter(
-            Q(ifalias__icontains=self.query) |
-            Q(ifname__icontains=self.query)
+            Q(ifalias__icontains=self.query) | Q(ifname__icontains=self.query)
         ).order_by('netbox__sysname', 'ifindex')
 
         for result in results:
-            self.results.append(SearchResult(
-                reverse('ipdevinfo-interface-details', kwargs={
-                    'netbox_sysname': result.netbox.sysname,
-                    'port_id': result.id
-                }),
-                result)
+            self.results.append(
+                SearchResult(
+                    reverse(
+                        'ipdevinfo-interface-details',
+                        kwargs={
+                            'netbox_sysname': result.netbox.sysname,
+                            'port_id': result.id,
+                        },
+                    ),
+                    result,
+                )
             )
 
 
@@ -161,21 +170,24 @@ class FallbackSearchProvider(SearchProvider):
     1 - if ip, send to ipdevinfos name lookup
     2 - if valid text based on ipdevinfos regexp, send to ipdevinfo
     """
+
     name = "Fallback"
 
     def fetch_results(self):
         ip_address = is_valid_ip(self.query)
         if ip_address:
-            self.results.append(SearchResult(
-                reverse('ipdevinfo-details-by-addr',
-                        kwargs={'addr': ip_address}),
-                None)
+            self.results.append(
+                SearchResult(
+                    reverse('ipdevinfo-details-by-addr', kwargs={'addr': ip_address}),
+                    None,
+                )
             )
         elif is_valid_hostname(self.query):
-            self.results.append(SearchResult(
-                reverse('ipdevinfo-details-by-name',
-                        kwargs={'name': self.query}),
-                None)
+            self.results.append(
+                SearchResult(
+                    reverse('ipdevinfo-details-by-name', kwargs={'name': self.query}),
+                    None,
+                )
             )
 
 
@@ -187,23 +199,31 @@ class VlanSearchProvider(SearchProvider):
         ('Vlan', 'vlan'),
         ('Type', 'net_type'),
         ('Netident', 'net_ident'),
-        ('Description', 'description')
+        ('Description', 'description'),
     ]
     link = 'Vlan'
 
     def fetch_results(self):
-        results = Vlan.objects.exclude(net_type='loopback').filter(
-            Q(vlan__contains=self.query) | Q(net_ident__icontains=self.query) |
-            Q(net_type__description__icontains=self.query)).order_by('vlan')
+        results = (
+            Vlan.objects.exclude(net_type='loopback')
+            .filter(
+                Q(vlan__contains=self.query)
+                | Q(net_ident__icontains=self.query)
+                | Q(net_type__description__icontains=self.query)
+            )
+            .order_by('vlan')
+        )
         for result in results:
-            self.results.append(SearchResult(
-                reverse('vlan-details', kwargs={'vlanid': result.id}),
-                result)
+            self.results.append(
+                SearchResult(
+                    reverse('vlan-details', kwargs={'vlanid': result.id}), result
+                )
             )
 
 
 class PrefixSearchProvider(SearchProvider):
     """Searchprovider for prefixes"""
+
     name = "Prefix"
     headers = [('Prefix', 'net_address'), ('Vlan', 'vlan')]
     link = 'Prefix'
@@ -215,12 +235,15 @@ class PrefixSearchProvider(SearchProvider):
         except ValueError:
             pass
         else:
-            self.results = [SearchResult(p.get_absolute_url(), p)
-                            for p in get_prefix_results(self.query)]
+            self.results = [
+                SearchResult(p.get_absolute_url(), p)
+                for p in get_prefix_results(self.query)
+            ]
 
 
 class UnrecognizedNeighborSearchProvider(SearchProvider):
     """Search provider for Unrecognized neighbor entries"""
+
     name = u"Unrecognized neighbors"
     headers = [
         ('Remote id', 'remote_id'),
@@ -232,8 +255,7 @@ class UnrecognizedNeighborSearchProvider(SearchProvider):
 
     def fetch_results(self):
         results = UnrecognizedNeighbor.objects.filter(
-            Q(remote_id__contains=self.query) |
-            Q(remote_name__contains=self.query)
+            Q(remote_id__contains=self.query) | Q(remote_name__contains=self.query)
         ).order_by('remote_id', 'remote_name')
 
         self.results = [
@@ -244,16 +266,15 @@ class UnrecognizedNeighborSearchProvider(SearchProvider):
 
 class DevicegroupSearchProvider(SearchProvider):
     """Searchprovider for device group entries"""
+
     name = u"Device groups"
-    headers = [
-        ('Device Group', 'id'),
-        ('# netboxes', 'num_netboxes')
-    ]
+    headers = [('Device Group', 'id'), ('# netboxes', 'num_netboxes')]
     link = 'Device Group'
 
     def fetch_results(self):
-        self.results = [SearchResult(g.get_absolute_url(), g)
-                        for g in NetboxGroup.objects
-                        .filter(id__icontains=self.query)
-                        .order_by('id')
-                        .annotate(num_netboxes=Count('netbox'))]
+        self.results = [
+            SearchResult(g.get_absolute_url(), g)
+            for g in NetboxGroup.objects.filter(id__icontains=self.query)
+            .order_by('id')
+            .annotate(num_netboxes=Count('netbox'))
+        ]

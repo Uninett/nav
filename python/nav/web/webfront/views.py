@@ -22,11 +22,14 @@ import json
 import logging
 from operator import attrgetter
 
-from django.http import (HttpResponseForbidden, HttpResponseRedirect,
-                         HttpResponse, JsonResponse)
+from django.http import (
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+    HttpResponse,
+    JsonResponse,
+)
 from django.views.decorators.http import require_POST
-from django.views.decorators.debug import (sensitive_variables,
-                                           sensitive_post_parameters)
+from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.http import urlquote
@@ -41,12 +44,20 @@ from nav.web.auth import logout as auth_logout
 from nav.web import ldapauth, auth
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
-from nav.web.webfront.forms import (LoginForm, NavbarLinkFormSet,
-                                    ChangePasswordForm, ColumnsForm)
+from nav.web.webfront.forms import (
+    LoginForm,
+    NavbarLinkFormSet,
+    ChangePasswordForm,
+    ColumnsForm,
+)
 from nav.web.navlets import list_navlets, can_modify_navlet
 from nav.web.message import new_message, Messages
-from nav.web.webfront import (get_widget_columns, find_dashboard,
-                              WELCOME_ANONYMOUS_PATH, WELCOME_REGISTERED_PATH)
+from nav.web.webfront import (
+    get_widget_columns,
+    find_dashboard,
+    WELCOME_ANONYMOUS_PATH,
+    WELCOME_REGISTERED_PATH,
+)
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -79,26 +90,24 @@ def index(request, did=None):
         next_index = current_index + 1
         if current_index == len(dashboard_ids) - 1:
             next_index = 0
-        context.update({
-            'previous_dashboard': dashboards.get(pk=dashboard_ids[previous_index]),
-            'next_dashboard': dashboards.get(pk=dashboard_ids[next_index])
-        })
+        context.update(
+            {
+                'previous_dashboard': dashboards.get(pk=dashboard_ids[previous_index]),
+                'next_dashboard': dashboards.get(pk=dashboard_ids[next_index]),
+            }
+        )
 
-    return render(
-        request,
-        'webfront/index.html',
-        context
-    )
+    return render(request, 'webfront/index.html', context)
 
 
 def export_dashboard(request, did):
     """Export dashboard as JSON."""
-    dashboard = get_object_or_404(AccountDashboard, pk=did,
-                                  account=request.account)
+    dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
 
     response = JsonResponse(dashboard.to_json_dict())
     response['Content-Disposition'] = 'attachment; filename={name}.json'.format(
-        name=urlquote(dashboard.name))
+        name=urlquote(dashboard.name)
+    )
     return response
 
 
@@ -135,8 +144,7 @@ def import_dashboard(request):
                     raise ValueError()
                 if not isinstance(data[field], dtype):
                     raise ValueError()
-            dashboard = AccountDashboard(account=request.account,
-                                         name=data['name'])
+            dashboard = AccountDashboard(account=request.account, name=data['name'])
             dashboard.num_columns = data['num_columns']
             widgets = []
             for widget in data['widgets']:
@@ -149,25 +157,20 @@ def import_dashboard(request):
                         raise ValueError()
                     if widget['column'] > dashboard.num_columns:
                         raise ValueError()
-                widget = {k: v for k, v in widget.items()
-                          if k in widget_fields}
+                widget = {k: v for k, v in widget.items() if k in widget_fields}
                 widgets.append(widget)
             dashboard.save()
             for widget in widgets:
-                dashboard.widgets.create(account=request.account,
-                                         **widget)
+                dashboard.widgets.create(account=request.account, **widget)
             dashboard.save()
-            response['location'] = reverse('dashboard-index-id',
-                                           args=(dashboard.id,))
+            response['location'] = reverse('dashboard-index-id', args=(dashboard.id,))
         except ValueError:
             _logger.exception('Failed to parse dashboard file for import')
-            return JsonResponse({
-                'error': "File is not a valid dashboard file",
-            }, status=400)
+            return JsonResponse(
+                {'error': "File is not a valid dashboard file",}, status=400
+            )
     else:
-        return JsonResponse({
-            'error': "You need to provide a file",
-        }, status=400)
+        return JsonResponse({'error': "You need to provide a file",}, status=400)
     return JsonResponse(response)
 
 
@@ -182,8 +185,10 @@ def login(request):
         if request.account.is_default_account():
             errors = ['You need to log in to access this resource']
         else:
-            errors = ['You have insufficient privileges to access this '
-                      'resource. Please log in as another user.']
+            errors = [
+                'You have insufficient privileges to access this '
+                'resource. Please log in as another user.'
+            ]
     else:
         errors = []
 
@@ -194,7 +199,7 @@ def login(request):
             'form': LoginForm(initial={'origin': origin}),
             'origin': origin,
             'errors': errors,
-        }
+        },
     )
 
 
@@ -216,7 +221,8 @@ def do_login(request):
         else:
             if account:
                 LogEntry.add_log_entry(
-                    account, 'log-in', '{actor} logged in', before=account)
+                    account, 'log-in', '{actor} logged in', before=account
+                )
 
                 try:
                     request.session[ACCOUNT_ID_VAR] = account.id
@@ -230,18 +236,15 @@ def do_login(request):
                     return HttpResponseRedirect(origin)
             else:
                 _logger.info("failed login: %r", username)
-                errors.append('Username or password is incorrect, or the '
-                              'account is locked.')
+                errors.append(
+                    'Username or password is incorrect, or the ' 'account is locked.'
+                )
 
     # Something went wrong. Display login page with errors.
     return render(
         request,
         'webfront/login.html',
-        {
-            'form': form,
-            'errors': errors,
-            'origin': origin,
-        }
+        {'form': form, 'errors': errors, 'origin': origin,},
     )
 
 
@@ -256,10 +259,7 @@ def about(request):
     return render(
         request,
         'webfront/about.html',
-        {
-            'navpath': [('Home', '/'), ('About', None)],
-            'title': 'About NAV',
-        }
+        {'navpath': [('Home', '/'), ('About', None)], 'title': 'About NAV',},
     )
 
 
@@ -295,12 +295,16 @@ def _create_preference_context(request):
         'title': 'Personal NAV preferences',
         'password_form': password_form,
         'columns_form': ColumnsForm(
-            initial={'num_columns': get_widget_columns(account)}),
+            initial={'num_columns': get_widget_columns(account)}
+        ),
         'account': account,
-        'tool': {'name': 'My account',
-                 'description': 'Edit my personal NAV account settings'},
+        'tool': {
+            'name': 'My account',
+            'description': 'Edit my personal NAV account settings',
+        },
         'navbar_formset': NavbarLinkFormSet(
-            queryset=NavbarLink.objects.filter(account=account)),
+            queryset=NavbarLink.objects.filter(account=account)
+        ),
     }
 
     return context
@@ -310,11 +314,7 @@ def preferences(request):
     """ My preferences """
     context = _create_preference_context(request)
 
-    return render(
-        request,
-        'webfront/preferences.html',
-        context
-    )
+    return render(request, 'webfront/preferences.html', context)
 
 
 @sensitive_post_parameters('old_password', 'new_password1', 'new_password2')
@@ -332,15 +332,12 @@ def change_password(request):
         if password_form.is_valid():
             account.set_password(password_form.cleaned_data['new_password1'])
             account.save()
-            new_message(request, 'Your password has been changed.',
-                        type=Messages.SUCCESS)
+            new_message(
+                request, 'Your password has been changed.', type=Messages.SUCCESS
+            )
         else:
             context['password_form'] = password_form
-            return render(
-                request,
-                'webfront/preferences.html',
-                context
-            )
+            return render(request, 'webfront/preferences.html', context)
 
     return HttpResponseRedirect(reverse('webfront-preferences'))
 
@@ -362,16 +359,11 @@ def save_links(request):
             for instance in instances:
                 instance.account = account
                 instance.save()
-            new_message(request, 'Your links were saved.',
-                        type=Messages.SUCCESS)
+            new_message(request, 'Your links were saved.', type=Messages.SUCCESS)
         else:
             context['navbar_formset'] = formset
 
-            return render(
-                request,
-                'webfront/preferences.html',
-                context
-            )
+            return render(request, 'webfront/preferences.html', context)
 
     return HttpResponseRedirect(reverse('webfront-preferences'))
 
@@ -383,8 +375,7 @@ def set_widget_columns(request):
         if form.is_valid():
             account = request.account
             num_columns = form.cleaned_data.get('num_columns')
-            account.preferences[
-                account.PREFERENCE_KEY_WIDGET_COLUMNS] = num_columns
+            account.preferences[account.PREFERENCE_KEY_WIDGET_COLUMNS] = num_columns
             account.save()
             return HttpResponseRedirect(reverse('webfront-index'))
     return HttpResponseRedirect(reverse('webfront-preferences'))
@@ -403,8 +394,9 @@ def set_default_dashboard(request, did):
     """Set the default dashboard for the user"""
     dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
     try:
-        old_default = AccountDashboard.objects.get(account=request.account,
-                                                   is_default=True)
+        old_default = AccountDashboard.objects.get(
+            account=request.account, is_default=True
+        )
     except AccountDashboard.DoesNotExist:
         # No previous default
         old_default = None
@@ -414,8 +406,7 @@ def set_default_dashboard(request, did):
     if old_default:
         old_default.is_default = False
         old_default.save()
-    return HttpResponse(
-        u'Default dashboard set to «{}»'.format(dash.name))
+    return HttpResponse(u'Default dashboard set to «{}»'.format(dash.name))
 
 
 @require_POST
@@ -430,13 +421,11 @@ def add_dashboard(request):
 @require_POST
 def delete_dashboard(request, did):
     """Delete this dashboard and all widgets on it"""
-    is_last = AccountDashboard.objects.filter(
-        account=request.account).count() == 1
+    is_last = AccountDashboard.objects.filter(account=request.account).count() == 1
     if is_last:
         return HttpResponse('Can not delete last dashboard', status=400)
 
-    dash = get_object_or_404(AccountDashboard, pk=did,
-                             account=request.account)
+    dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
     dash.delete()
 
     return HttpResponse('Dashboard deleted')
@@ -445,12 +434,10 @@ def delete_dashboard(request, did):
 @require_POST
 def rename_dashboard(request, did):
     """Rename this dashboard"""
-    dash = get_object_or_404(AccountDashboard, pk=did,
-                             account=request.account)
+    dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
     dash.name = request.POST.get('dashboard-name', dash.name)
     dash.save()
-    return HttpResponse(
-        u'Dashboard renamed to «{}»'.format(dash.name))
+    return HttpResponse(u'Dashboard renamed to «{}»'.format(dash.name))
 
 
 @require_POST
@@ -458,8 +445,7 @@ def save_dashboard_columns(request, did):
     """Save the number of columns for this dashboard"""
 
     # Explicit fetch on account to prevent other people to change settings
-    dashboard = get_object_or_404(AccountDashboard, pk=did,
-                                  account=request.account)
+    dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
     dashboard.num_columns = request.POST.get('num_columns', 3)
     dashboard.save()
     return HttpResponse()
@@ -471,8 +457,9 @@ def moveto_dashboard(request, did):
     """Move a widget to this dashboard"""
     account = request.account
     dashboard = get_object_or_404(AccountDashboard, account=account, pk=did)
-    widget = get_object_or_404(AccountNavlet, account=account,
-                               pk=request.POST.get('widget_id'))
+    widget = get_object_or_404(
+        AccountNavlet, account=account, pk=request.POST.get('widget_id')
+    )
     widget.dashboard = dashboard
     widget.save()
     return HttpResponse(u'Widget moved to {}'.format(dashboard))

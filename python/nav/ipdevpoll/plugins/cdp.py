@@ -42,6 +42,7 @@ class CDP(Plugin):
     device.
 
     """
+
     neighbors = None
 
     @classmethod
@@ -53,8 +54,7 @@ class CDP(Plugin):
 
     @classmethod
     def _has_interfaces(cls, netbox):
-        return manage.Interface.objects.filter(
-            netbox__id=netbox.id).count() > 0
+        return manage.Interface.objects.filter(netbox__id=netbox.id).count() > 0
 
     @defer.inlineCallbacks
     def handle(self):
@@ -106,7 +106,7 @@ class CDP(Plugin):
             manage.NetboxInfo.cache_get,
             self.netbox,
             INFO_KEY_NAME,
-            INFO_VAR_NEIGHBORS_CACHE
+            INFO_VAR_NEIGHBORS_CACHE,
         )
         defer.returnValue(value)
 
@@ -118,7 +118,7 @@ class CDP(Plugin):
             self.netbox,
             INFO_KEY_NAME,
             INFO_VAR_NEIGHBORS_CACHE,
-            neighbors
+            neighbors,
         )
 
     def _process_neighbors(self):
@@ -127,15 +127,16 @@ class CDP(Plugin):
         """
         neighbors = [CDPNeighbor(cdp, self.netbox.ip) for cdp in self.neighbors]
 
-        self._process_identified(
-            [n for n in neighbors if n.identified])
-        self._process_unidentified(
-            [n.record for n in neighbors if not n.identified])
+        self._process_identified([n for n in neighbors if n.identified])
+        self._process_unidentified([n.record for n in neighbors if not n.identified])
 
     def _process_identified(self, identified):
         for neigh in identified:
-            self._logger.debug("identified neighbor %r from %r",
-                               (neigh.netbox, neigh.interfaces), neigh.record)
+            self._logger.debug(
+                "identified neighbor %r from %r",
+                (neigh.netbox, neigh.interfaces),
+                neigh.record,
+            )
 
             self._store_candidates(neigh)
 
@@ -150,11 +151,13 @@ class CDP(Plugin):
         ifc = self.containers.factory(ifindex, shadows.Interface)
         ifc.ifindex = ifindex
 
-        key = (ifindex, self.netbox.id,
-               neighbor.netbox.id,
-               interface and interface.id or None,
-               SOURCE,
-               )
+        key = (
+            ifindex,
+            self.netbox.id,
+            neighbor.netbox.id,
+            interface and interface.id or None,
+            SOURCE,
+        )
         cand = self.containers.factory(key, shadows.AdjacencyCandidate)
         cand.netbox = self.netbox
         cand.interface = ifc
@@ -171,8 +174,7 @@ class CDP(Plugin):
         ifc.ifindex = record.ifindex
 
         key = (record.ifindex, six.text_type(record.ip), SOURCE)
-        neighbor = self.containers.factory(
-            key, shadows.UnrecognizedNeighbor)
+        neighbor = self.containers.factory(key, shadows.UnrecognizedNeighbor)
         neighbor.netbox = self.netbox
         neighbor.interface = ifc
         neighbor.remote_id = six.text_type(record.ip)

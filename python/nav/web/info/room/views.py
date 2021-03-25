@@ -22,8 +22,7 @@ import csv
 from django.db import IntegrityError
 from django.db.models import Q, Max
 from django.http import HttpResponse
-from django.shortcuts import (redirect, get_object_or_404,
-                              render)
+from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
@@ -31,8 +30,12 @@ from nav.django.decorators import require_admin
 from nav.metrics.errors import GraphiteUnreachableError
 
 from nav.models.manage import Room, Sensor, Interface
-from nav.models.rack import (Rack, SensorRackItem, SensorsDiffRackItem,
-                             SensorsSumRackItem)
+from nav.models.rack import (
+    Rack,
+    SensorRackItem,
+    SensorsDiffRackItem,
+    SensorsSumRackItem,
+)
 from nav.web.info.forms import SearchForm
 from nav.web.info.images.upload import handle_image_upload
 from nav.web.utils import create_title
@@ -54,15 +57,20 @@ _logger = logging.getLogger('nav.web.info.room')
 
 class RoomSearchForm(SearchForm):
     """Searchform for rooms"""
+
     def __init__(self, *args, **kwargs):
         super(RoomSearchForm, self).__init__(
-            *args, form_action='room-search', placeholder='Room', **kwargs)
+            *args, form_action='room-search', placeholder='Room', **kwargs
+        )
 
 
 def get_path():
     """Get the path for this subsystem"""
-    return [('Home', '/'), ('Search', reverse('info-search')),
-            ('Room', reverse('room-search'))]
+    return [
+        ('Home', '/'),
+        ('Search', reverse('info-search')),
+        ('Room', reverse('room-search')),
+    ]
 
 
 def search(request):
@@ -89,8 +97,8 @@ def search(request):
             "searchform": searchform,
             "rooms": rooms,
             "navpath": navpath,
-            "title": create_title(titles)
-        }
+            "title": create_title(titles),
+        },
     )
 
 
@@ -101,9 +109,9 @@ def process_searchform(form):
         return Room.objects.all()
     else:
         return Room.objects.filter(
-            Q(id__icontains=query) |
-            Q(description__icontains=query) |
-            Q(location__id__icontains=query)
+            Q(id__icontains=query)
+            | Q(description__icontains=query)
+            | Q(location__id__icontains=query)
         ).order_by("id")
 
 
@@ -126,8 +134,8 @@ def roominfo(request, roomid):
             "room": room,
             "navpath": navpath,
             "title": create_title(navpath),
-            "images": images
-        }
+            "images": images,
+        },
     )
 
 
@@ -137,8 +145,10 @@ def get_room_meta(room):
     return {
         'devices': room.netbox_set.count(),
         'interfaces': room_interfaces.count(),
-        'interfaces_with_link': room_interfaces.filter(ifoperstatus=Interface.OPER_UP).count(),
-        'trunk_interfaces': room_interfaces.filter(trunk=True).count()
+        'interfaces_with_link': room_interfaces.filter(
+            ifoperstatus=Interface.OPER_UP
+        ).count(),
+        'trunk_interfaces': room_interfaces.filter(trunk=True).count(),
     }
 
 
@@ -169,7 +179,7 @@ def upload_image(request, roomid):
     room = get_object_or_404(Room, pk=roomid)
     navpath = get_path() + [
         (room.id, reverse('room-info', kwargs={'roomid': room.id})),
-        ('Edit images',)
+        ('Edit images',),
     ]
 
     if request.method == 'POST':
@@ -181,9 +191,11 @@ def upload_image(request, roomid):
         request,
         "info/room/upload.html",
         {
-            "object": room, "room": room, "navpath": navpath,
-            "title": create_title(navpath)
-        }
+            "object": room,
+            "room": room,
+            "navpath": navpath,
+            "title": create_title(navpath),
+        },
     )
 
 
@@ -192,27 +204,28 @@ def render_netboxes(request, roomid):
     room = get_object_or_404(Room, id=roomid)
     netboxes = filter_netboxes(room).order_by("category", "sysname")
 
-    cam_query = {'last_cam': """SELECT end_time
+    cam_query = {
+        'last_cam': """SELECT end_time
                             FROM cam
                             WHERE cam.netboxid=interface.netboxid
                               AND cam.ifindex = interface.ifindex
                               AND interface.to_netboxid IS NULL
                             ORDER BY end_time DESC
-                            LIMIT 1"""}
+                            LIMIT 1"""
+    }
 
     # Filter interfaces on iftype and add fast last_cam lookup
     for netbox in netboxes:
-        netbox.interfaces = netbox.interface_set.filter(
-            iftype=6).order_by("ifindex").extra(select=cam_query)
+        netbox.interfaces = (
+            netbox.interface_set.filter(iftype=6)
+            .order_by("ifindex")
+            .extra(select=cam_query)
+        )
 
     return render(
         request,
         "info/room/netboxview.html",
-        {
-            "netboxes": netboxes,
-            "maxtime": datetime.datetime.max,
-            "room": room
-        }
+        {"netboxes": netboxes, "maxtime": datetime.datetime.max, "room": room},
     )
 
 
@@ -223,8 +236,7 @@ def create_csv(request):
     filename = "{}.csv".format(roomname)
 
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="{}"'.format(
-        filename)
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
 
     writer = csv.writer(response)
     rows = request.POST.get('rows', '')
@@ -240,17 +252,20 @@ def render_sensors(request, roomid):
 
     for netbox in netboxes:
         netbox.env_sensors = netbox.sensor_set.filter(
-            Q(unit_of_measurement__icontains='celsius') |
-            Q(unit_of_measurement__icontains='percent') |
-            Q(unit_of_measurement__icontains='degrees') |
-            Q(unit_of_measurement__startswith='%'))
+            Q(unit_of_measurement__icontains='celsius')
+            | Q(unit_of_measurement__icontains='percent')
+            | Q(unit_of_measurement__icontains='degrees')
+            | Q(unit_of_measurement__startswith='%')
+        )
 
-    return render(request, 'info/room/roominfo_sensors.html', {
-        'netboxes': [n for n in netboxes if n.env_sensors],
-        'has_sensors': any([x.get_environment_sensors().count()
-                            for x in netboxes])
-
-    })
+    return render(
+        request,
+        'info/room/roominfo_sensors.html',
+        {
+            'netboxes': [n for n in netboxes if n.env_sensors],
+            'has_sensors': any([x.get_environment_sensors().count() for x in netboxes]),
+        },
+    )
 
 
 def create_rack(room, rackname):
@@ -267,10 +282,11 @@ def add_rack(request, roomid):
     """Adds a new rack to a room"""
     room = get_object_or_404(Room, pk=roomid)
     rackname = request.POST.get('rackname')
-    return render(request, 'info/room/fragment_rack.html', {
-        'rack': create_rack(room, rackname),
-        'room': room
-    })
+    return render(
+        request,
+        'info/room/fragment_rack.html',
+        {'rack': create_rack(room, rackname), 'room': room},
+    )
 
 
 @require_admin
@@ -299,7 +315,7 @@ def render_racks(request, roomid):
     context = {
         'room': room,
         'racks': room.rack_set.all().order_by('ordering'),
-        'color_classes': background_color_classes
+        'color_classes': background_color_classes,
     }
     return render(request, 'info/room/roominfo_racks.html', context)
 
@@ -319,29 +335,36 @@ def render_add_sensor(request, roomid):
     sensors = Sensor.objects.exclude(pk__in=already_used)
 
     # Sensors that can be choosen for the pdu columns
-    pdusensors = sensors.filter(
-        netbox__room=room,
-        netbox__category='POWER'
-    ).select_related('netbox').order_by('netbox__sysname', 'human_readable')
+    pdusensors = (
+        sensors.filter(netbox__room=room, netbox__category='POWER')
+        .select_related('netbox')
+        .order_by('netbox__sysname', 'human_readable')
+    )
 
     filteredsensors = pdusensors
 
     if not is_pdu:
         # All other sensors
-        othersensors = sensors.filter(
-            netbox__room=room).exclude(
-            pk__in=pdusensors).select_related(
-            'netbox').order_by('netbox__sysname', 'human_readable')
+        othersensors = (
+            sensors.filter(netbox__room=room)
+            .exclude(pk__in=pdusensors)
+            .select_related('netbox')
+            .order_by('netbox__sysname', 'human_readable')
+        )
 
         filteredsensors = othersensors
 
-    return render(request, 'info/room/fragment_add_rackitem.html', {
-        'room': room,
-        'rack': rack,
-        'sensortype': 'pdu sensor' if is_pdu else 'sensor',
-        'sensors': filteredsensors,
-        'column': column
-    })
+    return render(
+        request,
+        'info/room/fragment_add_rackitem.html',
+        {
+            'room': room,
+            'rack': rack,
+            'sensortype': 'pdu sensor' if is_pdu else 'sensor',
+            'sensors': filteredsensors,
+            'column': column,
+        },
+    )
 
 
 @require_admin
@@ -370,20 +393,22 @@ def save_sensor(request, roomid):
         if column == RACK_CENTER:
             rack.add_center_item(item)
             rack.save()
-            return render(request, 'info/room/fragment_racksensor.html', {
-                'racksensor': item,
-                'column': column,
-            })
+            return render(
+                request,
+                'info/room/fragment_racksensor.html',
+                {'racksensor': item, 'column': column,},
+            )
         else:
             if column == RACK_LEFT:
                 rack.add_left_item(item)
             else:
                 rack.add_right_item(item)
             rack.save()
-            return render(request, 'info/room/fragment_rackpdusensor.html', {
-                'racksensor': item,
-                'column': column,
-            })
+            return render(
+                request,
+                'info/room/fragment_rackpdusensor.html',
+                {'racksensor': item, 'column': column,},
+            )
 
     except (ValueError, IntegrityError) as error:
         return HttpResponse(error, status=500)
@@ -399,8 +424,9 @@ def save_sensor_order(request, roomid):
         return HttpResponse(status=400)
     column = COLUMNS[column]
     items = {item.id: item for item in rack.configuration[column]}
-    rack.configuration[column] = [items[int(itemid)] for itemid in
-                                  request.POST.getlist('item[]')]
+    rack.configuration[column] = [
+        items[int(itemid)] for itemid in request.POST.getlist('item[]')
+    ]
     rack.save()
 
     return HttpResponse()
@@ -438,8 +464,9 @@ def remove_sensor(request, roomid):
     if column not in COLUMNS:
         return HttpResponse(status=400)
     column = COLUMNS[column]
-    rack.configuration[column] = [item for item in rack.configuration[column]
-                                  if item.id != itemid]
+    rack.configuration[column] = [
+        item for item in rack.configuration[column] if item.id != itemid
+    ]
     try:
         rack.save()
         return HttpResponse()

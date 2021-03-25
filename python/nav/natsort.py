@@ -29,9 +29,9 @@ import re
 from functools import total_ordering
 
 if sys.version_info.major == 2:
-    _string_types = basestring,  # Python 2
+    _string_types = (basestring,)  # Python 2
 else:
-    _string_types = str,         # Python 3
+    _string_types = (str,)  # Python 3
 
 _split_pattern = re.compile(r'(\d+|\D+)')
 

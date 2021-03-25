@@ -31,10 +31,13 @@ from github import Github  # pip install PyGithub
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("version")
-    parser.add_argument("--token", "-t", type=str,
-                        help="GitHub API token to use")
-    parser.add_argument("--markdown", "-m", action="store_true",
-                        help="Output as markdown with hyperlinks")
+    parser.add_argument("--token", "-t", type=str, help="GitHub API token to use")
+    parser.add_argument(
+        "--markdown",
+        "-m",
+        action="store_true",
+        help="Output as markdown with hyperlinks",
+    )
     args = parser.parse_args()
 
     if args.token:
@@ -43,13 +46,13 @@ def main():
         hub = Github()
 
     repo = hub.get_user('Uninett').get_repo('nav')
-    milestones = [m for m in repo.get_milestones(state='all')
-                  if m.title == args.version]
+    milestones = [
+        m for m in repo.get_milestones(state='all') if m.title == args.version
+    ]
     if milestones:
         mstone = milestones[0]
     else:
-        print("Couldn't find milestone for {}".format(args.version),
-              file=sys.stderr)
+        print("Couldn't find milestone for {}".format(args.version), file=sys.stderr)
         sys.exit(1)
 
     issues = repo.get_issues(state='closed', milestone=mstone)
@@ -66,17 +69,12 @@ def format_issue(issue):
     indent = " " * len(lead_in)
     line = "{}{})".format(lead_in, issue.title)
 
-    return '\n'.join(
-        textwrap.wrap(line, width=72, subsequent_indent=indent))
+    return '\n'.join(textwrap.wrap(line, width=72, subsequent_indent=indent))
 
 
 def format_issue_markdown(issue):
     line = "- [#{number:<4}]({url}) ({title})"
-    return line.format(
-        number=issue.number,
-        title=issue.title,
-        url=issue.html_url,
-    )
+    return line.format(number=issue.number, title=issue.title, url=issue.html_url,)
 
 
 if __name__ == '__main__':

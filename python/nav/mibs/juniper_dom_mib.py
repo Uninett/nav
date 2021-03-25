@@ -48,12 +48,13 @@ COLUMNS = {
         "precision": 0,
         "name": "{ifc} Module Temperature",
         "description": "{ifc} Module Temperature",
-    }
+    },
 }
 
 
 class JuniperDomMib(MibRetriever):
     """MibRetriever for Juniper DOM Sensors"""
+
     mib = get_mib('JUNIPER-DOM-MIB')
 
     @defer.inlineCallbacks

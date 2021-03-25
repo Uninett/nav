@@ -20,8 +20,7 @@ from datetime import datetime
 from django.utils.six.moves.urllib.parse import urlparse
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.authentication import (TokenAuthentication,
-                                           BaseAuthentication)
+from rest_framework.authentication import TokenAuthentication, BaseAuthentication
 
 from nav.models.api import APIToken
 
@@ -38,13 +37,14 @@ class APIAuthentication(TokenAuthentication):
             token = APIToken.objects.get(token=key)
         except APIToken.DoesNotExist:
             _logger.warning(
-                'API authentication attempted with non-existing token "%s"',
-                key)
+                'API authentication attempted with non-existing token "%s"', key
+            )
             raise AuthenticationFailed
         else:
             if token.is_expired():
                 _logger.warning(
-                    'API authentication attempted with expired token "%s"', key)
+                    'API authentication attempted with expired token "%s"', key
+                )
                 raise AuthenticationFailed
             return None, token
 
@@ -86,8 +86,8 @@ class TokenPermission(BasePermission):
             token.save()
         else:
             _logger.warning(
-                'Token %s not permitted to access endpoint %s',
-                token, request.path)
+                'Token %s not permitted to access endpoint %s', token, request.path
+            )
         return permissions_ok
 
     @staticmethod
@@ -102,8 +102,7 @@ class TokenPermission(BasePermission):
         if not token.endpoints:
             return False
 
-        return TokenPermission.is_path_in_endpoints(request.path,
-                                                    token.endpoints)
+        return TokenPermission.is_path_in_endpoints(request.path, token.endpoints)
 
     @staticmethod
     def _check_read_write(request):
@@ -119,18 +118,22 @@ class TokenPermission(BasePermission):
         :return: if the path is in one of the endpoints for this token
         """
         # Create prefix for the current api version
-        prefix = '/'.join([TokenPermission.url_prefix,
-                           str(TokenPermission.version)])
+        prefix = '/'.join([TokenPermission.url_prefix, str(TokenPermission.version)])
         # Cut prefix from path
         request_path = TokenPermission._ensure_trailing_slash(
-            request_path.replace(prefix, '')
-            .replace(TokenPermission.url_prefix, ''))
+            request_path.replace(prefix, '').replace(TokenPermission.url_prefix, '')
+        )
         # Create a list of endpoints and remove prefix from them
         endpoints = [e.replace(prefix, '') for e in endpoints.values()]
         # Check if path is in one of the endpoints
-        return any([request_path.startswith(
-            TokenPermission._ensure_trailing_slash(urlparse(endpoint).path))
-            for endpoint in endpoints])
+        return any(
+            [
+                request_path.startswith(
+                    TokenPermission._ensure_trailing_slash(urlparse(endpoint).path)
+                )
+                for endpoint in endpoints
+            ]
+        )
 
     @staticmethod
     def _ensure_trailing_slash(path):
@@ -147,5 +150,6 @@ class APIPermission(BasePermission):
         """Checks if request is permissable
         :type request: rest_framework.request.Request
         """
-        return (LoggedInPermission().has_permission(request, view) or
-                TokenPermission().has_permission(request, view))
+        return LoggedInPermission().has_permission(
+            request, view
+        ) or TokenPermission().has_permission(request, view)

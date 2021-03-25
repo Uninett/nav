@@ -3,9 +3,13 @@
 import pytest
 
 from mock import Mock, patch
-from nav.arnold import (InExceptionListError, WrongCatidError,
-                        BlockonTrunkError, raise_if_detainment_not_allowed,
-                        check_non_block)
+from nav.arnold import (
+    InExceptionListError,
+    WrongCatidError,
+    BlockonTrunkError,
+    raise_if_detainment_not_allowed,
+    check_non_block,
+)
 
 
 @patch('nav.arnold.get_config')

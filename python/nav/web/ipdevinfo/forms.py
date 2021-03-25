@@ -24,6 +24,7 @@ from nav.web.crispyforms import LabelSubmit
 
 class SearchForm(forms.Form):
     """Form for searching for ip devices in info"""
+
     query = forms.CharField(max_length=100, label='')
 
     def __init__(self, *args, **kwargs):
@@ -33,17 +34,21 @@ class SearchForm(forms.Form):
         self.helper.form_method = 'GET'
         self.helper.layout = Layout(
             Row(
-                Column(Field('query', placeholder='IP or hostname'),
-                       css_class='medium-9'),
-                Column(Submit('submit', 'Search', css_class='postfix'),
-                       css_class='medium-3'),
-                css_class='collapse'
+                Column(
+                    Field('query', placeholder='IP or hostname'), css_class='medium-9'
+                ),
+                Column(
+                    Submit('submit', 'Search', css_class='postfix'),
+                    css_class='medium-3',
+                ),
+                css_class='collapse',
             )
         )
 
 
 class ActivityIntervalForm(forms.Form):
     """Form for setting an interval in switch port activity"""
+
     interval = forms.IntegerField(label='Days', min_value=0)
 
     def __init__(self, *args, **kwargs):
@@ -53,16 +58,18 @@ class ActivityIntervalForm(forms.Form):
         self.helper.layout = Layout(
             Row(
                 Column('interval', css_class='small-4'),
-                Column(LabelSubmit('submit', 'Recheck activity',
-                                   css_class='postfix'),
-                       css_class='small-8'),
-                css_class='collapse'
+                Column(
+                    LabelSubmit('submit', 'Recheck activity', css_class='postfix'),
+                    css_class='small-8',
+                ),
+                css_class='collapse',
             )
         )
 
 
 class SensorRangesForm(forms.Form):
     """Form for setting display ranges for a sensor"""
+
     minimum = forms.FloatField(label='Minimum', required=False)
     maximum = forms.FloatField(label='Maximum', required=False)
 
@@ -71,18 +78,18 @@ class BooleanSensorForm(forms.Form):
     """Form for configuring boolean sensor display"""
 
     on_message = forms.CharField(
-        label='Message when alert is active',
-        initial='The alert is active')
+        label='Message when alert is active', initial='The alert is active'
+    )
     off_message = forms.CharField(
-        label='Message when alert is inactive (ok)',
-        initial='No alert')
+        label='Message when alert is inactive (ok)', initial='No alert'
+    )
     on_state = forms.ChoiceField(
         label='When is the alert considered "on"',
-        choices=(('1', 'When the value is 1'),
-                 ('0', 'When the value is 0 (zero)')))
+        choices=(('1', 'When the value is 1'), ('0', 'When the value is 0 (zero)')),
+    )
     alert_type = forms.ChoiceField(
-        label='What to display in "on" state',
-        choices=Sensor.ALERT_TYPE_CHOICES)
+        label='What to display in "on" state', choices=Sensor.ALERT_TYPE_CHOICES
+    )
 
     def __init__(self, *args, **kwargs):
         """Init"""
@@ -91,6 +98,5 @@ class BooleanSensorForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            'on_message', 'off_message',
-            'on_state', 'alert_type'
+            'on_message', 'off_message', 'on_state', 'alert_type'
         )

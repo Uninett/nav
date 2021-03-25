@@ -8,19 +8,23 @@ from nav.config import find_configfile
 from nav.models.profiles import AccountDashboard
 
 WELCOME_ANONYMOUS_PATH = find_configfile(
-    os.path.join("webfront", "welcome-anonymous.txt"))
+    os.path.join("webfront", "welcome-anonymous.txt")
+)
 WELCOME_REGISTERED_PATH = find_configfile(
-    os.path.join("webfront", "welcome-registered.txt"))
-NAV_LINKS_PATH = find_configfile(
-    os.path.join("webfront", "nav-links.conf"))
+    os.path.join("webfront", "welcome-registered.txt")
+)
+NAV_LINKS_PATH = find_configfile(os.path.join("webfront", "nav-links.conf"))
 
 DEFAULT_WIDGET_COLUMNS = 2
 
 
 def get_widget_columns(account):
     """Get the preference for widget columns"""
-    return int(account.preferences.get(account.PREFERENCE_KEY_WIDGET_COLUMNS,
-                                       DEFAULT_WIDGET_COLUMNS))
+    return int(
+        account.preferences.get(
+            account.PREFERENCE_KEY_WIDGET_COLUMNS, DEFAULT_WIDGET_COLUMNS
+        )
+    )
 
 
 def find_dashboard(account, dashboard_id=None):
@@ -42,11 +46,9 @@ def find_dashboard(account, dashboard_id=None):
             raise Http404
 
         # No default dashboard? Find the one with the most widgets
-        dashboard = dashboards.annotate(
-            Count('widgets')).order_by('-widgets__count')[0]
+        dashboard = dashboards.annotate(Count('widgets')).order_by('-widgets__count')[0]
     except AccountDashboard.MultipleObjectsReturned:
         # Grab the first one
-        dashboard = AccountDashboard.objects.filter(account=account,
-                                                    **kwargs)[0]
+        dashboard = AccountDashboard.objects.filter(account=account, **kwargs)[0]
 
     return dashboard

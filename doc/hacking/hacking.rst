@@ -147,26 +147,51 @@ we may consider including it in the :file:`contrib/` directory.
 Coding style
 ============
 
-NAV code adheres to the Python style guide documented in :pep:`8`, with a local
-convention of a maximum line length of **88** characters. PyLint_ is used to
-automatically validate much of these coding styles in our CI system. However, a
-good tip is to format your code using Black_, a great tool for automatically
-formatting your code, obviating the need for discussing coding style issues in
-code reviews.
+NAV code should adhere to the Python style guide documented in
+:pep:`8`. PyLint_ is used to automatically validate much of these coding styles
+in our CI system.
 
-.. note:: If you are contributing some code to a file that isn't already
-          formatted using Black_, please don't format the entire file as part
-          of your changes. May we instead suggest using black-macchiato_, which
-          can be used by your editor to format selected blocks of code using
-          Black.
+More importantly, all Python code in NAV is automatically formatted using
+Black_, a great tool for automatically formatting your code, obviating the need
+for discussing coding style issues in code reviews.
 
-Conventions for writing good documentation strings (a.k.a. "docstrings")
+Conventions for writing good Python documentation strings (a.k.a. "docstrings")
 are immortalized in :pep:`257`.
 
-Much of the legacy NAV code was, however, written without using any
-specific guidelines for coding style. We are working to improve this, and
-will accept patches that clean existing code.
+Much of the legacy NAV code was, however, written without using any specific
+guidelines for coding style. While all the old code has been formatted
+automatically using Black_, other :pep:`8` conventions aren't necessarily
+enfored here. We always accept patches that clean existing code.
 
+Pre-commit hooks and Black
+--------------------------
+
+To ensure all Python code is automatically formatted using Black_, we employ
+the pre-commit_ framework. This framework ensures our pre-commit rules (as
+specified in :file:`.pre-commit-config.yaml`) are run when you issue the ``git
+commit`` command.
+
+Once you have checked out the NAV source code repository from Git, simply run
+the following commands to enable our pre-commit hooks:
+
+
+.. code-block:: sh
+
+   pip install pre-commit
+   pre-commit install
+
+If your Python code is not already formatted according to Black's rules when
+you ``git commit``, your code will be automatically formatted using Black, and
+the commit will fail, so that you can inspect the changes before attempting to
+commit again.
+
+.. note:: Legacy NAV code was reformatted using Black in revision
+          ``e6634e512c8ecf283c85a701366620e724806ab7``. The reformatting
+          changes can be ignored by ``git blame`` if you have at least Git
+          2.23. See `this blog post for more information
+          <https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame>`_.
+          *TL;DR*: Run :samp:`git config blame.ignoreRevsFile
+          .git-blame-ignore-revs`
 
 Python boilerplate headers
 --------------------------
@@ -469,3 +494,4 @@ __ Github_
 .. _Chai: http://chaijs.com/
 .. _Black: https://black.readthedocs.io/
 .. _black-macchiato: https://github.com/wbolster/black-macchiato
+.. _pre-commit: https://pre-commit.com/

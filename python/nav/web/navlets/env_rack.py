@@ -23,8 +23,10 @@ from . import Navlet
 
 class RackSearchForm(forms.Form):
     """Form for searching for a rack"""
-    rack = forms.ModelChoiceField(queryset=Rack.objects.all().order_by(
-        'room', 'rackname'))
+
+    rack = forms.ModelChoiceField(
+        queryset=Rack.objects.all().order_by('room', 'rackname')
+    )
 
     def clean_rack(self):
         """clean_rack makes sure the rack refers to the primary key
@@ -42,9 +44,7 @@ class EnvironmentRackWidget(Navlet):
     """Widget for displaying an environment rack"""
 
     title = 'Environment rack'
-    description = (
-        'Displays a selected rack of environment sensors from a specific room'
-    )
+    description = 'Displays a selected rack of environment sensors from a specific room'
     refresh_interval = 60000  # 60 seconds
     is_editable = True
 
@@ -54,7 +54,8 @@ class EnvironmentRackWidget(Navlet):
     def get_context_data_view(self, context):
         context['rackid'] = self.preferences.get('rack')
         context['refresh_interval'] = self.preferences.get(
-            'refresh_interval', self.refresh_interval)
+            'refresh_interval', self.refresh_interval
+        )
         return context
 
     def get_context_data_edit(self, context):

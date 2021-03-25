@@ -40,7 +40,8 @@ class StatusView(View):
     def get_status_preferences(self):
         """Gets the status preferences for the user on the request"""
         preferences = self.request.account.preferences.get(
-            self.request.account.PREFERENCE_KEY_STATUS)
+            self.request.account.PREFERENCE_KEY_STATUS
+        )
         if preferences:
             try:
                 data = base64.b64decode(preferences)
@@ -64,13 +65,15 @@ class StatusView(View):
         can_acknowledge_alerts = account.has_perm('can_acknowledge_alert', '')
         can_clear_alerts = account.has_perm('can_clear_alert', '')
         can_put_on_maintenance = account.has_perm(
-            'web_access', reverse('maintenance-new'))
+            'web_access', reverse('maintenance-new')
+        )
         return {
-            'any': any([can_acknowledge_alerts, can_clear_alerts,
-                        can_put_on_maintenance]),
+            'any': any(
+                [can_acknowledge_alerts, can_clear_alerts, can_put_on_maintenance]
+            ),
             'can_acknowledge_alerts': can_acknowledge_alerts,
             'can_clear_alerts': can_clear_alerts,
-            'can_put_on_maintenance': can_put_on_maintenance
+            'can_put_on_maintenance': can_put_on_maintenance,
         }
 
     def get(self, request):
@@ -89,7 +92,7 @@ class StatusView(View):
                 'title': 'NAV - Status',
                 'navpath': [('Home', '/'), ('Status', '')],
                 'form': form,
-                'permits': self.get_permits()
+                'permits': self.get_permits(),
             },
         )
 
@@ -160,8 +163,10 @@ def put_on_maintenance(request):
         if not netboxes:
             return HttpResponse("No netboxes found", status=404)
 
-        default_descr = "On maintenance till up again; set from status page " \
-                        "by " + request.account.login
+        default_descr = (
+            "On maintenance till up again; set from status page "
+            "by " + request.account.login
+        )
         description = request.POST.get('description') or default_descr
         candidates = [n for n in netboxes if not is_maintenance_task_posted(n)]
         if candidates:
@@ -183,11 +188,10 @@ def delete_module_or_chassis(request):
 
     if request.method == 'POST':
         alerts = get_alerts_from_request(
-            request, event_type_filter=accepted_event_types)
-        module_ids = [a.subid for a in alerts
-                      if a.event_type.pk == 'moduleState']
-        entity_ids = [a.subid for a in alerts
-                      if a.event_type.pk == 'chassisState']
+            request, event_type_filter=accepted_event_types
+        )
+        module_ids = [a.subid for a in alerts if a.event_type.pk == 'moduleState']
+        entity_ids = [a.subid for a in alerts if a.event_type.pk == 'chassisState']
 
         Module.objects.filter(pk__in=module_ids).delete()
         NetboxEntity.objects.filter(pk__in=entity_ids).delete()
@@ -203,7 +207,8 @@ def is_maintenance_task_posted(netbox):
         key='netbox',
         value=str(netbox.id),
         maintenance_task__state=MaintenanceTask.STATE_ACTIVE,
-        maintenance_task__end_time=datetime.datetime.max).count()
+        maintenance_task__end_time=datetime.datetime.max,
+    ).count()
 
 
 def add_maintenance_task(owner, netboxes, description=""):
@@ -216,14 +221,12 @@ def add_maintenance_task(owner, netboxes, description=""):
         end_time=INFINITY,
         description=description,
         author=owner.login,
-        state=MaintenanceTask.STATE_SCHEDULED
+        state=MaintenanceTask.STATE_SCHEDULED,
     )
     task.save()
 
     for netbox in netboxes:
         component = MaintenanceComponent(
-            maintenance_task=task,
-            key='netbox',
-            value='%d' % netbox.id
+            maintenance_task=task, key='netbox', value='%d' % netbox.id
         )
         component.save()

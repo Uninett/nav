@@ -15,6 +15,7 @@
 
 from __future__ import unicode_literals
 import pytest
+
 try:
     from io import StringIO
 except ImportError:
@@ -25,28 +26,36 @@ from nav import config
 
 @pytest.fixture
 def mockfile():
-    return StringIO("".join([
-        '# mock config file\n',
-        'foo1=bar1\n',
-        'foo2 =  bar2  \n',
-        '#foo3=invalid\n',
-        'foo4 = bar4 # comment\n',
-        '# eof',
-    ]))
+    return StringIO(
+        "".join(
+            [
+                '# mock config file\n',
+                'foo1=bar1\n',
+                'foo2 =  bar2  \n',
+                '#foo3=invalid\n',
+                'foo4 = bar4 # comment\n',
+                '# eof',
+            ]
+        )
+    )
 
 
 @pytest.fixture
 def mockinifile():
-    return StringIO("".join([
-        '# mock config file\n',
-        '[section1]\n',
-        'foo1=bar1\n',
-        'foo2 =  bar2  \n',
-        '[section2] \n',
-        '#foo3=invalid\n',
-        'foo4 = bar4 \n',
-        '# eof',
-    ]))
+    return StringIO(
+        "".join(
+            [
+                '# mock config file\n',
+                '[section1]\n',
+                'foo1=bar1\n',
+                'foo2 =  bar2  \n',
+                '[section2] \n',
+                '#foo3=invalid\n',
+                'foo4 = bar4 \n',
+                '# eof',
+            ]
+        )
+    )
 
 
 def test_read_flat_config(mockfile):

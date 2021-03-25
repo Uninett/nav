@@ -44,6 +44,7 @@ class Messages(list):
     """List object that stores messsages for the user accross page views.
     Uses sessions.
     """
+
     SUCCESS = 'success'
     NOTICE = 'secondary'
     WARNING = 'warning'

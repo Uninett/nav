@@ -30,16 +30,24 @@ from nav.web.ajax import views
 
 # URL's that does not require authorization
 urlpatterns = [
-   url(r'^open/roommapper/rooms/$',
-       views.get_rooms_with_position,
-       name='room-positions'),
-   url(r'^open/roommapper/rooms/(?P<roomid>.+)/$',
-       views.get_rooms_with_position,
-       name='room-position'),
-   url(r'^open/roommapper/locations/(?P<locationid>.+)/$',
-       views.get_rooms_with_position_for_location,
-       name='location-position'),
-   url(r'^open/neighbormap/(?P<netboxid>\d+)/$',
-       views.get_neighbors,
-       name='ajax-get-neighbors'),
+    url(
+        r'^open/roommapper/rooms/$',
+        views.get_rooms_with_position,
+        name='room-positions',
+    ),
+    url(
+        r'^open/roommapper/rooms/(?P<roomid>.+)/$',
+        views.get_rooms_with_position,
+        name='room-position',
+    ),
+    url(
+        r'^open/roommapper/locations/(?P<locationid>.+)/$',
+        views.get_rooms_with_position_for_location,
+        name='location-position',
+    ),
+    url(
+        r'^open/neighbormap/(?P<netboxid>\d+)/$',
+        views.get_neighbors,
+        name='ajax-get-neighbors',
+    ),
 ]

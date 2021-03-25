@@ -51,12 +51,8 @@ handlermodules = None
 config = None
 
 DEFAULT_PORT = 162
-DEFAULT_ADDRESSES = (
-    ('0.0.0.0', DEFAULT_PORT),
-)
-ADDRESS_PATTERNS = (
-    re.compile(r"(?P<addr>[0-9.]+) (:(?P<port>[0-9]+))?$", re.VERBOSE),
-)
+DEFAULT_ADDRESSES = (('0.0.0.0', DEFAULT_PORT),)
+ADDRESS_PATTERNS = (re.compile(r"(?P<addr>[0-9.]+) (:(?P<port>[0-9]+))?$", re.VERBOSE),)
 if socket.has_ipv6 and agent.BACKEND == 'pynetsnmp':
     DEFAULT_ADDRESSES += (('::', DEFAULT_PORT),)
     ADDRESS_PATTERNS += (
@@ -113,13 +109,13 @@ def main():
     try:
         _logger.debug('Trying to load handlermodules')
         handlermodules = load_handler_modules(
-            config.get('snmptrapd', 'handlermodules').split(','))
+            config.get('snmptrapd', 'handlermodules').split(',')
+        )
     except ModuleLoadError as why:
         _logger.error("Could not load handlermodules %s" % why)
         sys.exit(1)
 
-    addresses_text = ", ".join(address_to_string(*addr)
-                               for addr in opts.address)
+    addresses_text = ", ".join(address_to_string(*addr) for addr in opts.address)
     if not opts.foreground:
         # Daemonize and listen for traps
         try:
@@ -168,18 +164,21 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="NAV SNMP Trap daemon",
         epilog="One or more address specifications can be given to tell the "
-               "trap daemon which interface/port combinations it should "
-               "listen to. The default is 0.0.0.0:162, and, if the system "
-               "appears to support IPv6, also [::]:162, which means the daemon "
-               "will accept traps on any IPv4/IPv6 interface, UDP port 162."
+        "trap daemon which interface/port combinations it should "
+        "listen to. The default is 0.0.0.0:162, and, if the system "
+        "appears to support IPv6, also [::]:162, which means the daemon "
+        "will accept traps on any IPv4/IPv6 interface, UDP port 162.",
     )
-    parser.add_argument("-f", "--foreground", action="store_true",
-                        help="Run in foreground")
-    parser.add_argument("-c", "--community", default="public",
-                        help="Which SNMP community incoming traps must use. "
-                             "The default is 'public'")
-    parser.add_argument("address", nargs="*", type=Address,
-                        default=DEFAULT_ADDRESSES)
+    parser.add_argument(
+        "-f", "--foreground", action="store_true", help="Run in foreground"
+    )
+    parser.add_argument(
+        "-c",
+        "--community",
+        default="public",
+        help="Which SNMP community incoming traps must use. " "The default is 'public'",
+    )
+    parser.add_argument("address", nargs="*", type=Address, default=DEFAULT_ADDRESSES)
 
     return parser.parse_args()
 
@@ -237,8 +236,7 @@ def trap_handler(trap):
 
 def _log_trap_handle_result(handled_by, trap):
     agent_string = (
-        trap.netbox.sysname + ' ({})'.format(trap.agent)
-        if trap.netbox else trap.agent
+        trap.netbox.sysname + ' ({})'.format(trap.agent) if trap.netbox else trap.agent
     )
     if handled_by:
         _logger.info(
@@ -284,6 +282,7 @@ def signal_handler(signum, _):
 
 class SnmptrapdConfig(NAVConfigParser):
     """Configparser for snmptrapd"""
+
     DEFAULT_CONFIG_FILES = ['snmptrapd.conf']
 
 

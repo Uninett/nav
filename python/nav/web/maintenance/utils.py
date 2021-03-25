@@ -34,18 +34,9 @@ FIELD_KEYS = {
         'room': 'netbox__room__',
         'location': 'netbox__room__location__',
     },
-    'netbox': {
-        'netbox': '',
-        'room': 'room__',
-        'location': 'room__location__',
-    },
-    'room': {
-        'room': '',
-        'location': 'location__',
-    },
-    'location': {
-        'location': '',
-    }
+    'netbox': {'netbox': '', 'room': 'room__', 'location': 'room__location__',},
+    'room': {'room': '', 'location': 'location__',},
+    'location': {'location': '',},
 }
 
 NAVPATH = [
@@ -79,18 +70,15 @@ def task_form_initial(task=None, start_time=None):
 
 
 def infodict_by_state(task):
-    if (task.state == MaintenanceTask.STATE_SCHEDULED
-            and task.start_time > datetime.now()):
+    if (
+        task.state == MaintenanceTask.STATE_SCHEDULED
+        and task.start_time > datetime.now()
+    ):
         state = 'planned'
-        navpath = NAVPATH + [
-            ('Planned tasks', reverse('maintenance-planned'))
-        ]
-    elif (task.state in (MaintenanceTask.STATE_PASSED,
-                         MaintenanceTask.STATE_CANCELED)):
+        navpath = NAVPATH + [('Planned tasks', reverse('maintenance-planned'))]
+    elif task.state in (MaintenanceTask.STATE_PASSED, MaintenanceTask.STATE_CANCELED):
         state = 'historic'
-        navpath = NAVPATH + [
-            ('Historic tasks', reverse('maintenance-historic'))
-        ]
+        navpath = NAVPATH + [('Historic tasks', reverse('maintenance-historic'))]
     else:
         state = 'active'
         navpath = NAVPATH + [('Active tasks', reverse('maintenance-active'))]
@@ -118,8 +106,13 @@ def get_component_keys(post):
             'location': post.getlist('remove_location'),
             'netboxgroup': post.getlist('remove_netboxgroup'),
         }
-    component_keys = {'service': [], 'netbox': [], 'room': [], 'location': [],
-                      'netboxgroup': []}
+    component_keys = {
+        'service': [],
+        'netbox': [],
+        'room': [],
+        'location': [],
+        'netboxgroup': [],
+    }
     for key in raw_component_keys:
         for value in raw_component_keys[key]:
             if not remove or value not in remove[key]:
@@ -133,29 +126,38 @@ def get_component_keys(post):
 def components_for_keys(component_keys):
     component_data = {}
     component_data['service'] = Service.objects.filter(
-            id__in=component_keys['service']
-        ).values(
-            'id', 'handler', 'netbox__id', 'netbox__sysname', 'netbox__ip',
-            'netbox__room__id', 'netbox__room__description',
-            'netbox__room__location__id',
-            'netbox__room__location__description')
+        id__in=component_keys['service']
+    ).values(
+        'id',
+        'handler',
+        'netbox__id',
+        'netbox__sysname',
+        'netbox__ip',
+        'netbox__room__id',
+        'netbox__room__description',
+        'netbox__room__location__id',
+        'netbox__room__location__description',
+    )
     component_data['netbox'] = Netbox.objects.filter(
-            id__in=component_keys['netbox']
-        ).values(
-            'id', 'sysname', 'ip', 'room__id', 'room__description',
-            'room__location__id', 'room__location__description')
-    component_data['room'] = Room.objects.filter(
-            id__in=component_keys['room']
-        ).values(
-            'id', 'description', 'location__id', 'location__description')
+        id__in=component_keys['netbox']
+    ).values(
+        'id',
+        'sysname',
+        'ip',
+        'room__id',
+        'room__description',
+        'room__location__id',
+        'room__location__description',
+    )
+    component_data['room'] = Room.objects.filter(id__in=component_keys['room']).values(
+        'id', 'description', 'location__id', 'location__description'
+    )
     component_data['location'] = Location.objects.filter(
-            id__in=component_keys['location']
-        ).values(
-            'id', 'description')
+        id__in=component_keys['location']
+    ).values('id', 'description')
     component_data['netboxgroup'] = NetboxGroup.objects.filter(
-            id__in=component_keys['netboxgroup']
-        ).values(
-            'id', 'description')
+        id__in=component_keys['netboxgroup']
+    ).values('id', 'description')
     return component_data
 
 
@@ -182,10 +184,7 @@ def task_component_trails(component_keys, components):
     """
 
     # Mapping for changing the title of the trail.
-    title_mapping = {
-        'netbox': 'IP Device',
-        'netboxgroup': 'Device Group'
-    }
+    title_mapping = {'netbox': 'IP Device', 'netboxgroup': 'Device Group'}
 
     trails = []
     for key in component_keys:
@@ -195,59 +194,63 @@ def task_component_trails(component_keys, components):
             try:
                 comp = components[key][pkey]
             except KeyError:
-                trail.append({
-                    'url': None,
-                    'title': None,
-                    'name': "ID %s (Component was deleted)" % pkey,
-                })
+                trail.append(
+                    {
+                        'url': None,
+                        'title': None,
+                        'name': "ID %s (Component was deleted)" % pkey,
+                    }
+                )
             else:
                 if key in ('location', 'room', 'netbox', 'service'):
                     location_id = comp[FIELD_KEYS[key]['location'] + "id"]
-                    location_description = (comp[FIELD_KEYS[key]['location']
-                                                 + "description"])
-                    trail.append({
-                        'url': reverse('location-info', args=[location_id]),
-                        'title': location_description,
-                        'name': location_id,
-                    })
+                    location_description = comp[
+                        FIELD_KEYS[key]['location'] + "description"
+                    ]
+                    trail.append(
+                        {
+                            'url': reverse('location-info', args=[location_id]),
+                            'title': location_description,
+                            'name': location_id,
+                        }
+                    )
                 if key in ('room', 'netbox', 'service'):
                     room_id = comp[FIELD_KEYS[key]['room'] + "id"]
-                    room_description = (comp[FIELD_KEYS[key]['room']
-                                             + "description"])
-                    trail.append({
-                        'url': reverse('room-info', args=[room_id]),
-                        'title': room_description,
-                        'name': room_id,
-                    })
+                    room_description = comp[FIELD_KEYS[key]['room'] + "description"]
+                    trail.append(
+                        {
+                            'url': reverse('room-info', args=[room_id]),
+                            'title': room_description,
+                            'name': room_id,
+                        }
+                    )
                 if key in ('netbox', 'service'):
-                    netbox_sysname = (comp[FIELD_KEYS[key]['netbox']
-                                           + "sysname"])
+                    netbox_sysname = comp[FIELD_KEYS[key]['netbox'] + "sysname"]
                     netbox_ip = comp[FIELD_KEYS[key]['netbox'] + "ip"]
-                    trail.append({
-                        'url': reverse('ipdevinfo-details-by-name',
-                                       args=[netbox_sysname]),
-                        'title': netbox_ip,
-                        'name': netbox_sysname,
-                    })
+                    trail.append(
+                        {
+                            'url': reverse(
+                                'ipdevinfo-details-by-name', args=[netbox_sysname]
+                            ),
+                            'title': netbox_ip,
+                            'name': netbox_sysname,
+                        }
+                    )
                 if key == 'service':
-                    trail.append({
-                        'url': None,
-                        'title': None,
-                        'name': comp['handler'],
-                    })
+                    trail.append(
+                        {'url': None, 'title': None, 'name': comp['handler'],}
+                    )
                 if key == 'netboxgroup':
-                    trail.append({
-                        'url': reverse('netbox-group-detail',
-                                       args=[comp['id']]),
-                        'title': '',
-                        'name': comp['id'],
-                    })
-            trails.append({
-                'id': pkey,
-                'type': key,
-                'title': title,
-                'trail': trail,
-            })
+                    trail.append(
+                        {
+                            'url': reverse('netbox-group-detail', args=[comp['id']]),
+                            'title': '',
+                            'name': comp['id'],
+                        }
+                    )
+            trails.append(
+                {'id': pkey, 'type': key, 'title': title, 'trail': trail,}
+            )
     return trails
 
 
@@ -292,12 +295,13 @@ class MaintenanceCalendar(HTMLCalendar):
             formated_end = strftime('%H:%M', task.end_time.timetuple())
             content.append('<li class="%s">' % group)
             content.append(
-                '<a class="task_%(id)s %(color)s" href="%(url)s">' %
-                {
+                '<a class="task_%(id)s %(color)s" href="%(url)s">'
+                % {
                     'id': task.pk,
                     'color': self.bg_color(task.pk),
                     'url': reverse('maintenance-view', args=[task.pk]),
-                })
+                }
+            )
             if group == self.CONTINUED_MONTH:
                 content.append("... ")
                 content.append(conditional_escape(desc))
@@ -315,7 +319,9 @@ class MaintenanceCalendar(HTMLCalendar):
             this_day = date(self.year, self.month, day)
             css = self.cssclasses[weekday]
             dayurl = '<a href="%s" class="daynumber">%d</a>' % (
-                reverse('maintenance-new-date', args=[this_day]), day)
+                reverse('maintenance-new-date', args=[this_day]),
+                day,
+            )
             if date.today() == this_day:
                 css += " today"
             if this_day in self.tasks:

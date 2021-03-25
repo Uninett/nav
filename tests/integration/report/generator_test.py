@@ -27,13 +27,14 @@ def report_list():
 
 @pytest.mark.parametrize("report_name", report_list())
 def test_report(report_name):
-    #uri = 'http://example.com/report/%s/' % report_name
+    # uri = 'http://example.com/report/%s/' % report_name
     uri = QueryDict('').copy()
-    db.closeConnections() # Ensure clean connection for each test
+    db.closeConnections()  # Ensure clean connection for each test
 
     generator = Generator()
     report, contents, neg, operator, adv, config, dbresult = generator.make_report(
-        report_name, config_file, config_file_local, uri, None, None)
+        report_name, config_file, config_file_local, uri, None, None
+    )
 
     assert dbresult, 'dbresult is None'
     assert not dbresult.error, dbresult.error + '\n' + dbresult.sql

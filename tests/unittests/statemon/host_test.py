@@ -5,7 +5,6 @@ from nav.statemon.icmppacket import PacketV4, PacketV6
 
 
 class HostTestcase(TestCase):
-
     def test_make_v4_packet(self):
         """
         Test to make a v4 packet

@@ -6,7 +6,7 @@ from nav.web.seeddb.forms import get_prefix, tree_pad, create_choices, BOX_CHARS
 
 
 class PrefixTest(unittest.TestCase):
-    SPACES = 2*BOX_CHARS['SPACE']
+    SPACES = 2 * BOX_CHARS['SPACE']
     PIPE = BOX_CHARS['VERTICAL'] + BOX_CHARS['SPACE']
 
     def test_no_ancestors(self):
@@ -22,14 +22,20 @@ class PrefixTest(unittest.TestCase):
         self.assertEqual(get_prefix([False, False]), PrefixTest.PIPE)
 
     def test_should_map_several_chars(self):
-        self.assertEqual(get_prefix([False, False, False, False, False]),
-                         "".join([PrefixTest.PIPE, PrefixTest.PIPE,
-                                  PrefixTest.PIPE, PrefixTest.PIPE]))
+        self.assertEqual(
+            get_prefix([False, False, False, False, False]),
+            "".join(
+                [PrefixTest.PIPE, PrefixTest.PIPE, PrefixTest.PIPE, PrefixTest.PIPE]
+            ),
+        )
 
     def test_should_map_mixed_chars(self):
-        self.assertEqual(get_prefix([False, True, False, True, False]),
-                         "".join([PrefixTest.SPACES, PrefixTest.PIPE,
-                                  PrefixTest.SPACES, PrefixTest.PIPE]))
+        self.assertEqual(
+            get_prefix([False, True, False, True, False]),
+            "".join(
+                [PrefixTest.SPACES, PrefixTest.PIPE, PrefixTest.SPACES, PrefixTest.PIPE]
+            ),
+        )
 
 
 class TreePadTest(unittest.TestCase):
@@ -44,22 +50,22 @@ class TreePadTest(unittest.TestCase):
 
     def test_one_ancestor_last_child(self):
         """Should only care about its own position"""
-        self.assertEqual(tree_pad(self.string, [False], last=True),
-                         TreePadTest.CORNER + self.string)
+        self.assertEqual(
+            tree_pad(self.string, [False], last=True), TreePadTest.CORNER + self.string
+        )
 
     def test_one_ancestor_not_last_child(self):
         """Should only care about its own position"""
-        self.assertEqual(tree_pad(self.string, [False], last=False),
-                         TreePadTest.PIPE + self.string)
+        self.assertEqual(
+            tree_pad(self.string, [False], last=False), TreePadTest.PIPE + self.string
+        )
 
     def test_multiple_ancestors(self):
-        result = tree_pad(self.string, [False, True, False, False, True],
-                          last=False)
+        result = tree_pad(self.string, [False, True, False, False, True], last=False)
         self.assertTrue(result.endswith(TreePadTest.PIPE + self.string))
 
 
 class TestCreateChoices(unittest.TestCase):
-
     def my_setup(self, children=None):
         if children is None:
             children = []
@@ -84,26 +90,17 @@ class TestCreateChoices(unittest.TestCase):
         self.assertEqual(len(result), 2)
 
     def test_two_children(self):
-        self.my_setup([
-            MagicMock(pk='child1'),
-            MagicMock(pk='child2')
-        ])
+        self.my_setup([MagicMock(pk='child1'), MagicMock(pk='child2')])
 
         result = create_choices(self.root, [], is_last_child=True)
         self.assertEqual(len(result), 3)
 
     def test_two_children_prefix_first(self):
-        self.my_setup([
-            MagicMock(pk='child1'),
-            MagicMock(pk='child2')
-        ])
+        self.my_setup([MagicMock(pk='child1'), MagicMock(pk='child2')])
         result = create_choices(self.root, [], is_last_child=True)
         self.assertTrue(result[1][1].startswith(TreePadTest.PIPE))
 
     def test_two_children_prefix_second(self):
-        self.my_setup([
-            MagicMock(pk='child1'),
-            MagicMock(pk='child2')
-        ])
+        self.my_setup([MagicMock(pk='child1'), MagicMock(pk='child2')])
         result = create_choices(self.root, [], is_last_child=True)
         self.assertTrue(result[2][1].startswith(TreePadTest.CORNER))

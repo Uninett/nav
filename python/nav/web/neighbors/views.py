@@ -35,9 +35,8 @@ def index(request):
 def render_unrecognized(request):
     """Render unrecognized neighbors"""
     context = {
-        'neighbors': UnrecognizedNeighbor.objects.select_related(
-            'interface__netbox'),
-        'page': 'unrecognized'
+        'neighbors': UnrecognizedNeighbor.objects.select_related('interface__netbox'),
+        'page': 'unrecognized',
     }
 
     return render_page(request, context)
@@ -45,7 +44,7 @@ def render_unrecognized(request):
 
 def render_page(request, extra_context):
     """Render the page with a given context"""
-    navpath = [('Home', '/'), ('Unrecognized Neighbors', )]
+    navpath = [('Home', '/'), ('Unrecognized Neighbors',)]
     context = {
         'navpath': navpath,
         'title': create_title(navpath),

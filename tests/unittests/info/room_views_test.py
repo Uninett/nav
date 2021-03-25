@@ -24,6 +24,7 @@ from nav.models.manage import Netbox
 
 class RoomViewsTest(unittest.TestCase):
     """Testclass for helper functions in roominfo's views module"""
+
     # pylint: disable=R0904
 
     def setUp(self):
@@ -31,12 +32,10 @@ class RoomViewsTest(unittest.TestCase):
 
         netbox1 = Netbox()
         netbox1.get_availability = Mock(
-            return_value = {'availability': {'day': None,
-                                             'month': 100.0,
-                                             'week': 100.0}})
+            return_value={'availability': {'day': None, 'month': 100.0, 'week': 100.0}}
+        )
         netbox2 = Netbox()
         netbox2.get_availability = Mock(
-            return_value = {'availability': {'day': None,
-                                             'month': 100.0,
-                                             'week': None}})
+            return_value={'availability': {'day': None, 'month': 100.0, 'week': None}}
+        )
         self.netboxes = [netbox1, netbox2]

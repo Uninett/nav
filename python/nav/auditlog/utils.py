@@ -9,14 +9,20 @@ from .models import LogEntry
 LATEST_N_AUDITLOG_ENTRIES = 15
 
 
-def get_auditlog_entries(modelname=None, queryset=None, pks=None,
-                         limit=LATEST_N_AUDITLOG_ENTRIES, subsystem=None):
+def get_auditlog_entries(
+    modelname=None,
+    queryset=None,
+    pks=None,
+    limit=LATEST_N_AUDITLOG_ENTRIES,
+    subsystem=None,
+):
     """Get up to <limit> entries involving <modelname>
 
     Limit results to <pks>, <queryset> and/or <subsystem>
     """
-    assert modelname or queryset, ("At least one of <modelname> or "
-                                   "<queryset> must be given")
+    assert modelname or queryset, (
+        "At least one of <modelname> or " "<queryset> must be given"
+    )
     if pks is None:
         pks = []
     if queryset is not None and queryset.exists():

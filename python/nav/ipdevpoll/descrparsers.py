@@ -23,28 +23,37 @@ return a None value.
 
 import re
 
-NTNU_CORE_LAN_PATTERN = re.compile(r"""
+NTNU_CORE_LAN_PATTERN = re.compile(
+    r"""
     (?P<net_type>(core|lan)) ,
     (?P<org>[^,]+) ,
     (?P<ident> (?P<usage>[^\d,]+) (?P<n>\d+)? ) ( ,
     (?P<comment>[^,]*) ( ,
     (?P<vlan>\d+) )? )?
-    """, re.X | re.I)
+    """,
+    re.X | re.I,
+)
 
-NTNU_LINK_PATTERN = re.compile(r"""
+NTNU_LINK_PATTERN = re.compile(
+    r"""
     (?P<net_type>link) ,
     (?P<to_router>[^,]+) ( ,
     (?P<comment>[^,]*) ( ,
     (?P<vlan>\d+) )? )?
-    """, re.X | re.I)
+    """,
+    re.X | re.I,
+)
 
-NTNU_ELINK_PATTERN = re.compile(r"""
+NTNU_ELINK_PATTERN = re.compile(
+    r"""
     (?P<net_type>elink) ,
     (?P<to_router>[^,]+) ,
     (?P<to_org>[^,]+) ( ,
     (?P<comment>[^,]*) ( ,
     (?P<vlan>\d+) )? )?
-    """, re.X | re.I)
+    """,
+    re.X | re.I,
+)
 
 
 def parse_ntnu_convention(sysname, ifalias):
@@ -56,9 +65,7 @@ def parse_ntnu_convention(sysname, ifalias):
     """
     # Strip leading and trailing whitespace from each part individually
     string = ','.join([s.strip() for s in ifalias.split(',')])
-    for pattern in (NTNU_CORE_LAN_PATTERN,
-                    NTNU_LINK_PATTERN,
-                    NTNU_ELINK_PATTERN):
+    for pattern in (NTNU_CORE_LAN_PATTERN, NTNU_LINK_PATTERN, NTNU_ELINK_PATTERN):
         match = pattern.match(string)
         if match:
             break
@@ -72,18 +79,21 @@ def parse_ntnu_convention(sysname, ifalias):
         d['n'] = int(d['n'])
 
     if d['net_type'] in ('core', 'lan'):
-        d['netident'] = ','.join(str(d[s])
-                                 for s in ('org', 'ident', 'comment')
-                                 if s in d and d[s])
+        d['netident'] = ','.join(
+            str(d[s]) for s in ('org', 'ident', 'comment') if s in d and d[s]
+        )
     elif d['net_type'] in ('link', 'elink'):
         d['netident'] = "%s,%s" % (sysname, d['to_router'])
     return d
 
 
-UNINETT_PATTERN = re.compile(r"""
+UNINETT_PATTERN = re.compile(
+    r"""
     (?P<comment>[^,]+) ,
     (?P<netident>.*)
-    """, re.X | re.I)
+    """,
+    re.X | re.I,
+)
 
 
 def parse_uninett_convention(_sysname, ifalias):

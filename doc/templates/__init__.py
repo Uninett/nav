@@ -12,6 +12,7 @@ def get_html_theme_path():
     theme_path = os.path.abspath(os.path.dirname(__file__))
     return [theme_path]
 
+
 def setup(app):
     """Setup."""
     # add_html_theme is new in Sphinx 1.6+

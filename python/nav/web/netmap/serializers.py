@@ -28,6 +28,7 @@ class MultipleChoiceField(serializers.ChoiceField):
 
         This does not currently exist in django-rest-framework
     """
+
     widget = SelectMultiple
 
     def field_from_native(self, data, files, field_name, into):
@@ -57,6 +58,7 @@ class InstanceRelatedField(serializers.RelatedField):
 
 class SimpleCategorySerializer(serializers.ModelSerializer):
     """Simple serializer to represent categories as strings based on their PK"""
+
     class Meta:
         model = manage.Category
         fields = ('id',)
@@ -71,6 +73,7 @@ class SimpleCategorySerializer(serializers.ModelSerializer):
 
 class NetmapViewSerializer(serializers.Serializer):
     """Serializer for NetmapView"""
+
     viewid = serializers.IntegerField(required=False, read_only=True)
     owner = serializers.StringRelatedField(read_only=True)
     title = serializers.CharField()
@@ -80,8 +83,9 @@ class NetmapViewSerializer(serializers.Serializer):
     last_modified = serializers.DateTimeField()
     is_public = serializers.BooleanField()
     categories = SimpleCategorySerializer(many=True)
-    location_room_filter = serializers.CharField(max_length=255, required=False,
-                                                 allow_blank=True)
+    location_room_filter = serializers.CharField(
+        max_length=255, required=False, allow_blank=True
+    )
     display_orphans = serializers.BooleanField()
     display_elinks = serializers.BooleanField()
 
@@ -114,14 +118,17 @@ class NetmapViewSerializer(serializers.Serializer):
         instance.categories_set.filter(category__in=del_categories).delete()
 
         # Create added categories
-        profiles.NetmapViewCategories.objects.bulk_create([
-            profiles.NetmapViewCategories(view=instance, category=cat)
-            for cat in add_categories
-        ])
+        profiles.NetmapViewCategories.objects.bulk_create(
+            [
+                profiles.NetmapViewCategories(view=instance, category=cat)
+                for cat in add_categories
+            ]
+        )
 
 
 class NetmapViewDefaultViewSerializer(serializers.ModelSerializer):
     """Serializer for NetmapViewDefault"""
+
     partial = True
 
     class Meta(object):

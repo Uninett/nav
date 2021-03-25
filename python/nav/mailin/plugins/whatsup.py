@@ -28,8 +28,12 @@ import nav.mailin
 class Plugin(nav.mailin.Plugin):
     def init(self):
         nav.event.create_type_hierarchy(
-            {('whatsup', 'Alert from WhatsUp', False):
-                 [('whatsup', 'Alert from WhatUp')]})
+            {
+                ('whatsup', 'Alert from WhatsUp', False): [
+                    ('whatsup', 'Alert from WhatUp')
+                ]
+            }
+        )
 
     def accept(self, msg):
         return msg['From'] == '<ita_wu@asp.uit.no>'

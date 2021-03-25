@@ -22,6 +22,7 @@ from nav.mibs import mibretriever, reduce_index
 
 class IEEE8023LagMib(mibretriever.MibRetriever):
     """"A MibRetriever for handling IEEE8023-LAG-MIB"""
+
     mib = get_mib('IEEE8023-LAG-MIB')
 
     @inlineCallbacks
@@ -32,10 +33,12 @@ class IEEE8023LagMib(mibretriever.MibRetriever):
 
         :returns: { aggregation_ifindex: aggregator_ifindex, ... }
         """
-        result = yield self.retrieve_column(
-            'dot3adAggPortSelectedAggID').addCallback(reduce_index)
-        returnValue({port: aggregator for port, aggregator in result.items()
-                     if aggregator != 0})
+        result = yield self.retrieve_column('dot3adAggPortSelectedAggID').addCallback(
+            reduce_index
+        )
+        returnValue(
+            {port: aggregator for port, aggregator in result.items() if aggregator != 0}
+        )
 
     @inlineCallbacks
     def retrieve_attached_aggregators(self):
@@ -45,10 +48,12 @@ class IEEE8023LagMib(mibretriever.MibRetriever):
 
         :returns: { aggregation_ifindex: aggregator_ifindex, ... }
         """
-        result = yield self.retrieve_column(
-            'dot3adAggPortAttachedAggID').addCallback(reduce_index)
-        returnValue({port: aggregator for port, aggregator in result.items()
-                     if aggregator != 0})
+        result = yield self.retrieve_column('dot3adAggPortAttachedAggID').addCallback(
+            reduce_index
+        )
+        returnValue(
+            {port: aggregator for port, aggregator in result.items() if aggregator != 0}
+        )
 
     @inlineCallbacks
     def retrieve_aggregations_by_operational_key(self):
@@ -59,17 +64,21 @@ class IEEE8023LagMib(mibretriever.MibRetriever):
 
         :returns: { aggregation_ifindex: aggregator_ifindex, ... }
         """
-        aggregators = yield self.retrieve_column(
-            'dot3adAggActorOperKey').addCallback(reduce_index)
+        aggregators = yield self.retrieve_column('dot3adAggActorOperKey').addCallback(
+            reduce_index
+        )
         aggregations = yield self.retrieve_column(
-            'dot3adAggPortActorOperKey').addCallback(reduce_index)
+            'dot3adAggPortActorOperKey'
+        ).addCallback(reduce_index)
 
         by_opervalue = defaultdict(list)
         for ifindex, opervalue in aggregations.items():
             by_opervalue[opervalue].append(ifindex)
 
-        result = {ifindex: by_opervalue[opervalue]
-                  for ifindex, opervalue in aggregators.items()
-                  if opervalue in by_opervalue}
+        result = {
+            ifindex: by_opervalue[opervalue]
+            for ifindex, opervalue in aggregators.items()
+            if opervalue in by_opervalue
+        }
 
         returnValue(result)

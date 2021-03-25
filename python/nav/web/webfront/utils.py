@@ -35,8 +35,10 @@ _logger = logging.getLogger('nav.web.tools.utils')
 @python_2_unicode_compatible
 class Tool(object):
     """Class representing a tool"""
-    def __init__(self, name, uri, icon, description, priority=0, display=True,
-                 doclink=None):
+
+    def __init__(
+        self, name, uri, icon, description, priority=0, display=True, doclink=None
+    ):
         self.name = name
         self.uri = uri
         self.icon = icon
@@ -72,7 +74,7 @@ def current_messages():
     return Message.objects.filter(
         publish_start__lt=datetime.today().isoformat(' '),
         publish_end__gt=datetime.today().isoformat(' '),
-        replaced_by__isnull=True
+        replaced_by__isnull=True,
     )
 
 
@@ -83,13 +85,16 @@ def boxes_down():
         alerthistory__event_type='maintenanceState',
         alerthistory__end_time__gte=infinity,
     )
-    _boxes_down = AlertHistory.objects.select_related(
-        'netbox'
-    ).filter(
-        Q(netbox__up=Netbox.UP_DOWN) | Q(netbox__up=Netbox.UP_SHADOW),
-        end_time__gte=infinity,
-        event_type='boxState'
-    ).exclude(netbox__in=on_maintenance).order_by('-start_time')
+    _boxes_down = (
+        AlertHistory.objects.select_related('netbox')
+        .filter(
+            Q(netbox__up=Netbox.UP_DOWN) | Q(netbox__up=Netbox.UP_SHADOW),
+            end_time__gte=infinity,
+            event_type='boxState',
+        )
+        .exclude(netbox__in=on_maintenance)
+        .order_by('-start_time')
+    )
     return _boxes_down
 
 
@@ -120,8 +125,7 @@ def tool_list(account):
                     try:
                         tool = parse_tool(fullpath)
                     except Exception as error:
-                        _logger.error('Error parsing tool in %s: %s',
-                                      filename, error)
+                        _logger.error('Error parsing tool in %s: %s', filename, error)
                         continue
 
                     if account.has_perm('web_access', tool.uri):

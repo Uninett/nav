@@ -35,6 +35,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
 class AcknowledgementSerializer(serializers.ModelSerializer):
     """Serializer for alert acknowledgements"""
+
     account = AccountSerializer()
 
     comment_html = serializers.CharField(source='comment', read_only=True)
@@ -55,6 +56,7 @@ class AcknowledgementSerializer(serializers.ModelSerializer):
 
 class AlertTypeSerializer(serializers.ModelSerializer):
     """Serializer for alert types"""
+
     class Meta(object):
         model = event.AlertType
         fields = ('name', 'description')
@@ -62,6 +64,7 @@ class AlertTypeSerializer(serializers.ModelSerializer):
 
 class EventTypeSerializer(serializers.ModelSerializer):
     """Serializer for event types"""
+
     class Meta(object):
         model = event.EventType
         fields = ('id', 'description')
@@ -116,15 +119,17 @@ class AlertSerializerBase(serializers.ModelSerializer):
     @staticmethod
     def get_event_history_url(obj):
         """Returns a device history URL for this type of event"""
-        return "".join([reverse('devicehistory-view'), '?eventtype=', 'e_',
-                        obj.event_type.id])
+        return "".join(
+            [reverse('devicehistory-view'), '?eventtype=', 'e_', obj.event_type.id]
+        )
 
     @staticmethod
     def get_netbox_history_url(obj):
         """Returns a device history URL for this subject, if it is a Netbox"""
         if AlertHistorySerializer.get_subject_type(obj) == 'Netbox':
-            return reverse('devicehistory-view-netbox',
-                           kwargs={'netbox_id': obj.get_subject().id})
+            return reverse(
+                'devicehistory-view-netbox', kwargs={'netbox_id': obj.get_subject().id}
+            )
 
     @staticmethod
     def get_subject_type(obj):

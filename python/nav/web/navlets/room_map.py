@@ -23,13 +23,15 @@ from nav.web.info.room.views import SearchForm
 
 class RoomMapNavlet(Navlet):
     """View class for the room map navlet"""
+
     title = 'Room map'
     description = 'Display a map marking the location of rooms'
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         context['can_edit_rooms'] = request.account.has_perm(
-            'web_access', reverse('seeddb-room-edit'))
+            'web_access', reverse('seeddb-room-edit')
+        )
         context['searchform'] = SearchForm()
         return self.render_to_response(context)
 

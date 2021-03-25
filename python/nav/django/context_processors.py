@@ -32,7 +32,8 @@ from nav.buildconf import VERSION
 from nav.metrics import CONFIG
 
 CONTACT_INFORMATION_PATH = find_configfile(
-    os.path.join("webfront", "contact-information.txt"))
+    os.path.join("webfront", "contact-information.txt")
+)
 
 
 def debug(_request):
@@ -44,6 +45,7 @@ def debug(_request):
     if settings.DEBUG:
         context_extras['debug'] = True
         from django.db import connection
+
         context_extras['sql_queries'] = connection.queries
     return context_extras
 
@@ -80,7 +82,7 @@ def account_processor(request):
         'messages': messages,
         'my_links': my_links,
         'tools': tools,
-        'split_tools': split_tools(tools)
+        'split_tools': split_tools(tools),
     }
     return {
         'current_user_data': current_user_data,
@@ -94,9 +96,7 @@ def nav_version(_request):
 
 
 def footer_info(_request):
-    return {
-        'contact_information': quick_read(CONTACT_INFORMATION_PATH)
-    }
+    return {'contact_information': quick_read(CONTACT_INFORMATION_PATH)}
 
 
 def toolbox(request):
@@ -105,9 +105,7 @@ def toolbox(request):
 
 def graphite_base(_request):
     """Provide graphite dashboard url in context"""
-    return {
-        'graphite_base': CONFIG.get('graphiteweb', 'base')
-    }
+    return {'graphite_base': CONFIG.get('graphiteweb', 'base')}
 
 
 def auth(request):

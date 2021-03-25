@@ -25,8 +25,7 @@ class TestNtnuConvention(object):
     sysname = 'foo-sw'
 
     def test_lan(self):
-        d = descrparsers.parse_ntnu_convention(
-            self.sysname, 'lan,math,staff')
+        d = descrparsers.parse_ntnu_convention(self.sysname, 'lan,math,staff')
         assert d is not None
         assert d['org'] == 'math'
         assert d['usage'] == 'staff'
@@ -34,7 +33,8 @@ class TestNtnuConvention(object):
 
     def test_lan_with_comment_and_vlan(self):
         d = descrparsers.parse_ntnu_convention(
-            self.sysname, 'lan,physics,students,campus_dragv,340')
+            self.sysname, 'lan,physics,students,campus_dragv,340'
+        )
         d is not None
         assert d['org'] == 'physics'
         assert d['usage'] == 'students'
@@ -44,7 +44,8 @@ class TestNtnuConvention(object):
 
     def test_lan_with_numbered_usage_and_comment(self):
         d = descrparsers.parse_ntnu_convention(
-            self.sysname, 'lan,math,staff12,campus_lade')
+            self.sysname, 'lan,math,staff12,campus_lade'
+        )
         d is not None
         assert d['org'] == 'math'
         assert d['usage'] == 'staff'
@@ -54,7 +55,8 @@ class TestNtnuConvention(object):
 
     def test_lan_with_spaces(self):
         d = descrparsers.parse_ntnu_convention(
-            self.sysname, 'lan ,physics,students,  campus_dragv, 340')
+            self.sysname, 'lan ,physics,students,  campus_dragv, 340'
+        )
         d is not None
         assert d['org'] == 'physics'
         assert d['usage'] == 'students'
@@ -73,7 +75,8 @@ class TestNtnuConvention(object):
 
     def test_link_with_comment_and_vlan(self):
         d = descrparsers.parse_ntnu_convention(
-            self.sysname, 'link,moholt-gw,Tn_20022350,923')
+            self.sysname, 'link,moholt-gw,Tn_20022350,923'
+        )
         assert d['to_router'] == 'moholt-gw'
         assert d['comment'] == 'Tn_20022350'
         assert d['netident'] == '%s,%s' % (self.sysname, 'moholt-gw')
@@ -87,8 +90,7 @@ class TestNtnuConvention(object):
         assert d['netident'] == 'it,wlan'
 
     def test_core_with_comment_and_vlan(self):
-        d = descrparsers.parse_ntnu_convention(
-            self.sysname, 'core,it,fddi,manring,180')
+        d = descrparsers.parse_ntnu_convention(self.sysname, 'core,it,fddi,manring,180')
         d is not None
         assert d['org'] == 'it'
         assert d['usage'] == 'fddi'
@@ -101,8 +103,7 @@ class TestNtnuConvention(object):
         assert d is None
 
     def test_elink(self):
-        d = descrparsers.parse_ntnu_convention(
-            self.sysname, 'elink,trd-gw,uninett')
+        d = descrparsers.parse_ntnu_convention(self.sysname, 'elink,trd-gw,uninett')
         d is not None
         assert d['to_router'] == 'trd-gw'
         assert d['to_org'] == 'uninett'
@@ -110,7 +111,8 @@ class TestNtnuConvention(object):
 
     def test_elink_with_empty_comment(self):
         d = descrparsers.parse_ntnu_convention(
-            self.sysname, 'elink,sintef-gw,sintef,,902')
+            self.sysname, 'elink,sintef-gw,sintef,,902'
+        )
         d is not None
         assert d['to_router'] == 'sintef-gw'
         assert d['to_org'] == 'sintef'
@@ -126,11 +128,11 @@ class TestNtnuConvention(object):
 class TestUninettConvention(object):
     def test_simple(self):
         d = descrparsers.parse_uninett_convention(
-            'foo-sw', 'lokal link, uninett-gw.teknobyen-gw2')
+            'foo-sw', 'lokal link, uninett-gw.teknobyen-gw2'
+        )
         assert d['comment'] == 'lokal link'
         assert d['netident'] == 'uninett-gw.teknobyen-gw2'
 
     def test_invalid(self):
-        d = descrparsers.parse_uninett_convention(
-            'foo-sw', 'KX182')
+        d = descrparsers.parse_uninett_convention('foo-sw', 'KX182')
         assert d is None

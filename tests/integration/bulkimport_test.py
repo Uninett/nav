@@ -25,43 +25,29 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.read_profile = manage.ManagementProfile(
             name='SNMP v1 read profile',
             protocol=manage.ManagementProfile.PROTOCOL_SNMP,
-            configuration={
-                'community': 'public',
-                'version': 1,
-                'write': False,
-            },
+            configuration={'community': 'public', 'version': 1, 'write': False,},
         )
         self.write_profile = manage.ManagementProfile(
             name='SNMP v1 write profile',
             protocol=manage.ManagementProfile.PROTOCOL_SNMP,
-            configuration={
-                'community': 'secret',
-                'version': 1,
-                'write': True,
-            },
+            configuration={'community': 'secret', 'version': 1, 'write': True,},
         )
 
         self.read_profile.save()
         self.write_profile.save()
 
     def test_simple_import_yields_netbox_and_device_model(self):
-        data = 'myroom:10.0.90.252:myorg:SW:{}::'.format(
-            self.read_profile.name,
-        )
+        data = 'myroom:10.0.90.252:myorg:SW:{}::'.format(self.read_profile.name,)
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
         _line_num, objects = six.next(importer)
 
         self.assertTrue(isinstance(objects, list), repr(objects))
         self.assertTrue(len(objects) == 2, repr(objects))
-        self.assertTrue(any(
-            isinstance(o, manage.Netbox)
-            for o in objects
-        ), msg=objects)
-        self.assertTrue(any(
-            isinstance(o, manage.NetboxProfile)
-            for o in objects
-        ), msg=objects)
+        self.assertTrue(any(isinstance(o, manage.Netbox) for o in objects), msg=objects)
+        self.assertTrue(
+            any(isinstance(o, manage.NetboxProfile) for o in objects), msg=objects
+        )
 
     def test_server_import_yields_netbox_and_device_model(self):
         data = 'myroom:10.0.90.253:myorg:SRV'
@@ -71,15 +57,10 @@ class TestNetboxImporter(DjangoTransactionTestCase):
 
         self.assertTrue(isinstance(objects, list), repr(objects))
         self.assertTrue(len(objects) == 1, repr(objects))
-        self.assertTrue(any(
-            isinstance(o, manage.Netbox)
-            for o in objects
-        ), msg=objects)
+        self.assertTrue(any(isinstance(o, manage.Netbox) for o in objects), msg=objects)
 
     def test_simple_import_yields_objects_with_proper_values(self):
-        data = 'myroom:10.0.90.252:myorg:SW:{}::'.format(
-            self.read_profile.name,
-        )
+        data = 'myroom:10.0.90.252:myorg:SW:{}::'.format(self.read_profile.name,)
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
         _line_num, objects = six.next(importer)
@@ -92,9 +73,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertEqual(profile.profile, self.read_profile)
 
     def test_invalid_room_gives_error(self):
-        data = 'invalid:10.0.90.252:myorg:SW:{}::'.format(
-            self.read_profile.name,
-        )
+        data = 'invalid:10.0.90.252:myorg:SW:{}::'.format(self.read_profile.name,)
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
         _line_num, objects = six.next(importer)
@@ -126,8 +105,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         importer = bulkimport.NetboxImporter(parser)
         _line_num, objects = six.next(importer)
 
-        netboxgroups = [o for o in objects
-                        if isinstance(o, manage.NetboxCategory)]
+        netboxgroups = [o for o in objects if isinstance(o, manage.NetboxCategory)]
         self.assertTrue(len(netboxgroups) > 0, objects)
 
     def test_get_groups_from_group(self):
@@ -140,16 +118,16 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertTrue(len(ncategories) == 2)
 
         for netboxgroup, ncategory in zip(netboxgroups, ncategories):
-            self.assertTrue(isinstance(ncategory, manage.NetboxCategory),
-                            ncategory)
+            self.assertTrue(isinstance(ncategory, manage.NetboxCategory), ncategory)
             self.assertEqual(ncategory.category_id, netboxgroup)
 
     def test_duplicate_locations_should_give_error(self):
         netbox = manage.Netbox(
-            sysname='10.1.0.1', ip='10.1.0.1',
+            sysname='10.1.0.1',
+            ip='10.1.0.1',
             room=manage.Room.objects.get(id='myroom'),
             category=manage.Category.objects.get(id='SRV'),
-            organization=manage.Organization.objects.get(id='myorg')
+            organization=manage.Organization.objects.get(id='myorg'),
         )
         netbox.save()
 
@@ -162,8 +140,9 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'myroom:10.0.90.10:myorg:SRV:::fileserver::WEB:UNIX:MAIL'
         objects = self.parse_to_objects(data)
 
-        self.assertNotIsInstance(objects, Exception,
-                                 msg='Got exception instead of object list')
+        self.assertNotIsInstance(
+            objects, Exception, msg='Got exception instead of object list'
+        )
 
         for obj in objects:
             bulkimport.reset_object_foreignkeys(obj)
@@ -226,7 +205,8 @@ class TestLocationImporter(DjangoTransactionTestCase):
 
     def test_duplicate_locations_should_give_error(self):
         _loc = manage.Location.objects.get_or_create(
-            id='somewhere', description='original somewhere')
+            id='somewhere', description='original somewhere'
+        )
 
         data = "somewhere::Over the rainbow"
         objects = self.parse_to_objects(data)
@@ -234,7 +214,8 @@ class TestLocationImporter(DjangoTransactionTestCase):
 
     def test_location_can_have_parent(self):
         parent, _created = manage.Location.objects.get_or_create(
-            id='somewhere', description='original somewhere')
+            id='somewhere', description='original somewhere'
+        )
 
         data = "otherplace:somewhere:descr"
         objects = self.parse_to_objects(data)
@@ -245,7 +226,8 @@ class TestLocationImporter(DjangoTransactionTestCase):
 
     def test_location_nodescr_can_have_parent(self):
         parent, _created = manage.Location.objects.get_or_create(
-            id='somewhere', description='original somewhere')
+            id='somewhere', description='original somewhere'
+        )
 
         data = "otherplace:somewhere"
         objects = self.parse_to_objects(data)
@@ -257,8 +239,9 @@ class TestLocationImporter(DjangoTransactionTestCase):
     def test_too_long_locationid_should_raise_error(self):
         data = 'this-id-is-simply-too-long-according-to-the-schema-but-lets-try'
         objects = self.parse_to_objects(data)
-        self.assertIsInstance(objects, Exception,
-                              msg="Too long id didn't raise exception")
+        self.assertIsInstance(
+            objects, Exception, msg="Too long id didn't raise exception"
+        )
 
     @staticmethod
     def parse_to_objects(data):

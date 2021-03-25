@@ -26,19 +26,20 @@ from nav.statemon.checker.HttpChecker import HttpChecker
 
 class HTTPSConnection(http_client.HTTPSConnection):
     """Customized HTTPS protocol interface"""
+
     def __init__(self, timeout, host, port=443):
         http_client.HTTPSConnection.__init__(self, host, port)
         self.timeout = timeout
         self.connect()
 
     def connect(self):
-        self.sock = socket.create_connection((self.host, self.port),
-                                             self.timeout)
+        self.sock = socket.create_connection((self.host, self.port), self.timeout)
         self.sock = wrap_socket(self.sock)
 
 
 class HttpsChecker(HttpChecker):
     """HTTPS"""
+
     PORT = 443
 
     def connect(self, ip, port):

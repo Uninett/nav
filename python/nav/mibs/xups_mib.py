@@ -22,25 +22,14 @@ from nav.models.manage import Sensor
 
 class XupsMib(UpsMib):
     """ A custom class for retrieving sensors from EATON UPSes."""
+
     mib = get_mib('XUPS-MIB')
 
     sensor_columns = {
-        'xupsInputVoltage': {
-            'u_o_m': Sensor.UNIT_VOLTS_AC,
-        },
-        'xupsInputFrequency': {
-            'u_o_m': Sensor.UNIT_HERTZ,
-        },
-        'xupsOutputCurrent': {
-            'u_o_m': Sensor.UNIT_AMPERES,
-        },
-        'xupsEnvAmbientTemp': {
-            'u_o_m': Sensor.UNIT_CELSIUS,
-        },
-        'xupsBatCapacity': {
-            'u_o_m': Sensor.UNIT_PERCENT,
-        },
-        'xupsBatTimeRemaining': {
-            'u_o_m': Sensor.UNIT_SECONDS,
-        },
+        'xupsInputVoltage': {'u_o_m': Sensor.UNIT_VOLTS_AC,},
+        'xupsInputFrequency': {'u_o_m': Sensor.UNIT_HERTZ,},
+        'xupsOutputCurrent': {'u_o_m': Sensor.UNIT_AMPERES,},
+        'xupsEnvAmbientTemp': {'u_o_m': Sensor.UNIT_CELSIUS,},
+        'xupsBatCapacity': {'u_o_m': Sensor.UNIT_PERCENT,},
+        'xupsBatTimeRemaining': {'u_o_m': Sensor.UNIT_SECONDS,},
     }

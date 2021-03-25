@@ -63,7 +63,7 @@ def index(request):
     context = {
         'title': 'Report - Index',
         'navpath': [('Home', '/'), ('Report', False)],
-        'heading': 'Report Index'
+        'heading': 'Report Index',
     }
 
     with open(FRONT_FILE, 'r') as f:
@@ -89,7 +89,8 @@ def get_report(request, report_name):
     if query != request.GET:
         # some arguments were stripped, let's clean up the URL
         return HttpResponseRedirect(
-            "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode()))
+            "{0}?{1}".format(request.META['PATH_INFO'], query.urlencode())
+        )
 
     context = make_report(request, report_name, export_delimiter, query)
     if 'exportcsv' in request.GET:
@@ -149,9 +150,9 @@ def matrix_report(request, scope=None):
         'navpath': [
             ('Home', '/'),
             ('Report', reverse('report-index')),
-            ('Subnet matrix', reverse('report-matrix'))
+            ('Subnet matrix', reverse('report-matrix')),
         ],
-        'show_unused': show_unused
+        'show_unused': show_unused,
     }
 
     if scope is None:
@@ -172,14 +173,16 @@ def matrix_report(request, scope=None):
     if scope.version() == 4:
         hide_content_for_colspan = [1, 2, 4]
 
-    context.update({
-        'matrix': matrix,
-        'sub': matrix.end_net.prefixlen() - matrix.bits_in_matrix,
-        'ipv4': scope.version() == 4,
-        'family': scope.version(),
-        'scope': scope,
-        'hide_for': hide_content_for_colspan
-    })
+    context.update(
+        {
+            'matrix': matrix,
+            'sub': matrix.end_net.prefixlen() - matrix.bits_in_matrix,
+            'ipv4': scope.version() == 4,
+            'family': scope.version(),
+            'scope': scope,
+            'hide_for': hide_content_for_colspan,
+        }
+    )
 
     return render(request, 'report/matrix.html', context)
 
@@ -188,6 +191,7 @@ def group_scopes(scopes):
     """Group scopes by version and type
     :type scopes: list[Prefix]
     """
+
     def _prefix_as_int(prefix):
         return IP(prefix.net_address).int()
 
@@ -202,8 +206,12 @@ def group_scopes(scopes):
             groups['ipv6'].append(scope)
 
     if any([groups['private'], groups['ipv4'], groups['ipv6']]):
-        return IpGroup(*[sorted(groups[x], key=_prefix_as_int)
-                         for x in ('private', 'ipv4', 'ipv6')])
+        return IpGroup(
+            *[
+                sorted(groups[x], key=_prefix_as_int)
+                for x in ('private', 'ipv4', 'ipv6')
+            ]
+        )
     else:
         return []
 
@@ -221,16 +229,15 @@ def create_matrix(scope, show_unused):
     elif scope.version() == 4:
         if scope.prefixlen() < 24:
             end_net = IP(scope.net().strNormal() + '/30')
-            matrix = MatrixIPv4(scope, show_unused, end_net=end_net,
-                                bits_in_matrix=6)
+            matrix = MatrixIPv4(scope, show_unused, end_net=end_net, bits_in_matrix=6)
         else:
             max_leaf = get_max_leaf(tree)
             bits_in_matrix = max_leaf.prefixlen() - scope.prefixlen()
-            matrix = MatrixIPv4(scope, show_unused, end_net=max_leaf,
-                                bits_in_matrix=bits_in_matrix)
+            matrix = MatrixIPv4(
+                scope, show_unused, end_net=max_leaf, bits_in_matrix=bits_in_matrix
+            )
     else:
-        raise UnknownNetworkTypeException(
-            'version: ' + str(scope.version))
+        raise UnknownNetworkTypeException('version: ' + str(scope.version))
 
     # Invalidating the MetaIP cache to get rid of processed data.
     MetaIP.invalidateCache()
@@ -259,14 +266,13 @@ def report_list(request):
         ],
         'heading': 'Report list',
         'report_list': reports,
-        'report_list_local': reports_local
+        'report_list_local': reports_local,
     }
 
     return render(request, 'report/report_list.html', context)
 
 
-def make_report(request, report_name, export_delimiter, query_dict,
-                paginate=True):
+def make_report(request, report_name, export_delimiter, query_dict, paginate=True):
     """Makes a report
 
     :param paginate: Introduced to be able to toggle display of the paginate
@@ -282,18 +288,23 @@ def make_report(request, report_name, export_delimiter, query_dict,
     page_number = query_dict.get('page_number', 1)
     page_size = get_page_size(request)
 
-    query_string = "&".join(["%s=%s" % (x, y)
-                             for x, y in iteritems(query_dict)
-                             if x != 'page_number'])
+    query_string = "&".join(
+        ["%s=%s" % (x, y) for x, y in iteritems(query_dict) if x != 'page_number']
+    )
 
-    @report_cache((request.account.login, report_name,
-                   os.stat(CONFIG_FILE_PACKAGE).st_mtime,
-                   os.stat(CONFIG_FILE_LOCAL).st_mtime),
-                  query_dict)
+    @report_cache(
+        (
+            request.account.login,
+            report_name,
+            os.stat(CONFIG_FILE_PACKAGE).st_mtime,
+            os.stat(CONFIG_FILE_LOCAL).st_mtime,
+        ),
+        query_dict,
+    )
     def _fetch_data_from_db():
-        (report, contents, neg, operator, adv, config, dbresult) = (
-            gen.make_report(report_name, CONFIG_FILE_PACKAGE,
-                            CONFIG_FILE_LOCAL, query_dict, None, None))
+        (report, contents, neg, operator, adv, config, dbresult) = gen.make_report(
+            report_name, CONFIG_FILE_PACKAGE, CONFIG_FILE_LOCAL, query_dict, None, None
+        )
         if not report:
             raise Http404
         result_time = strftime("%H:%M:%S", localtime())
@@ -320,8 +331,7 @@ def make_report(request, report_name, export_delimiter, query_dict,
             'report': report,
             'paginate': paginate,
             'page': page,
-            'current_page_range': find_page_range(page_number,
-                                                  paginator.page_range),
+            'current_page_range': find_page_range(page_number, paginator.page_range),
             'query_string': query_string,
             'contents': contents,
             'operator': operator,
@@ -343,8 +353,14 @@ def make_report(request, report_name, export_delimiter, query_dict,
             }
 
             context['operatorlist'] = [
-                'eq', 'like', 'gt', 'lt',
-                'geq', 'leq', 'between', 'in'
+                'eq',
+                'like',
+                'gt',
+                'lt',
+                'geq',
+                'leq',
+                'between',
+                'in',
             ]
 
             context['descriptions'] = {
@@ -366,16 +382,16 @@ def make_report(request, report_name, export_delimiter, query_dict,
             page_name = "Error"
             page_link = False
 
-        navpath = [('Home', '/'),
-                   ('Report', '/report/'),
-                   (page_name, page_link)]
+        navpath = [('Home', '/'), ('Report', '/report/'), (page_name, page_link)]
         adv_block = bool(adv)
 
-        context.update({
-            'title': 'Report - {0}'.format(page_name),
-            'navpath': navpath,
-            'adv_block': adv_block,
-        })
+        context.update(
+            {
+                'title': 'Report - {0}'.format(page_name),
+                'navpath': navpath,
+                'adv_block': adv_block,
+            }
+        )
 
         return context
 
@@ -424,6 +440,7 @@ def find_page_range(page_number, page_range, visible_pages=5):
 
 def generate_export(report, report_name, export_delimiter):
     """Generates a CSV export version of a report"""
+
     def _cellformatter(cell):
         if PY2 and isinstance(cell.text, text_type):
             return cell.text.encode('utf-8')
@@ -432,10 +449,10 @@ def generate_export(report, report_name, export_delimiter):
 
     response = HttpResponse(content_type="text/x-csv; charset=utf-8")
     response["Content-Type"] = "application/force-download"
-    response["Content-Disposition"] = (
-        "attachment; filename=report-%s-%s.csv" %
-        (report_name, strftime("%Y%m%d", localtime()))
-        )
+    response["Content-Disposition"] = "attachment; filename=report-%s-%s.csv" % (
+        report_name,
+        strftime("%Y%m%d", localtime()),
+    )
     writer = csv.writer(response, delimiter=str(export_delimiter))
 
     # Make a list of headers
@@ -464,7 +481,7 @@ def add_report_widget(request):
     navlet = 'nav.web.navlets.report.ReportWidget'
     preferences = {
         'report_id': report_id,
-        'query_string': request.POST.get('query_string')
+        'query_string': request.POST.get('query_string'),
     }
 
     add_navlet(request.account, navlet, preferences)
@@ -503,6 +520,7 @@ def report_cache(key_items, query_dict):
                     _logger.exception("Exception occurred while caching")
 
             return data
+
         return wraps(func)(_cache_lookup)
 
     return _decorator
@@ -515,15 +533,24 @@ def _query_dict_hash(query_dict):
     the cache key).
 
     """
-    non_key_args = ['offset', 'limit', 'export', 'exportcsv', 'page_number',
-                    'page_size']
-    stripped_dict = {key: value
-                     for key, value in query_dict.items()
-                     if key not in non_key_args and value != ""}
+    non_key_args = [
+        'offset',
+        'limit',
+        'export',
+        'exportcsv',
+        'page_number',
+        'page_size',
+    ]
+    stripped_dict = {
+        key: value
+        for key, value in query_dict.items()
+        if key not in non_key_args and value != ""
+    }
     data = repr(stripped_dict).encode('utf-8')
     return hashlib.sha256(data).hexdigest()
 
 
 class UnknownNetworkTypeException(Exception):
     """Unknown network type"""
+
     pass

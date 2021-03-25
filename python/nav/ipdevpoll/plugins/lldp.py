@@ -44,6 +44,7 @@ class LLDP(Plugin):
     device.
 
     """
+
     remote = None
     neighbors = None
 
@@ -56,8 +57,7 @@ class LLDP(Plugin):
 
     @classmethod
     def _has_interfaces(cls, netbox):
-        return manage.Interface.objects.filter(
-            netbox__id=netbox.id).count() > 0
+        return manage.Interface.objects.filter(netbox__id=netbox.id).count() > 0
 
     @defer.inlineCallbacks
     def handle(self):
@@ -100,7 +100,7 @@ class LLDP(Plugin):
             manage.NetboxInfo.cache_get,
             self.netbox,
             INFO_KEY_LLDP_INFO,
-            INFO_VAR_REMOTES_CACHE
+            INFO_VAR_REMOTES_CACHE,
         )
         defer.returnValue(value)
 
@@ -112,28 +112,29 @@ class LLDP(Plugin):
             self.netbox,
             INFO_KEY_LLDP_INFO,
             INFO_VAR_REMOTES_CACHE,
-            remote_table
+            remote_table,
         )
 
     @defer.inlineCallbacks
     def _get_chassis_id(self, mib):
-        chassis_id_subtype = yield mib.get_next("lldpLocChassisIdSubtype",
-                                                translate_result=True)
+        chassis_id_subtype = yield mib.get_next(
+            "lldpLocChassisIdSubtype", translate_result=True
+        )
         chassis_id = yield mib.get_next("lldpLocChassisId")
         if not chassis_id:
             return
         chassis_id = lldp_mib.IdSubtypes.get(chassis_id_subtype, chassis_id)
-        info = self.containers.factory((INFO_KEY_LLDP_INFO,
-                                        INFO_VAR_CHASSIS_ID),
-                                       shadows.NetboxInfo)
+        info = self.containers.factory(
+            (INFO_KEY_LLDP_INFO, INFO_VAR_CHASSIS_ID), shadows.NetboxInfo
+        )
         info.value = str(chassis_id)
         info.netbox = self.netbox
         info.key = INFO_KEY_LLDP_INFO
         info.variable = INFO_VAR_CHASSIS_ID
         if isinstance(chassis_id, lldp_mib.MacAddress):
-            info = self.containers.factory((INFO_KEY_LLDP_INFO,
-                                            INFO_VAR_CHASSIS_MAC),
-                                           shadows.NetboxInfo)
+            info = self.containers.factory(
+                (INFO_KEY_LLDP_INFO, INFO_VAR_CHASSIS_MAC), shadows.NetboxInfo
+            )
             info.value = str(chassis_id)
             info.netbox = self.netbox
             info.key = INFO_KEY_LLDP_INFO
@@ -154,17 +155,18 @@ class LLDP(Plugin):
         """Tries to synchronously identify LLDP entries in NAV's database"""
         neighbors = [LLDPNeighbor(lldp) for lldp in self.remote]
 
-        self._process_identified(
-            [n for n in neighbors if n.identified])
-        self._process_unidentified(
-            [n.record for n in neighbors if not n.identified])
+        self._process_identified([n for n in neighbors if n.identified])
+        self._process_unidentified([n.record for n in neighbors if not n.identified])
 
         self.neighbors = neighbors
 
     def _process_identified(self, identified):
         for neigh in identified:
-            self._logger.debug("identified neighbor %r from %r",
-                               (neigh.netbox.sysname, neigh.interfaces), neigh.record)
+            self._logger.debug(
+                "identified neighbor %r from %r",
+                (neigh.netbox.sysname, neigh.interfaces),
+                neigh.record,
+            )
             self._store_candidates(neigh)
 
     def _store_candidates(self, neighbor):
@@ -178,11 +180,13 @@ class LLDP(Plugin):
         ifc = self.containers.factory(ifindex, shadows.Interface)
         ifc.ifindex = ifindex
 
-        key = (ifindex, self.netbox.id,
-               neighbor.netbox.id,
-               interface and interface.id or None,
-               SOURCE,
-               )
+        key = (
+            ifindex,
+            self.netbox.id,
+            neighbor.netbox.id,
+            interface and interface.id or None,
+            SOURCE,
+        )
         cand = self.containers.factory(key, shadows.AdjacencyCandidate)
         cand.netbox = self.netbox
         cand.interface = ifc
@@ -199,8 +203,7 @@ class LLDP(Plugin):
         ifc.ifindex = record.ifindex
 
         key = (record.ifindex, record.chassis_id, SOURCE)
-        neighbor = self.containers.factory(
-            key, shadows.UnrecognizedNeighbor)
+        neighbor = self.containers.factory(key, shadows.UnrecognizedNeighbor)
         neighbor.netbox = self.netbox
         neighbor.interface = ifc
         neighbor.remote_id = record.chassis_id
@@ -232,11 +235,13 @@ class LLDPNeighbor(Neighbor):
         return netbox
 
     def _netbox_from_local(self, chassid):
-        netbox = self._netbox_query(Q(
-            info_set__key=INFO_KEY_LLDP_INFO,
-            info_set__variable=INFO_VAR_CHASSIS_ID,
-            info_set__value=str(chassid),
-        ))
+        netbox = self._netbox_query(
+            Q(
+                info_set__key=INFO_KEY_LLDP_INFO,
+                info_set__variable=INFO_VAR_CHASSIS_ID,
+                info_set__value=str(chassid),
+            )
+        )
         if netbox:
             self._logger.debug("Found netbox through local type lookup")
             return netbox
@@ -247,8 +252,10 @@ class LLDPNeighbor(Neighbor):
         portid = self.record.port_id
         if self.netbox and portid:
             lookup = None
-            if isinstance(portid, (lldp_mib.IdSubtypes.interfaceAlias,
-                                   lldp_mib.IdSubtypes.interfaceName)):
+            if isinstance(
+                portid,
+                (lldp_mib.IdSubtypes.interfaceAlias, lldp_mib.IdSubtypes.interfaceName),
+            ):
                 lookup = self._interfaces_from_name
             elif isinstance(portid, (lldp_mib.IdSubtypes.local)):
                 lookup = self._interfaces_from_local

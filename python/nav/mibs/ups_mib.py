@@ -25,87 +25,49 @@ from nav.models.manage import Sensor
 
 class UpsMib(mibretriever.MibRetriever):
     """ A class for retrieveing sensors from RFC1628-compatible UPSes."""
+
     mib = get_mib('UPS-MIB')
 
     sensor_columns = {
         # battery group
-        'upsBatteryTemperature': {
-            'u_o_m': Sensor.UNIT_CELSIUS,
-        },
-        'upsEstimatedChargeRemaining': {
-            'u_o_m': Sensor.UNIT_PERCENT,
-        },
-        'upsEstimatedMinutesRemaining': {
-            'u_o_m': Sensor.UNIT_MINUTES,
-        },
-
+        'upsBatteryTemperature': {'u_o_m': Sensor.UNIT_CELSIUS,},
+        'upsEstimatedChargeRemaining': {'u_o_m': Sensor.UNIT_PERCENT,},
+        'upsEstimatedMinutesRemaining': {'u_o_m': Sensor.UNIT_MINUTES,},
         # input group
         'upsInputNumLines': {},
-
         'upsInputFrequency': {
             'is_column': True,
             'u_o_m': Sensor.UNIT_HERTZ,
             'precision': 1,
         },
-        'upsInputVoltage': {
-            'is_column': True,
-            'u_o_m': Sensor.UNIT_VOLTS_AC,
-        },
+        'upsInputVoltage': {'is_column': True, 'u_o_m': Sensor.UNIT_VOLTS_AC,},
         'upsInputCurrent': {
             'is_column': True,
             'u_o_m': Sensor.UNIT_AMPERES,
             'precision': 1,
         },
-        'upsInputTruePower': {
-            'is_column': True,
-            'u_o_m': Sensor.UNIT_WATTS,
-        },
-
+        'upsInputTruePower': {'is_column': True, 'u_o_m': Sensor.UNIT_WATTS,},
         # output group
-        'upsOutputFrequency': {
-            'u_o_m': Sensor.UNIT_HERTZ,
-            'precision': 1,
-        },
+        'upsOutputFrequency': {'u_o_m': Sensor.UNIT_HERTZ, 'precision': 1,},
         'upsOutputNumLines': {},
-
-        'upsOutputVoltage': {
-            'is_column': True,
-            'u_o_m': Sensor.UNIT_VOLTS_AC,
-        },
+        'upsOutputVoltage': {'is_column': True, 'u_o_m': Sensor.UNIT_VOLTS_AC,},
         'upsOutputCurrent': {
             'is_column': True,
             'u_o_m': Sensor.UNIT_AMPERES,
             'precision': 1,
         },
-        'upsOutputPower': {
-            'is_column': True,
-            'u_o_m': Sensor.UNIT_WATTS,
-        },
-        'upsOutputPercentLoad': {
-            'is_column': True,
-            'u_o_m': Sensor.UNIT_PERCENT,
-        },
-
+        'upsOutputPower': {'is_column': True, 'u_o_m': Sensor.UNIT_WATTS,},
+        'upsOutputPercentLoad': {'is_column': True, 'u_o_m': Sensor.UNIT_PERCENT,},
         # bypass group
-        'upsBypassFrequency': {
-            'u_o_m': Sensor.UNIT_HERTZ,
-            'precision': 1
-        },
+        'upsBypassFrequency': {'u_o_m': Sensor.UNIT_HERTZ, 'precision': 1},
         'upsBypassNumLines': {},
-
-        'upsBypassVoltage': {
-            'is_column': True,
-            'u_o_m': Sensor.UNIT_VOLTS_AC,
-        },
+        'upsBypassVoltage': {'is_column': True, 'u_o_m': Sensor.UNIT_VOLTS_AC,},
         'upsBypassCurrent': {
             'is_column': True,
             'u_o_m': Sensor.UNIT_AMPERES,
             'precision': 1,
         },
-        'upsBypassPower': {
-            'is_column': True,
-            'u_o_m': Sensor.UNIT_WATTS,
-        },
+        'upsBypassPower': {'is_column': True, 'u_o_m': Sensor.UNIT_WATTS,},
     }
 
     def _get_named_column(self, column):
@@ -128,8 +90,9 @@ class UpsMib(mibretriever.MibRetriever):
     def _get_sensors(self, object_name, sensor_params):
         result = []
         meta = self.sensor_columns[object_name]
-        self._logger.debug('_get_sensors: %s; %s = %s',
-                           self.agent_proxy.ip, object_name, sensor_params)
+        self._logger.debug(
+            '_get_sensors: %s; %s = %s', self.agent_proxy.ip, object_name, sensor_params
+        )
 
         for row in itervalues(sensor_params):
             row_oid = row.get(0, None)
@@ -138,23 +101,26 @@ class UpsMib(mibretriever.MibRetriever):
             unit_of_measurement = meta.get('u_o_m', None)
             precision = meta.get('precision', None)
             scale = meta.get('scale', None)
-            description = self.mib.get('nodes').get(object_name).get(
-                'description', None)
+            description = (
+                self.mib.get('nodes').get(object_name).get('description', None)
+            )
             if meta.get('is_column', False):
                 name = object_name + str(row_oid)
             else:
                 name = object_name
             internal_name = name
 
-            result.append({
-                'oid': oid,
-                'unit_of_measurement': unit_of_measurement,
-                'precision': precision,
-                'scale': scale,
-                'description': description,
-                'name': name,
-                'internal_name': internal_name,
-                'mib': self.get_module_name(),
-            })
+            result.append(
+                {
+                    'oid': oid,
+                    'unit_of_measurement': unit_of_measurement,
+                    'precision': precision,
+                    'scale': scale,
+                    'description': description,
+                    'name': name,
+                    'internal_name': internal_name,
+                    'mib': self.get_module_name(),
+                }
+            )
 
         return result

@@ -23,9 +23,10 @@ PROTOCOL_CHOICES = dict(ManagementProfile.PROTOCOL_CHOICES)
 
 class ManagementProfileFilterForm(forms.Form):
     """Form for filtering connection profiles"""
+
     protocol = forms.ChoiceField(
-        required=False,
-        choices=ManagementProfile.PROTOCOL_CHOICES)
+        required=False, choices=ManagementProfile.PROTOCOL_CHOICES
+    )
 
     def __init__(self, *args, **kwargs):
         super(ManagementProfileFilterForm, self).__init__(*args, **kwargs)
@@ -41,6 +42,7 @@ class ProtocolSpecificMixIn(object):
     ManagementProfile.configuration field.
 
     """
+
     def __init__(self, *args, **kwargs):
         super(ProtocolSpecificMixIn, self).__init__(*args, **kwargs)
 
@@ -79,14 +81,10 @@ class SnmpForm(ProtocolSpecificMixIn, forms.ModelForm):
         configuration_fields = ['version', 'community', 'write']
         fields = []
 
-    version = forms.ChoiceField(choices=(
-        (2, '2c'),
-        (1, '1'),
-    ))
+    version = forms.ChoiceField(choices=((2, '2c'), (1, '1'),))
     community = forms.CharField(required=True)
     write = forms.BooleanField(
-        required=False,
-        help_text="Check if this community string enables write access",
+        required=False, help_text="Check if this community string enables write access",
     )
 
 
@@ -141,6 +139,7 @@ FORM_MAPPING = {
 
 class ManagementProfileForm(forms.ModelForm):
     """Form for editing/adding connection profiless"""
+
     class Meta(object):
         model = ManagementProfile
         fields = ['name', 'description', 'protocol']

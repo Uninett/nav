@@ -41,9 +41,7 @@ def index(request):
     """Base controller"""
 
     rules = ThresholdRule.objects.all().order_by('id')
-    context = {'title': TITLE,
-               'navpath': get_path(),
-               'rules': rules}
+    context = {'title': TITLE, 'navpath': get_path(), 'rules': rules}
     return render(request, 'threshold/base.html', context)
 
 
@@ -134,11 +132,13 @@ def threshold_search(request):
         term = enhance_term(request.GET['term'])
         metrics = get_metrics(term)
         for metric in metrics:
-            result.append({
-                'label': metric['id'],
-                'value': metric['id'],
-                'expandable': metric['expandable']
-            })
+            result.append(
+                {
+                    'label': metric['id'],
+                    'value': metric['id'],
+                    'expandable': metric['expandable'],
+                }
+            )
 
     return JsonResponse({"items": result})
 
@@ -165,10 +165,7 @@ def get_metrics(term):
         metrics = raw_metric_query(term)
 
     if len(metrics) > 1 and is_all_leaves(metrics):
-        metrics.insert(0, {
-            'id': term,
-            'expandable': False
-        })
+        metrics.insert(0, {'id': term, 'expandable': False})
 
     return metrics
 
@@ -189,10 +186,7 @@ def is_all_leaves(metrics):
 
 def get_graph_url(request):
     """Get graph url based on metric"""
-    graph_args = {
-        'title': 'Latest values for this metric',
-        'width': 600, 'height': 400
-    }
+    graph_args = {'title': 'Latest values for this metric', 'width': 600, 'height': 400}
     if 'metric' in request.GET:
         metric = request.GET['metric']
         if 'raw' in request.GET:

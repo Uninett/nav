@@ -52,7 +52,8 @@ class NetboxAction(argparse.Action):
             parser.error("%s argument must be non-empty" % option_string)
 
         search_base = manage.Netbox.objects.select_related(
-            'type', 'type__vendor').order_by('sysname')
+            'type', 'type__vendor'
+        ).order_by('sysname')
         if is_valid_ip(values, strict=True):
             matches = search_base.filter(ip=values)
         else:
@@ -74,6 +75,7 @@ class NetboxAction(argparse.Action):
 
 class IPDevPollProcess(object):
     """Main IPDevPoll process setup"""
+
     def __init__(self, options):
         self.options = options
         self._logger = logging.getLogger('nav.ipdevpoll')
@@ -88,8 +90,7 @@ class IPDevPollProcess(object):
         if self.options.netbox:
             self.setup_single_job()
         elif self.options.multiprocess:
-            self.setup_multiprocess(self.options.multiprocess,
-                                    self.options.max_jobs)
+            self.setup_multiprocess(self.options.multiprocess, self.options.max_jobs)
         elif self.options.worker:
             self.setup_worker()
         else:
@@ -117,10 +118,14 @@ class IPDevPollProcess(object):
         # every log statement.
         self._logger.info("Starting scheduling in single process")
         from .schedule import JobScheduler
+
         plugins.import_plugins()
         self.work_pool = pool.InlinePool()
-        reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
-                                self.work_pool, self.options.onlyjob)
+        reactor.callWhenRunning(
+            JobScheduler.initialize_from_config_and_run,
+            self.work_pool,
+            self.options.onlyjob,
+        )
 
         def log_scheduler_jobs():
             JobScheduler.log_active_jobs(logging.INFO)
@@ -156,34 +161,40 @@ class IPDevPollProcess(object):
         def _run_job():
             descriptors = dict((d.name, d) for d in config.get_jobs())
             job = descriptors[self.options.onlyjob]
-            self._log_context = dict(job=job.name,
-                                     sysname=self.options.netbox.sysname)
-            job_handler = JobHandler(job.name, self.options.netbox.id,
-                                     plugins=job.plugins,
-                                     interval=job.interval)
+            self._log_context = dict(job=job.name, sysname=self.options.netbox.sysname)
+            job_handler = JobHandler(
+                job.name,
+                self.options.netbox.id,
+                plugins=job.plugins,
+                interval=job.interval,
+            )
             deferred = maybeDeferred(job_handler.run)
             deferred.addBoth(_log_job, job_handler, interval=job.interval)
             deferred.addBoth(lambda x: reactor.stop())
 
         def _log_job(result, handler, interval):
             success = not isinstance(result, Failure)
-            schedule.log_job_externally(handler, success if result else None,
-                                        interval)
+            schedule.log_job_externally(handler, success if result else None, interval)
 
         plugins.import_plugins()
-        self._logger.info("Running single %r job for %s",
-                          self.options.onlyjob, self.options.netbox)
+        self._logger.info(
+            "Running single %r job for %s", self.options.onlyjob, self.options.netbox
+        )
         reactor.callWhenRunning(_run_job)
 
     def setup_multiprocess(self, process_count, max_jobs):
         self._logger.info("Starting multi-process setup")
         from .schedule import JobScheduler
+
         plugins.import_plugins()
-        self.work_pool = pool.WorkerPool(process_count,
-                                         max_jobs,
-                                         self.options.threadpoolsize)
-        reactor.callWhenRunning(JobScheduler.initialize_from_config_and_run,
-                                self.work_pool, self.options.onlyjob)
+        self.work_pool = pool.WorkerPool(
+            process_count, max_jobs, self.options.threadpoolsize
+        )
+        reactor.callWhenRunning(
+            JobScheduler.initialize_from_config_and_run,
+            self.work_pool,
+            self.options.onlyjob,
+        )
 
         def log_scheduler_jobs():
             JobScheduler.log_active_jobs(logging.INFO)
@@ -200,8 +211,7 @@ class IPDevPollProcess(object):
         """Reopens log files."""
         self._logger.info("SIGHUP received; reopening log files")
         nav.logs.reopen_log_files()
-        nav.daemon.redirect_std_fds(
-            stderr=nav.logs.get_logfile_from_logger())
+        nav.daemon.redirect_std_fds(stderr=nav.logs.get_logfile_from_logger())
         nav.logs.reset_log_levels()
         nav.logs.set_log_config()
         self._logger.info("Log files reopened, log levels reloaded.")
@@ -232,12 +242,14 @@ class IPDevPollProcess(object):
     def _log_shutdown_time(self):
         if self._shutdown_start_time > 0:
             sequence_time = time.time() - self._shutdown_start_time
-            self._logger.warning("Shutdown sequence completed in %.02f seconds",
-                                 sequence_time)
+            self._logger.warning(
+                "Shutdown sequence completed in %.02f seconds", sequence_time
+            )
 
 
 class CommandProcessor(object):
     """Processes the command line and starts ipdevpoll."""
+
     pidfile = 'ipdevpolld.pid'
 
     def __init__(self):
@@ -269,43 +281,109 @@ class CommandProcessor(object):
         """Sets up and returns a command line option parser."""
         parser = argparse.ArgumentParser(
             epilog="This program runs SNMP polling jobs for IP devices "
-            "monitored by NAV")
+            "monitored by NAV"
+        )
         opt = parser.add_argument
 
         opt('--version', action='version', version='NAV ' + buildconf.VERSION)
-        opt("-f", "--foreground", action="store_true", dest="foreground",
-            help="run in foreground instead of daemonizing")
-        opt("-s", "--log-stderr", action="store_true", dest="logstderr",
-            help="log to stderr instead of log file")
-        opt("-j", "--list-jobs", action="store_true",
-            help="print a list of configured jobs and exit")
-        opt("-p", "--list-plugins", action="store_true",
-            help="load and print a list of configured plugins")
-        opt("-J", action="store", dest="onlyjob", choices=self._joblist(),
-            metavar="JOBNAME", help="run only JOBNAME jobs in this process")
-        opt("-n", "--netbox", action=NetboxAction, metavar="NETBOX",
-            help="Run JOBNAME once for NETBOX. Also implies -f and -s options.")
-        opt("-m", "--multiprocess", type=int, dest="multiprocess",
-            nargs='?', const=cpu_count(), metavar='WORKERS',
+        opt(
+            "-f",
+            "--foreground",
+            action="store_true",
+            dest="foreground",
+            help="run in foreground instead of daemonizing",
+        )
+        opt(
+            "-s",
+            "--log-stderr",
+            action="store_true",
+            dest="logstderr",
+            help="log to stderr instead of log file",
+        )
+        opt(
+            "-j",
+            "--list-jobs",
+            action="store_true",
+            help="print a list of configured jobs and exit",
+        )
+        opt(
+            "-p",
+            "--list-plugins",
+            action="store_true",
+            help="load and print a list of configured plugins",
+        )
+        opt(
+            "-J",
+            action="store",
+            dest="onlyjob",
+            choices=self._joblist(),
+            metavar="JOBNAME",
+            help="run only JOBNAME jobs in this process",
+        )
+        opt(
+            "-n",
+            "--netbox",
+            action=NetboxAction,
+            metavar="NETBOX",
+            help="Run JOBNAME once for NETBOX. Also implies -f and -s options.",
+        )
+        opt(
+            "-m",
+            "--multiprocess",
+            type=int,
+            dest="multiprocess",
+            nargs='?',
+            const=cpu_count(),
+            metavar='WORKERS',
             help="Run ipdevpoll in a multiprocess setup. If WORKERS is not set "
-            "it will default to number of cpus in the system")
-        opt("-M", "--max-jobs-per-worker", type=int, dest="max_jobs",
-            metavar="JOBS", help="Restart worker processes after completing "
-            "JOBS jobs. (Default: Don't restart)")
-        opt("-P", "--pidlog", action="store_true", dest="pidlog",
-            help="Include process ID in every log line")
-        opt("--capture-vars", action="store_true", dest="capture_vars",
+            "it will default to number of cpus in the system",
+        )
+        opt(
+            "-M",
+            "--max-jobs-per-worker",
+            type=int,
+            dest="max_jobs",
+            metavar="JOBS",
+            help="Restart worker processes after completing "
+            "JOBS jobs. (Default: Don't restart)",
+        )
+        opt(
+            "-P",
+            "--pidlog",
+            action="store_true",
+            dest="pidlog",
+            help="Include process ID in every log line",
+        )
+        opt(
+            "--capture-vars",
+            action="store_true",
+            dest="capture_vars",
             help="Capture and print locals and globals in tracebacks when "
-                 "debug logging")
-        opt("-c", "--clean", action="store_true", dest="clean",
+            "debug logging",
+        )
+        opt(
+            "-c",
+            "--clean",
+            action="store_true",
+            dest="clean",
             help="cleans/purges old job log entries from the database and then "
-                 "exits")
-        opt("--threadpoolsize", action="store", dest="threadpoolsize",
-            metavar="COUNT", type=int, default=10,
+            "exits",
+        )
+        opt(
+            "--threadpoolsize",
+            action="store",
+            dest="threadpoolsize",
+            metavar="COUNT",
+            type=int,
+            default=10,
             help="the number of database worker threads, and thus db "
-                 "connections, to use in this process")
-        opt("--worker", action="store_true",
-            help="Used internally when lauching worker processes")
+            "connections, to use in this process",
+        )
+        opt(
+            "--worker",
+            action="store_true",
+            help="Used internally when lauching worker processes",
+        )
         return parser
 
     def run(self):
@@ -320,8 +398,7 @@ class CommandProcessor(object):
         if self.options.multiprocess:
             self._logger.info("--- Starting ipdevpolld multiprocess master ---")
         elif self.options.onlyjob:
-            self._logger.info("--- Starting ipdevpolld %s ---",
-                              self.options.onlyjob)
+            self._logger.info("--- Starting ipdevpolld %s ---", self.options.onlyjob)
         else:
             self._logger.info("--- Starting ipdevpolld ---")
 
@@ -342,6 +419,7 @@ class CommandProcessor(object):
             # Now try to load config and output logs to the configured file
             # instead.
             from nav.ipdevpoll import config
+
             logfile_name = config.ipdevpoll_conf.get('ipdevpoll', 'logfile')
             if not logfile_name.startswith(os.sep):
                 logfile_name = os.path.join(NAV_CONFIG['LOG_DIR'], logfile_name)
@@ -354,8 +432,7 @@ class CommandProcessor(object):
         )
 
         if not stderr_only:
-            nav.daemon.redirect_std_fds(
-                stderr=nav.logs.get_logfile_from_logger())
+            nav.daemon.redirect_std_fds(stderr=nav.logs.get_logfile_from_logger())
 
     def exit_if_already_running(self):
         """Exits the process if another ipdevpoll daemon is already running"""
@@ -368,8 +445,9 @@ class CommandProcessor(object):
     def daemonize(self):
         """Puts the ipdevpoll process in the background"""
         try:
-            nav.daemon.daemonize(self.pidfile,
-                                 stderr=nav.logs.get_logfile_from_logger())
+            nav.daemon.daemonize(
+                self.pidfile, stderr=nav.logs.get_logfile_from_logger()
+            )
         except nav.daemon.DaemonError as error:
             self._logger.error(error)
             sys.exit(1)
@@ -382,12 +460,14 @@ class CommandProcessor(object):
     @staticmethod
     def _joblist():
         from nav.ipdevpoll.config import get_jobs
+
         jobs = sorted(job.name for job in get_jobs())
         return jobs
 
     @staticmethod
     def _list_jobs(*_args, **_kwargs):
         from nav.ipdevpoll.config import get_jobs
+
         jobs = sorted(job.name for job in get_jobs())
         print('\n'.join(jobs))
         sys.exit()

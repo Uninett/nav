@@ -32,6 +32,7 @@ IP_OUT_OCTETS = 'ipIfStatsHCOutOctets'
 
 class IpMib(mibretriever.MibRetriever):
     """MibRetriever implementation for IP-MIB"""
+
     mib = get_mib('IP-MIB')
 
     @staticmethod
@@ -77,8 +78,9 @@ class IpMib(mibretriever.MibRetriever):
             addr_len, addr = addr[0], addr[1:]
             if addr_len != expected_len or len(addr) != expected_len:
                 raise IndexToIpException(
-                    "IPv%d address length is not %d: %r" % (
-                        4 if addr_type == IPV4_ID else 6, expected_len, oid,))
+                    "IPv%d address length is not %d: %r"
+                    % (4 if addr_type == IPV4_ID else 6, expected_len, oid,)
+                )
 
         return converter(addr)
 
@@ -102,10 +104,10 @@ class IpMib(mibretriever.MibRetriever):
         if not root or not root.oid.is_a_prefix_of(index):
             return index
 
-        children = (c.oid for c in six.itervalues(cls.nodes)
-                    if root.oid.is_a_prefix_of(c.oid))
-        matched_prefixes = [
-            c for c in children if c.is_a_prefix_of(index)] + [root.oid]
+        children = (
+            c.oid for c in six.itervalues(cls.nodes) if root.oid.is_a_prefix_of(c.oid)
+        )
+        matched_prefixes = [c for c in children if c.is_a_prefix_of(index)] + [root.oid]
         if matched_prefixes:
             index = index.strip_prefix(matched_prefixes[0])
 
@@ -120,8 +122,7 @@ class IpMib(mibretriever.MibRetriever):
         return ip
 
     @classmethod
-    def prefix_index_to_ip(cls, index,
-                           prefix_entry='ipAddressPrefixEntry'):
+    def prefix_index_to_ip(cls, index, prefix_entry='ipAddressPrefixEntry'):
         """Convert a row index from ipAddressPrefixTable to an IP object."""
 
         index = cls._chop_index(index, prefix_entry)
@@ -139,8 +140,7 @@ class IpMib(mibretriever.MibRetriever):
             return prefix
 
     @inlineCallbacks
-    def _get_ifindex_ip_mac_mappings(self,
-                                     column='ipNetToPhysicalPhysAddress'):
+    def _get_ifindex_ip_mac_mappings(self, column='ipNetToPhysicalPhysAddress'):
         """Get IP/MAC mappings from a table indexed by IfIndex+InetAddressType+
         InetAddress.
         """
@@ -156,8 +156,9 @@ class IpMib(mibretriever.MibRetriever):
 
             row = (ifindex, ip, mac)
             mappings.add(row)
-        self._logger.debug("ip/mac pairs: Got %d rows from %s",
-                           len(all_phys_addrs), column)
+        self._logger.debug(
+            "ip/mac pairs: Got %d rows from %s", len(all_phys_addrs), column
+        )
         returnValue(mappings)
 
     @inlineCallbacks
@@ -182,10 +183,15 @@ class IpMib(mibretriever.MibRetriever):
             mappings.add(row)
 
         if ignore_count:
-            self._logger.warning("ignored %d/%d invalid IPv4 addresses from %s",
-                                 ignore_count, len(ipv4_phys_addrs), column)
-        self._logger.debug("ip/mac pairs: Got %d rows from %s",
-                           len(ipv4_phys_addrs), column)
+            self._logger.warning(
+                "ignored %d/%d invalid IPv4 addresses from %s",
+                ignore_count,
+                len(ipv4_phys_addrs),
+                column,
+            )
+        self._logger.debug(
+            "ip/mac pairs: Got %d rows from %s", len(ipv4_phys_addrs), column
+        )
         returnValue(mappings)
 
     @staticmethod
@@ -214,15 +220,14 @@ class IpMib(mibretriever.MibRetriever):
         returnValue(mappings_new | mappings_deprecated)
 
     @inlineCallbacks
-    def _get_interface_ipv4_addresses(self,
-                                      ifindex_column='ipAdEntIfIndex',
-                                      netmask_column='ipAdEntNetMask'):
+    def _get_interface_ipv4_addresses(
+        self, ifindex_column='ipAdEntIfIndex', netmask_column='ipAdEntNetMask'
+    ):
         """Get IPv4 address information for interfaces from a table
         indexed by IpAddress.  Default is the ipAddrTable.
 
         """
-        address_rows = yield self.retrieve_columns((ifindex_column,
-                                                    netmask_column))
+        address_rows = yield self.retrieve_columns((ifindex_column, netmask_column))
 
         addresses = set()
         ignore_count = 0
@@ -240,30 +245,40 @@ class IpMib(mibretriever.MibRetriever):
             except ValueError as err:
                 self._logger.warning(
                     "ignoring IP address %s due to invalid netmask %s (%s)",
-                    ip, netmask, err)
+                    ip,
+                    netmask,
+                    err,
+                )
             else:
                 new_row = (ifindex, ip, prefix)
                 addresses.add(new_row)
 
         if ignore_count:
-            self._logger.warning("ignored %d/%d invalid IPv4 addresses from %s",
-                                 ignore_count, len(address_rows),
-                                 ifindex_column)
-        self._logger.debug("interface addresses: Got %d rows from %s",
-                           len(address_rows), ifindex_column)
+            self._logger.warning(
+                "ignored %d/%d invalid IPv4 addresses from %s",
+                ignore_count,
+                len(address_rows),
+                ifindex_column,
+            )
+        self._logger.debug(
+            "interface addresses: Got %d rows from %s",
+            len(address_rows),
+            ifindex_column,
+        )
         returnValue(addresses)
 
     @inlineCallbacks
-    def _get_interface_addresses(self,
-                                 ifindex_column='ipAddressIfIndex',
-                                 prefix_column='ipAddressPrefix',
-                                 prefix_entry='ipAddressPrefixEntry'):
+    def _get_interface_addresses(
+        self,
+        ifindex_column='ipAddressIfIndex',
+        prefix_column='ipAddressPrefix',
+        prefix_entry='ipAddressPrefixEntry',
+    ):
         """Get IP address information for interfaces from a table
         indexed by InetAddressType+InetAddress.  Default is the ipAddressTable.
 
         """
-        address_rows = yield self.retrieve_columns((ifindex_column,
-                                                    prefix_column))
+        address_rows = yield self.retrieve_columns((ifindex_column, prefix_column))
 
         addresses = set()
         unparseable_addrs = set()
@@ -285,9 +300,15 @@ class IpMib(mibretriever.MibRetriever):
         if unparseable_addrs:
             self._logger.warning(
                 "ignored %d invalid or unsupported addresses from %s: %r",
-                len(unparseable_addrs), ifindex_column, unparseable_addrs)
-        self._logger.debug("interface addresses: Got %d rows from %s",
-                           len(address_rows), ifindex_column)
+                len(unparseable_addrs),
+                ifindex_column,
+                unparseable_addrs,
+            )
+        self._logger.debug(
+            "interface addresses: Got %d rows from %s",
+            len(address_rows),
+            ifindex_column,
+        )
         returnValue(addresses)
 
     @inlineCallbacks
@@ -316,11 +337,15 @@ class IpMib(mibretriever.MibRetriever):
 
         """
         octets = yield self.retrieve_columns([IP_IN_OCTETS, IP_OUT_OCTETS])
-        result = dict((index[-1], (row[IP_IN_OCTETS], row[IP_OUT_OCTETS]))
-                      for index, row in octets.items() if index[-2] == IPV6_ID)
+        result = dict(
+            (index[-1], (row[IP_IN_OCTETS], row[IP_OUT_OCTETS]))
+            for index, row in octets.items()
+            if index[-2] == IPV6_ID
+        )
         returnValue(result)
 
 
 class IndexToIpException(Exception):
     """A collected OID row index could not be converted to an IP address"""
+
     pass

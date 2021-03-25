@@ -40,25 +40,21 @@ also be done to enable this. See INSTALL for instructions.
 
 # "Translation" of the module names into more human readable form.
 MODULES = {
-        "acctsearch": "Accounting Log",
-        "acctcharts": "Accounting Charts",
-        "logsearch": "Error Log"
-          }
+    "acctsearch": "Accounting Log",
+    "acctcharts": "Accounting Charts",
+    "logsearch": "Error Log",
+}
 
 # Maps pages/subsections to modules
 SECTIONS = {
-        "acctsearch": ["acctsearch", "acctdetail"],
-        "acctcharts": ["acctcharts"],
-        "logsearch": ["logsearch", "logdetail"]
-           }
+    "acctsearch": ["acctsearch", "acctdetail"],
+    "acctcharts": ["acctcharts"],
+    "logsearch": ["logsearch", "logdetail"],
+}
 
 
 # The order in which the menu is displayed. Remove item to remove it from menu
-MENUORDER = (
-        "acctsearch",
-        "acctcharts",
-        "logsearch"
-             )
+MENUORDER = ("acctsearch", "acctcharts", "logsearch")
 
 INDEX_PAGE = 'acctsearch'
 
@@ -74,33 +70,21 @@ LOG_TABLE = "radiuslog"
 LOG_EXPIRY = "1 month"
 
 LOG_FIELDDESCRIPTIONS = {
-                    "time": "Timestamp",
-                    "type": "Type",
-                    "message": "Message",
-                    "status": "Status",
-                    "username": "Username",
-                    "client": "Client",
-                    "port": "Port",
-                    "view": "View"
-                    }
+    "time": "Timestamp",
+    "type": "Type",
+    "message": "Message",
+    "status": "Status",
+    "username": "Username",
+    "client": "Client",
+    "port": "Port",
+    "view": "View",
+}
 
 # Fields to display in the search results
-LOG_SEARCHRESULTFIELDS = (
-                    "time",
-                    "type",
-                    "message"
-                    )
+LOG_SEARCHRESULTFIELDS = ("time", "type", "message")
 
 # Fields to display on the details page
-LOG_DETAILFIELDS = (
-                    "time",
-                    "type",
-                    "message",
-                    "status",
-                    "username",
-                    "client",
-                    "port"
-                    )
+LOG_DETAILFIELDS = ("time", "type", "message", "status", "username", "client", "port")
 
 
 ##############################################################################
@@ -120,53 +104,53 @@ ACCT_REAUTH_TIMEOUT = 960
 
 # Associate database fields with proper descriptions
 ACCT_DBFIELDSDESCRIPTIONS = {
-                    "acctuniqueid": "Session ID",
-                    "username": "Username",
-                    "nasipaddress": "NAS IP Address",
-                    "nasporttype": "NAS Port Type",
-                    "cisconasport": "Cisco NAS Port",
-                    "calledstationid": "Called Station (NAS)",
-                    "callingstationid": "Calling Station (Client)",
-                    "framedprotocol": "Framed Protocol",
-                    "framedipaddress": "Framed IP Address",
-                    "acctstarttime": "Session Start",
-                    "acctstoptime": "Session Stop",
-                    "acctsessiontime": "Duration",
-                    "acctterminatecause": "Termination Cause",
-                    "acctinputoctets": "Uploaded Data",
-                    "acctoutputoctets": "Downloaded Data"
-                      }
+    "acctuniqueid": "Session ID",
+    "username": "Username",
+    "nasipaddress": "NAS IP Address",
+    "nasporttype": "NAS Port Type",
+    "cisconasport": "Cisco NAS Port",
+    "calledstationid": "Called Station (NAS)",
+    "callingstationid": "Calling Station (Client)",
+    "framedprotocol": "Framed Protocol",
+    "framedipaddress": "Framed IP Address",
+    "acctstarttime": "Session Start",
+    "acctstoptime": "Session Stop",
+    "acctsessiontime": "Duration",
+    "acctterminatecause": "Termination Cause",
+    "acctinputoctets": "Uploaded Data",
+    "acctoutputoctets": "Downloaded Data",
+}
 
 # Fields to display when viewing session details
 ACCT_DETAILSFIELDS = (
-                    "acctuniqueid",
-                    "username",
-                    "nasipaddress",
-                    "nasporttype",
-                    "cisconasport",
-                    "calledstationid",
-                    "callingstationid",
-                    "framedprotocol",
-                    "framedipaddress",
-                    "acctstarttime",
-                    "acctstoptime",
-                    "acctsessiontime",
-                    "acctterminatecause",
-                    "acctinputoctets",
-                    "acctoutputoctets",
-                    )
+    "acctuniqueid",
+    "username",
+    "nasipaddress",
+    "nasporttype",
+    "cisconasport",
+    "calledstationid",
+    "callingstationid",
+    "framedprotocol",
+    "framedipaddress",
+    "acctstarttime",
+    "acctstoptime",
+    "acctsessiontime",
+    "acctterminatecause",
+    "acctinputoctets",
+    "acctoutputoctets",
+)
 
 # Fields to display when viewing a search result. Changing this without editing
 # RadiusSearchTemplate.tmpl will just end in a mess. Leave it as it is.
 ACCT_SEARCHRESULTFIELDS = (
-                    "username",
-                    "framedipaddress",
-                    "nasipaddress",
-                    "acctstarttime",
-                    "acctstoptime",
-                    "acctsessiontime",
-                    "acctuniqueid"
-                    )
+    "username",
+    "framedipaddress",
+    "nasipaddress",
+    "acctstarttime",
+    "acctstoptime",
+    "acctsessiontime",
+    "acctuniqueid",
+)
 
 ##############################################################################
 

@@ -23,18 +23,15 @@ from nav.web.report import views
 # Subsystem: Report
 # Naming convention: report-<result>-<query>
 urlpatterns = [
-    url(r'^$', views.index,
-        name='report-index'),
-    url(r'^matrix$', views.matrix_report,
-        name='report-matrix'),
-    url(r'^matrix/(?P<scope>[^&]+)$', views.matrix_report,
-        name='report-matrix-scope'),
-    url(r'^reportlist$', views.report_list,
-        name='report-reportlist'),
-    url(r'^(?P<report_name>[^/]+)$', views.get_report,
-        name='report-by-name'),
-    url(r'^widget/add/', views.add_report_widget,
-        name='report-add-widget'),
-    url(r'^widget/(?P<report_name>[^/]+)$', views.get_report_for_widget,
-        name='widget-report-by-name'),
+    url(r'^$', views.index, name='report-index'),
+    url(r'^matrix$', views.matrix_report, name='report-matrix'),
+    url(r'^matrix/(?P<scope>[^&]+)$', views.matrix_report, name='report-matrix-scope'),
+    url(r'^reportlist$', views.report_list, name='report-reportlist'),
+    url(r'^(?P<report_name>[^/]+)$', views.get_report, name='report-by-name'),
+    url(r'^widget/add/', views.add_report_widget, name='report-add-widget'),
+    url(
+        r'^widget/(?P<report_name>[^/]+)$',
+        views.get_report_for_widget,
+        name='widget-report-by-name',
+    ),
 ]

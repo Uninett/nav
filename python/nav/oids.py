@@ -43,6 +43,7 @@ class OID(tuple):
       (1, 3, 6)
 
     """
+
     def __new__(cls, oid):
         if isinstance(oid, six.string_types):
             oid = map(int, oid.strip(SEPARATOR).split(SEPARATOR))
@@ -64,7 +65,7 @@ class OID(tuple):
     def is_a_prefix_of(self, other):
         """Returns True if this OID is a prefix of other"""
         other = OID(other)
-        return len(other) > len(self) and other[:len(self)] == self
+        return len(other) > len(self) and other[: len(self)] == self
 
     def strip_prefix(self, prefix):
         """Returns this OID with prefix stripped.
@@ -75,7 +76,7 @@ class OID(tuple):
         """
         prefix = OID(prefix)
         if prefix.is_a_prefix_of(self):
-            return OID(self[len(prefix):])
+            return OID(self[len(prefix) :])
         else:
             return self
 
@@ -92,6 +93,7 @@ def get_enterprise_id(sysobjectid):
 
 def _test():
     import doctest
+
     doctest.testmod()
 
 

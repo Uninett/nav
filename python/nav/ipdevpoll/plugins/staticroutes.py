@@ -32,11 +32,13 @@ class StaticRoutes(Plugin):
     """
     Collects the entire routing table to select only static routes
     """
+
     ignored_prefixes = ()
 
     @classmethod
     def on_plugin_load(cls):
         from nav.ipdevpoll.config import ipdevpoll_conf
+
         cls.ignored_prefixes = get_ignored_prefixes(ipdevpoll_conf)
         cls.throttle_delay = get_throttle_delay(ipdevpoll_conf)
 
@@ -69,17 +71,20 @@ class StaticRoutes(Plugin):
         routes = yield mib.get_decoded_routes(protocols=WANTED_PROTOCOLS)
         filtered = [r for r in routes if self.is_wanted_route(r)]
 
-        self._logger.debug("%d of %d collected routes are static candidates",
-                           len(filtered), len(routes))
-        self._logger.debug("collected destinations: %r",
-                           [r.destination for r in filtered])
+        self._logger.debug(
+            "%d of %d collected routes are static candidates",
+            len(filtered),
+            len(routes),
+        )
+        self._logger.debug(
+            "collected destinations: %r", [r.destination for r in filtered]
+        )
 
         for route in filtered:
             ifindex = yield mib.get_cidr_route_column('IfIndex', route.index)
             alias = None
             if ifindex:
-                alias = yield ifmib.retrieve_column_by_index(
-                    'ifAlias', (ifindex,))
+                alias = yield ifmib.retrieve_column_by_index('ifAlias', (ifindex,))
             self.route_to_containers(route, descr=alias)
 
         Prefix.add_static_routes_sentinel(self.containers)
@@ -88,8 +93,8 @@ class StaticRoutes(Plugin):
         """Helper method to create container objects for db persistence"""
         if self.containers.get(route.destination, Prefix):
             self._logger.debug(
-                "ignoring static route for %s, prefix already exists",
-                route.destination)
+                "ignoring static route for %s, prefix already exists", route.destination
+            )
             return
 
         vlan = self.containers.factory(route.destination, Vlan)

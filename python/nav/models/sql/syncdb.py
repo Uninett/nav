@@ -13,4 +13,5 @@ sys.path.insert(0, os.path.join(_top_srcdir, 'python'))
 os.chdir(_mydir)
 
 from nav.pgsync import main
+
 main()

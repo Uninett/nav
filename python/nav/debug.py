@@ -32,9 +32,12 @@ def calltracer(function, logfunction=print):
                         default function will just print to stdout.
 
     """
+
     def _tracer(*args, **kwargs):
-        logfunction('TRACE: Call to %s, args=%s, kwargs=%s' %
-                    (repr(function), repr(args), repr(kwargs)))
+        logfunction(
+            'TRACE: Call to %s, args=%s, kwargs=%s'
+            % (repr(function), repr(args), repr(kwargs))
+        )
         trace = StringIO()
         print_stack(file=trace)
         trace.seek(0)
@@ -67,8 +70,9 @@ def log_stacktrace(logger, stacktrace):
             dump.append("  %s" % line.rstrip())
 
         dump.append("(Globals)")
-        globs = ((var, val) for var, val in frame.f_globals.items()
-                 if var != '__builtins__')
+        globs = (
+            (var, val) for var, val in frame.f_globals.items() if var != '__builtins__'
+        )
         dump.extend(_dumpvars(globs))
 
         dump.append("(Locals)")
@@ -97,6 +101,6 @@ def log_last_django_query(logger):
     """
     from nav.models import manage as _manage
     from django.db import connection
+
     if connection.queries:
-        logger.debug("Last Django SQL query was: %s",
-                     connection.queries[-1]['sql'])
+        logger.debug("Last Django SQL query was: %s", connection.queries[-1]['sql'])

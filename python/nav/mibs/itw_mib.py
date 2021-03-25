@@ -47,7 +47,7 @@ TABLES = {
                 'climateIO1',
                 'climateIO2',
                 'climateIO3',
-            }
+            },
         }
     ],
     'tempSensorTable': [
@@ -55,9 +55,7 @@ TABLES = {
             'avail': 'tempSensorAvail',
             'serial': 'tempSensorSerial',
             'name': 'tempSensorName',
-            'sensors': {
-                'tempSensorTempC',
-            }
+            'sensors': {'tempSensorTempC',},
         }
     ],
     'airFlowSensorTable': [
@@ -69,7 +67,7 @@ TABLES = {
                 'airFlowSensorTempC',
                 'airFlowSensorFlow',
                 'airFlowSensorHumidity',
-            }
+            },
         }
     ],
     'doorSensorTable': [
@@ -77,9 +75,7 @@ TABLES = {
             'avail': 'doorSensorAvail',
             'serial': 'doorSensorSerial',
             'name': 'doorSensorName',
-            'sensors': {
-                'doorSensorStatus',
-            }
+            'sensors': {'doorSensorStatus',},
         }
     ],
     'waterSensorTable': [
@@ -87,9 +83,7 @@ TABLES = {
             'avail': 'waterSensorAvail',
             'serial': 'waterSensorSerial',
             'name': 'waterSensorName',
-            'sensors': {
-                'waterSensorDampness',
-            }
+            'sensors': {'waterSensorDampness',},
         }
     ],
     'currentMonitorTable': [
@@ -97,9 +91,7 @@ TABLES = {
             'avail': 'currentMonitorAvail',
             'serial': 'currentMonitorSerial',
             'name': 'currentMonitorName',
-            'sensors': {
-                'currentMonitorAmps',
-            }
+            'sensors': {'currentMonitorAmps',},
         }
     ],
     'millivoltMonitorTable': [
@@ -107,9 +99,7 @@ TABLES = {
             'avail': 'millivoltMonitorAvail',
             'serial': 'millivoltMonitorSerial',
             'name': 'millivoltMonitorName',
-            'sensors': {
-                'millivoltMonitorMV',
-            }
+            'sensors': {'millivoltMonitorMV',},
         }
     ],
     'dewPointSensorTable': [
@@ -121,7 +111,7 @@ TABLES = {
                 'dewPointSensorDewPoint',
                 'dewPointSensorTempC',
                 'dewPointSensorHumidity',
-            }
+            },
         }
     ],
     'digitalSensorTable': [
@@ -129,9 +119,7 @@ TABLES = {
             'avail': 'digitalSensorAvail',
             'serial': 'digitalSensorSerial',
             'name': 'digitalSensorName',
-            'sensors': {
-                'digitalSensorDigital',
-            }
+            'sensors': {'digitalSensorDigital',},
         }
     ],
     'cpmSensorTable': [
@@ -139,9 +127,7 @@ TABLES = {
             'avail': 'cpmSensorAvail',
             'serial': 'cpmSensorSerial',
             'name': 'cpmSensorName',
-            'sensors': {
-                'cpmSensorStatus',
-            }
+            'sensors': {'cpmSensorStatus',},
         }
     ],
     'smokeAlarmTable': [
@@ -149,9 +135,7 @@ TABLES = {
             'avail': 'smokeAlarmAvail',
             'serial': 'smokeAlarmSerial',
             'name': 'smokeAlarmName',
-            'sensors': {
-                'smokeAlarmStatus',
-            }
+            'sensors': {'smokeAlarmStatus',},
         }
     ],
     'neg48VdcSensorTable': [
@@ -159,9 +143,7 @@ TABLES = {
             'avail': 'neg48VdcSensorAvail',
             'serial': 'neg48VdcSensorSerial',
             'name': 'neg48VdcSensorName',
-            'sensors': {
-                'neg48VdcSensorVoltage',
-            }
+            'sensors': {'neg48VdcSensorVoltage',},
         }
     ],
     'pos30VdcSensorTable': [
@@ -169,9 +151,7 @@ TABLES = {
             'avail': 'pos30VdcSensorAvail',
             'serial': 'pos30VdcSensorSerial',
             'name': 'pos30VdcSensorName',
-            'sensors': {
-                'pos30VdcSensorVoltage',
-            }
+            'sensors': {'pos30VdcSensorVoltage',},
         }
     ],
     'analogSensorTable': [
@@ -179,9 +159,7 @@ TABLES = {
             'avail': 'analogSensorAvail',
             'serial': 'analogSensorSerial',
             'name': 'analogSensorName',
-            'sensors': {
-                'analogSensorAnalog',
-            }
+            'sensors': {'analogSensorAnalog',},
         }
     ],
     'powerMonitorTable': [
@@ -201,7 +179,7 @@ TABLES = {
                 'powMonPwrFact',
                 'powMonOutlet1',
                 'powMonOutlet2',
-            }
+            },
         }
     ],
     'powerOnlyTable': [
@@ -215,7 +193,7 @@ TABLES = {
                 'powerRealPow',
                 'powerAppPow',
                 'powerPwrFactor',
-            }
+            },
         }
     ],
     'power3ChTable': [
@@ -234,7 +212,7 @@ TABLES = {
                 'pow3ChRealPow' + ch,
                 'pow3ChAppPow' + ch,
                 'pow3ChPwrFact' + ch,
-            }
+            },
         }
         for ch in ('A', 'B', 'C')
     ],
@@ -243,10 +221,7 @@ TABLES = {
             'avail': 'outletAvail',
             'serial': 'outletSerial',
             'name': 'outletName',
-            'sensors': {
-                'outlet1Status',
-                'outlet2Status',
-            }
+            'sensors': {'outlet1Status', 'outlet2Status',},
         }
     ],
     'vsfcTable': [
@@ -262,7 +237,7 @@ TABLES = {
                 'vsfcExt2TempC',
                 'vsfcExt3TempC',
                 'vsfcExt4TempC',
-            }
+            },
         }
     ],
     'ctrl3ChTable': [
@@ -278,7 +253,7 @@ TABLES = {
                 'ctrl3ChRealPow' + ch,
                 'ctrl3ChAppPow' + ch,
                 'ctrl3ChPwrFact' + ch,
-            }
+            },
         }
         for ch in ('A', 'B', 'C')
     ],
@@ -287,9 +262,7 @@ TABLES = {
             'avail': 'ctrlGrpAmpsAvail',
             'serial': 'ctrlGrpAmpsSerial',
             'name': 'ctrlGrpAmpsName',
-            'sensors': {
-                'ctrlGrpAmps' + ch,
-            }
+            'sensors': {'ctrlGrpAmps' + ch,},
         }
         for ch in ('A', 'B', 'C', 'D', 'E', 'F')
     ],
@@ -305,7 +278,7 @@ TABLES = {
                 'ctrlOutletUpDelay',
                 'ctrlOutletDwnDelay',
                 'ctrlOutletRbtDelay',
-            }
+            },
         }
     ],
     'dstsTable': [
@@ -319,7 +292,7 @@ TABLES = {
                 'dstsSource' + ch + 'Active',
                 'dstsPowerStatus' + ch,
                 'dstsSource' + ch + 'TempC',
-            }
+            },
         }
         for ch in ('A', 'B')
     ],
@@ -327,7 +300,6 @@ TABLES = {
 
 
 class BaseITWatchDogsMib(mibretriever.MibRetriever):
-
     def _get_oid_for_sensor(self, sensor_name):
         """Return the OID for the given sensor-name as a string; Return
         None if sensor-name is not found.
@@ -340,8 +312,9 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
                 oid_str = sensor_def.get('oid')
         return oid_str
 
-    def _make_result_dict(self, sensor_oid, base_oid, serial, desc,
-                          u_o_m=None, **kwargs):
+    def _make_result_dict(
+        self, sensor_oid, base_oid, serial, desc, u_o_m=None, **kwargs
+    ):
         """ Make a simple dictionary to return to plugin"""
         if not sensor_oid or not base_oid or not serial or not desc:
             return {}
@@ -372,10 +345,16 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
                 for sensor in sensors:
                     conf = convert_units(self.mib, sensor)
                     conf.update(get_range(self.mib, sensor))
-                    result.append(self._make_result_dict(
-                        oid,
-                        self._get_oid_for_sensor(sensor),
-                        serial, sensor, name=name, **conf))
+                    result.append(
+                        self._make_result_dict(
+                            oid,
+                            self._get_oid_for_sensor(sensor),
+                            serial,
+                            sensor,
+                            name=name,
+                            **conf
+                        )
+                    )
 
         return result
 
@@ -386,8 +365,7 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
         result = []
         for table, sensor_groups in self.TABLES.items():
             self._logger.debug('get_all_sensors: table = %s', table)
-            sensors = yield self.retrieve_table(
-                table).addCallback(reduce_index)
+            sensors = yield self.retrieve_table(table).addCallback(reduce_index)
             self._logger.debug('get_all_sensors: %s = %s', table, sensors)
             for sensor_group in sensor_groups:
                 result.extend(self._handle_sensor_group(sensor_group, sensors))
@@ -397,41 +375,16 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
 
 UNITS = {
     '%': {'u_o_m': Sensor.UNIT_PERCENT},
-    '0.1 Amps': {
-        'u_o_m': Sensor.UNIT_AMPERES,
-        'precision': 1,
-    },
-    '0.1 Amps (rms)': {
-        'u_o_m': Sensor.UNIT_AMPERES,
-        'precision': 1,
-    },
-    '0.1 Degrees': {
-        'u_o_m': Sensor.UNIT_CELSIUS,
-        'precision': 1,
-    },
-    'Degrees Celsius': {
-        'u_o_m': Sensor.UNIT_CELSIUS,
-    },
-    'kWh': {
-        'u_o_m': Sensor.UNIT_WATTHOURS,
-        'scale': Sensor.SCALE_KILO,
-    },
-    'millivolts': {
-        'u_o_m': Sensor.UNIT_VOLTS_DC,
-        'scale': Sensor.SCALE_MILLI,
-    },
-    'Volt-Amps': {
-        'u_o_m': Sensor.UNIT_VOLTAMPERES,
-    },
-    'Volts': {
-        'u_o_m': Sensor.UNIT_VOLTS_DC,
-    },
-    'Volts (rms)': {
-        'u_o_m': Sensor.UNIT_VOLTS_AC,
-    },
-    'Watts': {
-        'u_o_m': Sensor.UNIT_WATTS,
-    },
+    '0.1 Amps': {'u_o_m': Sensor.UNIT_AMPERES, 'precision': 1,},
+    '0.1 Amps (rms)': {'u_o_m': Sensor.UNIT_AMPERES, 'precision': 1,},
+    '0.1 Degrees': {'u_o_m': Sensor.UNIT_CELSIUS, 'precision': 1,},
+    'Degrees Celsius': {'u_o_m': Sensor.UNIT_CELSIUS,},
+    'kWh': {'u_o_m': Sensor.UNIT_WATTHOURS, 'scale': Sensor.SCALE_KILO,},
+    'millivolts': {'u_o_m': Sensor.UNIT_VOLTS_DC, 'scale': Sensor.SCALE_MILLI,},
+    'Volt-Amps': {'u_o_m': Sensor.UNIT_VOLTAMPERES,},
+    'Volts': {'u_o_m': Sensor.UNIT_VOLTS_DC,},
+    'Volts (rms)': {'u_o_m': Sensor.UNIT_VOLTS_AC,},
+    'Watts': {'u_o_m': Sensor.UNIT_WATTS,},
 }
 
 
@@ -462,5 +415,6 @@ def convert_units(mib, node):
 
 class ItWatchDogsMib(BaseITWatchDogsMib):
     """A class that tries to retrieve all sensors from WeatherGoose I"""
+
     mib = get_mib('IT-WATCHDOGS-MIB')
     TABLES = TABLES

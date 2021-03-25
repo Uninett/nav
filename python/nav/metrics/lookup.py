@@ -62,18 +62,21 @@ def reverses(pattern):
 
 ### Reverse lookup functions
 
+
 @reverses(r'\.devices\.(?P<sysname>[^.]+)\.ports\.(?P<ifname>[^\.]+)')
 def _reverse_interface(sysname, ifname):
-    return (_single_like_match(Interface, related=['netbox'],
-                               sysname=sysname, ifname=ifname) or
-            _single_like_match(Interface, related=['netbox'],
-                               sysname=sysname, ifdescr=ifname))
+    return _single_like_match(
+        Interface, related=['netbox'], sysname=sysname, ifname=ifname
+    ) or _single_like_match(
+        Interface, related=['netbox'], sysname=sysname, ifdescr=ifname
+    )
 
 
 @reverses(r'\.devices\.(?P<sysname>[^.]+)\.sensors\.(?P<name>[^\.]+)')
 def _reverse_sensor(sysname, name):
-    return _single_like_match(Sensor, related=['netbox'],
-                              sysname=sysname, internal_name=name)
+    return _single_like_match(
+        Sensor, related=['netbox'], sysname=sysname, internal_name=name
+    )
 
 
 @reverses(r'\.devices\.(?P<sysname>[^.]+)\.cpu\.(?P<cpuname>[^.]+)')
@@ -104,9 +107,12 @@ def _reverse_prefix(netaddr):
 
 ### Helper functions
 
+
 def _single_like_match(model, related=None, **kwargs):
-    args = [("{field}::TEXT LIKE %s".format(field=key), value)
-            for key, value in iteritems(kwargs)]
+    args = [
+        ("{field}::TEXT LIKE %s".format(field=key), value)
+        for key, value in iteritems(kwargs)
+    ]
     where, params = zip(*args)
     qset = model.objects.extra(where=where, params=params)
     if related:

@@ -28,12 +28,8 @@ from nav.models.profiles import (
 from nav.models.manage import Category, Room, Location
 
 from .mixins import DefaultNetmapViewMixin, AdminRequiredMixin
-from .serializers import (
-    NetmapViewSerializer,
-)
-from .graph import (
-    get_traffic_gradient,
-)
+from .serializers import NetmapViewSerializer
+from .graph import get_traffic_gradient
 
 
 # Ignore linting errors from DRF class hierarchy
@@ -42,6 +38,7 @@ from .graph import (
 
 class IndexView(DefaultNetmapViewMixin, TemplateView):
     """Main view for Netmap"""
+
     template_name = 'netmap/netmap.html'
 
     def get_context_data(self, **kwargs):
@@ -54,9 +51,7 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
         if not user.is_admin():
             netmap_views = netmap_views.filter(
                 Q(is_public=True) | Q(owner=user)
-            ).select_related(
-                'owner',
-            )
+            ).select_related('owner',)
 
         netmap_views_json = json.dumps(
             NetmapViewSerializer(netmap_views, many=True).data
@@ -66,25 +61,28 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
         categories.append('ELINK')
 
         rooms_locations = json.dumps(
-            list(Room.objects.values_list('id', flat=True)) +
-            list(Location.objects.values_list('id', flat=True))
+            list(Room.objects.values_list('id', flat=True))
+            + list(Location.objects.values_list('id', flat=True))
         )
 
-        context.update({
-            'account': user,
-            'netmap_views': netmap_views,
-            'netmap_views_json': netmap_views_json,
-            'categories': categories,
-            'rooms_locations': rooms_locations,
-            'traffic_gradient': get_traffic_gradient(),
-            'navpath': [('Home', '/'), ('Netmap',)]
-        })
+        context.update(
+            {
+                'account': user,
+                'netmap_views': netmap_views,
+                'netmap_views_json': netmap_views_json,
+                'categories': categories,
+                'rooms_locations': rooms_locations,
+                'traffic_gradient': get_traffic_gradient(),
+                'navpath': [('Home', '/'), ('Netmap',)],
+            }
+        )
 
         return context
 
 
 class NetmapAdminView(AdminRequiredMixin, ListView):
     """View for Netmap admin functions"""
+
     context_object_name = 'views'
     model = NetmapView
     template_name = 'netmap/admin.html'
@@ -95,19 +93,15 @@ class NetmapAdminView(AdminRequiredMixin, ListView):
         try:
             global_default_view = NetmapViewDefaultView.objects.select_related(
                 'view'
-            ).get(
-                owner=Account.DEFAULT_ACCOUNT
-            )
+            ).get(owner=Account.DEFAULT_ACCOUNT)
         except NetmapViewDefaultView.DoesNotExist:
             global_default_view = None
 
-        context.update({
-            'navpath': [
-                ('Home', '/'),
-                ('Netmap', '/netmap/'),
-                ('Netmap admin',)
-            ],
-            'global_default_view': global_default_view
-        })
+        context.update(
+            {
+                'navpath': [('Home', '/'), ('Netmap', '/netmap/'), ('Netmap admin',)],
+                'global_default_view': global_default_view,
+            }
+        )
 
         return context

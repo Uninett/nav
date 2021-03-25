@@ -18,19 +18,24 @@
 from django.shortcuts import render
 from django.urls import reverse
 from nav.web.utils import create_title
-from .forms import (AccountChartsForm,
-                    AccountLogSearchForm,
-                    ErrorLogSearchForm)
+from .forms import AccountChartsForm, AccountLogSearchForm, ErrorLogSearchForm
 
-from .radius_config import (INDEX_PAGE, LOG_SEARCHRESULTFIELDS,
-                            ACCT_DETAILSFIELDS, ACCT_DBFIELDSDESCRIPTIONS,
-                            LOG_DETAILFIELDS, LOG_FIELDDESCRIPTIONS)
+from .radius_config import (
+    INDEX_PAGE,
+    LOG_SEARCHRESULTFIELDS,
+    ACCT_DETAILSFIELDS,
+    ACCT_DBFIELDSDESCRIPTIONS,
+    LOG_DETAILFIELDS,
+    LOG_FIELDDESCRIPTIONS,
+)
 
-from .db import (AcctChartsQuery,
-                 AcctDetailQuery,
-                 AcctSearchQuery,
-                 LogDetailQuery,
-                 LogSearchQuery)
+from .db import (
+    AcctChartsQuery,
+    AcctDetailQuery,
+    AcctSearchQuery,
+    LogDetailQuery,
+    LogSearchQuery,
+)
 
 
 def get_navpath(path):
@@ -83,31 +88,29 @@ def log_search(request):
                 slack,
                 hours,
                 'time',
-                'DESC'
+                'DESC',
             )
             query.execute()
 
             field_desc = [
-                LOG_FIELDDESCRIPTIONS[field]
-                for field in LOG_SEARCHRESULTFIELDS
+                LOG_FIELDDESCRIPTIONS[field] for field in LOG_SEARCHRESULTFIELDS
             ]
 
-            context.update({
-                'field_desc': field_desc,
-                'result': query.result
-            })
+            context.update({'field_desc': field_desc, 'result': query.result})
         else:
             context['errors'] = form.errors
     else:
         form = ErrorLogSearchForm()
 
     navpath = get_navpath(('Error Log',))
-    context.update({
-        'navpath': navpath,
-        'title': create_title(navpath),
-        'form': form,
-        'logsearch': True
-    })
+    context.update(
+        {
+            'navpath': navpath,
+            'title': create_title(navpath),
+            'form': form,
+            'logsearch': True,
+        }
+    )
 
     return render(request, 'radius/error_log.html', context)
 
@@ -130,14 +133,12 @@ def log_detail(request, accountid, template):
     query.execute()
     result = query.result[0]
 
-    field_desc = [
-        LOG_FIELDDESCRIPTIONS[field]
-        for field in LOG_DETAILFIELDS]
+    field_desc = [LOG_FIELDDESCRIPTIONS[field] for field in LOG_DETAILFIELDS]
     fields = zip(field_desc, result)
 
-    navpath = get_navpath(('Log Detail', ))
+    navpath = get_navpath(('Log Detail',))
     context = {
-        'reverse': reverse('radius-log_detail', args=(accountid, )),
+        'reverse': reverse('radius-log_detail', args=(accountid,)),
         'title': create_title(navpath),
         'navpath': navpath,
         'fields': fields,
@@ -158,20 +159,21 @@ def account_charts(request):
             for chart in form.cleaned_data['charts']:
                 query = AcctChartsQuery(chart, days)
                 query.execute()
-                tables.append(
-                    (query.table_title, query.result))
+                tables.append((query.table_title, query.result))
             context['tables'] = tables
 
     else:
         form = AccountChartsForm()
 
-    navpath = get_navpath(('Account Charts', ))
-    context.update({
-        'navpath': navpath,
-        'title': create_title(navpath),
-        'form': form,
-        'acctcharts': True
-    })
+    navpath = get_navpath(('Account Charts',))
+    context.update(
+        {
+            'navpath': navpath,
+            'title': create_title(navpath),
+            'form': form,
+            'acctcharts': True,
+        }
+    )
 
     return render(request, 'radius/account_charts.html', context)
 
@@ -194,18 +196,16 @@ def account_detail(request, accountid, template):
     query.execute()
     result = query.result[0]
 
-    field_desc = [
-        ACCT_DBFIELDSDESCRIPTIONS[field]
-        for field in ACCT_DETAILSFIELDS]
+    field_desc = [ACCT_DBFIELDSDESCRIPTIONS[field] for field in ACCT_DETAILSFIELDS]
     fields = zip(field_desc, result)
 
     navpath = get_navpath(('Account Detail',))
     context = {
-        'reverse': reverse('radius-account_detail', args=(accountid, )),
+        'reverse': reverse('radius-account_detail', args=(accountid,)),
         'title': create_title(navpath),
         'navpath': navpath,
         'fields': fields,
-        'result': query.result
+        'result': query.result,
     }
 
     return render(request, template, context)
@@ -241,28 +241,32 @@ def account_search(request):
                 'userdns' in dns_lookup,
                 'nasdns' in dns_lookup,
                 'acctstarttime',
-                'DESC'
+                'DESC',
             )
             query.execute()
             (total_time, total_sent, total_received) = query.make_stats()
-            context.update({
-                'result': query.result,
-                'total_time': total_time,
-                'total_sent': total_sent,
-                'total_received': total_received,
-            })
+            context.update(
+                {
+                    'result': query.result,
+                    'total_time': total_time,
+                    'total_sent': total_sent,
+                    'total_received': total_received,
+                }
+            )
         else:
             context['errors'] = form.errors
     else:
         form = AccountLogSearchForm()
 
-    navpath = get_navpath(('Account Log', ))
-    context.update({
-        'title': create_title(navpath),
-        'navpath': navpath,
-        'form': form,
-        'acctsearch': True
-    })
+    navpath = get_navpath(('Account Log',))
+    context.update(
+        {
+            'title': create_title(navpath),
+            'navpath': navpath,
+            'form': form,
+            'acctsearch': True,
+        }
+    )
 
     return render(request, 'radius/account_log.html', context)
 

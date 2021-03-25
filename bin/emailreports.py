@@ -22,6 +22,7 @@ import logging
 import os
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.web.business.reportengine import send_reports
@@ -42,9 +43,9 @@ def get_parser():
     """Define the parser"""
     parser = argparse.ArgumentParser()
     period_choices = [p[0] for p in ReportSubscription.PERIODS]
-    parser.add_argument('period',
-                        help='The period for this report',
-                        choices=period_choices)
+    parser.add_argument(
+        'period', help='The period for this report', choices=period_choices
+    )
     return parser
 
 

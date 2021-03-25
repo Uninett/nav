@@ -22,8 +22,12 @@ from django.db import models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
-from nav.models.fields import (VarcharField, LegacyGenericForeignKey,
-                               DateTimeInfinityField, INFINITY)
+from nav.models.fields import (
+    VarcharField,
+    LegacyGenericForeignKey,
+    DateTimeInfinityField,
+    INFINITY,
+)
 from nav.models import manage
 
 
@@ -38,8 +42,7 @@ class Message(models.Model):
     description = models.TextField()
     tech_description = models.TextField(null=True, blank=True)
     publish_start = models.DateTimeField(default=timezone.now)
-    publish_end = models.DateTimeField(
-        default=datetime.now() + timedelta(days=7))
+    publish_end = models.DateTimeField(default=datetime.now() + timedelta(days=7))
     author = VarcharField()
     last_changed = models.DateTimeField()
     replaces_message = models.ForeignKey(
@@ -47,10 +50,11 @@ class Message(models.Model):
         on_delete=models.CASCADE,
         db_column='replaces_message',
         related_name='replaced_by',
-        null=True
+        null=True,
     )
     maintenance_tasks = models.ManyToManyField(
-        'MaintenanceTask', through='MessageToMaintenanceTask', blank=True)
+        'MaintenanceTask', through='MessageToMaintenanceTask', blank=True
+    )
 
     class Meta(object):
         db_table = 'message'
@@ -61,6 +65,7 @@ class Message(models.Model):
 
 class MaintenanceTaskManager(models.Manager):
     """Custom manager for MaintenanceTask objects"""
+
     def current(self, relative_to=None):
         """Retrieves current maintenancen tasks
 
@@ -68,9 +73,11 @@ class MaintenanceTaskManager(models.Manager):
         not cancelled
         """
         now = relative_to or datetime.now()
-        return self.get_queryset().exclude(
-            state=MaintenanceTask.STATE_CANCELED).filter(
-                start_time__lte=now, end_time__gte=now)
+        return (
+            self.get_queryset()
+            .exclude(state=MaintenanceTask.STATE_CANCELED)
+            .filter(start_time__lte=now, end_time__gte=now)
+        )
 
     def past(self, relative_to=None):
         """Retrieves past maintenance tasks"""
@@ -91,6 +98,7 @@ class MaintenanceTaskManager(models.Manager):
 class MaintenanceTask(models.Model):
     """From NAV Wiki: The maintenance task created in the maintenance task
     tool."""
+
     objects = MaintenanceTaskManager()
 
     STATE_SCHEDULED = 'scheduled'
@@ -124,7 +132,8 @@ class MaintenanceTask(models.Model):
         return u'%s (%s - %s)' % (
             self.description,
             self.start_time,
-            ('No end time' if self.is_endless() else self.end_time))
+            ('No end time' if self.is_endless() else self.end_time),
+        )
 
     def get_components(self):
         """
@@ -143,8 +152,9 @@ class MaintenanceTask(models.Model):
                 subjects.extend(component.netbox_set.all())
             elif isinstance(component, manage.Location):
                 for location in component.get_descendants(include_self=True):
-                    subjects.extend(manage.Netbox.objects.filter(
-                        room__location=location))
+                    subjects.extend(
+                        manage.Netbox.objects.filter(room__location=location)
+                    )
             elif component is None:
                 continue  # no use in including deleted components
             else:
@@ -164,9 +174,7 @@ class MaintenanceComponent(models.Model):
 
     id = models.AutoField(primary_key=True)  # Serial for faking primary key
     maintenance_task = models.ForeignKey(
-        MaintenanceTask,
-        on_delete=models.CASCADE,
-        db_column='maint_taskid'
+        MaintenanceTask, on_delete=models.CASCADE, db_column='maint_taskid'
     )
     key = VarcharField()
     value = VarcharField()
@@ -187,14 +195,10 @@ class MessageToMaintenanceTask(models.Model):
 
     id = models.AutoField(primary_key=True)  # Serial for faking primary key
     message = models.ForeignKey(
-        Message,
-        on_delete=models.CASCADE,
-        db_column='messageid'
+        Message, on_delete=models.CASCADE, db_column='messageid'
     )
     maintenance_task = models.ForeignKey(
-        MaintenanceTask,
-        on_delete=models.CASCADE,
-        db_column='maint_taskid'
+        MaintenanceTask, on_delete=models.CASCADE, db_column='maint_taskid'
     )
 
     class Meta(object):
@@ -203,4 +207,6 @@ class MessageToMaintenanceTask(models.Model):
 
     def __str__(self):
         return u'Message %s, connected to task %s' % (
-            self.message, self.maintenance_task)
+            self.message,
+            self.maintenance_task,
+        )

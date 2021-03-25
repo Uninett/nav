@@ -21,13 +21,32 @@ import os
 import sys
 from functools import wraps
 import curses
-from curses import (COLOR_BLACK, COLOR_BLUE, COLOR_CYAN, COLOR_GREEN,
-                    COLOR_MAGENTA, COLOR_RED, COLOR_WHITE, COLOR_YELLOW)
+from curses import (
+    COLOR_BLACK,
+    COLOR_BLUE,
+    COLOR_CYAN,
+    COLOR_GREEN,
+    COLOR_MAGENTA,
+    COLOR_RED,
+    COLOR_WHITE,
+    COLOR_YELLOW,
+)
 from django.utils import six
 
-__all__ = ['COLOR_BLACK', 'COLOR_BLUE', 'COLOR_CYAN', 'COLOR_GREEN',
-           'COLOR_MAGENTA', 'COLOR_RED', 'COLOR_WHITE', 'COLOR_YELLOW',
-           'colorize', 'set_foreground', 'reset_foreground', 'print_color']
+__all__ = [
+    'COLOR_BLACK',
+    'COLOR_BLUE',
+    'COLOR_CYAN',
+    'COLOR_GREEN',
+    'COLOR_MAGENTA',
+    'COLOR_RED',
+    'COLOR_WHITE',
+    'COLOR_YELLOW',
+    'colorize',
+    'set_foreground',
+    'reset_foreground',
+    'print_color',
+]
 
 try:
     curses.setupterm()
@@ -61,6 +80,7 @@ def colorize(color):
         print("Hello world!")
 
     """
+
     def _colorize(func):
         @wraps(func)
         def _wrapper(*args, **kwargs):
@@ -69,7 +89,9 @@ def colorize(color):
                 return func(*args, **kwargs)
             finally:
                 reset_foreground()
+
         return _wrapper if _is_term else func
+
     return _colorize
 
 
@@ -100,8 +122,9 @@ def get_terminal_width():
     current curses screen.
     """
     try:
-        _height, width = os.popen(
-            'stty size 2>/dev/null', 'r').read().strip().split(' ')
+        _height, width = (
+            os.popen('stty size 2>/dev/null', 'r').read().strip().split(' ')
+        )
         return int(width)
     except Exception:
         pass

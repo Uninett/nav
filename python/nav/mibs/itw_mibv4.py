@@ -38,7 +38,7 @@ TABLES = {
                 'internalIO2',
                 'internalIO3',
                 'internalIO4',
-            }
+            },
         }
     ],
     'tempSensorTable': [
@@ -46,9 +46,7 @@ TABLES = {
             'avail': 'tempSensorAvail',
             'serial': 'tempSensorSerial',
             'name': 'tempSensorName',
-            'sensors': {
-                'tempSensorTemp',
-            }
+            'sensors': {'tempSensorTemp',},
         }
     ],
     'airFlowSensorTable': [
@@ -61,7 +59,7 @@ TABLES = {
                 'airFlowSensorFlow',
                 'airFlowSensorHumidity',
                 'airFlowSensorDewPoint',
-            }
+            },
         }
     ],
     'dewPointSensorTable': [
@@ -73,7 +71,7 @@ TABLES = {
                 'dewPointSensorTemp',
                 'dewPointSensorHumidity',
                 'dewPointSensorDewPoint',
-            }
+            },
         }
     ],
     't3hdSensorTable': [
@@ -85,23 +83,19 @@ TABLES = {
                 't3hdSensorIntTemp',
                 't3hdSensorIntHumidity',
                 't3hdSensorIntDewPoint',
-            }
+            },
         },
         {
             'avail': 't3hdSensorExtAAvail',
             'serial': 't3hdSensorSerial',
             'name': 't3hdSensorExtAName',
-            'sensors': {
-                't3hdSensorExtATemp',
-            }
+            'sensors': {'t3hdSensorExtATemp',},
         },
         {
             'avail': 't3hdSensorExtBAvail',
             'serial': 't3hdSensorSerial',
             'name': 't3hdSensorExtBName',
-            'sensors': {
-                't3hdSensorExtBTemp',
-            }
+            'sensors': {'t3hdSensorExtBTemp',},
         },
     ],
     'thdSensorTable': [
@@ -109,11 +103,7 @@ TABLES = {
             'avail': 'thdSensorAvail',
             'serial': 'thdSensorSerial',
             'name': 'thdSensorName',
-            'sensors': {
-                'thdSensorTemp',
-                'thdSensorHumidity',
-                'thdSensorDewPoint',
-            }
+            'sensors': {'thdSensorTemp', 'thdSensorHumidity', 'thdSensorDewPoint',},
         }
     ],
     'rpmSensorTable': [
@@ -130,7 +120,7 @@ TABLES = {
                 'rpmSensorPowerFactor',
                 'rpmSensorOutlet1',
                 'rpmSensorOutlet2',
-            }
+            },
         }
     ],
 }
@@ -138,5 +128,6 @@ TABLES = {
 
 class ItWatchDogsMibV4(BaseITWatchDogsMib):
     """A class that tries to retrieve all sensors from Watchdog 100"""
+
     mib = get_mib('IT-WATCHDOGS-V4-MIB')
     TABLES = TABLES

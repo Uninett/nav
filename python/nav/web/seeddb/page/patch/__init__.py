@@ -41,6 +41,7 @@ _logger = logging.getLogger(__name__)
 
 class PatchInfo(SeeddbInfo):
     """Class for storing meta information related to patches in SeedDB"""
+
     active = {'patch': True}
     active_page = 'patch'
     documentation_url = '/doc/reference/cabling_and_patch.html'
@@ -67,10 +68,12 @@ class PatchForm(forms.ModelForm):
 
 def patch(request):
     """Creates a view switcher containing the appropriate views"""
-    return view_switcher(request,
-                         list_view=patch_list,
-                         move_view=not_implemented,
-                         delete_view=patch_delete)
+    return view_switcher(
+        request,
+        list_view=patch_list,
+        move_view=not_implemented,
+        delete_view=patch_delete,
+    )
 
 
 def patch_list(request):
@@ -78,26 +81,37 @@ def patch_list(request):
     query = Patch.objects.none()
     info = PatchInfo()
     value_list = (
-        'cabling__room', 'interface__netbox__sysname', 'interface__ifname',
-        'interface__ifalias', 'cabling__jack', 'split')
+        'cabling__room',
+        'interface__netbox__sysname',
+        'interface__ifname',
+        'interface__ifalias',
+        'cabling__jack',
+        'split',
+    )
 
     context = info.template_context
-    context.update({
-        'rooms': Room.objects.all(),
-        'netboxes': Netbox.objects.all()
-    })
-    return render_list(request, query, value_list, 'seeddb-patch-edit',
-                       template='seeddb/list_patches.html',
-                       extra_context=context)
+    context.update({'rooms': Room.objects.all(), 'netboxes': Netbox.objects.all()})
+    return render_list(
+        request,
+        query,
+        value_list,
+        'seeddb-patch-edit',
+        template='seeddb/list_patches.html',
+        extra_context=context,
+    )
 
 
 def patch_delete(request, object_id=None):
     """The view used when deleting patches"""
     info = PatchInfo()
-    return render_delete(request, Patch, 'seeddb-patch',
-                         whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context,
-                         object_id=object_id)
+    return render_delete(
+        request,
+        Patch,
+        'seeddb-patch',
+        whitelist=SEEDDB_EDITABLE_MODELS,
+        extra_context=info.template_context,
+        object_id=object_id,
+    )
 
 
 def patch_edit(request):
@@ -112,11 +126,9 @@ def patch_edit(request):
     else:
         cables = Cabling.objects.filter(room=netbox.room)
 
-    context.update({
-        'netboxes': Netbox.objects.all(),
-        'netbox': netbox,
-        'cables': cables
-    })
+    context.update(
+        {'netboxes': Netbox.objects.all(), 'netbox': netbox, 'cables': cables}
+    )
 
     return render(request, 'seeddb/edit_patch.html', context)
 
@@ -127,8 +139,7 @@ def patch_save(request):
     interface = get_object_or_404(Interface, pk=request.POST.get('interfaceid'))
     cable = get_object_or_404(Cabling, pk=request.POST.get('cableid'))
     split = request.POST.get('split', '')
-    _logger.debug('Creating patch for interface %s and cable %s',
-                  interface, cable)
+    _logger.debug('Creating patch for interface %s and cable %s', interface, cable)
 
     try:
         Patch.objects.create(interface=interface, cabling=cable, split=split)
@@ -151,14 +162,15 @@ def patch_bulk(request):
     """The view used when bulk importing patches"""
     info = PatchInfo()
     return render_bulkimport(
-        request, PatchBulkParser, PatchImporter,
+        request,
+        PatchBulkParser,
+        PatchImporter,
         'seeddb-patch',
-        extra_context=info.template_context)
+        extra_context=info.template_context,
+    )
 
 
 def load_cell(request):
     """Renders patches for an interface"""
     interface = Interface.objects.get(pk=request.GET.get('interfaceid'))
-    return render(request, 'seeddb/fragments/patches.html', {
-        'interface': interface
-    })
+    return render(request, 'seeddb/fragments/patches.html', {'interface': interface})

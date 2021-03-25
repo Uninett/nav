@@ -22,7 +22,7 @@ STATUS_IMAGE_MAP = {
     Netbox.UP_DOWN: 'red.png',
     Netbox.UP_UP: 'green.png',
     Netbox.UP_SHADOW: 'yellow.png',
-    }
+}
 
 TRAFFIC_META = {
     'tib': 1099511627776,
@@ -32,7 +32,7 @@ TRAFFIC_META = {
     'tb': 1000000000000,
     'gb': 1000000000,
     'mb': 1000000,
-    'kb': 1000
+    'kb': 1000,
 }  # pylint: disable=C0103
 
 
@@ -105,8 +105,9 @@ def traffic_gradient_map():
 
     data = []
     for i in reversed(range(42, 236)):
-        data.append(_traffic_gradient(
-            GRADIENT_MAP_INTENSITY * (i - 236.0) / (42.0 - 237)))
+        data.append(
+            _traffic_gradient(GRADIENT_MAP_INTENSITY * (i - 236.0) / (42.0 - 237))
+        )
     return data
 
 
@@ -127,10 +128,14 @@ def _traffic_gradient(intensity):
         return (
             255 * ((4.0 - intensity) ** gamma),
             255 * ((4.0 - intensity) ** gamma),
-            255 * ((4.0 - intensity) ** gamma))
+            255 * ((4.0 - intensity) ** gamma),
+        )
     elif intensity > 2.0:
-        return (255, 255 * ((intensity - 2.0) ** gamma),
-                255 * ((intensity - 2.0) ** gamma))
+        return (
+            255,
+            255 * ((intensity - 2.0) ** gamma),
+            255 * ((intensity - 2.0) ** gamma),
+        )
     elif intensity > 1.0:
         return (255, 255 * ((2.0 - intensity) ** gamma), 0)
     else:

@@ -39,67 +39,86 @@ def get_sensor_meta(metric_path):
         return dict()
     assert isinstance(sensor, Sensor)
 
-    alias = (sensor.human_readable.replace("\n", " ") if sensor.human_readable
-             else sensor.name)
+    alias = (
+        sensor.human_readable.replace("\n", " ")
+        if sensor.human_readable
+        else sensor.name
+    )
     meta = dict(alias=alias)
-    scale = (sensor.get_data_scale_display()
-             if sensor.data_scale != sensor.SCALE_UNITS else None) or ''
-    uom = (sensor.unit_of_measurement
-           if sensor.unit_of_measurement != sensor.UNIT_OTHER else None) or ''
+    scale = (
+        sensor.get_data_scale_display()
+        if sensor.data_scale != sensor.SCALE_UNITS
+        else None
+    ) or ''
+    uom = (
+        sensor.unit_of_measurement
+        if sensor.unit_of_measurement != sensor.UNIT_OTHER
+        else None
+    ) or ''
     meta['unit'] = scale + uom
     return meta
 
 
 META_LOOKUPS = (
-
     # Various counter type values
-
-    (re.compile(r'\.ports\.(?P<ifname>[^\.]+)\.(?P<counter>[^\.,\)]+)$'),
-     dict(alias='{ifname} {counter}')),
-
-    (re.compile(r'\.if[^.()]+Octets(IPv6)?$'),
-     dict(transform="scaleToSeconds(nonNegativeDerivative(scale({id},8)),1)",
-          unit="bits/s")),
-
-    (re.compile(r'\.if(In|Out)Errors$'),
-     dict(transform="scaleToSeconds(nonNegativeDerivative({id}),1)",
-          unit="errors/s")),
-
-    (re.compile(r'\.if(In|Out)[^\.]*(Pkts|Discards)$'),
-     dict(transform="scaleToSeconds(nonNegativeDerivative({id}),1)",
-          unit="packets/s")),
-
-    (re.compile(r'\.sysuptime$'),
-     dict(transform="scale({id},%.20f)" % (1.0/TIMETICKS_IN_DAY),
-          unit="days")),
-
+    (
+        re.compile(r'\.ports\.(?P<ifname>[^\.]+)\.(?P<counter>[^\.,\)]+)$'),
+        dict(alias='{ifname} {counter}'),
+    ),
+    (
+        re.compile(r'\.if[^.()]+Octets(IPv6)?$'),
+        dict(
+            transform="scaleToSeconds(nonNegativeDerivative(scale({id},8)),1)",
+            unit="bits/s",
+        ),
+    ),
+    (
+        re.compile(r'\.if(In|Out)Errors$'),
+        dict(
+            transform="scaleToSeconds(nonNegativeDerivative({id}),1)", unit="errors/s"
+        ),
+    ),
+    (
+        re.compile(r'\.if(In|Out)[^\.]*(Pkts|Discards)$'),
+        dict(
+            transform="scaleToSeconds(nonNegativeDerivative({id}),1)", unit="packets/s"
+        ),
+    ),
+    (
+        re.compile(r'\.sysuptime$'),
+        dict(transform="scale({id},%.20f)" % (1.0 / TIMETICKS_IN_DAY), unit="days"),
+    ),
     (re.compile(r'\.sensors\.'), get_sensor_meta),
-
     (re.compile(r'\.loadavg[0-9]+min$'), dict(unit="%")),
     (re.compile(r'_percent$'), dict(unit="%")),
-
     # Memory
-    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.memory\..*\.used$'),
-     dict(unit="bytes", yUnitSystem="binary", title="Used memory",
-          alias="{sysname}")),
-    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.memory\..*\.free$'),
-     dict(unit="bytes", yUnitSystem="binary", title="Free memory",
-          alias="{sysname}")),
-
+    (
+        re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.memory\..*\.used$'),
+        dict(
+            unit="bytes", yUnitSystem="binary", title="Used memory", alias="{sysname}"
+        ),
+    ),
+    (
+        re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.memory\..*\.free$'),
+        dict(
+            unit="bytes", yUnitSystem="binary", title="Free memory", alias="{sysname}"
+        ),
+    ),
     (re.compile(r'\.(roundTripTime|responseTime)$'), dict(unit="seconds")),
-
-    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.roundTripTime$'),
-     dict(alias="{sysname}", title="Ping packet round trip time")),
-    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.packetLoss$'),
-     dict(alias="{sysname}", title="Ping packet loss", unit="packets")),
-
+    (
+        re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.roundTripTime$'),
+        dict(alias="{sysname}", title="Ping packet round trip time"),
+    ),
+    (
+        re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\.ping\.packetLoss$'),
+        dict(alias="{sysname}", title="Ping packet loss", unit="packets"),
+    ),
     # Sysuptime
-    (re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\..*\.sysuptime$'),
-     dict(alias="{sysname}", title="Uptime", unit="days")),
-
-    (re.compile(r'\.ipdevpoll\..*\.runtime$'),
-     dict(transform="keepLastValue({id})")),
-
+    (
+        re.compile(r'devices\.(?P<sysname>[^_]+)[^.]+\..*\.sysuptime$'),
+        dict(alias="{sysname}", title="Uptime", unit="days"),
+    ),
+    (re.compile(r'\.ipdevpoll\..*\.runtime$'), dict(transform="keepLastValue({id})")),
 )
 
 
@@ -111,8 +130,16 @@ class Graph(object):
     coercing the instances to a string or unicode object.
 
     """
-    def __init__(self, title=u'', width=480, height=250, targets=None,
-                 magic_targets=None, **kwargs):
+
+    def __init__(
+        self,
+        title=u'',
+        width=480,
+        height=250,
+        targets=None,
+        magic_targets=None,
+        **kwargs
+    ):
         self.args = dict(template=u'nav', width=width, height=height)
         self.args.update(kwargs)
         if title:
@@ -130,8 +157,7 @@ class Graph(object):
         return reverse("graphite-render") + "?" + urlencode(self.args, True)
 
     def __repr__(self):
-        return '<{cls} {args!r}>'.format(cls=self.__class__.__name__,
-                                         args=self.args)
+        return '<{cls} {args!r}>'.format(cls=self.__class__.__name__, args=self.args)
 
     def set_timeframe(self, timeframe):
         """Sets the graph timeframe in terms relative to the current time.
@@ -182,8 +208,15 @@ class Graph(object):
         return target
 
 
-def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
-                         width=480, height=250, magic=True, **kwargs):
+def get_simple_graph_url(
+    metric_paths,
+    time_frame="1day",
+    title=None,
+    width=480,
+    height=250,
+    magic=True,
+    **kwargs
+):
     """
     Returns an URL, fetchable by an end user, to render a simple graph,
     given a Graphite metric known to NAV
@@ -202,8 +235,9 @@ def get_simple_graph_url(metric_paths, time_frame="1day", title=None,
     if isinstance(metric_paths, six.string_types):
         metric_paths = [metric_paths]
 
-    target_spec = {'magic_targets': metric_paths} if magic else {
-        'targets': metric_paths}
+    target_spec = (
+        {'magic_targets': metric_paths} if magic else {'targets': metric_paths}
+    )
     graph = Graph(title=title, width=width, height=height, **target_spec)
     graph.set_timeframe(time_frame)
 
@@ -227,8 +261,15 @@ def get_metric_meta(metric_path):
               the metric in a graph legend.
 
     """
-    result = dict(id=metric_path, transform=None, target=metric_path, unit=None,
-                  description=None, alias=None, yUnitSystem=None)
+    result = dict(
+        id=metric_path,
+        transform=None,
+        target=metric_path,
+        unit=None,
+        description=None,
+        alias=None,
+        yUnitSystem=None,
+    )
     for pattern, meta in META_LOOKUPS:
         match = pattern.search(metric_path)
         if match:
@@ -287,6 +328,7 @@ def extract_series_name(series):
 
 def translate_serieslist_to_regex(series):
     """Translates a Graphite seriesList expression into a regexp pattern"""
+
     def _convert_char(char):
         if char == '*':
             return r'[^\.]*'

@@ -42,14 +42,12 @@ class VlanGraphNavlet(Navlet):
     def get_context_data(self, **kwargs):
         context = super(VlanGraphNavlet, self).get_context_data(**kwargs)
 
-        vlanid = (self.preferences['vlanid']
-                  if 'vlanid' in self.preferences else None)
+        vlanid = self.preferences['vlanid'] if 'vlanid' in self.preferences else None
         if self.mode == NAVLET_MODE_VIEW and vlanid:
             url = get_vlan_graph_url(vlanid)
             context['graph_url'] = url
         elif self.mode == NAVLET_MODE_EDIT:
-            context['vlans'] = Vlan.objects.filter(
-                vlan__isnull=False).order_by('vlan')
+            context['vlans'] = Vlan.objects.filter(vlan__isnull=False).order_by('vlan')
             context['vlanid'] = vlanid
 
         return context

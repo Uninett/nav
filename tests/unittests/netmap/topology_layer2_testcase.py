@@ -7,7 +7,6 @@ from .topology_testcase import TopologyTestCase
 
 
 class TopologyLayer2TestCase(TopologyTestCase):
-
     def setUp(self):
         super(TopologyLayer2TestCase, self).setUp()
 
@@ -36,38 +35,45 @@ class TopologyLayer2TestCase(TopologyTestCase):
         self._add_edge(self.nav_graph, d4.netbox, d4, c4.netbox, c4)
 
         self.vlan__a1_b1 = a_vlan_between_a1_and_b1 = SwPortVlan(
-            id=self._next_id(), interface=self.a1, vlan=Vlan(id=201, vlan=2))
+            id=self._next_id(), interface=self.a1, vlan=Vlan(id=201, vlan=2)
+        )
 
-        self.vlans = patch.object(topology, '_get_vlans_map_layer2',
-                                  return_value=(
-            {
-                self.a1: [a_vlan_between_a1_and_b1],
-                self.b1: [a_vlan_between_a1_and_b1],
-                self.a2: [],
-                self.b2: [],
-                self.a3: [],
-                self.c3: []
-            },
-            {
-                self.a: {201: a_vlan_between_a1_and_b1},
-                self.b: {201: a_vlan_between_a1_and_b1},
-                self.c: {}
-            }))
+        self.vlans = patch.object(
+            topology,
+            '_get_vlans_map_layer2',
+            return_value=(
+                {
+                    self.a1: [a_vlan_between_a1_and_b1],
+                    self.b1: [a_vlan_between_a1_and_b1],
+                    self.a2: [],
+                    self.b2: [],
+                    self.a3: [],
+                    self.c3: [],
+                },
+                {
+                    self.a: {201: a_vlan_between_a1_and_b1},
+                    self.b: {201: a_vlan_between_a1_and_b1},
+                    self.c: {},
+                },
+            ),
+        )
         self.vlans.start()
 
-        self.build_l2 = patch.object(vlan, 'build_layer2_graph', return_value=self.nav_graph)
+        self.build_l2 = patch.object(
+            vlan, 'build_layer2_graph', return_value=self.nav_graph
+        )
         self.build_l2.start()
 
         bar = vlan.build_layer2_graph()
-        #foo = topology._get_vlans_map_layer2(bar)
+        # foo = topology._get_vlans_map_layer2(bar)
 
-        vlan_by_interfaces, vlan_by_netbox = topology._get_vlans_map_layer2(self.nav_graph)
+        vlan_by_interfaces, vlan_by_netbox = topology._get_vlans_map_layer2(
+            self.nav_graph
+        )
 
         self.netmap_graph = topology.build_netmap_layer2_graph(
-                        vlan.build_layer2_graph(),
-                        vlan_by_interfaces,
-                        vlan_by_netbox,
-                        None)
+            vlan.build_layer2_graph(), vlan_by_interfaces, vlan_by_netbox, None
+        )
 
     def tearDown(self):
         self.vlans.stop()

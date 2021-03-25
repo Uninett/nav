@@ -20,14 +20,17 @@ from nav.models.event import AlertType
 
 
 def get_event_and_alert_types():
-    alert_types = AlertType.objects.select_related(
-        'event_type'
-    ).all().order_by('event_type__id', 'name')
+    alert_types = (
+        AlertType.objects.select_related('event_type')
+        .all()
+        .order_by('event_type__id', 'name')
+    )
     event_types = {}
     for a in alert_types:
         if a.event_type.id not in event_types:
             event_types[a.event_type.id] = [
-                ('e_%s' % a.event_type.id, 'All %s' % a.event_type.id)]
+                ('e_%s' % a.event_type.id, 'All %s' % a.event_type.id)
+            ]
         event_types[a.event_type.id].append(('a_%s' % a.name, a.name))
 
     # Quick fix for use in django forms - create list of tuples to

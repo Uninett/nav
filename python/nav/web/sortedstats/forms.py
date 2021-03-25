@@ -25,22 +25,24 @@ from . import CLASSMAP, TIMEFRAMES
 
 def get_sections_list():
     """Return sections list usable in form choices"""
-    return sorted([(x[0], x[1].title) for x in CLASSMAP.items()],
-                  key=itemgetter(0))
+    return sorted([(x[0], x[1].title) for x in CLASSMAP.items()], key=itemgetter(0))
 
 
 class NumberInput(forms.TextInput):
     """Input widget with type set to number"""
+
     input_type = 'number'
 
 
 class NumberField(forms.IntegerField):
     """Input field with type set to number"""
+
     widget = NumberInput
 
 
 class ViewForm(forms.Form):
     """Form the choosing which view to see on the statistics page"""
+
     view = forms.ChoiceField(choices=get_sections_list())
     timeframe = forms.ChoiceField(choices=TIMEFRAMES, initial=TIMEFRAMES[1][0])
     rows = NumberField(initial=5)
@@ -58,9 +60,10 @@ class ViewForm(forms.Form):
                     Column('view', css_class='medium-5'),
                     Column('timeframe', css_class='medium-3'),
                     Column('rows', css_class='medium-1'),
-                    Column(LabelSubmit('submit', 'Show statistics',
-                                       css_class='postfix'),
-                           css_class='medium-3'),
-                )
+                    Column(
+                        LabelSubmit('submit', 'Show statistics', css_class='postfix'),
+                        css_class='medium-3',
+                    ),
+                ),
             )
         )

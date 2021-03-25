@@ -24,11 +24,7 @@ register = template.Library()
 @register.filter
 def map_to_class(status):
     """Map a status to a css class"""
-    mapping = {
-        STATUS_NOT_OK: 'alert',
-        STATUS_OK: 'success',
-        STATUS_UNKNOWN: ''
-    }
+    mapping = {STATUS_NOT_OK: 'alert', STATUS_OK: 'success', STATUS_UNKNOWN: ''}
 
     return mapping.get(status, '')
 
@@ -36,9 +32,6 @@ def map_to_class(status):
 @register.filter
 def map_to_faclass(status):
     """Return Font Awesome class based on status"""
-    mapping = {
-        STATUS_NOT_OK: 'fa-exclamation',
-        STATUS_OK: 'fa-check'
-    }
+    mapping = {STATUS_NOT_OK: 'fa-exclamation', STATUS_OK: 'fa-check'}
 
     return mapping.get(status, '')

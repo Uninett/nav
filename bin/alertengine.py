@@ -38,6 +38,7 @@ import time
 from psycopg2 import InterfaceError
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 import nav.buildconf
@@ -101,8 +102,11 @@ def main():
             nav.daemon.switchuser(username)
         except nav.daemon.DaemonError as err:
             print(err, file=sys.stderr)
-            print("Run as root or %s. Try `%s --help' for more information." % (
-                  username, sys.argv[0]), file=sys.stderr)
+            print(
+                "Run as root or %s. Try `%s --help' for more information."
+                % (username, sys.argv[0]),
+                file=sys.stderr,
+            )
             sys.exit(1)
 
     # Initialize logger
@@ -148,8 +152,9 @@ def main():
             nav.db.commit_all_connections()
 
         except DatabaseError as err:
-            _logger.error('Database error, closing the DB connection just in '
-                          'case:\n%s', err)
+            _logger.error(
+                'Database error, closing the DB connection just in ' 'case:\n%s', err
+            )
             _logger.debug('', exc_info=True)
             if connection.queries:
                 _logger.debug(connection.queries[-1]['sql'])
@@ -184,13 +189,18 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="The NAV Alert Engine daemon",
         epilog="This background process polls the alert queue for new alerts "
-               "from the event engine and sends notifications to users based "
-               "on user defined profiles.",
+        "from the event engine and sends notifications to users based "
+        "on user defined profiles.",
     )
-    parser.add_argument("-t", "--test", action="store_true",
-                        help="process the alert queue once and exit")
-    parser.add_argument("-f", "--foreground", action="store_true",
-                        help="run in the foreground")
+    parser.add_argument(
+        "-t",
+        "--test",
+        action="store_true",
+        help="process the alert queue once and exit",
+    )
+    parser.add_argument(
+        "-f", "--foreground", action="store_true", help="run in the foreground"
+    )
 
     return parser.parse_args()
 
@@ -219,11 +229,11 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
     try:
         hostname = socket.gethostname()
         mailhandler = logging.handlers.SMTPHandler(
-            mailserver, fromaddr, mailaddr,
-            'NAV alertengine warning from ' + hostname)
+            mailserver, fromaddr, mailaddr, 'NAV alertengine warning from ' + hostname
+        )
         mailformat = (
-            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] '
-            '%(message)s')
+            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] ' '%(message)s'
+        )
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)
         mailhandler.setLevel(loglevel)
@@ -231,8 +241,10 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
         _logger.addHandler(mailhandler)
         return True
     except Exception as error:
-        print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)"
-              % error, file=sys.stderr)
+        print(
+            "Failed creating SMTP loghandler. Daemon mode disabled. (%s)" % error,
+            file=sys.stderr,
+        )
         return False
 
 

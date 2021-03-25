@@ -32,8 +32,11 @@ from nav import daemon
 from nav.debug import log_stacktrace, log_last_django_query
 from nav.logs import init_generic_logging
 from nav.topology.layer2 import update_layer2_topology
-from nav.topology.analyze import (AdjacencyReducer, build_candidate_graph_from_db,
-                                  get_aggregate_mapping)
+from nav.topology.analyze import (
+    AdjacencyReducer,
+    build_candidate_graph_from_db,
+    get_aggregate_mapping,
+)
 from nav.topology.vlan import VlanGraphAnalyzer, VlanTopologyUpdater
 
 from nav.models.manage import Vlan, Prefix
@@ -50,10 +53,7 @@ def main():
     options = parser.parse_args()
 
     init_generic_logging(
-        logfile=LOG_FILE,
-        stderr=options.stderr,
-        stdout=True,
-        read_config=True,
+        logfile=LOG_FILE, stderr=options.stderr, stdout=True, read_config=True,
     )
     if options.l2 or options.vlan:
         # protect against multiple invocations of long-running jobs
@@ -77,25 +77,29 @@ def int_list(value):
 def make_option_parser():
     """Sets up and returns a command line option parser."""
     parser = ArgumentParser(
-        description=("Detects and updates the network topology in your NAV "
-                     "database")
-        )
-    parser.add_argument('--version', action='version',
-                        version='NAV ' + buildconf.VERSION)
-    parser.add_argument("--l2", action="store_true",
-                        help="Detect physical topology")
-    parser.add_argument("--vlan", action="store_true",
-                        help="Detect vlan subtopologies")
-    parser.add_argument("-i", dest="include_vlans", type=int_list,
-                        metavar="vlan[,...]",
-                        help="Only analyze the VLANs included in this list")
-    parser.add_argument("-s", "--stderr", action="store_true",
-                        help="Log to stderr (even if not a tty)")
+        description=("Detects and updates the network topology in your NAV " "database")
+    )
+    parser.add_argument(
+        '--version', action='version', version='NAV ' + buildconf.VERSION
+    )
+    parser.add_argument("--l2", action="store_true", help="Detect physical topology")
+    parser.add_argument("--vlan", action="store_true", help="Detect vlan subtopologies")
+    parser.add_argument(
+        "-i",
+        dest="include_vlans",
+        type=int_list,
+        metavar="vlan[,...]",
+        help="Only analyze the VLANs included in this list",
+    )
+    parser.add_argument(
+        "-s", "--stderr", action="store_true", help="Log to stderr (even if not a tty)"
+    )
     return parser
 
 
 def with_exception_logging(func):
     """Decorates a function to log unhandled exceptions"""
+
     def _decorator(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -104,8 +108,7 @@ def with_exception_logging(func):
             _logger = logging.getLogger(__name__)
             _logger.exception("An unhandled exception occurred")
             log_last_django_query(_logger)
-            log_stacktrace(logging.getLogger('nav.topology.stacktrace'),
-                           stacktrace)
+            log_stacktrace(logging.getLogger('nav.topology.stacktrace'), stacktrace)
             raise
 
     return wraps(func)(_decorator)
@@ -150,16 +153,21 @@ def delete_unused_prefixes():
     manually entered into NAV.
     """
     holy_vlans = Q(vlan__net_type__in=('scope', 'reserved', 'static'))
-    unused_prefixes = Prefix.objects.filter(
-        gwportprefix__isnull=True).exclude(holy_vlans)
+    unused_prefixes = Prefix.objects.filter(gwportprefix__isnull=True).exclude(
+        holy_vlans
+    )
 
     if unused_prefixes:
-        _logger.info("deleting unused prefixes: %s",
-                     ", ".join(p.net_address for p in unused_prefixes))
+        _logger.info(
+            "deleting unused prefixes: %s",
+            ", ".join(p.net_address for p in unused_prefixes),
+        )
         cursor = django.db.connection.cursor()
         # Use raw SQL to avoid Django's emulated cascading deletes
-        cursor.execute('DELETE FROM prefix WHERE prefixid IN %s',
-                       (tuple([p.id for p in unused_prefixes]), ))
+        cursor.execute(
+            'DELETE FROM prefix WHERE prefixid IN %s',
+            (tuple([p.id for p in unused_prefixes]),),
+        )
 
 
 def verify_singleton():

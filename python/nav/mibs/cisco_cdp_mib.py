@@ -53,10 +53,14 @@ class CiscoCDPMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def _get_cdp_cache_table(self):
-        cache = yield self.retrieve_columns(['cdpCacheAddressType',
-                                             'cdpCacheAddress',
-                                             'cdpCacheDeviceId',
-                                             'cdpCacheDevicePort'])
+        cache = yield self.retrieve_columns(
+            [
+                'cdpCacheAddressType',
+                'cdpCacheAddress',
+                'cdpCacheDeviceId',
+                'cdpCacheDevicePort',
+            ]
+        )
         defer.returnValue(reduce_index(cache))
 
     @staticmethod

@@ -68,8 +68,7 @@ class AdjacencyManager(DefaultManager):
         self._map_existing()
 
     def _load_existing(self):
-        candidates = manage.AdjacencyCandidate.objects.filter(
-            netbox__id=self.netbox.id)
+        candidates = manage.AdjacencyCandidate.objects.filter(netbox__id=self.netbox.id)
         self._existing = dict((candidate_key(c), c) for c in candidates)
 
     def _map_existing(self):
@@ -84,8 +83,11 @@ class AdjacencyManager(DefaultManager):
                 self._sources.add(cand.source)
 
         missing = set(self._existing.keys()).difference(found)
-        self._missing = [self._existing[key] for key in missing
-                         if self._existing[key].source in self._sources]
+        self._missing = [
+            self._existing[key]
+            for key in missing
+            if self._existing[key].source in self._sources
+        ]
 
         self._logger.debug("existing: %r", self._existing)
         self._logger.debug("missing: %r", self._missing)
@@ -107,12 +109,12 @@ class AdjacencyManager(DefaultManager):
         missing = (c for c in self._missing if c.source in self._sources)
         for cand in missing:
             db_cand = manage.AdjacencyCandidate.objects.filter(id=cand.id)
-            db_cand.update(miss_count=cand.miss_count+1)
+            db_cand.update(miss_count=cand.miss_count + 1)
 
     def _delete_expired(self):
         expired = manage.AdjacencyCandidate.objects.filter(
-            netbox__id=self.netbox.id,
-            miss_count__gte=MAX_MISS_COUNT)
+            netbox__id=self.netbox.id, miss_count__gte=MAX_MISS_COUNT
+        )
         expired.delete()
 
 
@@ -147,18 +149,20 @@ class AdjacencyCandidate(Shadow):
 def candidate_key(cand):
     "return a (hopefully) unique dict key for a candidate object"
     # all this getattr yaking is trying to reduce the number of db fetches
-    return ((getattr(cand, 'interface_id', None)
-             or (cand.interface and cand.interface.id)),
-
-            (getattr(cand, 'to_netbox_id', None)
-             or (cand.to_netbox and cand.to_netbox.id)),
-            (getattr(cand, 'to_interface_id', None)
-             or (cand.to_interface and cand.to_interface.id)),
-            cand.source)
+    return (
+        (getattr(cand, 'interface_id', None) or (cand.interface and cand.interface.id)),
+        (getattr(cand, 'to_netbox_id', None) or (cand.to_netbox and cand.to_netbox.id)),
+        (
+            getattr(cand, 'to_interface_id', None)
+            or (cand.to_interface and cand.to_interface.id)
+        ),
+        cand.source,
+    )
 
 
 class UnrecognizedNeighborManager(DefaultManager):
     """Manager for UnrecognizedNeighbor entries"""
+
     existing = None
     found = None
     sources = None
@@ -182,7 +186,8 @@ class UnrecognizedNeighborManager(DefaultManager):
 
     def _load_and_map_existing(self):
         existing = manage.UnrecognizedNeighbor.objects.filter(
-            netbox__id=self.netbox.id).select_related('interface')
+            netbox__id=self.netbox.id
+        ).select_related('interface')
         self.existing = dict((self.make_key(e), e) for e in existing)
         self.found = dict((self.make_key(m), m) for m in self.get_managed())
 
@@ -199,10 +204,12 @@ class UnrecognizedNeighborManager(DefaultManager):
         missing = (self.existing[key] for key in missing)
         deleteable = [m for m in missing if m.source in self.sources]
         if deleteable:
-            self._logger.debug("deleting %d missing records: %r",
-                               len(deleteable), deleteable)
+            self._logger.debug(
+                "deleting %d missing records: %r", len(deleteable), deleteable
+            )
             manage.UnrecognizedNeighbor.objects.filter(
-                id__in=[d.id for d in deleteable]).delete()
+                id__in=[d.id for d in deleteable]
+            ).delete()
 
 
 # pylint: disable=C0111,W0201,E0203
@@ -214,8 +221,9 @@ class UnrecognizedNeighbor(Shadow):
     def prepare(self, _=None):
         for attr in ('remote_id', 'remote_name'):
             if getattr(self, attr) and is_invalid_database_string(getattr(self, attr)):
-                self._logger.debug("converting invalid %s: %r",
-                                   attr, getattr(self, attr))
+                self._logger.debug(
+                    "converting invalid %s: %r", attr, getattr(self, attr)
+                )
                 setattr(self, attr, repr(getattr(self, attr)))
             elif not getattr(self, attr):
                 setattr(self, attr, '')

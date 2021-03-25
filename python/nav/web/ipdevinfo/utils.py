@@ -33,8 +33,7 @@ import nav.util
 _logger = logging.getLogger('nav.web.ipdevinfo.utils')
 
 
-def get_module_view(module_object, perspective, activity_interval=None,
-                    netbox=None):
+def get_module_view(module_object, perspective, activity_interval=None, netbox=None):
     """
     Returns a dict structure of ports on the module with additional meta
     information.
@@ -49,8 +48,12 @@ def get_module_view(module_object, perspective, activity_interval=None,
 
     """
 
-    assert perspective in ('swportstatus', 'swportactive',
-                           'gwportstatus', 'physportstatus')
+    assert perspective in (
+        'swportstatus',
+        'swportactive',
+        'gwportstatus',
+        'physportstatus',
+    )
 
     module = {
         'object': module_object,
@@ -70,8 +73,7 @@ def get_module_view(module_object, perspective, activity_interval=None,
             ports = module_object.get_gwports_sorted()
     elif perspective == 'physportstatus':
         if not module_object and netbox:
-            ports = [p for p in netbox.get_physical_ports_sorted()
-                     if not p.module]
+            ports = [p for p in netbox.get_physical_ports_sorted() if not p.module]
         else:
             ports = module_object.get_physical_ports_sorted()
 
@@ -85,12 +87,9 @@ def get_module_view(module_object, perspective, activity_interval=None,
                 port['style'] = ''
                 port['title'] = _get_swportstatus_title(port_object)
             elif perspective == 'swportactive':
-                port['class'] = _get_swportactive_class(
-                    port_object, activity_interval)
-                port['style'] = _get_swportactive_style(
-                    port_object, activity_interval)
-                port['title'] = _get_swportactive_title(
-                    port_object, activity_interval)
+                port['class'] = _get_swportactive_class(port_object, activity_interval)
+                port['style'] = _get_swportactive_style(port_object, activity_interval)
+                port['title'] = _get_swportactive_title(port_object, activity_interval)
             elif perspective == 'gwportstatus':
                 port['class'] = _get_gwportstatus_class(port_object)
                 port['style'] = ''
@@ -116,20 +115,21 @@ def _cache_vlan_data_in_ports(ports):
     processing multiple Interfaces at once.
 
     """
-    swpvlans = SwPortVlan.objects.filter(
-        interface__in=ports).select_related('vlan')
-    blocked_vlans = SwPortBlocked.objects.filter(
-        interface__in=ports)
+    swpvlans = SwPortVlan.objects.filter(interface__in=ports).select_related('vlan')
+    blocked_vlans = SwPortBlocked.objects.filter(interface__in=ports)
 
     for port in ports:
-        port._vlan_cache = set(swpvlan.vlan.vlan for swpvlan in swpvlans
-                               if swpvlan.interface == port)
+        port._vlan_cache = set(
+            swpvlan.vlan.vlan for swpvlan in swpvlans if swpvlan.interface == port
+        )
         if port.vlan is not None:
             port._vlan_cache.add(port.vlan)
 
-        port._blocked_vlans_cache = set(blocked_vlan.vlan
-                                        for blocked_vlan in blocked_vlans
-                                        if blocked_vlan.interface == port)
+        port._blocked_vlans_cache = set(
+            blocked_vlan.vlan
+            for blocked_vlan in blocked_vlans
+            if blocked_vlan.interface == port
+        )
 
 
 def _get_swportstatus_class(swport):
@@ -186,8 +186,7 @@ def _get_swportstatus_title(swport):
         pass
 
     if swport._blocked_vlans_cache:
-        title.append(
-            'blocked ' + ','.join(str(b) for b in swport._blocked_vlans_cache))
+        title.append('blocked ' + ','.join(str(b) for b in swport._blocked_vlans_cache))
 
     return ', '.join(title)
 
@@ -230,13 +229,13 @@ def _get_swportactive_style(swport, interval=30):
     style = ''
 
     if swport.ifoperstatus == swport.OPER_UP:
-        style = 'background-color: #%s;' % nav.util.colortohex(
-            gradient[0])
+        style = 'background-color: #%s;' % nav.util.colortohex(gradient[0])
     else:
         active = swport.get_active_time(interval)
         if active is not None:
             style = 'background-color: #%s;' % nav.util.colortohex(
-                gradient[active.days])
+                gradient[active.days]
+            )
 
     return style
 
@@ -307,8 +306,8 @@ def find_children(netbox, netboxes=None):
         netboxes = [netbox]
 
     interfaces = netbox.interface_set.filter(
-        to_netbox__isnull=False,
-        swportvlan__direction=SwPortVlan.DIRECTION_DOWN)
+        to_netbox__isnull=False, swportvlan__direction=SwPortVlan.DIRECTION_DOWN
+    )
     for interface in interfaces:
         if interface.to_netbox not in netboxes:
             netboxes.append(interface.to_netbox)
@@ -319,8 +318,9 @@ def find_children(netbox, netboxes=None):
 
 def find_organizations(netboxes):
     """Find all contact addresses for the netboxes"""
-    return (set(find_vlan_organizations(netboxes)) |
-            set(find_netbox_organizations(netboxes)))
+    return set(find_vlan_organizations(netboxes)) | set(
+        find_netbox_organizations(netboxes)
+    )
 
 
 def find_netbox_organizations(netboxes):
@@ -335,11 +335,12 @@ def find_vlan_organizations(netboxes):
         interfaces = netbox.interface_set.filter(
             to_netbox__isnull=False,
             swportvlan__direction=SwPortVlan.DIRECTION_DOWN,
-            swportvlan__vlan__organization__isnull=False)
+            swportvlan__vlan__organization__isnull=False,
+        )
         for interface in interfaces:
-            vlans.extend([v.vlan
-                          for v in
-                          interface.swportvlan_set.exclude(vlan__in=vlans)])
+            vlans.extend(
+                [v.vlan for v in interface.swportvlan_set.exclude(vlan__in=vlans)]
+            )
 
     return [v.organization for v in set(vlans) if v.organization]
 
@@ -366,8 +367,7 @@ def filter_email(organizations):
 
 def get_affected_host_count(netboxes):
     """Return the total number of active hosts on the netboxes"""
-    return Cam.objects.filter(netbox__in=netboxes,
-                              end_time__gte=datetime.max).count()
+    return Cam.objects.filter(netbox__in=netboxes, end_time__gte=datetime.max).count()
 
 
 def find_affected_but_not_down(netbox_going_down, netboxes):
@@ -400,35 +400,39 @@ def sort_by_netbox(netboxes):
 
 def create_combined_urls(interface, counters):
     """Creates urls for displaying combined statistics for an interface"""
-    return [get_interface_counter_graph_url(interface, kind=counter)
-            for counter in counters]
+    return [
+        get_interface_counter_graph_url(interface, kind=counter) for counter in counters
+    ]
 
 
-def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets',
-                                    expect='json'):
+def get_interface_counter_graph_url(
+    interface, timeframe='day', kind='Octets', expect='json'
+):
     """Returns a Graphite graph render URL for an interface traffic graph"""
 
     def _get_target(direction):
         assert direction.lower() in ('in', 'out')
         path = metric_path_for_interface(
-            interface.netbox.sysname, interface.ifname,
-            'if{0}{1}'.format(direction.capitalize(), kind)
+            interface.netbox.sysname,
+            interface.ifname,
+            'if{0}{1}'.format(direction.capitalize(), kind),
         )
         meta = get_metric_meta(path)
         return meta['target'], meta.get('unit', None)
 
-    (out_series, unit), (in_series, unit) = [
-        _get_target(d) for d in ('out', 'in')]
+    (out_series, unit), (in_series, unit) = [_get_target(d) for d in ('out', 'in')]
 
     in_series = 'alias({0},"In")'.format(in_series)
     out_series = 'alias({0},"Out")'.format(out_series)
 
-    titlemap = dict(octets=u'Traffic on {shortname}:{ifname} {ifalias}',
-                    errors=u'Errors on {shortname}:{ifname} {ifalias}',
-                    ucastpkts=u'Unicast packets on {shortname}:{ifname}',
-                    multicastpkts=u'Multicast packets on {shortname}:{ifname}',
-                    broadcastpkts=u'Broadcast packets on {shortname}:{ifname}',
-                    discards=u'Discarded packets on {shortname}:{ifname}')
+    titlemap = dict(
+        octets=u'Traffic on {shortname}:{ifname} {ifalias}',
+        errors=u'Errors on {shortname}:{ifname} {ifalias}',
+        ucastpkts=u'Unicast packets on {shortname}:{ifname}',
+        multicastpkts=u'Multicast packets on {shortname}:{ifname}',
+        broadcastpkts=u'Broadcast packets on {shortname}:{ifname}',
+        discards=u'Discarded packets on {shortname}:{ifname}',
+    )
     title = titlemap.get(kind.lower(), u'{ifname}').format(
         ifname=interface.ifname,
         ifalias=(u"(%s)" % interface.ifalias) if interface.ifalias else u'',
@@ -437,6 +441,9 @@ def get_interface_counter_graph_url(interface, timeframe='day', kind='Octets',
     )
 
     return get_simple_graph_url(
-        [in_series, out_series], "1" + timeframe,
-        title=title, format=expect,
-        vtitle=unit or '')
+        [in_series, out_series],
+        "1" + timeframe,
+        title=title,
+        format=expect,
+        vtitle=unit or '',
+    )

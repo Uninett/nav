@@ -33,10 +33,12 @@ _logger = logging.getLogger(__name__)
 # upsonbattery traps
 ONBATTERY = {
     'APC': ['.1.3.6.1.4.1.318.0.5'],
-    'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.3',
-              # XUPS-MIB: xupstdOnBattery
-              '.1.3.6.1.4.1.534.1.11.4.1.0.3',
-              '.1.3.6.1.4.1.534.1.11.4.2.0.3'],
+    'Eaton': [
+        '.1.3.6.1.4.1.534.1.0.0.0.3',
+        # XUPS-MIB: xupstdOnBattery
+        '.1.3.6.1.4.1.534.1.11.4.1.0.3',
+        '.1.3.6.1.4.1.534.1.11.4.2.0.3',
+    ],
     # MG-SNMP-UPS-MIB: upsmgOnBattery'
     'MGE': ['1.3.6.1.4.1.705.1.11.0.11'],
     # UPS-MIB: upsAlarmOnBattery
@@ -55,10 +57,12 @@ BATTERYTIME = {
 # upsoffbattery traps
 OFFBATTERY = {
     'APC': ['.1.3.6.1.4.1.318.0.9'],
-    'Eaton': ['.1.3.6.1.4.1.534.1.0.0.0.5',
-              # XUPS-MIBS: xupstdUtilityPowerRestored
-              '.1.3.6.1.4.1.534.1.11.4.1.0.5',
-              '.1.3.6.1.4.1.534.1.11.4.2.0.5'],
+    'Eaton': [
+        '.1.3.6.1.4.1.534.1.0.0.0.5',
+        # XUPS-MIBS: xupstdUtilityPowerRestored
+        '.1.3.6.1.4.1.534.1.11.4.1.0.5',
+        '.1.3.6.1.4.1.534.1.11.4.2.0.5',
+    ],
     # MG-SNMP-UPS-MIB: upsmgReturnFromBattery
     'MGE': ['1.3.6.1.4.1.705.1.11.0.12'],
 }
@@ -88,8 +92,7 @@ def handleTrap(trap, config=None):
                 s = Snmp(trap.agent, trap.community)
                 batterytime = s.get(batterytimeoid)
             except Exception as err:
-                _logger.info("Could not get battery time from %s: %s",
-                             trap.agent, err)
+                _logger.info("Could not get battery time from %s: %s", trap.agent, err)
                 batterytime = False
             else:
                 batterytime = format_batterytime(batterytime, format)
@@ -160,10 +163,10 @@ def format_batterytime(timeunit, format):
         seconds = timeunit
         if format == 'MINUTES':
             # UPS-MIB
-            seconds = (timeunit * 60)
+            seconds = timeunit * 60
         if format == 'TIMETICKS':
             seconds = timeunit / 100
-        return "%sh:%sm" % (int(seconds / 60 / 60), (seconds/60) % 60)
+        return "%sh:%sm" % (int(seconds / 60 / 60), (seconds / 60) % 60)
 
 
 # This function is a nice to run to make sure the event and alerttypes

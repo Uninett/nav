@@ -31,6 +31,7 @@ from . import ip_mib
 
 class Ipv6Mib(mibretriever.MibRetriever):
     """A MibRetriever for the deprecated IPv6-MIB"""
+
     mib = get_mib('IPV6-MIB')
 
     @staticmethod
@@ -85,8 +86,9 @@ class Ipv6Mib(mibretriever.MibRetriever):
 
             row = (ifindex, ip, mac)
             mappings.add(row)
-        self._logger.debug("ip/mac pairs: Got %d rows from %s",
-                           len(ipv6_phys_addrs), column)
+        self._logger.debug(
+            "ip/mac pairs: Got %d rows from %s", len(ipv6_phys_addrs), column
+        )
         defer.returnValue(mappings)
 
     @defer.inlineCallbacks
@@ -113,7 +115,10 @@ class Ipv6Mib(mibretriever.MibRetriever):
 
             row = (ifindex, ip, prefix)
             addresses.add(row)
-        self._logger.debug("interface addresses: Got %d rows from %s",
-                           len(ipv6_addrs), prefixlen_column)
+        self._logger.debug(
+            "interface addresses: Got %d rows from %s",
+            len(ipv6_addrs),
+            prefixlen_column,
+        )
 
         defer.returnValue(addresses)

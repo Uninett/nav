@@ -25,6 +25,7 @@ from .bgp4_mib import BGP4Mib
 
 class BGP4V2JuniperMib(BGP4Mib):
     """MibRetriever implementation for BGP4-V2-MIB-JUNIPER"""
+
     mib = get_mib('BGP4-V2-MIB-JUNIPER')
     SUPPORTED_ROOT = 'jnxBgpM2'
     PEERSTATE_COLUMN = 'jnxBgpM2PeerState'
@@ -36,6 +37,6 @@ class BGP4V2JuniperMib(BGP4Mib):
     @staticmethod
     def _bgp_row_to_remote_ip(row_index):
         _routing_instance, _local_addr, remote_addr = consume(
-            row_index,
-            Unsigned32, TypedFixedInetAddress, TypedFixedInetAddress)
+            row_index, Unsigned32, TypedFixedInetAddress, TypedFixedInetAddress
+        )
         return remote_addr

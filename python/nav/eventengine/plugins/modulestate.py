@@ -23,6 +23,7 @@ from nav.models.manage import Module
 
 class ModuleStateHandler(delayedstate.DelayedStateHandler):
     """Accepts moduleState events"""
+
     HAS_WARNING_ALERT = True
     WARNING_WAIT_TIME = 'moduleDown.warning'
     ALERT_WAIT_TIME = 'moduleDown.alert'
@@ -59,8 +60,10 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
 
     def _get_down_alert(self):
         if self._is_chassis_down():
-            self._logger.info("%s: Containing chassis is down, not posting "
-                              "moduleDown", self.get_target())
+            self._logger.info(
+                "%s: Containing chassis is down, not posting " "moduleDown",
+                self.get_target(),
+            )
             return
 
         alert = self._get_alert()
@@ -77,15 +80,16 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
     def _post_down_warning(self):
         """Posts the actual warning alert"""
         if self._is_chassis_down():
-            self._logger.info("%s: Containing chassis is down, not posting "
-                              "moduleDownWarning", self.get_target())
+            self._logger.info(
+                "%s: Containing chassis is down, not posting " "moduleDownWarning",
+                self.get_target(),
+            )
             return
 
         alert = self._get_alert()
         alert.alert_type = "moduleDownWarning"
         alert.state = self.event.STATE_STATELESS
-        self._logger.info("%s: Posting %s alert",
-                          self.get_target(), alert.alert_type)
+        self._logger.info("%s: Posting %s alert", self.get_target(), alert.alert_type)
         alert.post()
 
     def _is_chassis_down(self):

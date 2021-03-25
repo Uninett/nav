@@ -33,8 +33,10 @@ from IPy import IP
 from twisted.names import dns
 from twisted.names import client
 from twisted.internet import defer
+
 # pylint: disable=E1101
 from twisted.internet import reactor
+
 # pylint: disable=W0611
 from twisted.names.error import DNSUnknownError
 from twisted.names.error import DomainError, AuthoritativeDomainError
@@ -67,9 +69,11 @@ def forward_lookup(names):
 
 class Resolver(object):
     """Abstract base class for resolvers"""
+
     def __init__(self):
-        self._resolvers = cycle([client.Resolver('/etc/resolv.conf')
-                                 for _i in range(3)])
+        self._resolvers = cycle(
+            [client.Resolver('/etc/resolv.conf') for _i in range(3)]
+        )
         self.results = defaultdict(list)
         self._finished = False
 
@@ -147,18 +151,19 @@ class ForwardResolver(Resolver):
             for record in record_list:
                 if str(record.name) == name:
                     if record.type == dns.A:
-                        address_list.append(socket.inet_ntop(
-                            socket.AF_INET,
-                            record.payload.address))
+                        address_list.append(
+                            socket.inet_ntop(socket.AF_INET, record.payload.address)
+                        )
                     elif record.type == dns.AAAA:
-                        address_list.append(socket.inet_ntop(
-                            socket.AF_INET6,
-                            record.payload.address))
+                        address_list.append(
+                            socket.inet_ntop(socket.AF_INET6, record.payload.address)
+                        )
         return name, address_list
 
 
 class ReverseResolver(Resolver):
     """Reverse resolver implementation for PTR record lookups"""
+
     def lookup(self, address):
         """Returns a deferred object which tries to get the hostname from ip"""
         resolver = next(self._resolvers)

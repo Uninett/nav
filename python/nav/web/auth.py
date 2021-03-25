@@ -42,6 +42,7 @@ try:
     def fake_password(length):
         return secrets.token_urlsafe(length)
 
+
 except ImportError:
     from random import choice
     import string
@@ -84,6 +85,8 @@ logout-url=
 varname=REMOTE_USER
 workaround=none
 """
+
+
 _config = RemoteUserConfigParser()
 
 
@@ -112,9 +115,7 @@ def authenticate(username, password):
             # If we authenticated, store the user in database.
             if user:
                 account = Account(
-                    login=user.username,
-                    name=user.get_real_name(),
-                    ext_sync='ldap'
+                    login=user.username, name=user.get_real_name(), ext_sync='ldap'
                 )
                 account.set_password(password)
                 account.save()
@@ -125,11 +126,13 @@ def authenticate(username, password):
     if account and account.locked:
         _logger.info("Locked user %s tried to log in", account.login)
 
-    if (account and
-            account.ext_sync == 'ldap' and
-            ldapauth.available and
-            not auth and
-            not account.locked):
+    if (
+        account
+        and account.ext_sync == 'ldap'
+        and ldapauth.available
+        and not auth
+        and not account.locked
+    ):
         try:
             auth = ldapauth.authenticate(username, password)
         except ldapauth.NoAnswerError:
@@ -183,25 +186,23 @@ def authenticate_remote_user(request):
         account = Account.objects.get(login=username)
     except Account.DoesNotExist:
         # Store the remote user in the database and return the new account
-        account = Account(
-            login=username,
-            name=username,
-            ext_sync='REMOTE_USER'
-        )
+        account = Account(login=username, name=username, ext_sync='REMOTE_USER')
         account.set_password(fake_password(32))
         account.save()
         _logger.info("Created user %s from header REMOTE_USER", account.login)
         template = 'Account "{actor}" created due to REMOTE_USER HTTP header'
-        LogEntry.add_log_entry(account, 'create-account', template=template,
-                               subsystem='auth')
+        LogEntry.add_log_entry(
+            account, 'create-account', template=template, subsystem='auth'
+        )
         return account
 
     # Bail out! Potentially evil user
     if account.locked:
         _logger.info("Locked user %s tried to log in", account.login)
         template = 'Account "{actor}" was prevented from logging in: blocked'
-        LogEntry.add_log_entry(account, 'login-prevent', template=template,
-                               subsystem='auth')
+        LogEntry.add_log_entry(
+            account, 'login-prevent', template=template, subsystem='auth'
+        )
         return False
 
     return account
@@ -210,8 +211,8 @@ def authenticate_remote_user(request):
 def get_login_url(request):
     """Calculate which login_url to use"""
     default_new_url = '{0}?origin={1}&noaccess'.format(
-        LOGIN_URL,
-        parse.quote(request.get_full_path()))
+        LOGIN_URL, parse.quote(request.get_full_path())
+    )
     remote_loginurl = get_remote_loginurl(request)
     return remote_loginurl if remote_loginurl else default_new_url
 
@@ -338,19 +339,19 @@ class AuthenticationMiddleware(MiddlewareMixin):
         account = request.account
         sudo_operator = get_sudoer(request)  # Account or None
         logged_in = sudo_operator or account
-        _logger.debug(('AuthenticationMiddleware '
-                      '(logged_in: "%s" acting as "%s") from "%s"'),
+        _logger.debug(
+            ('AuthenticationMiddleware ' '(logged_in: "%s" acting as "%s") from "%s"'),
             logged_in.login,
             account.login,
-            request.get_full_path()
+            request.get_full_path(),
         )
 
         remote_username = get_remote_username(request)
         if remote_username:
-            _logger.debug(('AuthenticationMiddleware: '
-                           '(REMOTE_USER: "%s") from "%s"'),
+            _logger.debug(
+                ('AuthenticationMiddleware: ' '(REMOTE_USER: "%s") from "%s"'),
                 remote_username,
-                request.get_full_path()
+                request.get_full_path(),
             )
             if logged_in.id == Account.DEFAULT_ACCOUNT:
                 # Switch from anonymous to REMOTE_USER
@@ -411,12 +412,13 @@ class AuthorizationMiddleware(MiddlewareMixin):
     def process_request(self, request):
         account = request.account
 
-        authorized = (authorization_not_required(request.get_full_path())
-                      or
-                      account.has_perm('web_access', request.get_full_path()))
+        authorized = authorization_not_required(
+            request.get_full_path()
+        ) or account.has_perm('web_access', request.get_full_path())
         if not authorized:
-            _logger.warning("User %s denied access to %s",
-                            account.login, request.get_full_path())
+            _logger.warning(
+                "User %s denied access to %s", account.login, request.get_full_path()
+            )
             return self.redirect_to_login(request)
         else:
             if not account.is_default_account():
@@ -443,8 +445,13 @@ def authorization_not_required(fullpath):
     Should the user be able to decide this? Currently not.
 
     """
-    auth_not_required = ['/api/', '/doc/',  # No auth/different auth system
-                         '/about/', '/index/login/', '/refresh_session']
+    auth_not_required = [
+        '/api/',
+        '/doc/',  # No auth/different auth system
+        '/about/',
+        '/index/login/',
+        '/refresh_session',
+    ]
     for url in auth_not_required:
         if fullpath.startswith(url):
             _logger.debug('authorization_not_required: %s', url)
@@ -469,8 +476,7 @@ def logout(request, sudo=False):
         request.session.set_expiry(datetime.now())
         request.session.save()
         _logger.debug('logout: logout %s', account.login)
-        LogEntry.add_log_entry(account, 'log-out', '{actor} logged out',
-                               before=account)
+        LogEntry.add_log_entry(account, 'log-out', '{actor} logged out', before=account)
     _logger.debug('logout: redirect to "/" after logout')
     return u'/'
 
@@ -492,14 +498,15 @@ def sudo(request, other_user):
     request.session[SUDOER_ID_VAR] = original_user.id
     _set_account(request, other_user)
     _logger.info('Sudo: "%s" acting as "%s"', original_user, other_user)
-    _logger.debug('Sudo: (session: %s, account: %s)',
-                  dict(request.session), request.account)
+    _logger.debug(
+        'Sudo: (session: %s, account: %s)', dict(request.session), request.account
+    )
     LogEntry.add_log_entry(
         original_user,
         'sudo',
         '{actor} sudoed to {target}',
         subsystem='auth',
-        target=other_user
+        target=other_user,
     )
 
 
@@ -519,16 +526,18 @@ def desudo(request):
     del request.session[ACCOUNT_ID_VAR]
     del request.session[SUDOER_ID_VAR]
     _set_account(request, original_user)
-    _logger.info('DeSudo: "%s" no longer acting as "%s"',
-                 original_user, request.account)
-    _logger.debug('DeSudo: (session: %s, account: %s)',
-                  dict(request.session), request.account)
+    _logger.info(
+        'DeSudo: "%s" no longer acting as "%s"', original_user, request.account
+    )
+    _logger.debug(
+        'DeSudo: (session: %s, account: %s)', dict(request.session), request.account
+    )
     LogEntry.add_log_entry(
         original_user,
         'desudo',
         '{actor} no longer sudoed as {target}',
         subsystem='auth',
-        target=other_user
+        target=other_user,
     )
 
 

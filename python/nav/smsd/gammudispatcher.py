@@ -24,16 +24,14 @@ Depends on python-gammu.
 
 """
 
-from nav.smsd.dispatcher import (Dispatcher, PermanentDispatcherError,
-                                 DispatcherError)
+from nav.smsd.dispatcher import Dispatcher, PermanentDispatcherError, DispatcherError
 
 from django.utils import six
 
 try:
     import gammu
 except ImportError as error:
-    raise PermanentDispatcherError(
-          'python-gammu not installed or misconfigured.')
+    raise PermanentDispatcherError('python-gammu not installed or misconfigured.')
 
 
 class GammuDispatcher(Dispatcher):
@@ -82,16 +80,11 @@ class GammuDispatcher(Dispatcher):
             sm.Init()
         except gammu.GSMError as error:
             raise PermanentDispatcherError(
-                  "GSM %s error %d: %s" % (error.args[0]['Where'],
-                                           error.args[0]['Code'],
-                                           error.args[0]['Text'])
+                "GSM %s error %d: %s"
+                % (error.args[0]['Where'], error.args[0]['Code'], error.args[0]['Text'])
             )
 
-        message = {
-            'Text': sms,
-            'SMSC': {'Location': 1},
-            'Number': phone
-        }
+        message = {'Text': sms, 'SMSC': {'Location': 1}, 'Number': phone}
 
         try:
             # Tested with:
@@ -99,9 +92,10 @@ class GammuDispatcher(Dispatcher):
             # - Sony Ericsson K310, USB cable, Gammu 1.06.00, python-gammu 0.13
             smsid = sm.SendSMS(message)
         except gammu.GSMError as error:
-            raise DispatcherError("GSM %s error %d: %s" % (error.args[0]['Where'],
-                                                           error.args[0]['Code'],
-                                                           error.args[0]['Text']))
+            raise DispatcherError(
+                "GSM %s error %d: %s"
+                % (error.args[0]['Where'], error.args[0]['Code'], error.args[0]['Text'])
+            )
 
         if isinstance(smsid, six.integer_types):
             result = True

@@ -42,9 +42,9 @@ class GeistMibV4(ItWatchDogsMibV4):
     same.
 
     """
+
     mib = get_mib('GEIST-V4-MIB')
 
-    oid_name_map = {OID(attrs['oid']): name
-                    for name, attrs in mib['nodes'].items()}
+    oid_name_map = {OID(attrs['oid']): name for name, attrs in mib['nodes'].items()}
 
     lowercase_nodes = {key.lower(): key for key in mib['nodes']}

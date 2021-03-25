@@ -32,9 +32,20 @@ class Event(dict):
     Otherwise, this is just a dumb storage class (any database activity
     performed by this class is done using the EventQ class as proxy)
     """
-    def __init__(self, source=None, target=None, deviceid=None, netboxid=None,
-                 subid=None, time=None, eventtypeid=None, state=None,
-                 value=None, severity=None):
+
+    def __init__(
+        self,
+        source=None,
+        target=None,
+        deviceid=None,
+        netboxid=None,
+        subid=None,
+        time=None,
+        eventtypeid=None,
+        state=None,
+        value=None,
+        severity=None,
+    ):
         super(Event, self).__init__()
         self.eventqid = None
 
@@ -50,11 +61,23 @@ class Event(dict):
         self.severity = severity
 
     def __repr__(self):
-        attr_list = ["%s=%s" % (attr, getattr(self, attr))
-                     for attr in ('eventqid', 'source', 'target', 'deviceid',
-                                  'netboxid', 'subid', 'time', 'eventtypeid',
-                                  'state', 'value', 'severity')
-                     if getattr(self, attr)]
+        attr_list = [
+            "%s=%s" % (attr, getattr(self, attr))
+            for attr in (
+                'eventqid',
+                'source',
+                'target',
+                'deviceid',
+                'netboxid',
+                'subid',
+                'time',
+                'eventtypeid',
+                'state',
+                'value',
+                'severity',
+            )
+            if getattr(self, attr)
+        ]
         attr_list = ", ".join(attr_list)
         return "<Event %s / %s>" % (attr_list, super(Event, self).__repr__())
 
@@ -70,12 +93,14 @@ class Event(dict):
         """
         if not self.eventqid:
             raise EventNotPostedError(
-                "source=%s, target=%s, type=%s" %
-                (self.source, self.target, self.eventtypeid))
+                "source=%s, target=%s, type=%s"
+                % (self.source, self.target, self.eventtypeid)
+            )
         else:
             result = EventQ.delete_event(self.eventqid)
             self.eventqid = None
             return result
+
     # Alias the delete member function as dispose
     dispose = delete
 
@@ -111,8 +136,18 @@ class EventQ(object):
         # First post the relevant fields to eventq
         fields = []
         values = []
-        for attr in ('source', 'target', 'deviceid', 'netboxid', 'subid',
-                     'time', 'eventtypeid', 'state', 'value', 'severity'):
+        for attr in (
+            'source',
+            'target',
+            'deviceid',
+            'netboxid',
+            'subid',
+            'time',
+            'eventtypeid',
+            'state',
+            'value',
+            'severity',
+        ):
             if getattr(event, attr, None):
                 fields.append(attr)
                 values.append(getattr(event, attr))
@@ -120,8 +155,10 @@ class EventQ(object):
             raise EventIncompleteError
         field_string = ','.join(fields)
         placeholders = ', %s' * len(values)
-        eventsql = ("INSERT INTO eventq (eventqid, " + field_string + ") "
-                    "VALUES (%s" + placeholders + ")")
+        eventsql = (
+            "INSERT INTO eventq (eventqid, " + field_string + ") "
+            "VALUES (%s" + placeholders + ")"
+        )
         eventqid = cls.allocate_id()
         conn = cls._get_connection()
         cursor = conn.cursor()
@@ -129,8 +166,7 @@ class EventQ(object):
 
         # Prepare an SQL statement to post the variables, if any
         if event:
-            varsql = ("INSERT INTO eventqvar (eventqid, var, val)"
-                      "VALUES (%s, %s, %s)")
+            varsql = "INSERT INTO eventqvar (eventqid, var, val)" "VALUES (%s, %s, %s)"
             values = [(eventqid,) + i for i in event.items()]
             cursor.executemany(varsql, values)
 
@@ -168,9 +204,19 @@ class EventQ(object):
         if cursor.rowcount > 0:
             for event_row in cursor.fetchall():
                 event = Event()
-                (event.eventqid, event.source, event.target, event.deviceid,
-                 event.netboxid, event.subid, event.time, event.eventtypeid,
-                 event.state, event.value, event.severity) = event_row
+                (
+                    event.eventqid,
+                    event.source,
+                    event.target,
+                    event.deviceid,
+                    event.netboxid,
+                    event.subid,
+                    event.time,
+                    event.eventtypeid,
+                    event.state,
+                    event.value,
+                    event.severity,
+                ) = event_row
                 load_vars(event)
                 events.append(event)
         return events
@@ -192,21 +238,25 @@ class EventQ(object):
 
 class EventIdAllocationError(GeneralException):
     """Error allocating a new event ID from the queue"""
+
     pass
 
 
 class EventAlreadyPostedError(GeneralException):
     """Event was already posted"""
+
     pass
 
 
 class EventIncompleteError(GeneralException):
     """Incomplete event cannot be posted"""
+
     pass
 
 
 class EventNotPostedError(GeneralException):
     """Cannot perform this operation on an unposted event"""
+
     pass
 
 
@@ -249,14 +299,16 @@ def create_type_hierarchy(hierarchy):
         try:
             etype = EventType.objects.get(id=event_type_name)
         except EventType.DoesNotExist:
-            etype = EventType(id=event_type_name, description=event_descr,
-                              stateful=stateful)
+            etype = EventType(
+                id=event_type_name, description=event_descr, stateful=stateful
+            )
             etype.save()
             created_count += 1
 
         for alert_type_name, alert_descr in alert_types:
             atype, created = AlertType.objects.get_or_create(
-                name=alert_type_name, event_type=etype)
+                name=alert_type_name, event_type=etype
+            )
             if created:
                 atype.description = alert_descr
                 atype.save()

@@ -31,8 +31,7 @@ from nav.smsd.dispatcher import Dispatcher, DispatcherError
 try:
     from SOAPpy import SOAPProxy
 except ImportError:
-    raise DispatcherError(
-     'SOAPpy not installed or misconfigured.')
+    raise DispatcherError('SOAPpy not installed or misconfigured.')
 
 
 class BoostDispatcher(Dispatcher):
@@ -86,11 +85,8 @@ class BoostDispatcher(Dispatcher):
         # Send SMS
         try:
             result = self.service.sendMessage(
-                        self.username,
-                        self.password,
-                        self.sender,
-                        phone,
-                        sms)
+                self.username, self.password, self.sender, phone, sms
+            )
             self.logger.debug("BoostDispatcher result: %s", result)
         except Exception as error:
             self.logger.exception(error)

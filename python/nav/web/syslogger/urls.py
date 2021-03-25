@@ -21,12 +21,8 @@ from nav.web.syslogger import views
 
 
 urlpatterns = [
-    url(r'^$', views.index,
-        name='logger_index'),
-    url(r'^search/group/$', views.group_search,
-        name='logger_search_group'),
-    url(r'^exceptions/$', views.exceptions_response,
-        name='logger_priority_exceptions'),
-    url(r'^errors/$', views.errors_response,
-        name='logger_errors'),
+    url(r'^$', views.index, name='logger_index'),
+    url(r'^search/group/$', views.group_search, name='logger_search_group'),
+    url(r'^exceptions/$', views.exceptions_response, name='logger_priority_exceptions'),
+    url(r'^errors/$', views.errors_response, name='logger_errors'),
 ]

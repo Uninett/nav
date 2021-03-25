@@ -8,7 +8,6 @@ from nav.activeipcollector.manager import find_range, get_timestamp
 
 
 class TestPrefixIpCollector(unittest.TestCase):
-
     def test_find_range(self):
         self.assertEqual(find_range('129.241.1.0/24'), 254)
         self.assertEqual(find_range('129.241.1.1'), 0)

@@ -45,8 +45,12 @@ class ReportWidget(Navlet):
             context['query_string'] = query_string
         elif self.mode == NAVLET_MODE_VIEW:
             full_context = make_report(
-                self.request, report_id, None,
-                QueryDict(query_string).copy(), paginate=False)
+                self.request,
+                report_id,
+                None,
+                QueryDict(query_string).copy(),
+                paginate=False,
+            )
             if full_context:
                 report = full_context.get('report')
                 context['report'] = report
@@ -57,14 +61,14 @@ class ReportWidget(Navlet):
     def post(self, request):
         """Save navlet options on post"""
         try:
-            navlet = AccountNavlet.objects.get(pk=self.navlet_id,
-                                               account=request.account)
+            navlet = AccountNavlet.objects.get(
+                pk=self.navlet_id, account=request.account
+            )
         except AccountNavlet.DoesNotExist:
             return HttpResponse(status=404)
         else:
             navlet.preferences['report_id'] = request.POST.get('report_id')
-            navlet.preferences['query_string'] = request.POST.get(
-                'query_string')
+            navlet.preferences['query_string'] = request.POST.get('query_string')
             navlet.save()
             return JsonResponse(navlet.preferences)
 

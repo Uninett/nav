@@ -21,11 +21,13 @@ def test_ldapuser_search_dn_decode_regression():
     """Verifies that LDAPUser.search_dn() returns user's DN untouched"""
     connection = Mock()
     connection.search_s.return_value = [
-        (u'CN=Zaphod Beeblebr\xf6x,CN=people,DC=example,DC=org',
-         {u'cn': b'Zaphod Beeblebr\xc3\xb6x',
-          u'displayName': b'Zaphod Beeblebr\xc3\xb6x',
-          }
-         )
+        (
+            u'CN=Zaphod Beeblebr\xf6x,CN=people,DC=example,DC=org',
+            {
+                u'cn': b'Zaphod Beeblebr\xc3\xb6x',
+                u'displayName': b'Zaphod Beeblebr\xc3\xb6x',
+            },
+        )
     ]
 
     user = LDAPUser('zaphod', connection)

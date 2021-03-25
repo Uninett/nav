@@ -27,8 +27,14 @@ from django.utils import six
 from django.db.models import Q
 from django.db import transaction
 
-from nav.models.manage import (GwPortPrefix, Interface, SwPortVlan,
-                               SwPortBlocked, Prefix, Vlan)
+from nav.models.manage import (
+    GwPortPrefix,
+    Interface,
+    SwPortVlan,
+    SwPortBlocked,
+    Prefix,
+    Vlan,
+)
 
 from nav.netmap import stubs
 
@@ -38,6 +44,7 @@ NO_TRUNK = Q(trunk=False) | Q(trunk__isnull=True)
 
 class VlanGraphAnalyzer(object):
     """Analyzes VLAN topologies as a subset of the layer 2 topology"""
+
     def __init__(self):
         self.routed_vlans = self._build_vlan_router_dict()
         self.unrouted_vlans = self._build_unrouted_vlan_seed_dict()
@@ -54,6 +61,7 @@ class VlanGraphAnalyzer(object):
         and lower addresses are preferred over higher ones.
 
         """
+
         def _sortkey(gwp):
             ip = IP(gwp.gw_ip)
             return ip.version(), ip
@@ -62,8 +70,12 @@ class VlanGraphAnalyzer(object):
         return dict((addr.prefix.vlan, addr) for addr in reversed(addrs))
 
     def _build_unrouted_vlan_seed_dict(self):
-        return {x for x in Vlan.objects.filter(prefix__isnull=True,
-                                               netbox__isnull=False).iterator()}
+        return {
+            x
+            for x in Vlan.objects.filter(
+                prefix__isnull=True, netbox__isnull=False
+            ).iterator()
+        }
 
     def analyze_all(self):
         """Analyze all VLAN topologies"""
@@ -82,9 +94,7 @@ class VlanGraphAnalyzer(object):
     def analyze_vlans_by_id(self, vlans):
         """Analyzes a list of VLANs by their PVIDs"""
         vlan_id_map = {vlan.vlan: vlan for vlan in self.routed_vlans.keys()}
-        vlan_id_map.update(
-            {vlan.vlan: vlan for vlan in self.unrouted_vlans}
-        )
+        vlan_id_map.update({vlan.vlan: vlan for vlan in self.unrouted_vlans})
         for vlan in vlans:
             if vlan in vlan_id_map:
                 self.analyze_vlan(vlan_id_map[vlan])
@@ -93,13 +103,12 @@ class VlanGraphAnalyzer(object):
         """Analyzes a single vlan"""
         if vlan in self.routed_vlans:
             addr = self.routed_vlans[vlan]
-            analyzer = RoutedVlanTopologyAnalyzer(addr, self.layer2,
-                                                  self.stp_blocked)
+            analyzer = RoutedVlanTopologyAnalyzer(addr, self.layer2, self.stp_blocked)
         else:
             seed_netbox = vlan.netbox
-            analyzer = UnroutedVlanTopologyAnalyzer(vlan, seed_netbox,
-                                                    self.layer2,
-                                                    self.stp_blocked)
+            analyzer = UnroutedVlanTopologyAnalyzer(
+                vlan, seed_netbox, self.layer2, self.stp_blocked
+            )
         topology = analyzer.analyze()
         self._integrate_vlan_topology(vlan, topology)
         self._prune_unrouted_vlans(vlan, topology)
@@ -108,8 +117,7 @@ class VlanGraphAnalyzer(object):
         for ifc in topology:
             for cand in list(self.unrouted_vlans):
                 if cand.vlan == vlan.vlan and cand.netbox == ifc.netbox:
-                    _logger.debug("pruning vlan %s because of %s",
-                                  cand, vlan)
+                    _logger.debug("pruning vlan %s because of %s", cand, vlan)
                     self.unrouted_vlans.remove(cand)
 
     def _integrate_vlan_topology(self, vlan, topology):
@@ -143,9 +151,11 @@ class VlanGraphAnalyzer(object):
         vlans = chain(*(self.ifc_vlan_map[ifc].keys() for ifc in ifcs))
         active_vlans = dict((vlan.vlan, vlan) for vlan in vlans)
 
-        access_ifcs = netbox.interface_set.filter(
-            vlan__isnull=False
-        ).filter(NO_TRUNK).exclude(id__in=(ifc.id for ifc in ifcs))
+        access_ifcs = (
+            netbox.interface_set.filter(vlan__isnull=False)
+            .filter(NO_TRUNK)
+            .exclude(id__in=(ifc.id for ifc in ifcs))
+        )
         for ifc in access_ifcs:
             if ifc.vlan in active_vlans:
                 yield ifc, {active_vlans[ifc.vlan]: 'down'}
@@ -181,8 +191,7 @@ class RoutedVlanTopologyAnalyzer(object):
                 # likely a GSW, descend on its switch ports by faking an edge
                 start_edge = (self.router, self.router, None)
             else:
-                start_edge = (self.router, self.router_port.to_netbox,
-                              self.router_port)
+                start_edge = (self.router, self.router_port.to_netbox, self.router_port)
             self._examine_edge(start_edge)
 
         return self.ifc_directions
@@ -200,9 +209,9 @@ class RoutedVlanTopologyAnalyzer(object):
         visited_nodes.add(dest)
 
         vlan_is_active = (
-            (direction == 'up' and
-             self._vlan_is_active_on_reverse_edge(edge, visited_nodes)) or
-            self._is_vlan_active_on_destination(dest, ifc))
+            direction == 'up'
+            and self._vlan_is_active_on_reverse_edge(edge, visited_nodes)
+        ) or self._is_vlan_active_on_destination(dest, ifc)
 
         if direction == 'down' and not is_visited_before:
             # Recursive depth first search on each outgoing edge
@@ -217,8 +226,9 @@ class RoutedVlanTopologyAnalyzer(object):
                     self._log_block(next_edge)
 
         if vlan_is_active and ifc:
-            _logger.debug("(%s) setting %s direction: %s",
-                          self.vlan.vlan, ifc, direction)
+            _logger.debug(
+                "(%s) setting %s direction: %s", self.vlan.vlan, ifc, direction
+            )
             self.ifc_directions[ifc] = direction
 
         return vlan_is_active
@@ -228,8 +238,10 @@ class RoutedVlanTopologyAnalyzer(object):
         reverse_edge = self._find_reverse_edge(edge)
         if reverse_edge:
             reverse_ifc = reverse_edge[2]
-            been_there = (self._interface_has_been_seen_before(reverse_ifc)
-                          or dest in visited_nodes)
+            been_there = (
+                self._interface_has_been_seen_before(reverse_ifc)
+                or dest in visited_nodes
+            )
             if been_there:
                 return self._ifc_has_vlan(ifc)
         return False
@@ -255,11 +267,11 @@ class RoutedVlanTopologyAnalyzer(object):
         if not ifc.trunk:
             return self._ifc_has_vlan(ifc)
         else:
-            non_trunks_on_vlan = dest.interface_set.filter(
-                vlan=self.vlan.vlan).filter(NO_TRUNK)
+            non_trunks_on_vlan = dest.interface_set.filter(vlan=self.vlan.vlan).filter(
+                NO_TRUNK
+            )
             if ifc.to_interface:
-                non_trunks_on_vlan = non_trunks_on_vlan.exclude(
-                    id=ifc.to_interface.id)
+                non_trunks_on_vlan = non_trunks_on_vlan.exclude(id=ifc.to_interface.id)
 
             return non_trunks_on_vlan.count() > 0
 
@@ -267,23 +279,25 @@ class RoutedVlanTopologyAnalyzer(object):
         return (
             (u, v, w)
             for u, v, w in self.layer2.out_edges(node, keys=True)
-            if self._ifc_has_vlan(w))
+            if self._ifc_has_vlan(w)
+        )
 
     def _ifc_has_vlan(self, ifc):
         return ifc.vlan == self.vlan.vlan or self._vlan_allowed_on_trunk(ifc)
 
     def _vlan_allowed_on_trunk(self, ifc):
-        return (ifc.trunk and
-                getattr(ifc, 'swportallowedvlan', None) and
-                self.vlan.vlan in ifc.swportallowedvlan)
+        return (
+            ifc.trunk
+            and getattr(ifc, 'swportallowedvlan', None)
+            and self.vlan.vlan in ifc.swportallowedvlan
+        )
 
     def _is_blocked_on_any_end(self, edge):
         """Returns True if at least one of the edge endpoints are blocked"""
         reverse_edge = self._find_reverse_edge(edge)
         if not reverse_edge:
             _logger.debug("could not find reverse edge for %r", edge)
-        return (self._is_edge_blocked(edge) or
-                self._is_edge_blocked(reverse_edge))
+        return self._is_edge_blocked(edge) or self._is_edge_blocked(reverse_edge)
 
     def _is_edge_blocked(self, edge):
         if edge:
@@ -293,24 +307,35 @@ class RoutedVlanTopologyAnalyzer(object):
 
     def _log_descent(self, next_edge):
         source, dest, ifc = next_edge
-        _logger.debug("(%s) descending from %s (%s [%d]) to %s",
-                      self.vlan.vlan,
-                      source.sysname, ifc.ifname, ifc.id,
-                      dest.sysname)
+        _logger.debug(
+            "(%s) descending from %s (%s [%d]) to %s",
+            self.vlan.vlan,
+            source.sysname,
+            ifc.ifname,
+            ifc.id,
+            dest.sysname,
+        )
 
     def _log_block(self, next_edge):
         source, _dest, source_ifc = next_edge
         reverse_edge = self._find_reverse_edge(next_edge)
         if reverse_edge:
             dest, _source, dest_ifc = reverse_edge
-            _logger.info("at least one of %s (%s) <-> %s (%s) is blocked "
-                         "on VLAN %s",
-                         source.sysname, source_ifc.ifname,
-                         dest.sysname, dest_ifc.ifname,
-                         self.vlan.vlan)
+            _logger.info(
+                "at least one of %s (%s) <-> %s (%s) is blocked " "on VLAN %s",
+                source.sysname,
+                source_ifc.ifname,
+                dest.sysname,
+                dest_ifc.ifname,
+                self.vlan.vlan,
+            )
         else:
-            _logger.info("%s (%s) is blocked on VLAN %s",
-                         source.sysname, source_ifc.ifname, self.vlan.vlan)
+            _logger.info(
+                "%s (%s) is blocked on VLAN %s",
+                source.sysname,
+                source_ifc.ifname,
+                self.vlan.vlan,
+            )
 
     def _mark_both_ends_as_blocked(self, edge):
         _source, _dest, source_ifc = edge
@@ -356,6 +381,7 @@ class VlanTopologyUpdater(object):
       >>>
 
     """
+
     def __init__(self, ifc_vlan_map):
         """Initializes a vlan topology updater.
 
@@ -383,8 +409,8 @@ class VlanTopologyUpdater(object):
     def _update_or_create_new_swportvlan_entry(cls, ifc, vlan, dirstr):
         direction = cls._direction_from_string(dirstr)
         obj, created = SwPortVlan.objects.get_or_create(
-            interface=ifc, vlan=vlan,
-            defaults={'direction': direction})
+            interface=ifc, vlan=vlan, defaults={'direction': direction}
+        )
         if not created and obj.direction != direction:
             obj.direction = direction
             obj.save()
@@ -399,9 +425,11 @@ class VlanTopologyUpdater(object):
 
     @classmethod
     def _direction_from_string(cls, string):
-        return (cls.DIRECTION_MAP[string]
-                if string in cls.DIRECTION_MAP
-                else SwPortVlan.DIRECTION_UNDEFINED)
+        return (
+            cls.DIRECTION_MAP[string]
+            if string in cls.DIRECTION_MAP
+            else SwPortVlan.DIRECTION_UNDEFINED
+        )
 
     def _remove_dead_swpvlan_records_for_ifc(self, ifc):
         records_for_ifc = SwPortVlan.objects.filter(interface=ifc)
@@ -416,13 +444,13 @@ class VlanTopologyUpdater(object):
         # set difference using Python instead
         touched_interfaceids = set(ifc.pk for ifc in self.ifc_vlan_map)
         existing_interfaceids = set(
-            SwPortVlan.objects.distinct().values_list('interface__id',
-                                                      flat=True)
+            SwPortVlan.objects.distinct().values_list('interface__id', flat=True)
         )
         to_delete = existing_interfaceids.difference(touched_interfaceids)
         if to_delete:
-            _logger.debug("deleting obsolete swpvlan records for these ifcs: "
-                          "%s", to_delete)
+            _logger.debug(
+                "deleting obsolete swpvlan records for these ifcs: " "%s", to_delete
+            )
             SwPortVlan.objects.filter(interface__id__in=to_delete).delete()
 
 
@@ -442,8 +470,9 @@ def build_layer2_graph(related_extra=None):
     if related_extra:
         select_related = select_related + related_extra
 
-    links = Interface.objects.filter(
-        to_netbox__isnull=False).select_related(*select_related)
+    links = Interface.objects.filter(to_netbox__isnull=False).select_related(
+        *select_related
+    )
 
     for link in links:
         dest = link.to_interface.netbox if link.to_interface else link.to_netbox
@@ -462,18 +491,25 @@ def build_layer3_graph(related_extra=None):
     """
     graph = nx.MultiGraph(name="Layer 3 topology")
 
-    select_related = ('interface__netbox', 'interface__to_netbox',
-                      'interface__to_interface',
-                      'interface__to_interface__netbox')
+    select_related = (
+        'interface__netbox',
+        'interface__to_netbox',
+        'interface__to_interface',
+        'interface__to_interface__netbox',
+    )
     if related_extra:
-        select_related = select_related+related_extra
+        select_related = select_related + related_extra
 
-    prefixes = Prefix.objects.filter(
-        vlan__net_type__in=('link', 'elink', 'core')
-    ).extra(
-        where=['NOT (family(netaddr) = 4 AND masklen(netaddr) = 32)',
-               'NOT (family(netaddr) = 6 AND masklen(netaddr) = 128)']
-    ).select_related("vlan__net_type")
+    prefixes = (
+        Prefix.objects.filter(vlan__net_type__in=('link', 'elink', 'core'))
+        .extra(
+            where=[
+                'NOT (family(netaddr) = 4 AND masklen(netaddr) = 32)',
+                'NOT (family(netaddr) = 6 AND masklen(netaddr) = 128)',
+            ]
+        )
+        .select_related("vlan__net_type")
+    )
 
     router_ports = GwPortPrefix.objects.filter(
         prefix__in=prefixes, interface__netbox__category__in=('GW', 'GSW')
@@ -512,8 +548,10 @@ def build_layer3_graph(related_extra=None):
                     #  the same netbox.
                     gwpp_match = gwportprefixes[0]
 
-                    if ([u.interface.netbox == gwpp_match.interface.netbox
-                         for u in gwportprefixes].count(True) >= 2):
+                    if [
+                        u.interface.netbox == gwpp_match.interface.netbox
+                        for u in gwportprefixes
+                    ].count(True) >= 2:
                         for u in gwportprefixes:
                             for v in gwportprefixes:
                                 if u is not v:
@@ -527,7 +565,9 @@ def build_layer3_graph(related_extra=None):
                         _logger.warning(
                             "Topology error? %s classified as elink, "
                             "we know %s GwPortPrefixes ...",
-                            six.text_type(prefix), len(gwportprefixes))
+                            six.text_type(prefix),
+                            len(gwportprefixes),
+                        )
                         _add_edge(gwportprefixes)
                 else:
 
@@ -536,25 +576,27 @@ def build_layer3_graph(related_extra=None):
                     if gwportprefixes[0].prefix.vlan.net_ident:
 
                         fictive_netbox.sysname = six.text_type(
-                            gwportprefixes[0].prefix.vlan.net_ident)
+                            gwportprefixes[0].prefix.vlan.net_ident
+                        )
                     else:
                         fictive_netbox.sysname = six.text_type(
-                            gwportprefixes[0].interface.ifalias)
+                            gwportprefixes[0].interface.ifalias
+                        )
                     fictive_netbox.category_id = 'elink'
                     fictive_netbox.id = fictive_netbox.sysname
 
                     fictive_interface = stubs.Interface()
                     fictive_interface.netbox = fictive_netbox
                     fictive_interface.ifname = (
-                        u"N/A (peer of %s)" % gwportprefixes[0].gw_ip)
+                        u"N/A (peer of %s)" % gwportprefixes[0].gw_ip
+                    )
                     fictive_interface.speed = None
 
                     fictive_gwportprefix.interface = fictive_interface
                     fictive_gwportprefix.gw_ip = fictive_netbox.sysname
                     fictive_gwportprefix.prefix = prefix
 
-                    graph.add_edge(gwportprefixes[0], fictive_gwportprefix,
-                                   key=prefix)
+                    graph.add_edge(gwportprefixes[0], fictive_gwportprefix, key=prefix)
 
             else:
                 _add_edge(gwportprefixes)
@@ -568,7 +610,8 @@ def get_active_addresses_of_routed_vlans():
 
     """
     addrs = get_routed_vlan_addresses().select_related(
-        'prefix__vlan', 'interface__netbox')
+        'prefix__vlan', 'interface__netbox'
+    )
     return filter_active_router_addresses(addrs)
 
 
@@ -597,8 +640,7 @@ def get_routed_vlan_addresses():
 
     """
     raddrs = get_router_addresses()
-    return raddrs.filter(
-        prefix__vlan__vlan__isnull=False)
+    return raddrs.filter(prefix__vlan__vlan__isnull=False)
 
 
 def get_router_addresses():

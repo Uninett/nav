@@ -35,8 +35,7 @@ def escape_metric_name(name):
     if name is None:
         return name
     name = name.replace('\x00', '')  # some devices have crazy responses!
-    name = ''.join([c if c in LEGAL_METRIC_CHARACTERS else "_"
-                    for c in name])
+    name = ''.join([c if c in LEGAL_METRIC_CHARACTERS else "_" for c in name])
     return name
 
 
@@ -73,8 +72,7 @@ def get_metric_leaf_children(path):
     """
     query = path + ".*"
     data = raw_metric_query(query)
-    result = [node['id'] for node in data
-              if node.get('leaf', False)]
+    result = [node['id'] for node in data if node.get('leaf', False)]
     return result
 
 
@@ -87,8 +85,7 @@ def get_metric_nonleaf_children(path):
     """
     query = path + ".*"
     data = raw_metric_query(query)
-    result = [node['id'] for node in data
-              if not node.get('leaf', False)]
+    result = [node['id'] for node in data if not node.get('leaf', False)]
     return result
 
 
@@ -138,8 +135,7 @@ def raw_metric_query(query):
         response_data = urlopen(req).read().decode('utf-8')
         return json.loads(response_data)
     except URLError as err:
-        raise errors.GraphiteUnreachableError(
-            "{0} is unreachable".format(base), err)
+        raise errors.GraphiteUnreachableError("{0} is unreachable".format(base), err)
     except ValueError:
         # response could not be decoded
         return []

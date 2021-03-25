@@ -38,17 +38,19 @@ class TestNetboxBulkParser(object):
     def test_parse_returns_iterator(self):
         data = b"room1:10.0.0.186:myorg:OTHER:SNMP v1 read profile:::"
         b = bulkparse.NetboxBulkParser(data)
-        assert (hasattr(b, '__next__'))
+        assert hasattr(b, '__next__')
 
     def test_parse_single_line_should_yield_value(self):
         data = b"room1:10.0.0.186:myorg:OTHER:SNMP v2c read profile:::"
         b = bulkparse.NetboxBulkParser(data)
         out_data = six.next(b)
-        assert (out_data is not None)
+        assert out_data is not None
 
     def test_parse_single_line_yields_columns(self):
-        data = (b"room1:10.0.0.186:myorg:SW:SNMP v2c read profile:amaster:doesthings:"
-                b"key=value:blah1:blah2")
+        data = (
+            b"room1:10.0.0.186:myorg:SW:SNMP v2c read profile:amaster:doesthings:"
+            b"key=value:blah1:blah2"
+        )
         b = bulkparse.NetboxBulkParser(data)
         out_data = six.next(b)
         assert isinstance(out_data, dict)
@@ -62,22 +64,26 @@ class TestNetboxBulkParser(object):
 
     def test_get_header(self):
         assert (
-            bulkparse.NetboxBulkParser.get_header() ==
-            "#roomid:ip:orgid:catid"
-            "[:management_profiles:master:function:data:netboxgroup:...]")
+            bulkparse.NetboxBulkParser.get_header() == "#roomid:ip:orgid:catid"
+            "[:management_profiles:master:function:data:netboxgroup:...]"
+        )
 
     def test_two_rows_returned_with_empty_lines_in_input(self):
-        data = (b"room1:10.0.0.186:myorg:SW:SNMP v1 read profile::\n"
-                b"\n"
-                b"room1:10.0.0.187:myorg:OTHER:SNMP v1 read profile::\n")
+        data = (
+            b"room1:10.0.0.186:myorg:SW:SNMP v1 read profile::\n"
+            b"\n"
+            b"room1:10.0.0.187:myorg:OTHER:SNMP v1 read profile::\n"
+        )
         b = bulkparse.NetboxBulkParser(data)
         out_data = list(b)
         assert len(out_data) == 2
 
     def test_three_lines_with_two_rows_should_be_counted_as_three(self):
-        data = (b"room1:10.0.0.186:myorg:SW:SNMP v1 read profile::\n"
-                b"\n"
-                b"room1:10.0.0.187:myorg:OTHER:SNMP v2c read profile::\n")
+        data = (
+            b"room1:10.0.0.186:myorg:SW:SNMP v1 read profile::\n"
+            b"\n"
+            b"room1:10.0.0.187:myorg:OTHER:SNMP v2c read profile::\n"
+        )
         b = bulkparse.NetboxBulkParser(data)
         out_data = list(b)
         assert b.line_num == 3
@@ -118,9 +124,7 @@ class TestManagementProfileBulkParser(object):
 
 class TestUsageBulkParser(object):
     def test_get_header(self):
-        assert (
-            bulkparse.UsageBulkParser.get_header() ==
-            "#usageid:descr")
+        assert bulkparse.UsageBulkParser.get_header() == "#usageid:descr"
 
     def test_leading_comments_should_be_stripped(self):
         data = b"#comment\nsby:student village"
@@ -139,7 +143,7 @@ class TestPrefixBulkParser(object):
     def test_valid_prefix_should_not_raise_error(self):
         data = b"10.0.0.0/8:scope"
         b = bulkparse.PrefixBulkParser(data)
-        assert (six.next(b))
+        assert six.next(b)
 
 
 class TestServiceBulkParser(object):
@@ -152,7 +156,7 @@ class TestServiceBulkParser(object):
     def test_valid_service_arguments_should_not_raise_error(self):
         data = b"host.example.org;http;port=80;uri=/"
         b = bulkparse.ServiceBulkParser(data)
-        assert (six.next(b))
+        assert six.next(b)
 
 
 class TestCommentStripper(object):

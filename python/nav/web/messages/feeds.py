@@ -36,10 +36,10 @@ class ActiveMessagesFeed(Feed):
 
     def items(self):
         return Message.objects.filter(
-                publish_start__lte=datetime.datetime.now(),
-                publish_end__gte=datetime.datetime.now(),
-                replaced_by__isnull=True,
-            )
+            publish_start__lte=datetime.datetime.now(),
+            publish_end__gte=datetime.datetime.now(),
+            replaced_by__isnull=True,
+        )
 
     def item_title(self, item):
         return item.title

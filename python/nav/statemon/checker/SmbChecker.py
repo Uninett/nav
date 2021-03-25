@@ -24,11 +24,13 @@ from nav.util import which
 
 SMBCLIENT = 'smbclient'
 SMBCLIENT_PATTERN = re.compile(
-    r'domain=\[[^\]]+\] os=\[([^\]]+)\] server=\[([^\]]+)\]', re.I)
+    r'domain=\[[^\]]+\] os=\[([^\]]+)\] server=\[([^\]]+)\]', re.I
+)
 
 
 class SmbChecker(AbstractChecker):
     """Windows file sharing"""
+
     IPV6_SUPPORT = True
     DESCRIPTION = "Windows file sharing"
     OPTARGS = (
@@ -53,13 +55,12 @@ class SmbChecker(AbstractChecker):
 
         cmdpath = which(SMBCLIENT)
         if not cmdpath:
-            return (Event.DOWN,
-                    'Command %s not found in %s' % (SMBCLIENT,
-                                                    os.environ['PATH']))
+            return (
+                Event.DOWN,
+                'Command %s not found in %s' % (SMBCLIENT, os.environ['PATH']),
+            )
 
-        args = [cmdpath,
-                '-L', host,
-                '-p', str(port)]
+        args = [cmdpath, '-L', host, '-p', str(port)]
 
         if password and username:
             args += ['-U', username + '%' + password]
@@ -69,9 +70,9 @@ class SmbChecker(AbstractChecker):
             args += ['-N']
 
         try:
-            proc = subprocess.Popen(args,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
+            proc = subprocess.Popen(
+                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             proc.wait()
         except IOError as msg:
             return Event.DOWN, 'could not run smbclient: %s' % msg
@@ -79,8 +80,7 @@ class SmbChecker(AbstractChecker):
         output = proc.stdout.read()
         errput = proc.stderr.read()
 
-        match = (SMBCLIENT_PATTERN.search(output)
-                 or SMBCLIENT_PATTERN.search(errput))
+        match = SMBCLIENT_PATTERN.search(output) or SMBCLIENT_PATTERN.search(errput)
         if match:
             version = ' '.join(match.groups())
             self.version = version

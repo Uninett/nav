@@ -21,10 +21,7 @@ from nav.web import utils
 
 def default_context():
     navpath = (('Home', '/'), ('Interface browser',))
-    return {
-        'navpath': navpath,
-        'title': utils.create_title(navpath)
-    }
+    return {'navpath': navpath, 'title': utils.create_title(navpath)}
 
 
 def index(request):

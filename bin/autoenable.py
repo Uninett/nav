@@ -33,10 +33,11 @@ import sys
 from datetime import datetime
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.logs import init_generic_logging
-from nav.arnold import (open_port, GeneralException)
+from nav.arnold import open_port, GeneralException
 from nav.models.arnold import Identity
 
 
@@ -46,14 +47,13 @@ _logger = logging.getLogger('nav.autoenable')
 def main():
     """Main controller"""
     init_generic_logging(
-        logfile="arnold/autoenable.log",
-        stderr=False,
-        read_config=True,
+        logfile="arnold/autoenable.log", stderr=False, read_config=True,
     )
     _logger.info("Starting autoenable")
 
     candidates = Identity.objects.filter(
-        autoenable__lte=datetime.now(), status__in=['disabled', 'quarantined'])
+        autoenable__lte=datetime.now(), status__in=['disabled', 'quarantined']
+    )
 
     if len(candidates) <= 0:
         _logger.info("No ports ready for opening.")
@@ -62,13 +62,20 @@ def main():
     # For each port that is blocked, try to enable the port.
     for candidate in candidates:
         try:
-            open_port(candidate, getpass.getuser(),
-                      eventcomment="Opened automatically by autoenable")
+            open_port(
+                candidate,
+                getpass.getuser(),
+                eventcomment="Opened automatically by autoenable",
+            )
             interface = candidate.interface
             netbox = interface.netbox
-            _logger.info("Opening %s %s:%s for %s",
-                        netbox.sysname, interface.module, interface.baseport,
-                        candidate.mac)
+            _logger.info(
+                "Opening %s %s:%s for %s",
+                netbox.sysname,
+                interface.module,
+                interface.baseport,
+                candidate.mac,
+            )
         except GeneralException as why:
             _logger.error(why)
             continue

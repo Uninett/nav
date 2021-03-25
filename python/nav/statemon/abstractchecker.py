@@ -64,6 +64,7 @@ class AbstractChecker(object):
         # and then we return status UP, and our version string.
         return Event.UP, version
     """
+
     IPV6_SUPPORT = False
     DESCRIPTION = ""
     ARGS = ()
@@ -90,12 +91,13 @@ class AbstractChecker(object):
         self.timestamp = 0
         timeout = self.args.get(
             'timeout',
-            self._conf.get("%s timeout" % self.get_type(),
-                           self._conf.get('timeout', TIMEOUT)))
+            self._conf.get(
+                "%s timeout" % self.get_type(), self._conf.get('timeout', TIMEOUT)
+            ),
+        )
         self.timeout = int(timeout)
         self.db = db.db()
-        _logger.info("New checker instance for %s:%s ",
-                     self.sysname, self.get_type())
+        _logger.info("New checker instance for %s:%s ", self.sysname, self.get_type())
         self.runcount = 0
         self.runq = RunQueue.RunQueue()
 
@@ -115,17 +117,24 @@ class AbstractChecker(object):
             # this is needed as ssl-socket calls may hang
             # in python < 2.3
             if self.response_time > 2 * self.timeout:
-                _logger.info("Adjusting status due to high responsetime (%s, "
-                             "%s)", service, self.response_time)
+                _logger.info(
+                    "Adjusting status due to high responsetime (%s, " "%s)",
+                    service,
+                    self.response_time,
+                )
                 status = event.Event.DOWN
                 self.response_time = 2 * self.timeout
 
-        if status != self.status and (self.runcount <
-                                      int(self._conf.get('retry', 3))):
+        if status != self.status and (self.runcount < int(self._conf.get('retry', 3))):
             delay = int(self._conf.get('retry delay', 5))
             self.runcount += 1
-            _logger.info("%-20s -> State changed. New check in %i sec. (%s, "
-                         "%s)", service, delay, status, info)
+            _logger.info(
+                "%-20s -> State changed. New check in %i sec. (%s, " "%s)",
+                service,
+                delay,
+                status,
+                info,
+            )
             # Update metrics every time to get proper 'uptime' for the service
             self.update_stats()
             priority = delay + time.time()
@@ -135,29 +144,31 @@ class AbstractChecker(object):
 
         if status != self.status:
             _logger.critical("%-20s -> %s, %s", service, status, info)
-            new_event = event.Event(self.serviceid,
-                                    self.netboxid,
-                                    None,  # deviceid
-                                    event.Event.serviceState,
-                                    "serviceping",
-                                    status,
-                                    info
-                                    )
+            new_event = event.Event(
+                self.serviceid,
+                self.netboxid,
+                None,  # deviceid
+                event.Event.serviceState,
+                "serviceping",
+                status,
+                info,
+            )
 
             # Post to the NAV alertq
             self.db.new_event(new_event)
             self.status = status
 
         if orig_version != self.version and self.status == event.Event.UP:
-            new_event = event.Event(self.serviceid,
-                                    self.netboxid,
-                                    None,  # deviceid
-                                    "version",
-                                    "serviceping",
-                                    status,
-                                    info,
-                                    version=self.version
-                                    )
+            new_event = event.Event(
+                self.serviceid,
+                self.netboxid,
+                None,  # deviceid
+                "version",
+                "serviceping",
+                status,
+                info,
+                version=self.version,
+            )
             self.db.new_event(new_event)
         self.update_stats()
         self.update_timestamp()
@@ -172,7 +183,7 @@ class AbstractChecker(object):
                 self.status,
                 self.response_time,
                 self.serviceid,
-                self.get_type()
+                self.get_type(),
             )
         except Exception as err:  # pylint: disable=broad-except
             service = "%s:%s" % (self.sysname, self.get_type())
@@ -190,7 +201,7 @@ class AbstractChecker(object):
         except Exception as error:  # pylint: disable=broad-except
             status = event.Event.DOWN
             info = str(error)
-        self.response_time = time.time()-start
+        self.response_time = time.time() - start
         return status, info
 
     def execute(self):
@@ -221,7 +232,7 @@ class AbstractChecker(object):
         suffix = "checker"
         name = cls.__name__.lower()
         if name.endswith(suffix):
-            name = name[:-len(suffix)]
+            name = name[: -len(suffix)]
         return name
 
     def get_address(self):
@@ -229,8 +240,9 @@ class AbstractChecker(object):
         return self.ip, self.port
 
     def __eq__(self, obj):
-        return (self.serviceid == getattr(obj, 'serviceid', None)
-                and self.args == getattr(obj, 'args', None))
+        return self.serviceid == getattr(
+            obj, 'serviceid', None
+        ) and self.args == getattr(obj, 'args', None)
 
     def __lt__(self, obj):
         return self.timestamp < getattr(obj, 'timestamp', None)
@@ -240,6 +252,10 @@ class AbstractChecker(object):
         return hash(tup)
 
     def __repr__(self):
-        rep = '%i: %s %s %s' % (self.serviceid, self.get_type(),
-                                self.get_address(), self.args)
+        rep = '%i: %s %s %s' % (
+            self.serviceid,
+            self.get_type(),
+            self.get_address(),
+            self.args,
+        )
         return rep.ljust(60) + self.status

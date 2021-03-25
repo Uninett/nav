@@ -37,9 +37,18 @@ from nav.models.manage import Netbox, NetboxCategory, NetboxGroup
 _logger = logging.getLogger(__name__)
 
 
-def render_edit(request, model, form_model, object_id, redirect,
-                template='seeddb/edit.html',
-                lon=None, lat=None, extra_context=None, action='edit'):
+def render_edit(
+    request,
+    model,
+    form_model,
+    object_id,
+    redirect,
+    template='seeddb/edit.html',
+    lon=None,
+    lat=None,
+    extra_context=None,
+    action='edit',
+):
     """Handles editing for objects in seeddb."""
 
     if not extra_context:
@@ -73,8 +82,7 @@ def render_edit(request, model, form_model, object_id, redirect,
             else:
                 obj = form.save()
 
-            new_message(request, "Saved %s %s" % (verbose_name, obj),
-                        Messages.SUCCESS)
+            new_message(request, "Saved %s %s" % (verbose_name, obj), Messages.SUCCESS)
             try:
                 return HttpResponseRedirect(reverse(redirect, args=(obj.pk,)))
             except NoReverseMatch:
@@ -91,15 +99,19 @@ def render_edit(request, model, form_model, object_id, redirect,
     }
     if obj:
         if obj.pk:
-            context.update({
-                'title': 'Edit %s "%s"' % (verbose_name, obj),
-                'sub_active': {'edit': True},
-            })
+            context.update(
+                {
+                    'title': 'Edit %s "%s"' % (verbose_name, obj),
+                    'sub_active': {'edit': True},
+                }
+            )
         else:
-            context.update({
-                'title': 'Copy %s "%s"' % (verbose_name, original_pk),
-                'sub_active': {'edit': True},
-            })
+            context.update(
+                {
+                    'title': 'Copy %s "%s"' % (verbose_name, original_pk),
+                    'sub_active': {'edit': True},
+                }
+            )
     extra_context.update(context)
     return render(request, template, extra_context)
 
@@ -146,8 +158,7 @@ def does_ip_exist(ip_addr, netbox_id=None):
      - False if not.
     """
     if netbox_id:
-        ip_qs = Netbox.objects.filter(Q(ip=six.text_type(ip_addr)),
-                                      ~Q(id=netbox_id))
+        ip_qs = Netbox.objects.filter(Q(ip=six.text_type(ip_addr)), ~Q(id=netbox_id))
     else:
         ip_qs = Netbox.objects.filter(ip=six.text_type(ip_addr))
     return ip_qs.count() > 0
@@ -186,7 +197,8 @@ def _connect_group_to_devices(group, netbox_ids):
 
     # Delete existing netboxcategories that are not in request
     NetboxCategory.objects.filter(category=group).exclude(
-        netbox__pk__in=netboxids).delete()
+        netbox__pk__in=netboxids
+    ).delete()
 
     # Add new netboxcategories that are in request
     for netboxid in netboxids:

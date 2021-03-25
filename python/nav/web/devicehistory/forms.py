@@ -28,6 +28,7 @@ _logger = logging.getLogger(__name__)
 
 class MyDateInput(forms.DateInput):
     """Set date as type on date input widget"""
+
     input_type = 'date'
 
     def __init__(self, attrs=None, format=None):
@@ -39,6 +40,7 @@ class MyDateInput(forms.DateInput):
 
 class MyDateField(forms.DateField):
     """Set widget with type = date as default widget"""
+
     widget = MyDateInput
 
 
@@ -50,13 +52,12 @@ class DeviceHistoryViewFilter(forms.Form):
         ('room', 'Room'),
         ('netbox', 'Netbox'),
         ('device', 'Device serial'),
-        ('datetime', 'Date')
+        ('datetime', 'Date'),
     ]
     from_date = MyDateField(required=False)
     to_date = MyDateField(required=False)
     eventtype = forms.ChoiceField(required=False, label='Type')
-    group_by = forms.ChoiceField(choices=groupings, initial='netbox',
-                                 required=False)
+    group_by = forms.ChoiceField(choices=groupings, initial='netbox', required=False)
 
     def __init__(self, *args, **kwargs):
         super(DeviceHistoryViewFilter, self).__init__(*args, **kwargs)
@@ -75,11 +76,13 @@ class DeviceHistoryViewFilter(forms.Form):
                 Row(
                     Column('from_date', css_class=common_class),
                     Column('to_date', css_class=common_class),
-                    Column(Field('eventtype', css_class='select2'),
-                           css_class=common_class),
-                    Column(Field('group_by', css_class='select2'),
-                           css_class=common_class),
-                )
+                    Column(
+                        Field('eventtype', css_class='select2'), css_class=common_class
+                    ),
+                    Column(
+                        Field('group_by', css_class='select2'), css_class=common_class
+                    ),
+                ),
             )
         )
 

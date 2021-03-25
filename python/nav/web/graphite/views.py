@@ -51,8 +51,12 @@ def index(request, uri):
         headers = error.hdrs
         output = error.fp.read()
 
-        _logger.error("%s error on graphite render request: "
-                      "%r with arguments: %r", status, url, data)
+        _logger.error(
+            "%s error on graphite render request: " "%r with arguments: %r",
+            status,
+            url,
+            data,
+        )
 
     else:
         status = proxy.getcode()

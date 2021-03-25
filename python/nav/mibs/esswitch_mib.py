@@ -39,11 +39,11 @@ class ESSwitchMib(mibretriever.MibRetriever):
         device-configured measuering interval.
 
         """
-        peak_index = yield self.get_next(
-            self.BANDWIDTH_USAGE_CURRENT_PEAK_ENTRY)
+        peak_index = yield self.get_next(self.BANDWIDTH_USAGE_CURRENT_PEAK_ENTRY)
 
         if peak_index:
-            peak_oid = str(self.nodes[self.BANDWIDTH_USAGE_CURRENT_PEAK].oid +
-                           (peak_index,))
+            peak_oid = str(
+                self.nodes[self.BANDWIDTH_USAGE_CURRENT_PEAK].oid + (peak_index,)
+            )
             rsp = yield self.agent_proxy.get([peak_oid])
             defer.returnValue(rsp.get(peak_oid, None))

@@ -13,11 +13,13 @@ _logger = logging.getLogger(__name__)
 
 AvailabilityRecord = namedtuple(
     'AvailabilityRecord',
-    ['subject', 'incidents', 'downtime', 'availability', 'maintenances'])
+    ['subject', 'incidents', 'downtime', 'availability', 'maintenances'],
+)
 
 
 class LinkSubject(object):
     """Adapter for link subjects"""
+
     def __init__(self, subject):
         self.subject = subject
 
@@ -82,6 +84,7 @@ def compute_availability(downtime, interval):
 
 def create_record(subject, alerts, start, end, maintenances=None):
     """Creates an availability record based on a subject's alerts in a period"""
+
     def duration(alert):
         return alert.end_within - alert.start_within
 
@@ -90,13 +93,14 @@ def create_record(subject, alerts, start, end, maintenances=None):
         maintenancetime = sum((duration(m) for m in maintenances), timedelta())
         downtime -= maintenancetime
 
-    availability = compute_availability(downtime, end-start)
+    availability = compute_availability(downtime, end - start)
 
     # Cheekily remove microseconds
     downtime = downtime - timedelta(microseconds=downtime.microseconds)
 
-    return AvailabilityRecord(get_subject(subject), alerts, downtime,
-                              availability, maintenances)
+    return AvailabilityRecord(
+        get_subject(subject), alerts, downtime, availability, maintenances
+    )
 
 
 def get_subject(subject):
@@ -122,27 +126,32 @@ def get_netbox_records(start, end, exclude_maintenance=False):
     grouped_alerts = group_by_subject(alerts, Netbox)
 
     if exclude_maintenance:
-        maintenances = get_alert_periods_by_type(start, end, 'maintenanceState',
-                                                 ['onMaintenance'])
+        maintenances = get_alert_periods_by_type(
+            start, end, 'maintenanceState', ['onMaintenance']
+        )
         grouped_maintenance = group_by_subject(maintenances)
     else:
         grouped_maintenance = {}
 
-    records = (create_record(netbox, alerts, start, end,
-                             grouped_maintenance.get(netbox))
-               for netbox, alerts in grouped_alerts.items() if netbox)
+    records = (
+        create_record(netbox, alerts, start, end, grouped_maintenance.get(netbox))
+        for netbox, alerts in grouped_alerts.items()
+        if netbox
+    )
     return [record for record in records if record.downtime > timedelta(0)]
 
 
 def get_interface_records(start, end, exclude_maintenance=False):
     alerts = get_alert_periods_by_type(start, end, 'linkState', ['linkDown'])
     grouped_alerts = group_by_subject(alerts, Interface)
-    return [create_record(subject, alerts, start, end)
-            for subject, alerts in grouped_alerts.items() if subject]
+    return [
+        create_record(subject, alerts, start, end)
+        for subject, alerts in grouped_alerts.items()
+        if subject
+    ]
 
 
-def get_alert_periods_by_type(period_start, period_end, event_type_id,
-                              alert_type_ids):
+def get_alert_periods_by_type(period_start, period_end, event_type_id, alert_type_ids):
     """Returns AlertHistory objects of a specific event type, overlapping with
     a given time period.
 
@@ -153,7 +162,8 @@ def get_alert_periods_by_type(period_start, period_end, event_type_id,
     specified time period.
 
     """
-    return AlertHistory.objects.raw("""
+    return AlertHistory.objects.raw(
+        """
     WITH period AS (
   SELECT
     %s AS "start",
@@ -171,4 +181,6 @@ WHERE
   AND end_time IS NOT NULL
   AND alerttype IN %s
 ORDER BY netboxid, subid, start_time
-    """, [period_start, period_end, event_type_id, tuple(alert_type_ids)])
+    """,
+        [period_start, period_end, event_type_id, tuple(alert_type_ids)],
+    )

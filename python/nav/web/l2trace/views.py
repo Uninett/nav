@@ -30,7 +30,7 @@ def index(request):
     context = {
         'title': 'Layer 2 Traceroute',
         'navpath': [('Home', '/'), ('Layer 2 Traceroute', '/l2trace')],
-        'form': form
+        'form': form,
     }
 
     if form.is_valid():

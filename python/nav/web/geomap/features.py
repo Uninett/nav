@@ -38,6 +38,7 @@ from django.template import engines
 
 from nav.config import open_configfile
 from nav.web.geomap.conf import get_configuration
+
 # is_nan must be available in the global namespace for the proper evaluation of
 # some indicator rules
 from nav.web.geomap.utils import union_dict, subdict, concat_list, is_nan
@@ -59,7 +60,8 @@ def create_features(variant, graph, do_create_edges=True):
         create_node_feature,
         popup_template=node_popup_template,
         default_style=styles['node'],
-        indicators=indicators['node'])
+        indicators=indicators['node'],
+    )
     nodes = [node_feature_creator(n) for n in graph.nodes.values()]
     edges = []
     if do_create_edges:
@@ -68,11 +70,11 @@ def create_features(variant, graph, do_create_edges=True):
             create_edge_features,
             popup_template=edge_popup_template,
             default_style=styles['edge'],
-            indicators=indicators['edge'])
-        edges = concat_list(
-            [edge_feature_creator(e) for e in graph.edges.values()])
+            indicators=indicators['edge'],
+        )
+        edges = concat_list([edge_feature_creator(e) for e in graph.edges.values()])
 
-    return nodes+edges
+    return nodes + edges
 
 
 def load_popup_template(filename):
@@ -118,14 +120,20 @@ def apply_indicator(ind, properties):
             # nasty stuff, but it is also quite useful).
             test_result = eval(option['test'], globals(), properties)
         except Exception as err:  # pylint: disable=broad-except
-            _logger.warning('Exception when evaluating test "%s" for indicator '
-                            '"%s" on properties %s: %s',
-                            option['test'], ind['name'], properties, err)
+            _logger.warning(
+                'Exception when evaluating test "%s" for indicator '
+                '"%s" on properties %s: %s',
+                option['test'],
+                ind['name'],
+                properties,
+                err,
+            )
             continue
         if test_result:
             return {ind['property']: option['value']}
-    _logger.warning('No tests in indicator %s matched properties %s',
-                    ind['name'], properties)
+    _logger.warning(
+        'No tests in indicator %s matched properties %s', ind['name'], properties
+    )
 
 
 def apply_indicators(indicators, properties):
@@ -150,12 +158,16 @@ def create_node_feature(node, popup_template, default_style, indicators):
     properties of the node
 
     """
-    style = union_dict(default_style,
-                       apply_indicators(indicators, node.properties))
-    return Feature(node.id, 'node', Geometry('Point', [node.lon, node.lat]),
-                   style['color'], style['size'],
-                   create_node_popup(node, popup_template),
-                   subdict(node.properties, _node_feature_properties))
+    style = union_dict(default_style, apply_indicators(indicators, node.properties))
+    return Feature(
+        node.id,
+        'node',
+        Geometry('Point', [node.lon, node.lat]),
+        style['color'],
+        style['size'],
+        create_node_popup(node, popup_template),
+        subdict(node.properties, _node_feature_properties),
+    )
 
 
 def create_node_popup(node, popup_template):
@@ -192,20 +204,29 @@ def create_edge_features(edge, popup_template, default_style, indicators):
     properties of the edge
 
     """
+
     def make_feature(source_coords, target_coords, data):
-        style = union_dict(default_style,
-                           apply_indicators(indicators, data))
+        style = union_dict(default_style, apply_indicators(indicators, data))
         popup = create_edge_popup(data, popup_template)
-        return Feature(data['id'], 'edge',
-                       Geometry('LineString', [source_coords, target_coords]),
-                       style['color'], style['size'], popup)
+        return Feature(
+            data['id'],
+            'edge',
+            Geometry('LineString', [source_coords, target_coords]),
+            style['color'],
+            style['size'],
+            popup,
+        )
 
     source = [edge.source.lon, edge.source.lat]
-    middle = [(edge.source.lon+edge.target.lon)/2,
-              (edge.source.lat+edge.target.lat)/2]
+    middle = [
+        (edge.source.lon + edge.target.lon) / 2,
+        (edge.source.lat + edge.target.lat) / 2,
+    ]
     target = [edge.target.lon, edge.target.lat]
-    return [make_feature(source, middle, edge.source_data),
-            make_feature(middle, target, edge.target_data)]
+    return [
+        make_feature(source, middle, edge.source_data),
+        make_feature(middle, target, edge.target_data),
+    ]
 
 
 def create_edge_popup(data, popup_template):
@@ -218,6 +239,7 @@ def create_edge_popup(data, popup_template):
 
 class Feature(object):
     """Feature attributes"""
+
     def __init__(self, id_, typ, geometry, color, size, popup, properties=None):
         self.id = id_
         self.type = typ
@@ -230,6 +252,7 @@ class Feature(object):
 
 class Geometry(object):
     """Geometry attributes"""
+
     def __init__(self, typ, coordinates):
         self.type = typ
         self.coordinates = coordinates
@@ -237,6 +260,7 @@ class Geometry(object):
 
 class Popup(object):
     """Popup attributes"""
+
     def __init__(self, id_, size, content, closable):
         self.id = id_
         self.size = size

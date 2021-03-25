@@ -19,22 +19,26 @@ from IPy import IP
 from django import forms
 from crispy_forms.helper import FormHelper
 
-from crispy_forms_foundation.layout import (Layout, Fieldset, Div, Row, Submit,
-                                            Column)
+from crispy_forms_foundation.layout import Layout, Fieldset, Div, Row, Submit, Column
 
 from nav.util import is_valid_ip, is_valid_mac
 from nav.web.crispyforms import CheckBox
-from nav.models.arnold import (DETENTION_TYPE_CHOICES, STATUSES,
-                               KEEP_CLOSED_CHOICES, Justification,
-                               QuarantineVlan, DetentionProfile)
+from nav.models.arnold import (
+    DETENTION_TYPE_CHOICES,
+    STATUSES,
+    KEEP_CLOSED_CHOICES,
+    Justification,
+    QuarantineVlan,
+    DetentionProfile,
+)
 
 
 class JustificationForm(forms.Form):
     """Form for adding a new justificaton"""
+
     name = forms.CharField(label="Name")
     description = forms.CharField(label="Description", required=False)
-    justificationid = forms.IntegerField(widget=forms.HiddenInput(),
-                                         required=False)
+    justificationid = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, *args, **kwargs):
         super(JustificationForm, self).__init__(*args, **kwargs)
@@ -50,20 +54,17 @@ class JustificationForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_action = 'arnold-justificatons'
         self.helper.layout = Layout(
-            Fieldset(
-                fieldset_legend,
-                'name', 'description', 'justificationid'
-            ),
-            Submit('submit', submit_value, css_class='small')
+            Fieldset(fieldset_legend, 'name', 'description', 'justificationid'),
+            Submit('submit', submit_value, css_class='small'),
         )
 
 
 class QuarantineVlanForm(forms.Form):
     """Form for adding a new quarantine vlan"""
+
     vlan = forms.IntegerField(label="Vlan")
     description = forms.CharField(label="Description", required=False)
-    qid = forms.IntegerField(widget=forms.HiddenInput(),
-                             required=False)
+    qid = forms.IntegerField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, *args, **kwargs):
         super(QuarantineVlanForm, self).__init__(*args, **kwargs)
@@ -79,27 +80,29 @@ class QuarantineVlanForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_action = 'arnold-quarantinevlans'
         self.helper.layout = Layout(
-            Fieldset(
-                fieldset_legend,
-                'vlan', 'description', 'qid'
-            ),
-            Submit('submit', submit_value, css_class='small')
+            Fieldset(fieldset_legend, 'vlan', 'description', 'qid'),
+            Submit('submit', submit_value, css_class='small'),
         )
 
 
 class HistorySearchForm(forms.Form):
     """Form for searching in history"""
+
     days = forms.IntegerField(widget=forms.TextInput({'size': 3}))
 
 
 class SearchForm(forms.Form):
     """Form for searching for detained computers"""
-    search_choices = [('ip', 'IP'), ('mac', 'MAC'), ('netbios', 'Netbios'),
-                      ('dns', 'DNS')]
+
+    search_choices = [
+        ('ip', 'IP'),
+        ('mac', 'MAC'),
+        ('netbios', 'Netbios'),
+        ('dns', 'DNS'),
+    ]
     status_choices = STATUSES + [('any', 'Any')]
 
-    searchtype = forms.ChoiceField(choices=search_choices,
-                                   label='')
+    searchtype = forms.ChoiceField(choices=search_choices, label='')
     searchvalue = forms.CharField(required=True, label='')
     status = forms.ChoiceField(choices=status_choices, label='Status')
     days = forms.IntegerField(label='Days')
@@ -112,13 +115,13 @@ class SearchForm(forms.Form):
             Row(
                 Column('searchtype', css_class='medium-3'),
                 Column('searchvalue', css_class='medium-9'),
-                css_class='collapse'
+                css_class='collapse',
             ),
             Row(
                 Column('status', css_class='medium-6'),
-                Column('days', css_class='medium-6')
+                Column('days', css_class='medium-6'),
             ),
-            Submit('search', 'Search', css_class='small')
+            Submit('search', 'Search', css_class='small'),
         )
 
     def clean_searchvalue(self):
@@ -136,7 +139,8 @@ class SearchForm(forms.Form):
                 IP(searchvalue)
             except ValueError:
                 self._errors["searchvalue"] = self.error_class(
-                    ["IP-address or range is not valid"])
+                    ["IP-address or range is not valid"]
+                )
                 del cleaned_data["searchvalue"]
 
         return cleaned_data
@@ -145,21 +149,23 @@ class SearchForm(forms.Form):
 class DetentionProfileForm(forms.Form):
     """Form for creating a new detention profile"""
 
-    detention_id = forms.IntegerField(widget=forms.HiddenInput(),
-                                      required=False)
-    detention_type = forms.ChoiceField(choices=DETENTION_TYPE_CHOICES,
-                                       initial=DETENTION_TYPE_CHOICES[0][0])
+    detention_id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    detention_type = forms.ChoiceField(
+        choices=DETENTION_TYPE_CHOICES, initial=DETENTION_TYPE_CHOICES[0][0]
+    )
     title = forms.CharField(label="Title")
-    description = forms.CharField(label="Description", widget=forms.Textarea,
-                                  required=False)
+    description = forms.CharField(
+        label="Description", widget=forms.Textarea, required=False
+    )
     justification = forms.ChoiceField(label="Reason")
     qvlan = forms.ChoiceField(label="Quarantinevlan", required=False)
     mail = forms.CharField(label="Path to mailfile", required=False)
-    keep_closed = forms.ChoiceField(label="Detention pursuit",
-                                    choices=KEEP_CLOSED_CHOICES,
-                                    initial=KEEP_CLOSED_CHOICES[0][0])
-    exponential = forms.BooleanField(label="Exponential increase",
-                                     required=False)
+    keep_closed = forms.ChoiceField(
+        label="Detention pursuit",
+        choices=KEEP_CLOSED_CHOICES,
+        initial=KEEP_CLOSED_CHOICES[0][0],
+    )
+    exponential = forms.BooleanField(label="Exponential increase", required=False)
     duration = forms.IntegerField(label="Detention duration (days)")
     active_on_vlans = forms.CharField(label="Active on vlans", required=False)
     active = forms.BooleanField(label="Active", required=False)
@@ -171,8 +177,7 @@ class DetentionProfileForm(forms.Form):
 
         # If method = quarantine and no quarantine vlan is set, throw error
         if detention_type == DETENTION_TYPE_CHOICES[1][0] and not qvlan:
-            self._errors['qvlan'] = self.error_class(
-                ['This field is required'])
+            self._errors['qvlan'] = self.error_class(['This field is required'])
             del cleaned_data['qvlan']
 
         return cleaned_data
@@ -181,8 +186,7 @@ class DetentionProfileForm(forms.Form):
         super(DetentionProfileForm, self).__init__(*args, **kwargs)
 
         self.fields['qvlan'].choices = get_quarantine_vlans()
-        did = self.data.get('detention_id') or self.initial.get(
-            'detention_id')
+        did = self.data.get('detention_id') or self.initial.get('detention_id')
         self.fields['justification'].choices = get_justifications(did)
 
         self.helper = FormHelper()
@@ -190,36 +194,40 @@ class DetentionProfileForm(forms.Form):
         self.helper.form_class = 'profileDetentionForm custom'
         self.helper.layout = Layout(
             'detention_id',
-            'title', 'description',
+            'title',
+            'description',
             Fieldset(
                 'Obligatory',
                 Row(
                     Column('detention_type', css_class='medium-4'),
                     Column('justification', css_class='medium-4'),
-                    Column('duration', css_class='medium-4')
+                    Column('duration', css_class='medium-4'),
                 ),
                 Div('qvlan', css_class='qvlanrow'),
-                css_class='secondary'
+                css_class='secondary',
             ),
             Fieldset(
                 'Extra options',
                 Row(
                     Column('keep_closed', css_class='medium-4'),
-                    Column(CheckBox('exponential', css_class='input-align'),
-                           css_class='medium-4'),
+                    Column(
+                        CheckBox('exponential', css_class='input-align'),
+                        css_class='medium-4',
+                    ),
                     Div(css_class='medium-4 columns'),
                 ),
                 'mail',
                 'active_on_vlans',
-                css_class='secondary'
+                css_class='secondary',
             ),
             CheckBox('active', css_class='input-align'),
-            Submit('submit', 'Save')
+            Submit('submit', 'Save'),
         )
 
 
 class ManualDetentionTargetForm(forms.Form):
     """Form for step one of manual detention"""
+
     target = forms.CharField(label="IP/MAC to detain")
 
     def __init__(self, *args, **kwargs):
@@ -227,8 +235,7 @@ class ManualDetentionTargetForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_action = 'arnold-manual-detention'
         self.helper.layout = Layout(
-            'target',
-            Submit('submit', 'Find', css_class='small')
+            'target', Submit('submit', 'Find', css_class='small')
         )
 
     def clean_target(self):
@@ -247,17 +254,17 @@ class ManualDetentionForm(forms.Form):
         manualdetain-step2.html
     """
 
-    method = forms.ChoiceField(label="Choose method",
-                               choices=DETENTION_TYPE_CHOICES,
-                               initial=DETENTION_TYPE_CHOICES[0][0])
-    target = forms.CharField(label="IP/MAC to detain",
-                             widget=forms.HiddenInput)
+    method = forms.ChoiceField(
+        label="Choose method",
+        choices=DETENTION_TYPE_CHOICES,
+        initial=DETENTION_TYPE_CHOICES[0][0],
+    )
+    target = forms.CharField(label="IP/MAC to detain", widget=forms.HiddenInput)
     camtuple = forms.ChoiceField()
     justification = forms.ChoiceField(label="Reason")
     qvlan = forms.ChoiceField(label="Quarantine vlan", required=False)
     comment = forms.CharField(label="Comment", required=False)
-    days = forms.IntegerField(label="Days to wait before autoenabling",
-                              required=False)
+    days = forms.IntegerField(label="Days to wait before autoenabling", required=False)
 
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -266,8 +273,7 @@ class ManualDetentionForm(forms.Form):
 
         # If method = quarantine and no quarantine vlan is set, throw error
         if method == 'quarantine' and not qvlan:
-            self._errors['qvlan'] = self.error_class(
-                ['This field is required'])
+            self._errors['qvlan'] = self.error_class(['This field is required'])
             del cleaned_data['qvlan']
 
         return cleaned_data
@@ -282,7 +288,7 @@ class ManualDetentionForm(forms.Form):
             'justification',
             'comment',
             'days',
-            Submit('submit', 'Detain')
+            Submit('submit', 'Detain'),
         )
 
         super(ManualDetentionForm, self).__init__(*args, **kwargs)
@@ -303,13 +309,13 @@ def get_justifications(profileid=None):
         detention_profiles = DetentionProfile.objects.all()
 
     justifications = detention_profiles.values_list('justification')
-    return [('', '-- Select reason --')] +\
-           [(j.id, j.name) for j in Justification.objects.exclude(
-               id__in=justifications)]
+    return [('', '-- Select reason --')] + [
+        (j.id, j.name) for j in Justification.objects.exclude(id__in=justifications)
+    ]
 
 
 def get_quarantine_vlans():
     """Return list of quarantine vlans ready for use as choices in form"""
-    return [('', '-- Select vlan --')] + [(q.id,
-                                           str(q)) for q in
-                                          QuarantineVlan.objects.all()]
+    return [('', '-- Select vlan --')] + [
+        (q.id, str(q)) for q in QuarantineVlan.objects.all()
+    ]

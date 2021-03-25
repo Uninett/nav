@@ -26,8 +26,9 @@ from nav.ipdevpoll import Plugin, db
 from nav.ipdevpoll.jobs import SuggestedReschedule
 
 SYSTEM_OID = '.1.3.6.1.2.1.1'
-EVENT = EventFactory('ipdevpoll', 'eventEngine',
-                     'snmpAgentState', 'snmpAgentDown', 'snmpAgentUp')
+EVENT = EventFactory(
+    'ipdevpoll', 'eventEngine', 'snmpAgentState', 'snmpAgentDown', 'snmpAgentUp'
+)
 INFO_KEY_NAME = 'status'
 INFO_VARIABLE_NAME = 'snmpstate'
 
@@ -63,8 +64,7 @@ class SnmpCheck(Plugin):
 
     @defer.inlineCallbacks
     def _do_check(self):
-        self._logger.debug("checking SNMP%s availability",
-                           self.agent.snmpVersion)
+        self._logger.debug("checking SNMP%s availability", self.agent.snmpVersion)
         try:
             result = yield self.agent.walk(SYSTEM_OID)
         except (defer.TimeoutError, error.TimeoutError):
@@ -82,16 +82,14 @@ class SnmpCheck(Plugin):
 
     @defer.inlineCallbacks
     def _mark_as_up(self):
-        self._logger.warning("SNMP agent up again on %s",
-                             self.netbox.sysname)
+        self._logger.warning("SNMP agent up again on %s", self.netbox.sysname)
         yield db.run_in_thread(self._save_state, 'up')
         yield db.run_in_thread(self._dispatch_up_event)
 
     def _save_state(self, state):
         info, _ = manage.NetboxInfo.objects.get_or_create(
-            netbox_id=self.netbox.id,
-            key=INFO_KEY_NAME,
-            variable=INFO_VARIABLE_NAME)
+            netbox_id=self.netbox.id, key=INFO_KEY_NAME, variable=INFO_VARIABLE_NAME
+        )
         info.value = state
         info.save()
 

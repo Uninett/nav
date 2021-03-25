@@ -35,6 +35,7 @@ class CiscoMemoryPoolMib(mibretriever.MibRetriever):
 
         """
         pools = yield self.retrieve_columns([NAME, VALID, USED, FREE])
-        result = dict((row[NAME], (row[USED], row[FREE]))
-                      for row in pools.values() if row[VALID])
+        result = dict(
+            (row[NAME], (row[USED], row[FREE])) for row in pools.values() if row[VALID]
+        )
         defer.returnValue(result)

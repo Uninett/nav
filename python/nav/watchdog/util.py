@@ -72,5 +72,5 @@ def serialize(test):
         'name': test.name,
         'decription': test.description,
         'status': test.get_status(),  # Also runs the test
-        'errors': test.errors
+        'errors': test.errors,
     }

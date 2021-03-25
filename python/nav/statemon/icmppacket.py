@@ -32,6 +32,7 @@ ICMP_MINLEN = 8
 
 class Packet(object):
     """An ICMP packet"""
+
     packet_slice = slice(0, None)
     header_slice = slice(0, 8)
     data_slice = slice(8, None)
@@ -57,12 +58,17 @@ class Packet(object):
     def __repr__(self):
         return "<ICMP %s type=%s code=%s id=%s sequence=%s>" % (
             self.__class__.__name__,
-            self.lookup_type(), self.code, self.id, self.sequence)
+            self.lookup_type(),
+            self.code,
+            self.id,
+            self.sequence,
+        )
 
     def _disassemble(self, packet, verify=True):
         packet = packet[self.packet_slice]
-        (self.type, self.code, self.checksum, self.id, self.sequence
-         ) = struct.unpack("BBHHH", packet[self.header_slice])
+        (self.type, self.code, self.checksum, self.id, self.sequence) = struct.unpack(
+            "BBHHH", packet[self.header_slice]
+        )
         self.data = packet[self.data_slice]
 
         if verify:
@@ -84,8 +90,9 @@ class Packet(object):
         return packet
 
     def _assemble(self, checksum):
-        header = struct.pack("BBHHH", self.type, self.code, checksum,
-                             self.id, self.sequence)
+        header = struct.pack(
+            "BBHHH", self.type, self.code, checksum, self.id, self.sequence
+        )
         packet = header + self.data
         return packet
 
@@ -99,13 +106,13 @@ class Packet(object):
         if type_ is None:
             type_ = self.type
         attrs = vars(self.__class__)
-        type_map = dict((v, k) for k, v in attrs.items()
-                        if k.startswith('ICMP_'))
+        type_map = dict((v, k) for k, v in attrs.items() if k.startswith('ICMP_'))
         return type_map.get(type_, str(type_))
 
 
 class PacketV4(Packet):
     """An ICMPv4 packet"""
+
     ICMP_ECHO_REPLY = 0
     ICMP_DESTINATION_UNREACHABLE = 3
     ICMP_ECHO = 8
@@ -129,6 +136,7 @@ class PacketV6(Packet):
     checksum when transmitted over the wire.
 
     """
+
     ICMP_DESTINATION_UNREACHABLE = 1
     ICMP_TIME_EXCEEDED = 3
     ICMP_ECHO = 128
@@ -167,11 +175,11 @@ def inet_checksum(packet):
 
     # perform ones complement arithmetic on 16-bit words
     for word in words:
-        sum_ += (word & 0xffff)
+        sum_ += word & 0xFFFF
 
     high = sum_ >> 16
-    low = sum_ & 0xffff
+    low = sum_ & 0xFFFF
     sum_ = high + low
     sum_ = sum_ + (sum_ >> 16)
 
-    return (~sum_) & 0xffff  # return ones complement
+    return (~sum_) & 0xFFFF  # return ones complement

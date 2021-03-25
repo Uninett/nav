@@ -26,10 +26,9 @@ from nav.util import which, is_setuid_root
 
 class DhcpChecker(AbstractChecker):
     """DHCP"""
+
     DESCRIPTION = "DHCP"
-    OPTARGS = (
-        ('timeout', ''),
-    )
+    OPTARGS = (('timeout', ''),)
 
     def __init__(self, service, **kwargs):
         AbstractChecker.__init__(self, service, port=0, **kwargs)
@@ -41,21 +40,27 @@ class DhcpChecker(AbstractChecker):
 
         path = which(cmd)
         if not path:
-            return (Event.DOWN,
-                    'Command %s not found in %s' % (cmd, os.environ['PATH']))
+            return (
+                Event.DOWN,
+                'Command %s not found in %s' % (cmd, os.environ['PATH']),
+            )
 
         if not is_setuid_root(path):
             return Event.DOWN, '%s must be setuid root' % path
 
         try:
             proc = subprocess.Popen(
-                [path,
-                 '-i',  # Use inform packet so we don't have to be valid client
-                 '-s', ip,
-                 '-t', str(self.timeout),  # Timeout in seconds
-                 ],
+                [
+                    path,
+                    '-i',  # Use inform packet so we don't have to be valid client
+                    '-s',
+                    ip,
+                    '-t',
+                    str(self.timeout),  # Timeout in seconds
+                ],
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
+                stderr=subprocess.PIPE,
+            )
             proc.wait()
 
             proc.stdout.read()

@@ -53,8 +53,16 @@ def qs_delete(queryset):
     return cursor.rowcount
 
 
-def render_delete(request, model, redirect, whitelist=None, extra_context=None,
-                  pre_delete_operation=None, delete_operation=qs_delete, object_id=None):
+def render_delete(
+    request,
+    model,
+    redirect,
+    whitelist=None,
+    extra_context=None,
+    pre_delete_operation=None,
+    delete_operation=qs_delete,
+    object_id=None,
+):
     """Handles input and rendering of general delete page.
     """
 
@@ -63,15 +71,16 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
         return HttpResponseRedirect(reverse(redirect))
     object_ids = request.POST.getlist('object') or [object_id]
     if not object_ids:
-        new_message(request,
-                    "You need to select at least one object to edit",
-                    Messages.ERROR)
+        new_message(
+            request, "You need to select at least one object to edit", Messages.ERROR
+        )
         return HttpResponseRedirect(reverse(redirect))
     objects = _get_qs_to_delete(model, object_ids, whitelist)
 
     if request.POST.get('confirm'):
-        did_delete = _try_deleting(request, objects, pre_delete_operation,
-                                   delete_operation)
+        did_delete = _try_deleting(
+            request, objects, pre_delete_operation, delete_operation
+        )
         if did_delete:
             return HttpResponseRedirect(reverse(redirect))
 
@@ -87,7 +96,7 @@ def render_delete(request, model, redirect, whitelist=None, extra_context=None,
 
 def _get_qs_to_delete(model, object_ids, whitelist=None):
     "Turn a list of object_ids for model into a queryset, with dependencies"
-    if  not whitelist:
+    if not whitelist:
         whitelist = []
 
     objects = model.objects.filter(pk__in=object_ids).order_by('pk')
@@ -99,8 +108,7 @@ def _get_qs_to_delete(model, object_ids, whitelist=None):
     return objects
 
 
-def _try_deleting(request, objects, pre_delete_operation=None,
-               delete_operation=None):
+def _try_deleting(request, objects, pre_delete_operation=None, delete_operation=None):
     try:
         if pre_delete_operation:
             pre_delete_operation(objects)
@@ -119,13 +127,19 @@ def _try_deleting(request, objects, pre_delete_operation=None,
         new_message(request, msg, Messages.ERROR)
     else:
         if delete_operation:
-            new_message(request,
-                        "Deleted %i rows" % len(objects), Messages.SUCCESS)
+            new_message(request, "Deleted %i rows" % len(objects), Messages.SUCCESS)
             log_deleted(request.account, objects, template=u'{actor} deleted {object}')
         else:
-            new_message(request,
-                        "Scheduled %i rows for deletion" % len(objects), Messages.SUCCESS)
-            log_deleted(request.account, objects, template=u'{actor} scheduled {object} for deletion')
+            new_message(
+                request,
+                "Scheduled %i rows for deletion" % len(objects),
+                Messages.SUCCESS,
+            )
+            log_deleted(
+                request.account,
+                objects,
+                template=u'{actor} scheduled {object} for deletion',
+            )
         return True
     return False
 

@@ -23,7 +23,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.timestamps import TimestampChecker
 
-COLDBOOT_MAX_DELTA = 60*60  # seconds
+COLDBOOT_MAX_DELTA = 60 * 60  # seconds
 
 
 class Uptime(Plugin):
@@ -34,8 +34,7 @@ class Uptime(Plugin):
         is_deviant, new_upsince = yield self._get_timestamps()
         netbox = self.containers.factory(None, shadows.Netbox)
         if is_deviant:
-            self._logger.warning("Detected possible coldboot at %s",
-                                 new_upsince)
+            self._logger.warning("Detected possible coldboot at %s", new_upsince)
 
         if is_deviant or not self.netbox.up_since:
             self._logger.debug("setting new upsince: %s", new_upsince)
@@ -52,7 +51,8 @@ class Uptime(Plugin):
         timestamp, ticks = new_times[0]
         upsince = get_upsince(timestamp, ticks)
         self._logger.debug(
-            "last sysuptime reset/rollover reported by device: %s", upsince)
+            "last sysuptime reset/rollover reported by device: %s", upsince
+        )
         stampcheck.save()
         returnValue((changed, upsince))
 

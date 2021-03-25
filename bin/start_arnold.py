@@ -49,8 +49,13 @@ bootstrap_django(__file__)
 
 from nav.logs import init_generic_logging
 import nav.arnold
-from nav.arnold import (find_computer_info, is_inside_vlans,
-                        quarantine, disable, GeneralException)
+from nav.arnold import (
+    find_computer_info,
+    is_inside_vlans,
+    quarantine,
+    disable,
+    GeneralException,
+)
 from nav.models.arnold import DetentionProfile, Identity
 from nav.models.manage import Prefix
 
@@ -62,9 +67,7 @@ def main(args):
     """Main controller"""
 
     init_generic_logging(
-        logfile=LOG_FILE,
-        stderr=False,
-        read_config=True,
+        logfile=LOG_FILE, stderr=False, read_config=True,
     )
 
     if args.listblocktypes:
@@ -145,10 +148,12 @@ def detain(address, profile, comment=''):
     candidate = find_computer_info(address)
 
     if profile.active_on_vlans and not is_inside_vlans(
-            candidate.ip, profile.active_on_vlans):
+        candidate.ip, profile.active_on_vlans
+    ):
         _logger.error(
-            "%s is not inside defined vlanrange for this predefined "
-            "detention", address)
+            "%s is not inside defined vlanrange for this predefined " "detention",
+            address,
+        )
         return
 
     duration = find_duration(candidate, profile)
@@ -156,8 +161,14 @@ def detain(address, profile, comment=''):
     if profile.detention_type == 'disable':
         disable(candidate, profile.justification, username, comment, duration)
     else:
-        quarantine(candidate, profile.quarantine_vlan, profile.justification,
-                   username, comment, duration)
+        quarantine(
+            candidate,
+            profile.quarantine_vlan,
+            profile.justification,
+            username,
+            comment,
+            duration,
+        )
 
     return address
 
@@ -177,13 +188,14 @@ def find_duration(candidate, profile):
     if profile.incremental == 'y':
         try:
             identity = Identity.objects.get(
-                mac=candidate.mac, interface=candidate.interface)
+                mac=candidate.mac, interface=candidate.interface
+            )
         except Identity.DoesNotExist:
             pass
         else:
             event = identity.event_set.filter(
-                justification=profile.justification,
-                autoenablestep__isnull=False).order_by('-event_time')
+                justification=profile.justification, autoenablestep__isnull=False
+            ).order_by('-event_time')
 
             if event:
                 autoenablestep = event[0].autoenablestep * 2
@@ -199,8 +211,7 @@ def report_detentions(profile, detentions):
     emails = find_contact_addresses(detentions)
 
     try:
-        mailfile = find_configfile(
-            join("arnold", "mailtemplates", profile.mailfile))
+        mailfile = find_configfile(join("arnold", "mailtemplates", profile.mailfile))
         message_template = open(mailfile).read()
     except IOError as error:
         _logger.error(error)
@@ -254,7 +265,8 @@ def find_contact_addresses(detentions):
 def get_organization(ip):
     """Find the organization this ip belongs to"""
     prefixes = Prefix.objects.filter(vlan__net_type='lan').extra(
-        where=['%s << netaddr'], params=[ip])
+        where=['%s << netaddr'], params=[ip]
+    )
     if prefixes:
         prefix = min(prefixes, key=methodcaller('get_prefix_length'))
         return prefix.vlan.organization
@@ -267,14 +279,23 @@ def parse_command_options():
     parser = argparse.ArgumentParser(
         description="Accepts a list of IP addresses to block",
         epilog="Address list can either be piped in to stdin, or use the -f "
-               "option to specify a file containing a list of addresses",
+        "option to specify a file containing a list of addresses",
     )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-i", "--blockid", dest="profile", type=valid_profile,
-                       help="id of blocktype to use")
+    group.add_argument(
+        "-i",
+        "--blockid",
+        dest="profile",
+        type=valid_profile,
+        help="id of blocktype to use",
+    )
     parser.add_argument("-f", "--filename", help="filename with IPs to detain")
-    group.add_argument("--list", action="store_true", dest="listblocktypes",
-                       help="list predefined detentions/blocktypes")
+    group.add_argument(
+        "--list",
+        action="store_true",
+        dest="listblocktypes",
+        help="list predefined detentions/blocktypes",
+    )
 
     return parser.parse_args()
 
@@ -285,11 +306,13 @@ def valid_profile(detention_profile_id):
         profile = DetentionProfile.objects.get(pk=detention_profile_id)
     except DetentionProfile.DoesNotExist:
         raise argparse.ArgumentTypeError(
-            "No such profile id: %s" % detention_profile_id)
+            "No such profile id: %s" % detention_profile_id
+        )
 
     if profile.active == 'n':
         raise argparse.ArgumentTypeError(
-            "Detention profile is inactive: %s" % profile.name)
+            "Detention profile is inactive: %s" % profile.name
+        )
 
     return profile
 

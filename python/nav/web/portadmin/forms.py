@@ -22,10 +22,13 @@ from crispy_forms_foundation.layout import Layout, Row, Column, Submit
 
 class SearchForm(forms.Form):
     """Form for searching for ip-devices and interfaces"""
+
     query = forms.CharField(
         label='',
         widget=forms.TextInput(
-            attrs={'placeholder': 'Search for ip device or interface'}))
+            attrs={'placeholder': 'Search for ip device or interface'}
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         super(SearchForm, self).__init__(*args, **kwargs)
@@ -35,8 +38,10 @@ class SearchForm(forms.Form):
         self.helper.layout = Layout(
             Row(
                 Column('query', css_class='medium-9'),
-                Column(Submit('submit', 'Search', css_class='postfix'),
-                       css_class='medium-3'),
-                css_class='collapse'
+                Column(
+                    Submit('submit', 'Search', css_class='postfix'),
+                    css_class='medium-3',
+                ),
+                css_class='collapse',
             )
         )

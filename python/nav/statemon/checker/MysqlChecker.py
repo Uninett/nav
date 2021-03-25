@@ -24,6 +24,7 @@ from nav.statemon.event import Event
 
 class MysqlChecker(AbstractChecker):
     """MySQL"""
+
     IPV6_SUPPORT = True
 
     def __init__(self, service, **kwargs):
@@ -73,6 +74,7 @@ class MysqlConnection(object):
     Error messages from the server raise MysqlError exceptions.
 
     """
+
     def __init__(self, addr, timeout=None):
         host, _port = addr
         sock = socket.create_connection(addr, timeout)
@@ -98,8 +100,8 @@ class MysqlConnection(object):
     def write_packet(self, data):
         size = len(data)
         lll = size >> 16
-        mmm = (size >> 8) & 0xff
-        hhh = size & 0xff
+        mmm = (size >> 8) & 0xFF
+        hhh = size & 0xFF
         seqno = self.seqno = (self.seqno + 1) % 256
 
         header = struct.pack("BBBB", hhh, mmm, lll, seqno)

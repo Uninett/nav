@@ -22,7 +22,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from nav.metrics.data import get_metric_average
 from nav.metrics.templates import (
     metric_path_for_service_availability,
-    metric_path_for_service_response_time
+    metric_path_for_service_response_time,
 )
 
 from nav.models.manage import Netbox
@@ -45,11 +45,7 @@ class Service(models.Model):
     TIME_FRAMES = ('day', 'week', 'month')
 
     id = models.AutoField(db_column='serviceid', primary_key=True)
-    netbox = models.ForeignKey(
-        Netbox,
-        on_delete=models.CASCADE,
-        db_column='netboxid'
-    )
+    netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
     active = models.BooleanField(default=True)
     handler = VarcharField(verbose_name='service')
     version = VarcharField()
@@ -60,8 +56,7 @@ class Service(models.Model):
         ordering = ('handler',)
 
     def __str__(self):
-        return u"{handler} at {netbox}".format(
-            handler=self.handler, netbox=self.netbox)
+        return u"{handler} at {netbox}".format(handler=self.handler, netbox=self.netbox)
 
     def get_statistics(self):
         args = (self.netbox.sysname, self.handler, self.id)
@@ -69,17 +64,12 @@ class Service(models.Model):
         rtime_id = metric_path_for_service_response_time(*args)
 
         result = {
-            'availability': {
-                'data_source': avail_id,
-            },
-            'response_time': {
-                'data_source': rtime_id,
-            },
+            'availability': {'data_source': avail_id,},
+            'response_time': {'data_source': rtime_id,},
         }
 
         for time_frame in self.TIME_FRAMES:
-            avg = get_metric_average([avail_id, rtime_id],
-                                     start="-1%s" % time_frame)
+            avg = get_metric_average([avail_id, rtime_id], start="-1%s" % time_frame)
 
             # Availability
             pktloss = avg.get(avail_id, None)
@@ -98,7 +88,8 @@ class Service(models.Model):
         maintenance.
         """
         states = self.netbox.get_unresolved_alerts('maintenanceState').filter(
-            variables__variable='service', subid=self.id)
+            variables__variable='service', subid=self.id
+        )
         if states.count() < 1:
             return self.netbox.is_on_maintenance()
         else:
@@ -141,9 +132,7 @@ class ServiceProperty(models.Model):
 
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
     service = models.ForeignKey(
-        Service,
-        on_delete=models.CASCADE,
-        db_column='serviceid'
+        Service, on_delete=models.CASCADE, db_column='serviceid'
     )
     property = models.CharField(max_length=64)
     value = VarcharField()

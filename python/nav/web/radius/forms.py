@@ -37,8 +37,7 @@ def validate_integer(value):
 def validate_cidr(value):
     """Validator for cidr xxx.xxx.xxx.xxx/xx"""
     if not value or not is_valid_cidr(value):
-        raise forms.ValidationError(
-            'Must be a valid CIDR address!')
+        raise forms.ValidationError('Must be a valid CIDR address!')
 
 
 def validate_datetime_with_slack(value):
@@ -52,14 +51,14 @@ def validate_datetime_with_slack(value):
         datetime.strptime(time, '%Y-%m-%d %H:%M')
         int(slack)
     except (ValueError, TypeError):
-        raise forms.ValidationError(
-            'Must be of this format YYYY-MM-DD hh:mm|slack')
+        raise forms.ValidationError('Must be of this format YYYY-MM-DD hh:mm|slack')
 
 
 class MultitypeQueryWidget(forms.MultiWidget):
     """
     Widget for MultitypeQueryField
     """
+
     def decompress(self, value):
         return [value]
 
@@ -68,7 +67,9 @@ class MultitypeQueryWidget(forms.MultiWidget):
         output = u"""<div class="row collapse">
         <div class="medium-6 column">{0:s}</div>
         <div class="medium-6 column">{1:s}</div>
-        </div>""".format(*rendered_widgets)
+        </div>""".format(
+            *rendered_widgets
+        )
         return output
 
 
@@ -90,11 +91,10 @@ class MultitypeQueryField(forms.MultiValueField):
         super(MultitypeQueryField, self).__init__(fields=(), *args, **kwargs)
         self.fields = (
             forms.ChoiceField(choices=choices),
-            forms.CharField(min_length=1)
+            forms.CharField(min_length=1),
         )
         self.widget = MultitypeQueryWidget(
-            (forms.Select(choices=choices),
-             forms.TextInput())
+            (forms.Select(choices=choices), forms.TextInput())
         )
         self.query_validators = validators
 
@@ -110,6 +110,7 @@ class MultitypeQueryField(forms.MultiValueField):
 
 class ErrorLogSearchForm(forms.Form):
     """Form for searching in radius error log"""
+
     QUERY_TYPES = (
         ('username', 'Username'),
         ('client', 'Client'),
@@ -129,21 +130,17 @@ class ErrorLogSearchForm(forms.Form):
         ('proxy', 'Proxy'),
     )
     query = MultitypeQueryField(
-        QUERY_TYPES,
-        validators={
-            'port': validate_integer
-        },
-        label='Search for')
-    log_entry_type = forms.ChoiceField(
-        required=False,
-        choices=LOG_ENTRY_TYPES)
+        QUERY_TYPES, validators={'port': validate_integer}, label='Search for'
+    )
+    log_entry_type = forms.ChoiceField(required=False, choices=LOG_ENTRY_TYPES)
     time = MultitypeQueryField(
         TIME_TYPES,
         validators={
             'hours': validate_integer,
-            'timestamp': validate_datetime_with_slack
+            'timestamp': validate_datetime_with_slack,
         },
-        required=False, label='Time options'
+        required=False,
+        label='Time options',
     )
 
     def __init__(self, *args, **kwargs):
@@ -157,14 +154,15 @@ class ErrorLogSearchForm(forms.Form):
             Row(
                 Column('query', css_class=css_class),
                 Column('log_entry_type', css_class=css_class),
-                Column('time', css_class=css_class)
+                Column('time', css_class=css_class),
             ),
-            Submit('send', 'Search', css_class='small')
+            Submit('send', 'Search', css_class='small'),
         )
 
 
 class AccountLogSearchForm(forms.Form):
     """Form for searching in the radius account log"""
+
     QUERY_TYPES = (
         ('username', 'Username'),
         ('framedipaddress', 'User Hostname/IP Address'),
@@ -189,27 +187,22 @@ class AccountLogSearchForm(forms.Form):
     )
     query = MultitypeQueryField(
         QUERY_TYPES,
-        validators={
-            'nasipaddress': validate_ipv4_address,
-            'iprange': validate_cidr
-        },
-        label='Search for'
+        validators={'nasipaddress': validate_ipv4_address, 'iprange': validate_cidr},
+        label='Search for',
     )
     time = MultitypeQueryField(
         TIME_TYPES,
         validators={
             'days': validate_integer,
-            'timestamp': validate_datetime_with_slack
+            'timestamp': validate_datetime_with_slack,
         },
-        required=False, label='Time options'
+        required=False,
+        label='Time options',
     )
-    port_type = forms.ChoiceField(
-        required=False,
-        choices=PORT_TYPES)
+    port_type = forms.ChoiceField(required=False, choices=PORT_TYPES)
     dns_lookup = forms.MultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-        choices=DNS_LOOKUPS)
+        widget=forms.CheckboxSelectMultiple, required=False, choices=DNS_LOOKUPS
+    )
 
     def __init__(self, *args, **kwargs):
         super(AccountLogSearchForm, self).__init__(*args, **kwargs)
@@ -226,26 +219,23 @@ class AccountLogSearchForm(forms.Form):
                 Column('port_type', css_class=css_class_small),
                 Column('dns_lookup', css_class=css_class_small),
             ),
-            Submit('send', 'Search', css_class='small')
+            Submit('send', 'Search', css_class='small'),
         )
 
 
 class AccountChartsForm(forms.Form):
     """Form for displaying top talkers"""
+
     CHARTS = (
         ('sentrecv', 'Bandwidth hogs'),
         ('recv', 'Downloaders'),
         ('sent', 'Uploaders'),
     )
 
-    days = forms.FloatField(
-        min_value=0.5,
-        initial=7,
-        label='Day(s)')
+    days = forms.FloatField(min_value=0.5, initial=7, label='Day(s)')
     charts = forms.MultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
-        choices=CHARTS,
-        initial=CHARTS[0])
+        widget=forms.CheckboxSelectMultiple, choices=CHARTS, initial=CHARTS[0]
+    )
 
     def __init__(self, *args, **kwargs):
         super(AccountChartsForm, self).__init__(*args, **kwargs)

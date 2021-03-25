@@ -68,8 +68,10 @@ class JuniperDot1q(dot1q.Dot1q):
             try:
                 return self.jnx_vlan_map[vlan_ident]
             except KeyError:
-                self._logger.info("cannot map juniper vlan %s to a tag, using "
-                                  "raw value", vlan_ident)
+                self._logger.info(
+                    "cannot map juniper vlan %s to a tag, using " "raw value",
+                    vlan_ident,
+                )
 
         return vlan_ident
 

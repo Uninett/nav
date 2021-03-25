@@ -25,6 +25,7 @@ from nav.statemon.event import Event
 
 class FtpChecker(AbstractChecker):
     """File Transfer Protocol"""
+
     DESCRIPTION = "FTP"
     OPTARGS = (
         ('username', ''),

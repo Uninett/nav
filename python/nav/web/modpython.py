@@ -59,8 +59,7 @@ def headerparserhandler(req):
     req.is_ajax = lambda: is_ajax
     req.COOKIES = _get_cookie_dict(req)
 
-    for mware in (SessionMiddleware, AuthenticationMiddleware,
-                  AuthorizationMiddleware):
+    for mware in (SessionMiddleware, AuthenticationMiddleware, AuthorizationMiddleware):
         response = mware().process_request(req)
 
     try:

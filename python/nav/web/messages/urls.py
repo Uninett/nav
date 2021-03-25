@@ -30,7 +30,6 @@ urlpatterns = [
     url(r'^archive/$', views.historic, name='messages-historic'),
     url(r'^view/(?P<message_id>\d+)$', views.view, name='messages-view'),
     url(r'^expire/(?P<message_id>\d+)$', views.expire, name='messages-expire'),
-    url(r'^followup/(?P<message_id>\d+)$', views.followup,
-        name='messages-followup'),
+    url(r'^followup/(?P<message_id>\d+)$', views.followup, name='messages-followup'),
     url(r'^rss/$', ActiveMessagesFeed(), name='messages-rss'),
 ]

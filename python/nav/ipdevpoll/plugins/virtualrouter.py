@@ -64,15 +64,15 @@ class VirtualRouter(Plugin):
 
     def gwportprefixes_found(self):
         if GwPortPrefix not in self.containers:
-            self._logger.debug("there are no collected GwPortPrefixes to "
-                               "update")
+            self._logger.debug("there are no collected GwPortPrefixes to " "update")
             return False
         else:
             return True
 
     def update_containers_with(self, addresses, from_mib=None):
         if addresses:
-            self._logger.debug("Found virtual addresses from %s: %r",
-                               from_mib, addresses)
+            self._logger.debug(
+                "Found virtual addresses from %s: %r", from_mib, addresses
+            )
         for gwp_prefix in self.containers[GwPortPrefix].values():
             gwp_prefix.virtual = IP(gwp_prefix.gw_ip) in addresses

@@ -53,7 +53,8 @@ def collect(days=None):
 def get_interval_query(intervals):
     """Return query for collecting data for a time interval"""
 
-    query = """
+    query = (
+        """
     SELECT
         netaddr,
         timeentry,
@@ -71,7 +72,9 @@ def get_interval_query(intervals):
     WHERE vlan.nettype NOT IN ('loopback') AND ip IS NOT NULL
     GROUP BY netaddr, timeentry
     ORDER BY timeentry
-    """ % intervals
+    """
+        % intervals
+    )
 
     return query
 

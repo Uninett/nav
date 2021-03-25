@@ -29,6 +29,7 @@ class Dell(SNMPHandler):
 
     Uses DNOS-SWITCHING-MIB
     """
+
     VENDOR = VENDOR_ID_DELL_INC
 
     DNOSNODES = get_mib('DNOS-SWITCHING-MIB')['nodes']

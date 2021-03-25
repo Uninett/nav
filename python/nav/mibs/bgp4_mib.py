@@ -28,12 +28,12 @@ from nav.oidparsers import oid_to_ipv4
 from nav.smidumps import get_mib
 from . import mibretriever
 
-BgpPeerState = namedtuple('BgpPeerState',
-                          'peer state adminstatus local_as remote_as')
+BgpPeerState = namedtuple('BgpPeerState', 'peer state adminstatus local_as remote_as')
 
 
 class BGP4Mib(mibretriever.MibRetriever):
     """MibRetriever implementation for BGP4-MIB"""
+
     mib = get_mib('BGP4-MIB')
     SUPPORTED_ROOT = 'bgp'
     PEERSTATE_COLUMN = 'bgpPeerState'
@@ -61,26 +61,33 @@ class BGP4Mib(mibretriever.MibRetriever):
 
         """
         if self.LOCAL_AS_COLUMN:
-            columns = (self.PEERSTATE_COLUMN, self.ADMINSTATUS_COLUMN,
-                       self.LOCAL_AS_COLUMN, self.REMOTE_AS_COLUMN)
+            columns = (
+                self.PEERSTATE_COLUMN,
+                self.ADMINSTATUS_COLUMN,
+                self.LOCAL_AS_COLUMN,
+                self.REMOTE_AS_COLUMN,
+            )
             local_as = None
         else:
-            columns = (self.PEERSTATE_COLUMN, self.ADMINSTATUS_COLUMN,
-                       self.REMOTE_AS_COLUMN)
+            columns = (
+                self.PEERSTATE_COLUMN,
+                self.ADMINSTATUS_COLUMN,
+                self.REMOTE_AS_COLUMN,
+            )
             local_as = yield self.get_next(self.GLOBAL_LOCAL_AS)
             self._logger.debug("local AS number: %r", local_as)
 
-        rows = yield self.retrieve_columns(columns).addCallback(
-            self.translate_result)
-        result = {self._bgp_row_to_remote_ip(key):
-                  BgpPeerState(self._bgp_row_to_remote_ip(key),
-                               row[self.PEERSTATE_COLUMN],
-                               row[self.ADMINSTATUS_COLUMN],
-                               (row[self.LOCAL_AS_COLUMN]
-                                if self.LOCAL_AS_COLUMN else local_as),
-                               row[self.REMOTE_AS_COLUMN],
-                               )
-                  for key, row in iteritems(rows)}
+        rows = yield self.retrieve_columns(columns).addCallback(self.translate_result)
+        result = {
+            self._bgp_row_to_remote_ip(key): BgpPeerState(
+                self._bgp_row_to_remote_ip(key),
+                row[self.PEERSTATE_COLUMN],
+                row[self.ADMINSTATUS_COLUMN],
+                (row[self.LOCAL_AS_COLUMN] if self.LOCAL_AS_COLUMN else local_as),
+                row[self.REMOTE_AS_COLUMN],
+            )
+            for key, row in iteritems(rows)
+        }
 
         if self._logger.isEnabledFor(logging.DEBUG):
             self._logger.debug("Found BGP peers:\n%s", pformat(result))

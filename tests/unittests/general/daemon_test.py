@@ -32,11 +32,9 @@ def test_daemonexit_should_raise_pidfilewriteerror_on_other_os_errors():
 
 # Helper functions
 
+
 def random_filename():
     rand = ''.join(
-        random.choice(
-            string.ascii_uppercase + string.digits
-        )
-        for _ in range(12)
+        random.choice(string.ascii_uppercase + string.digits) for _ in range(12)
     )
     return '/tmp/non-existant-{}.pid'.format(rand)

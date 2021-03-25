@@ -28,6 +28,7 @@ class LegacyCleanupMiddleware(MiddlewareMixin):
     end of each request cycle.
 
     """
+
     def process_response(self, _request, response):
         """Rolls back any uncommitted legacy database connections,
         to avoid idling indefinitely in transactions.

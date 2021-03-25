@@ -34,7 +34,9 @@ def test_panel_should_toggle_when_clicked(statuspage):
     panel, filter_toggle = statuspage
     initial_state = panel.is_displayed()
     filter_toggle.click()
-    assert initial_state != panel.is_displayed(), 'Clicking filter_toggle did not do anything'
+    assert (
+        initial_state != panel.is_displayed()
+    ), 'Clicking filter_toggle did not do anything'
 
 
 def test_remember_last_panel_state(selenium, statuspage):
@@ -46,7 +48,8 @@ def test_remember_last_panel_state(selenium, statuspage):
     sleep(1)
     selenium.refresh()
     WebDriverWait(selenium, 10).until(
-        expected_conditions.visibility_of_element_located((By.ID, 'status-page')))
+        expected_conditions.visibility_of_element_located((By.ID, 'status-page'))
+    )
     # We need to fetch panel element again after a refresh
     panel = selenium.find_element_by_id('status-panel')
     assert panel.is_displayed(), 'Panel did not stay in same state after page refresh'

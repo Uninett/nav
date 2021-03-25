@@ -29,8 +29,11 @@ from nav.ip import IP
 from nav.models.manage import Prefix
 from nav.web.api.v1.serializers import PrefixSerializer
 from nav.web.api.v1.helpers import prefix_collector
-from nav.web.ipam.util import PrefixQuerysetBuilder, get_available_subnets, \
-    suggest_range
+from nav.web.ipam.util import (
+    PrefixQuerysetBuilder,
+    get_available_subnets,
+    suggest_range,
+)
 
 from .prefix_tree import make_tree, make_tree_from_ip
 
@@ -50,7 +53,8 @@ class SuggestParams(serializers.Serializer):
         try:
             if IP(data['prefix']).version() == 4 and data['prefixlen'] > 32:
                 raise serializers.ValidationError(
-                    "Prefixlen can not be higher than 32 for ipv4 prefixes")
+                    "Prefixlen can not be higher than 32 for ipv4 prefixes"
+                )
         except ValueError:
             raise serializers.ValidationError("Invalid prefix")
         return data
@@ -77,7 +81,7 @@ class PrefixViewSet(viewsets.ViewSet):
     """
 
     serializer = PrefixSerializer
-    search_fields = ("vlan__description")
+    search_fields = "vlan__description"
 
     def get_queryset(self):
         "Build queryset for API using filters"
@@ -113,11 +117,14 @@ class PrefixViewSet(viewsets.ViewSet):
         "Suggests subnets of size=?number_of_hosts for ?prefix"
         params = SuggestParams(data=request.query_params)
         if not params.is_valid():
-            return Response(data=params.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=params.errors, status=status.HTTP_400_BAD_REQUEST)
         params = params.validated_data
-        payload = suggest_range(params["prefix"], offset=params["offset"],
-                                prefixlen=params["prefixlen"], n=params["n"])
+        payload = suggest_range(
+            params["prefix"],
+            offset=params["offset"],
+            prefixlen=params["prefixlen"],
+            n=params["n"],
+        )
         return Response(payload, status=status.HTTP_200_OK)
 
     @detail_route(methods=["get"])
@@ -136,19 +143,17 @@ class PrefixViewSet(viewsets.ViewSet):
             "active_addr": active_addr,
             "usage": 1.0 * active_addr / max_addr,
             "allocated": 1.0 * total_allocated / max_addr,
-            "pk": pk
+            "pk": pk,
         }
         return Response(payload, status=status.HTTP_200_OK)
 
     def list(self, request, *args, **kwargs):
         "List a tree-like structure of all prefixes matching the query"
         prefixes = self.get_queryset()
-        family = self.request.query_params.getlist("type", ["ipv4", "ipv6",
-                                                            "rfc1918"])
+        family = self.request.query_params.getlist("type", ["ipv4", "ipv6", "rfc1918"])
         within = self.request.query_params.get("within", None)
         show_all = self.request.query_params.get("show_all", None)
-        result = make_tree(prefixes, root_ip=within, family=family,
-                           show_all=show_all)
+        result = make_tree(prefixes, root_ip=within, family=family, show_all=show_all)
         payload = result.fields["children"]
         return Response(payload, status=status.HTTP_200_OK)
 
@@ -190,12 +195,11 @@ class PrefixFinderSet(viewsets.ViewSet):
         prefix_size = self.request.query_params.get("prefix_size", None)
         if prefix_size is not None:
             prefix_size = int(prefix_size)
-            result = [prefix for prefix in result if prefix.prefixlen() <=
-                      prefix_size]
+            result = [prefix for prefix in result if prefix.prefixlen() <= prefix_size]
         payload = {
             "prefix": prefix,
             "prefixlen": prefix.split("/")[1],
-            "children": make_tree_from_ip(result).fields["children"]
+            "children": make_tree_from_ip(result).fields["children"],
         }
         return Response(payload, status=status.HTTP_200_OK)
 

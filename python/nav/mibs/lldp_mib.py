@@ -29,6 +29,7 @@ from nav import macaddress
 
 class LLDPMib(mibretriever.MibRetriever):
     """A MibRetriever for handling LLDP-MIB"""
+
     mib = get_mib('LLDP-MIB')
 
     def get_remote_last_change(self):
@@ -51,27 +52,29 @@ class LLDPMib(mibretriever.MibRetriever):
         returnValue(result)
 
     def _retrieve_rem_table(self):
-        return self.retrieve_columns([
+        return self.retrieve_columns(
+            [
                 'lldpRemChassisIdSubtype',
                 'lldpRemChassisId',
                 'lldpRemPortIdSubtype',
                 'lldpRemPortId',
                 'lldpRemPortDesc',
                 'lldpRemSysName',
-                ]).addCallback(self.translate_result)
+            ]
+        ).addCallback(self.translate_result)
 
     @staticmethod
     def _remote_entry_to_neighbor(row):
         ifindex = row[0]
 
-        chassis_id = IdSubtypes.get(row['lldpRemChassisIdSubtype'],
-                                    row['lldpRemChassisId'])
-        port_id = IdSubtypes.get(row['lldpRemPortIdSubtype'],
-                                 row['lldpRemPortId'])
+        chassis_id = IdSubtypes.get(
+            row['lldpRemChassisIdSubtype'], row['lldpRemChassisId']
+        )
+        port_id = IdSubtypes.get(row['lldpRemPortIdSubtype'], row['lldpRemPortId'])
 
-        return LLDPNeighbor(ifindex, chassis_id, port_id,
-                            row['lldpRemPortDesc'],
-                            row['lldpRemSysName'])
+        return LLDPNeighbor(
+            ifindex, chassis_id, port_id, row['lldpRemPortDesc'], row['lldpRemSysName']
+        )
 
     @inlineCallbacks
     def _translate_port_numbers(self, remote_table):
@@ -97,8 +100,9 @@ class LLDPMib(mibretriever.MibRetriever):
         # Use SNMP queries to make lookup tables, if necessary
         idtypes = set(type(port) for port in local_ports.values())
         if idtypes:
-            self._logger.debug("local port id types in use: %s",
-                               [t.__name__ for t in idtypes])
+            self._logger.debug(
+                "local port id types in use: %s", [t.__name__ for t in idtypes]
+            )
         uses_ifnames = IdSubtypes.interfaceName in idtypes
         if uses_ifnames:
             self._logger.debug(
@@ -118,7 +122,7 @@ class LLDPMib(mibretriever.MibRetriever):
                         "translating local port num %s via %r to ifindex %s",
                         local_portnum,
                         port,
-                        ifindex
+                        ifindex,
                     )
                     lookup[local_portnum] = ifindex
             elif (
@@ -127,9 +131,7 @@ class LLDPMib(mibretriever.MibRetriever):
                 and local_portnum != int(port)
             ):
                 self._logger.debug(
-                    "translating local port num %s to ifindex %s",
-                    local_portnum,
-                    port,
+                    "translating local port num %s to ifindex %s", local_portnum, port,
                 )
                 lookup[local_portnum] = int(port)
 
@@ -146,13 +148,15 @@ class LLDPMib(mibretriever.MibRetriever):
 
     @inlineCallbacks
     def _retrieve_local_ports(self):
-        ports = yield self.retrieve_columns([
-            'lldpLocPortIdSubtype',
-            'lldpLocPortId',
-        ]).addCallback(self.translate_result).addCallback(reduce_index)
-        result = {index: IdSubtypes.get(row['lldpLocPortIdSubtype'],
-                                        row['lldpLocPortId'])
-                  for index, row in ports.items()}
+        ports = (
+            yield self.retrieve_columns(['lldpLocPortIdSubtype', 'lldpLocPortId',])
+            .addCallback(self.translate_result)
+            .addCallback(reduce_index)
+        )
+        result = {
+            index: IdSubtypes.get(row['lldpLocPortIdSubtype'], row['lldpLocPortId'])
+            for index, row in ports.items()
+        }
         returnValue(result)
 
     @inlineCallbacks
@@ -167,8 +171,9 @@ class LLDPMib(mibretriever.MibRetriever):
 
 
 # pylint: disable=C0103
-LLDPNeighbor = namedtuple("LLDPNeighbor",
-                          "ifindex chassis_id port_id port_desc sysname")
+LLDPNeighbor = namedtuple(
+    "LLDPNeighbor", "ifindex chassis_id port_id port_desc sysname"
+)
 
 #
 # A bunch of classes to define and help parse the various subtypes of remote
@@ -179,8 +184,7 @@ LLDPNeighbor = namedtuple("LLDPNeighbor",
 # pylint: disable=C0111,C0103,R0904,R0903
 class IdType(str):
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__,
-                           str(self))
+        return "%s(%r)" % (self.__class__.__name__, str(self))
 
     def isdigit(self):
         """Returns True if self can be successfully cast to an integer"""
@@ -234,8 +238,7 @@ class NetworkAddress(IdType):
             addr_string = arg[1:]
             if addr_type in cls.ADDR_FAMILY:
                 try:
-                    ipstring = socket.inet_ntop(cls.ADDR_FAMILY[addr_type],
-                                                addr_string)
+                    ipstring = socket.inet_ntop(cls.ADDR_FAMILY[addr_type], addr_string)
                     arg = IP(ipstring)
                 except (socket.error, ValueError):
                     pass

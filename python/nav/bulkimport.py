@@ -41,6 +41,7 @@ from nav.bulkparse import BulkParseError
 
 class BulkImporter(six.Iterator):
     """Abstract bulk import iterator"""
+
     def __init__(self, parser):
         self.parser = parser
 
@@ -76,6 +77,7 @@ class BulkImporter(six.Iterator):
 
 class NetboxImporter(BulkImporter):
     """Creates objects from the netbox bulk format"""
+
     def _create_objects_from_row(self, row):
         raise_if_exists(Netbox, ip=row['ip'])
         raise_if_exists(Netbox, sysname=row['ip'])
@@ -85,13 +87,11 @@ class NetboxImporter(BulkImporter):
 
         netbox.data = self._parse_data(row['data'])
 
-        netboxinfo = self._get_netboxinfo_from_function(
-            netbox, row['function'])
+        netboxinfo = self._get_netboxinfo_from_function(netbox, row['function'])
         if netboxinfo:
             objects.append(netboxinfo)
 
-        netboxgroups = self._get_groups_from_group(netbox,
-                                                   row.get('netboxgroup', []))
+        netboxgroups = self._get_groups_from_group(netbox, row.get('netboxgroup', []))
         if netboxgroups:
             objects.extend(netboxgroups)
 
@@ -116,8 +116,7 @@ class NetboxImporter(BulkImporter):
             if is_valid_ip(master, strict=True):
                 netbox.master = get_object_or_fail(Netbox, ip=master)
             else:
-                netbox.master = get_object_or_fail(Netbox,
-                                                   sysname__startswith=master)
+                netbox.master = get_object_or_fail(Netbox, sysname__startswith=master)
 
         return netbox
 
@@ -132,16 +131,14 @@ class NetboxImporter(BulkImporter):
             for name in profiles
             if name.strip()
         ]
-        return [
-            NetboxProfile(netbox=netbox, profile=profile)
-            for profile in profiles
-        ]
+        return [NetboxProfile(netbox=netbox, profile=profile) for profile in profiles]
 
     @staticmethod
     def _get_netboxinfo_from_function(netbox, function):
         if function:
-            return NetboxInfo(netbox=netbox, key=None, variable='function',
-                              value=function)
+            return NetboxInfo(
+                netbox=netbox, key=None, variable='function', value=function
+            )
 
     @staticmethod
     def _get_groups_from_group(netbox, netboxgroup):
@@ -151,8 +148,7 @@ class NetboxImporter(BulkImporter):
         netboxgroups = []
         for netboxgroupid in [s for s in netboxgroup if s]:
             netboxgroup = get_object_or_fail(NetboxGroup, id=netboxgroupid)
-            netboxgroups.append(NetboxCategory(netbox=netbox,
-                                               category=netboxgroup))
+            netboxgroups.append(NetboxCategory(netbox=netbox, category=netboxgroup))
         return netboxgroups
 
     @staticmethod
@@ -166,6 +162,7 @@ class NetboxImporter(BulkImporter):
 
 class ServiceImporter(BulkImporter):
     """Creates objects from the service bulk format"""
+
     def _create_objects_from_row(self, row):
         objects = []
         netbox = get_object_or_fail(Netbox, sysname=row['host'])
@@ -193,8 +190,7 @@ class ServiceImporter(BulkImporter):
     def _get_service_properties(service, args):
         service_properties = []
         for prop, val in args.items():
-            serviceprop = ServiceProperty(service=service, property=prop,
-                                          value=val)
+            serviceprop = ServiceProperty(service=service, property=prop, value=val)
             service_properties.append(serviceprop)
         return service_properties
 
@@ -214,25 +210,32 @@ class ServiceImporter(BulkImporter):
 
 class LocationImporter(BulkImporter):
     """Creates objects from the location bulk format"""
+
     def _create_objects_from_row(self, row):
         raise_if_exists(Location, id=row['locationid'])
         if row['parent']:
             parent = get_object_or_fail(Location, id=row['parent'])
         else:
             parent = None
-        location = Location(id=row['locationid'], parent=parent,
-                            description=row['descr'])
+        location = Location(
+            id=row['locationid'], parent=parent, description=row['descr']
+        )
         return [location]
 
 
 class RoomImporter(BulkImporter):
     """Creates objects from the room bulk format"""
+
     def _create_objects_from_row(self, row):
         raise_if_exists(Room, id=row['roomid'])
         location = get_object_or_fail(Location, id=row['locationid'])
         attributes = dict([attr.split('=', 1) for attr in row.get('attr', [])])
-        room = Room(id=row['roomid'], location=location,
-                    description=row['descr'], data=attributes)
+        room = Room(
+            id=row['roomid'],
+            location=location,
+            description=row['descr'],
+            data=attributes,
+        )
         try:
             room.position = PointField().to_python(row['position'])
         except (ValidationError, ValueError):
@@ -242,13 +245,13 @@ class RoomImporter(BulkImporter):
 
 class ManagementProfileImporter(BulkImporter):
     """Creates objects from the management profile bulk format"""
+
     def _create_objects_from_row(self, row):
         raise_if_exists(ManagementProfile, name=row['name'])
         result = ManagementProfile(name=row['name'])
 
         proto_lookup = {
-            name: value
-            for value, name in ManagementProfile.PROTOCOL_CHOICES
+            name: value for value, name in ManagementProfile.PROTOCOL_CHOICES
         }
 
         result.protocol = proto_lookup.get(row['protocol'])
@@ -258,6 +261,7 @@ class ManagementProfileImporter(BulkImporter):
 
 class OrgImporter(BulkImporter):
     """Creates objects from the organization bulk format"""
+
     def _create_objects_from_row(self, row):
         raise_if_exists(Organization, id=row['orgid'])
         if row['parent']:
@@ -265,14 +269,18 @@ class OrgImporter(BulkImporter):
         else:
             parent = None
         attributes = dict([attr.split('=', 1) for attr in row.get('attr', [])])
-        org = Organization(id=row['orgid'], parent=parent,
-                           description=row['description'],
-                           data=attributes)
+        org = Organization(
+            id=row['orgid'],
+            parent=parent,
+            description=row['description'],
+            data=attributes,
+        )
         return [org]
 
 
 class PrefixImporter(BulkImporter):
     """Creates objects from the prefix bulk format"""
+
     def _create_objects_from_row(self, row):
         raise_if_exists(Prefix, net_address=row['netaddr'])
         net_type = get_object_or_fail(NetType, id=row['nettype'])
@@ -295,13 +303,15 @@ class PrefixImporter(BulkImporter):
             organization=org,
             net_ident=row['netident'],
             usage=usage,
-            description=row['description'])
+            description=row['description'],
+        )
         prefix = Prefix(net_address=row['netaddr'], vlan=vlan)
         return [vlan, prefix]
 
 
 class UsageImporter(BulkImporter):
     """Creates objects from the usage bulk format"""
+
     def _create_objects_from_row(self, row):
         raise_if_exists(Usage, id=row['usageid'])
         usage = Usage(id=row['usageid'], description=row['descr'])
@@ -310,19 +320,24 @@ class UsageImporter(BulkImporter):
 
 class NetboxTypeImporter(BulkImporter):
     """Creates objects from the type bulk format"""
+
     def _create_objects_from_row(self, row):
         vendor = get_object_or_fail(Vendor, id=row['vendorid'])
         raise_if_exists(NetboxType, sysobjectid=row['sysobjectid'])
         raise_if_exists(NetboxType, vendor=vendor, name=row['typename'])
 
-        netbox_type = NetboxType(vendor=vendor, name=row['typename'],
-                                 sysobjectid=row['sysobjectid'],
-                                 description=row['description'])
+        netbox_type = NetboxType(
+            vendor=vendor,
+            name=row['typename'],
+            sysobjectid=row['sysobjectid'],
+            description=row['description'],
+        )
         return [netbox_type]
 
 
 class VendorImporter(BulkImporter):
     """Creates objects from the vendor bulk format"""
+
     def _create_objects_from_row(self, row):
         raise_if_exists(Vendor, id=row['vendorid'])
         vendor = Vendor(id=row['vendorid'])
@@ -331,39 +346,44 @@ class VendorImporter(BulkImporter):
 
 class NetboxGroupImporter(BulkImporter):
     """Creates objects from the netboxgroup bulk format"""
+
     def _create_objects_from_row(self, row):
         raise_if_exists(NetboxGroup, id=row['netboxgroupid'])
-        netboxgroup = NetboxGroup(id=row['netboxgroupid'],
-                                  description=row['description'])
+        netboxgroup = NetboxGroup(
+            id=row['netboxgroupid'], description=row['description']
+        )
         return [netboxgroup]
 
 
 class CablingImporter(BulkImporter):
     """Creates objects from the cabling bulk format"""
+
     def _create_objects_from_row(self, row):
         room = get_object_or_fail(Room, id=row['roomid'])
         raise_if_exists(Cabling, room=room, jack=row['jack'])
-        cabling = Cabling(room=room, jack=row['jack'],
-                          building=row['building'],
-                          target_room=row['targetroom'],
-                          category=row['category'],
-                          description=row['descr'])
+        cabling = Cabling(
+            room=room,
+            jack=row['jack'],
+            building=row['building'],
+            target_room=row['targetroom'],
+            category=row['category'],
+            description=row['descr'],
+        )
         return [cabling]
 
 
 class PatchImporter(BulkImporter):
     """Creates objects from the patch bulk format"""
+
     def _create_objects_from_row(self, row):
         netbox = get_object_or_fail(Netbox, sysname=row['sysname'])
-        interface = get_object_or_fail(Interface,
-                                       netbox=netbox, ifname=row['port'])
+        interface = get_object_or_fail(Interface, netbox=netbox, ifname=row['port'])
         room = get_object_or_fail(Room, id=row['roomid'])
         cabling = get_object_or_fail(Cabling, room=room, jack=row['jack'])
 
         if not row['split']:
             row['split'] = 'no'
-        patch = Patch(interface=interface, cabling=cabling,
-                      split=row['split'])
+        patch = Patch(interface=interface, cabling=cabling, split=row['split'])
         return [patch]
 
 
@@ -378,11 +398,11 @@ def get_object_or_fail(cls, **kwargs):
     try:
         return cls.objects.get(**kwargs)
     except cls.DoesNotExist:
-        raise DoesNotExist("%s does not exist: %r" %
-                           (cls.__name__, kwargs))
+        raise DoesNotExist("%s does not exist: %r" % (cls.__name__, kwargs))
     except cls.MultipleObjectsReturned:
-        raise MultipleObjectsReturned("%s returned multiple: %r" %
-                                      (cls.__name__, kwargs))
+        raise MultipleObjectsReturned(
+            "%s returned multiple: %r" % (cls.__name__, kwargs)
+        )
 
 
 def raise_if_exists(cls, **kwargs):
@@ -394,8 +414,7 @@ def raise_if_exists(cls, **kwargs):
     """
     result = cls.objects.filter(**kwargs)
     if result.count() > 0:
-        raise AlreadyExists("%s already exists: %r" %
-                            (cls.__name__, kwargs))
+        raise AlreadyExists("%s already exists: %r" % (cls.__name__, kwargs))
 
 
 class BulkImportError(BulkParseError):
@@ -420,6 +439,7 @@ class AlreadyExists(BulkImportError):
 
 class InvalidValue(BulkImportError):
     """Invalid value"""
+
     pass
 
 
@@ -438,5 +458,4 @@ def reset_object_foreignkeys(obj):
 
 def get_foreign_key_fields(obj):
     """Gets foreign key fields from this object"""
-    return [field for field in obj._meta.get_fields()
-            if field.many_to_one]
+    return [field for field in obj._meta.get_fields() if field.many_to_one]

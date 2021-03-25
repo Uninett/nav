@@ -25,6 +25,7 @@ from .bgp4_mib import BGP4Mib
 
 class CiscoBGP4Mib(BGP4Mib):
     """MibRetriever implementation for CISCO-BGP4-MIB"""
+
     mib = get_mib('CISCO-BGP4-MIB')
     SUPPORTED_ROOT = 'cbgpPeer2Table'
     PEERSTATE_COLUMN = 'cbgpPeer2State'
@@ -35,5 +36,5 @@ class CiscoBGP4Mib(BGP4Mib):
 
     @staticmethod
     def _bgp_row_to_remote_ip(row_index):
-        remote_addr, = consume(row_index, TypedInetAddress)
+        (remote_addr,) = consume(row_index, TypedInetAddress)
         return remote_addr

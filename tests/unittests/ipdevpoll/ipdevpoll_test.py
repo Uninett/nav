@@ -21,11 +21,17 @@ from random import shuffle
 from IPy import IP
 
 import django
+
 django.setup()
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nav.django.settings'
 
 from nav.models.manage import Prefix
-from nav.ipdevpoll.utils import find_prefix, truncate_mac, binary_mac_to_hex, is_invalid_utf8
+from nav.ipdevpoll.utils import (
+    find_prefix,
+    truncate_mac,
+    binary_mac_to_hex,
+    is_invalid_utf8,
+)
 
 
 class UtilsTest(unittest.TestCase):
@@ -33,18 +39,10 @@ class UtilsTest(unittest.TestCase):
         correct_ipv4 = IP('192.0.2.1')
         correct_ipv6 = IP('2001:db8:1234::1')
 
-        loose_v6_prefix = Prefix(
-            net_address='2001:db8::/32'
-        )
-        tight_v6_prefix = Prefix(
-            net_address='2001:db8:1234::/48'
-        )
-        loose_v4_prefix = Prefix(
-            net_address='192.0.2/24'
-        )
-        tight_v4_prefix = Prefix(
-            net_address='192.0.2.0/26'
-        )
+        loose_v6_prefix = Prefix(net_address='2001:db8::/32')
+        tight_v6_prefix = Prefix(net_address='2001:db8:1234::/48')
+        loose_v4_prefix = Prefix(net_address='192.0.2/24')
+        tight_v4_prefix = Prefix(net_address='192.0.2.0/26')
 
         prefix_list = [
             loose_v6_prefix,

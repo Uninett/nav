@@ -23,6 +23,7 @@ from . import mibretriever, reduce_index
 
 class BridgeMib(mibretriever.MibRetriever):
     """MibRetriever implementation for BRIDGE-MIB"""
+
     mib = get_mib('BRIDGE-MIB')
 
     def get_baseport_ifindex_map(self):
@@ -42,11 +43,13 @@ class BridgeMib(mibretriever.MibRetriever):
     @defer.inlineCallbacks
     def get_forwarding_database(self):
         """Retrieves the forwarding database of the device."""
-        columns = yield self.retrieve_columns(['dot1dTpFdbPort',
-                                               'dot1dTpFdbStatus'])
+        columns = yield self.retrieve_columns(['dot1dTpFdbPort', 'dot1dTpFdbStatus'])
         columns = self.translate_result(columns)
-        valid = (row for row in columns.values()
-                 if row['dot1dTpFdbStatus'] not in ('self', 'invalid'))
+        valid = (
+            row
+            for row in columns.values()
+            if row['dot1dTpFdbStatus'] not in ('self', 'invalid')
+        )
         result = []
         for row in valid:
             mac = row[0]

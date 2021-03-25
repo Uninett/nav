@@ -67,6 +67,7 @@ IGNORED_STATUSES = {
 
 class RittalCMCIIIMib(MibRetriever):
     """MibRetriever for Rittal CMC III devices"""
+
     mib = get_mib('RITTAL-CMC-III-MIB')
 
     def get_module_name(self):
@@ -83,17 +84,16 @@ class RittalCMCIIIMib(MibRetriever):
 
     @defer.inlineCallbacks
     def get_devices(self):
-        devices = yield self.retrieve_columns(['cmcIIIDevName',
-                                               'cmcIIIDevAlias',
-                                               'cmcIIIDevNumberOfVars'])
+        devices = yield self.retrieve_columns(
+            ['cmcIIIDevName', 'cmcIIIDevAlias', 'cmcIIIDevNumberOfVars']
+        )
         devices = self.translate_result(devices)
         returnValue(devices)
 
     @defer.inlineCallbacks
     def get_sensors(self, devices):
         dev_names = {oid: dev['cmcIIIDevName'] for oid, dev in devices.items()}
-        dev_aliases = {oid: dev['cmcIIIDevAlias']
-                       for oid, dev in devices.items()}
+        dev_aliases = {oid: dev['cmcIIIDevAlias'] for oid, dev in devices.items()}
         sensors = yield self.retrieve_columns(SENSOR_COLUMNS)
         sensors = self.translate_result(sensors)
         result = []
@@ -105,21 +105,21 @@ class RittalCMCIIIMib(MibRetriever):
             sensor = ".".join(name_parts[:-1])
             mapping[sensor][suffix] = values
         for sname, data in mapping.items():
-            description = data.get('DescName', {}).get('cmcIIIVarValueStr',
-                                                       sname)
+            description = data.get('DescName', {}).get('cmcIIIVarValueStr', sname)
             status = data.get('Status', {}).get('cmcIIIVarValueStr', 'OK')
             if status in IGNORED_STATUSES:
-                self._logger.debug('Ignoring sensor %s due to status %s',
-                                   sname, status)
+                self._logger.debug('Ignoring sensor %s due to status %s', sname, status)
                 continue
             for var_name, values in data.items():
                 oid = values[0]
                 if values['cmcIIIVarType'] != 'value':
                     continue
                 if values['cmcIIIVarDatatype'] != 'int':
-                    self._logger.warning("Found sensor %s with datatype %s",
-                                         values['cmcIIIVarName'],
-                                         values['cmcIIIVarDatatype'])
+                    self._logger.warning(
+                        "Found sensor %s with datatype %s",
+                        values['cmcIIIVarName'],
+                        values['cmcIIIVarDatatype'],
+                    )
                     continue
                 raw_unit = values['cmcIIIVarUnit']
                 scale = UNIT_SCALE.get(raw_unit, None)
@@ -132,8 +132,7 @@ class RittalCMCIIIMib(MibRetriever):
                     precision = 0
                 else:
                     precision = -math.log10(raw_precision)
-                var_descr = '{}: {}'.format(dev_aliases[oid[:-1]],
-                                            description)
+                var_descr = '{}: {}'.format(dev_aliases[oid[:-1]], description)
                 if var_name != 'Value':
                     var_descr += " {}".format(var_name)
                 sensor = dict(
@@ -144,8 +143,8 @@ class RittalCMCIIIMib(MibRetriever):
                     description=var_descr,
                     name=name,
                     internal_name='{dev}_{var}'.format(
-                        dev=dev_names[oid[:-1]],
-                        var=name),
+                        dev=dev_names[oid[:-1]], var=name
+                    ),
                     mib=self.get_module_name(),
                 )
                 result.append(sensor)

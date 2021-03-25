@@ -33,6 +33,7 @@ from nav.web.seeddb.utils.delete import render_delete
 
 class VendorInfo(SeeddbInfo):
     """Class for storing meta information related to vendors in SeedDB"""
+
     active = {'vendor': True}
     caption = 'Vendors'
     verbose_name = Vendor._meta.verbose_name
@@ -56,10 +57,12 @@ class VendorForm(forms.ModelForm):
 
 def vendor(request):
     """Creates a view switcher containing the appropriate views"""
-    return view_switcher(request,
-                         list_view=vendor_list,
-                         move_view=not_implemented,
-                         delete_view=vendor_delete)
+    return view_switcher(
+        request,
+        list_view=vendor_list,
+        move_view=not_implemented,
+        delete_view=vendor_delete,
+    )
 
 
 def vendor_list(request):
@@ -67,30 +70,43 @@ def vendor_list(request):
     info = VendorInfo()
     query = Vendor.objects.all()
     value_list = ('id',)
-    return render_list(request, query, value_list, None,
-                       extra_context=info.template_context)
+    return render_list(
+        request, query, value_list, None, extra_context=info.template_context
+    )
 
 
 def vendor_delete(request):
     """The view used when deleting vendors"""
     info = VendorInfo()
-    return render_delete(request, Vendor, 'seeddb-vendor',
-                         whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context)
+    return render_delete(
+        request,
+        Vendor,
+        'seeddb-vendor',
+        whitelist=SEEDDB_EDITABLE_MODELS,
+        extra_context=info.template_context,
+    )
 
 
 def vendor_edit(request, vendor_id=None):
     """The view used when editing vendors"""
     info = VendorInfo()
-    return render_edit(request, Vendor, VendorForm, vendor_id,
-                       'seeddb-vendor',
-                       extra_context=info.template_context)
+    return render_edit(
+        request,
+        Vendor,
+        VendorForm,
+        vendor_id,
+        'seeddb-vendor',
+        extra_context=info.template_context,
+    )
 
 
 def vendor_bulk(request):
     """The view used when bulk importing vendors"""
     info = VendorInfo()
     return render_bulkimport(
-        request, VendorBulkParser, VendorImporter,
+        request,
+        VendorBulkParser,
+        VendorImporter,
         'seeddb-vendor',
-        extra_context=info.template_context)
+        extra_context=info.template_context,
+    )

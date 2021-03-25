@@ -185,7 +185,7 @@ def calculate_stop_time(acctstarttime, acctstoptime, acctsessiontime):
 
     # Check if session is still active
     if stop_time is None:
-        if (time_seconds + session_time) > (time.time()-ACCT_REAUTH_TIMEOUT):
+        if (time_seconds + session_time) > (time.time() - ACCT_REAUTH_TIMEOUT):
             stop_time = "Still Active"
         else:
             stop_time = "Timed Out"

@@ -61,8 +61,8 @@ def index(request):
             "searchproviders": searchproviders,
             "failed_providers": failed_providers,
             "navpath": navpath,
-            "title": create_title(titles)
-        }
+            "title": create_title(titles),
+        },
     )
 
 
@@ -86,8 +86,9 @@ def process_form(form):
             _logger.error('Could not import %s', providerpath)
         except Exception as error:
             providers_with_errors.append((providerpath, error))
-            _logger.exception("Search provider raised unhandled exception: %s",
-                              providerpath)
+            _logger.exception(
+                "Search provider raised unhandled exception: %s", providerpath
+            )
 
     providers_with_result = has_results(searchproviders)
     if not providers_with_result and not providers_with_errors:

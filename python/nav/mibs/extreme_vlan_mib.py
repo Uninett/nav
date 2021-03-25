@@ -23,6 +23,7 @@ from . import mibretriever
 
 class ExtremeVlanMib(mibretriever.MibRetriever):
     """Gets data from the EXTREME-VLAN-MIB"""
+
     mib = get_mib('EXTREME-VLAN-MIB')
 
     def get_vlan_ports(self):
@@ -50,12 +51,17 @@ class ExtremeVlanMib(mibretriever.MibRetriever):
 
 
 def _strip_slot_numbers_from_index(table):
-    return dict((if_index, row)
-                for (if_index, slot_number), row in table.items())
+    return dict((if_index, row) for (if_index, slot_number), row in table.items())
 
 
 def _convert_columns_to_portlists(table):
-    return dict((key,
-                 (portlist(row['extremeVlanOpaqueTaggedPorts']),
-                  portlist(row['extremeVlanOpaqueUntaggedPorts'])))
-                for key, row in table.items())
+    return dict(
+        (
+            key,
+            (
+                portlist(row['extremeVlanOpaqueTaggedPorts']),
+                portlist(row['extremeVlanOpaqueUntaggedPorts']),
+            ),
+        )
+        for key, row in table.items()
+    )

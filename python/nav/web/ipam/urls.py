@@ -29,5 +29,5 @@ from nav.web.ipam.api import router
 urlpatterns = [
     url(r'^$', index),
     url(r'^matrix', matrix),
-    url(r'^api', include(router.urls))
+    url(r'^api', include(router.urls)),
 ]

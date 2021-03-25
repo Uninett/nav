@@ -29,10 +29,10 @@ class ObjectCache(dict):
     Mostly used for database connection pooling in NAV.
 
     """
+
     def __setitem__(self, key, item):
         if key in self:
-            raise CacheError(
-                "An object keyed %r is already stored in the cache" % key)
+            raise CacheError("An object keyed %r is already stored in the cache" % key)
 
         super(ObjectCache, self).__setitem__(key, item)
         item.cache = self
@@ -74,6 +74,7 @@ class CacheableObject(object):
     A simple class to wrap objects for 'caching'.  It contains the
     object reference and the time the object was loaded.
     """
+
     def __init__(self, object_=None):
         self.object = object_
         self._cache = None
@@ -137,7 +138,8 @@ class CacheableObject(object):
         else:
             return "<%s cached at %s>" % (
                 repr(self.object),
-                time.asctime(time.localtime(self.cache_time)))
+                time.asctime(time.localtime(self.cache_time)),
+            )
 
     def __str__(self):
         return str(self.object)
@@ -145,4 +147,5 @@ class CacheableObject(object):
 
 class CacheError(Exception):
     """Generic error during an ObjectCache operation"""
+
     pass

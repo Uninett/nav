@@ -19,7 +19,7 @@ import select
 import logging
 from socket import AF_INET, AF_INET6, inet_ntop
 from errno import EINTR
-from ctypes import (c_ushort, c_char, POINTER, cast, c_long)
+from ctypes import c_ushort, c_char, POINTER, cast, c_long
 
 from IPy import IP
 from pynetsnmp import netsnmp
@@ -39,6 +39,7 @@ _logger = logging.getLogger(__name__)
 
 class TrapListener(object):
     """A pynetsnmp based implementation of a TrapListener"""
+
     def __init__(self, *addresses):
         """Initializes a TrapListener.
 
@@ -47,8 +48,7 @@ class TrapListener(object):
         """
         self.addresses = addresses
         self._client_callback = None
-        self._sessions = [TrapSession(addr, self.callback)
-                          for addr in addresses]
+        self._sessions = [TrapSession(addr, self.callback) for addr in addresses]
 
     def open(self):
         """Opens the server socket at port 162."""
@@ -91,7 +91,7 @@ class TrapListener(object):
 
         agent_addr = None
         generic_type = None
-        community = pdu.community[:pdu.community_len]
+        community = pdu.community[: pdu.community_len]
 
         varbinds = netsnmp.getResult(pdu)
 
@@ -113,12 +113,21 @@ class TrapListener(object):
         # Dump varbinds to debug log
         _logger.debug("varbinds: %r", varbinds)
         # Add remaining varbinds to dict
-        varbind_dict = dict((str(OID(oid)), value_to_str(value))
-                            for oid, value in varbinds)
+        varbind_dict = dict(
+            (str(OID(oid)), value_to_str(value)) for oid, value in varbinds
+        )
 
-        trap = SNMPTrap(str(src), agent_addr or str(src), None, generic_type,
-                        str(snmp_trap_oid), uptime, community, version,
-                        varbind_dict)
+        trap = SNMPTrap(
+            str(src),
+            agent_addr or str(src),
+            None,
+            generic_type,
+            str(snmp_trap_oid),
+            uptime,
+            community,
+            version,
+            varbind_dict,
+        )
         self._client_callback(trap)
 
 
@@ -146,7 +155,7 @@ TRAP_MAP = {
     netsnmp.SNMP_TRAP_AUTHFAIL: 'authenticationFailure',
     netsnmp.SNMP_TRAP_EGPNEIGHBORLOSS: 'egpNeighborLoss',
     netsnmp.SNMP_TRAP_ENTERPRISESPECIFIC: 'enterpriseSpecific',
-    }
+}
 
 
 def transform_trap_type(pdu):
@@ -179,6 +188,7 @@ def transform_trap_type(pdu):
 
 class TrapSession(netsnmp.Session):
     """A shim to adapt netsnmp.Session to our trap-receiving needs"""
+
     def __init__(self, iface, callback):
         super(TrapSession, self).__init__()
         self.addr, self.port = iface
@@ -202,8 +212,10 @@ class TrapSession(netsnmp.Session):
         elif getattr(lib, "netsnmp_udp6_ctor", sentinel) is not sentinel:
             lib.netsnmp_udp6_ctor()
         else:
-            _logger.warning("Cannot find constructor function for UDP/IPv6 "
-                            "transport domain object.")
+            _logger.warning(
+                "Cannot find constructor function for UDP/IPv6 "
+                "transport domain object."
+            )
 
     def callback(self, pdu):
         addr = get_transport_addr(pdu)
@@ -236,16 +248,20 @@ def get_transport_addr(pdu):
     if family not in (AF_INET, AF_INET6):
         return
 
-    addr_size, offset = ((IPADDR_SIZE, IPADDR_OFFSET) if family == AF_INET
-                         else (IP6ADDR_SIZE, IP6ADDR_OFFSET))
+    addr_size, offset = (
+        (IPADDR_SIZE, IPADDR_OFFSET)
+        if family == AF_INET
+        else (IP6ADDR_SIZE, IP6ADDR_OFFSET)
+    )
 
     buffer_type = c_char * pdu.transport_data_length
     data_p = cast(pdu.transport_data, POINTER(buffer_type))
     data = data_p.contents
-    addr = data[offset:offset + addr_size]
+    addr = data[offset : offset + addr_size]
     return inet_ntop(family, addr)
 
 
 class UnsupportedSnmpVersionError(GeneralException):
     """Received a trap with an unsupported SNMP version"""
+
     pass

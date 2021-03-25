@@ -23,6 +23,7 @@ _logger = logging.getLogger(__name__)
 
 class ModuleLoadError(GeneralException):
     """Failed to load module"""
+
     pass
 
 

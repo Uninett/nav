@@ -101,7 +101,7 @@ def main():
         'maxdelay': maxdelay,
         'delayfactor': delayfactor,
         'retrylimit': retrylimit,
-        'retrylimitaction': retrylimitaction
+        'retrylimitaction': retrylimitaction,
     }
 
     username = config['main']['username']
@@ -118,8 +118,9 @@ def main():
         except nav.daemon.DaemonError as error:
             print(error, file=sys.stderr)
             sys.exit(
-                "Run as root or %s. Try `%s --help' for more information." % (
-                 username, sys.argv[0]))
+                "Run as root or %s. Try `%s --help' for more information."
+                % (username, sys.argv[0])
+            )
 
     # Initialize logging
     nav.logs.init_stderr_logging()
@@ -174,8 +175,7 @@ def main():
             queue = nav.smsd.navdbqueue.NAVDBQueue()
             rowsinserted = queue.inserttestmsgs(args.uid, args.TEST, text)
             if rowsinserted:
-                _logger.info("SMS put in queue. %d row(s) inserted.",
-                            rowsinserted)
+                _logger.info("SMS put in queue. %d row(s) inserted.", rowsinserted)
             else:
                 _logger.info("SMS not put in queue.")
 
@@ -216,8 +216,11 @@ def main():
     # Automatically cancel unsent messages older than a given interval
     if autocancel != '0':
         ignored_count = queue.cancel(autocancel)
-        _logger.info("%d unsent messages older than '%s' autocanceled.",
-                    ignored_count, autocancel)
+        _logger.info(
+            "%d unsent messages older than '%s' autocanceled.",
+            ignored_count,
+            autocancel,
+        )
 
     # Loop forever
     while True:
@@ -238,8 +241,7 @@ def main():
             try:
                 (sms, sent, ignored, smsid) = dh.sendsms(user, msgs)
             except PermanentDispatcherError as error:
-                _logger.critical("Sending failed permanently. Exiting. (%s)",
-                                error)
+                _logger.critical("Sending failed permanently. Exiting. (%s)", error)
                 sys.exit(1)
             except DispatcherError as error:
                 try:
@@ -264,8 +266,9 @@ def main():
                 queue.setsentstatus(msgid, 'Y', smsid)
             for msgid in ignored:
                 queue.setsentstatus(msgid, 'I', smsid)
-            _logger.info("%d messages were sent and %d ignored.",
-                        len(sent), len(ignored))
+            _logger.info(
+                "%d messages were sent and %d ignored.", len(sent), len(ignored)
+            )
 
         # Sleep a bit before the next run
         _logger.debug("Sleeping for %d seconds.", delay)
@@ -273,6 +276,7 @@ def main():
 
         # Devel only
         # break
+
 
 #
 # HELPER FUNCTIONS
@@ -283,38 +287,53 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="The NAV SMS daemon",
         epilog="smsd dispatches SMS messages from the database to users' "
-               "phones with the help of plugins, such as one using Gammu and "
-               "a locally connected GSM unit, or possibly web based SMS "
-               "services."
+        "phones with the help of plugins, such as one using Gammu and "
+        "a locally connected GSM unit, or possibly web based SMS "
+        "services.",
     )
     arg = parser.add_argument
-    arg("-c", "--cancel", action="store_true",
-        help="cancel (mark as ignored) all unsent messages")
-    arg("-d", "--delay", type=int,
-        help="set delay (in seconds) between queue checks")
-    arg("-D", "--delayfactor", type=int,
-        help="set the factor DELAY will be multiplied with for each attempt")
-    arg("-m", "--maxdelay", type=int,
-        help="maximum delay (in seconds)")
-    arg("-l", "--limit", type=int,
-        help="set the limit of retries")
-    arg("-a", "--action", type=int, choices=[0, 1],
+    arg(
+        "-c",
+        "--cancel",
+        action="store_true",
+        help="cancel (mark as ignored) all unsent messages",
+    )
+    arg("-d", "--delay", type=int, help="set delay (in seconds) between queue checks")
+    arg(
+        "-D",
+        "--delayfactor",
+        type=int,
+        help="set the factor DELAY will be multiplied with for each attempt",
+    )
+    arg("-m", "--maxdelay", type=int, help="maximum delay (in seconds)")
+    arg("-l", "--limit", type=int, help="set the limit of retries")
+    arg(
+        "-a",
+        "--action",
+        type=int,
+        choices=[0, 1],
         help="the action to perform when reaching limit (0 or 1). 0 means "
-             "messages in queue are marked as ignored and error details are "
-             "logged and mailed to admin, while daemon resumes running and "
-             "checking the message queue. 1 means error details are logged and "
-             "mailed to admin, while the daemon shuts down.")
-    arg("-t", "--test", metavar="PHONENO",
-        help="send a test message to PHONENO")
-    arg("-T", "--TEST", metavar="PHONENO",
+        "messages in queue are marked as ignored and error details are "
+        "logged and mailed to admin, while daemon resumes running and "
+        "checking the message queue. 1 means error details are logged and "
+        "mailed to admin, while the daemon shuts down.",
+    )
+    arg("-t", "--test", metavar="PHONENO", help="send a test message to PHONENO")
+    arg(
+        "-T",
+        "--TEST",
+        metavar="PHONENO",
         help="puts a test message to PHONENO into the SMS queue. use the --uid "
-             "option to specify which NAV user account id to associate with "
-             "the queued message")
-    arg("--message", metavar="MESSAGE",
-        help="Used in combination with -t or -T to specify the message content")
+        "option to specify which NAV user account id to associate with "
+        "the queued message",
+    )
+    arg(
+        "--message",
+        metavar="MESSAGE",
+        help="Used in combination with -t or -T to specify the message content",
+    )
     arg("-u", "--uid", type=int, help="NAV user/account id to queue message to")
-    arg("-f", "--foreground", action="store_true",
-        help="run process in the foreground")
+    arg("-f", "--foreground", action="store_true", help="run process in the foreground")
 
     args = parser.parse_args()
     if args.test and args.TEST:
@@ -322,8 +341,9 @@ def parse_args():
     if args.TEST and args.uid is None:
         parser.error("Please provide an account id using the --uid option")
     if args.message and not (args.test or args.TEST):
-        parser.error("--message can only be used in combination with either "
-                     "-t or -T")
+        parser.error(
+            "--message can only be used in combination with either " "-t or -T"
+        )
     return args
 
 
@@ -361,8 +381,11 @@ def backoff(seconds, error, retryvars):
     global failed
 
     maxdelay, delayfactor, retrylimit, retrylimitaction = (
-        retryvars['maxdelay'], retryvars['delayfactor'],
-        retryvars['retrylimit'], retryvars['retrylimitaction'])
+        retryvars['maxdelay'],
+        retryvars['delayfactor'],
+        retryvars['retrylimit'],
+        retryvars['retrylimitaction'],
+    )
 
     failed += 1
     _logger.debug("Dispatcher failed %d time(s).", failed)
@@ -378,9 +401,13 @@ def backoff(seconds, error, retryvars):
     # If limit is disabled, report error and continue
     elif retrylimit == 0 and delay >= maxdelay:
         if len(msgs):
-            _logger.critical("Dispatching SMS fails. %d unsent message(s), "
-                            "the oldest from %s. (%s)",
-                            len(msgs), msgs[0]['time'], error)
+            _logger.critical(
+                "Dispatching SMS fails. %d unsent message(s), "
+                "the oldest from %s. (%s)",
+                len(msgs),
+                msgs[0]['time'],
+                error,
+            )
         else:
             _logger.critical("Dispatching SMS fails. (%s)", error)
 
@@ -403,7 +430,7 @@ def backoffaction(error, retrylimitaction):
 
         for index, msg in enumerate(msgs):
             error_message += u'\n%s: "%s" --> %s' % (
-                index+1,
+                index + 1,
                 smart_text(msg['msg']),
                 smart_text(msg['name']),
             )
@@ -461,10 +488,11 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
     try:
         hostname = socket.gethostname()
         mailhandler = logging.handlers.SMTPHandler(
-            mailserver, fromaddr, mailaddr, 'NAV smsd warning from ' + hostname)
+            mailserver, fromaddr, mailaddr, 'NAV smsd warning from ' + hostname
+        )
         mailformat = (
-            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] '
-            '%(message)s')
+            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] ' '%(message)s'
+        )
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)
         mailhandler.setLevel(loglevel)
@@ -472,8 +500,10 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
         _logger.addHandler(mailhandler)
         return True
     except Exception as error:
-        print("Failed creating SMTP loghandler. Daemon mode disabled. (%s)"
-              % error, file=sys.stderr)
+        print(
+            "Failed creating SMTP loghandler. Daemon mode disabled. (%s)" % error,
+            file=sys.stderr,
+        )
         return False
 
 

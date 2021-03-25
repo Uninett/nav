@@ -31,13 +31,14 @@ from ..forms import SearchForm
 
 ### Forms
 
+
 class PrefixSearchForm(SearchForm):
     """Searchform for prefixes"""
 
     def __init__(self, *args, **kwargs):
         super(PrefixSearchForm, self).__init__(
-            *args, form_action='prefix-index', placeholder='a.b.c.d/e',
-            **kwargs)
+            *args, form_action='prefix-index', placeholder='a.b.c.d/e', **kwargs
+        )
         self.helper.form_id = 'prefix-search-form'
 
     def clean_query(self):
@@ -47,18 +48,19 @@ class PrefixSearchForm(SearchForm):
             ip = IP(ip)
         except ValueError as error:
             raise forms.ValidationError(
-                ('%(error)s'),
-                params={'query': ip, 'error': error},
-                code='invalid'
+                ('%(error)s'), params={'query': ip, 'error': error}, code='invalid'
             )
         return ip
 
 
 class PrefixUsageForm(forms.ModelForm):
     """Form to select usages/tags for a prefix"""
+
     usages = forms.ModelMultipleChoiceField(
-        queryset=Usage.objects.all(), label='Add tags',
-        widget=forms.SelectMultiple(attrs={'class': 'select2'}))
+        queryset=Usage.objects.all(),
+        label='Add tags',
+        widget=forms.SelectMultiple(attrs={'class': 'select2'}),
+    )
 
     def __init__(self, *args, **kwargs):
         super(PrefixUsageForm, self).__init__(*args, **kwargs)
@@ -73,37 +75,36 @@ class PrefixUsageForm(forms.ModelForm):
 
 ### Helpers
 
+
 def require_prefix_privilege(func):
     """Decorator for authorizing prefix edit actions"""
+
     def wrapper(request, *args, **kwargs):
         """Decorator wrapper"""
         if authorize_user(request):
             return func(request, *args, **kwargs)
         else:
-            return HttpResponse("User not authorized to edit prefixes",
-                                status=403)
+            return HttpResponse("User not authorized to edit prefixes", status=403)
 
     return wrapper
 
 
 def get_context(prefix=None):
     """Returns a context for a page with a possible prefix"""
-    navpath = [('Home', '/'), ('Search', reverse('info-search')),
-               ('Prefix', reverse('prefix-index'))]
+    navpath = [
+        ('Home', '/'),
+        ('Search', reverse('info-search')),
+        ('Prefix', reverse('prefix-index')),
+    ]
     if prefix:
         navpath.append((prefix.net_address,))
-    return {
-        'prefix': prefix,
-        'navpath': navpath,
-        'title': utils.create_title(navpath)
-    }
+    return {'prefix': prefix, 'navpath': navpath, 'title': utils.create_title(navpath)}
 
 
 def get_query_results(query):
     """Returns the prefixes determined by the query"""
     where_string = "inet '{}' >>= netaddr".format(IP(query))
-    return Prefix.objects.extra(where=[where_string],
-                                order_by=['net_address'])
+    return Prefix.objects.extra(where=[where_string], order_by=['net_address'])
 
 
 def authorize_user(request):
@@ -112,6 +113,7 @@ def authorize_user(request):
 
 
 ### Controllers
+
 
 def index(request):
     """Presents user with search form for prefixes"""
@@ -150,8 +152,7 @@ def prefix_add_tags(request, prefix_id):
     to_remove = list(existing_usages - usages)
     to_add = list(usages - existing_usages)
 
-    PrefixUsage.objects.filter(prefix=prefix,
-                               usage__in=to_remove).delete()
+    PrefixUsage.objects.filter(prefix=prefix, usage__in=to_remove).delete()
     for usage_key in to_add:
         usage = Usage.objects.get(pk=usage_key)
         try:
@@ -164,5 +165,8 @@ def prefix_add_tags(request, prefix_id):
 
 def prefix_reload_tags(request, prefix_id):
     """Render the tags fragment"""
-    return render(request, 'info/prefix/frag_tags.html',
-                  {'prefix': Prefix.objects.get(pk=prefix_id)})
+    return render(
+        request,
+        'info/prefix/frag_tags.html',
+        {'prefix': Prefix.objects.get(pk=prefix_id)},
+    )

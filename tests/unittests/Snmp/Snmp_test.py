@@ -7,17 +7,15 @@ from django.utils import six
 
 
 class SnmpTestCase(unittest.TestCase):
-
     def _patch_cleaning(self, patched_sys_modules_to_modify):
-        for module in (
-        'nav.Snmp.pynetsnmp',
-        'nav.Snmp.errors', 'nav.Snmp'):
+        for module in ('nav.Snmp.pynetsnmp', 'nav.Snmp.errors', 'nav.Snmp'):
             if module in patched_sys_modules_to_modify:
                 del patched_sys_modules_to_modify[module]
 
     def _import(self, implementation):
-        return __import__('nav.Snmp.'+implementation, globals(), locals(),
-                          ['Snmp']).Snmp
+        return __import__(
+            'nav.Snmp.' + implementation, globals(), locals(), ['Snmp']
+        ).Snmp
 
 
 class SnmpTestPynetsnmp(SnmpTestCase):
@@ -49,7 +47,8 @@ class SnmpTestPynetsnmp(SnmpTestCase):
 
 class OtherSnmpTests(SnmpTestCase):
     def test_raise_no_supported_snmp_backend_found_raised_if_no_snmp_libraries_are_available(
-            self):
+        self,
+    ):
         modules = {
             'pynetsnmp': None,
         }
@@ -64,6 +63,7 @@ class OtherSnmpTests(SnmpTestCase):
 
             try:
                 from nav.Snmp import Snmp
+
                 pytest.fail("Should never happen")
             except ImportError as foo:
                 assert str(foo) == 'No supported SNMP backend was found'

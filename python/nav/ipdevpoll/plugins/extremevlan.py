@@ -51,7 +51,8 @@ class ExtremeVlan(Plugin):
 
     def handle(self):
         self._logger.debug(
-            "Collecting Extreme Networks proprietary 802.1q VLAN information")
+            "Collecting Extreme Networks proprietary 802.1q VLAN information"
+        )
         return self._get_vlan_data()
 
     @inlineCallbacks
@@ -81,9 +82,11 @@ class ExtremeVlan(Plugin):
         return config
 
     def _portnums_to_ifindexes(self, portnums):
-        return [self.baseport_ifindex[portnum]
-                for portnum in portnums
-                if portnum in self.baseport_ifindex]
+        return [
+            self.baseport_ifindex[portnum]
+            for portnum in portnums
+            if portnum in self.baseport_ifindex
+        ]
 
     def _store_access_ports(self, vlan_config):
         """Store vlan memberships for all ports."""
@@ -107,7 +110,6 @@ class ExtremeVlan(Plugin):
             interface.trunk = True
             interface.vlan = None
 
-            allowed = self.containers.factory(ifindex,
-                                              shadows.SwPortAllowedVlan)
+            allowed = self.containers.factory(ifindex, shadows.SwPortAllowedVlan)
             allowed.interface = interface
             allowed.hex_string = vlan_list_to_hex(vlans)

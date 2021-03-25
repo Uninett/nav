@@ -40,18 +40,18 @@ class LocationStatus(RoomStatus):
         assert 'results' in context
 
         result_ids = [r.get('id') for r in context['results']]
-        alerts = AlertHistory.objects.filter(
-            pk__in=result_ids).exclude(netbox__isnull=True).order_by(
-            'netbox__room')
+        alerts = (
+            AlertHistory.objects.filter(pk__in=result_ids)
+            .exclude(netbox__isnull=True)
+            .order_by('netbox__room')
+        )
         locations = []
         for location, alertlist in groupby(alerts, attrgetter('netbox.room.location')):
             location.alerts = sorted(alertlist, key=attrgetter('start_time'))
             for alert in location.alerts:
                 state = STATE_START if alert.end_time is not None else STATE_STATELESS
                 alert.sms_message = alert.messages.get(
-                    type='sms',
-                    language='en',
-                    state=state,
+                    type='sms', language='en', state=state,
                 )
             locations.append(location)
 

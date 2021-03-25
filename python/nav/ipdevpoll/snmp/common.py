@@ -28,6 +28,7 @@ _logger = logging.getLogger(__name__)
 
 def cache_for_session(func):
     """Decorator for AgentProxyMixIn.getTable to cache responses"""
+
     def _wrapper(*args, **kwargs):
         self, oids = args[0], args[1]
         cache = getattr(self, '_result_cache')
@@ -50,6 +51,7 @@ def _cache_result(result, cache, key):
 
 def throttled(func):
     """Decorator for AgentProxyMixIn.getTable to throttle requests"""
+
     def _wrapper(*args, **kwargs):
         self = args[0]
         last_request = getattr(self, '_last_request')
@@ -76,6 +78,7 @@ class AgentProxyMixIn(object):
     properly.
 
     """
+
     def __init__(self, *args, **kwargs):
         """Initializes an agent proxy.
 
@@ -102,7 +105,8 @@ class AgentProxyMixIn(object):
             module=self.__class__.__module__,
             klass=self.__class__.__name__,
             ip=repr(self.ip),
-            ident=id(self))
+            ident=id(self),
+        )
 
     # hey, we're mimicking someone else's API here, never mind the bollocks:
     # pylint: disable=C0111,C0103
@@ -131,11 +135,9 @@ class AgentProxyMixIn(object):
 
 
 # pylint: disable=C0103
-SNMPParameters = namedtuple('SNMPParameters',
-                            'timeout max_repetitions throttle_delay')
+SNMPParameters = namedtuple('SNMPParameters', 'timeout max_repetitions throttle_delay')
 
-SNMP_DEFAULTS = SNMPParameters(timeout=1.5, max_repetitions=50,
-                               throttle_delay=0)
+SNMP_DEFAULTS = SNMPParameters(timeout=1.5, max_repetitions=50, throttle_delay=0)
 
 
 # pylint: disable=W0212
@@ -149,12 +151,13 @@ def snmp_parameter_factory(host=None):
     section = 'snmp'
 
     from nav.ipdevpoll.config import ipdevpoll_conf as config
+
     params = SNMP_DEFAULTS._asdict()
 
     for var, getter in [
-            ('max-repetitions', config.getint),
-            ('timeout', config.getfloat),
-            ('throttle-delay', config.getfloat),
+        ('max-repetitions', config.getint),
+        ('timeout', config.getfloat),
+        ('throttle-delay', config.getfloat),
     ]:
         if config.has_option(section, var):
             key = var.replace('-', '_')

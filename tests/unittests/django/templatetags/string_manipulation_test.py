@@ -6,7 +6,6 @@ from nav.django.templatetags.string_manipulation import deep_urlize
 
 
 class DeepUrlizeTest(unittest.TestCase):
-
     def test_deep_urlize_noturl(self):
         for noturl in (None, u'', u'blbl', u'a2'):
             durl = deep_urlize(noturl)

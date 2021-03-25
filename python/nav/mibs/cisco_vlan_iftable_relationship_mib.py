@@ -26,6 +26,7 @@ from . import mibretriever
 
 class CiscoVlanIftableRelationshipMib(mibretriever.MibRetriever):
     """A CISCO-VLAN-IFTABLE-RELATIONSHIP-MIB MibRetriever"""
+
     mib = get_mib('CISCO-VLAN-IFTABLE-RELATIONSHIP-MIB')
 
     @defer.inlineCallbacks
@@ -37,8 +38,10 @@ class CiscoVlanIftableRelationshipMib(mibretriever.MibRetriever):
 
         """
         routed_vlans = yield self.retrieve_column('cviRoutedVlanIfIndex')
-        result = [RoutedVlan(vlan, physical, virtual)
-                  for (vlan, physical), virtual in routed_vlans.items()]
+        result = [
+            RoutedVlan(vlan, physical, virtual)
+            for (vlan, physical), virtual in routed_vlans.items()
+        ]
         defer.returnValue(result)
 
 

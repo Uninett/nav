@@ -23,8 +23,10 @@ from django.utils.six.moves.urllib.request import Request, urlopen
 from django.utils.six.moves.urllib.error import HTTPError, URLError
 
 from nav.metrics import CONFIG, errors
-from nav.metrics.templates import (metric_path_for_packet_loss,
-                                   metric_path_for_roundtrip_time)
+from nav.metrics.templates import (
+    metric_path_for_packet_loss,
+    metric_path_for_roundtrip_time,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -47,8 +49,9 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
     data = get_metric_data(target, start, end)
     result = {}
     for target in data:
-        dpoints = [d[0] for d in target['datapoints']
-                   if not (ignore_unknown and d[0] is None)]
+        dpoints = [
+            d[0] for d in target['datapoints'] if not (ignore_unknown and d[0] is None)
+        ]
         if dpoints:
             if None in dpoints:
                 avg = None
@@ -56,8 +59,11 @@ def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
                 avg = sum(dpoints) / len(dpoints)
             result[target['target']] = avg
 
-    _logger.debug('Got metric average for %s targets in %s seconds',
-                  len(data), datetime.now() - start_time)
+    _logger.debug(
+        'Got metric average for %s targets in %s seconds',
+        len(data),
+        datetime.now() - start_time,
+    )
     return result
 
 
@@ -119,14 +125,15 @@ def get_metric_data(target, start="-5min", end="now"):
         _logger.debug("get_metric_data: returning %d results", len(json_data))
         return json_data
     except HTTPError as err:
-        _logger.error("Got a 500 error from graphite-web when fetching %s"
-                      "with data %s", err.url, query)
+        _logger.error(
+            "Got a 500 error from graphite-web when fetching %s" "with data %s",
+            err.url,
+            query,
+        )
         _logger.error("Graphite output: %s", err.fp.read())
-        raise errors.GraphiteUnreachableError(
-            "{0} is unreachable".format(base), err)
+        raise errors.GraphiteUnreachableError("{0} is unreachable".format(base), err)
     except URLError as err:
-        raise errors.GraphiteUnreachableError(
-            "{0} is unreachable".format(base), err)
+        raise errors.GraphiteUnreachableError("{0} is unreachable".format(base), err)
     except ValueError:
         # response could not be decoded
         return []
@@ -141,13 +148,17 @@ DEFAULT_TIME_FRAMES = ('day', 'week', 'month')
 DEFAULT_DATA_SOURCES = ('availability', 'response_time')
 METRIC_PATH_LOOKUP = {
     'availability': metric_path_for_packet_loss,
-    'response_time': metric_path_for_roundtrip_time
+    'response_time': metric_path_for_roundtrip_time,
 }
 
 
-def get_netboxes_availability(netboxes, data_sources=DEFAULT_DATA_SOURCES,
-                              time_frames=DEFAULT_TIME_FRAMES,
-                              start_time=None, end_time=None):
+def get_netboxes_availability(
+    netboxes,
+    data_sources=DEFAULT_DATA_SOURCES,
+    time_frames=DEFAULT_TIME_FRAMES,
+    start_time=None,
+    end_time=None,
+):
     """Calculates and returns an availability data structure for a list of
     netboxes.
 
@@ -199,8 +210,7 @@ def populate_for_interval(result, targets, netboxes, start_time, end_time):
 
         # Response time
         if 'response_time' in root:
-            root['response_time'] = avg.get(
-                root['response_time']['data_source'])
+            root['response_time'] = avg.get(root['response_time']['data_source'])
 
 
 def populate_for_time_frame(result, targets, netboxes, time_frames):
@@ -221,4 +231,5 @@ def populate_for_time_frame(result, targets, netboxes, time_frames):
             # Response time
             if 'response_time' in root:
                 root['response_time'][time_frame] = avg.get(
-                    root['response_time']['data_source'])
+                    root['response_time']['data_source']
+                )

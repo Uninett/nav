@@ -14,13 +14,14 @@ class IgnoredMacTest(TestCase):
                 ('00:12:34:56:78:9a', 1),
                 (vrrp1, 2),
                 (vrrp2, 3),
-                ]
+            ]
             cx.cursor.return_value = my_cursor
             result = _get_netbox_macs()
-            self.assertTrue(len(result) > 0,
-                            msg="Non-VRRP addresses were ignored")
-            self.assertFalse(vrrp1 in result or vrrp2 in result,
-                             msg="VRRP addresses are present in result")
+            self.assertTrue(len(result) > 0, msg="Non-VRRP addresses were ignored")
+            self.assertFalse(
+                vrrp1 in result or vrrp2 in result,
+                msg="VRRP addresses are present in result",
+            )
 
 
 class _MockedCDPNeighbor(CDPNeighbor):

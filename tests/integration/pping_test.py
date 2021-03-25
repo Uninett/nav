@@ -3,12 +3,11 @@ various pping integration tests
 """
 import os
 import getpass
+
 try:
-    from subprocess32 import (STDOUT, check_output, TimeoutExpired,
-                              CalledProcessError)
+    from subprocess32 import STDOUT, check_output, TimeoutExpired, CalledProcessError
 except ImportError:
-    from subprocess import (STDOUT, check_output, TimeoutExpired,
-                            CalledProcessError)
+    from subprocess import STDOUT, check_output, TimeoutExpired, CalledProcessError
 
 import pytest
 
@@ -24,20 +23,23 @@ def can_be_root():
         return False
 
 
-@pytest.mark.skipif(can_be_root(),
-                    reason="pping can only be tested with root privileges")
+@pytest.mark.skipif(
+    can_be_root(), reason="pping can only be tested with root privileges"
+)
 def test_pping_localhost_should_work(localhost, pping_test_config):
     output = get_pping_output()
     assert "0 hosts currently marked as down" in output
 
 
-@pytest.mark.skipif(can_be_root(),
-                    reason="pping can only be tested with root privileges")
-def test_pping_nonavailable_host_should_fail(host_expected_to_be_down,
-                                             pping_test_config):
+@pytest.mark.skipif(
+    can_be_root(), reason="pping can only be tested with root privileges"
+)
+def test_pping_nonavailable_host_should_fail(
+    host_expected_to_be_down, pping_test_config
+):
     expected = "{sysname} ({ip}) marked as down".format(
-        sysname=host_expected_to_be_down.sysname,
-        ip=host_expected_to_be_down.ip)
+        sysname=host_expected_to_be_down.sysname, ip=host_expected_to_be_down.ip
+    )
     output = get_pping_output()
     assert expected in output
 
@@ -82,8 +84,13 @@ def get_pping_output(timeout=5):
 
 @pytest.fixture()
 def host_expected_to_be_down(management_profile):
-    box = Netbox(ip='10.254.254.254', sysname='downhost.example.org',
-                 organization_id='myorg', room_id='myroom', category_id='SRV')
+    box = Netbox(
+        ip='10.254.254.254',
+        sysname='downhost.example.org',
+        organization_id='myorg',
+        room_id='myroom',
+        category_id='SRV',
+    )
     box.save()
     NetboxProfile(netbox=box, profile=management_profile).save()
     yield box
@@ -98,14 +105,18 @@ def pping_test_config():
     tmpfile = configfile + '.bak'
     os.rename(configfile, tmpfile)
     with open(configfile, "w") as config:
-        config.write("""
+        config.write(
+            """
 user = {user}
 checkinterval = 2
 packetsize = 64
 timeout = 1
 nrping = 2
 delay = 2
-""".format(user=getpass.getuser()))
+""".format(
+                user=getpass.getuser()
+            )
+        )
     yield configfile
     print("restoring ping config")
     os.remove(configfile)

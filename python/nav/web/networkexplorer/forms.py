@@ -7,6 +7,7 @@ class MultitypeQueryWidget(forms.MultiWidget):
     """
     Widget for MultitypeQueryField
     """
+
     def decompress(self, value):
         return [value]
 
@@ -45,11 +46,10 @@ class MultitypeQueryField(forms.MultiValueField):
         super(MultitypeQueryField, self).__init__(fields=(), *args, **kwargs)
         self.fields = (
             forms.CharField(min_length=1),
-            forms.ChoiceField(choices=choices)
+            forms.ChoiceField(choices=choices),
         )
         self.widget = MultitypeQueryWidget(
-            (forms.TextInput(),
-             forms.Select(choices=choices))
+            (forms.TextInput(), forms.Select(choices=choices))
         )
         self.query_validators = validators
 
@@ -65,6 +65,7 @@ class MultitypeQueryField(forms.MultiValueField):
 
 class NetworkSearchForm(forms.Form):
     """Form for searching in local networks"""
+
     QUERY_TYPES = (
         ('sysname', 'Sysname'),
         ('ip', 'IP'),
@@ -75,8 +76,8 @@ class NetworkSearchForm(forms.Form):
     )
     query = MultitypeQueryField(QUERY_TYPES)
     exact_results = forms.BooleanField(
-        label='Search exact (no substring)',
-        required=False)
+        label='Search exact (no substring)', required=False
+    )
     hide_ports = forms.BooleanField(
-        label='Hide ports with no description',
-        required=False)
+        label='Hide ports with no description', required=False
+    )

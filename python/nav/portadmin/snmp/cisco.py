@@ -30,6 +30,7 @@ _logger = logging.getLogger(__name__)
 
 class Cisco(SNMPHandler):
     """A specialized class for handling ports in CISCO switches."""
+
     VENDOR = VENDOR_ID_CISCOSYSTEMS
 
     VTPNODES = get_mib('CISCO-VTP-MIB')['nodes']
@@ -97,15 +98,14 @@ class Cisco(SNMPHandler):
         """Set native vlan on a trunk interface"""
         if_index = interface.ifindex
         try:
-            self._set_netbox_value(self.TRUNKPORTNATIVEVLAN, if_index, 'i',
-                                   vlan)
+            self._set_netbox_value(self.TRUNKPORTNATIVEVLAN, if_index, 'i', vlan)
         except SnmpError:
             try:
-                self._set_netbox_value(self.TRUNKPORTNATIVEVLAN, if_index,
-                                       'u', vlan)
+                self._set_netbox_value(self.TRUNKPORTNATIVEVLAN, if_index, 'u', vlan)
             except SnmpError:
-                _logger.error('Setting native vlan on %s ifindex %s failed',
-                              self.netbox, if_index)
+                _logger.error(
+                    'Setting native vlan on %s ifindex %s failed', self.netbox, if_index
+                )
 
     def get_cisco_voice_vlans(self):
         """Returns a dict of ifIndex:vmVoiceVlanId entries"""
@@ -117,7 +117,8 @@ class Cisco(SNMPHandler):
         try:
             voice_vlan = int(voice_vlan)
             status = self._set_netbox_value(
-                self.voice_vlan_oid, interface.ifindex, 'i', voice_vlan)
+                self.voice_vlan_oid, interface.ifindex, 'i', voice_vlan
+            )
         except SnmpError as error:
             _logger.error('Error setting voice vlan: %s', error)
         except ValueError as error:
@@ -129,8 +130,7 @@ class Cisco(SNMPHandler):
         """Enable CDP using Cisco specific oid"""
         status = None
         try:
-            status = self._set_netbox_value(
-                self.cdp_oid, interface.ifindex, 'i', 1)
+            status = self._set_netbox_value(self.cdp_oid, interface.ifindex, 'i', 1)
         except SnmpError as error:
             _logger.error('Error setting cdp on interface: %s', error)
         except ValueError as error:
@@ -143,7 +143,8 @@ class Cisco(SNMPHandler):
         status = None
         try:
             status = self._set_netbox_value(
-                self.voice_vlan_oid, interface.ifindex, 'i', 4096)
+                self.voice_vlan_oid, interface.ifindex, 'i', 4096
+            )
         except SnmpError as error:
             _logger.error('Error disabling voice vlan: %s', error)
 
@@ -153,8 +154,7 @@ class Cisco(SNMPHandler):
         """Disable CDP using Cisco specific oid"""
         status = None
         try:
-            status = self._set_netbox_value(
-                self.cdp_oid, interface.ifindex, 'i', 2)
+            status = self._set_netbox_value(self.cdp_oid, interface.ifindex, 'i', 2)
         except SnmpError as error:
             _logger.error('Error setting cdp on interface: %s', error)
         except ValueError as error:
@@ -171,10 +171,16 @@ class Cisco(SNMPHandler):
 
     def get_netbox_vlan_tags(self):
         """Fetch all vlans. Filter on operational and of type ethernet."""
-        vlan_states = [OID(oid)[-1] for oid, status in
-                       self._bulkwalk(self.VTPVLANSTATE) if status == 1]
-        vlan_types = [OID(oid)[-1] for oid, vlantype in
-                      self._bulkwalk(self.VTPVLANTYPE) if vlantype == 1]
+        vlan_states = [
+            OID(oid)[-1]
+            for oid, status in self._bulkwalk(self.VTPVLANSTATE)
+            if status == 1
+        ]
+        vlan_types = [
+            OID(oid)[-1]
+            for oid, vlantype in self._bulkwalk(self.VTPVLANTYPE)
+            if vlantype == 1
+        ]
 
         return list(set(vlan_states) & set(vlan_types))
 
@@ -184,12 +190,16 @@ class Cisco(SNMPHandler):
 
         blocks = [
             self._query_netbox(oid, ifindex) or b''
-            for oid in (self.TRUNKPORTVLANSENABLED,
-                        self.TRUNKPORTVLANSENABLED2K,
-                        self.TRUNKPORTVLANSENABLED3K,
-                        self.TRUNKPORTVLANSENABLED4K)]
-        bitstring = b"".join(value.ljust(CHARS_IN_1024_BITS, b'\x00')
-                             for value in blocks)
+            for oid in (
+                self.TRUNKPORTVLANSENABLED,
+                self.TRUNKPORTVLANSENABLED2K,
+                self.TRUNKPORTVLANSENABLED3K,
+                self.TRUNKPORTVLANSENABLED4K,
+            )
+        ]
+        bitstring = b"".join(
+            value.ljust(CHARS_IN_1024_BITS, b'\x00') for value in blocks
+        )
 
         bitvector = BitVector(bitstring)
         return native_vlan, bitvector.get_set_bits()
@@ -208,15 +218,15 @@ class Cisco(SNMPHandler):
 
     def _set_access_mode(self, interface):
         _logger.debug("set_access_mode: %s", interface)
-        self._set_netbox_value(self.TRUNKPORTSTATE, interface.ifindex, 'i',
-                               self.TRUNKSTATE_OFF)
+        self._set_netbox_value(
+            self.TRUNKPORTSTATE, interface.ifindex, 'i', self.TRUNKSTATE_OFF
+        )
         interface.trunk = False
         interface.save()
 
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         """Check for trunk, set native vlan, set trunk vlans"""
-        _logger.debug("set_trunk: %s (%s, %s)",
-                      interface, native_vlan, trunk_vlans)
+        _logger.debug("set_trunk: %s (%s, %s)", interface, native_vlan, trunk_vlans)
         if not self._is_trunk(interface):
             self._set_trunk_mode(interface)
 
@@ -227,11 +237,11 @@ class Cisco(SNMPHandler):
     def _set_trunk_mode(self, interface):
         _logger.debug("_set_trunk_mode %s", interface)
         ifindex = interface.ifindex
-        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i',
-                               self.TRUNKSTATE_ON)
+        self._set_netbox_value(self.TRUNKPORTSTATE, ifindex, 'i', self.TRUNKSTATE_ON)
         # Set encapsulation to dot1Q TODO: Support other encapsulations
-        self._set_netbox_value(self.TRUNKPORTENCAPSULATION, ifindex, 'i',
-                               self.ENCAPSULATION_DOT1Q)
+        self._set_netbox_value(
+            self.TRUNKPORTENCAPSULATION, ifindex, 'i', self.ENCAPSULATION_DOT1Q
+        )
         interface.trunk = True
         interface.save()
 
@@ -251,17 +261,22 @@ class Cisco(SNMPHandler):
 
         chunks = self._chunkify(bitvector, 4)
 
-        for oid in [self.TRUNKPORTVLANSENABLED,
-                    self.TRUNKPORTVLANSENABLED2K,
-                    self.TRUNKPORTVLANSENABLED3K,
-                    self.TRUNKPORTVLANSENABLED4K]:
+        for oid in [
+            self.TRUNKPORTVLANSENABLED,
+            self.TRUNKPORTVLANSENABLED2K,
+            self.TRUNKPORTVLANSENABLED3K,
+            self.TRUNKPORTVLANSENABLED4K,
+        ]:
             bitvector_chunk = next(chunks)
             try:
-                self._set_netbox_value(oid, ifindex, 's',
-                                       bitvector_chunk.to_bytes())
+                self._set_netbox_value(oid, ifindex, 's', bitvector_chunk.to_bytes())
             except SnmpError as error:
-                _logger.error('Error setting trunk vlans on %s ifindex %s: %s',
-                              self.netbox, ifindex, error)
+                _logger.error(
+                    'Error setting trunk vlans on %s ifindex %s: %s',
+                    self.netbox,
+                    ifindex,
+                    error,
+                )
                 break
 
     def _is_trunk(self, interface):
@@ -270,8 +285,10 @@ class Cisco(SNMPHandler):
 
     def is_dot1x_enabled(self, interface):
         """Returns True or False based on state of dot1x"""
-        return six.byte2int(self._query_netbox(
-            self.dot1xPortAuth, interface.ifindex)) & self.DOT1X_AUTHENTICATOR
+        return (
+            six.byte2int(self._query_netbox(self.dot1xPortAuth, interface.ifindex))
+            & self.DOT1X_AUTHENTICATOR
+        )
 
     def get_dot1x_enabled_interfaces(self):
         _logger.error("Querying for dot1x enabled interfaces on Cisco")

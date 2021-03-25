@@ -37,8 +37,7 @@ class RackManager(models.Manager):
         :type room: nav.models.manage.Room
 
         """
-        sensor_pks = (rack.get_all_sensor_pks()
-                      for rack in self.filter(room=room))
+        sensor_pks = (rack.get_all_sensor_pks() for rack in self.filter(room=room))
         return set(chain(*sensor_pks))
 
 
@@ -49,17 +48,12 @@ class Rack(models.Model):
     objects = RackManager()
 
     id = models.AutoField(primary_key=True, db_column='rackid')
-    room = models.ForeignKey(
-        Room,
-        on_delete=models.CASCADE,
-        db_column='roomid'
-    )
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, db_column='roomid')
     rackname = VarcharField(blank=True)
     ordering = models.IntegerField()
     _configuration = VarcharField(default=None, db_column='configuration')
     __configuration = None
-    item_counter = models.IntegerField(default=0, null=False,
-                                       db_column='item_counter')
+    item_counter = models.IntegerField(default=0, null=False, db_column='item_counter')
 
     class Meta(object):
         db_table = 'rack'
@@ -80,12 +74,15 @@ class Rack(models.Model):
             self._configuration.setdefault('left', [])
             self._configuration.setdefault('center', [])
             self._configuration.setdefault('right', [])
-            self._configuration['left'] = [rack_decoder(x) for x
-                                           in self._configuration['left']]
-            self._configuration['right'] = [rack_decoder(x) for x
-                                            in self._configuration['right']]
-            self._configuration['center'] = [rack_decoder(x) for x
-                                             in self._configuration['center']]
+            self._configuration['left'] = [
+                rack_decoder(x) for x in self._configuration['left']
+            ]
+            self._configuration['right'] = [
+                rack_decoder(x) for x in self._configuration['right']
+            ]
+            self._configuration['center'] = [
+                rack_decoder(x) for x in self._configuration['center']
+            ]
             self.__configuration = self._configuration
 
         return self.__configuration
@@ -175,6 +172,7 @@ def rack_decoder(obj):
 
 class RackEncoder(json.JSONEncoder):
     """TODO: Write doc"""
+
     def default(self, obj):
         if isinstance(obj, BaseRackItem):
             return obj.to_json()
@@ -312,13 +310,12 @@ class SensorsDiffRackItem(BaseRackItem):
         return data
 
     def title(self):
-        return "Difference between {} and {}".format(self.minuend,
-                                                     self.subtrahend)
+        return "Difference between {} and {}".format(self.minuend, self.subtrahend)
 
     def get_metric(self):
         return "diffSeries({minuend},{subtrahend})".format(
             minuend=self.minuend.get_metric_name(),
-            subtrahend=self.subtrahend.get_metric_name()
+            subtrahend=self.subtrahend.get_metric_name(),
         )
 
     def unit_of_measurement(self):
@@ -328,8 +325,9 @@ class SensorsDiffRackItem(BaseRackItem):
         return ""
 
     def human_readable(self):
-        return "{} - {}".format(self.minuend.human_readable,
-                                self.subtrahend.human_readable)
+        return "{} - {}".format(
+            self.minuend.human_readable, self.subtrahend.human_readable
+        )
 
     def get_display_range(self):
         return list(self.minuend.get_display_range())
@@ -375,6 +373,4 @@ class SensorsSumRackItem(BaseRackItem):
         return self._title
 
     def get_display_range(self):
-        return [sum(r) for r in
-                zip(*[s.get_display_range()
-                      for s in self.sensors])]
+        return [sum(r) for r in zip(*[s.get_display_range() for s in self.sensors])]

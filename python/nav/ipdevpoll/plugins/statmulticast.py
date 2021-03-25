@@ -34,8 +34,7 @@ class StatMulticast(Plugin):
 
     @defer.inlineCallbacks
     def handle(self):
-        vendor = (self.netbox.type.get_enterprise_id()
-                  if self.netbox.type else None)
+        vendor = self.netbox.type.get_enterprise_id() if self.netbox.type else None
         if vendor == VENDOR_ID_HEWLETT_PACKARD:
             yield self._collect_hp_multicast()
 
@@ -69,6 +68,7 @@ class StatMulticast(Plugin):
 
     def _make_metrics_from_counts(self, count_report, timestamp=None):
         timestamp = timestamp or time.time()
-        return [(metric_path_for_multicast_usage(group, self.netbox),
-                 (timestamp, count))
-                for group, count in iteritems(count_report)]
+        return [
+            (metric_path_for_multicast_usage(group, self.netbox), (timestamp, count))
+            for group, count in iteritems(count_report)
+        ]

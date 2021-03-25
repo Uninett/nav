@@ -21,8 +21,16 @@ from django.core.paginator import InvalidPage
 from django.db.models import Q
 
 from nav.models.event import AlertHistory, AlertHistoryMessage
-from nav.models.manage import (Netbox, Device, Location, Room, Module,
-                               NetboxGroup, Organization, Category)
+from nav.models.manage import (
+    Netbox,
+    Device,
+    Location,
+    Room,
+    Module,
+    NetboxGroup,
+    Organization,
+    Category,
+)
 
 LOCATION_GROUPING = {
     'order_by': 'netbox__room__location__description',
@@ -74,10 +82,19 @@ def fetch_history(selection, form):
         return type_filter
 
     def make_selection_filter(and_mode=False):
-        dicts = {'%s__in' % (arg if arg != 'netbox' else 'id'): selection[arg]
-                 for arg in ('netbox', 'room', 'room__location', 'organization',
-                             'category', 'module', 'groups')
-                 if selection[arg]}
+        dicts = {
+            '%s__in' % (arg if arg != 'netbox' else 'id'): selection[arg]
+            for arg in (
+                'netbox',
+                'room',
+                'room__location',
+                'organization',
+                'category',
+                'module',
+                'groups',
+            )
+            if selection[arg]
+        }
         filters = [Q(**dicts)]
 
         combinator = lambda x, y: (x & y) if and_mode else (x | y)
@@ -101,7 +118,8 @@ def fetch_history(selection, form):
     #   - selected categories
     netbox = Netbox.objects.all()
     selection_filter = make_selection_filter(
-        selection['mode'] and selection['mode'][0] == 'and')
+        selection['mode'] and selection['mode'][0] == 'and'
+    )
     if selection_filter:
         netbox = netbox.filter(selection_filter)
 
@@ -113,26 +131,35 @@ def fetch_history(selection, form):
     # the previous two queries.
     #
     # Time limit is done in raw SQL to make sure all parantheses are right.
-    history = AlertHistory.objects.select_related(
-        'event_type', 'alert_type', 'device',
-        'netbox', 'netbox__room', 'netbox__room__location',
-        'netbox__organization', 'netbox__category'
-    ).filter(
-        Q(netbox__in=[n.id for n in netbox]) |
-        Q(device__in=[d.id for d in device]),
-        *type_filter
-    ).extra(
-        where=[
-            '''
+    history = (
+        AlertHistory.objects.select_related(
+            'event_type',
+            'alert_type',
+            'device',
+            'netbox',
+            'netbox__room',
+            'netbox__room__location',
+            'netbox__organization',
+            'netbox__category',
+        )
+        .filter(
+            Q(netbox__in=[n.id for n in netbox]) | Q(device__in=[d.id for d in device]),
+            *type_filter
+        )
+        .extra(
+            where=[
+                '''
             (
                 (end_time IS NULL AND start_time >= %s AND start_time <= %s) OR
                 (end_time = 'infinity' AND start_time < %s) OR
                 (end_time >= %s AND start_time < %s)
             )
            ''',
-        ],
-        params=[from_date, to_date, to_date, from_date, to_date]
-    ).order_by(*order_by_keys)
+            ],
+            params=[from_date, to_date, to_date, from_date, to_date],
+        )
+        .order_by(*order_by_keys)
+    )
 
     return history
 
@@ -147,8 +174,7 @@ def get_page(paginator, page):
 
 def get_messages_for_history(alert_history):
     msgs = AlertHistoryMessage.objects.filter(
-        alert_history__in=[h.id for h in alert_history],
-        language='en',
+        alert_history__in=[h.id for h in alert_history], language='en',
     ).values('alert_history', 'message', 'type', 'state')
     return msgs
 
@@ -180,13 +206,15 @@ def group_history_and_messages(history, messages, group_by=None):
 
 def describe_search_params(selection):
     data = {}
-    for arg, model in (('room__location', Location),
-                       ('room', Room),
-                       ('netbox', Netbox),
-                       ('groups', NetboxGroup),
-                       ('module', Module),
-                       ('organization', Organization),
-                       ('category', Category)):
+    for arg, model in (
+        ('room__location', Location),
+        ('room', Room),
+        ('netbox', Netbox),
+        ('groups', NetboxGroup),
+        ('module', Module),
+        ('organization', Organization),
+        ('category', Category),
+    ):
         if arg in selection and selection[arg]:
             name = getattr(model, '_meta').verbose_name
             data[name] = _get_data_to_search_terms(selection, arg, model)

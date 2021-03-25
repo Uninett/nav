@@ -44,10 +44,12 @@ class IfMib(mibretriever.MibRetriever):
         :returns: A dictionary like { ifindex: (ifName, ifDescr), ...}
 
         """
-        table = yield self.retrieve_columns(
-            ['ifName', 'ifDescr']).addCallback(reduce_index)
-        result = dict((index, (row['ifName'], row['ifDescr']))
-                      for index, row in table.items())
+        table = yield self.retrieve_columns(['ifName', 'ifDescr']).addCallback(
+            reduce_index
+        )
+        result = dict(
+            (index, (row['ifName'], row['ifDescr'])) for index, row in table.items()
+        )
         defer.returnValue(result)
 
     @defer.inlineCallbacks
@@ -57,8 +59,7 @@ class IfMib(mibretriever.MibRetriever):
         :returns: A dictionary like { ifindex: ifAlias, ... }
 
         """
-        aliases = yield self.retrieve_column(
-            'ifAlias').addCallback(reduce_index)
+        aliases = yield self.retrieve_column('ifAlias').addCallback(reduce_index)
         defer.returnValue(aliases)
 
     @defer.inlineCallbacks
@@ -79,8 +80,7 @@ class IfMib(mibretriever.MibRetriever):
         df.addCallback(reduce_index)
         status = yield df
 
-        result = dict((index, row['ifAdminStatus'])
-                      for index, row in status.items())
+        result = dict((index, row['ifAdminStatus']) for index, row in status.items())
         defer.returnValue(result)
 
     @defer.inlineCallbacks

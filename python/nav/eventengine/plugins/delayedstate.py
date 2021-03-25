@@ -26,6 +26,7 @@ class DelayedStateHandler(EventHandler):
     quick resolve should be able to subclass this.
 
     """
+
     HAS_WARNING_ALERT = True
     WARNING_WAIT_TIME = 60
     ALERT_WAIT_TIME = 240
@@ -53,16 +54,17 @@ class DelayedStateHandler(EventHandler):
         elif event.state == event.STATE_END:
             return self._handle_end()
         else:
-            self._logger.info("ignoring strange stateless %s event: %r",
-                              event.event_type, event)
+            self._logger.info(
+                "ignoring strange stateless %s event: %r", event.event_type, event
+            )
             self.event.delete()
 
     def _handle_start(self):
         event = self.event
         if self._is_duplicate():
             self._logger.info(
-                "%s is already down, ignoring duplicate start event",
-                self.get_target())
+                "%s is already down, ignoring duplicate start event", self.get_target()
+            )
             event.delete()
         else:
             self._set_internal_state_down()
@@ -70,18 +72,29 @@ class DelayedStateHandler(EventHandler):
                 self._logger.info(
                     "%s start event for %s; warning in %s seconds, declaring "
                     "down in %s seconds (if still unresolved)",
-                    self.event.event_type, self.get_target(),
-                    self.WARNING_WAIT_TIME, self.ALERT_WAIT_TIME)
-                self.schedule(self.WARNING_WAIT_TIME, self._make_down_warning,
-                              args=(self.event.get_subject(),))
+                    self.event.event_type,
+                    self.get_target(),
+                    self.WARNING_WAIT_TIME,
+                    self.ALERT_WAIT_TIME,
+                )
+                self.schedule(
+                    self.WARNING_WAIT_TIME,
+                    self._make_down_warning,
+                    args=(self.event.get_subject(),),
+                )
             else:
                 self._logger.info(
                     "%s start event for %s; declaring down in %s seconds "
                     "(if still unresolved)",
-                    self.event.event_type, self.get_target(),
-                    self.ALERT_WAIT_TIME)
-                self.schedule(self.ALERT_WAIT_TIME, self._make_down_alert,
-                              args=(self.event.get_subject(),))
+                    self.event.event_type,
+                    self.get_target(),
+                    self.ALERT_WAIT_TIME,
+                )
+                self.schedule(
+                    self.ALERT_WAIT_TIME,
+                    self._make_down_alert,
+                    args=(self.event.get_subject(),),
+                )
 
     def _set_internal_state_down(self):
         """Called to set target's internal state to down as soon as start event
@@ -124,17 +137,24 @@ class DelayedStateHandler(EventHandler):
                 alert.post(post_alert=not self._box_is_on_maintenance())
 
             if waiting_plugin:
-                self._logger.info("ignoring transient down state for %s",
-                                  self.get_target())
+                self._logger.info(
+                    "ignoring transient down state for %s", self.get_target()
+                )
                 waiting_plugin.deschedule()
         elif self._is_internally_down():
-            self._logger.info("no unresolved %s for %s, but its internal state "
-                              "was down; correcting internal state",
-                              self.event.event_type, self.get_target())
+            self._logger.info(
+                "no unresolved %s for %s, but its internal state "
+                "was down; correcting internal state",
+                self.event.event_type,
+                self.get_target(),
+            )
             self._set_internal_state_up()
         else:
-            self._logger.info("no unresolved %s for %s, ignoring end event",
-                              self.event.event_type, self.get_target())
+            self._logger.info(
+                "no unresolved %s for %s, ignoring end event",
+                self.event.event_type,
+                self.get_target(),
+            )
 
         self.event.delete()
 
@@ -143,8 +163,7 @@ class DelayedStateHandler(EventHandler):
 
     def _is_duplicate(self):
         """Returns True if this appears to be a duplicate boxDown event"""
-        return (unresolved.refers_to_unresolved_alert(self.event)
-                or self._get_waiting())
+        return unresolved.refers_to_unresolved_alert(self.event) or self._get_waiting()
 
     def _get_waiting(self):
         """Returns a plugin instance waiting for boxState resolve
@@ -153,8 +172,7 @@ class DelayedStateHandler(EventHandler):
         :returns: A plugin instance, if one is waiting, otherwise False.
 
         """
-        return self.__waiting_for_resolve.get((type(self), self.get_target()),
-                                              False)
+        return self.__waiting_for_resolve.get((type(self), self.get_target()), False)
 
     def _make_down_warning(self, _comment=None):
         """Posts the initial boxDownWarning alert and schedules the callback
@@ -164,13 +182,15 @@ class DelayedStateHandler(EventHandler):
         if not self._box_is_on_maintenance():
             self._post_down_warning()
         else:
-            self._logger.info("%s: is on maintenance, not posting warning",
-                              self.event.netbox)
+            self._logger.info(
+                "%s: is on maintenance, not posting warning", self.event.netbox
+            )
 
         self.task = self.engine.schedule(
-            max(self.ALERT_WAIT_TIME-self.WARNING_WAIT_TIME, 0),
+            max(self.ALERT_WAIT_TIME - self.WARNING_WAIT_TIME, 0),
             self._make_down_alert,
-            args=(self.event.get_subject(),))
+            args=(self.event.get_subject(),),
+        )
 
     def _post_down_warning(self):
         """Posts the actual warning alert"""
@@ -179,8 +199,9 @@ class DelayedStateHandler(EventHandler):
     def _make_down_alert(self, _comment=None):
         alert = self._get_down_alert()
         if alert:
-            self._logger.info("%s: Posting %s alert", self.get_target(),
-                              alert.alert_type)
+            self._logger.info(
+                "%s: Posting %s alert", self.get_target(), alert.alert_type
+            )
             alert.post(post_alert=not self._box_is_on_maintenance())
         else:
             self._logger.error("could not find a down alert, doing nothing (%r)", alert)
@@ -201,8 +222,9 @@ class DelayedStateHandler(EventHandler):
 
     def _verify_shadow(self):
         netbox = self.event.netbox
-        netbox.up = (Netbox.UP_DOWN if netbox_appears_reachable(netbox)
-                     else Netbox.UP_SHADOW)
+        netbox.up = (
+            Netbox.UP_DOWN if netbox_appears_reachable(netbox) else Netbox.UP_SHADOW
+        )
         Netbox.objects.filter(id=netbox.id).update(up=netbox.up)
         return netbox.up == Netbox.UP_SHADOW
 
@@ -213,8 +235,7 @@ class DelayedStateHandler(EventHandler):
 
     def deschedule(self):
         """Deschedules any outstanding task and deletes the associated event"""
-        self._logger.debug("descheduling waiting callback for %s",
-                           self.get_target())
+        self._logger.debug("descheduling waiting callback for %s", self.get_target())
         self.engine.cancel(self.task)
         self.task = None
         if self._get_waiting() == self:

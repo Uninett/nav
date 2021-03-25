@@ -54,6 +54,7 @@ INCOMPLETE_MAC = '00:00:00:00:00:00'
 
 class Arp(Plugin):
     """Collects ARP records for IPv4 devices and NDP cache for IPv6 devices."""
+
     prefix_cache = []  # prefix cache, should be sorted by descending mask length
     prefix_cache_update_time = datetime.min
     prefix_cache_max_age = timedelta(minutes=5)
@@ -82,16 +83,16 @@ class Arp(Plugin):
         if not ipv6_address_in_mappings(mappings):
             ipv6_mib = Ipv6Mib(self.agent)
             ipv6_mappings = yield ipv6_mib.get_ifindex_ip_mac_mappings()
-            self._logger.debug("Found %d mappings in IPV6-MIB",
-                               len(ipv6_mappings))
+            self._logger.debug("Found %d mappings in IPV6-MIB", len(ipv6_mappings))
             mappings.update(ipv6_mappings)
 
         # If we got no results, or no IPv6 results, try vendor specific MIBs
         if not mappings or not ipv6_address_in_mappings(mappings):
             cisco_ip_mib = CiscoIetfIpMib(self.agent)
             cisco_ip_mappings = yield cisco_ip_mib.get_ifindex_ip_mac_mappings()
-            self._logger.debug("Found %d mappings in CISCO-IETF-IP-MIB",
-                               len(cisco_ip_mappings))
+            self._logger.debug(
+                "Found %d mappings in CISCO-IETF-IP-MIB", len(cisco_ip_mappings)
+            )
             mappings.update(cisco_ip_mappings)
 
         yield self._process_data(mappings)
@@ -107,8 +108,9 @@ class Arp(Plugin):
         """
         # Collected mappings include ifindexes.  Arp table doesn't
         # care about this, so we prune those.
-        found_mappings = set((ip, mac) for (ifindex, ip, mac) in mappings
-                             if mac != INCOMPLETE_MAC)
+        found_mappings = set(
+            (ip, mac) for (ifindex, ip, mac) in mappings if mac != INCOMPLETE_MAC
+        )
         stripped = len(mappings) - len(found_mappings)
         if stripped:
             self._logger.debug("stripped %d incomplete mappings", stripped)
@@ -119,13 +121,17 @@ class Arp(Plugin):
         new_mappings = found_mappings.difference(open_mappings)
         expireable_mappings = set(open_mappings).difference(found_mappings)
 
-        self._logger.debug("Mappings: %d new / %d expired / %d kept",
-                           len(new_mappings), len(expireable_mappings),
-                           len(open_mappings) - len(expireable_mappings))
+        self._logger.debug(
+            "Mappings: %d new / %d expired / %d kept",
+            len(new_mappings),
+            len(expireable_mappings),
+            len(open_mappings) - len(expireable_mappings),
+        )
 
         self._make_new_mappings(new_mappings)
-        self._expire_arp_records(open_mappings[mapping]
-                                 for mapping in expireable_mappings)
+        self._expire_arp_records(
+            open_mappings[mapping] for mapping in expireable_mappings
+        )
 
     @defer.inlineCallbacks
     def _load_existing_mappings(self):
@@ -137,16 +143,16 @@ class Arp(Plugin):
         """
         self._logger.debug("Loading open arp records from database")
         open_arp_records_queryset = manage.Arp.objects.filter(
-            netbox__id=self.netbox.id,
-            end_time__gte=datetime.max).values('id', 'ip', 'mac')
+            netbox__id=self.netbox.id, end_time__gte=datetime.max
+        ).values('id', 'ip', 'mac')
         open_arp_records = yield db.run_in_thread(
-            storage.shadowify_queryset_and_commit,
-            open_arp_records_queryset)
-        self._logger.debug("Loaded %d open records from arp",
-                           len(open_arp_records))
+            storage.shadowify_queryset_and_commit, open_arp_records_queryset
+        )
+        self._logger.debug("Loaded %d open records from arp", len(open_arp_records))
 
-        open_mappings = dict(((IP(arp['ip']), arp['mac']), arp['id'])
-                             for arp in open_arp_records)
+        open_mappings = dict(
+            ((IP(arp['ip']), arp['mac']), arp['id']) for arp in open_arp_records
+        )
         defer.returnValue(open_mappings)
 
     @classmethod
@@ -162,8 +168,7 @@ class Arp(Plugin):
 
     @classmethod
     def _update_prefix_cache_with_result(cls, prefixes):
-        cls._logger.debug(
-            "Populating prefix cache with %d prefixes", len(prefixes))
+        cls._logger.debug("Populating prefix cache with %d prefixes", len(prefixes))
 
         prefixes = [(IP(p['net_address']), p['id']) for p in prefixes]
         prefixes.sort(key=operator.itemgetter(1), reverse=True)

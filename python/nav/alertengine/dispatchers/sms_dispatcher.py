@@ -36,20 +36,26 @@ class Sms(Dispatcher):
 
             if not address.DEBUG_MODE:
                 try:
-                    SMSQueue.objects.create(account=address.account,
-                                            message=message,
-                                            severity=alert.severity,
-                                            phone=address.address)
+                    SMSQueue.objects.create(
+                        account=address.account,
+                        message=message,
+                        severity=alert.severity,
+                        phone=address.address,
+                    )
                 except (DatabaseError, IntegrityError) as err:
-                    raise DispatcherException(
-                        "Couldn't add sms to queue: %s" % err)
+                    raise DispatcherException("Couldn't add sms to queue: %s" % err)
             else:
-                _logger.debug('alert %d: In testing mode, would have added '
-                              'message to sms queue for user %s at %s',
-                              alert.id, address.account, address.address)
+                _logger.debug(
+                    'alert %d: In testing mode, would have added '
+                    'message to sms queue for user %s at %s',
+                    alert.id,
+                    address.account,
+                    address.address,
+                )
         else:
-            _logger.warning('alert %d: %s does not have SMS privileges',
-                            alert.id, address.account)
+            _logger.warning(
+                'alert %d: %s does not have SMS privileges', alert.id, address.account
+            )
 
     def get_fallback_message(self, alert, language, message_type):
         try:

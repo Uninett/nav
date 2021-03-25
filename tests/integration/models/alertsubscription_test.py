@@ -7,7 +7,7 @@ from nav.models.profiles import (
     AlertSender,
     AlertSubscription,
     FilterGroup,
-    TimePeriod
+    TimePeriod,
 )
 from nav.models.event import AlertQueue, Subsystem
 import pytest
@@ -29,8 +29,7 @@ def account():
 @pytest.fixture
 def alert_address(account):
     addr = AlertAddress(
-        account=account,
-        type=AlertSender.objects.get(name=AlertSender.SMS),
+        account=account, type=AlertSender.objects.get(name=AlertSender.SMS),
     )
     addr.save()
     yield addr
@@ -61,7 +60,7 @@ def alertsub(alert_address, time_period):
     alertsub = AlertSubscription(
         alert_address=alert_address,
         time_period=time_period,
-        filter_group=FilterGroup.objects.first()
+        filter_group=FilterGroup.objects.first(),
     )
     alertsub.save()
     yield alertsub
@@ -71,8 +70,9 @@ def alertsub(alert_address, time_period):
 
 @pytest.fixture
 def alert():
-    alert = AlertQueue(source=Subsystem.objects.first(), time=datetime.now(),
-                       value=1, severity=1)
+    alert = AlertQueue(
+        source=Subsystem.objects.first(), time=datetime.now(), value=1, severity=1
+    )
     alert.save()
     yield alert
     if alert.pk:

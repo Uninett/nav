@@ -21,4 +21,3 @@ def test_django_db_password_should_be_correct():
 
     host, port, db, user, password = params
     assert settings.DATABASES['default']['PASSWORD'] == password
-

@@ -24,6 +24,7 @@ from nav.statemon.event import Event
 
 class SshChecker(AbstractChecker):
     """Checks for SSH availability"""
+
     IPV6_SUPPORT = True
     DESCRIPTION = "Secure shell server"
     OPTARGS = (
@@ -37,17 +38,18 @@ class SshChecker(AbstractChecker):
     def execute(self):
         (hostname, port) = self.get_address()
         try:
-            sock = socket.create_connection((hostname, port),
-                                            self.timeout)
+            sock = socket.create_connection((hostname, port), self.timeout)
             stream = sock.makefile('rw')
             version = stream.readline().strip()
             protocol, major = version.split('-')[:2]
             stream.write("%s-%s-%s" % (protocol, major, "NAV_Servicemon"))
             stream.flush()
         except Exception as err:
-            return (Event.DOWN,
-                    "Failed to send version reply to %s: %s" % (
-                        self.get_address(), str(err)))
+            return (
+                Event.DOWN,
+                "Failed to send version reply to %s: %s"
+                % (self.get_address(), str(err)),
+            )
         finally:
             try:
                 sock.close()

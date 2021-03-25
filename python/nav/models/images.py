@@ -12,27 +12,20 @@ from nav.models.fields import VarcharField
 
 class Image(models.Model):
     """Model representing an uploaded image"""
+
     id = models.AutoField(db_column='imageid', primary_key=True)
     room = models.ForeignKey(
-        Room,
-        on_delete=models.CASCADE,
-        db_column='roomid',
-        null=True
+        Room, on_delete=models.CASCADE, db_column='roomid', null=True
     )
     location = models.ForeignKey(
-        Location,
-        on_delete=models.CASCADE,
-        db_column='locationid',
-        null=True
+        Location, on_delete=models.CASCADE, db_column='locationid', null=True
     )
     title = VarcharField()
     path = VarcharField()
     name = VarcharField()
     created = models.DateTimeField(auto_now_add=True)
     uploader = models.ForeignKey(
-        Account,
-        on_delete=models.CASCADE,
-        db_column='uploader'
+        Account, on_delete=models.CASCADE, db_column='uploader'
     )
     priority = models.IntegerField()
 
@@ -52,15 +45,13 @@ class Image(models.Model):
 
     def _get_url(self):
         return '/uploads/images/{itype}/{path}/{name}'.format(
-            itype=self._type(),
-            path=self.path,
-            name=self.name)
+            itype=self._type(), path=self.path, name=self.name
+        )
 
     def _get_thumb_url(self):
         return '/uploads/images/{itype}/{path}/thumbs/{name}'.format(
-            itype=self._type(),
-            path=self.path,
-            name=self.name)
+            itype=self._type(), path=self.path, name=self.name
+        )
 
     def _type(self):
         if self.room:

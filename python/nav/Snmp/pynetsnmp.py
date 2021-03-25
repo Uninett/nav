@@ -18,15 +18,34 @@
 from __future__ import absolute_import, unicode_literals
 
 from collections import namedtuple
-from ctypes import (c_int, sizeof, byref, cast, POINTER, c_char, c_char_p,
-                    c_uint, c_ulong, c_uint64)
+from ctypes import (
+    c_int,
+    sizeof,
+    byref,
+    cast,
+    POINTER,
+    c_char,
+    c_char_p,
+    c_uint,
+    c_ulong,
+    c_uint64,
+)
 
 from django.utils import six
 from IPy import IP
 from pynetsnmp import netsnmp
-from pynetsnmp.netsnmp import (Session, SNMP_MSG_GETNEXT, mkoid, lib,
-                               netsnmp_pdu_p, getResult, netsnmp_pdu,
-                               SNMP_MSG_GETBULK, SNMP_MSG_SET, SNMP_MSG_GET)
+from pynetsnmp.netsnmp import (
+    Session,
+    SNMP_MSG_GETNEXT,
+    mkoid,
+    lib,
+    netsnmp_pdu_p,
+    getResult,
+    netsnmp_pdu,
+    SNMP_MSG_GETBULK,
+    SNMP_MSG_SET,
+    SNMP_MSG_GET,
+)
 
 from nav.oids import OID
 from .errors import (
@@ -34,7 +53,7 @@ from .errors import (
     NoSuchObjectError,
     SnmpError,
     TimeOutException,
-    UnsupportedSnmpVersionError
+    UnsupportedSnmpVersionError,
 )
 
 PDUVarbind = namedtuple("PDUVarbind", ['oid', 'type', 'value'])
@@ -65,8 +84,9 @@ class Snmp(object):
 
     """
 
-    def __init__(self, host, community="public", version="1", port=161,
-                 retries=3, timeout=1):
+    def __init__(
+        self, host, community="public", version="1", port=161, retries=3, timeout=1
+    ):
         """Makes a new Snmp-object.
 
         :param host: hostname or IP address
@@ -95,16 +115,18 @@ class Snmp(object):
         except ValueError:
             host = self.host
         else:
-            host = ('udp6:[%s]' % self.host if address.version() == 6
-                    else self.host)
+            host = 'udp6:[%s]' % self.host if address.version() == 6 else self.host
 
         return (
             '-v' + self.version,
-            '-c', self.community,
-            '-r', str(self.retries),
-            '-t', str(self.timeout),
-            '%s:%s' % (host, self.port)
-            )
+            '-c',
+            self.community,
+            '-r',
+            str(self.retries),
+            '-t',
+            str(self.timeout),
+            '%s:%s' % (host, self.port),
+        )
 
     def __del__(self):
         self.handle.close()
@@ -133,8 +155,7 @@ class Snmp(object):
             value_type = TYPEMAP[type]
             # TODO: verify that the type is defined for the selected SNMP ver
         else:
-            raise ValueError("type must be one of %r, not %r" %
-                             (TYPEMAP.keys(), type))
+            raise ValueError("type must be one of %r, not %r" % (TYPEMAP.keys(), type))
         return value_type
 
     def set(self, query, type, value):
@@ -153,17 +174,19 @@ class Snmp(object):
         :param value: the value to set. Must ofcourse match type: i = 2,
          s = 'string'
         """
-        self.handle.sset([
-            PDUVarbind(OID(query), self.translate_type(type), value)])
+        self.handle.sset([PDUVarbind(OID(query), self.translate_type(type), value)])
 
     def multi_set(self, varbinds):
         """Performs SNMP set with multiple operations
 
         :type varbinds: list[PDUVarbind]
         """
-        self.handle.sset([
-            PDUVarbind(OID(v.oid), self.translate_type(v.type), v.value)
-            for v in varbinds])
+        self.handle.sset(
+            [
+                PDUVarbind(OID(v.oid), self.translate_type(v.type), v.value)
+                for v in varbinds
+            ]
+        )
 
     def walk(self, query="1.3.6.1.2.1.1.1.0"):
         """Performs an SNMP walk operation.
@@ -185,8 +208,7 @@ class Snmp(object):
                 break
 
             current_oid = OID(response_oid)
-            if (not root_oid.is_a_prefix_of(current_oid)
-                or current_oid == root_oid):
+            if not root_oid.is_a_prefix_of(current_oid) or current_oid == root_oid:
                 break
 
             if isinstance(value, tuple):
@@ -207,8 +229,9 @@ class Snmp(object):
         """
         prefix = OID(query)
         walked = self.walk(query)
-        result = [(str(OID(oid).strip_prefix(prefix))[1:], value)
-                  for oid, value in walked]
+        result = [
+            (str(OID(oid).strip_prefix(prefix))[1:], value) for oid, value in walked
+        ]
         return result
 
     NON_REPEATERS = 0
@@ -230,14 +253,16 @@ class Snmp(object):
         """
         if str(self.version) != "2c":
             raise UnsupportedSnmpVersionError(
-                "Cannot use BULKGET in SNMP version " + self.version)
+                "Cannot use BULKGET in SNMP version " + self.version
+            )
         result = []
         root_oid = OID(query)
         current_oid = root_oid
 
         while 1:
-            response = self.handle.sgetbulk(self.NON_REPEATERS,
-                                            self.MAX_REPETITIONS, [current_oid])
+            response = self.handle.sgetbulk(
+                self.NON_REPEATERS, self.MAX_REPETITIONS, [current_oid]
+            )
             if response is None:
                 break
             for response_oid, value in response:
@@ -245,8 +270,7 @@ class Snmp(object):
                     return result
 
                 current_oid = OID(response_oid)
-                if (not root_oid.is_a_prefix_of(current_oid)
-                    or current_oid == root_oid):
+                if not root_oid.is_a_prefix_of(current_oid) or current_oid == root_oid:
                     return result
 
                 if isinstance(value, tuple):
@@ -261,6 +285,7 @@ class _MySnmpSession(Session):
     operations.
 
     """
+
     def sget(self, oids):
         req = self._create_request(SNMP_MSG_GET)
         for oid in oids:
@@ -314,8 +339,7 @@ class _MySnmpSession(Session):
             oid = mkoid(varbind.oid)
             converter = CONVERTER_MAP[varbind.type]
             data, size = converter(varbind.value)
-            lib.snmp_pdu_add_variable(req, oid, len(oid), varbind.type,
-                                      data, size)
+            lib.snmp_pdu_add_variable(req, oid, len(oid), varbind.type, data, size)
 
         response = netsnmp_pdu_p()
         if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
@@ -325,6 +349,7 @@ class _MySnmpSession(Session):
             return result
         else:
             _raise_on_error(self.sess.contents.s_snmp_errno)
+
 
 #
 # Functions for converting Python values to C data types suitable for ASN
@@ -340,9 +365,11 @@ def converts(asn_type):
     specific ASN data type.
 
     """
+
     def _register(func):
         CONVERTER_MAP[asn_type] = func
         return func
+
     return _register
 
 
@@ -420,8 +447,9 @@ def _raise_on_error(err_code):
     elif err_code == netsnmp.SNMPERR_TIMEOUT:
         raise TimeOutException(snmp_api_errstring(err_code))
     else:
-        raise SnmpError("%s: %s" % (SNMPERR_MAP.get(err_code, ''),
-                                    snmp_api_errstring(err_code)))
+        raise SnmpError(
+            "%s: %s" % (SNMPERR_MAP.get(err_code, ''), snmp_api_errstring(err_code))
+        )
 
 
 def _raise_on_protocol_error(response):

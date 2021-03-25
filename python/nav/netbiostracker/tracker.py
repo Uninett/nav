@@ -32,14 +32,14 @@ from nav.macaddress import MacAddress
 SPLITCHAR = '!'
 
 # pylint: disable=C0103
-NetbiosResult = namedtuple('NetbiosResult',
-                           'ip name server username mac')
+NetbiosResult = namedtuple('NetbiosResult', 'ip name server username mac')
 
 _logger = logging.getLogger(__name__)
 
 
 def timed(f):
     """Decorator to time execution of functions"""
+
     @wraps(f)
     def wrapper(*args, **kwds):
         """Decorator"""
@@ -48,6 +48,7 @@ def timed(f):
         elapsed = time() - start
         _logger.debug("%s took %f seconds to finish", f.__name__, elapsed)
         return result
+
     return wrapper
 
 
@@ -69,8 +70,12 @@ def get_addresses_to_scan(exclude_list=None):
                 return True
         return False
 
-    addresses = Arp.objects.filter(end_time__gte=datetime.max).extra(
-        where=['family(ip)=4']).distinct('ip').values_list('ip', flat=True)
+    addresses = (
+        Arp.objects.filter(end_time__gte=datetime.max)
+        .extra(where=['family(ip)=4'])
+        .distinct('ip')
+        .values_list('ip', flat=True)
+    )
     return [str(ip) for ip in addresses if not _is_excluded(ip)]
 
 
@@ -109,11 +114,7 @@ def scan(addresses, ignore_failed_sendto=True, encoding="cp850", verbose=False):
 
 def _filter_failed_sendto(data):
     lines = data.splitlines()
-    return '\n'.join(
-        line
-        for line in lines
-        if 'sendto failed' not in line.lower()
-    )
+    return '\n'.join(line for line in lines if 'sendto failed' not in line.lower())
 
 
 @timed
@@ -129,7 +130,8 @@ def parse(nbtscan_output, encoding=None):
                 netbiosresult = NetbiosResult(*args)
                 # Handle mac address with "-" separator (FreeBSD nbtscan).
                 netbiosresult = netbiosresult._replace(
-                    mac=str(MacAddress(netbiosresult.mac)))
+                    mac=str(MacAddress(netbiosresult.mac))
+                )
             except (TypeError, ValueError):
                 _logger.error('Error parsing %s', result)
             else:
@@ -148,8 +150,7 @@ def parse_get_workstations(verbose_nbtscan_output):
         if result:
             if result[-4:] not in (':00U', ':00G'):
                 continue
-            ip, name, _ = [p.strip()
-                             for p in result.split(SPLITCHAR, 2)]
+            ip, name, _ = [p.strip() for p in result.split(SPLITCHAR, 2)]
             parsed_results[ip] = name
             break
     return result
@@ -190,8 +191,9 @@ def fetch_database_entries():
     """
     database_entries = {}
     for entry in Netbios.objects.filter(end_time=datetime.max):
-        database_entries[(entry.ip, entry.name, entry.server, entry.username,
-                          entry.mac)] = entry
+        database_entries[
+            (entry.ip, entry.name, entry.server, entry.username, entry.mac)
+        ] = entry
     return database_entries
 
 
@@ -212,6 +214,11 @@ def create_entries(entries_to_create):
     """Create new netbios entries for the data given"""
     _logger.debug('Creating %s new entries', len(entries_to_create))
     for entry in entries_to_create:
-        netbios = Netbios(ip=entry.ip, mac=entry.mac or None, name=entry.name,
-                          server=entry.server, username=entry.username)
+        netbios = Netbios(
+            ip=entry.ip,
+            mac=entry.mac or None,
+            name=entry.name,
+            server=entry.server,
+            username=entry.username,
+        )
         netbios.save()

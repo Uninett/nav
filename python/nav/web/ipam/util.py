@@ -37,7 +37,9 @@ class PrefixQuerysetBuilder(object):
         if queryset is None:
             queryset = Prefix.objects.all()
         self.queryset = queryset
-        self.queryset = self.queryset.select_related('vlan', 'vlan__net_type', 'vlan__organization')
+        self.queryset = self.queryset.select_related(
+            'vlan', 'vlan__net_type', 'vlan__organization'
+        )
         self.is_realized = False
         self.post_hooks = [lambda x: x]
 
@@ -71,6 +73,7 @@ class PrefixQuerysetBuilder(object):
             A lazy iterator of all filtered prefixes
 
         """
+
         def _filter_full_prefixes(q):
             for prefix in q:
                 ip = IP(prefix.net_address)
@@ -80,6 +83,7 @@ class PrefixQuerysetBuilder(object):
                 if ip.version() == 6 and ip.prefixlen() < 128:
                     yield prefix
                     continue
+
         self.post_hooks.append(_filter_full_prefixes)
         return self
 
@@ -187,8 +191,7 @@ def _get_available_subnets(prefix_or_prefixes, used_prefixes):
 def partition_subnet(prefixlen, prefix):
     "Partition prefix into subnets with room for at at least n hosts"
     net = ipaddress.ip_network(prefix)
-    return (IP(subnet.with_prefixlen) for
-            subnet in net.subnets(new_prefix=prefixlen))
+    return (IP(subnet.with_prefixlen) for subnet in net.subnets(new_prefix=prefixlen))
 
 
 def suggest_range(prefix, prefixlen=24, offset=0, n=10):
@@ -221,7 +224,7 @@ def suggest_range(prefix, prefixlen=24, offset=0, n=10):
         "prefixlen": prefixlen,
         "candidates": [],
         "offset": offset,
-        "more": True
+        "more": True,
     }
     # Fast path: size > size of network, so just return the original prefix
     _prefix = IP(prefix)
@@ -231,12 +234,14 @@ def suggest_range(prefix, prefixlen=24, offset=0, n=10):
     else:
         _blocks = partition_subnet(prefixlen, prefix)
     for block in islice(_blocks, offset, offset + n):
-        acc["candidates"].append({
-            "length": block.len(),
-            "prefix": str(block),
-            "start": str(block[-0]),
-            "end": str(block[-1])
-        })
+        acc["candidates"].append(
+            {
+                "length": block.len(),
+                "prefix": str(block),
+                "start": str(block[-0]),
+                "end": str(block[-1]),
+            }
+        )
     if len(acc["candidates"]) < n:
         acc["more"] = False
     return acc

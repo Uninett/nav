@@ -24,10 +24,12 @@ from nav.report.report import Report
 
 class Generator(object):
     """The maker and controller of the generating of a report"""
+
     sql = None
 
-    def make_report(self, report_name, config_file, config_file_local,
-                    query_dict, config, dbresult):
+    def make_report(
+        self, report_name, config_file, config_file_local, query_dict, config, dbresult
+    ):
         """Makes a report
 
         :param report_name: the name of the report that will be represented
@@ -93,13 +95,11 @@ class Generator(object):
 
 
 class ReportList(object):
-
     def __init__(self, config_file):
 
         self.reports = []
 
-        report_pattern = re.compile(r"^\s*(\S+)\s*\{(.*?)\}$",
-                                    re.M | re.S | re.I)
+        report_pattern = re.compile(r"^\s*(\S+)\s*\{(.*?)\}$", re.M | re.S | re.I)
         contents = io.open(config_file, encoding='utf-8').read()
         reports = report_pattern.findall(contents)
 
@@ -112,8 +112,7 @@ class ReportList(object):
             parser.parse_configuration(configtext)
             report = parser.configuration
 
-            self.reports.append((rep, report.title or rep,
-                                 report.description or None))
+            self.reports.append((rep, report.title or rep, report.description or None))
 
     def get_report_list(self):
         return self.reports
@@ -149,10 +148,10 @@ class ConfigParser(object):
 
         if self.config is None:
             self.config = io.open(self.config_file, encoding='utf-8').read()
-            self.config_local = io.open(self.config_file_local,
-                                        encoding='utf-8').read()
-        report_pattern = re.compile(r"^\s*" + report_name + r"\s*\{(.*?)\}$",
-                                    re.M | re.S | re.I)
+            self.config_local = io.open(self.config_file_local, encoding='utf-8').read()
+        report_pattern = re.compile(
+            r"^\s*" + report_name + r"\s*\{(.*?)\}$", re.M | re.S | re.I
+        )
         match = report_pattern.search(self.config)
         local_match = report_pattern.search(self.config_local)
 
@@ -203,22 +202,19 @@ class ConfigParser(object):
             elif key == "description":
                 config.description = value
             else:
-                group_pattern = re.compile(
-                    r'^(?P<group>\S+?)_(?P<groupkey>\S+?)$')
+                group_pattern = re.compile(r'^(?P<group>\S+?)_(?P<groupkey>\S+?)$')
                 match = group_pattern.search(key)
 
                 if match:
-                    if (match.group('group') == "navn"
-                        or match.group('group') == "name"):
+                    if match.group('group') == "navn" or match.group('group') == "name":
                         config.name[match.group('groupkey')] = value
-                    elif (match.group('group') == "url"
-                          or match.group('group') == "uri"
-                          ):
+                    elif match.group('group') == "url" or match.group('group') == "uri":
                         config.uri[match.group('groupkey')] = value
-                    elif (match.group('group') == "forklar"
-                          or match.group('group') == "explain"
-                          or match.group('group') == "description"
-                          ):
+                    elif (
+                        match.group('group') == "forklar"
+                        or match.group('group') == "explain"
+                        or match.group('group') == "description"
+                    ):
                         config.explain[match.group('groupkey')] = value
 
                 else:
@@ -227,6 +223,7 @@ class ConfigParser(object):
 
 class ArgumentParser(object):
     """Handler of the uri arguments"""
+
     GROUP_PATTERN = re.compile(r"^(?P<group>\S+?)_(?P<groupkey>\S+?)$")
 
     def __init__(self, configuration):
@@ -336,8 +333,10 @@ class ArgumentParser(object):
                 if len(between) == 2:
                     value = between
                 else:
-                    self.config.error = ("The arguments to 'between' "
-                                         "must be comma- or colon-separated")
+                    self.config.error = (
+                        "The arguments to 'between' "
+                        "must be comma- or colon-separated"
+                    )
                     value = [None, None]
 
         self.config.where.append(field + " " + negate + operat + " %s")
@@ -348,7 +347,6 @@ class ArgumentParser(object):
 
 
 class ReportConfig(object):
-
     def __init__(self):
         self.description = ""
         self.explain = {}
@@ -369,15 +367,20 @@ class ReportConfig(object):
         self.error = None
 
     def __repr__(self):
-        template = ("<ReportConfig sql={0!r}, sql_select={1!r}, where={2!r}, "
-                    "parameters={3!r}, order_by={4!r} >")
-        return template.format(self.sql, self.sql_select, self.where,
-                               self.parameters, self.order_by)
+        template = (
+            "<ReportConfig sql={0!r}, sql_select={1!r}, where={2!r}, "
+            "parameters={3!r}, order_by={4!r} >"
+        )
+        return template.format(
+            self.sql, self.sql_select, self.where, self.parameters, self.order_by
+        )
 
     def make_sql(self):
-        sql = "SELECT * FROM (%s) AS foo %s%s" % (self.escaped_sql,
-                                                  self.wherestring(),
-                                                  self.orderstring())
+        sql = "SELECT * FROM (%s) AS foo %s%s" % (
+            self.escaped_sql,
+            self.wherestring(),
+            self.orderstring(),
+        )
         return sql, self.parameters
 
     def wherestring(self):

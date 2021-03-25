@@ -15,7 +15,7 @@
 #
 
 import unittest
-from nav.models.manage import (SwPortVlan, Vlan)
+from nav.models.manage import SwPortVlan, Vlan
 from nav.models.profiles import NetmapViewNodePosition
 from nav.netmap import stubs, metadata
 from nav.netmap.metadata import Edge, Group
@@ -25,7 +25,6 @@ from .topology_layer2_testcase import TopologyLayer2TestCase
 
 
 class MetaClassesJsonTests(MetaClassTestCase):
-
     def test_allow_group_interface_to_be_none(self):
         json = Group(self.netbox).to_json()
         self.assertFalse('interface' in json['netbox'])
@@ -53,7 +52,7 @@ class MetaClassesJsonTests(MetaClassTestCase):
         self.assertEqual(False, json['virtual'])
 
 
-class SharedJsonMetadataTests():
+class SharedJsonMetadataTests:
     def test_not_failing_when_both_interface_speed_is_undefined(self):
         self.a1.speed = None
         self.b1.speed = None
@@ -73,14 +72,16 @@ class SharedJsonMetadataTests():
         netbox.sysname = 'IamStub'
         netbox.id = netbox.sysname
         netbox.category_id = 'ELINK'
-        self.assertEqual({
-                             'category': 'ELINK',
-                             'id': 'IamStub',
-                             'is_elink_node': True,
-                             'position': {'x': 1.3, 'y': 3.7},
-                             'sysname': 'IamStub',
-                             },
-                         metadata.Node(netbox, self.nx_edge_metadata).to_json()['IamStub'])
+        self.assertEqual(
+            {
+                'category': 'ELINK',
+                'id': 'IamStub',
+                'is_elink_node': True,
+                'position': {'x': 1.3, 'y': 3.7},
+                'sysname': 'IamStub',
+            },
+            metadata.Node(netbox, self.nx_edge_metadata).to_json()['IamStub'],
+        )
 
     def test_json_id_is_included_in_metadata_from_node(self):
         foo = metadata.Node(self.a, self.nx_edge_metadata).to_json()['2']
@@ -112,7 +113,9 @@ class SharedJsonMetadataTests():
         self.assertTrue('position' in foo)
         self.assertEqual({'x': 1.3, 'y': 3.7}, foo['position'])
 
-    def test_json_position_is_not_in_json_if_position_data_not_available_from_graph(self):
+    def test_json_position_is_not_in_json_if_position_data_not_available_from_graph(
+        self,
+    ):
         del self.nx_edge_metadata['metadata']['position']
         foo = metadata.Node(self.a, self.nx_edge_metadata).to_json()['2']
         self.assertFalse('position' in foo)
@@ -160,14 +163,21 @@ class Layer2JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer2TestCase):
         a_position = NetmapViewNodePosition()
         a_position.x = 1.3
         a_position.y = 3.7
-        self.nx_edge_metadata = {'metadata': {
-            'position': a_position
-        }}
-        self.nx_node_metadata = {'metadata': {
-            'vlans': [(1337, SwPortVlan(id=1231, interface=self.a1,
-                                        vlan=Vlan(id=1337, vlan=10,
-                                                  net_ident='unittest vlan')))]
-        }}
+        self.nx_edge_metadata = {'metadata': {'position': a_position}}
+        self.nx_node_metadata = {
+            'metadata': {
+                'vlans': [
+                    (
+                        1337,
+                        SwPortVlan(
+                            id=1231,
+                            interface=self.a1,
+                            vlan=Vlan(id=1337, vlan=10, net_ident='unittest vlan'),
+                        ),
+                    )
+                ]
+            }
+        }
 
     def test_json_node_contains_vlan_data(self):
         foo = metadata.node_to_json_layer2(self.a, self.nx_node_metadata)['2']
@@ -177,11 +187,11 @@ class Layer2JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer2TestCase):
         # nav_vlan_id (key) should equal swpv.vlan.id
         self.assertEqual(
             self.nx_node_metadata.get('metadata')['vlans'][0][0],
-            self.nx_node_metadata.get('metadata')['vlans'][0][1].vlan.id
+            self.nx_node_metadata.get('metadata')['vlans'][0][1].vlan.id,
         )
 
         # nav_vlan_id == swpv.vlan.id
-        self.assertEqual(1337, foo['vlans'][0]) # vlan.nav_vlan
+        self.assertEqual(1337, foo['vlans'][0])  # vlan.nav_vlan
 
 
 class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
@@ -191,30 +201,30 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
         a_position = NetmapViewNodePosition()
         a_position.x = 1.3
         a_position.y = 3.7
-        self.nx_edge_metadata = {'metadata': {
-            'position': a_position
-        }}
+        self.nx_edge_metadata = {'metadata': {'position': a_position}}
 
     def test_layer3_prefix_is_added_between_a_and_b(self):
         nx_meta = self.netmap_graph.get_edge_data(self.a, self.b)
-        edge_json_metadata = metadata.edge_to_json_layer3((self.a, self.b),
-            nx_meta
-        )
+        edge_json_metadata = metadata.edge_to_json_layer3((self.a, self.b), nx_meta)
 
         self.assertEqual(1, len(edge_json_metadata['edges']))
-        self.assertEqual(u'158.38.0.0/30',
-                         edge_json_metadata['edges'][2111][0]['prefix']['net_address'])
+        self.assertEqual(
+            u'158.38.0.0/30',
+            edge_json_metadata['edges'][2111][0]['prefix']['net_address'],
+        )
 
     def test_layer3_v4_and_v6_prefixes_added_between_a_and_c(self):
-        edge_json_metadata = metadata.edge_to_json_layer3((self.a, self.b),
-            self.netmap_graph.get_edge_data(self.a, self.c)
+        edge_json_metadata = metadata.edge_to_json_layer3(
+            (self.a, self.b), self.netmap_graph.get_edge_data(self.a, self.c)
         )
 
         self.assertEqual(1, len(edge_json_metadata['edges']))
         self.assertEqual(2, len(edge_json_metadata['edges'][2112]))
         expected_prefixes = (u'158.38.0.4/30', u'feed:dead:cafe:babe::/64')
         for i, prefix in enumerate(expected_prefixes):
-            self.assertEqual(edge_json_metadata['edges'][2112][i]['prefix']['net_address'], prefix)
+            self.assertEqual(
+                edge_json_metadata['edges'][2112][i]['prefix']['net_address'], prefix
+            )
 
 
 if __name__ == '__main__':

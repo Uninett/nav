@@ -28,8 +28,7 @@ STEP_CONFIRM = 1  # What the objects will look like afterwards
 STEP_SAVE = 2  # Update the objects
 
 
-def move(request, model, form_model, redirect, title_attr='id',
-         extra_context=None):
+def move(request, model, form_model, redirect, title_attr='id', extra_context=None):
 
     if not extra_context:
         extra_context = {}
@@ -38,9 +37,9 @@ def move(request, model, form_model, redirect, title_attr='id',
     if request.method != 'POST':
         return HttpResponseRedirect(reverse(redirect))
     if not request.POST.getlist('object'):
-        new_message(request,
-                    "You need to select at least one object to edit",
-                    Messages.ERROR)
+        new_message(
+            request, "You need to select at least one object to edit", Messages.ERROR
+        )
         return HttpResponseRedirect(reverse(redirect))
 
     data = None
@@ -84,16 +83,18 @@ def move(request, model, form_model, redirect, title_attr='id',
 
             # Generate message based on what was changed and redirect back
             foreign_key_string = ", ".join(
-                [get_verbose_name(model, key) for key in data])
+                [get_verbose_name(model, key) for key in data]
+            )
 
             if foreign_key_string == "":
                 foreign_key_string = "nothing"
 
-            new_message(request,
-                        "Changed %s on %i %s models" % (foreign_key_string,
-                                                        len(objects),
-                                                        verbose_name),
-                        Messages.SUCCESS)
+            new_message(
+                request,
+                "Changed %s on %i %s models"
+                % (foreign_key_string, len(objects), verbose_name),
+                Messages.SUCCESS,
+            )
 
             return HttpResponseRedirect(reverse(redirect))
 
@@ -131,8 +132,7 @@ def _parse_value_differences(values, data, title_attr, fields):
     for obj in values:
         row = {
             'pk': obj['pk'],
-            'values': [("Current %s" % attr, obj[attr])
-                       for attr in attr_list],
+            'values': [("Current %s" % attr, obj[attr]) for attr in attr_list],
         }
 
         # If the form has data, format the fields with new values

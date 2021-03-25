@@ -24,6 +24,7 @@ from nav.statemon.event import Event
 
 class SmtpChecker(AbstractChecker):
     """SMTP"""
+
     IPV6_SUPPORT = True
     DESCRIPTION = "Simple mail transport protocol"
     OPTARGS = (
@@ -61,6 +62,7 @@ class SmtpChecker(AbstractChecker):
 # pylint: disable=R0904
 class SMTP(smtplib.SMTP):
     """A customized SMTP protocol interface"""
+
     def __init__(self, timeout, host='', port=25):
         self._timeout = timeout  # _ to avoid name collision with superclass
         smtplib.SMTP.__init__(self, host, port)

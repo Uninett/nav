@@ -25,8 +25,12 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from nav.models.manage import Netbox
-from nav.models.profiles import (NetmapView, NetmapViewDefaultView, Account,
-                                 NetmapViewNodePosition)
+from nav.models.profiles import (
+    NetmapView,
+    NetmapViewDefaultView,
+    Account,
+    NetmapViewNodePosition,
+)
 from nav.web.api.v1.auth import NavBaseAuthentication
 
 from .cache import cache_exists, update_cached_node_positions
@@ -39,6 +43,7 @@ from .serializers import NetmapViewSerializer, NetmapViewDefaultViewSerializer
 #
 class OwnerOrAdminPermission(BasePermission):
     """Verifies that the current user owns the object or is an admin"""
+
     message = "You do not have permission to change this object"
 
     def has_object_permission(self, request, view, obj):
@@ -77,17 +82,17 @@ class NetmapViewList(generics.ListAPIView):
     View for returning a list of NetmapViews which are public or
     belonging to the current account
     """
+
     serializer_class = NetmapViewSerializer
 
     def get_queryset(self):
         user = self.request.account
-        return NetmapView.objects.filter(
-            Q(is_public=True) | Q(owner=user)
-        )
+        return NetmapView.objects.filter(Q(is_public=True) | Q(owner=user))
 
 
 class NetmapViewCreate(generics.CreateAPIView):
     """View for creating a NetmapView"""
+
     serializer_class = NetmapViewSerializer
 
     def perform_create(self, serializer):
@@ -96,6 +101,7 @@ class NetmapViewCreate(generics.CreateAPIView):
 
 class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
     """View for saving a NetmapView"""
+
     lookup_field = 'viewid'
     serializer_class = NetmapViewSerializer
 
@@ -109,6 +115,7 @@ class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
 
 class NetmapViewDefaultViewUpdate(generics.RetrieveUpdateAPIView):
     """View for setting the default NetmapView of an account"""
+
     lookup_field = 'owner'
     serializer_class = NetmapViewDefaultViewSerializer
     authentication_classes = (NavBaseAuthentication,)
@@ -135,6 +142,7 @@ class NetmapViewDefaultViewUpdate(generics.RetrieveUpdateAPIView):
 
 class NodePositionUpdate(generics.UpdateAPIView):
     """View for updating node positions"""
+
     def update(self, request, *args, **kwargs):
 
         viewid = kwargs.pop('viewid')
@@ -149,18 +157,20 @@ class NodePositionUpdate(generics.UpdateAPIView):
             obj, created = NetmapViewNodePosition.objects.get_or_create(
                 viewid=NetmapView(pk=viewid),
                 netbox=Netbox(pk=int(d['netbox'])),
-                defaults=defaults
+                defaults=defaults,
             )
             if not created:
                 obj.x = defaults['x']
                 obj.y = defaults['y']
                 obj.save()
-            cache_updates.append({
-                "id": str(obj.netbox.id),
-                "x": defaults["x"],
-                "y": defaults["y"],
-                "new_node": created
-            })
+            cache_updates.append(
+                {
+                    "id": str(obj.netbox.id),
+                    "x": defaults["x"],
+                    "y": defaults["y"],
+                    "new_node": created,
+                }
+            )
         # Invalidate cached position
         if cache_exists("topology", viewid, "layer 2"):
             update_cached_node_positions(viewid, "layer 2", cache_updates)
@@ -171,6 +181,7 @@ class NodePositionUpdate(generics.UpdateAPIView):
 
 class NetmapGraph(views.APIView):
     """View for building and providing topology data in graph form"""
+
     def get(self, request, **kwargs):
 
         load_traffic = 'traffic' in request.GET

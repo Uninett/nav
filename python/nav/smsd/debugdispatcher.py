@@ -23,14 +23,14 @@ daemon, in order to test various aspects of the SMS daemon.
 """
 
 import logging
-from nav.smsd.dispatcher import (Dispatcher, DispatcherError,
-                                 PermanentDispatcherError)
+from nav.smsd.dispatcher import Dispatcher, DispatcherError, PermanentDispatcherError
 
 _logger = logging.getLogger(__name__)
 
 
 class DebugDispatcher(Dispatcher):
     """Debug dispatcher for smsd."""
+
     RESULT_PERMANENT = 'permanent'
     RESULT_FAIL = 'fail'
     RESULT_SUCCESS = 'success'
@@ -50,9 +50,11 @@ class DebugDispatcher(Dispatcher):
             raise DispatcherError("Config option not found: %s" % error)
 
         if self.result.lower() not in self.OPTIONS:
-            raise DispatcherError("Invalid value %r for option 'result'. "
-                                  "Must be one of: " + ", ".join(self.OPTIONS),
-                                  self.result)
+            raise DispatcherError(
+                "Invalid value %r for option 'result'. "
+                "Must be one of: " + ", ".join(self.OPTIONS),
+                self.result,
+            )
         else:
             self.result = self.result.lower()
 
@@ -76,6 +78,7 @@ class DebugDispatcher(Dispatcher):
         elif self.result == self.RESULT_PERMANENT:
             _logger.info("Raising PermanentDispatcherError")
             raise PermanentDispatcherError(
-                "Failed permanently, because I was configured to.")
+                "Failed permanently, because I was configured to."
+            )
 
         return (sms, sent_count, ignored_count, result, smsid)

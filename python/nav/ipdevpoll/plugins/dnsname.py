@@ -46,20 +46,19 @@ class DnsName(Plugin):
         # Use the OS configured DNS resolver method
         resolver = next(_resolvers)
         df = resolver.lookupPointer(ip.reverseName())
-        df.addCallbacks(self._find_ptr_response, self._handle_failure,
-                        errbackArgs=ip)
+        df.addCallbacks(self._find_ptr_response, self._handle_failure, errbackArgs=ip)
         df.addCallback(self._log_name).addCallback(self._verify_name_change)
         return df
 
     def _handle_failure(self, failure, ip=None):
         """Logs DNS failures, but does not stop the job from running."""
-        failtype = failure.trap(error.TimeoutError, defer.TimeoutError,
-                                DomainError)
+        failtype = failure.trap(error.TimeoutError, defer.TimeoutError, DomainError)
         if failtype in (error.TimeoutError, defer.TimeoutError):
             self._logger.warning("DNS lookup timed out")
         elif failtype == DomainError:
-            self._logger.warning("DNS lookup error for %s: %s",
-                                 ip, failure.type.__name__)
+            self._logger.warning(
+                "DNS lookup error for %s: %s", ip, failure.type.__name__
+            )
 
     def _find_ptr_response(self, dns_response):
         """
@@ -70,8 +69,12 @@ class DnsName(Plugin):
 
         """
         self._logger.debug("DNS response: %s", dns_response)
-        ptrs = (record for record_set in dns_response for record in record_set
-                if record.type == dns.PTR)
+        ptrs = (
+            record
+            for record_set in dns_response
+            for record in record_set
+            if record.type == dns.PTR
+        )
         names = [str(record.payload.name) for record in ptrs]
 
         if len(names) > 1:
@@ -85,19 +88,25 @@ class DnsName(Plugin):
 
     def _log_name(self, dns_name):
         if not dns_name:
-            self._logger.warning("Unable to find PTR record for %s (%s)",
-                                 self.netbox.ip,
-                                 IP(self.netbox.ip).reverseName())
+            self._logger.warning(
+                "Unable to find PTR record for %s (%s)",
+                self.netbox.ip,
+                IP(self.netbox.ip).reverseName(),
+            )
         else:
-            self._logger.debug("Reverse DNS lookup result: %s -> %s",
-                               self.netbox.ip, dns_name)
+            self._logger.debug(
+                "Reverse DNS lookup result: %s -> %s", self.netbox.ip, dns_name
+            )
         return dns_name
 
     def _verify_name_change(self, new_name):
         if new_name:
             if new_name.strip().lower() != self.netbox.sysname.strip().lower():
-                self._logger.warning("Box dnsname has changed from %s to %s",
-                                     repr(self.netbox.sysname), repr(new_name))
+                self._logger.warning(
+                    "Box dnsname has changed from %s to %s",
+                    repr(self.netbox.sysname),
+                    repr(new_name),
+                )
                 netbox = self.containers.factory(None, shadows.Netbox)
                 netbox.sysname = new_name
 

@@ -33,11 +33,11 @@ class TestDispatcherHandler(object):
     module/class that will cooperate with this unit test.
 
     """
+
     config = {
         'main': {'exit_on_permanent_error': 'yes'},
-        'dispatcher': {'dispatcherretry': '30',
-                       'dispatcher1': 'FakeDispatcher'},
-        'FakeDispatcher': {}
+        'dispatcher': {'dispatcherretry': '30', 'dispatcher1': 'FakeDispatcher'},
+        'FakeDispatcher': {},
     }
 
     def test_init_with_simple_config(self):

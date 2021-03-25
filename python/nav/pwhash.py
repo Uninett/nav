@@ -53,8 +53,9 @@ def generate_salt():
     if hasattr(os, 'urandom') and callable(os.urandom):
         raw_salt = os.urandom(saltlen)
     else:
-        raw_salt = "".join([chr(x) for x in
-                            [random.randint(0, 255) for x in range(saltlen)]])
+        raw_salt = "".join(
+            [chr(x) for x in [random.randint(0, 255) for x in range(saltlen)]]
+        )
 
     return base64.b64encode(raw_salt).strip().decode('ASCII')
 
@@ -65,6 +66,7 @@ class Hash(object):
     Use str() to extract a string representation of a hash, suitable
     for storage.
     """
+
     _hashmatch = re.compile(r'\{([^\}]+)\}([^\$]+)\$(.+)$')
 
     def __init__(self, method=DEFAULT_METHOD, salt=None, password=None):
@@ -123,8 +125,9 @@ class Hash(object):
 
     def verify(self, password):
         """Verify a password against this hash."""
-        otherhash = self.__class__(method=self.method, salt=self.salt,
-                                   password=password)
+        otherhash = self.__class__(
+            method=self.method, salt=self.salt, password=password
+        )
         return self == otherhash
 
 

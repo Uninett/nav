@@ -14,7 +14,9 @@ class MetaClassTestCase(unittest.TestCase):
         self.netbox.ip = '192.168.42.1'
         self.netbox.up = 'y'
         self.netbox.room = Mock(name='Room', spec=Room)
-        self.netbox.room.__unicode__ = Mock(return_value='Galaxy (Universe Far Far away)')
+        self.netbox.room.__unicode__ = Mock(
+            return_value='Galaxy (Universe Far Far away)'
+        )
         self.netbox.room.id = 'Galaxy'
         self.netbox.room.location.id = 'Universe'
         self.netbox.room.location.description = 'Far far away'

@@ -62,13 +62,13 @@ def make_argparser():
     parser = argparse.ArgumentParser(
         description="Parallel pinger daemon (part of NAV)",
     )
-    parser.add_argument("-f", "--foreground", action="store_true",
-                        help="run in foreground")
+    parser.add_argument(
+        "-f", "--foreground", action="store_true", help="run in foreground"
+    )
     return parser
 
 
 class Pinger(object):
-
     def __init__(self, socket=None, foreground=False):
         if not foreground:
             signal.signal(signal.SIGHUP, self.signalhandler)
@@ -85,8 +85,8 @@ class Pinger(object):
         self._nrping = int(self.config.get("nrping", 3))
         # To keep status...
         self.netboxmap = {}  # hash netboxid -> netbox
-        self.down = []       # list of netboxids down
-        self.replies = {}    # hash netboxid -> circbuf
+        self.down = []  # list of netboxids down
+        self.replies = {}  # hash netboxid -> circbuf
         self.ip_to_netboxid = {}
 
     def update_host_list(self):
@@ -107,8 +107,9 @@ class Pinger(object):
                 # new netbox. Be sure to get it's state
                 if netbox.up != 'y':
                     _logger.debug(
-                        "Got new netbox, %s, currently "
-                        "marked down in navDB", netbox.ip)
+                        "Got new netbox, %s, currently " "marked down in navDB",
+                        netbox.ip,
+                    )
                     self.down.append(netbox.netboxid)
             if netbox.netboxid not in self.replies:
                 self.replies[netbox.netboxid] = circbuf.CircBuf(self._nrping)
@@ -118,8 +119,7 @@ class Pinger(object):
             self.ip_to_netboxid[netbox.ip] = netbox.netboxid
         # Update netboxmap
         self.netboxmap = netboxmap
-        _logger.debug("We now got %i hosts in our list to ping",
-                      len(self.netboxmap))
+        _logger.debug("We now got %i hosts in our list to ping", len(self.netboxmap))
         # then update our pinger object
         self.pinger.set_hosts(self.ip_to_netboxid.keys())
 
@@ -143,7 +143,7 @@ class Pinger(object):
         down_now = []
         # Find out which netboxes to consider down
         for (netboxid, replies) in self.replies.items():
-            if replies[:self._nrping] == [-1]*self._nrping:
+            if replies[: self._nrping] == [-1] * self._nrping:
                 down_now.append(netboxid)
 
         _logger.debug("No answer from %i hosts", len(down_now))
@@ -156,13 +156,14 @@ class Pinger(object):
         _logger.debug("Starts reporting %i hosts as down", len(report_down))
         for netboxid in report_down:
             netbox = self.netboxmap[netboxid]
-            new_event = Event(None,
-                              netbox.netboxid,
-                              None,  # deviceid
-                              Event.boxState,
-                              "pping",
-                              Event.DOWN
-                              )
+            new_event = Event(
+                None,
+                netbox.netboxid,
+                None,  # deviceid
+                Event.boxState,
+                "pping",
+                Event.DOWN,
+            )
             self.db.new_event(new_event)
             _logger.info("%s marked as down.", netbox)
         # Reporting netboxes as up
@@ -173,13 +174,14 @@ class Pinger(object):
             except:
                 _logger.info("Netbox %s is no longer with us...", netboxid)
                 continue
-            new_event = Event(None,
-                              netbox.netboxid,
-                              None,  # deviceid
-                              Event.boxState,
-                              "pping",
-                              Event.UP
-                              )
+            new_event = Event(
+                None,
+                netbox.netboxid,
+                None,  # deviceid
+                Event.boxState,
+                "pping",
+                Event.UP,
+            )
             self.db.new_event(new_event)
             _logger.info("%s marked as up.", netbox)
 
@@ -193,16 +195,23 @@ class Pinger(object):
             self.update_host_list()
             elapsedtime = self.pinger.ping()
             self.generate_events()
-            _logger.info("%i hosts checked in %03.3f secs. %i hosts "
-                        "currently marked as down.",
-                        len(self.netboxmap), elapsedtime, len(self.down))
-            wait = self._looptime-elapsedtime
+            _logger.info(
+                "%i hosts checked in %03.3f secs. %i hosts "
+                "currently marked as down.",
+                len(self.netboxmap),
+                elapsedtime,
+                len(self.down),
+            )
+            wait = self._looptime - elapsedtime
             if wait > 0:
                 _logger.debug("Sleeping %03.3f secs", wait)
             else:
                 wait = abs(self._looptime + wait)
-                _logger.warning("Check lasted longer than looptime. "
-                               "Delaying next check for %03.3f secs", wait)
+                _logger.warning(
+                    "Check lasted longer than looptime. "
+                    "Delaying next check for %03.3f secs",
+                    wait,
+                )
             sleep(wait)
 
     def signalhandler(self, signum, _frame):

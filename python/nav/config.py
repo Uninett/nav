@@ -83,8 +83,7 @@ def read_flat_config(config_file, delimiter='='):
                 value = value.split('#', 1)[0]  # Remove end-of-line comments
                 configuration[key.strip()] = value.strip()
             except ValueError:
-                sys.stderr.write("Config file %s has errors.\n" %
-                                 config_file.name)
+                sys.stderr.write("Config file %s has errors.\n" % config_file.name)
 
     return configuration
 
@@ -129,6 +128,7 @@ class NAVConfigParser(configparser.ConfigParser):
     subclass.
 
     """
+
     DEFAULT_CONFIG = u""
     DEFAULT_CONFIG_FILES = ()
 
@@ -146,11 +146,12 @@ class NAVConfigParser(configparser.ConfigParser):
 
     def read_all(self):
         """Reads all config files in DEFAULT_CONFIG_FILES"""
-        filenames = [f for f in (find_configfile(name)
-                                 for name in self.DEFAULT_CONFIG_FILES)
-                     if f]
-        filenames.extend(os.path.join('.', name)
-                         for name in self.DEFAULT_CONFIG_FILES)
+        filenames = [
+            f
+            for f in (find_configfile(name) for name in self.DEFAULT_CONFIG_FILES)
+            if f
+        ]
+        filenames.extend(os.path.join('.', name) for name in self.DEFAULT_CONFIG_FILES)
         files_read = self.read(filenames)
 
         if files_read:
@@ -166,12 +167,12 @@ class NavConfigParserDefaultSection(object):
 
     See NavConfigParser for more details.
     """
+
     DEFAULT_CONFIG_FILES = ()
     DEFAULT_CONFIG = ""
 
     def __init__(self, section):
-        self.parser = NAVConfigParser(self.DEFAULT_CONFIG,
-                                      self.DEFAULT_CONFIG_FILES)
+        self.parser = NAVConfigParser(self.DEFAULT_CONFIG, self.DEFAULT_CONFIG_FILES)
         self.section = section
 
     def get(self, *args):
@@ -189,8 +190,7 @@ def find_configfile(filename):
     """
     if filename.startswith(os.sep):
         return filename  # IDGAF, you gave me a fully qualified path
-    candidates = (os.path.join(directory, filename)
-                  for directory in CONFIG_LOCATIONS)
+    candidates = (os.path.join(directory, filename) for directory in CONFIG_LOCATIONS)
     for name in candidates:
         if os.path.exists(name):
             return name
@@ -208,8 +208,7 @@ def open_configfile(filename):
         raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
 
 
-def install_example_config_files(target_directory, overwrite=False,
-                                 callback=None):
+def install_example_config_files(target_directory, overwrite=False, callback=None):
     """Installs a copy of NAV's example configuration files in
     target_directory
 
@@ -220,8 +219,7 @@ def install_example_config_files(target_directory, overwrite=False,
                      successfully written file.
     """
     for resource in _config_resource_walk():
-        path = _install_single_config_resource_(resource, target_directory,
-                                                overwrite)
+        path = _install_single_config_resource_(resource, target_directory, overwrite)
         if callback and path:
             callback(path)
 
@@ -324,6 +322,7 @@ def _is_directory_writable_by_user(directory, username):
 
 class ConfigurationError(GeneralException):
     """Configuration error"""
+
     pass
 
 

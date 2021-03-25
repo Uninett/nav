@@ -30,8 +30,7 @@ from nav.models.profiles import ReportSubscription
 from nav.django.settings import DEFAULT_FROM_EMAIL
 
 _logger = logging.getLogger(__name__)
-Report = namedtuple('Report', ['subject', 'period', 'text_message',
-                               'html_message'])
+Report = namedtuple('Report', ['subject', 'period', 'text_message', 'html_message'])
 
 
 def send_reports(period):
@@ -42,15 +41,19 @@ def send_reports(period):
 
     report_types = [t for t, _ in ReportSubscription.TYPES]
     for report_type in report_types:
-        _logger.debug('Sending reports for period %s, type %s',
-                      period, report_type)
+        _logger.debug('Sending reports for period %s, type %s', period, report_type)
         subscriptions = ReportSubscription.objects.filter(
-            period=period, report_type=report_type)
+            period=period, report_type=report_type
+        )
         for subscription in subscriptions:
             report = build_report(period, report_type, subscription.exclude_maintenance)
             send_report(report, subscription.address.address)
-        _logger.info('%s %s availability: Sent %s reports',
-                     period, report_type, subscriptions.count())
+        _logger.info(
+            '%s %s availability: Sent %s reports',
+            period,
+            report_type,
+            subscriptions.count(),
+        )
 
 
 def send_report(report, to_address):
@@ -61,7 +64,7 @@ def send_report(report, to_address):
         report.text_message,
         DEFAULT_FROM_EMAIL,
         [to_address],
-        html_message=report.html_message
+        html_message=report.html_message,
     )
 
 
@@ -70,8 +73,9 @@ def build_report(period, report_type, exclude_maintenance=False):
     context = build_context(period, report_type, exclude_maintenance)
     html_message = render_to_string('business/email.html', context)
     text_message = render_to_string('business/email.txt', context)
-    return Report(get_email_subject(period, report_type),
-                  period, text_message, html_message)
+    return Report(
+        get_email_subject(period, report_type), period, text_message, html_message
+    )
 
 
 def build_context(period, report_type, exclude_maintenance=False):
@@ -94,7 +98,7 @@ def build_context(period, report_type, exclude_maintenance=False):
         'today': midnight,
         'records': sorted_records,
         'exclude_maintenance': exclude_maintenance,
-        'subject_format': "-{}s".format(max_length)
+        'subject_format': "-{}s".format(max_length),
     }
 
 
@@ -130,6 +134,6 @@ def get_email_subject(period, report_type):
     """Creates an email subject for the report"""
     title = "{} {}".format(
         ReportSubscription.get_period_description(period),
-        ReportSubscription.get_type_description(report_type)
+        ReportSubscription.get_type_description(report_type),
     ).title()
     return "{} report from NAV".format(title)

@@ -24,11 +24,15 @@ from nav.web.machinetracker import iprange
 
 class MachineTrackerForm(forms.Form):
     """General fields for forms in machinetracker"""
-    dns = forms.BooleanField(required=False, initial=False,
-                             help_text="Show dns (if any)")
-    days = forms.IntegerField(initial=7,
-                              widget=forms.TextInput(attrs={'size': 3}),
-                              help_text="Days back in time to search")
+
+    dns = forms.BooleanField(
+        required=False, initial=False, help_text="Show dns (if any)"
+    )
+    days = forms.IntegerField(
+        initial=7,
+        widget=forms.TextInput(attrs={'size': 3}),
+        help_text="Days back in time to search",
+    )
 
     def clean_days(self):
         """Clean the days fields"""
@@ -36,33 +40,38 @@ class MachineTrackerForm(forms.Form):
         if data < -1:
             # -1 has a specific meaning of "only active", for backwards
             # compatibility. Anything else is an error.
-            raise forms.ValidationError("I can't see into the future. "
-                                        "Please enter a positive number.")
+            raise forms.ValidationError(
+                "I can't see into the future. " "Please enter a positive number."
+            )
 
         try:
             date.today() - timedelta(days=data)
         except OverflowError:
-            raise forms.ValidationError(
-                "They didn't have computers %s days ago" % data)
+            raise forms.ValidationError("They didn't have computers %s days ago" % data)
 
         return data
 
 
 class IpTrackerForm(MachineTrackerForm):
     """Form for searching by IP-address"""
-    choices = [('active', 'Active'), ('inactive', 'Inactive'),
-               ('both', 'Both')]
 
-    ip_range = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': 'IP-address or range'}))
-    period_filter = forms.ChoiceField(widget=forms.RadioSelect(),
-                                      choices=choices,
-                                      initial='active')
-    netbios = forms.BooleanField(required=False, initial=False,
-                                 help_text="Show netbios name (if any)")
+    choices = [('active', 'Active'), ('inactive', 'Inactive'), ('both', 'Both')]
 
-    source = forms.BooleanField(required=False, initial=False,
-                                help_text="Show which router the data is retrieved from")
+    ip_range = forms.CharField(
+        widget=forms.TextInput(attrs={'placeholder': 'IP-address or range'})
+    )
+    period_filter = forms.ChoiceField(
+        widget=forms.RadioSelect(), choices=choices, initial='active'
+    )
+    netbios = forms.BooleanField(
+        required=False, initial=False, help_text="Show netbios name (if any)"
+    )
+
+    source = forms.BooleanField(
+        required=False,
+        initial=False,
+        help_text="Show which router the data is retrieved from",
+    )
 
     def clean_ip_range(self):
         """Clean the ip_range field"""
@@ -76,10 +85,11 @@ class IpTrackerForm(MachineTrackerForm):
 
 class MacTrackerForm(MachineTrackerForm):
     """Form for searching by MAC-address"""
-    mac = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': 'Mac-address'}))
-    netbios = forms.BooleanField(required=False, initial=False,
-                                 help_text="Netbios name (if any)")
+
+    mac = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Mac-address'}))
+    netbios = forms.BooleanField(
+        required=False, initial=False, help_text="Netbios name (if any)"
+    )
 
     def clean_mac(self):
         """Clean the mac field"""
@@ -92,22 +102,19 @@ class MacTrackerForm(MachineTrackerForm):
 
 class SwitchTrackerForm(forms.Form):
     """Form for searching by switch fields"""
+
     switch = forms.CharField()
-    module = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={'size': 3}))
-    port = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={'size': 16}))
-    days = forms.IntegerField(
-        initial=7,
-        widget=forms.TextInput(attrs={'size': 3}))
+    module = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 3}))
+    port = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 16}))
+    days = forms.IntegerField(initial=7, widget=forms.TextInput(attrs={'size': 3}))
 
 
 class NetbiosTrackerForm(MachineTrackerForm):
     """Form for searching by netbios name"""
-    search = forms.CharField(widget=forms.TextInput(
-        attrs={'placeholder': 'Netbios name'}))
+
+    search = forms.CharField(
+        widget=forms.TextInput(attrs={'placeholder': 'Netbios name'})
+    )
 
     def clean_search(self):
         """Make sure blank spaces and such is removed from search"""

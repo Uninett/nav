@@ -24,6 +24,7 @@ from nav.statemon.event import Event
 
 class ImapsChecker(AbstractChecker):
     """Internet mail application protocol (ssl)"""
+
     IPV6_SUPPORT = True
     DESCRIPTION = "Internet mail application protocol (ssl)"
     ARGS = (
@@ -42,8 +43,7 @@ class ImapsChecker(AbstractChecker):
         user = self.args.get("username", "")
         ip, port = self.get_address()
         passwd = self.args.get("password", "")
-        with contextlib.closing(IMAPSConnection(self.timeout,
-                                                ip, port)) as session:
+        with contextlib.closing(IMAPSConnection(self.timeout, ip, port)) as session:
             ver = session.welcome
             if user:
                 session.login(user, passwd)
@@ -100,7 +100,7 @@ class IMAPSConnection(imaplib.IMAP4):
         # sslobj.read() sometimes returns < size bytes
         data = self.sslobj.read(size)
         while len(data) < size:
-            data += self.sslobj.read(size-len(data))
+            data += self.sslobj.read(size - len(data))
 
         return data
 
@@ -122,7 +122,7 @@ class IMAPSConnection(imaplib.IMAP4):
         while bytecount > 0:
             sent = self.sslobj.write(data)
             if sent == bytecount:
-                break    # avoid copy
+                break  # avoid copy
             data = data[sent:]
             bytecount = bytecount - sent
 

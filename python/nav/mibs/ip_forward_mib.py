@@ -48,12 +48,14 @@ IANA_IP_ROUTE_PROTOCOLS = {
     17: 'dvmrp',
 }
 
-CidrRouteEntry = namedtuple('CidrRouteEntry', ('index', 'destination', 'policy',
-                                               'nexthop'))
+CidrRouteEntry = namedtuple(
+    'CidrRouteEntry', ('index', 'destination', 'policy', 'nexthop')
+)
 
 
 class IpForwardMib(mibretriever.MibRetriever):
     """A MibRetriever implementation for IP-FORWARD-MIB"""
+
     mib = get_mib('IP-FORWARD-MIB')
 
     @inlineCallbacks
@@ -93,23 +95,26 @@ class IpForwardMib(mibretriever.MibRetriever):
         :param protocols: A list of protocol names.
 
         """
+
         def decode(index):
             try:
                 return decode_route_entry(index)
             except ValueError as error:
-                self._logger.debug("Route index was unparseable (%s): %r",
-                                   error, index)
+                self._logger.debug("Route index was unparseable (%s): %r", error, index)
                 return None
 
         result = yield self.get_routes(protocols)
         if protocols:
-            result = [entry for entry in (decode_route_entry(r) for r in result)
-                      if entry]
+            result = [
+                entry for entry in (decode_route_entry(r) for r in result) if entry
+            ]
         else:
             for proto in result:
-                result[proto] = [entry for entry in
-                                 (decode_route_entry(r) for r in result[proto])
-                                 if entry]
+                result[proto] = [
+                    entry
+                    for entry in (decode_route_entry(r) for r in result[proto])
+                    if entry
+                ]
         returnValue(result)
 
     def get_cidr_route_column(self, column, index):
@@ -126,5 +131,6 @@ def decode_route_entry(index):
 
     """
     destination, policy, nexthop = consume(
-        index, InetPrefix, ObjectIdentifier, TypedInetAddress)
+        index, InetPrefix, ObjectIdentifier, TypedInetAddress
+    )
     return CidrRouteEntry(index, destination, policy, nexthop)

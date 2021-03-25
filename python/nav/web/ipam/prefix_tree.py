@@ -39,6 +39,7 @@ _logger = logging.getLogger(__name__)
 
 class PrefixHeap(object):
     "Pseudo-heap ordered topologically by prefixes"
+
     def __init__(self, children=None):
         if children is None:
             children = []
@@ -47,9 +48,7 @@ class PrefixHeap(object):
     @property
     def fields(self):
         "Return the children of the heap as a dictionary"
-        payload = {
-            "children": [child.fields for child in self.children]
-        }
+        payload = {"children": [child.fields for child in self.children]}
         return payload
 
     def is_leaf(self):
@@ -85,12 +84,13 @@ class PrefixHeap(object):
 
     def add(self, node):
         "Add a node to the heap"
-        assert isinstance(node, PrefixHeap), \
-            "Can only add classes inheriting from PrefixHeap"
+        assert isinstance(
+            node, PrefixHeap
+        ), "Can only add classes inheriting from PrefixHeap"
         # first, try adding to children (recursively)
         i = bisect.bisect_left(self.children, node)
-        if i > 0 and node in self.children[i-1]:
-            child = self.children[i-1]
+        if i > 0 and node in self.children[i - 1]:
+            child = self.children[i - 1]
             node.parent = child
             child.add(node)
             return
@@ -108,9 +108,11 @@ class PrefixHeap(object):
 # exposes a clean, non-nested attribute contract (we promise that the field 'x'
 # will exist and be populated with some value) etc.
 
+
 @functools.total_ordering
 class IpNode(PrefixHeap):
     "PrefixHeap node class"
+
     def __init__(self, ip_addr, net_type):
         super(IpNode, self).__init__()
         self._ip = IP(ip_addr)
@@ -137,23 +139,19 @@ class IpNode(PrefixHeap):
 
     # Comparison utilities
     def __contains__(self, other):
-        assert isinstance(other, IpNode), \
-            "Can only compare with other IpNode elements"
+        assert isinstance(other, IpNode), "Can only compare with other IpNode elements"
         return other.ip in self.ip
 
     def __cmp__(self, other):
-        assert isinstance(other, IpNode), \
-            "Can only compare with other IpNode elements"
+        assert isinstance(other, IpNode), "Can only compare with other IpNode elements"
         return self.ip.__cmp__(other.ip)
 
     def __eq__(self, other):
-        assert isinstance(other, IpNode), \
-            "Can only compare with other IpNode elements"
+        assert isinstance(other, IpNode), "Can only compare with other IpNode elements"
         return self.ip == other.ip
 
     def __lt__(self, other):
-        assert isinstance(other, IpNode), \
-            "Can only compare with other IpNode elements"
+        assert isinstance(other, IpNode), "Can only compare with other IpNode elements"
         return self.ip < other.ip
 
 
@@ -179,7 +177,7 @@ class IpNodeFacade(IpNode):
         "bits",
         "empty_ranges",
         "is_reservable",
-        "parent_pk"
+        "parent_pk",
     ]
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
@@ -301,6 +299,7 @@ class IpNodeFacade(IpNode):
 
 class FauxNode(IpNodeFacade):
     "'Fake' nodes (manual constructor) in a prefix heap"
+
     def __init__(self, ip_addr, pk, net_type):
         super(FauxNode, self).__init__(ip_addr, pk, net_type)
 
@@ -344,6 +343,7 @@ class FakeVLAN(object):
 
 class PrefixNode(IpNodeFacade):
     "Wrapper node for Prefix results"
+
     def __init__(self, prefix, sort_fn=None):
         self._prefix = prefix  # cache of prefix
         ip_addr = prefix.net_address
@@ -354,7 +354,9 @@ class PrefixNode(IpNodeFacade):
         if vlan is None:
             _logger.warning(
                 "Prefix % id=% does not have a VLAN relation",
-                prefix.net_address, prefix.id)
+                prefix.net_address,
+                prefix.id,
+            )
             vlan = FakeVLAN()
         net_type = six.text_type(vlan.net_type)
         super(PrefixNode, self).__init__(ip_addr, primary_key, net_type, sort_fn)
@@ -368,8 +370,14 @@ class PrefixNode(IpNodeFacade):
             self.FIELDS.append("vlan_usage")
 
 
-def make_prefix_heap(prefixes, initial_children=None, family=None,
-                     sort_fn=None, show_available=False, show_unused=False):
+def make_prefix_heap(
+    prefixes,
+    initial_children=None,
+    family=None,
+    sort_fn=None,
+    show_available=False,
+    show_unused=False,
+):
     """Return a prefix heap of all prefixes. Might optionally filter out IPv4
     and IPv6 as needed.
 
@@ -387,11 +395,7 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
         A prefix heap (tree)
 
     """
-    rfc1918 = IPSet([
-        IP("10.0.0.0/8"),
-        IP("172.16.0.0/12"),
-        IP("192.168.0.0/16")
-        ])
+    rfc1918 = IPSet([IP("10.0.0.0/8"), IP("172.16.0.0/12"), IP("192.168.0.0/16")])
 
     def accept(prefix):
         "Helper function for filtering prefixes by IP family"
@@ -411,8 +415,7 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
         heap.add(node)
     # Add marker nodes for available ranges/prefixes
     if show_available:
-        scopes = (child for child in heap.walk_roots() if child.net_type in
-                  ["scope"])
+        scopes = (child for child in heap.walk_roots() if child.net_type in ["scope"])
         subnets = (get_available_nodes([scope.ip]) for scope in scopes)
         for subnet in subnets:
             heap.add_many(subnet)
@@ -426,9 +429,7 @@ def make_prefix_heap(prefixes, initial_children=None, family=None,
     return heap
 
 
-SORT_BY = {
-    "vlan_number": lambda x: x.vlan_number
-}
+SORT_BY = {"vlan_number": lambda x: x.vlan_number}
 
 
 def get_available_nodes(ips):
@@ -480,7 +481,7 @@ not part of the RFC1918 ranges.
         "family": family,
         "sort_fn": SORT_BY.get(sort_by, None),
         "show_available": show_all,
-        "show_unused": show_all
+        "show_unused": show_all,
     }
     return make_prefix_heap(prefixes, **opts)
 

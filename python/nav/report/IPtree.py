@@ -22,8 +22,7 @@ from nav.ip import IP
 from nav.report.IPtools import getMask, sort_nets_by_prefixlength, andIpMask
 
 
-def build_tree(start_net, end_net=None, bits_in_matrix=0,
-               add_missing_nets=False):
+def build_tree(start_net, end_net=None, bits_in_matrix=0, add_missing_nets=False):
     """Builds a tree from start_net to (and included) end_net.
 
     Arguments:
@@ -53,7 +52,7 @@ def build_tree(start_net, end_net=None, bits_in_matrix=0,
     # TODO: Reimplement this to respect that the list is allready sorted,
     #       that way we won't have to sort the list again.
     if add_missing_nets and bits_in_matrix > 0:
-        mask = getMask(start_net.version(), end_net.prefixlen()-bits_in_matrix)
+        mask = getMask(start_net.version(), end_net.prefixlen() - bits_in_matrix)
         for ip in sorted_subnets:
             if ip.prefixlen() <= mask.prefixlen():
                 continue
@@ -119,6 +118,7 @@ def remove_subnets_with_prefixlength(tree, prefixlen):
                 del tree[ip]
         for ip in tree.keys():
             _delete_subnets(tree[ip], limit)
+
     tree_nets = deepcopy(tree)
     _delete_subnets(tree_nets, prefixlen)
     return tree_nets
@@ -137,6 +137,7 @@ def get_subtree(tree, ip):
                 result = search_tree(tree[node], goal)
                 if result is not None:
                     return result
+
     return search_tree(tree, ip)
 
 
@@ -183,12 +184,14 @@ def extract_subnets_with_prefix_length(tree, prefixlen):
     and not the IPs.
 
     """
+
     def _iterator(tree, prefixlen, acc):
         for net in tree.keys():
             if net.prefixlen() == prefixlen:
                 acc.append(net)
             if net.prefixlen() < prefixlen:
                 _iterator(tree[net], prefixlen, acc)
+
     acc = []
     _iterator(tree, prefixlen, acc)
     return acc

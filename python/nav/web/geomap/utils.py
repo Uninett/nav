@@ -55,7 +55,7 @@ def avg(lst):
     """
     if not lst:
         return 0
-    return float(sum(lst))/len(lst)
+    return float(sum(lst)) / len(lst)
 
 
 def weighted_avg(lst):
@@ -70,7 +70,7 @@ def weighted_avg(lst):
         return 0
     total = sum(value * weight for value, weight in lst)
     num = sum(weight for value, weight in lst)
-    return float(total)/num
+    return float(total) / num
 
 
 def argmax(fun, lst):
@@ -137,8 +137,7 @@ def compose(*functions):
       compose(f_1, f_2, ..., f_n)(x) == f_1(f_2(...(f_n(x))))
 
     """
-    return reduce(lambda f1, f2: lambda x: f1(f2(x)),
-                  functions)
+    return reduce(lambda f1, f2: lambda x: f1(f2(x)), functions)
 
 
 def subdict(dct, keys):
@@ -201,12 +200,12 @@ def union_dict(*dicts):
 
 def concat_list(lists):
     """Concatenate a list of lists."""
-    return reduce(lambda a, b: a+b, lists, [])
+    return reduce(lambda a, b: a + b, lists, [])
 
 
 def concat_str(strs):
     """Concatenate a list of strings."""
-    return reduce(lambda a, b: a+b, strs, '')
+    return reduce(lambda a, b: a + b, strs, '')
 
 
 class lazy_dict(object):
@@ -422,5 +421,3 @@ def map_dict_lazy(fun, dct):
 def first(lst):
     """Extract the first element from a list or other indexable object."""
     return lst[0]
-
-

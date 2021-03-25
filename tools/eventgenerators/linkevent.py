@@ -20,6 +20,7 @@ from __future__ import print_function
 import argparse
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django()
 
 from nav.models.event import EventQueue as Event, Subsystem, EventType
@@ -30,7 +31,7 @@ from django.db import transaction
 DEFAULT_KWARGS = {
     'source': Subsystem.objects.get(pk='ipdevpoll'),
     'target': Subsystem.objects.get(pk='eventEngine'),
-    'event_type': EventType.objects.get(pk='linkState')
+    'event_type': EventType.objects.get(pk='linkState'),
 }
 
 
@@ -41,8 +42,7 @@ def main():
 
     for sysname, ifname in args.interfaces:
         for interface in Interface.objects.filter(
-            netbox__sysname__icontains=sysname,
-            ifname=ifname
+            netbox__sysname__icontains=sysname, ifname=ifname
         ):
             send_event(interface, args.event, send=args.dry_run)
 
@@ -55,13 +55,21 @@ def interface_spec(spec):
 def create_parser():
     """Create a parser for the script arguments"""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('event', help='Type of event to simulate',
-                        choices=['up', 'down'])
-    parser.add_argument('interfaces', metavar='sysname:ifname', nargs='+',
-                        type=interface_spec,
-                        help='Select which interfaces to make events for')
-    parser.add_argument('--dry-run', action='store_false',
-                        help='Print the events to be sent without sending them')
+    parser.add_argument(
+        'event', help='Type of event to simulate', choices=['up', 'down']
+    )
+    parser.add_argument(
+        'interfaces',
+        metavar='sysname:ifname',
+        nargs='+',
+        type=interface_spec,
+        help='Select which interfaces to make events for',
+    )
+    parser.add_argument(
+        '--dry-run',
+        action='store_false',
+        help='Print the events to be sent without sending them',
+    )
     return parser
 
 
@@ -71,11 +79,13 @@ def send_event(interface, event_spec, send=True):
     event.netbox = interface.netbox
     event.subid = interface.pk
     event.state = Event.STATE_END if event_spec == 'up' else Event.STATE_START
-    print("{type} {state} event for {subject}".format(
-        type=event.event_type_id,
-        state="start" if event.state == Event.STATE_START else "end",
-        subject=event.get_subject()
-    ))
+    print(
+        "{type} {state} event for {subject}".format(
+            type=event.event_type_id,
+            state="start" if event.state == Event.STATE_START else "end",
+            subject=event.get_subject(),
+        )
+    )
 
     if send:
         event.save()

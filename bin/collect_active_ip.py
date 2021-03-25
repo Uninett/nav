@@ -25,6 +25,7 @@ import time
 import sys
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 import nav.daemon
@@ -63,8 +64,13 @@ def run(days):
 
 if __name__ == '__main__':
     _parser = argparse.ArgumentParser()
-    _parser.add_argument("-d", "--days", default=None, type=int,
-                         help="days back in time to start collecting from")
+    _parser.add_argument(
+        "-d",
+        "--days",
+        default=None,
+        type=int,
+        help="days back in time to start collecting from",
+    )
 
     _args = _parser.parse_args()
     main(_args.days)

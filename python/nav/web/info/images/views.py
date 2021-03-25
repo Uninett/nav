@@ -47,7 +47,8 @@ def delete_image(request):
                     return HttpResponse(status=500)
             else:
                 messages.success(
-                    request, 'Image &laquo;%s&raquo; deleted' % image.title)
+                    request, 'Image &laquo;%s&raquo; deleted' % image.title
+                )
 
             try:
                 os.unlink(image.thumbpath)

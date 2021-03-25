@@ -1,11 +1,9 @@
 import unittest
 from IPy import IPSet, IP
-from nav.web.ipam.util import suggest_range, \
-    partition_subnet, _get_available_subnets
+from nav.web.ipam.util import suggest_range, partition_subnet, _get_available_subnets
 
 
 class IpamUtilTest(unittest.TestCase):
-
     def test_partition_subnet(self):
         prefix = IP("10.0.0.0/8")
         partitions = partition_subnet(24, prefix)

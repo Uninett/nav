@@ -51,22 +51,24 @@ def add_netbox_links(rows):
         link_html = '0'
         related_raw = row['values_list'][-1]
         if related_raw:
-            link_html = format_html(mark_safe("""<a href="{}">{}</a>"""),
-                                    _get_netbox_link(row['pk']),
-                                    related_raw)
+            link_html = format_html(
+                mark_safe("""<a href="{}">{}</a>"""),
+                _get_netbox_link(row['pk']),
+                related_raw,
+            )
         row['values_list'][-1] = link_html
     return rows
 
 
 class ManagementProfileInfo(SeeddbInfo):
     """Management Profile info object"""
+
     active = {'management_profile': True}
     caption = 'Management Profile'
     tab_template = 'seeddb/tabs_generic.html'
     _title = 'Management Profiles'
     verbose_name = ManagementProfile._meta.verbose_name
-    _navpath = [('Management Profiles',
-                 reverse_lazy('seeddb-management-profile'))]
+    _navpath = [('Management Profiles', reverse_lazy('seeddb-management-profile'))]
     delete_url = reverse_lazy('seeddb-management-profile')
     delete_url_name = 'seeddb-management-profile-delete'
     back_url = reverse_lazy('seeddb-management-profile')
@@ -77,35 +79,44 @@ class ManagementProfileInfo(SeeddbInfo):
 
 def management_profile(request):
     """Controller for listing, moving and deleting management profiles"""
-    return view_switcher(request,
-                         list_view=management_profile_list,
-                         delete_view=management_profile_delete)
+    return view_switcher(
+        request,
+        list_view=management_profile_list,
+        delete_view=management_profile_delete,
+    )
 
 
 def management_profile_list(request):
     """Controller for listing management profiles. Used in
     management_profile()"""
     info = ManagementProfileInfo()
-    value_list = ( 'name', 'description', 'get_protocol_display', 'related')
+    value_list = ('name', 'description', 'get_protocol_display', 'related')
     netbox_link = reverse('seeddb-netbox')
     queryset = ManagementProfile.objects.annotate(related=Count('netbox'))
     filter_form = ManagementProfileFilterForm(request.GET)
-    return render_list(request, queryset, value_list,
-                       edit_url='seeddb-management-profile-edit',
-                       filter_form=filter_form,
-                       extra_context=info.template_context,
-                       add_related=add_netbox_links)
+    return render_list(
+        request,
+        queryset,
+        value_list,
+        edit_url='seeddb-management-profile-edit',
+        filter_form=filter_form,
+        extra_context=info.template_context,
+        add_related=add_netbox_links,
+    )
 
 
 def management_profile_delete(request, object_id=None):
     """Controller for deleting management profiles. Used in
     management_profile()"""
     info = ManagementProfileInfo()
-    return render_delete(request, ManagementProfile,
-                         redirect='seeddb-management-profile',
-                         whitelist=SEEDDB_EDITABLE_MODELS,
-                         extra_context=info.template_context,
-                         object_id=object_id)
+    return render_delete(
+        request,
+        ManagementProfile,
+        redirect='seeddb-management-profile',
+        whitelist=SEEDDB_EDITABLE_MODELS,
+        extra_context=info.template_context,
+        object_id=object_id,
+    )
 
 
 def management_profile_edit(request, management_profile_id=None):
@@ -134,23 +145,19 @@ def management_profile_edit(request, management_profile_id=None):
         form = ManagementProfileForm(request.POST, instance=profile)
         if form.is_valid():
             protocol_form = form.get_protocol_form_class()(
-                request.POST,
-                instance=form.instance,
+                request.POST, instance=form.instance,
             )
             if protocol_form.is_valid():
                 profile = form.save()
 
                 new_message(
-                    request,
-                    "Saved %s %s" % (verbose_name, profile),
-                    Messages.SUCCESS
+                    request, "Saved %s %s" % (verbose_name, profile), Messages.SUCCESS
                 )
                 return HttpResponseRedirect(
                     reverse('seeddb-management-profile-edit', args=(profile.pk,))
                 )
         protocol_forms = [
-            f(request.POST, instance=profile)
-            for f in form.get_protocol_forms()
+            f(request.POST, instance=profile) for f in form.get_protocol_forms()
         ]
     else:
         form = ManagementProfileForm(instance=profile)
@@ -166,10 +173,12 @@ def management_profile_edit(request, management_profile_id=None):
         'num_netboxes': num_netboxes,
     }
     if profile and profile.pk:
-        context.update({
-            'title': 'Edit %s "%s"' % (verbose_name, profile),
-            'sub_active': {'edit': True},
-        })
+        context.update(
+            {
+                'title': 'Edit %s "%s"' % (verbose_name, profile),
+                'sub_active': {'edit': True},
+            }
+        )
 
     template_context = ManagementProfileInfo().template_context
     template_context.update(context)
@@ -180,6 +189,9 @@ def management_profile_bulk(request):
     """Controller for bulk editing management profiles"""
     info = ManagementProfileInfo()
     return render_bulkimport(
-        request, ManagementProfileBulkParser, ManagementProfileImporter,
+        request,
+        ManagementProfileBulkParser,
+        ManagementProfileImporter,
         redirect='seeddb-management-profile',
-        extra_context=info.template_context)
+        extra_context=info.template_context,
+    )

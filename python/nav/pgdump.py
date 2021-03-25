@@ -36,16 +36,18 @@ def main():
     opts, _args = parse_args()
 
     export_pgvars()
-    writeln("-- navpgdump invoked on %s at %s" % (socket.gethostname(),
-                                                  datetime.now()))
+    writeln("-- navpgdump invoked on %s at %s" % (socket.gethostname(), datetime.now()))
 
     if opts.exclude or opts.filters:
         writeln("-- args: %r" % sys.argv)
 
         pg_dump(STD_DUMP_ARGS + ["--schema-only"])
         excluded = set(opts.exclude).union(opts.filters.keys())
-        pg_dump(STD_DUMP_ARGS + ["--data-only"] +
-                ["--exclude-table=%s" % tbl for tbl in excluded])
+        pg_dump(
+            STD_DUMP_ARGS
+            + ["--data-only"]
+            + ["--exclude-table=%s" % tbl for tbl in excluded]
+        )
 
         if opts.filters:
             for table, where in opts.filters.items():
@@ -53,10 +55,12 @@ def main():
     else:
         pg_dump(STD_DUMP_ARGS)
 
-    msg("""
+    msg(
+        """
 NAV database dump completed.
 Use NAV's navsyncdb command with the -r option to roll back the dump.
-""")
+"""
+    )
 
 
 def parse_args():
@@ -84,28 +88,50 @@ def parse_args():
 def _make_optparser():
     parser = OptionParser(
         description="Dumps the NAV PostgreSQL database as plain-text SQL to "
-                    "stdout, with optional data filtering.",
+        "stdout, with optional data filtering.",
         version=buildconf.VERSION,
         epilog="The output of the program can be inserted into an empty "
-               "PostgreSQL database using the psql program."
+        "PostgreSQL database using the psql program.",
     )
     parser.set_defaults(
-        filters={},
-        exclude=[],
+        filters={}, exclude=[],
     )
 
     opt = parser.add_option
-    opt("-e", "--exclude", action="append", type="string", dest="exclude",
-        metavar="TABLE", help="Exclude TABLE data from dump")
-    opt("-c", "--only-open-cam", action="store_true", dest="only_open_cam",
-        help="Only dump open CAM records")
-    opt("-a", "--only-open-arp", action="store_true", dest="only_open_arp",
-        help="Only dump open ARP records")
-    opt("-f", "--filter", type="string",
-        action="callback", callback=_add_filter,
-        metavar="FILTER", help="Filter a table's contents. "
-                               "FILTER must match "
-                               "<tablename>=<SQL where clause>")
+    opt(
+        "-e",
+        "--exclude",
+        action="append",
+        type="string",
+        dest="exclude",
+        metavar="TABLE",
+        help="Exclude TABLE data from dump",
+    )
+    opt(
+        "-c",
+        "--only-open-cam",
+        action="store_true",
+        dest="only_open_cam",
+        help="Only dump open CAM records",
+    )
+    opt(
+        "-a",
+        "--only-open-arp",
+        action="store_true",
+        dest="only_open_arp",
+        help="Only dump open ARP records",
+    )
+    opt(
+        "-f",
+        "--filter",
+        type="string",
+        action="callback",
+        callback=_add_filter,
+        metavar="FILTER",
+        help="Filter a table's contents. "
+        "FILTER must match "
+        "<tablename>=<SQL where clause>",
+    )
     return parser
 
 
@@ -131,9 +157,9 @@ def filtered_dump(table, where):
     writeln("SET search_path TO %s;" % search_path)
     writeln("ALTER TABLE {table} DISABLE TRIGGER ALL;".format(**kwargs))
     writeln("COPY {table} FROM stdin;".format(**kwargs))
-    psql(["-c",
-          "COPY (SELECT * FROM {table} WHERE {where}) TO STDOUT".format(
-              **kwargs)])
+    psql(
+        ["-c", "COPY (SELECT * FROM {table} WHERE {where}) TO STDOUT".format(**kwargs)]
+    )
     writeln("\\.\n")
     writeln("ALTER TABLE {table} ENABLE TRIGGER ALL;".format(**kwargs))
 

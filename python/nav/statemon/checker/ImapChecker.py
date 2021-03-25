@@ -26,6 +26,7 @@ from nav.statemon.event import Event
 # pylint: disable=R0904
 class IMAPConnection(imaplib.IMAP4):
     """Customized IMAP protocol interface"""
+
     def __init__(self, timeout, host, port):
         self.timeout = timeout
         imaplib.IMAP4.__init__(self, host, port)
@@ -43,6 +44,7 @@ class ImapChecker(AbstractChecker):
     username
     password
     """
+
     IPV6_SUPPORT = True
     DESCRIPTION = "Internet mail application protocol"
     ARGS = (
@@ -61,8 +63,7 @@ class ImapChecker(AbstractChecker):
         user = self.args.get("username", "")
         ip, port = self.get_address()
         passwd = self.args.get("password", "")
-        with contextlib.closing(IMAPConnection(self.timeout,
-                                               ip, port)) as session:
+        with contextlib.closing(IMAPConnection(self.timeout, ip, port)) as session:
             ver = session.welcome
             if user:
                 session.login(user, passwd)

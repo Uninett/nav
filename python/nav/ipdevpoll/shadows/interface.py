@@ -53,8 +53,10 @@ class InterfaceManager(DefaultManager):
     def prepare(self):
         if self.sentinel in self.containers[Interface]:
             self.handle_missing = True
-            self._logger.debug("full interface table collected; "
-                               "will handle missing ones during cleanup")
+            self._logger.debug(
+                "full interface table collected; "
+                "will handle missing ones during cleanup"
+            )
             del self.containers[Interface][self.sentinel]
             self._reset_baseport_numbers()
 
@@ -78,7 +80,8 @@ class InterfaceManager(DefaultManager):
 
     def _load_existing_objects(self):
         db_ifcs = manage.Interface.objects.filter(
-            netbox__id=self.netbox.id).select_related('module')
+            netbox__id=self.netbox.id
+        ).select_related('module')
         self._make_maps(db_ifcs)
 
     def _make_maps(self, db_ifcs):
@@ -89,15 +92,17 @@ class InterfaceManager(DefaultManager):
 
         self._found_existing_map = dict(
             (snmp_ifc, self._find_existing_for(snmp_ifc))
-            for snmp_ifc in self.get_managed())
+            for snmp_ifc in self.get_managed()
+        )
         for found, existing in self._found_existing_map.items():
             if existing:
                 found.set_existing_model(existing)
 
         self._missing_ifcs = dict(
-            (ifc.id, ifc) for ifc in self._db_ifcs
-            if (ifc not in self._found_existing_map.values()
-                and not ifc.gone_since))
+            (ifc.id, ifc)
+            for ifc in self._db_ifcs
+            if (ifc not in self._found_existing_map.values() and not ifc.gone_since)
+        )
 
     def _find_existing_for(self, snmp_ifc):
         result = None
@@ -106,7 +111,8 @@ class InterfaceManager(DefaultManager):
         if not result and snmp_ifc.ifdescr:
             # this is only likely on a db recently migrated from NAV 3.5
             result = self._by_ifnamedescr.get(
-                (snmp_ifc.ifdescr, snmp_ifc.ifdescr), None)
+                (snmp_ifc.ifdescr, snmp_ifc.ifdescr), None
+            )
         if result and len(result) > 1:
             # Multiple ports with same name? damn...
             # also filter for ifindex, maybe we get lucky
@@ -118,11 +124,14 @@ class InterfaceManager(DefaultManager):
 
         if result and len(result) > 1:
             self._logger.debug(
-                "_find_existing_for: multiple matching interfaces "
-                "found for %r: %r", snmp_ifc, result)
+                "_find_existing_for: multiple matching interfaces " "found for %r: %r",
+                snmp_ifc,
+                result,
+            )
             raise manage.Interface.MultipleObjectsReturned(
                 "_find_existing_for: "
-                "Found multiple matching interfaces for %r" % snmp_ifc)
+                "Found multiple matching interfaces for %r" % snmp_ifc
+            )
         elif result:
             return result[0]
 
@@ -134,38 +143,49 @@ class InterfaceManager(DefaultManager):
         in the database before we start updating Interfaces.
 
         """
-        changed_ifindexes = [(new.ifindex, old.ifindex)
-                             for new, old in self._found_existing_map.items()
-                             if old and new.ifindex != old.ifindex]
+        changed_ifindexes = [
+            (new.ifindex, old.ifindex)
+            for new, old in self._found_existing_map.items()
+            if old and new.ifindex != old.ifindex
+        ]
         if not changed_ifindexes:
             return
 
-        self._logger.debug("%s changed ifindex mappings (new/old): %r",
-                           self.netbox.sysname, changed_ifindexes)
+        self._logger.debug(
+            "%s changed ifindex mappings (new/old): %r",
+            self.netbox.sysname,
+            changed_ifindexes,
+        )
 
         changed_interfaces = self._db_ifcs.filter(
-            ifindex__in=[new for new, old in changed_ifindexes])
+            ifindex__in=[new for new, old in changed_ifindexes]
+        )
         changed_interfaces.update(ifindex=None)
 
     def _resolve_linkstate_alerts(self):
         alerts = self._get_unresolved_linkstate_alerts()
         need_to_resolve = set(
-            ifc for ifc in self.get_managed()
+            ifc
+            for ifc in self.get_managed()
             if not ifc.is_linkstate_changed()
-                and ifc.id in alerts
-                and ifc.ifoperstatus == manage.Interface.OPER_UP)
+            and ifc.id in alerts
+            and ifc.ifoperstatus == manage.Interface.OPER_UP
+        )
         self._logger.debug(
             "resolving link state alerts for these ifcs: %r",
-            [ifc.ifname or ifc.ifdescr for ifc in need_to_resolve])
+            [ifc.ifname or ifc.ifdescr for ifc in need_to_resolve],
+        )
         for ifc in need_to_resolve:
-            ifc.ifoperstatus_change = (manage.Interface.OPER_DOWN,
-                                       manage.Interface.OPER_UP)
+            ifc.ifoperstatus_change = (
+                manage.Interface.OPER_DOWN,
+                manage.Interface.OPER_UP,
+            )
         self._ifcs_with_unresolved_alerts = need_to_resolve
 
     def _get_unresolved_linkstate_alerts(self):
         unresolved = AlertHistory.objects.filter(
-            netbox=self.netbox.id, event_type__id='linkState',
-            end_time__gte=INFINITY)
+            netbox=self.netbox.id, event_type__id='linkState', end_time__gte=INFINITY
+        )
         interface_ids = [v['subid'] for v in unresolved.values('subid')]
         return [int(ifc_id) for ifc_id in interface_ids if ifc_id.isdigit()]
 
@@ -183,12 +203,13 @@ class InterfaceManager(DefaultManager):
 
         """
         if self._missing_ifcs:
-            self._logger.debug("marking %d interface(s) as gone: %r",
-                               len(self._missing_ifcs),
-                               ifnames(self._missing_ifcs.values()))
+            self._logger.debug(
+                "marking %d interface(s) as gone: %r",
+                len(self._missing_ifcs),
+                ifnames(self._missing_ifcs.values()),
+            )
 
-            missing = manage.Interface.objects.filter(
-                id__in=self._missing_ifcs.keys())
+            missing = manage.Interface.objects.filter(id__in=self._missing_ifcs.keys())
             missing.update(gone_since=datetime.datetime.now())
 
     @transaction.atomic()
@@ -199,14 +220,16 @@ class InterfaceManager(DefaultManager):
 
         deleteable = set(indexless + dead)
         if deleteable:
-            self._logger.info("deleting %d missing interfaces: %s",
-                              len(deleteable), ifnames(deleteable))
+            self._logger.info(
+                "deleting %d missing interfaces: %s",
+                len(deleteable),
+                ifnames(deleteable),
+            )
             pks = [ifc.id for ifc in deleteable]
             manage.Interface.objects.filter(pk__in=pks).delete()
 
     def _get_indexless_ifcs(self):
-        return [ifc for ifc in self._db_ifcs
-                if not ifc.ifindex]
+        return [ifc for ifc in self._db_ifcs if not ifc.ifindex]
 
     def _get_dead_ifcs(self):
         """Returns a list of dead interfaces.
@@ -218,40 +241,55 @@ class InterfaceManager(DefaultManager):
         deadline = datetime.datetime.now() - MISSING_THRESHOLD
 
         def is_dead(ifc):
-            return (ifc.gone_since and ifc.gone_since < deadline
-                    and (not ifc.module or ifc.module.up == 'y'))
+            return (
+                ifc.gone_since
+                and ifc.gone_since < deadline
+                and (not ifc.module or ifc.module.up == 'y')
+            )
+
         return [ifc for ifc in self._db_ifcs if is_dead(ifc)]
 
     @transaction.atomic()
     def _generate_linkstate_events(self):
-        changed_ifcs = [ifc for ifc in self.get_managed()
-                        if ifc.is_linkstate_changed()]
+        changed_ifcs = [ifc for ifc in self.get_managed() if ifc.is_linkstate_changed()]
         if not changed_ifcs:
             return
 
         self._logger.debug("link state changed for: %s", ifnames(changed_ifcs))
 
         linkstate_filter = self.get_linkstate_filter()
-        eventful_ifcs = [ifc for ifc in changed_ifcs
-                         if ifc.matches_filter(linkstate_filter)
-                             or ifc in self._ifcs_with_unresolved_alerts]
+        eventful_ifcs = [
+            ifc
+            for ifc in changed_ifcs
+            if ifc.matches_filter(linkstate_filter)
+            or ifc in self._ifcs_with_unresolved_alerts
+        ]
         if eventful_ifcs:
-            self._logger.debug("posting linkState events for %r: %s",
-                               linkstate_filter, ifnames(eventful_ifcs))
+            self._logger.debug(
+                "posting linkState events for %r: %s",
+                linkstate_filter,
+                ifnames(eventful_ifcs),
+            )
 
         for ifc in eventful_ifcs:
             ifc.post_linkstate_event()
 
     def get_linkstate_filter(self):
         from nav.ipdevpoll.config import ipdevpoll_conf as conf
+
         default = 'topology'
-        link_filter = (conf.get('linkstate', 'filter')
-                       if conf.has_option('linkstate', 'filter')
-                       else default)
+        link_filter = (
+            conf.get('linkstate', 'filter')
+            if conf.has_option('linkstate', 'filter')
+            else default
+        )
 
         if link_filter not in ('any', 'topology'):
-            self._logger.warning("configured linkstate filter is invalid: %r"
-                                 " (using %r as default)", link_filter, default)
+            self._logger.warning(
+                "configured linkstate filter is invalid: %r" " (using %r as default)",
+                link_filter,
+                default,
+            )
             return default
         else:
             return link_filter
@@ -282,8 +320,10 @@ class Interface(Shadow):
         administratively up and the link status has changed.
         """
         if not self.is_admin_up():
-            self._logger.debug("withholding linkState event, interface %s is "
-                               "not admUp", self.ifname or self.ifindex)
+            self._logger.debug(
+                "withholding linkState event, interface %s is " "not admUp",
+                self.ifname or self.ifindex,
+            )
             return
 
         if not self.is_linkstate_changed():
@@ -311,12 +351,15 @@ class Interface(Shadow):
         event.state = event.STATE_START if start else event.STATE_END
         event.save()
 
-        EventVar(event_queue=event, variable='alerttype',
-                 value='linkDown' if start else 'linkUp').save()
-        EventVar(event_queue=event, variable='interface',
-                 value=self.ifname).save()
-        EventVar(event_queue=event, variable='ifalias',
-                 value=django_ifc.ifalias or '').save()
+        EventVar(
+            event_queue=event,
+            variable='alerttype',
+            value='linkDown' if start else 'linkUp',
+        ).save()
+        EventVar(event_queue=event, variable='interface', value=self.ifname).save()
+        EventVar(
+            event_queue=event, variable='ifalias', value=django_ifc.ifalias or ''
+        ).save()
 
     def get_existing_model(self, containers=None):
         """Returns the existing Django ORM object represented by this object.
@@ -402,10 +445,10 @@ class InterfaceStack(Shadow):
         collected_stackings = containers[cls].values()
         stacking_primary_keys = set(s.id for s in collected_stackings)
         collected_ifc_ids = set(
-            ifc.id for ifc in containers[Interface].values() if ifc.id)
+            ifc.id for ifc in containers[Interface].values() if ifc.id
+        )
 
-        existing = (Q(higher__in=collected_ifc_ids)
-                    | Q(lower__in=collected_ifc_ids))
+        existing = Q(higher__in=collected_ifc_ids) | Q(lower__in=collected_ifc_ids)
         obsolete = existing & ~Q(id__in=stacking_primary_keys)
 
         deleteable = manage.InterfaceStack.objects.filter(obsolete)
@@ -425,10 +468,12 @@ class InterfaceAggregate(Shadow):
         collected_aggregates = containers[cls].values()
         aggregate_primary_keys = set(s.id for s in collected_aggregates)
         collected_ifc_ids = set(
-            ifc.id for ifc in containers[Interface].values() if ifc.id)
+            ifc.id for ifc in containers[Interface].values() if ifc.id
+        )
 
-        existing = (Q(aggregator__in=collected_ifc_ids)
-                    | Q(interface__in=collected_ifc_ids))
+        existing = Q(aggregator__in=collected_ifc_ids) | Q(
+            interface__in=collected_ifc_ids
+        )
         obsolete = existing & ~Q(id__in=aggregate_primary_keys)
 
         deleteable = manage.InterfaceAggregate.objects.filter(obsolete)
@@ -447,5 +492,4 @@ def ifnames(ifcs):
     objects.
 
     """
-    return ', '.join(sorted((ifc.ifname or 'None' for ifc in ifcs),
-                            key=natsort.split))
+    return ', '.join(sorted((ifc.ifname or 'None' for ifc in ifcs), key=natsort.split))

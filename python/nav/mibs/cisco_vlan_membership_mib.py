@@ -22,6 +22,7 @@ from . import mibretriever
 
 class CiscoVlanMembershipMib(mibretriever.MibRetriever):
     """MibRetriever for CISCO-VLAN-MEMBERSHIP-MIB"""
+
     mib = get_mib('CISCO-VLAN-MEMBERSHIP-MIB')
 
     @defer.inlineCallbacks

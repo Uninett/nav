@@ -9,8 +9,10 @@ class ServiceCheckersTest(TestCase):
         self.assertTrue(checkers, msg="no service checkers found")
         for checker in checkers:
             self.assertTrue(issubclass(checker, AbstractChecker))
-            self.assertFalse(checker is AbstractChecker,
-                             msg="AbstractChecker returned as real checker")
+            self.assertFalse(
+                checker is AbstractChecker,
+                msg="AbstractChecker returned as real checker",
+            )
 
     def test_get_ssh_description(self):
         descr = get_description('ssh')

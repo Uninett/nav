@@ -52,12 +52,13 @@ COLUMNS = {
         "scale": Sensor.SCALE_MILLI,
         "name": "{ifc} RX Laser Input Power",
         "description": "{ifc} RX Laser Input Power",
-    }
+    },
 }
 
 
 class AlcatelInd1PortMib(MibRetriever):
     """MibRetriever for Alcatel Port Sensors"""
+
     mib = get_mib('ALCATEL-IND1-PORT-MIB')
 
     @defer.inlineCallbacks

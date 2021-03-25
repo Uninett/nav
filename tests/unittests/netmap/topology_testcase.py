@@ -3,7 +3,6 @@ from nav.models.manage import Netbox, Interface, Room, Location, Category
 
 
 class TopologyTestCase(unittest.TestCase):
-
     def setUp(self):
         self.room = room = Room()
         room.id = 'Pegasus'
@@ -15,7 +14,7 @@ class TopologyTestCase(unittest.TestCase):
         self.category_gw = Category(id='GW')
 
     def _next_id(self):
-        self.model_id = self.model_id+1
+        self.model_id = self.model_id + 1
         return self.model_id
 
     def _netbox_factory(self, sysname, interface=None):

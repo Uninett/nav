@@ -68,7 +68,7 @@ class NetboxType(Shadow):
         """
         prefix = u"1.3.6.1.4.1."
         if self.sysobjectid.startswith(prefix):
-            specific = self.sysobjectid[len(prefix):]
+            specific = self.sysobjectid[len(prefix) :]
             enterprise = specific.split('.')[0]
             return int(enterprise)
 
@@ -130,8 +130,9 @@ class Module(Shadow):
             by_name[module.name].append(module)
         duped = [name for name in by_name if len(by_name[name]) > 1]
         for name in duped:
-            cls._logger.warning("Device reports %d modules by the name %r",
-                                len(by_name[name]), name)
+            cls._logger.warning(
+                "Device reports %d modules by the name %r", len(by_name[name]), name
+            )
             for module in by_name[name]:
                 serial = module.device.serial if module.device else None
                 if serial:
@@ -172,8 +173,11 @@ class Module(Shadow):
                 "modules appear to have been swapped inside same chassis (%s): "
                 "%s (%s) <-> %s (%s)",
                 other.netbox.sysname,
-                self.name, self.device.serial,
-                other.name, other.device.serial)
+                self.name,
+                self.device.serial,
+                other.name,
+                other.device.serial,
+            )
 
             other.name = u"%s (%s)" % (other.name, other.device.serial)
             other.save()
@@ -182,8 +186,8 @@ class Module(Shadow):
         myself_in_db = self.get_existing_model()
 
         same_name_modules = manage.Module.objects.filter(
-            netbox__id=self.netbox.id,
-            name=self.name)
+            netbox__id=self.netbox.id, name=self.name
+        )
 
         if myself_in_db:
             same_name_modules = same_name_modules.exclude(id=myself_in_db.id)
@@ -208,16 +212,23 @@ class Module(Shadow):
 
         if missing_modules:
             shortlist = ", ".join(m.name for m in missing_modules)
-            cls._logger.info("%d modules went missing on %s (%s)",
-                             netbox.sysname, len(missing_modules), shortlist)
+            cls._logger.info(
+                "%d modules went missing on %s (%s)",
+                netbox.sysname,
+                len(missing_modules),
+                shortlist,
+            )
             for module in missing_modules:
                 cls.event.start(module.device, module.netbox, module.id).save()
 
         if reappeared_modules:
             shortlist = ", ".join(m.name for m in reappeared_modules)
-            cls._logger.info("%d modules reappeared on %s (%s)",
-                             netbox.sysname, len(reappeared_modules),
-                             shortlist)
+            cls._logger.info(
+                "%d modules reappeared on %s (%s)",
+                netbox.sysname,
+                len(reappeared_modules),
+                shortlist,
+            )
             for module in reappeared_modules:
                 cls.event.end(module.device, module.netbox, module.id).save()
 
@@ -237,14 +248,15 @@ class Device(Shadow):
     def _fix_binary_garbage(self):
         """Fixes version strings that appear as binary garbage."""
 
-        for attr in ('hardware_version',
-                     'software_version',
-                     'firmware_version',
-                     'serial'):
+        for attr in (
+            'hardware_version',
+            'software_version',
+            'firmware_version',
+            'serial',
+        ):
             value = getattr(self, attr)
             if utils.is_invalid_database_string(value):
-                self._logger.warning("Invalid value for %s: %r",
-                                     attr, value)
+                self._logger.warning("Invalid value for %s: %r", attr, value)
                 setattr(self, attr, repr(value))
         self.clear_cached_objects()
 
@@ -286,8 +298,9 @@ class Vlan(Shadow):
                 self.net_type = net_type
 
     def save(self, containers):
-        if (self._revert_vlan_on_type_change_to_scope(containers) or
-                self._is_type_changed_to_static(containers)):
+        if self._revert_vlan_on_type_change_to_scope(
+            containers
+        ) or self._is_type_changed_to_static(containers):
             return
 
         self._ignore_unknown_organizations()
@@ -322,21 +335,21 @@ class Vlan(Shadow):
                 netboxid = self.netbox.id
             else:
                 netboxid = None
-            vlans = manage.Vlan.objects.filter(vlan=self.vlan,
-                                               net_ident=self.net_ident,
-                                               netbox__id=netboxid)
+            vlans = manage.Vlan.objects.filter(
+                vlan=self.vlan, net_ident=self.net_ident, netbox__id=netboxid
+            )
             if vlans:
                 self._logger.debug(
-                    "get_existing_model: %d matches found for "
-                    "vlan+net_ident: %r",
-                    len(vlans), self)
+                    "get_existing_model: %d matches found for " "vlan+net_ident: %r",
+                    len(vlans),
+                    self,
+                )
                 return vlans[0]
 
         vlan = self._get_vlan_from_my_prefixes(containers)
         if vlan:
             # Only reuse the existing Vlan object if lacks essential identifiers
-            if vlan.vlan is None or (vlan.vlan == self.vlan and
-                                     not self.net_ident):
+            if vlan.vlan is None or (vlan.vlan == self.vlan and not self.net_ident):
                 return vlan
 
     def _has_no_prefixes(self, containers):
@@ -349,10 +362,12 @@ class Vlan(Shadow):
         mdl = self.get_existing_model(containers)
         if mdl and mdl.net_type_id == 'scope':
             prefixes = self._get_my_prefixes(containers)
-            self._logger.warning("some interface claims to be on a scope "
-                                 "prefix, not changing vlan details. attached "
-                                 "prefixes: %r",
-                                 [pfx.net_address for pfx in prefixes])
+            self._logger.warning(
+                "some interface claims to be on a scope "
+                "prefix, not changing vlan details. attached "
+                "prefixes: %r",
+                [pfx.net_address for pfx in prefixes],
+            )
             for pfx in prefixes:
                 pfx.vlan = mdl
             return True
@@ -360,29 +375,30 @@ class Vlan(Shadow):
     def _is_type_changed_to_static(self, containers):
         mdl = self.get_existing_model(containers)
         if mdl and mdl.net_type_id != 'static' and self.net_type.id == 'static':
-            self._logger.info("will not change vlan %r type from %s to static",
-                              self.net_ident, mdl.net_type_id)
+            self._logger.info(
+                "will not change vlan %r type from %s to static",
+                self.net_ident,
+                mdl.net_type_id,
+            )
             return True
 
     def _ignore_unknown_organizations(self):
-        if (self.organization and
-                not self.organization.get_existing_model()):
-            self._logger.warning("ignoring unknown organization id %r",
-                                 self.organization.id)
+        if self.organization and not self.organization.get_existing_model():
+            self._logger.warning(
+                "ignoring unknown organization id %r", self.organization.id
+            )
             self.organization = None
 
     def _ignore_unknown_usages(self):
         if self.usage and not self.usage.get_existing_model():
-            self._logger.warning("ignoring unknown usage id %r",
-                                 self.usage.id)
+            self._logger.warning("ignoring unknown usage id %r", self.usage.id)
             self.usage = None
 
     def _get_my_prefixes(self, containers):
         """Get a list of Prefix shadow objects that point to this Vlan."""
         if Prefix in containers:
             all_prefixes = containers[Prefix].values()
-            my_prefixes = [prefix for prefix in all_prefixes
-                           if prefix.vlan is self]
+            my_prefixes = [prefix for prefix in all_prefixes if prefix.vlan is self]
             return my_prefixes
         else:
             return []
@@ -401,15 +417,20 @@ class Vlan(Shadow):
                     "_get_vlan_from_my_prefixes: selected prefix "
                     "%s for possible vlan match for %r (%s), "
                     "pre-existing is %r",
-                    live_prefix.net_address, self, id(self),
-                    live_prefix.vlan)
+                    live_prefix.net_address,
+                    self,
+                    id(self),
+                    live_prefix.vlan,
+                )
                 return live_prefix.vlan
 
     def _log_if_multiple_prefixes(self, prefix_containers):
         if len(prefix_containers) > 1:
             self._logger.debug(
                 "multiple prefixes for %r: %r",
-                self, [p.net_address for p in prefix_containers])
+                self,
+                [p.net_address for p in prefix_containers],
+            )
 
     def _guesstimate_net_type(self, containers):
         """Guesstimates a net type for this VLAN, based on its prefixes.
@@ -427,8 +448,7 @@ class Vlan(Shadow):
 
         if prefix_containers:
             # prioritize ipv4 prefixes, as the netmasks are more revealing
-            prefix_containers.sort(
-                key=lambda p: IPy.IP(p.net_address).version())
+            prefix_containers.sort(key=lambda p: IPy.IP(p.net_address).version())
             prefix = IPy.IP(prefix_containers[0].net_address)
         else:
             return NetType.get('unknown')
@@ -453,7 +473,10 @@ class Vlan(Shadow):
 
         self._logger.debug(
             "_guesstimate_net_type: %r -> %r (router_count=%r has_virtual_addrs=%r)",
-            prefix, net_type, router_count, has_virtual_addrs,
+            prefix,
+            net_type,
+            router_count,
+            has_virtual_addrs,
         )
         return NetType.get(net_type)
 
@@ -468,14 +491,14 @@ class Vlan(Shadow):
         :returns: an integer count of routers for `net_address`
 
         """
-        address_filter = Q(interface__gwportprefix__prefix__net_address=
-                           str(net_address))
+        address_filter = Q(
+            interface__gwportprefix__prefix__net_address=str(net_address)
+        )
         if include_netboxid:
             address_filter = address_filter | Q(id=include_netboxid)
 
         router_count = manage.Netbox.objects.filter(
-            address_filter,
-            category__id__in=('GW', 'GSW')
+            address_filter, category__id__in=('GW', 'GSW')
         )
         return router_count.distinct().count()
 
@@ -490,8 +513,7 @@ class Vlan(Shadow):
 
         """
         virtual_addresses = manage.GwPortPrefix.objects.filter(
-            prefix__net_address=str(net_address),
-            virtual=True,
+            prefix__net_address=str(net_address), virtual=True,
         )
         return virtual_addresses.distinct().count()
 
@@ -512,15 +534,18 @@ class GwPortPrefix(Shadow):
             return
 
         netbox = containers.get(None, Netbox).get_existing_model()
-        cls._logger.info("deleting %d missing addresses from %s: %s",
-                         len(gwips), netbox.sysname, ", ".join(gwips))
+        cls._logger.info(
+            "deleting %d missing addresses from %s: %s",
+            len(gwips),
+            netbox.sysname,
+            ", ".join(gwips),
+        )
 
         missing_addresses.delete()
 
     @classmethod
     def _get_missing_addresses(cls, containers):
-        found_addresses = [g.gw_ip
-                           for g in containers[cls].values()]
+        found_addresses = [g.gw_ip for g in containers[cls].values()]
         netbox = containers.get(None, Netbox).get_existing_model()
         missing_addresses = manage.GwPortPrefix.objects.filter(
             interface__netbox=netbox
@@ -537,24 +562,30 @@ class GwPortPrefix(Shadow):
 
         data = self._parse_description_with_all_parsers()
         if not data:
-            self._logger.debug("ifalias did not match any known router port "
-                               "description conventions: %s",
-                               self.interface.ifalias)
+            self._logger.debug(
+                "ifalias did not match any known router port "
+                "description conventions: %s",
+                self.interface.ifalias,
+            )
             self.prefix.vlan.netident = self.interface.ifalias
             return
 
         self._update_with_parsed_description_data(data, containers)
 
     def _are_description_variables_present(self):
-        return (self.interface and
-                self.interface.netbox and
-                self.interface.ifalias and
-                self.prefix and
-                self.prefix.vlan)
+        return (
+            self.interface
+            and self.interface.netbox
+            and self.interface.ifalias
+            and self.prefix
+            and self.prefix.vlan
+        )
 
     def _parse_description_with_all_parsers(self):
-        for parse in (descrparsers.parse_ntnu_convention,
-                      descrparsers.parse_uninett_convention):
+        for parse in (
+            descrparsers.parse_ntnu_convention,
+            descrparsers.parse_uninett_convention,
+        ):
             data = parse(self.interface.netbox.sysname, self.interface.ifalias)
             if data:
                 return data
@@ -577,7 +608,9 @@ class GwPortPrefix(Shadow):
             vlan.vlan = data['vlan']
             self._logger.info(
                 "forcing vlan tag of %s to %s by description convention",
-                self.prefix.net_address, vlan.vlan)
+                self.prefix.net_address,
+                vlan.vlan,
+            )
 
     def prepare(self, containers):
         self._parse_description(containers)
@@ -605,9 +638,9 @@ class Arp(Shadow):
         if not self.id:
             return super(Arp, self).save(containers)
 
-        attrs = dict((attr, getattr(self, attr))
-                     for attr in self.get_touched()
-                     if attr != 'id')
+        attrs = dict(
+            (attr, getattr(self, attr)) for attr in self.get_touched() if attr != 'id'
+        )
         if attrs:
             myself = manage.Arp.objects.filter(id=self.id)
             myself.update(**attrs)
@@ -629,41 +662,46 @@ class Sensor(Shadow):
     @classmethod
     def _delete_missing_sensors(cls, containers):
         missing_sensors = cls._get_missing_sensors(containers)
-        sensor_names = [row['internal_name']
-                        for row in missing_sensors.values('internal_name')]
+        sensor_names = [
+            row['internal_name'] for row in missing_sensors.values('internal_name')
+        ]
         if not missing_sensors:
             return
         netbox = containers.get(None, Netbox)
-        cls._logger.debug('Deleting %d missing sensors from %s: %s',
-                          len(sensor_names), netbox.sysname,
-                          ", ".join(sensor_names))
+        cls._logger.debug(
+            'Deleting %d missing sensors from %s: %s',
+            len(sensor_names),
+            netbox.sysname,
+            ", ".join(sensor_names),
+        )
         missing_sensors.delete()
 
     @classmethod
     def _get_missing_sensors(cls, containers):
         found_sensor_pks = [sensor.id for sensor in containers[cls].values()]
         netbox = containers.get(None, Netbox)
-        missing_sensors = manage.Sensor.objects.filter(
-            netbox=netbox.id).exclude(pk__in=found_sensor_pks)
+        missing_sensors = manage.Sensor.objects.filter(netbox=netbox.id).exclude(
+            pk__in=found_sensor_pks
+        )
         return missing_sensors
 
     def prepare(self, containers):
         if self.interface:
             if self.name:
-                self.name = self.name.format(
-                    ifc=self.interface.ifname)
+                self.name = self.name.format(ifc=self.interface.ifname)
             if self.human_readable:
                 self.human_readable = self.human_readable.format(
-                    ifc=self.interface.ifdescr)
+                    ifc=self.interface.ifdescr
+                )
             if self.internal_name:
                 self.internal_name = self.internal_name.format(
-                    ifc=self.interface.ifname)
+                    ifc=self.interface.ifname
+                )
 
 
 class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
     __lookups__ = [('netbox', 'name')]
-
 
     def prepare(self, containers):
         existing = self.get_existing_model(containers)
@@ -678,23 +716,27 @@ class PowerSupplyOrFan(Shadow):
     @classmethod
     def _delete_missing_psus_and_fans(cls, containers):
         missing_psus_and_fans = cls._get_missing_psus_and_fans(containers)
-        psu_and_fan_names = [row['name']
-                             for row in missing_psus_and_fans.values('name')]
+        psu_and_fan_names = [
+            row['name'] for row in missing_psus_and_fans.values('name')
+        ]
         if not missing_psus_and_fans:
             return
         netbox = containers.get(None, Netbox)
-        cls._logger.debug('Deleting %d missing psus and fans from %s: %s',
-                          len(psu_and_fan_names), netbox.sysname,
-                          ", ".join(psu_and_fan_names))
+        cls._logger.debug(
+            'Deleting %d missing psus and fans from %s: %s',
+            len(psu_and_fan_names),
+            netbox.sysname,
+            ", ".join(psu_and_fan_names),
+        )
         missing_psus_and_fans.delete()
 
     @classmethod
     def _get_missing_psus_and_fans(cls, containers):
-        found_psus_and_fans_pks = [psu_fan.id
-                                   for psu_fan in containers[cls].values()]
+        found_psus_and_fans_pks = [psu_fan.id for psu_fan in containers[cls].values()]
         netbox = containers.get(None, Netbox)
         missing_psus_and_fans = manage.PowerSupplyOrFan.objects.filter(
-            netbox=netbox.id).exclude(pk__in=found_psus_and_fans_pks)
+            netbox=netbox.id
+        ).exclude(pk__in=found_psus_and_fans_pks)
         return missing_psus_and_fans
 
 
@@ -706,8 +748,7 @@ class POEPort(Shadow):
     def cleanup_after_save(cls, containers):
         found = [port.id for port in containers[cls].values()]
         netbox = containers.get(None, Netbox)
-        manage.POEPort.objects.filter(netbox=netbox.id)\
-                              .exclude(pk__in=found).delete()
+        manage.POEPort.objects.filter(netbox=netbox.id).exclude(pk__in=found).delete()
 
 
 class POEGroup(Shadow):
@@ -719,20 +760,19 @@ class POEGroup(Shadow):
     def cleanup_after_save(cls, containers):
         found = [grp.id for grp in containers[cls].values()]
         netbox = containers.get(None, Netbox)
-        manage.POEGroup.objects.filter(netbox=netbox.id)\
-                               .exclude(pk__in=found).delete()
+        manage.POEGroup.objects.filter(netbox=netbox.id).exclude(pk__in=found).delete()
 
     def prepare(self, containers):
         if self.phy_index and not self.module:
             entity = manage.NetboxEntity.objects.filter(
-                netbox=self.netbox.id, index=self.phy_index).first()
+                netbox=self.netbox.id, index=self.phy_index
+            ).first()
             if entity and entity.device:
                 self.module = entity.device.module_set.first()
         vendor = self.netbox.type.vendor.id if self.netbox.type else ''
         if vendor == 'hp' and not self.module:
             module = manage.Module.objects.filter(
-                netbox=self.netbox.id,
-                name=chr(ord('A') + self.index - 1),
+                netbox=self.netbox.id, name=chr(ord('A') + self.index - 1),
             ).first()
             if module:
                 self.module = shadowify(module)

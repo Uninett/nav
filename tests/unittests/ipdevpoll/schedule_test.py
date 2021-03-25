@@ -16,7 +16,7 @@ def netbox_job_scheduler():
     netbox = Mock()
     netbox.id = 1
     pool = Mock()
-    return schedule.NetboxJobScheduler(job,  netbox, pool)
+    return schedule.NetboxJobScheduler(job, netbox, pool)
 
 
 def test_netbox_job_scheduler_reschedule_on_success(netbox_job_scheduler):
@@ -26,9 +26,7 @@ def test_netbox_job_scheduler_reschedule_on_success(netbox_job_scheduler):
     netbox_job_scheduler.callLater = clock.callLater
     netbox_job_scheduler.start()
     clock.advance(1)
-    pool.execute_job.assert_called_once_with('myjob', 1, plugins=[],
-                                             interval=10)
+    pool.execute_job.assert_called_once_with('myjob', 1, plugins=[], interval=10)
     clock.advance(10)
     assert pool.execute_job.call_count == 2
-    pool.execute_job.assert_called_with('myjob', 1, plugins=[],
-                                        interval=10)
+    pool.execute_job.assert_called_with('myjob', 1, plugins=[], interval=10)

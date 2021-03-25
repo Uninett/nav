@@ -23,8 +23,7 @@ def test_simple_ip_search_should_return_result(selenium, base_url):
     """Tests a search for an IP address"""
     selenium.get('{}/'.format(base_url))
     query = selenium.find_element_by_id('query')
-    search_button = selenium.find_element_by_css_selector(
-        "input.button[type='submit']")
+    search_button = selenium.find_element_by_css_selector("input.button[type='submit']")
 
     ipaddr = "192.168.42.42"
     query.send_keys(ipaddr)

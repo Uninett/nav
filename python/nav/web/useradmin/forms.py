@@ -21,8 +21,15 @@ from django import forms
 from django.utils.encoding import force_text
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
-                                            Column, Field, HTML)
+from crispy_forms_foundation.layout import (
+    Layout,
+    Fieldset,
+    Submit,
+    Row,
+    Column,
+    Field,
+    HTML,
+)
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
@@ -33,6 +40,7 @@ from nav.util import auth_token
 
 class AccountGroupForm(forms.ModelForm):
     """Form for adding or editing a group on the group page"""
+
     name = forms.CharField(required=True)
     description = forms.CharField(required=True)
 
@@ -42,8 +50,13 @@ class AccountGroupForm(forms.ModelForm):
         self.helper.form_action = ''
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
-            Fieldset('Group info', 'name', 'description',
-                     Submit('submit_group', 'Save changes', css_class='small')))
+            Fieldset(
+                'Group info',
+                'name',
+                'description',
+                Submit('submit_group', 'Save changes', css_class='small'),
+            )
+        )
 
     class Meta(object):
         model = AccountGroup
@@ -52,13 +65,18 @@ class AccountGroupForm(forms.ModelForm):
 
 class AccountForm(forms.ModelForm):
     """Form for creating and editing an account"""
-    password1 = forms.CharField(label='New password (>= 8 characters)',
-                                min_length=Account.MIN_PASSWD_LENGTH,
-                                widget=forms.widgets.PasswordInput)
-    password2 = forms.CharField(label='Repeat password',
-                                min_length=Account.MIN_PASSWD_LENGTH,
-                                widget=forms.widgets.PasswordInput,
-                                required=False)
+
+    password1 = forms.CharField(
+        label='New password (>= 8 characters)',
+        min_length=Account.MIN_PASSWD_LENGTH,
+        widget=forms.widgets.PasswordInput,
+    )
+    password2 = forms.CharField(
+        label='Repeat password',
+        min_length=Account.MIN_PASSWD_LENGTH,
+        widget=forms.widgets.PasswordInput,
+        required=False,
+    )
     login = forms.CharField(required=True)
     name = forms.CharField(required=True)
 
@@ -88,8 +106,7 @@ class AccountForm(forms.ModelForm):
                 del self.fields['password1']
                 del self.fields['password2']
                 self.fields['login'].widget.attrs['readonly'] = True
-                fieldset_args.extend(['login', 'name',
-                                      HTML(authenticator)])
+                fieldset_args.extend(['login', 'name', HTML(authenticator)])
             else:
                 fieldset_args.extend(default_args)
             if kwargs["instance"].id == Account.DEFAULT_ACCOUNT:
@@ -131,10 +148,11 @@ class AccountForm(forms.ModelForm):
 
 class PrivilegeForm(forms.Form):
     """Form for adding a privilege to a group from the group page"""
+
     type = forms.models.ModelChoiceField(PrivilegeType.objects.all(), label='')
-    target = forms.CharField(required=True, label='',
-                             widget=forms.TextInput(
-                                 attrs={'placeholder': 'Target'}))
+    target = forms.CharField(
+        required=True, label='', widget=forms.TextInput(attrs={'placeholder': 'Target'})
+    )
 
     def __init__(self, *args, **kwargs):
         super(PrivilegeForm, self).__init__(*args, **kwargs)
@@ -143,62 +161,66 @@ class PrivilegeForm(forms.Form):
         self.helper.form_method = "POST"
         self.helper.layout = Layout(
             Row(
-                Column(Field('type', css_class='select2'),
-                       css_class='medium-3'),
+                Column(Field('type', css_class='select2'), css_class='medium-3'),
                 Column('target', css_class='medium-6'),
-                Column(Submit('submit_privilege', 'Grant',
-                              css_class='postfix'), css_class='medium-3')
+                Column(
+                    Submit('submit_privilege', 'Grant', css_class='postfix'),
+                    css_class='medium-3',
+                ),
             )
         )
 
 
 class OrganizationAddForm(forms.Form):
     """Form for adding an organization to an account"""
+
     def __init__(self, account, *args, **kwargs):
         super(OrganizationAddForm, self).__init__(*args, **kwargs)
         if account:
-            query = Organization.objects.exclude(
-                id__in=account.organizations.all())
+            query = Organization.objects.exclude(id__in=account.organizations.all())
         else:
             query = Organization.objects.all()
 
         self.fields['organization'] = forms.models.ModelChoiceField(
-            queryset=query, required=True, label='')
+            queryset=query, required=True, label=''
+        )
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Field('organization', css_class='select2'),
-            Submit('submit_org', 'Add organization', css_class='postfix')
+            Submit('submit_org', 'Add organization', css_class='postfix'),
         )
 
 
 class GroupAddForm(forms.Form):
     """Form for adding a group to an account from the account page"""
+
     def __init__(self, account, *args, **kwargs):
         super(GroupAddForm, self).__init__(*args, **kwargs)
         if account:
-            query = AccountGroup.objects.exclude(
-                id__in=account.accountgroup_set.all())
+            query = AccountGroup.objects.exclude(id__in=account.accountgroup_set.all())
         else:
             query = AccountGroup.objects.all()
 
         self.fields['group'] = forms.models.ModelChoiceField(
-            queryset=query, required=True, label='')
+            queryset=query, required=True, label=''
+        )
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Row(
-                Column(Field('group', css_class='select2'),
-                       css_class='medium-8'),
-                Column(Submit('submit_group', 'Add membership',
-                              css_class='postfix'),
-                       css_class='medium-4')
+                Column(Field('group', css_class='select2'), css_class='medium-8'),
+                Column(
+                    Submit('submit_group', 'Add membership', css_class='postfix'),
+                    css_class='medium-4',
+                ),
             )
         )
 
 
 class AccountAddForm(forms.Form):
     """Form for adding a user to a group from the group page"""
+
     def __init__(self, group, *args, **kwargs):
         super(AccountAddForm, self).__init__(*args, **kwargs)
         if group:
@@ -207,12 +229,13 @@ class AccountAddForm(forms.Form):
             query = Account.objects.all()
 
         self.fields['account'] = forms.models.ModelChoiceField(
-            query, required=True, widget=forms.Select(), label='')
+            query, required=True, widget=forms.Select(), label=''
+        )
 
         self.helper = FormHelper()
         self.helper.layout = Layout(
             Field('account', css_class='select2'),
-            Submit('submit_account', 'Add to group', css_class='postfix')
+            Submit('submit_account', 'Add to group', css_class='postfix'),
         )
 
 
@@ -222,6 +245,7 @@ def _get_default_expires():
 
 class ReadonlyField(forms.CharField):
     """A readonly text field"""
+
     def widget_attrs(self, widget):
         attrs = super(ReadonlyField, self).widget_attrs(widget)
         attrs.update({'readonly': 'True'})
@@ -232,15 +256,18 @@ class TokenForm(forms.ModelForm):
     """Form for creating a new token"""
 
     token = ReadonlyField(initial=auth_token)
-    permission = forms.ChoiceField(choices=APIToken.permission_choices,
-                                   help_text=APIToken.permission_help_text,
-                                   initial='read')
+    permission = forms.ChoiceField(
+        choices=APIToken.permission_choices,
+        help_text=APIToken.permission_help_text,
+        initial='read',
+    )
     available_endpoints = get_api_endpoints()
     endpoints = forms.MultipleChoiceField(
-        required=False,
-        choices=sorted(available_endpoints.items()))
-    expires = forms.DateField(initial=_get_default_expires,
-                              widget=forms.DateInput(attrs={'type': 'date'}))
+        required=False, choices=sorted(available_endpoints.items())
+    )
+    expires = forms.DateField(
+        initial=_get_default_expires, widget=forms.DateInput(attrs={'type': 'date'})
+    )
 
     def __init__(self, *args, **kwargs):
         super(TokenForm, self).__init__(*args, **kwargs)
@@ -257,19 +284,23 @@ class TokenForm(forms.ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
-                Column(Fieldset('Token details', 'token', 'permission',
-                                'expires', 'comment'),
-                       css_class='large-4 small-12'),
-                Column(Fieldset('Token endpoints', 'endpoints'),
-                       css_class='large-8 small-12'),
+                Column(
+                    Fieldset(
+                        'Token details', 'token', 'permission', 'expires', 'comment'
+                    ),
+                    css_class='large-4 small-12',
+                ),
+                Column(
+                    Fieldset('Token endpoints', 'endpoints'),
+                    css_class='large-8 small-12',
+                ),
             )
         )
 
     def clean_endpoints(self):
         """Convert endpoints from list to dictionary"""
         endpoints = self.cleaned_data.get('endpoints')
-        return {x: force_text(self.available_endpoints.get(x))
-                for x in endpoints}
+        return {x: force_text(self.available_endpoints.get(x)) for x in endpoints}
 
     class Meta(object):
         model = APIToken

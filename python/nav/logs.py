@@ -25,8 +25,9 @@ from itertools import chain
 import configparser
 from nav.config import find_configfile, NAV_CONFIG
 
-DEFAULT_LOG_FORMATTER = logging.Formatter('%(asctime)s [%(levelname)s] '
-                                          '[%(name)s] %(message)s')
+DEFAULT_LOG_FORMATTER = logging.Formatter(
+    '%(asctime)s [%(levelname)s] ' '[%(name)s] %(message)s'
+)
 LOGGING_CONF_VAR = 'NAV_LOGGING_CONF'
 LOGGING_CONF_FILE_DEFAULT = find_configfile('logging.conf') or ''
 
@@ -89,8 +90,7 @@ def _set_custom_log_file():
             logger_name = ''
         _logger = logging.getLogger(logger_name)
 
-        filehandler = logging.FileHandler(_get_logfile_path(filename),
-                                            encoding='utf-8')
+        filehandler = logging.FileHandler(_get_logfile_path(filename), encoding='utf-8')
         filehandler.setFormatter(DEFAULT_LOG_FORMATTER)
         _logger.addHandler(filehandler)
 
@@ -109,8 +109,11 @@ def _get_logging_conf():
     # Warning about `bytes` on py 3.5, fixed in py 3.7. Do not change
     read = config.read(filename)
     if filename not in read and LOGGING_CONF_VAR in os.environ:
-        _logger.error("cannot read logging config from %s, trying default %s",
-                      filename, LOGGING_CONF_FILE_DEFAULT)
+        _logger.error(
+            "cannot read logging config from %s, trying default %s",
+            filename,
+            LOGGING_CONF_FILE_DEFAULT,
+        )
         config.read(LOGGING_CONF_FILE_DEFAULT)
     return config
 
@@ -187,13 +190,18 @@ def init_stderr_logging(formatter=None, rootlogger=''):
     to sys.stderr.
 
     """
-    init_generic_logging(formatter=formatter, read_config=True,
-                         rootlogger=rootlogger)
+    init_generic_logging(formatter=formatter, read_config=True, rootlogger=rootlogger)
 
 
-def init_generic_logging(logfile=None, stderr=True, stdout=False,
-                         formatter=None, read_config=False, rootlogger='',
-                         stderr_level=None):
+def init_generic_logging(
+    logfile=None,
+    stderr=True,
+    stdout=False,
+    formatter=None,
+    read_config=False,
+    rootlogger='',
+    stderr_level=None,
+):
     """Setup logging
 
     Attempts to cover all the possible existing ways of setting up logging"""
@@ -214,8 +222,9 @@ def init_generic_logging(logfile=None, stderr=True, stdout=False,
 
     if logfile:
         try:
-            filehandler = logging.FileHandler(_get_logfile_path(logfile),
-                                              encoding='utf-8')
+            filehandler = logging.FileHandler(
+                _get_logfile_path(logfile), encoding='utf-8'
+            )
         except IOError:
             pass
         else:

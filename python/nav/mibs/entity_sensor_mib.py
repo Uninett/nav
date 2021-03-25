@@ -76,13 +76,15 @@ class EntitySensorMib(mibretriever.MibRetriever):
 
     def _get_sensors(self):
         """ Collect all sensors from the box."""
-        df = self.retrieve_columns([
+        df = self.retrieve_columns(
+            [
                 self.TYPE_COLUMN,
                 self.SCALE_COLUMN,
                 self.PRECISION_COLUMN,
                 self.VALUE_COLUMN,
                 self.STATUS_COLUMN,
-                ])
+            ]
+        )
         df.addCallback(reduce_index)
         return df
 
@@ -119,18 +121,20 @@ class EntitySensorMib(mibretriever.MibRetriever):
             ifindex = row.get('ifindex')
             internal_name = name
             if op_status == 1:
-                result.append({
-                    'oid': oid,
-                    'unit_of_measurement': UNITS_OF_MEASUREMENTS.get(
-                        unit_of_measurement
-                    ),
-                    'precision': precision,
-                    'scale': DATA_SCALE.get(scale),
-                    'description': description,
-                    'name': name,
-                    'internal_name': internal_name,
-                    'mib': self.get_module_name(),
-                    'ifindex': ifindex,
-                    })
+                result.append(
+                    {
+                        'oid': oid,
+                        'unit_of_measurement': UNITS_OF_MEASUREMENTS.get(
+                            unit_of_measurement
+                        ),
+                        'precision': precision,
+                        'scale': DATA_SCALE.get(scale),
+                        'description': description,
+                        'name': name,
+                        'internal_name': internal_name,
+                        'mib': self.get_module_name(),
+                        'ifindex': ifindex,
+                    }
+                )
         self._logger.debug('get_all_sensors: result=%s', result)
         defer.returnValue(result)

@@ -95,9 +95,8 @@ def is_invalid_database_string(string):
     that cannot be decoded as UTF-8, or is another type of object, it is considered
     invalid.
     """
-    return (
-        (isinstance(string, six.text_type) and "\x00" in string)
-        or is_invalid_utf8(string)
+    return (isinstance(string, six.text_type) and "\x00" in string) or is_invalid_utf8(
+        string
     )
 
 
@@ -140,6 +139,7 @@ def get_multibridgemib(agentproxy):
 
     """
     from nav.mibs.bridge_mib import MultiBridgeMib
+
     instances = yield get_dot1d_instances(agentproxy)
     defer.returnValue(MultiBridgeMib(agentproxy, instances))
 
@@ -160,8 +160,9 @@ def get_dot1d_instances(agentproxy):
     from nav.mibs.cisco_vtp_mib import CiscoVTPMib
     from nav.mibs.entity_mib import EntityMib
 
-    enterprise_id = yield (Snmpv2Mib(agentproxy).get_sysObjectID().
-                           addCallback(get_enterprise_id))
+    enterprise_id = yield (
+        Snmpv2Mib(agentproxy).get_sysObjectID().addCallback(get_enterprise_id)
+    )
     if enterprise_id == VENDOR_ID_CISCOSYSTEMS:
         mibclasses = [EntityMib, CiscoVTPMib]
         modifier = lambda x: x

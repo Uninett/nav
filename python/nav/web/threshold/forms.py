@@ -18,8 +18,7 @@
 import re
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (Layout, Fieldset, Submit, Row,
-                                            Column)
+from crispy_forms_foundation.layout import Layout, Fieldset, Submit, Row, Column
 from django import forms
 
 from nav.metrics.thresholds import ThresholdEvaluator, InvalidExpressionError
@@ -30,21 +29,25 @@ from nav.web.crispyforms import HelpField
 
 class ThresholdForm(forms.ModelForm):
     """Form for creating a threshold rule"""
+
     period = forms.CharField(
-        max_length=200, required=False,
+        max_length=200,
+        required=False,
         help_text="The threshold monitor will calculate an average value from "
-                  "the data points that span this time interval. You should "
-                  "ensure that the metric has at least two data points in this "
-                  "interval. For interface counters, the recommended minimum "
-                  "value is 15 minutes ('15m'). If omitted, the period "
-                  "defaults to 5 minutes.")
+        "the data points that span this time interval. You should "
+        "ensure that the metric has at least two data points in this "
+        "interval. For interface counters, the recommended minimum "
+        "value is 15 minutes ('15m'). If omitted, the period "
+        "defaults to 5 minutes.",
+    )
 
     def __init__(self, *args, **kwargs):
         super(ThresholdForm, self).__init__(*args, **kwargs)
         self.fields['alert'].label = 'Alert threshold'
         self.fields['clear'].label = 'Clear alert'
-        self.fields['raw'].help_text = "(Advanced): Do not transform the " \
-                                       "target according to NAV's own rules"
+        self.fields['raw'].help_text = (
+            "(Advanced): Do not transform the " "target according to NAV's own rules"
+        )
 
         if self.instance.pk is None:
             action_text = 'Create rule'
@@ -65,12 +68,11 @@ class ThresholdForm(forms.ModelForm):
                 ),
                 'description',
                 Row(
-                    Column(Submit('submit', 'Save', css_class='small'),
-                           css_class='small-6'),
-                    Column(HelpField('raw'),
-                           css_class='small-6'),
-                )
-
+                    Column(
+                        Submit('submit', 'Save', css_class='small'), css_class='small-6'
+                    ),
+                    Column(HelpField('raw'), css_class='small-6'),
+                ),
             )
         )
 
@@ -114,9 +116,7 @@ class ThresholdForm(forms.ModelForm):
     class Meta(object):
         model = ThresholdRule
         fields = ('target', 'alert', 'clear', 'period', 'description', 'raw')
-        widgets = {
-            'description': forms.Textarea()
-        }
+        widgets = {'description': forms.Textarea()}
 
 
 def validate_expression(expression, form):

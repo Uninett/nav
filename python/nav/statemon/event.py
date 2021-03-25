@@ -22,13 +22,23 @@ class Event(object):
     """
     Class representing a NAV Event
     """
+
     UP = 'UP'
     DOWN = 'DOWN'
     boxState = 'boxState'
     serviceState = 'serviceState'
 
-    def __init__(self, serviceid, netboxid, deviceid,
-                 eventtype, source, status, info='', version=''):
+    def __init__(
+        self,
+        serviceid,
+        netboxid,
+        deviceid,
+        eventtype,
+        source,
+        status,
+        info='',
+        version='',
+    ):
         self.serviceid = serviceid
         self.netboxid = netboxid
         self.deviceid = deviceid
@@ -39,5 +49,9 @@ class Event(object):
         self.source = source
 
     def __repr__(self):
-        return "Service: %s, netbox: %s, eventtype: %s, status: %s" % \
-               (self.serviceid, self.netboxid, self.eventtype, self.status)
+        return "Service: %s, netbox: %s, eventtype: %s, status: %s" % (
+            self.serviceid,
+            self.netboxid,
+            self.eventtype,
+            self.status,
+        )

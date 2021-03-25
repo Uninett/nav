@@ -27,6 +27,7 @@ import sys
 from optparse import OptionParser
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django()
 
 from nav.models.event import EventQueue as Event, Subsystem, EventType
@@ -57,9 +58,15 @@ def main():
 
     state = 's' if options.state.startswith('d') else 'e'
 
-    event = Event(source=source, target=target, subid=options.subid,
-                  netbox=netbox, event_type=eventtype, device=netbox.device,
-                  state=state)
+    event = Event(
+        source=source,
+        target=target,
+        subid=options.subid,
+        netbox=netbox,
+        event_type=eventtype,
+        device=netbox.device,
+        state=state,
+    )
     event.save()
 
 
@@ -67,11 +74,11 @@ def create_parser():
     """Create optionparser"""
     parser = OptionParser(usage="Event needs netbox, state and subid")
     parser.add_option("-n", dest="netbox", help="part of sysname for netbox")
-    parser.add_option("-i", dest="subid",
-                      help="id of service to send event for")
+    parser.add_option("-i", dest="subid", help="id of service to send event for")
     parser.add_option("-s", dest="state", help="specify [u]p or [d]own event")
-    parser.add_option("-l", action="store_true", dest="list_services",
-                      help="List current services")
+    parser.add_option(
+        "-l", action="store_true", dest="list_services", help="List current services"
+    )
     return parser
 
 

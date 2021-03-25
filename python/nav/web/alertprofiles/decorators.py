@@ -31,6 +31,7 @@ def requires_post(redirect='alertprofiles-overview', required_args=None):
     specified redirect view.
 
     """
+
     def _required_args_are_present(request):
         if required_args is not None:
             for arg in required_args:

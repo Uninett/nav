@@ -70,30 +70,28 @@ def _build_context(request):
 
             results = LogMessage.objects.filter(
                 time__gte=form.cleaned_data['timestamp_from'],
-                time__lte=form.cleaned_data['timestamp_to']).select_related()
+                time__lte=form.cleaned_data['timestamp_to'],
+            ).select_related()
             if form.cleaned_data.get('priority', None):
                 priority_keyword = form.cleaned_data['priority']
                 if not isinstance(form.cleaned_data['priority'], list):
                     priority_keyword = [form.cleaned_data['priority']]
 
-                results = results.filter(
-                    newpriority__keyword__in=priority_keyword)
+                results = results.filter(newpriority__keyword__in=priority_keyword)
 
             if form.cleaned_data.get('mnemonic', None):
                 message_type_mnemonic = form.cleaned_data['mnemonic']
                 if not isinstance(form.cleaned_data['mnemonic'], list):
                     message_type_mnemonic = [form.cleaned_data['mnemonic']]
 
-                results = results.filter(
-                    type__mnemonic__in=message_type_mnemonic)
+                results = results.filter(type__mnemonic__in=message_type_mnemonic)
 
             if form.cleaned_data.get('facility', None):
                 message_type_facility = form.cleaned_data['facility']
                 if not isinstance(form.cleaned_data['facility'], list):
                     message_type_facility = [form.cleaned_data['facility']]
 
-                results = results.filter(
-                    type__facility__in=message_type_facility)
+                results = results.filter(type__facility__in=message_type_facility)
 
             if form.cleaned_data["category"]:
                 categories = form.cleaned_data['category']
@@ -110,34 +108,43 @@ def _build_context(request):
                 results = results.filter(origin__name__in=origin_name)
 
             priorities = results.values('newpriority__keyword').annotate(
-                sum=Count('newpriority__keyword'))
+                sum=Count('newpriority__keyword')
+            )
             priorities_headers = ['Priority']
             message_types = results.values(
                 'type__facility', 'type__priority__keyword', 'type__mnemonic'
             ).annotate(sum=Count('type'))
             message_types_headers = ['Facility', 'Priority', 'State']
-            origins = results.values('origin__name').annotate(
-                sum=Count('origin__name'))
+            origins = results.values('origin__name').annotate(sum=Count('origin__name'))
             origins_headers = ['Origin']
 
             aggregates.update(
-                {'Priorities': {
-                    'values': priorities,
-                    'headers': priorities_headers,
-                    'colspan': 1
-                }})
+                {
+                    'Priorities': {
+                        'values': priorities,
+                        'headers': priorities_headers,
+                        'colspan': 1,
+                    }
+                }
+            )
             aggregates.update(
-                {'Type': {
-                    'values': message_types,
-                    'headers': message_types_headers,
-                    'colspan': 3
-                }})
+                {
+                    'Type': {
+                        'values': message_types,
+                        'headers': message_types_headers,
+                        'colspan': 3,
+                    }
+                }
+            )
             aggregates.update(
-                {'Origin': {
-                    'values': origins,
-                    'headers': origins_headers,
-                    'colspan': 1
-                }})
+                {
+                    'Origin': {
+                        'values': origins,
+                        'headers': origins_headers,
+                        'colspan': 1,
+                    }
+                }
+            )
 
             def _update_show_log_context(value, results):
                 if value:
@@ -157,32 +164,32 @@ def _build_context(request):
 
     else:
         initial_context = {
-            'timestamp_from': (datetime.datetime.now() -
-                               datetime.timedelta(days=1)),
-            'timestamp_to': datetime.datetime.now()
+            'timestamp_from': (datetime.datetime.now() - datetime.timedelta(days=1)),
+            'timestamp_to': datetime.datetime.now(),
         }
         form = LoggerGroupSearchForm(initial=initial_context)
 
     strip_query_args = _strip_empty_arguments(request)
     strip_query_args = strip_query_args.urlencode() if strip_query_args else ""
 
-    context.update({
-        'form': form,
-        'bookmark': "{0}?{1}".format(reverse(index), strip_query_args),
-        'aggregates': aggregates,
-        'timestamp': datetime.datetime.now().strftime(DATEFORMAT),
-        'domain_strip': json.dumps(DOMAIN_SUFFICES),
-        'navpath': nav_path,
-        'title': create_title(nav_path)
-    })
+    context.update(
+        {
+            'form': form,
+            'bookmark': "{0}?{1}".format(reverse(index), strip_query_args),
+            'aggregates': aggregates,
+            'timestamp': datetime.datetime.now().strftime(DATEFORMAT),
+            'domain_strip': json.dumps(DOMAIN_SUFFICES),
+            'navpath': nav_path,
+            'title': create_title(nav_path),
+        }
+    )
     return context
 
 
 def handle_search(request, _searchform, form_target):
     account = get_account(request)
     if not account:
-        return HttpResponseForbidden(
-            "You must be logged in to access this resource")
+        return HttpResponseForbidden("You must be logged in to access this resource")
 
     context = _build_context(request)
 
@@ -197,8 +204,7 @@ def index(request):
 
 def group_search(request):
     if not request.is_ajax():
-        return HttpResponseRedirect(
-            reverse(index) + '?' + request.GET.urlencode())
+        return HttpResponseRedirect(reverse(index) + '?' + request.GET.urlencode())
     return handle_search(request, LoggerGroupSearchForm, reverse(group_search))
 
 
@@ -207,8 +213,7 @@ def exceptions_response(request):
     Handler for exception-mode.
     """
     if not request.is_ajax():
-        return HttpResponseRedirect(
-            reverse(index) + '?' + request.GET.urlencode())
+        return HttpResponseRedirect(reverse(index) + '?' + request.GET.urlencode())
 
     account = get_account(request)
     if not account:
@@ -231,8 +236,7 @@ def errors_response(request):
     Handler for error-mode.
     """
     if not request.is_ajax():
-        return HttpResponseRedirect(
-            reverse(index) + '?' + request.GET.urlencode())
+        return HttpResponseRedirect(reverse(index) + '?' + request.GET.urlencode())
 
     account = get_account(request)
     if not account:

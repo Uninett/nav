@@ -29,6 +29,7 @@ from nav.web.netmap.common import get_status_image_link
 
 class NetmapException(GeneralException):
     """Generic Netmap Exception"""
+
     pass
 
 
@@ -38,6 +39,7 @@ class GraphException(NetmapException):
     This exception is normally thrown if it finds something odd in the graph
      from nav.topology or the metadata contains known errors.
     """
+
     pass
 
 
@@ -48,6 +50,7 @@ class Node(object):
 
     Makes it easier to validate data and convert node to valid json.
     """
+
     def __init__(self, node, nx_node_metadata=None):
         self.node = node
         if nx_node_metadata and 'metadata' in nx_node_metadata:
@@ -64,30 +67,42 @@ class Node(object):
 
         if self.metadata:
             if 'position' in self.metadata:
-                json.update({
-                    'position': {
-                        'x': self.metadata['position'].x,
-                        'y': self.metadata['position'].y
-                    }})
+                json.update(
+                    {
+                        'position': {
+                            'x': self.metadata['position'].x,
+                            'y': self.metadata['position'].y,
+                        }
+                    }
+                )
             if 'vlans' in self.metadata:  # Layer2 metadata
 
-                json.update({
-                    'vlans': [nav_vlan_id for nav_vlan_id, _ in
-                              self.metadata['vlans']]
-                })
+                json.update(
+                    {
+                        'vlans': [
+                            nav_vlan_id for nav_vlan_id, _ in self.metadata['vlans']
+                        ]
+                    }
+                )
                 if NETMAP_CONFIG.getboolean('API_DEBUG'):
-                    json.update({
-                        'd_vlans': [vlan_to_json(swpv.vlan) for _, swpv in
-                                    self.metadata['vlans']]
-                    })
+                    json.update(
+                        {
+                            'd_vlans': [
+                                vlan_to_json(swpv.vlan)
+                                for _, swpv in self.metadata['vlans']
+                            ]
+                        }
+                    )
 
         if isinstance(self.node, stubs.Netbox):
-            json.update({
-                'id': str(self.node.id),
-                'sysname': self.node.sysname,
-                'category': str(self.node.category_id),
-                'is_elink_node': True
-            })
+            json.update(
+                {
+                    'id': str(self.node.id),
+                    'sysname': self.node.sysname,
+                    'category': str(self.node.category_id),
+                    'is_elink_node': True,
+                }
+            )
         else:
             try:
                 location = self.node.room.location
@@ -96,21 +111,24 @@ class Node(object):
             except AttributeError:
                 locationid = ''
                 location_descr = ''
-            json.update({
-                'id': str(self.node.id),
-                'sysname': str(self.node.sysname),
-                'category': str(self.node.category_id),
-                'ip': self.node.ip,
-                'ipdevinfo_link': reverse('ipdevinfo-details-by-name',
-                                          args=[self.node.sysname]),
-                'up': str(self.node.up),
-                'up_image': get_status_image_link(self.node.up),
-                'roomid': self.node.room.id,
-                'locationid': six.text_type(locationid),
-                'location': six.text_type(location_descr),
-                'room': six.text_type(self.node.room),
-                'is_elink_node': False,
-            })
+            json.update(
+                {
+                    'id': str(self.node.id),
+                    'sysname': str(self.node.sysname),
+                    'category': str(self.node.category_id),
+                    'ip': self.node.ip,
+                    'ipdevinfo_link': reverse(
+                        'ipdevinfo-details-by-name', args=[self.node.sysname]
+                    ),
+                    'up': str(self.node.up),
+                    'up_image': get_status_image_link(self.node.up),
+                    'roomid': self.node.room.id,
+                    'locationid': six.text_type(locationid),
+                    'location': six.text_type(location_descr),
+                    'room': six.text_type(self.node.room),
+                    'is_elink_node': False,
+                }
+            )
         return {six.text_type(self.node.id): json}
 
 
@@ -130,8 +148,7 @@ class Group(object):
         return (
             "netmap.Group(netbox={0!r}, interface={1!r}, gw_ip={2!r}"
             ", virtual={3!r}, vlans={4!r})"
-        ).format(self.netbox, self.interface, self.gw_ip, self.virtual,
-                 self.vlans)
+        ).format(self.netbox, self.interface, self.gw_ip, self.virtual, self.vlans)
 
     def __hash__(self):
         return hash(self.netbox) + hash(self.interface)
@@ -140,8 +157,7 @@ class Group(object):
         if not isinstance(other, type(self)):
             return False
         else:
-            return (self.netbox == other.netbox and
-                    self.interface == other.interface)
+            return self.netbox == other.netbox and self.interface == other.interface
 
     def to_json(self):
         """json presentation of Group"""
@@ -150,20 +166,26 @@ class Group(object):
         }
         if self.interface is not None:
             ipdevinfo_link = None
-            if (self.netbox.sysname and self.interface.ifname and
-                    self.interface.ifname != '?'):
-                kwargs = dict(netbox_sysname=six.text_type(self.netbox.sysname),
-                              port_name=six.text_type(self.interface.ifname))
+            if (
+                self.netbox.sysname
+                and self.interface.ifname
+                and self.interface.ifname != '?'
+            ):
+                kwargs = dict(
+                    netbox_sysname=six.text_type(self.netbox.sysname),
+                    port_name=six.text_type(self.interface.ifname),
+                )
                 try:
                     ipdevinfo_link = reverse(
-                        'ipdevinfo-interface-details-by-name',
-                        kwargs=kwargs)
+                        'ipdevinfo-interface-details-by-name', kwargs=kwargs
+                    )
                 except NoReverseMatch:
                     ipdevinfo_link = None
 
             json['interface'] = {
                 'ifname': six.text_type(self.interface.ifname),
-                'ipdevinfo_link': ipdevinfo_link}
+                'ipdevinfo_link': ipdevinfo_link,
+            }
 
         if self.gw_ip is not None:
             json['gw_ip'] = self.gw_ip
@@ -182,6 +204,7 @@ class Group(object):
 # pylint: disable=R0903
 class Edge(object):
     """Represent either a edge pair in Layer2 or Layer3"""
+
     link_speed = None
     vlans = None
     layer = None
@@ -192,25 +215,26 @@ class Edge(object):
 
     @staticmethod
     def _valid_layer3(edge):
-        return isinstance(edge, GwPortPrefix) or isinstance(edge,
-                                                            stubs.GwPortPrefix)
+        return isinstance(edge, GwPortPrefix) or isinstance(edge, stubs.GwPortPrefix)
 
     def _get_layer(self, u, v):
-        if ((self._valid_layer2(u) or u is None)
-                and (self._valid_layer2(v) or v is None)):
+        if (self._valid_layer2(u) or u is None) and (
+            self._valid_layer2(v) or v is None
+        ):
             return 2
 
-        elif ((self._valid_layer3(u) or u is None)
-              and (self._valid_layer3(v) or v is None)):
+        elif (self._valid_layer3(u) or u is None) and (
+            self._valid_layer3(v) or v is None
+        ):
             return 3
         else:
-            raise NetmapException("Could not determine layer for this edge."
-                                  " This should _not_ happend")
+            raise NetmapException(
+                "Could not determine layer for this edge." " This should _not_ happend"
+            )
 
     def _same_layer(self, source, target):
-        return (
-            (self._valid_layer2(source) and self._valid_layer2(target))
-            or (self._valid_layer3(source) and self._valid_layer3(target))
+        return (self._valid_layer2(source) and self._valid_layer2(target)) or (
+            self._valid_layer3(source) and self._valid_layer3(target)
         )
 
     def __init__(self, nx_edge, meta_edge, traffic=None):
@@ -228,10 +252,10 @@ class Edge(object):
                 raise GraphException(
                     "meta_u and meta_v have to be of same type, typically "
                     "Interfaces in layer2 graph or"
-                    "GwPortPrefixes in layer3 graph")
+                    "GwPortPrefixes in layer3 graph"
+                )
         elif meta_u is None and meta_v is None:
-            raise GraphException("meta_u and meta_v can't both be None! "
-                                 "Bailing!")
+            raise GraphException("meta_u and meta_v can't both be None! " "Bailing!")
 
         self.errors = []
         self.u = self.v = self.vlan = self.prefix = None
@@ -269,7 +293,8 @@ class Edge(object):
         if self.layer == 3:
             assert meta_u.prefix.vlan.id == meta_v.prefix.vlan.id, (
                 "Source and target GwPortPrefix must reside in same VLan for "
-                "Prefix! Bailing")
+                "Prefix! Bailing"
+            )
 
             self.prefix = meta_u.prefix
             self.vlan = meta_u.prefix.vlan
@@ -277,7 +302,8 @@ class Edge(object):
         self.traffic = traffic
 
         if (self.u and self.u.interface is not None) and (
-                self.v and self.v.interface is not None):
+            self.v and self.v.interface is not None
+        ):
             if self.u.interface.speed == self.v.interface.speed:
                 self.link_speed = self.u.interface.speed
             else:
@@ -306,11 +332,19 @@ class Edge(object):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return ("netmap.Edge(layer={0!r}, u={1!r}, v={2!r}, "
-                "link_speed={3!r}, vlans={4!r}, vlan={5!r}, "
-                "prefix={6!r})").format(self.layer, self.u, self.v,
-                                        self.link_speed, self.vlans, self.vlan,
-                                        self.prefix)
+        return (
+            "netmap.Edge(layer={0!r}, u={1!r}, v={2!r}, "
+            "link_speed={3!r}, vlans={4!r}, vlan={5!r}, "
+            "prefix={6!r})"
+        ).format(
+            self.layer,
+            self.u,
+            self.v,
+            self.link_speed,
+            self.vlans,
+            self.vlan,
+            self.prefix,
+        )
 
     def to_json(self):
         """json presentation of Edge"""
@@ -319,17 +353,20 @@ class Edge(object):
             'target': self.v.to_json() or 'null',
         }
         if self.layer == 3:
-            json.update({'prefix': {
-                'net_address': six.text_type(self.prefix.net_address),
-                'report_link': self.prefix.get_absolute_url(),
-            }})
+            json.update(
+                {
+                    'prefix': {
+                        'net_address': six.text_type(self.prefix.net_address),
+                        'report_link': self.prefix.get_absolute_url(),
+                    }
+                }
+            )
             json.update({'vlan': self.prefix.vlan.id})
         elif self.layer == 2:
             json.update({'vlans': [swpv.vlan.id for swpv in self.vlans]})
 
         json.update({'link_speed': self.link_speed or 'N/A'})
-        json.update(
-            {'traffic': self.traffic and self.traffic.to_json() or None})
+        json.update({'traffic': self.traffic and self.traffic.to_json() or None})
 
         return json
 
@@ -339,7 +376,7 @@ def vlan_to_json(vlan):
         'vlan': vlan.vlan,
         'nav_vlan': vlan.id,
         'net_ident': vlan.net_ident,
-        'description': vlan.description
+        'description': vlan.description,
     }
 
 
@@ -389,15 +426,17 @@ def edge_to_json_layer2(nx_edge, metadata):
         'source': six.text_type(source.id),
         'target': six.text_type(target.id),
         'vlans': [swpv.vlan.id for swpv in all_vlans],
-        'edges': metadata_for_edges
+        'edges': metadata_for_edges,
     }
 
     if NETMAP_CONFIG.getboolean('API_DEBUG'):
-        json.update({
-            'd_source_sysname': six.text_type(source.sysname),
-            'd_target_sysname': six.text_type(target.sysname),
-            'd_vlans': [vlan_to_json(swpv.vlan) for swpv in all_vlans]
-        })
+        json.update(
+            {
+                'd_source_sysname': six.text_type(source.sysname),
+                'd_target_sysname': six.text_type(target.sysname),
+                'd_vlans': [vlan_to_json(swpv.vlan) for swpv in all_vlans],
+            }
+        )
     return json
 
 
@@ -426,13 +465,15 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
     json = {
         'source': six.text_type(source.id),
         'target': six.text_type(target.id),
-        'edges': metadata_collection
+        'edges': metadata_collection,
     }
     if NETMAP_CONFIG.getboolean('API_DEBUG'):
-        json.update({
-            'd_source_sysname': six.text_type(source.sysname),
-            'd_target_sysname': six.text_type(target.sysname),
-        })
+        json.update(
+            {
+                'd_source_sysname': six.text_type(source.sysname),
+                'd_target_sysname': six.text_type(target.sysname),
+            }
+        )
     return json
 
 

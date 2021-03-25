@@ -67,7 +67,7 @@ def get_prefix_info(addr):
             select={"mask_size": "masklen(netaddr)"},
             where=["%s << netaddr AND nettype <> 'scope'"],
             order_by=["-mask_size"],
-            params=[addr]
+            params=[addr],
         )[0]
     except (IndexError, DatabaseError):
         return None
@@ -84,8 +84,9 @@ def get_last_job_log_from_netboxes(rows, job_type):
     netboxes_job = dict((row.netbox, None) for row in rows if row.netbox)
     for netbox in netboxes_job:
         try:
-            netboxes_job[netbox] = netbox.job_log.filter(
-                job_name=job_type).order_by('-end_time')[0]
+            netboxes_job[netbox] = netbox.job_log.filter(job_name=job_type).order_by(
+                '-end_time'
+            )[0]
         except IndexError:
             pass
     return netboxes_job
@@ -156,8 +157,9 @@ def track_mac(keys, resultset, dns):
     """
     if dns:
         ips_to_lookup = {row.ip for row in resultset}
-        _logger.debug("track_mac: looking up PTR records for %d addresses)",
-                      len(ips_to_lookup))
+        _logger.debug(
+            "track_mac: looking up PTR records for %d addresses)", len(ips_to_lookup)
+        )
         dns_lookups = asyncdns.reverse_lookup(ips_to_lookup)
         _logger.debug("track_mac: PTR lookup done")
 
@@ -187,6 +189,7 @@ def track_mac(keys, resultset, dns):
 
 class ProcessInput:
     """Some sort of search form input processing class. Who the hell knows."""
+
     def __init__(self, forminput):
         """
         :type forminput:  django.http.QueryDict
@@ -229,8 +232,10 @@ class UplinkTracker(list):
         boxes = Netbox.objects.extra(
             select={'mac': 'netboxmac.mac'},
             tables=['netboxmac'],
-            where=['netboxmac.netboxid=netbox.netboxid',
-                   'netboxmac.mac BETWEEN %s AND %s'],
+            where=[
+                'netboxmac.netboxid=netbox.netboxid',
+                'netboxmac.mac BETWEEN %s AND %s',
+            ],
             params=[mac_min, mac_max],
         ).order_by('mac', 'sysname')
 
@@ -245,8 +250,9 @@ class UplinkTracker(list):
 
 class InterfaceTracker(list):
     def __init__(self, mac_min, mac_max):
-        ifcs = Interface.objects.select_related('netbox').extra(
-            where=['ifphysaddress BETWEEN %s AND %s'],
-            params=[mac_min, mac_max]
-        ).order_by('ifphysaddress', 'netbox__sysname')
+        ifcs = (
+            Interface.objects.select_related('netbox')
+            .extra(where=['ifphysaddress BETWEEN %s AND %s'], params=[mac_min, mac_max])
+            .order_by('ifphysaddress', 'netbox__sysname')
+        )
         self.extend(ifcs)

@@ -63,11 +63,12 @@ class AlertGenerator(dict):
 
     def __repr__(self):
         dictrepr = super(AlertGenerator, self).__repr__()
-        attribs = [u"{0}={1!r}".format(key, value)
-                   for key, value in vars(self).items()
-                   if not key.startswith('_') and key != 'event']
-        return u"<AlertGenerator: {0} varmap={1}>".format(u" ".join(attribs),
-                                                          dictrepr)
+        attribs = [
+            u"{0}={1!r}".format(key, value)
+            for key, value in vars(self).items()
+            if not key.startswith('_') and key != 'event'
+        ]
+        return u"<AlertGenerator: {0} varmap={1}>".format(u" ".join(attribs), dictrepr)
 
     def __bool__(self):
         """AlertGenerator inherits from dict, but must always be
@@ -81,8 +82,17 @@ class AlertGenerator(dict):
     def make_alert(self):
         """Generates an alert object based on the current attributes"""
         attrs = {}
-        for attr in ('source', 'device', 'netbox', 'subid', 'time',
-                     'event_type', 'state', 'value', 'severity'):
+        for attr in (
+            'source',
+            'device',
+            'netbox',
+            'subid',
+            'time',
+            'event_type',
+            'state',
+            'value',
+            'severity',
+        ):
             attrs[attr] = getattr(self, attr)
         alert = Alert(**attrs)
         alert.alert_type = self.get_alert_type()
@@ -96,10 +106,17 @@ class AlertGenerator(dict):
 
         attrs = dict(
             start_time=self.time,
-            end_time=INFINITY if self.state == Event.STATE_START
-            else None)
-        for attr in ('source', 'device', 'netbox', 'subid', 'event_type',
-                     'value', 'severity'):
+            end_time=INFINITY if self.state == Event.STATE_START else None,
+        )
+        for attr in (
+            'source',
+            'device',
+            'netbox',
+            'subid',
+            'event_type',
+            'value',
+            'severity',
+        ):
             attrs[attr] = getattr(self, attr)
         alert = AlertHistory(**attrs)
         alert.alert_type = self.get_alert_type()
@@ -192,8 +209,10 @@ class AlertGenerator(dict):
         existing unresolved alert.
 
         """
-        return (self.event.state == Event.STATE_START
-                and unresolved.refers_to_unresolved_alert(self.event))
+        return (
+            self.event.state == Event.STATE_START
+            and unresolved.refers_to_unresolved_alert(self.event)
+        )
 
     def get_alert_type(self):
         if not self.alert_type:
@@ -209,10 +228,9 @@ class AlertGenerator(dict):
 ### Alert message template processing
 ###
 
-TEMPLATE_PATTERN = re.compile(r"^(?P<alert_type>\w+)-"
-                              r"(?P<msgtype>\w+)"
-                              r"(\.(?P<language>\w+))?"
-                              r"\.txt$")
+TEMPLATE_PATTERN = re.compile(
+    r"^(?P<alert_type>\w+)-" r"(?P<msgtype>\w+)" r"(\.(?P<language>\w+))?" r"\.txt$"
+)
 
 DEFAULT_LANGUAGE = "en"
 
@@ -222,9 +240,10 @@ def ensure_alert_templates_are_available():
     from django.conf import settings
 
     for config in settings.TEMPLATES:
-        if (config.get('BACKEND') ==
-                'django.template.backends.django.DjangoTemplates'
-                and ALERT_TEMPLATE_DIR not in config['DIRS']):
+        if (
+            config.get('BACKEND') == 'django.template.backends.django.DjangoTemplates'
+            and ALERT_TEMPLATE_DIR not in config['DIRS']
+        ):
             config['DIRS'] += (ALERT_TEMPLATE_DIR,)
 
 
@@ -236,17 +255,17 @@ def render_templates(alert):
 
     """
     ensure_alert_templates_are_available()
-    templates = (
-        get_list_of_templates_for(alert.event_type.id, alert.alert_type)
-        or get_list_of_templates_for(alert.event_type.id)
-        )
+    templates = get_list_of_templates_for(
+        alert.event_type.id, alert.alert_type
+    ) or get_list_of_templates_for(alert.event_type.id)
     if not templates:
-        _logger.error("no templates defined for %r, sending generic alert "
-                      "message", alert)
+        _logger.error(
+            "no templates defined for %r, sending generic alert " "message", alert
+        )
         templates = [
             TemplateDetails("default-email.txt", "email", DEFAULT_LANGUAGE),
             TemplateDetails("default-sms.txt", "sms", DEFAULT_LANGUAGE),
-            ]
+        ]
 
     return [_render_template(template, alert) for template in templates]
 
@@ -255,12 +274,12 @@ def _render_template(details, alert):
     template = loader.get_template(details.name)
     context = dict(alert)
     context.update(vars(alert))
-    context.update(dict(msgtype=details.msgtype,
-                        language=details.language))
+    context.update(dict(msgtype=details.msgtype, language=details.language))
     context.update(dict(context_dump=pformat(context)))
 
-    _template_logger.debug("rendering alert template with context:\n%s",
-                           context['context_dump'])
+    _template_logger.debug(
+        "rendering alert template with context:\n%s", context['context_dump']
+    )
     output = template.render(context).strip()
     _template_logger.debug("rendered as:\n%s", output)
     return details, output
@@ -271,6 +290,7 @@ def get_list_of_templates_for(event_type, alert_type="default"):
     message templates for the given event_type and alert_type.
 
     """
+
     def _matcher(name):
         match = TEMPLATE_PATTERN.search(name)
         if match and match.group('alert_type') == alert_type:
@@ -278,14 +298,19 @@ def get_list_of_templates_for(event_type, alert_type="default"):
 
     directory = os.path.join(ALERT_TEMPLATE_DIR, event_type)
     if os.path.isdir(directory):
-        matches = [(_matcher(name), os.path.join(event_type, name))
-                   for name in os.listdir(directory)]
+        matches = [
+            (_matcher(name), os.path.join(event_type, name))
+            for name in os.listdir(directory)
+        ]
     else:
         matches = []
-    return [TemplateDetails(name,
-                            match.group('msgtype'),
-                            match.group('language') or DEFAULT_LANGUAGE)
-            for match, name in matches if match]
+    return [
+        TemplateDetails(
+            name, match.group('msgtype'), match.group('language') or DEFAULT_LANGUAGE
+        )
+        for match, name in matches
+        if match
+    ]
 
 
 # pylint sucks on namedtuples

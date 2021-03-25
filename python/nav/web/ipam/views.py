@@ -38,7 +38,7 @@ def generate_context():
         "net_types": NetType.objects.exclude(vlan__net_type__in=["scope", "reserved"]),
         "organizations": Organization.objects.all,
         "usages": Usage.objects.all,
-        "has_registered_scopes": scopes.count() > 0
+        "has_registered_scopes": scopes.count() > 0,
     }
     ctx.update(DEFAULT_VALUES)
     return ctx

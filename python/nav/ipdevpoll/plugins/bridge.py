@@ -44,9 +44,9 @@ class Bridge(Plugin):
         defer.returnValue(self._set_port_numbers(baseports))
 
     def _save_bridge_address(self, bridge_address):
-        info = self.containers.factory((INFO_KEY_BRIDGE_INFO,
-                                        INFO_VAR_BASE_ADDRESS),
-                                       shadows.NetboxInfo)
+        info = self.containers.factory(
+            (INFO_KEY_BRIDGE_INFO, INFO_VAR_BASE_ADDRESS), shadows.NetboxInfo
+        )
         info.value = binary_mac_to_hex(bridge_address)
         info.netbox = self.netbox
         info.key = INFO_KEY_BRIDGE_INFO
@@ -55,8 +55,9 @@ class Bridge(Plugin):
     def _set_port_numbers(self, baseports):
         "Processes a dictionary of {portnumber: ifindex} mappings"
 
-        self._logger.debug("Found %d base (switch) ports: %r",
-                           len(baseports), baseports)
+        self._logger.debug(
+            "Found %d base (switch) ports: %r", len(baseports), baseports
+        )
 
         for portnum, ifindex in baseports.items():
             interface = self.containers.factory(ifindex, shadows.Interface)

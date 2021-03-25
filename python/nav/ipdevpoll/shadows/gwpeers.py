@@ -27,13 +27,18 @@ from nav.models import manage
 from .netbox import Netbox
 
 
-EVENT = EventFactory(source='ipdevpoll', target='eventEngine',
-                     event_type='bgpState',
-                     start_type='bgpDown', end_type='bgpEstablished')
+EVENT = EventFactory(
+    source='ipdevpoll',
+    target='eventEngine',
+    event_type='bgpState',
+    start_type='bgpDown',
+    end_type='bgpEstablished',
+)
 
 
 class GatewayPeerSessionManager(DefaultManager):
     """Manager for GatewayPeerSession objects"""
+
     _map = None
 
     def __init__(self, *args, **kwargs):
@@ -52,8 +57,7 @@ class GatewayPeerSessionManager(DefaultManager):
     def _load_existing_sessions(self):
         sessions = manage.GatewayPeerSession.objects
         sessions = sessions.filter(netbox=self.netbox.id)
-        self._map = {(sess.protocol, str(sess.peer)): sess
-                     for sess in sessions}
+        self._map = {(sess.protocol, str(sess.peer)): sess for sess in sessions}
 
     def _map_known_sessions(self):
         for session in self.get_managed():
@@ -68,14 +72,17 @@ class GatewayPeerSessionManager(DefaultManager):
 
     def cleanup(self):
         if self._sessions_to_remove:
-            self._logger.info("Removing these peering sessions, that seem to "
-                              "have disappeared: %r", self._sessions_to_remove)
+            self._logger.info(
+                "Removing these peering sessions, that seem to " "have disappeared: %r",
+                self._sessions_to_remove,
+            )
             for session in self._sessions_to_remove:
                 session.delete()
 
 
 class GatewayPeerSession(Shadow):
     """A GatewayPeerSession shadow class"""
+
     __shadowclass__ = manage.GatewayPeerSession
     _protocol_map = dict(manage.GatewayPeerSession.PROTOCOL_CHOICES)
     manager = GatewayPeerSessionManager
@@ -120,12 +127,21 @@ class GatewayPeerSession(Shadow):
         peerid = self._get_peer_id()
 
         if model.adminstatus != self.adminstatus:
-            self._logger.debug("%s %s adminstatus change detected: %s -> %s",
-                               proto, peerid, model.adminstatus,
-                               self.adminstatus)
+            self._logger.debug(
+                "%s %s adminstatus change detected: %s -> %s",
+                proto,
+                peerid,
+                model.adminstatus,
+                self.adminstatus,
+            )
         if model.state != self.state:
-            self._logger.debug("%s %s state change detected: %s -> %s",
-                               proto, peerid, model.state, self.state)
+            self._logger.debug(
+                "%s %s state change detected: %s -> %s",
+                proto,
+                peerid,
+                model.state,
+                self.state,
+            )
 
     @transaction.atomic
     def _make_bgpstate_event(self, start=True, is_adminstatus=False):
@@ -144,10 +160,14 @@ class GatewayPeerSession(Shadow):
         event = event(netbox=self.netbox.id, subid=model.id, varmap=varmap)
 
         proto = self._protocol_map.get(self.protocol, None)
-        self._logger.info("dispatching event (%s) for %s %s state change"
-                          " from %s to %s",
-                          event.varmap['alerttype'], proto, peerid,
-                          model.state, self.state)
+        self._logger.info(
+            "dispatching event (%s) for %s %s state change" " from %s to %s",
+            event.varmap['alerttype'],
+            proto,
+            peerid,
+            model.state,
+            self.state,
+        )
         event.save()
 
     def _get_peer_name(self):
@@ -178,8 +198,11 @@ class GatewayPeerSession(Shadow):
 def should_alert_on_ibgp():
     """Returns the value of the IBGP alert option of ipdevpoll config"""
     from nav.ipdevpoll.config import ipdevpoll_conf as conf
+
     default = True
-    alert_ibgp = (conf.getboolean('bgp', 'alert_ibgp')
-                  if conf.has_option('bgp', 'alert_ibgp')
-                  else default)
+    alert_ibgp = (
+        conf.getboolean('bgp', 'alert_ibgp')
+        if conf.has_option('bgp', 'alert_ibgp')
+        else default
+    )
     return alert_ibgp
