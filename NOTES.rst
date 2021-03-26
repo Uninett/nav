@@ -1538,7 +1538,7 @@ been deprecated, and new API endpoints have been written for NAV 4.1.
 
 Although the API is still in flux, it can be used to retrieve various data
 from a NAV installation. See further documentation at
-https://nav.uninett.no/doc/dev/howto/using_the_api.html . We know a lot of
+https://nav.readthedocs.io/en/latest/howto/using_the_api.html . We know a lot of
 people are eager to integrate with NAV to utilize its data in their own
 solutions, so any feedback you may have regarding the API is much appreciated
 by the developers.
