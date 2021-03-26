@@ -441,7 +441,10 @@ class Netbox(models.Model):
         for iface in self.connected_to_interface.all():
             if iface.swportvlan_set.filter(direction=SwPortVlan.DIRECTION_DOWN).count():
                 result.append(
-                    {'other': iface, 'this': iface.to_interface,}
+                    {
+                        'other': iface,
+                        'this': iface.to_interface,
+                    }
                 )
 
         return result
@@ -451,7 +454,10 @@ class Netbox(models.Model):
 
         for iface in self.connected_to_interface.all():
             result.append(
-                {'other': iface, 'this': iface.to_interface,}
+                {
+                    'other': iface,
+                    'this': iface.to_interface,
+                }
             )
 
         return result
@@ -459,7 +465,7 @@ class Netbox(models.Model):
     def get_function(self):
         """Returns the function description of this netbox."""
         try:
-            return self.info_set.get(variable='function', key='').value
+            return self.info_set.get(variable='function').value
         except NetboxInfo.DoesNotExist:
             return None
 
@@ -563,7 +569,8 @@ class Netbox(models.Model):
     def get_chassis(self):
         """Returns a QuerySet of chassis devices seen on this netbox"""
         return self.entity_set.filter(
-            device__isnull=False, physical_class=NetboxEntity.CLASS_CHASSIS,
+            device__isnull=False,
+            physical_class=NetboxEntity.CLASS_CHASSIS,
         ).select_related('device')
 
     def get_environment_sensors(self):
@@ -2572,7 +2579,7 @@ class IpdevpollJobLog(models.Model):
 
     def previous(self):
         """Returns the log entry of the previous job of the same name for the
-         same netbox.
+        same netbox.
 
         """
         try:

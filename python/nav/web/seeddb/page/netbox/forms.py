@@ -35,7 +35,6 @@ from django.utils import six
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit, NavButton
 from nav.models.manage import Room, Category, Organization, Netbox, ManagementProfile
-from nav.models.manage import NetboxInfo
 from nav.web.seeddb.utils.edit import (
     resolve_ip_and_sysname,
     does_ip_exist,
@@ -113,12 +112,7 @@ class NetboxModelForm(forms.ModelForm):
                 self.fields['master'].widget.attrs['disabled'] = True
 
             # Set the inital value of the function field
-            try:
-                netboxinfo = self.instance.info_set.get(variable='function')
-            except NetboxInfo.DoesNotExist:
-                pass
-            else:
-                self.fields['function'].initial = netboxinfo.value
+            self.fields['function'].initial = self.instance.get_function()
 
         css_class = 'large-4'
         self.helper = FormHelper()
