@@ -16,6 +16,7 @@
 """Representing a report object."""
 
 import re
+from urllib.parse import quote_plus
 
 from django.utils import six
 
@@ -300,7 +301,7 @@ class Report(object):
                                 or ""
                             )
                             pattern = '$' + column_ref
-                            uri = uri.replace(pattern, value)
+                            uri = uri.replace(pattern, quote_plus(value))
                     newfield.set_hyperlink(uri)
 
                 newline.append(newfield)
