@@ -33,7 +33,7 @@ node {
 
         try {
             def toxEnvirons = sh(returnStdout: true,
-                                 script: "tox -a tox -a | egrep '^(unit|integration|functional|javascript|docs)' | paste -sd ,").trim().split(',')
+                                 script: "tox -a tox -a | egrep '^(unit|integration|functional|javascript)' | paste -sd ,").trim().split(',')
             echo "Found these tox environments: ${toxEnvirons}"
             for (int i = 0; i < toxEnvirons.length; i++) {
                 stage("Tox ${toxEnvirons[i]}") {
@@ -67,21 +67,6 @@ node {
             sloccountPublish encoding: '', pattern: 'reports/cloc.xml'
         } // Lines of code
 
-    }
-
-    stage("Publish documentation") {
-      lastStage = env.STAGE_NAME
-      // publish dev docs and stable branch docs, but nothing else
-      if (env.JOB_BASE_NAME == 'master' || env.JOB_BASE_NAME.endsWith('.x') || env.JOB_BASE_NAME == 'doctest') {
-        // Archive documentation as an artifact to be copied from the doc publisher job
-        sh "cd build/sphinx ; tar cvzf nav-docs.tar.gz html/"
-        archiveArtifacts artifacts: 'build/sphinx/nav-docs.tar.gz', fingerprint: true
-
-        echo "Triggering doc publishing job"
-        build job: 'Publish NAV documentation', wait: false, parameters: [[$class: 'StringParameterValue', name: 'ParentJobName', value: env.JOB_NAME]]
-      } else {
-        echo "Not triggering doc publisher job for this branch"
-      }
     }
 
 } catch (e) {
