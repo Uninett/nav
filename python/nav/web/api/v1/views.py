@@ -107,7 +107,7 @@ def api_root(request):
 
     Most attributes of the result records can be used as ordering arguments.
 
-    [1]: https://nav.uninett.no/doc/latest/howto/using_the_api.html
+    [1]: https://nav.readthedocs.io/en/latest/howto/using_the_api.html
     """
     return Response(get_endpoints(request))
 
