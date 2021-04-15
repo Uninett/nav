@@ -13,6 +13,8 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from typing import Sequence
+
 from nav.models import manage
 from nav.portadmin.config import CONFIG
 from nav.portadmin.cnaas_nms.lowlevel import get_api, ClientError
@@ -50,6 +52,18 @@ class CNaaSNMSMixIn(ManagementHandler):
         data = {"enabled": enabled}
         payload = {"interfaces": {interface.ifdescr: data}}
         self._api.interfaces.configure(self.netbox.sysname, body=payload)
+
+    def _bounce_interfaces(
+        self,
+        interfaces: Sequence[manage.Interface],
+        wait: float = 5.0,
+        commit: bool = False,
+    ):
+        """Offloads the entire bounce operation to CNaaS NMS. CNaaS NMS doesn't need
+        or care about the wait and commit arguments, so these are flatly ignored.
+        """
+        payload = {"bounce_interfaces": [ifc.ifdescr for ifc in interfaces]}
+        self._api.interface_status.update(self.netbox.sysname, body=payload)
 
     def commit_configuration(self):
         payload = {"hostname": self.netbox.sysname, "dry_run": False, "auto_push": True}
