@@ -34,6 +34,9 @@ def get_api(url, token):
     )
     api.add_resource(resource_name="devices", resource_class=DeviceResource)
     api.add_resource(resource_name="interfaces", resource_class=InterfaceResource)
+    api.add_resource(
+        resource_name="interface_status", resource_class=InterfaceStatusResource
+    )
     api.add_resource(resource_name="device_sync", resource_class=DeviceSyncResource)
     api.add_resource(resource_name="job")
 
@@ -44,7 +47,7 @@ class DeviceResource(Resource):
     """Defines operations on the devices endpoint"""
 
     actions = {
-        "retrieve": {"method": "GET", "url": "/devices?filter[management_ip]={}"}
+        "retrieve": {"method": "GET", "url": "/devices?filter[management_ip]={}"},
     }
 
 
@@ -56,6 +59,18 @@ class InterfaceResource(Resource):
         "configure": {
             "method": "PUT",
             "url": "/device/{}/interfaces",
+        },
+    }
+
+
+class InterfaceStatusResource(Resource):
+    """Defines operations on the interface_status sub-resource of a device"""
+
+    actions = {
+        "list": {"method": "GET", "url": "/device/{}/interface_status"},
+        "update": {
+            "method": "PUT",
+            "url": "/device/{}/interface_status",
         },
     }
 
