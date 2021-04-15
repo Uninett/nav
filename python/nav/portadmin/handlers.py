@@ -105,12 +105,22 @@ class ManagementHandler:
         assert netbox == self.netbox, "Interfaces belong to wrong netbox"
 
         to_cycle = self._filter_oper_up_interfaces(interfaces)
-        if not to_cycle:
-            _logger.debug("No interfaces to cycle on %s", netbox.sysname)
-            return
+        if to_cycle:
+            self._bounce_interface(to_cycle)
 
+    def _bounce_interfaces(
+        self,
+        interfaces: Sequence[manage.Interface],
+        wait: float = 5.0,
+        commit: bool = False,
+    ):
+        """The actual implementation of cycle_interfaces(), without the verification
+        code.
+
+        Override this in subclasses to keep the common verification code path.
+        """
         _logger.debug("Taking interfaces administratively down")
-        for ifc in to_cycle:
+        for ifc in interfaces:
             self.set_interface_down(ifc)
             _logger.debug(ifc.ifname)
         if commit:
@@ -120,7 +130,7 @@ class ManagementHandler:
             time.sleep(wait)
 
         _logger.debug("Taking interfaces administratively up again")
-        for ifc in to_cycle:
+        for ifc in interfaces:
             self.set_interface_up(ifc)
             _logger.debug(ifc.ifname)
         if commit:
