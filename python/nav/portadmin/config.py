@@ -20,7 +20,7 @@ from collections import namedtuple
 from nav.config import NAVConfigParser, ConfigurationError
 from nav.portadmin.vlan import FantasyVlan
 
-CNaaSNMSConfig = namedtuple("CNaasNMSConfig", ["url", "token"])
+CNaaSNMSConfig = namedtuple("CNaasNMSConfig", ["url", "token", "ssl_verify"])
 
 
 class PortAdminConfig(NAVConfigParser):
@@ -121,7 +121,11 @@ enabled = off
         return self.getboolean("cnaas-nms", "enabled", fallback=False)
 
     def get_cnaas_nms_config(
-        self, section="cnaas-nms", url_option="url", token_option="token"
+        self,
+        section="cnaas-nms",
+        url_option="url",
+        token_option="token",
+        ssl_verify=None,
     ):
         """Returns a CNaaSNMSConfig namedtuple if a CNaaS-NMS proxy is enabled"""
         if not self.has_option(section, url_option):
@@ -130,7 +134,9 @@ enabled = off
             raise ConfigurationError("Missing CNaaS-NMS API token in configuration")
 
         return CNaaSNMSConfig(
-            self.get(section, url_option), self.get(section, token_option)
+            self.get(section, url_option),
+            self.get(section, token_option),
+            self.getboolean(section, "ssl_verify", fallback=ssl_verify),
         )
 
 

@@ -19,7 +19,7 @@ from simple_rest_client.resource import Resource
 from simple_rest_client.exceptions import ClientError
 
 
-def get_api(url, token):
+def get_api(url, token, ssl_verify=None):
     """Returns a CNaaS NMS API instance from a URL and a token"""
     default_headers = {
         "Authorization": "Bearer {}".format(token),
@@ -31,6 +31,7 @@ def get_api(url, token):
         timeout=2,
         append_slash=False,
         json_encode_body=True,
+        ssl_verify=ssl_verify,
     )
     api.add_resource(resource_name="devices", resource_class=DeviceResource)
     api.add_resource(resource_name="interfaces", resource_class=InterfaceResource)

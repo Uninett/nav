@@ -35,7 +35,7 @@ class CNaaSNMSMixIn(ManagementHandler):
     def __init__(self, netbox: manage.Netbox, **kwargs):
         super().__init__(netbox, **kwargs)
         config = CONFIG.get_cnaas_nms_config()
-        self._api = get_api(config.url, config.token)
+        self._api = get_api(config.url, config.token, config.ssl_verify)
 
     def set_interface_description(self, interface: manage.Interface, description: str):
         data = {"description": interface.ifalias}
