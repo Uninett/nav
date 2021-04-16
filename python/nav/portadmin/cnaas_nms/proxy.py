@@ -13,7 +13,9 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+import time
 from typing import Sequence
+import logging
 
 from nav.models import manage
 from nav.portadmin.config import CONFIG
@@ -23,6 +25,8 @@ from nav.portadmin.handlers import (
     DeviceNotConfigurableError,
     ProtocolError,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 class CNaaSNMSMixIn(ManagementHandler):
@@ -67,10 +71,53 @@ class CNaaSNMSMixIn(ManagementHandler):
         self._api.interface_status.update(self.device_name, body=payload)
 
     def commit_configuration(self):
+        job_id = self._device_syncto()
+        job = self._poll_job_until_finished(job_id)
+        self._raise_on_job_failure(job)
+
+    def _device_syncto(self) -> int:
+        """Runs the CNaaS-NMS device_syncto operation and returns its job number"""
         payload = {"hostname": self.device_name, "dry_run": False, "auto_push": True}
-        self._api.device_sync.syncto(body=payload)
-        # TODO: Get a job number from the syncto call
-        # TODO: Poll the job API for "status": "FINISHED"
+        response = self._api.device_sync.syncto(body=payload)
+        assert response.body.get("status") == "success"
+        job_id = response.body.get("job_id")
+        message = response.body.get("data")
+        _logger.debug(
+            "%s device_syncto response (job_id: %s): %s",
+            self.device_name,
+            job_id,
+            message,
+        )
+        return job_id
+
+    def _poll_job_until_finished(self, job_id: int, retry_delay: float = 1.0) -> dict:
+        job = None
+        status = "SCHEDULED"
+        while status.upper() in ("SCHEDULED", "RUNNING"):
+            time.sleep(retry_delay)
+            job = self._get_job(job_id)
+            status = job.get("status")
+            _logger.debug(
+                "%s polled job status for job_id=%s: %s",
+                self.device_name,
+                job_id,
+                status,
+            )
+        return job
+
+    def _get_job(self, job_id: int) -> dict:
+        response = self._api.jobs.retrieve(job_id)
+        return response.body.get("data").get("jobs")[0]
+
+    def _raise_on_job_failure(self, job: dict):
+        if job.get("status") != "FINISHED":
+            message = job.get("result", {}).get("message")
+            if not message:
+                message = "Unknown error from CNaaS-NMS job %s, please see logs".format(
+                    job.get("id")
+                )
+                _logger.error("%s device_syncto job failed: %r", job)
+            raise ProtocolError(message)
 
     def raise_if_not_configurable(self):
         """Raises an exception if this device cannot be configured by CNaaS-NMS for
