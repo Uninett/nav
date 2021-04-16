@@ -39,7 +39,7 @@ def get_api(url, token, ssl_verify=None):
         resource_name="interface_status", resource_class=InterfaceStatusResource
     )
     api.add_resource(resource_name="device_sync", resource_class=DeviceSyncResource)
-    api.add_resource(resource_name="job")
+    api.add_resource(resource_name="jobs", resource_class=JobResource)
 
     return api
 
@@ -80,3 +80,12 @@ class DeviceSyncResource(Resource):
     """Defines the API syncto operations"""
 
     actions = {"syncto": {"method": "POST", "url": "/device_syncto"}}
+
+
+class JobResource(Resource):
+    """Defines operations on the job/jobs endpoints"""
+
+    actions = {
+        "list": {"method": "GET", "url": "/jobs"},
+        "retrieve": {"method": "GET", "url": "/job/{}"},
+    }
