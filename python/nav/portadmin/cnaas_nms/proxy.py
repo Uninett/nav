@@ -36,11 +36,12 @@ class CNaaSNMSMixIn(ManagementHandler):
         super().__init__(netbox, **kwargs)
         config = CONFIG.get_cnaas_nms_config()
         self._api = get_api(config.url, config.token, config.ssl_verify)
+        self._device = None
 
     def set_interface_description(self, interface: manage.Interface, description: str):
         data = {"description": interface.ifalias}
         payload = {"interfaces": {interface.ifdescr: data}}
-        self._api.interfaces.configure(self.netbox.sysname, body=payload)
+        self._api.interfaces.configure(self.device_name, body=payload)
 
     def set_interface_down(self, interface: manage.Interface):
         self._set_interface_enabled(interface, enabled=False)
@@ -51,7 +52,7 @@ class CNaaSNMSMixIn(ManagementHandler):
     def _set_interface_enabled(self, interface: manage.Interface, enabled=True):
         data = {"enabled": enabled}
         payload = {"interfaces": {interface.ifdescr: data}}
-        self._api.interfaces.configure(self.netbox.sysname, body=payload)
+        self._api.interfaces.configure(self.device_name, body=payload)
 
     def _bounce_interfaces(
         self,
@@ -63,10 +64,10 @@ class CNaaSNMSMixIn(ManagementHandler):
         or care about the wait and commit arguments, so these are flatly ignored.
         """
         payload = {"bounce_interfaces": [ifc.ifdescr for ifc in interfaces]}
-        self._api.interface_status.update(self.netbox.sysname, body=payload)
+        self._api.interface_status.update(self.device_name, body=payload)
 
     def commit_configuration(self):
-        payload = {"hostname": self.netbox.sysname, "dry_run": False, "auto_push": True}
+        payload = {"hostname": self.device_name, "dry_run": False, "auto_push": True}
         self._api.device_sync.syncto(body=payload)
         # TODO: Get a job number from the syncto call
         # TODO: Poll the job API for "status": "FINISHED"
@@ -106,6 +107,16 @@ class CNaaSNMSMixIn(ManagementHandler):
                 "Device configuration is not synchronized with CNaaS-NMS, cannot make "
                 "changes at the moment. Please try againt later."
             )
+
+    @property
+    def device_name(self) -> str:
+        """This returns the name used for this device in CNaaS NMS. It does not
+        necessarily correspond to the sysname NAV got from DNS, but is necessary to
+        construct most API operations against the device.
+        """
+        if not self._device:
+            self._device = self._get_device_record()
+        return self._device.get("hostname")
 
     def _get_device_record(self):
         response = self._api.devices.retrieve(self.netbox.ip)
