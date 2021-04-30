@@ -766,7 +766,7 @@ class FilterGroupContent(models.Model):
     # filter should be applied. the table above is an attempt at showing how
     # this should work. Add inv is really the only tricky one, basicly it is
     # nothing more that a negated add, ie if we have a filter  that checks
-    # severity > 70 using a add inv on it is equivilent til severity < 70.
+    # severity < 4 using a add inv on it is equivilent til severity >= 4.
 
     # The actual checking of the FilterGroup is done in the alertengine
     # subsystem in an attempt to keep most of the alerteninge code simple and

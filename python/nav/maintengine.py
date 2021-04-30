@@ -164,7 +164,7 @@ def create_event(subject, state, value, taskid=None):
     target = 'eventEngine'
     subsystem = 'maintenance'
     source = subsystem
-    severity = 50
+    severity = 5
     eventtype = 'maintenanceState'
 
     event = Event(state=state, value=value, severity=severity)

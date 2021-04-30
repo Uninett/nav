@@ -61,7 +61,7 @@ def test_short_outage(localhost, db):
         start_time=datetime.now(),
         end_time=INFINITY,
         value=100,
-        severity=50,
+        severity=3,
     ).save()
 
     # and make sure snmpcheck tries to resolve it when the box is up

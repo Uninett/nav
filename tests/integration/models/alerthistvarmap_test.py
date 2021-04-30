@@ -74,7 +74,7 @@ def simple_alerthist():
         event_type_id='info',
         start_time=datetime.now(),
         value=0,
-        severity=0,
+        severity=3,
     )
     yield hist
     if hist.pk:

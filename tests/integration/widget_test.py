@@ -53,7 +53,7 @@ def alerthist_with_two_messages(localhost):
         end_time=INFINITY,
         event_type_id='boxState',
         value=100,
-        severity=50,
+        severity=3,
     )
     alert.save()
     msg1 = AlertHistoryMessage(

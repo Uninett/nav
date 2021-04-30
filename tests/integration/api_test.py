@@ -430,7 +430,7 @@ def serializer_models(localhost):
         netbox=netbox,
         start_time=datetime.now() - timedelta(days=1),
         value=1,
-        severity=50,
+        severity=3,
         alert_type_id=boxdown_id,
         end_time=INFINITY,
     ).save()
