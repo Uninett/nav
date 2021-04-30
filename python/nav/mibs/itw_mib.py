@@ -55,7 +55,9 @@ TABLES = {
             'avail': 'tempSensorAvail',
             'serial': 'tempSensorSerial',
             'name': 'tempSensorName',
-            'sensors': {'tempSensorTempC',},
+            'sensors': {
+                'tempSensorTempC',
+            },
         }
     ],
     'airFlowSensorTable': [
@@ -75,7 +77,9 @@ TABLES = {
             'avail': 'doorSensorAvail',
             'serial': 'doorSensorSerial',
             'name': 'doorSensorName',
-            'sensors': {'doorSensorStatus',},
+            'sensors': {
+                'doorSensorStatus',
+            },
         }
     ],
     'waterSensorTable': [
@@ -83,7 +87,9 @@ TABLES = {
             'avail': 'waterSensorAvail',
             'serial': 'waterSensorSerial',
             'name': 'waterSensorName',
-            'sensors': {'waterSensorDampness',},
+            'sensors': {
+                'waterSensorDampness',
+            },
         }
     ],
     'currentMonitorTable': [
@@ -91,7 +97,9 @@ TABLES = {
             'avail': 'currentMonitorAvail',
             'serial': 'currentMonitorSerial',
             'name': 'currentMonitorName',
-            'sensors': {'currentMonitorAmps',},
+            'sensors': {
+                'currentMonitorAmps',
+            },
         }
     ],
     'millivoltMonitorTable': [
@@ -99,7 +107,9 @@ TABLES = {
             'avail': 'millivoltMonitorAvail',
             'serial': 'millivoltMonitorSerial',
             'name': 'millivoltMonitorName',
-            'sensors': {'millivoltMonitorMV',},
+            'sensors': {
+                'millivoltMonitorMV',
+            },
         }
     ],
     'dewPointSensorTable': [
@@ -119,7 +129,9 @@ TABLES = {
             'avail': 'digitalSensorAvail',
             'serial': 'digitalSensorSerial',
             'name': 'digitalSensorName',
-            'sensors': {'digitalSensorDigital',},
+            'sensors': {
+                'digitalSensorDigital',
+            },
         }
     ],
     'cpmSensorTable': [
@@ -127,7 +139,9 @@ TABLES = {
             'avail': 'cpmSensorAvail',
             'serial': 'cpmSensorSerial',
             'name': 'cpmSensorName',
-            'sensors': {'cpmSensorStatus',},
+            'sensors': {
+                'cpmSensorStatus',
+            },
         }
     ],
     'smokeAlarmTable': [
@@ -135,7 +149,9 @@ TABLES = {
             'avail': 'smokeAlarmAvail',
             'serial': 'smokeAlarmSerial',
             'name': 'smokeAlarmName',
-            'sensors': {'smokeAlarmStatus',},
+            'sensors': {
+                'smokeAlarmStatus',
+            },
         }
     ],
     'neg48VdcSensorTable': [
@@ -143,7 +159,9 @@ TABLES = {
             'avail': 'neg48VdcSensorAvail',
             'serial': 'neg48VdcSensorSerial',
             'name': 'neg48VdcSensorName',
-            'sensors': {'neg48VdcSensorVoltage',},
+            'sensors': {
+                'neg48VdcSensorVoltage',
+            },
         }
     ],
     'pos30VdcSensorTable': [
@@ -151,7 +169,9 @@ TABLES = {
             'avail': 'pos30VdcSensorAvail',
             'serial': 'pos30VdcSensorSerial',
             'name': 'pos30VdcSensorName',
-            'sensors': {'pos30VdcSensorVoltage',},
+            'sensors': {
+                'pos30VdcSensorVoltage',
+            },
         }
     ],
     'analogSensorTable': [
@@ -159,7 +179,9 @@ TABLES = {
             'avail': 'analogSensorAvail',
             'serial': 'analogSensorSerial',
             'name': 'analogSensorName',
-            'sensors': {'analogSensorAnalog',},
+            'sensors': {
+                'analogSensorAnalog',
+            },
         }
     ],
     'powerMonitorTable': [
@@ -221,7 +243,10 @@ TABLES = {
             'avail': 'outletAvail',
             'serial': 'outletSerial',
             'name': 'outletName',
-            'sensors': {'outlet1Status', 'outlet2Status',},
+            'sensors': {
+                'outlet1Status',
+                'outlet2Status',
+            },
         }
     ],
     'vsfcTable': [
@@ -262,7 +287,9 @@ TABLES = {
             'avail': 'ctrlGrpAmpsAvail',
             'serial': 'ctrlGrpAmpsSerial',
             'name': 'ctrlGrpAmpsName',
-            'sensors': {'ctrlGrpAmps' + ch,},
+            'sensors': {
+                'ctrlGrpAmps' + ch,
+            },
         }
         for ch in ('A', 'B', 'C', 'D', 'E', 'F')
     ],
@@ -315,7 +342,7 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
     def _make_result_dict(
         self, sensor_oid, base_oid, serial, desc, u_o_m=None, **kwargs
     ):
-        """ Make a simple dictionary to return to plugin"""
+        """Make a simple dictionary to return to plugin"""
         if not sensor_oid or not base_oid or not serial or not desc:
             return {}
         oid = OID(base_oid) + OID(sensor_oid)
@@ -352,7 +379,7 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
                             serial,
                             sensor,
                             name=name,
-                            **conf
+                            **conf,
                         )
                     )
 
@@ -360,7 +387,7 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """ Try to retrieve all internal available sensors in this WxGoose"""
+        """Try to retrieve all internal available sensors in this WxGoose"""
 
         result = []
         for table, sensor_groups in self.TABLES.items():
@@ -375,16 +402,41 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
 
 UNITS = {
     '%': {'u_o_m': Sensor.UNIT_PERCENT},
-    '0.1 Amps': {'u_o_m': Sensor.UNIT_AMPERES, 'precision': 1,},
-    '0.1 Amps (rms)': {'u_o_m': Sensor.UNIT_AMPERES, 'precision': 1,},
-    '0.1 Degrees': {'u_o_m': Sensor.UNIT_CELSIUS, 'precision': 1,},
-    'Degrees Celsius': {'u_o_m': Sensor.UNIT_CELSIUS,},
-    'kWh': {'u_o_m': Sensor.UNIT_WATTHOURS, 'scale': Sensor.SCALE_KILO,},
-    'millivolts': {'u_o_m': Sensor.UNIT_VOLTS_DC, 'scale': Sensor.SCALE_MILLI,},
-    'Volt-Amps': {'u_o_m': Sensor.UNIT_VOLTAMPERES,},
-    'Volts': {'u_o_m': Sensor.UNIT_VOLTS_DC,},
-    'Volts (rms)': {'u_o_m': Sensor.UNIT_VOLTS_AC,},
-    'Watts': {'u_o_m': Sensor.UNIT_WATTS,},
+    '0.1 Amps': {
+        'u_o_m': Sensor.UNIT_AMPERES,
+        'precision': 1,
+    },
+    '0.1 Amps (rms)': {
+        'u_o_m': Sensor.UNIT_AMPERES,
+        'precision': 1,
+    },
+    '0.1 Degrees': {
+        'u_o_m': Sensor.UNIT_CELSIUS,
+        'precision': 1,
+    },
+    'Degrees Celsius': {
+        'u_o_m': Sensor.UNIT_CELSIUS,
+    },
+    'kWh': {
+        'u_o_m': Sensor.UNIT_WATTHOURS,
+        'scale': Sensor.SCALE_KILO,
+    },
+    'millivolts': {
+        'u_o_m': Sensor.UNIT_VOLTS_DC,
+        'scale': Sensor.SCALE_MILLI,
+    },
+    'Volt-Amps': {
+        'u_o_m': Sensor.UNIT_VOLTAMPERES,
+    },
+    'Volts': {
+        'u_o_m': Sensor.UNIT_VOLTS_DC,
+    },
+    'Volts (rms)': {
+        'u_o_m': Sensor.UNIT_VOLTS_AC,
+    },
+    'Watts': {
+        'u_o_m': Sensor.UNIT_WATTS,
+    },
 }
 
 

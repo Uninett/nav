@@ -53,7 +53,9 @@ TABLES = {
             'avail': 'tempSensorAvail',
             'serial': 'tempSensorSerial',
             'name': 'tempSensorName',
-            'sensors': {'tempSensorTempC',},
+            'sensors': {
+                'tempSensorTempC',
+            },
         }
     ],
     'airFlowSensorTable': [
@@ -74,7 +76,9 @@ TABLES = {
             'avail': 'doorSensorAvail',
             'serial': 'doorSensorSerial',
             'name': 'doorSensorName',
-            'sensors': {'doorSensorStatus',},
+            'sensors': {
+                'doorSensorStatus',
+            },
         }
     ],
     'waterSensorTable': [
@@ -82,7 +86,9 @@ TABLES = {
             'avail': 'waterSensorAvail',
             'serial': 'waterSensorSerial',
             'name': 'waterSensorName',
-            'sensors': {'waterSensorDampness',},
+            'sensors': {
+                'waterSensorDampness',
+            },
         }
     ],
     'currentMonitorTable': [
@@ -90,7 +96,9 @@ TABLES = {
             'avail': 'currentMonitorAvail',
             'serial': 'currentMonitorSerial',
             'name': 'currentMonitorName',
-            'sensors': {'currentMonitorDeciAmps',},
+            'sensors': {
+                'currentMonitorDeciAmps',
+            },
         }
     ],
     'millivoltMonitorTable': [
@@ -98,7 +106,9 @@ TABLES = {
             'avail': 'millivoltMonitorAvail',
             'serial': 'millivoltMonitorSerial',
             'name': 'millivoltMonitorName',
-            'sensors': {'millivoltMonitorMV',},
+            'sensors': {
+                'millivoltMonitorMV',
+            },
         }
     ],
     'dewPointSensorTable': [
@@ -118,7 +128,9 @@ TABLES = {
             'avail': 'digitalSensorAvail',
             'serial': 'digitalSensorSerial',
             'name': 'digitalSensorName',
-            'sensors': {'digitalSensorDigital',},
+            'sensors': {
+                'digitalSensorDigital',
+            },
         }
     ],
     'cpmSensorTable': [
@@ -126,7 +138,9 @@ TABLES = {
             'avail': 'cpmSensorAvail',
             'serial': 'cpmSensorSerial',
             'name': 'cpmSensorName',
-            'sensors': {'cpmSensorStatus',},
+            'sensors': {
+                'cpmSensorStatus',
+            },
         }
     ],
     'smokeAlarmTable': [
@@ -134,7 +148,9 @@ TABLES = {
             'avail': 'smokeAlarmAvail',
             'serial': 'smokeAlarmSerial',
             'name': 'smokeAlarmName',
-            'sensors': {'smokeAlarmStatus',},
+            'sensors': {
+                'smokeAlarmStatus',
+            },
         }
     ],
     'neg48VdcSensorTable': [
@@ -142,7 +158,9 @@ TABLES = {
             'avail': 'neg48VdcSensorAvail',
             'serial': 'neg48VdcSensorSerial',
             'name': 'neg48VdcSensorName',
-            'sensors': {'neg48VdcSensorVoltage',},
+            'sensors': {
+                'neg48VdcSensorVoltage',
+            },
         }
     ],
     'pos30VdcSensorTable': [
@@ -150,7 +168,9 @@ TABLES = {
             'avail': 'pos30VdcSensorAvail',
             'serial': 'pos30VdcSensorSerial',
             'name': 'pos30VdcSensorName',
-            'sensors': {'pos30VdcSensorVoltage',},
+            'sensors': {
+                'pos30VdcSensorVoltage',
+            },
         }
     ],
     'analogSensorTable': [
@@ -158,7 +178,9 @@ TABLES = {
             'avail': 'analogSensorAvail',
             'serial': 'analogSensorSerial',
             'name': 'analogSensorName',
-            'sensors': {'analogSensorAnalog',},
+            'sensors': {
+                'analogSensorAnalog',
+            },
         }
     ],
     'powMonTable': [
@@ -220,7 +242,10 @@ TABLES = {
             'avail': 'outletAvail',
             'serial': 'outletSerial',
             'name': 'outletName',
-            'sensors': {'outlet1Status', 'outlet2Status',},
+            'sensors': {
+                'outlet1Status',
+                'outlet2Status',
+            },
         }
     ],
     'vsfcTable': [
@@ -261,7 +286,10 @@ TABLES = {
             'avail': 'ctrlGrpAmpsAvail',
             'serial': 'ctrlGrpAmpsSerial',
             'name': 'ctrlGrpAmpsName',
-            'sensors': {'ctrlGrpAmps' + ch, 'ctrlGrpAmps' + ch + 'Volts',},
+            'sensors': {
+                'ctrlGrpAmps' + ch,
+                'ctrlGrpAmps' + ch + 'Volts',
+            },
         }
         for ch in ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H')
     ],
@@ -332,7 +360,9 @@ TABLES = {
             'avail': 'airSpeedSwitchSensorAvail',
             'serial': 'airSpeedSwitchSensorSerial',
             'name': 'airSpeedSwitchSensorName',
-            'sensors': {'airSpeedSwitchSensorAirSpeed',},
+            'sensors': {
+                'airSpeedSwitchSensorAirSpeed',
+            },
         }
     ],
     'ctrl3ChIECTable': [
@@ -389,7 +419,7 @@ class ItWatchDogsMibV3(BaseITWatchDogsMib):
                             serial,
                             sensor,
                             name=aux_name,
-                            **conf
+                            **conf,
                         )
                     )
         return sensors
@@ -473,7 +503,7 @@ class ItWatchDogsMibV3(BaseITWatchDogsMib):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """ Try to retrieve all available sensors in this WxGoose"""
+        """Try to retrieve all available sensors in this WxGoose"""
         result = yield super(ItWatchDogsMibV3, self).get_all_sensors()
 
         custom_tables = {

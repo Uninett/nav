@@ -39,6 +39,8 @@ class NavBlogNavlet(Navlet):
         feed['maxentries'] = feed['entries'][:maxposts]
 
         context.update(
-            {'feed': feed,}
+            {
+                'feed': feed,
+            }
         )
         return context

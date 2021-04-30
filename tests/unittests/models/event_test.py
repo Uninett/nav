@@ -21,7 +21,8 @@ class TestEventMixIn(object):
 
         expected_interface = Mock()
         with patch(
-            "nav.models.manage.Interface.objects.get", return_value=expected_interface,
+            "nav.models.manage.Interface.objects.get",
+            return_value=expected_interface,
         ):
             assert event.get_subject() is expected_interface
 
@@ -38,17 +39,23 @@ class TestEventMixIn(object):
 
     def test_service_maintenance_event_should_return_service(self, event):
         event.event_type_id = 'maintenanceState'
-        event.varmap = {EventQueue.STATE_START: {'service': 'http',}}
+        event.varmap = {
+            EventQueue.STATE_START: {
+                'service': 'http',
+            }
+        }
         event.subid = '42'
 
         expected_service = Mock()
         with patch(
-            "nav.models.service.Service.objects.get", return_value=expected_service,
+            "nav.models.service.Service.objects.get",
+            return_value=expected_service,
         ):
             assert event.get_subject() is expected_service
 
     def test_non_existent_subid_reference_should_return_unknown_event_subject(
-        self, event,
+        self,
+        event,
     ):
         event.event_type_id = 'linkState'
         event.subid = '42'
@@ -60,7 +67,8 @@ class TestEventMixIn(object):
             assert isinstance(event.get_subject(), UnknownEventSubject)
 
     def test_netboxless_event_should_return_device_subject(
-        self, event,
+        self,
+        event,
     ):
         event.event_type_id = 'boxState'
         event.netbox = None
@@ -68,7 +76,8 @@ class TestEventMixIn(object):
         assert event.get_subject() is event.device
 
     def test_netbox_and_deviceless_event_should_return_unknown_event_subject(
-        self, event,
+        self,
+        event,
     ):
         event.event_type_id = 'boxState'
         event.netbox = None
@@ -84,7 +93,8 @@ def test_thresholdevent_should_lookup_thresholdrule(event):
 
     expected_rule = Mock()
     with patch(
-        "nav.models.thresholds.ThresholdRule.objects.get", return_value=expected_rule,
+        "nav.models.thresholds.ThresholdRule.objects.get",
+        return_value=expected_rule,
     ):
         threvent = ThresholdEvent(event)
         assert threvent.rule is expected_rule

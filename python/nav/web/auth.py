@@ -98,9 +98,9 @@ def _set_account(request, account):
 
 
 def authenticate(username, password):
-    '''Authenticate username and password against database.
+    """Authenticate username and password against database.
     Returns account object if user was authenticated, else None.
-    '''
+    """
     # FIXME Log stuff?
     auth = False
     account = None

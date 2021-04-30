@@ -318,7 +318,7 @@ class SNMPHandler(ManagementHandler):
 
     def _get_if_stats(self, stats):
         """Make a list with tuples.  Each tuple contain
-         interface-index and corresponding status-value"""
+        interface-index and corresponding status-value"""
         available_stats = []
         for (if_index, stat) in stats:
             if_index = OID(if_index)[-1]

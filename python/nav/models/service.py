@@ -64,8 +64,12 @@ class Service(models.Model):
         rtime_id = metric_path_for_service_response_time(*args)
 
         result = {
-            'availability': {'data_source': avail_id,},
-            'response_time': {'data_source': rtime_id,},
+            'availability': {
+                'data_source': avail_id,
+            },
+            'response_time': {
+                'data_source': rtime_id,
+            },
         }
 
         for time_frame in self.TIME_FRAMES:

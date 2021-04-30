@@ -167,10 +167,18 @@ def import_dashboard(request):
         except ValueError:
             _logger.exception('Failed to parse dashboard file for import')
             return JsonResponse(
-                {'error': "File is not a valid dashboard file",}, status=400
+                {
+                    'error': "File is not a valid dashboard file",
+                },
+                status=400,
             )
     else:
-        return JsonResponse({'error': "You need to provide a file",}, status=400)
+        return JsonResponse(
+            {
+                'error': "You need to provide a file",
+            },
+            status=400,
+        )
     return JsonResponse(response)
 
 
@@ -244,7 +252,11 @@ def do_login(request):
     return render(
         request,
         'webfront/login.html',
-        {'form': form, 'errors': errors, 'origin': origin,},
+        {
+            'form': form,
+            'errors': errors,
+            'origin': origin,
+        },
     )
 
 
@@ -259,7 +271,10 @@ def about(request):
     return render(
         request,
         'webfront/about.html',
-        {'navpath': [('Home', '/'), ('About', None)], 'title': 'About NAV',},
+        {
+            'navpath': [('Home', '/'), ('About', None)],
+            'title': 'About NAV',
+        },
     )
 
 
@@ -311,7 +326,7 @@ def _create_preference_context(request):
 
 
 def preferences(request):
-    """ My preferences """
+    """My preferences"""
     context = _create_preference_context(request)
 
     return render(request, 'webfront/preferences.html', context)
@@ -319,7 +334,7 @@ def preferences(request):
 
 @sensitive_post_parameters('old_password', 'new_password1', 'new_password2')
 def change_password(request):
-    """ Handles POST requests to change a users password """
+    """Handles POST requests to change a users password"""
     context = _create_preference_context(request)
     account = get_account(request)
 
@@ -343,7 +358,7 @@ def change_password(request):
 
 
 def save_links(request):
-    """ Saves navigation preference links on a user """
+    """Saves navigation preference links on a user"""
     account = get_account(request)
     context = _create_preference_context(request)
 

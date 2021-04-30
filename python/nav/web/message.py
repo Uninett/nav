@@ -66,15 +66,13 @@ class Messages(list):
             return messages
 
     def save(self):
-        """Save this Messages object to this users session.
-        """
+        """Save this Messages object to this users session."""
         messages = self.session.get('messages', [])
         messages.extend(self)
         self.session['messages'] = messages
 
     def get_and_delete(self):
-        """Copies messages from this user's session and purges the originals.
-        """
+        """Copies messages from this user's session and purges the originals."""
         messages = copy(self.session.get('messages', None))
         if messages:
             self.session['messages'] = []

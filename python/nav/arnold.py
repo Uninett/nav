@@ -503,7 +503,7 @@ def change_port_vlan(identity, vlan):
 
 
 def sendmail(from_email, toaddr, subject, msg):
-    """ Sends mail using Djangos internal mail system """
+    """Sends mail using Djangos internal mail system"""
 
     try:
         email = EmailMessage(subject, msg, from_email=from_email, to=[toaddr])

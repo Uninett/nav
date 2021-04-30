@@ -67,7 +67,9 @@ def main(args):
     """Main controller"""
 
     init_generic_logging(
-        logfile=LOG_FILE, stderr=False, read_config=True,
+        logfile=LOG_FILE,
+        stderr=False,
+        read_config=True,
     )
 
     if args.listblocktypes:

@@ -59,7 +59,9 @@ _logger = logging.getLogger('nav.t1000')
 def main():
     """Main controller"""
     init_generic_logging(
-        logfile=LOG_FILE, stderr=False, read_config=True,
+        logfile=LOG_FILE,
+        stderr=False,
+        read_config=True,
     )
     _logger.info("Starting t1000")
 

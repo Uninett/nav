@@ -76,8 +76,7 @@ class RittalCMCIIIMib(MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """Discovers and returns all eligible sensors from the device.
-        """
+        """Discovers and returns all eligible sensors from the device."""
         devices = yield self.get_devices()
         sensors = yield self.get_sensors(devices)
         returnValue(sensors)

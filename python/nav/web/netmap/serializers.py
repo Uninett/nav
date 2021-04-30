@@ -26,7 +26,7 @@ from nav.models import profiles, manage
 class MultipleChoiceField(serializers.ChoiceField):
     """A generic multiple choice field
 
-        This does not currently exist in django-rest-framework
+    This does not currently exist in django-rest-framework
     """
 
     widget = SelectMultiple

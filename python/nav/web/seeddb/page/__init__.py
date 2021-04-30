@@ -43,8 +43,7 @@ def not_implemented(*_args, **_kwargs):
 
 
 def view_switcher(request, list_view=None, move_view=None, delete_view=None):
-    """Selects appropriate view depending on POST data.
-    """
+    """Selects appropriate view depending on POST data."""
     if request.method == 'POST':
         if 'move' in request.POST:
             return move_view(request)

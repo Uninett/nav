@@ -131,7 +131,9 @@ class LLDPMib(mibretriever.MibRetriever):
                 and local_portnum != int(port)
             ):
                 self._logger.debug(
-                    "translating local port num %s to ifindex %s", local_portnum, port,
+                    "translating local port num %s to ifindex %s",
+                    local_portnum,
+                    port,
                 )
                 lookup[local_portnum] = int(port)
 
@@ -149,7 +151,12 @@ class LLDPMib(mibretriever.MibRetriever):
     @inlineCallbacks
     def _retrieve_local_ports(self):
         ports = (
-            yield self.retrieve_columns(['lldpLocPortIdSubtype', 'lldpLocPortId',])
+            yield self.retrieve_columns(
+                [
+                    'lldpLocPortIdSubtype',
+                    'lldpLocPortId',
+                ]
+            )
             .addCallback(self.translate_result)
             .addCallback(reduce_index)
         )

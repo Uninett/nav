@@ -148,7 +148,11 @@ def management_profile():
     profile = ManagementProfile(
         name="Test connection profile",
         protocol=ManagementProfile.PROTOCOL_SNMP,
-        configuration={"version": 2, "community": "public", "write": False,},
+        configuration={
+            "version": 2,
+            "community": "public",
+            "write": False,
+        },
     )
     profile.save()
     yield profile

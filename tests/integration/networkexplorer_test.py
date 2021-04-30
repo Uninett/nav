@@ -90,7 +90,10 @@ class ViewsTest(TestDataMixin, TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_search_view_with_valid_query(self):
-        request = self.factory.get(self.url_root + 'search/', self.valid_data,)
+        request = self.factory.get(
+            self.url_root + 'search/',
+            self.valid_data,
+        )
         response = SearchView.as_view()(request)
         content = response.content.decode('utf-8')
 
@@ -100,7 +103,10 @@ class ViewsTest(TestDataMixin, TestCase):
         self.assertTrue('swports' in content)
 
     def test_search_view_with_invalid_query(self):
-        request = self.factory.get(self.url_root + 'search/', self.invalid_data,)
+        request = self.factory.get(
+            self.url_root + 'search/',
+            self.invalid_data,
+        )
         response = SearchView.as_view()(request)
         content = response.content.decode('utf-8')
 

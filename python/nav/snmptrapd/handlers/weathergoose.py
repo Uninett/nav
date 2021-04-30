@@ -191,7 +191,9 @@ class WeatherGoose2(WeatherGoose1):
 
     CLEARTRAPS = WeatherGoose1.CLEARTRAPS.copy()
     CLEARTRAPS.update(
-        {'cmTempSensorTempCCLEAR': 'weathergoose_temperature',}
+        {
+            'cmTempSensorTempCCLEAR': 'weathergoose_temperature',
+        }
     )
 
 
@@ -228,7 +230,7 @@ HANDLER_CLASSES = (WeatherGoose1, WeatherGoose2, GeistWeatherGoose)
 
 # pylint: disable=unused-argument
 def handleTrap(trap, config=None):
-    """ This function is called from snmptrapd """
+    """This function is called from snmptrapd"""
 
     if not trap.netbox:
         return False

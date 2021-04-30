@@ -82,7 +82,7 @@ _ = lambda a: a
 
 @python_2_unicode_compatible
 class Account(models.Model):
-    """ NAV's basic account model"""
+    """NAV's basic account model"""
 
     DEFAULT_ACCOUNT = 0
     ADMIN_ACCOUNT = 1
@@ -416,7 +416,7 @@ class AlertAddress(models.Model):
     def send(self, alert, subscription):
         """Handles sending of alerts to with defined alert notification types
 
-           Return value should indicate if message was sent"""
+        Return value should indicate if message was sent"""
 
         _logger = logging.getLogger('nav.alertengine.alertaddress.send')
 
@@ -715,9 +715,18 @@ class AlertSubscription(models.Model):
         (NEXT, _('at end of timeperiod')),
     )
 
-    alert_address = models.ForeignKey('AlertAddress', on_delete=models.CASCADE,)
-    time_period = models.ForeignKey('TimePeriod', on_delete=models.CASCADE,)
-    filter_group = models.ForeignKey('FilterGroup', on_delete=models.CASCADE,)
+    alert_address = models.ForeignKey(
+        'AlertAddress',
+        on_delete=models.CASCADE,
+    )
+    time_period = models.ForeignKey(
+        'TimePeriod',
+        on_delete=models.CASCADE,
+    )
+    filter_group = models.ForeignKey(
+        'FilterGroup',
+        on_delete=models.CASCADE,
+    )
     type = models.IntegerField(
         db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW
     )
@@ -767,8 +776,14 @@ class FilterGroupContent(models.Model):
     positive = models.BooleanField(default=False)
     priority = models.IntegerField()
 
-    filter = models.ForeignKey('Filter', on_delete=models.CASCADE,)
-    filter_group = models.ForeignKey('FilterGroup', on_delete=models.CASCADE,)
+    filter = models.ForeignKey(
+        'Filter',
+        on_delete=models.CASCADE,
+    )
+    filter_group = models.ForeignKey(
+        'FilterGroup',
+        on_delete=models.CASCADE,
+    )
 
     class Meta(object):
         db_table = u'filtergroupcontent'
@@ -857,7 +872,10 @@ class Operator(models.Model):
         ENDSWITH: "host(%s) ILIKE %%s + '%%%%'",
     }
     type = models.IntegerField(choices=OPERATOR_TYPES, db_column='operator_id')
-    match_field = models.ForeignKey('MatchField', on_delete=models.CASCADE,)
+    match_field = models.ForeignKey(
+        'MatchField',
+        on_delete=models.CASCADE,
+    )
 
     class Meta(object):
         db_table = u'operator'
@@ -882,8 +900,14 @@ class Expression(models.Model):
 
     """
 
-    filter = models.ForeignKey('Filter', on_delete=models.CASCADE,)
-    match_field = models.ForeignKey('MatchField', on_delete=models.CASCADE,)
+    filter = models.ForeignKey(
+        'Filter',
+        on_delete=models.CASCADE,
+    )
+    match_field = models.ForeignKey(
+        'MatchField',
+        on_delete=models.CASCADE,
+    )
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
     value = VarcharField()
 
@@ -1494,7 +1518,10 @@ class AccountDashboard(models.Model):
     name = VarcharField()
     is_default = models.BooleanField(default=False)
     num_columns = models.IntegerField(default=3)
-    account = models.ForeignKey(Account, on_delete=models.CASCADE,)
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+    )
 
     def __str__(self):
         return self.name
@@ -1561,8 +1588,14 @@ class ReportSubscription(models.Model):
     LINK = 'link'
     TYPES = ((DEVICE, 'device availability'), (LINK, 'link availability'))
 
-    account = models.ForeignKey(Account, on_delete=models.CASCADE,)
-    address = models.ForeignKey(AlertAddress, on_delete=models.CASCADE,)
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+    )
+    address = models.ForeignKey(
+        AlertAddress,
+        on_delete=models.CASCADE,
+    )
     period = VarcharField(choices=PERIODS)
     report_type = VarcharField(choices=TYPES)
     exclude_maintenance = models.BooleanField()

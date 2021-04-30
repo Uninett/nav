@@ -79,7 +79,11 @@ class IpMib(mibretriever.MibRetriever):
             if addr_len != expected_len or len(addr) != expected_len:
                 raise IndexToIpException(
                     "IPv%d address length is not %d: %r"
-                    % (4 if addr_type == IPV4_ID else 6, expected_len, oid,)
+                    % (
+                        4 if addr_type == IPV4_ID else 6,
+                        expected_len,
+                        oid,
+                    )
                 )
 
         return converter(addr)

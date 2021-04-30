@@ -61,7 +61,9 @@ try:
             'USER': _user,
             'PASSWORD': _password,
             'CONN_MAX_AGE': 300,  # 5 minutes
-            'OPTIONS': {'application_name': _appname or 'NAV',},
+            'OPTIONS': {
+                'application_name': _appname or 'NAV',
+            },
         }
     }
 except (IOError, OSError):

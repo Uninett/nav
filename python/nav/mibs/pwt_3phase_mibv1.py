@@ -80,7 +80,7 @@ class Pwt3PhaseV1Mib(mibretriever.MibRetriever):
         scale=None,
         name=None,
     ):
-        """ Make a simple dictionary to return to plugin"""
+        """Make a simple dictionary to return to plugin"""
 
         oid = OID(base_oid) + OID(sensor_oid)
 
@@ -223,7 +223,7 @@ class Pwt3PhaseV1Mib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """ Try to retrieve some of the available sensors in this PDU"""
+        """Try to retrieve some of the available sensors in this PDU"""
         # We only implement pduPwrMonitoringInletStatusTable for now
         tables = ['pduPwrMonitoringInletStatusTable']
 

@@ -527,7 +527,8 @@ class MibRetriever(object):
 
                     if row_index not in formatted_result:
                         formatted_result[row_index] = MibTableResultRow(
-                            row_index, table.columns.keys(),
+                            row_index,
+                            table.columns.keys(),
                         )
 
                     value = varlist[oid]
@@ -695,7 +696,7 @@ class MultiMibMixIn(MibRetriever):
             yield (agent, descr)
 
     def _prune_instances(self):
-        """"Prunes instances with duplicate community strings from the
+        """ "Prunes instances with duplicate community strings from the
         instance list, as these cannot possibly represent individual MIB
         instances in the queried devices.
 

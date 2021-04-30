@@ -513,7 +513,8 @@ class Vlan(Shadow):
 
         """
         virtual_addresses = manage.GwPortPrefix.objects.filter(
-            prefix__net_address=str(net_address), virtual=True,
+            prefix__net_address=str(net_address),
+            virtual=True,
         )
         return virtual_addresses.distinct().count()
 
@@ -772,7 +773,8 @@ class POEGroup(Shadow):
         vendor = self.netbox.type.vendor.id if self.netbox.type else ''
         if vendor == 'hp' and not self.module:
             module = manage.Module.objects.filter(
-                netbox=self.netbox.id, name=chr(ord('A') + self.index - 1),
+                netbox=self.netbox.id,
+                name=chr(ord('A') + self.index - 1),
             ).first()
             if module:
                 self.module = shadowify(module)

@@ -784,9 +784,7 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ModelViewSet):
 
     @list_route()
     def search(self, request):
-        """Do string-like prefix searching. Currently only supports net_address.
-
-        """
+        """Do string-like prefix searching. Currently only supports net_address."""
         net_address = request.GET.get('net_address', None)
         if not net_address or net_address is None:
             return Response("Empty search", status=status.HTTP_400_BAD_REQUEST)
@@ -986,7 +984,13 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = alert_serializers.AlertHistorySerializer
     base_queryset = base = event.AlertHistory.objects.prefetch_related(
         "variables", "netbox__groups"
-    ).select_related("netbox", "alert_type", "event_type", "acknowledgement", "source",)
+    ).select_related(
+        "netbox",
+        "alert_type",
+        "event_type",
+        "acknowledgement",
+        "source",
+    )
 
     def get_renderers(self):
         if self.action == 'retrieve':

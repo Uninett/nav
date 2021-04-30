@@ -25,19 +25,29 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.read_profile = manage.ManagementProfile(
             name='SNMP v1 read profile',
             protocol=manage.ManagementProfile.PROTOCOL_SNMP,
-            configuration={'community': 'public', 'version': 1, 'write': False,},
+            configuration={
+                'community': 'public',
+                'version': 1,
+                'write': False,
+            },
         )
         self.write_profile = manage.ManagementProfile(
             name='SNMP v1 write profile',
             protocol=manage.ManagementProfile.PROTOCOL_SNMP,
-            configuration={'community': 'secret', 'version': 1, 'write': True,},
+            configuration={
+                'community': 'secret',
+                'version': 1,
+                'write': True,
+            },
         )
 
         self.read_profile.save()
         self.write_profile.save()
 
     def test_simple_import_yields_netbox_and_device_model(self):
-        data = 'myroom:10.0.90.252:myorg:SW:{}::'.format(self.read_profile.name,)
+        data = 'myroom:10.0.90.252:myorg:SW:{}::'.format(
+            self.read_profile.name,
+        )
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
         _line_num, objects = six.next(importer)
@@ -60,7 +70,9 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertTrue(any(isinstance(o, manage.Netbox) for o in objects), msg=objects)
 
     def test_simple_import_yields_objects_with_proper_values(self):
-        data = 'myroom:10.0.90.252:myorg:SW:{}::'.format(self.read_profile.name,)
+        data = 'myroom:10.0.90.252:myorg:SW:{}::'.format(
+            self.read_profile.name,
+        )
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
         _line_num, objects = six.next(importer)
@@ -73,7 +85,9 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         self.assertEqual(profile.profile, self.read_profile)
 
     def test_invalid_room_gives_error(self):
-        data = 'invalid:10.0.90.252:myorg:SW:{}::'.format(self.read_profile.name,)
+        data = 'invalid:10.0.90.252:myorg:SW:{}::'.format(
+            self.read_profile.name,
+        )
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
         _line_num, objects = six.next(importer)

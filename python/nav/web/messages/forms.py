@@ -24,7 +24,7 @@ from nav.models.msgmaint import MessageToMaintenanceTask
 
 
 class MessageForm(ModelForm):
-    """ Model form class for a Message object """
+    """Model form class for a Message object"""
 
     def __init__(self, *args, **kwargs):
         super(MessageForm, self).__init__(*args, **kwargs)

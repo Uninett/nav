@@ -92,7 +92,8 @@ class EntityManager(DefaultManager):
 
             manage.NetboxEntity.objects.filter(id__in=[e.id for e in to_purge]).delete()
             manage.NetboxEntity.objects.filter(
-                id__in=[e.id for e in to_set_missing], gone_since__isnull=True,
+                id__in=[e.id for e in to_set_missing],
+                gone_since__isnull=True,
             ).update(gone_since=datetime.now())
 
             if to_set_missing:

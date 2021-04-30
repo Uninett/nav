@@ -75,7 +75,7 @@ class EntitySensorMib(mibretriever.MibRetriever):
         self.entity_mib = EntityMib(self.agent_proxy)
 
     def _get_sensors(self):
-        """ Collect all sensors from the box."""
+        """Collect all sensors from the box."""
         df = self.retrieve_columns(
             [
                 self.TYPE_COLUMN,
@@ -90,11 +90,11 @@ class EntitySensorMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """ Collect all sensors and names on a netbox, and match
-            sensors with names.
+        """Collect all sensors and names on a netbox, and match
+        sensors with names.
 
-            Return a list with dictionaries, each dictionary
-            represent a sensor."""
+        Return a list with dictionaries, each dictionary
+        represent a sensor."""
         sensors = yield self._get_sensors()
         entities = yield self.entity_mib.get_entity_physical_table()
         aliases = yield self.entity_mib.get_alias_mapping()

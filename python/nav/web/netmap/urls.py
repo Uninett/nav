@@ -44,7 +44,11 @@ urlpatterns = [
         NetmapViewEdit.as_view(),
         name='netmap-view-edit',
     ),
-    url(r'^views/create/$', NetmapViewCreate.as_view(), name='netmap-view-create',),
+    url(
+        r'^views/create/$',
+        NetmapViewCreate.as_view(),
+        name='netmap-view-create',
+    ),
     url(
         r'^views/default/$',
         NetmapViewDefaultViewUpdate.as_view(),
@@ -61,7 +65,11 @@ urlpatterns = [
         NodePositionUpdate.as_view(),
         name='netmap-nodepositions-update',
     ),
-    url(r'^graph/layer(?P<layer>[2|3])/$', NetmapGraph.as_view(), name='netmap-graph',),
+    url(
+        r'^graph/layer(?P<layer>[2|3])/$',
+        NetmapGraph.as_view(),
+        name='netmap-graph',
+    ),
     url(
         r'^graph/layer(?P<layer>[2|3])/(?P<viewid>[\d]+)/$',
         NetmapGraph.as_view(),

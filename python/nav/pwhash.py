@@ -48,7 +48,7 @@ DEFAULT_METHOD = 'pbkdf2'
 
 
 def generate_salt():
-    """"Generate and return a salt string"""
+    """ "Generate and return a salt string"""
     saltlen = 8
     if hasattr(os, 'urandom') and callable(os.urandom):
         raw_salt = os.urandom(saltlen)

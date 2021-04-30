@@ -36,12 +36,12 @@ def do_list(request, messages=None):
 
 
 def list_watch(request):
-    """ Render current macwatches and option to add new one. """
+    """Render current macwatches and option to add new one."""
     return do_list(request)
 
 
 def add_macwatch(request):
-    """ Display form for adding of mac address to watch. """
+    """Display form for adding of mac address to watch."""
 
     account = get_account(request)
     if request.method == 'POST':
@@ -70,7 +70,7 @@ def add_macwatch(request):
 
 
 def delete_macwatch(request, macwatchid):
-    """ Delete tuple for mac address watch """
+    """Delete tuple for mac address watch"""
 
     account = get_account(request)
     # Delete tuple based on url
@@ -101,7 +101,7 @@ def delete_macwatch(request, macwatchid):
 
 
 def edit_macwatch(request, macwatchid):
-    """ Edit description on a macwatch - currently not in use """
+    """Edit description on a macwatch - currently not in use"""
     if request.method == 'POST':
         macwatchform = MacWatchForm(request.POST)
         if macwatchform.is_valid():

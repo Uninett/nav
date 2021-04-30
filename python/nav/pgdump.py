@@ -94,7 +94,8 @@ def _make_optparser():
         "PostgreSQL database using the psql program.",
     )
     parser.set_defaults(
-        filters={}, exclude=[],
+        filters={},
+        exclude=[],
     )
 
     opt = parser.add_option

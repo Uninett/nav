@@ -36,7 +36,7 @@ def create_title(navpath):
 
 
 class SubListView(ListView):
-    """ Subclass of the generic list ListView to allow extra context """
+    """Subclass of the generic list ListView to allow extra context"""
 
     extra_context = {}
 

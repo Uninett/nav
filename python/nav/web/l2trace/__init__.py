@@ -194,7 +194,9 @@ def get_vlan_uplink_from_netbox(netbox, vlan=None):
     if not vlan:
         vlan = get_netbox_vlan(netbox)
     swpvlans = SwPortVlan.objects.filter(
-        direction=SwPortVlan.DIRECTION_UP, interface__netbox=netbox, vlan=vlan,
+        direction=SwPortVlan.DIRECTION_UP,
+        interface__netbox=netbox,
+        vlan=vlan,
     ).select_related('interface')
     if swpvlans:
         return swpvlans[0]
@@ -204,7 +206,9 @@ def get_vlan_downlink_to_netbox(netbox, vlan=None):
     if not vlan:
         vlan = get_netbox_vlan(netbox)
     swpvlans = SwPortVlan.objects.filter(
-        interface__to_netbox=netbox, direction=SwPortVlan.DIRECTION_DOWN, vlan=vlan,
+        interface__to_netbox=netbox,
+        direction=SwPortVlan.DIRECTION_DOWN,
+        vlan=vlan,
     ).select_related('interface', 'interface__netbox')
     if swpvlans:
         return swpvlans[0]

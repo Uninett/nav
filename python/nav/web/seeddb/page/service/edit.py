@@ -169,7 +169,10 @@ def service_add(request):
                 service_args=get_description(service_id)
             )
             service_form = ServiceForm(
-                initial={'netbox': netbox_id, 'handler': service_id,}
+                initial={
+                    'netbox': netbox_id,
+                    'handler': service_id,
+                }
             )
 
             context = info.template_context
@@ -188,7 +191,10 @@ def service_add(request):
 
     context = info.template_context
     context.update(
-        {'choice_form': choice_form, 'sub_active': {'add': True},}
+        {
+            'choice_form': choice_form,
+            'sub_active': {'add': True},
+        }
     )
     return render(request, 'seeddb/service_netbox_form.html', context)
 

@@ -256,7 +256,10 @@ class TestCiscoHSRPMib(object):
         class MockedMib(CiscoHSRPMib):
             def retrieve_column(self, column):
                 return defer.succeed(
-                    {OID('.153.1'): '10.0.1.1', OID('.155.1'): '10.0.42.1',}
+                    {
+                        OID('.153.1'): '10.0.1.1',
+                        OID('.155.1'): '10.0.42.1',
+                    }
                 )
 
         mib = MockedMib(None)

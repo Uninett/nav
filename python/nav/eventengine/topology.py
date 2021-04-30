@@ -146,7 +146,10 @@ def get_graph_for_vlan(vlan):
             # ensure key ordering is always consistent:
             key = tuple(
                 sorted(
-                    (source_ifc.id, target_ifc.id if target_ifc else None,),
+                    (
+                        source_ifc.id,
+                        target_ifc.id if target_ifc else None,
+                    ),
                     key=lambda x: x if x else 0,
                 )
             )

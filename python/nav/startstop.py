@@ -47,7 +47,7 @@ def get_info_from_content(content):
 
 
 class Service(object):
-    """ Represents a NAV service in general, and should never be
+    """Represents a NAV service in general, and should never be
     instantiated."""
 
     def __init__(self, filename):
@@ -90,7 +90,7 @@ class Service(object):
 
 
 class DaemonService(Service):
-    """ Represents daemon based services."""
+    """Represents daemon based services."""
 
     status = None
 
@@ -224,7 +224,7 @@ class DaemonService(Service):
 
 
 class CronService(Service):
-    """ Represents cron based services."""
+    """Represents cron based services."""
 
     crontab = None
 
@@ -317,7 +317,7 @@ class CronService(Service):
 
 
 class Crontab(object):
-    """ Represents the crontab of a user.  Recognizes tags to define a
+    """Represents the crontab of a user.  Recognizes tags to define a
     block structure, which can be set/retrieved using a Crontab object
     as a dictionary."""
 
@@ -372,7 +372,7 @@ class Crontab(object):
             raise CrontabError(exit_code)
 
     def update_init(self):
-        """ Update the __init__ block with current environment
+        """Update the __init__ block with current environment
         variables and such."""
         time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
         env_vars = ('PERL5LIB', 'PYTHONPATH', 'CLASSPATH', 'PATH')
@@ -451,7 +451,7 @@ class Crontab(object):
 
 
 class ServiceRegistry(dict):
-    """ Registry of known NAV services."""
+    """Registry of known NAV services."""
 
     def __init__(self):
         super(ServiceRegistry, self).__init__()
@@ -474,7 +474,7 @@ class ServiceError(GeneralException):
 
 
 class CommandNotSupportedError(ServiceError):
-    """"Command not supported"""
+    """ "Command not supported"""
 
 
 class CommandFailedError(ServiceError):
@@ -486,4 +486,4 @@ class CrontabError(ServiceError):
 
 
 class CrontabBlockError(CrontabError):
-    """"There is an error in the block format of the crontab"""
+    """ "There is an error in the block format of the crontab"""

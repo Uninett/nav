@@ -219,7 +219,7 @@ class AbstractChecker(object):
 
     @sysname.setter
     def sysname(self, name):
-        """Sets the sysname """
+        """Sets the sysname"""
         self._sysname = name
 
     def update_timestamp(self):
@@ -228,7 +228,7 @@ class AbstractChecker(object):
 
     @classmethod
     def get_type(cls):
-        """Returns the name of the handler. """
+        """Returns the name of the handler."""
         suffix = "checker"
         name = cls.__name__.lower()
         if name.endswith(suffix):
@@ -236,7 +236,7 @@ class AbstractChecker(object):
         return name
 
     def get_address(self):
-        """Returns a tuple (ip, port) """
+        """Returns a tuple (ip, port)"""
         return self.ip, self.port
 
     def __eq__(self, obj):

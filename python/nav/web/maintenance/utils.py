@@ -34,9 +34,18 @@ FIELD_KEYS = {
         'room': 'netbox__room__',
         'location': 'netbox__room__location__',
     },
-    'netbox': {'netbox': '', 'room': 'room__', 'location': 'room__location__',},
-    'room': {'room': '', 'location': 'location__',},
-    'location': {'location': '',},
+    'netbox': {
+        'netbox': '',
+        'room': 'room__',
+        'location': 'room__location__',
+    },
+    'room': {
+        'room': '',
+        'location': 'location__',
+    },
+    'location': {
+        'location': '',
+    },
 }
 
 NAVPATH = [
@@ -238,7 +247,11 @@ def task_component_trails(component_keys, components):
                     )
                 if key == 'service':
                     trail.append(
-                        {'url': None, 'title': None, 'name': comp['handler'],}
+                        {
+                            'url': None,
+                            'title': None,
+                            'name': comp['handler'],
+                        }
                     )
                 if key == 'netboxgroup':
                     trail.append(
@@ -249,7 +262,12 @@ def task_component_trails(component_keys, components):
                         }
                     )
             trails.append(
-                {'id': pkey, 'type': key, 'title': title, 'trail': trail,}
+                {
+                    'id': pkey,
+                    'type': key,
+                    'title': title,
+                    'trail': trail,
+                }
             )
     return trails
 

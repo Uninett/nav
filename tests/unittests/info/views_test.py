@@ -29,10 +29,10 @@ class MockProvider(SearchProvider):
 
 
 class ViewsTest(unittest.TestCase):
-    """ Testclass for helperfunctions in info's views module """
+    """Testclass for helperfunctions in info's views module"""
 
     def setUp(self):
-        """ Test setup """
+        """Test setup"""
 
         searchresult = SearchResult('test', None)
         self.searchprovider0 = MockProvider()
@@ -43,7 +43,7 @@ class ViewsTest(unittest.TestCase):
         self.searchprovider2.results.extend([searchresult, searchresult])
 
     def test_has_results(self):
-        """ Tests for the has_results function """
+        """Tests for the has_results function"""
 
         providers = [self.searchprovider0, self.searchprovider1, self.searchprovider2]
 
@@ -52,7 +52,7 @@ class ViewsTest(unittest.TestCase):
         self.assertFalse(has_results([self.searchprovider0]))
 
     def test_has_only_one_result(self):
-        """ Tests for the has_only_one_result function """
+        """Tests for the has_only_one_result function"""
 
         self.assertFalse(has_only_one_result([self.searchprovider0]))
 

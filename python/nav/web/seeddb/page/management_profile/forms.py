@@ -81,10 +81,16 @@ class SnmpForm(ProtocolSpecificMixIn, forms.ModelForm):
         configuration_fields = ['version', 'community', 'write']
         fields = []
 
-    version = forms.ChoiceField(choices=((2, '2c'), (1, '1'),))
+    version = forms.ChoiceField(
+        choices=(
+            (2, '2c'),
+            (1, '1'),
+        )
+    )
     community = forms.CharField(required=True)
     write = forms.BooleanField(
-        required=False, help_text="Check if this community string enables write access",
+        required=False,
+        help_text="Check if this community string enables write access",
     )
 
 

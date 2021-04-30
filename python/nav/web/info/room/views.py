@@ -396,7 +396,10 @@ def save_sensor(request, roomid):
             return render(
                 request,
                 'info/room/fragment_racksensor.html',
-                {'racksensor': item, 'column': column,},
+                {
+                    'racksensor': item,
+                    'column': column,
+                },
             )
         else:
             if column == RACK_LEFT:
@@ -407,7 +410,10 @@ def save_sensor(request, roomid):
             return render(
                 request,
                 'info/room/fragment_rackpdusensor.html',
-                {'racksensor': item, 'column': column,},
+                {
+                    'racksensor': item,
+                    'column': column,
+                },
             )
 
     except (ValueError, IntegrityError) as error:

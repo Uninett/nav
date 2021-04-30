@@ -23,8 +23,7 @@ class PowerEthernetMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_groups_table(self):
-        """Retrieves PoE group information
-        """
+        """Retrieves PoE group information"""
         cols = yield self.retrieve_columns(
             ["pethMainPsePower", "pethMainPseOperStatus", "pethMainPseConsumptionPower"]
         )
@@ -32,7 +31,6 @@ class PowerEthernetMib(mibretriever.MibRetriever):
 
     @defer.inlineCallbacks
     def get_ports_table(self):
-        """Retrieves PoE port information
-        """
+        """Retrieves PoE port information"""
         cols = yield self.retrieve_table("pethPsePortTable")
         defer.returnValue(cols)

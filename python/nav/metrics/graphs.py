@@ -138,7 +138,7 @@ class Graph(object):
         height=250,
         targets=None,
         magic_targets=None,
-        **kwargs
+        **kwargs,
     ):
         self.args = dict(template=u'nav', width=width, height=height)
         self.args.update(kwargs)
@@ -215,7 +215,7 @@ def get_simple_graph_url(
     width=480,
     height=250,
     magic=True,
-    **kwargs
+    **kwargs,
 ):
     """
     Returns an URL, fetchable by an end user, to render a simple graph,

@@ -157,11 +157,17 @@ def alert_subscriptions_table(periods):
         # them don't apply to both.
         if valid_during in (TimePeriod.WEEKDAYS, TimePeriod.ALL_WEEK):
             weekday_subscriptions.append(
-                {'time_period': p, 'alert_subscriptions': subscriptions,}
+                {
+                    'time_period': p,
+                    'alert_subscriptions': subscriptions,
+                }
             )
         if valid_during in (TimePeriod.WEEKENDS, TimePeriod.ALL_WEEK):
             weekend_subscriptions.append(
-                {'time_period': p, 'alert_subscriptions': subscriptions,}
+                {
+                    'time_period': p,
+                    'alert_subscriptions': subscriptions,
+                }
             )
 
     subscriptions = [

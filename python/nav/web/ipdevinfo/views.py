@@ -221,7 +221,11 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
                 has_unresolved_alerts = True
 
             alerts.append(
-                {'alert': alert, 'type': alert_type, 'message': message,}
+                {
+                    'alert': alert,
+                    'type': alert_type,
+                    'message': message,
+                }
             )
 
         return {

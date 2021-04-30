@@ -110,8 +110,7 @@ def numeric(obj):
 
 
 def float_or_nan(string):
-    """Convert a string to a float if possible, otherwise return the NaN value.
-    """
+    """Convert a string to a float if possible, otherwise return the NaN value."""
     try:
         return float(string)
     except ValueError:
@@ -402,8 +401,7 @@ class lazy_dict(object):
             self.unevaluated.remove(key)
 
     def force_and_call(self, key, method, *args):
-        """Call a method on the underlying dict after forcing evaluation of key.
-        """
+        """Call a method on the underlying dict after forcing evaluation of key."""
         self.force(key)
         return type(dict).__getattribute__(dict, method)(self.storage, *args)
 

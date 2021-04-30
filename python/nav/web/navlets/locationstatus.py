@@ -51,7 +51,9 @@ class LocationStatus(RoomStatus):
             for alert in location.alerts:
                 state = STATE_START if alert.end_time is not None else STATE_STATELESS
                 alert.sms_message = alert.messages.get(
-                    type='sms', language='en', state=state,
+                    type='sms',
+                    language='en',
+                    state=state,
                 )
             locations.append(location)
 

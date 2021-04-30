@@ -656,7 +656,13 @@ class AcctChartsQuery(SQLQuery):
 
     result_tuple = namedtuple(
         'AccountChartsQueryResult',
-        ('username', 'realm', 'sortfield', 'acctsessiontime', 'fieldisnull',),
+        (
+            'username',
+            'realm',
+            'sortfield',
+            'acctsessiontime',
+            'fieldisnull',
+        ),
     )
 
     def __init__(self, chart, days=None, topx="10"):

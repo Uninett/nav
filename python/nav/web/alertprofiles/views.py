@@ -112,7 +112,10 @@ def overview(request):
         'filter_groups': filter_groups,
         'language_form': language_form,
         'alert_subscriptions': subscriptions,
-        'navpath': [('Home', '/'), ('Alert profiles', None),],
+        'navpath': [
+            ('Home', '/'),
+            ('Alert profiles', None),
+        ],
         'title': 'NAV - Alert profiles',
     }
     return render(request, 'alertprofiles/account_detail.html', info_dict)
@@ -377,7 +380,11 @@ def profile_remove(request):
                 )
 
             elements.append(
-                {'id': profile.id, 'description': profile.name, 'warnings': warnings,}
+                {
+                    'id': profile.id,
+                    'description': profile.name,
+                    'warnings': warnings,
+                }
             )
 
         info_dict = {
@@ -502,7 +509,9 @@ def profile_time_period_add(request):
         time_period = TimePeriod.objects.get(pk=request.POST.get('id'))
 
     time_period_form = TimePeriodForm(
-        request.POST, instance=time_period, initial={'profile': profile},
+        request.POST,
+        instance=time_period,
+        initial={'profile': profile},
     )
 
     if not time_period_form.is_valid():
@@ -620,7 +629,11 @@ def profile_time_period_remove(request):
                     }
                 )
             elements.append(
-                {'id': period.id, 'description': description, 'warnings': warnings,}
+                {
+                    'id': period.id,
+                    'description': description,
+                    'warnings': warnings,
+                }
             )
 
         info_dict = {
@@ -884,7 +897,11 @@ def profile_time_period_subscription_remove(request):
             }
 
             elements.append(
-                {'id': sub.id, 'description': description, 'warnings': warnings,}
+                {
+                    'id': sub.id,
+                    'description': description,
+                    'warnings': warnings,
+                }
             )
 
         info_dict = {
@@ -992,7 +1009,10 @@ def address_show_form(request, address_id=None, address_form=None):
         'form': address_form,
         'owner': True,
         'navpath': BASE_PATH
-        + [('Address', reverse('alertprofiles-address')), (page_name, None),],
+        + [
+            ('Address', reverse('alertprofiles-address')),
+            (page_name, None),
+        ],
         'title': 'NAV - Alert profiles',
     }
     return render(request, 'alertprofiles/address_form.html', info_dict)
@@ -1138,7 +1158,11 @@ def address_remove(request):
             }
 
             elements.append(
-                {'id': addr.id, 'description': description, 'warnings': warnings,}
+                {
+                    'id': addr.id,
+                    'description': description,
+                    'warnings': warnings,
+                }
             )
 
         info_dict = {
@@ -1352,7 +1376,10 @@ def filter_show_form(request, filter_id=None, filter_form=None):
             'matchfields': matchfields,
             'expressions': expressions,
             'navpath': BASE_PATH
-            + [('Filters', reverse('alertprofiles-filters')), (page_name, None),],
+            + [
+                ('Filters', reverse('alertprofiles-filters')),
+                (page_name, None),
+            ],
             'title': 'NAV - Alert profiles',
         },
     )
@@ -1466,7 +1493,11 @@ def filter_remove(request):
                 )
 
             elements.append(
-                {'id': filtr.id, 'description': filtr.name, 'warnings': warnings,}
+                {
+                    'id': filtr.id,
+                    'description': filtr.name,
+                    'warnings': warnings,
+                }
             )
 
         info_dict = {
@@ -1565,7 +1596,10 @@ def filter_saveexpression(request):
         value = request.POST.get('value')
 
     expression = Expression(
-        filter=filtr, match_field=match_field, operator=operator.type, value=value,
+        filter=filtr,
+        match_field=match_field,
+        operator=operator.type,
+        value=value,
     )
     expression.save()
     new_message(
@@ -1635,7 +1669,11 @@ def filter_removeexpression(request):
                 'filter': expr.filter.name,
             }
             elements.append(
-                {'id': expr.id, 'description': description, 'warnings': [],}
+                {
+                    'id': expr.id,
+                    'description': description,
+                    'warnings': [],
+                }
             )
 
         info_dict = {
@@ -1923,7 +1961,11 @@ def filter_group_remove(request):
                 )
 
             elements.append(
-                {'id': fgroup.id, 'description': fgroup.name, 'warnings': warnings,}
+                {
+                    'id': fgroup.id,
+                    'description': fgroup.name,
+                    'warnings': warnings,
+                }
             )
 
         info_dict = {
@@ -1939,7 +1981,11 @@ def filter_group_remove(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render(request, 'alertprofiles/confirmation_list.html', info_dict,)
+        return render(
+            request,
+            'alertprofiles/confirmation_list.html',
+            info_dict,
+        )
 
 
 @requires_post('alertprofiles-filter_groups', ('id', 'filter'))
@@ -2097,7 +2143,10 @@ def filter_group_removefilter(request):
             }
 
             elements.append(
-                {'id': content.id, 'description': description,}
+                {
+                    'id': content.id,
+                    'description': description,
+                }
             )
 
         info_dict = {
@@ -2119,7 +2168,11 @@ def filter_group_removefilter(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render(request, 'alertprofiles/confirmation_list.html', info_dict,)
+        return render(
+            request,
+            'alertprofiles/confirmation_list.html',
+            info_dict,
+        )
 
 
 @requires_post('alertprofiles-filter_groups')
@@ -2225,7 +2278,10 @@ def matchfield_list(request):
         'subsection': {'list': True},
         'form_action': reverse('alertprofiles-matchfields-remove'),
         'order_by': order_by,
-        'navpath': BASE_PATH + [('Matchfields', None),],
+        'navpath': BASE_PATH
+        + [
+            ('Matchfields', None),
+        ],
         'title': 'NAV - Alert profiles',
     }
     return SubListView.as_view(
@@ -2304,7 +2360,10 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         'operators': operators,
         'owner': True,
         'navpath': BASE_PATH
-        + [('Matchfields', reverse('alertprofiles-matchfields')), (page_name, None),],
+        + [
+            ('Matchfields', reverse('alertprofiles-matchfields')),
+            (page_name, None),
+        ],
         'title': 'NAV - Alert profiles',
     }
 
@@ -2429,7 +2488,11 @@ def matchfield_remove(request):
             ],
             'title': 'NAV - Alert profiles',
         }
-        return render(request, 'alertprofiles/confirmation_list.html', info_dict,)
+        return render(
+            request,
+            'alertprofiles/confirmation_list.html',
+            info_dict,
+        )
 
 
 def permission_list(request, group_id=None):
@@ -2463,7 +2526,10 @@ def permission_list(request, group_id=None):
         'filter_groups': filter_groups,
         'permissions': permissions,
         'active': active,
-        'navpath': BASE_PATH + [('Permissions', None),],
+        'navpath': BASE_PATH
+        + [
+            ('Permissions', None),
+        ],
         'title': 'NAV - Alert profiles',
     }
 

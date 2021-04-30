@@ -150,10 +150,10 @@ def min_max_mac(prefix):
 def track_mac(keys, resultset, dns):
     """Groups results from Query for the mac_search page.
 
-        keys        - a tuple/list with strings that identifies the fields the
-                      result should be grouped by
-        resultset   - a QuerySet
-        dns         - should we lookup the hostname?
+    keys        - a tuple/list with strings that identifies the fields the
+                  result should be grouped by
+    resultset   - a QuerySet
+    dns         - should we lookup the hostname?
     """
     if dns:
         ips_to_lookup = {row.ip for row in resultset}

@@ -44,7 +44,10 @@ def main():
     (_options, _args) = parser.parse_args()
 
     init_generic_logging(
-        logfile=LOG_FILE, stderr=False, stdout=True, read_config=True,
+        logfile=LOG_FILE,
+        stderr=False,
+        stdout=True,
+        read_config=True,
     )
     django.setup()
     scan()

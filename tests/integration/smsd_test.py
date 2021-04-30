@@ -15,7 +15,8 @@ from nav.config import find_configfile, find_config_dir
 
 
 def test_smsd_test_message_with_uninettmaildispatcher_should_work(
-    smsd_test_config, django_settings_email_backend_file,
+    smsd_test_config,
+    django_settings_email_backend_file,
 ):
     output = get_smsd_test_output('99999999')
     print(output)

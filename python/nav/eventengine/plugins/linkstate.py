@@ -245,7 +245,7 @@ class LinkStateConfiguration(object):
 
     def alert_only_on_redundancy_loss(self):
         """Returns True if linkState alerts are only to be sent on linkDown's
-         that degrade a redundant link setup
+        that degrade a redundant link setup
 
         """
         opt = ("linkdown", "only_redundant")

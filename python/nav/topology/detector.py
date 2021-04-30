@@ -53,7 +53,10 @@ def main():
     options = parser.parse_args()
 
     init_generic_logging(
-        logfile=LOG_FILE, stderr=options.stderr, stdout=True, read_config=True,
+        logfile=LOG_FILE,
+        stderr=options.stderr,
+        stdout=True,
+        read_config=True,
     )
     if options.l2 or options.vlan:
         # protect against multiple invocations of long-running jobs

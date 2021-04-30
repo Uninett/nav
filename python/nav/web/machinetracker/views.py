@@ -272,7 +272,9 @@ def mac_do_search(request):
 
         cam_result = (
             Cam.objects.select_related('netbox')
-            .filter(end_time__gt=from_time,)
+            .filter(
+                end_time__gt=from_time,
+            )
             .extra(where=['mac BETWEEN %s and %s'], params=[mac_min, mac_max])
             .order_by('mac', 'sysname', 'module', 'port', '-start_time')
         )
@@ -373,7 +375,7 @@ def switch_do_search(request):
                     | Q(netbox__sysname__istartswith=switch),
                     end_time__gt=from_time,
                     port=port_interface,
-                    **criteria
+                    **criteria,
                 ).values('ifindex')[0]
                 criteria['ifindex'] = cam_with_ifindex['ifindex']
             except IndexError:
@@ -384,7 +386,7 @@ def switch_do_search(request):
             .filter(
                 Q(sysname__istartswith=switch) | Q(netbox__sysname__istartswith=switch),
                 end_time__gt=from_time,
-                **criteria
+                **criteria,
             )
             .order_by('sysname', 'module', 'mac', '-start_time')
         )

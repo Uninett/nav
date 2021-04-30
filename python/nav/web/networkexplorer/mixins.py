@@ -15,10 +15,10 @@ from nav.models.manage import Cam, Arp, GwPortPrefix, Netbox, SwPortVlan
 class JSONResponseMixin(object):
     """A mixin that lets class-based views return JSON
 
-        More or less identical to the JSONResponseMixin in
-        the django-braces project
+    More or less identical to the JSONResponseMixin in
+    the django-braces project
 
-        TODO: Refactor out for reusability
+    TODO: Refactor out for reusability
     """
 
     content_type = "application/json"
@@ -109,7 +109,10 @@ class ExpandRouterContextMixin(object):
         has_children = False
 
         prefixes = (
-            GwPortPrefix.objects.select_related('prefix__vlan', 'interface',)
+            GwPortPrefix.objects.select_related(
+                'prefix__vlan',
+                'interface',
+            )
             .filter(interface_id=gwport.id)
             .exclude(prefix__vlan__net_type='static')
         )
@@ -148,16 +151,18 @@ class ExpandGWPortMixin(object):
 
     def get_context_data(self, **kwargs):
         gwport = kwargs.pop('object')
-        prefixes = gwport.gwportprefix_set.select_related('prefix__vlan',).exclude(
-            prefix__vlan__net_type='static'
-        )
+        prefixes = gwport.gwportprefix_set.select_related(
+            'prefix__vlan',
+        ).exclude(prefix__vlan__net_type='static')
 
         vlans = []
         vlans_found = set()
         for prefix in prefixes:
             for vlan in (
                 prefix.prefix.vlan.swportvlan_set.select_related(
-                    'interface__to_interface__netbox', 'interface__netbox', 'vlan',
+                    'interface__to_interface__netbox',
+                    'interface__netbox',
+                    'vlan',
                 )
                 .filter(interface__netbox=gwport.netbox)
                 .order_by('interface__ifname')

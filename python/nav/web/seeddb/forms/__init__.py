@@ -349,7 +349,9 @@ class DeviceGroupForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            'id', 'description', Field('netboxes', css_class='select2'),
+            'id',
+            'description',
+            Field('netboxes', css_class='select2'),
         )
 
     class Meta(object):

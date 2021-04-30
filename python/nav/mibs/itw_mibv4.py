@@ -46,7 +46,9 @@ TABLES = {
             'avail': 'tempSensorAvail',
             'serial': 'tempSensorSerial',
             'name': 'tempSensorName',
-            'sensors': {'tempSensorTemp',},
+            'sensors': {
+                'tempSensorTemp',
+            },
         }
     ],
     'airFlowSensorTable': [
@@ -89,13 +91,17 @@ TABLES = {
             'avail': 't3hdSensorExtAAvail',
             'serial': 't3hdSensorSerial',
             'name': 't3hdSensorExtAName',
-            'sensors': {'t3hdSensorExtATemp',},
+            'sensors': {
+                't3hdSensorExtATemp',
+            },
         },
         {
             'avail': 't3hdSensorExtBAvail',
             'serial': 't3hdSensorSerial',
             'name': 't3hdSensorExtBName',
-            'sensors': {'t3hdSensorExtBTemp',},
+            'sensors': {
+                't3hdSensorExtBTemp',
+            },
         },
     ],
     'thdSensorTable': [
@@ -103,7 +109,11 @@ TABLES = {
             'avail': 'thdSensorAvail',
             'serial': 'thdSensorSerial',
             'name': 'thdSensorName',
-            'sensors': {'thdSensorTemp', 'thdSensorHumidity', 'thdSensorDewPoint',},
+            'sensors': {
+                'thdSensorTemp',
+                'thdSensorHumidity',
+                'thdSensorDewPoint',
+            },
         }
     ],
     'rpmSensorTable': [

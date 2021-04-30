@@ -73,7 +73,12 @@ def test_alertprofiles_save_profile(db, client):
 def test_alertprofiles_confirm_remove_profile(db, client, dummy_profile):
     url = reverse('alertprofiles-profile-remove')
     response = client.post(
-        url, follow=True, data={'confirm': '1', 'element': [dummy_profile.id],}
+        url,
+        follow=True,
+        data={
+            'confirm': '1',
+            'element': [dummy_profile.id],
+        },
     )
     assert response.status_code == 200
     assert AlertProfile.objects.filter(pk=dummy_profile.pk).count() == 0
@@ -82,7 +87,11 @@ def test_alertprofiles_confirm_remove_profile(db, client, dummy_profile):
 def test_alertprofiles_remove_profile(db, client, activated_dummy_profile):
     url = reverse('alertprofiles-profile-remove')
     response = client.post(
-        url, follow=True, data={'profile': [activated_dummy_profile.id],}
+        url,
+        follow=True,
+        data={
+            'profile': [activated_dummy_profile.id],
+        },
     )
     assert response.status_code == 200
     assert "Confirm deletion" in smart_text(response.content)
@@ -93,7 +102,13 @@ def test_alertprofiles_remove_profile(db, client, activated_dummy_profile):
 def test_alertprofiles_activate_profile(db, client, dummy_profile):
     # remarkably, activation/deactivation of profiles belong in the remove view!
     url = reverse('alertprofiles-profile-remove')
-    response = client.post(url, follow=True, data={'activate': dummy_profile.id,})
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            'activate': dummy_profile.id,
+        },
+    )
     assert response.status_code == 200
     assert "Active profile set" in smart_text(response.content)
     assert dummy_profile.name in smart_text(response.content)
@@ -105,7 +120,11 @@ def test_alertprofiles_deactivate_profile(db, client, activated_dummy_profile):
     # remarkably, activation/deactivation of profiles belong in the remove view!
     url = reverse('alertprofiles-profile-remove')
     response = client.post(
-        url, follow=True, data={'deactivate': activated_dummy_profile.id,}
+        url,
+        follow=True,
+        data={
+            'deactivate': activated_dummy_profile.id,
+        },
     )
     assert response.status_code == 200
     print(type(response.content))

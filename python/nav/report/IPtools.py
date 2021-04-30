@@ -93,7 +93,7 @@ def andIpMask(ip, mask):
     Arguments:
         ``ip'': IPy.IP
         ``mask'': IPy.IP
-        """
+    """
     base = IP(ip.net().int() & mask.net().int())
     return IP("{}/{}".format(base, mask.prefixlen()))
 

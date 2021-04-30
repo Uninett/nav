@@ -39,7 +39,7 @@ U_TIMETICKS = dict(u_o_m=Sensor.UNIT_SECONDS, precision=2)
 
 
 class PowerNetMib(UpsMib):
-    """ Custom class for retrieveing sensors from APC UPSes."""
+    """Custom class for retrieveing sensors from APC UPSes."""
 
     mib = get_mib('PowerNet-MIB')
 

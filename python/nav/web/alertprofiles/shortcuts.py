@@ -28,7 +28,11 @@ BASE_PATH = [
 
 def _alertprofiles_response(request, status_code=200):
     # Get a normal response object
-    response = render(request, 'alertprofiles/base.html', {'navpath': BASE_PATH},)
+    response = render(
+        request,
+        'alertprofiles/base.html',
+        {'navpath': BASE_PATH},
+    )
 
     # Change the status_code
     response.status_code = status_code

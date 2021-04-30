@@ -132,7 +132,10 @@ def register_error_events(request, **kwargs):
             messages.append(
                 {
                     'message': _('Registered error on %(type)s %(device)s.')
-                    % {'type': type, 'device': device,},
+                    % {
+                        'type': type,
+                        'device': device,
+                    },
                     'type': Messages.SUCCESS,
                 }
             )

@@ -72,8 +72,7 @@ class PowerSupplyUnit(Plugin):
 
     @defer.inlineCallbacks
     def handle(self):
-        """Collect PSUs and FANs,- their corresponding statuses and store in database.
-        """
+        """Collect PSUs and FANs,- their corresponding statuses and store in database."""
         self._logger.debug("Collecting PSUs and FANs")
         psus = []
         fans = []

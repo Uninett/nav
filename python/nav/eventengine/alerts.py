@@ -195,7 +195,8 @@ class AlertGenerator(dict):
                 kwargs["state"] = self.state
 
             msg, _created = msg_class.objects.get_or_create(
-                **kwargs, defaults={"message": text},
+                **kwargs,
+                defaults={"message": text},
             )
             msg.save()
 

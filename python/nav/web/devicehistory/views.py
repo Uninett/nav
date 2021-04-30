@@ -161,7 +161,10 @@ def error_form(request):
             'quickselect': device_quickselect,
             'error_comment': error_comment,
             'title': 'NAV - Device History - Register error',
-            'navpath': [('Home', '/'), ('Register error event', ''),],
+            'navpath': [
+                ('Home', '/'),
+                ('Register error event', ''),
+            ],
         },
     )
 

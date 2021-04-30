@@ -34,7 +34,11 @@ class CiscoProcessMib(mibretriever.MibRetriever):
     @defer.inlineCallbacks
     def get_cpu_loadavg(self):
         load = yield self.retrieve_columns(
-            [PHYSICAL_INDEX, TOTAL_5_MIN_REV, TOTAL_1_MIN_REV,]
+            [
+                PHYSICAL_INDEX,
+                TOTAL_5_MIN_REV,
+                TOTAL_1_MIN_REV,
+            ]
         )
         self._logger.debug("cpu load results: %r", load)
         physindexes = [

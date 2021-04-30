@@ -46,9 +46,11 @@ def search(data):
     elif query_type == 'port':
         search_function = portname_search
 
-    (router_matches, qwport_matches, swport_matches,) = search_function(
-        query, exact_results
-    )
+    (
+        router_matches,
+        qwport_matches,
+        swport_matches,
+    ) = search_function(query, exact_results)
 
     if hide_ports:
         hide_gwports = set()
@@ -162,8 +164,7 @@ def search_expand_netbox(netboxid=None, netbox=None):
 
 
 def search_expand_sysname(sysname=None):
-    """
-    """
+    """ """
     try:
         netbox = Netbox.objects.get(sysname=sysname)
     except Netbox.DoesNotExist:
@@ -173,8 +174,7 @@ def search_expand_sysname(sysname=None):
 
 
 def search_expand_mac(mac=None):
-    """
-    """
+    """ """
 
     if not mac or not MacRE.match(mac):
         return [], []
@@ -183,12 +183,14 @@ def search_expand_mac(mac=None):
     found_gwports = []
 
     cam_entries = Cam.objects.filter(
-        mac=mac, end_time__gte=datetime.datetime.max,
+        mac=mac,
+        end_time__gte=datetime.datetime.max,
     ).select_related()
 
     for cam_entry in cam_entries:
         for swport in Interface.objects.filter(
-            netbox=cam_entry.netbox, ifname=cam_entry.port,
+            netbox=cam_entry.netbox,
+            ifname=cam_entry.port,
         ).select_related():
             found_swports.append(swport)
             swport_search = search_expand_swport(swport=swport)
@@ -287,8 +289,7 @@ def ip_search(ip, exact=False):
 
 
 def portname_search(portname, exact=False):
-    """
-    """
+    """ """
     router_matches = set()
     gwport_matches = set()
     swport_matches = set()
@@ -310,8 +311,7 @@ def portname_search(portname, exact=False):
 
 
 def room_search(room, exact=False):
-    """
-    """
+    """ """
     router_matches = set()
     gwport_matches = set()
     swport_matches = set()
@@ -333,8 +333,7 @@ def room_search(room, exact=False):
 
 
 def mac_search(mac, exact=False):
-    """
-    """
+    """ """
     search = search_expand_mac(mac)
     gwport_matches = set(search[0])
     swport_matches = set(search[1])
@@ -344,8 +343,7 @@ def mac_search(mac, exact=False):
 
 
 def vlan_search(vlan, exact=False):
-    """
-    """
+    """ """
     router_matches = set()
     gwport_matches = set()
     swport_matches = set()

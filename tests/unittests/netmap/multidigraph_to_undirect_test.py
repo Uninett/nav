@@ -97,8 +97,7 @@ class Layer3MultiGraphToUndirectTests(TopologyLayer3TestCase):
             self.assertTrue(self.netmap_graph.has_edge(*edge))
 
     def test_layer3_only_one_vlan_on_all_edges(self):
-        """
-        """
+        """ """
         self.assertEqual(
             1,
             len(self.netmap_graph.get_edge_data(self.a, self.b).get('metadata').keys()),

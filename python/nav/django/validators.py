@@ -47,7 +47,7 @@ class JSONBytesEncoder(json.JSONEncoder):
 
 
 def validate_hstore(value):
-    """ HSTORE validation. """
+    """HSTORE validation."""
     # if empty
     if value is None or value == '' or value == 'null':
         value = '{}'

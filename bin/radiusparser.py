@@ -227,25 +227,25 @@ class Tail(object):
         self, path, only_new=False, min_sleep=1, sleep_interval=1, max_sleep=60
     ):
         """Initialize a tail monitor.
-             path: filename to open
-             only_new: By default, the tail monitor will start reading from
-               the beginning of the file when first opened. Set only_new to
-               True to have it skip to the end when it first opens, so that
-               you only get the new additions that arrive after you start
-               monitoring.
-             min_sleep: Shortest interval in seconds to sleep when waiting
-               for more input to arrive. Defaults to 1.0 second.
-             sleep_interval: The tail monitor will dynamically recompute an
-               appropriate sleep interval based on a sliding window of data
-               arrival rate. You can set sleep_interval here to seed it
-               initially if the default of 1.0 second doesn't work for you
-               and you don't want to wait for it to converge.
-             max_sleep: Maximum interval in seconds to sleep when waiting
-               for more input to arrive. Also, if this many seconds have
-               elapsed without getting any new data, the tail monitor will
-               check to see if the log got truncated (rotated) and will
-               quietly reopen itself if this was the case. Defaults to 60.0
-               seconds.
+        path: filename to open
+        only_new: By default, the tail monitor will start reading from
+          the beginning of the file when first opened. Set only_new to
+          True to have it skip to the end when it first opens, so that
+          you only get the new additions that arrive after you start
+          monitoring.
+        min_sleep: Shortest interval in seconds to sleep when waiting
+          for more input to arrive. Defaults to 1.0 second.
+        sleep_interval: The tail monitor will dynamically recompute an
+          appropriate sleep interval based on a sliding window of data
+          arrival rate. You can set sleep_interval here to seed it
+          initially if the default of 1.0 second doesn't work for you
+          and you don't want to wait for it to converge.
+        max_sleep: Maximum interval in seconds to sleep when waiting
+          for more input to arrive. Also, if this many seconds have
+          elapsed without getting any new data, the tail monitor will
+          check to see if the log got truncated (rotated) and will
+          quietly reopen itself if this was the case. Defaults to 60.0
+          seconds.
         """
 
         # remember path to file in case I need to reopen

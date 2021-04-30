@@ -24,15 +24,21 @@ from nav.models.manage import Sensor
 
 
 class UpsMib(mibretriever.MibRetriever):
-    """ A class for retrieveing sensors from RFC1628-compatible UPSes."""
+    """A class for retrieveing sensors from RFC1628-compatible UPSes."""
 
     mib = get_mib('UPS-MIB')
 
     sensor_columns = {
         # battery group
-        'upsBatteryTemperature': {'u_o_m': Sensor.UNIT_CELSIUS,},
-        'upsEstimatedChargeRemaining': {'u_o_m': Sensor.UNIT_PERCENT,},
-        'upsEstimatedMinutesRemaining': {'u_o_m': Sensor.UNIT_MINUTES,},
+        'upsBatteryTemperature': {
+            'u_o_m': Sensor.UNIT_CELSIUS,
+        },
+        'upsEstimatedChargeRemaining': {
+            'u_o_m': Sensor.UNIT_PERCENT,
+        },
+        'upsEstimatedMinutesRemaining': {
+            'u_o_m': Sensor.UNIT_MINUTES,
+        },
         # input group
         'upsInputNumLines': {},
         'upsInputFrequency': {
@@ -40,34 +46,58 @@ class UpsMib(mibretriever.MibRetriever):
             'u_o_m': Sensor.UNIT_HERTZ,
             'precision': 1,
         },
-        'upsInputVoltage': {'is_column': True, 'u_o_m': Sensor.UNIT_VOLTS_AC,},
+        'upsInputVoltage': {
+            'is_column': True,
+            'u_o_m': Sensor.UNIT_VOLTS_AC,
+        },
         'upsInputCurrent': {
             'is_column': True,
             'u_o_m': Sensor.UNIT_AMPERES,
             'precision': 1,
         },
-        'upsInputTruePower': {'is_column': True, 'u_o_m': Sensor.UNIT_WATTS,},
+        'upsInputTruePower': {
+            'is_column': True,
+            'u_o_m': Sensor.UNIT_WATTS,
+        },
         # output group
-        'upsOutputFrequency': {'u_o_m': Sensor.UNIT_HERTZ, 'precision': 1,},
+        'upsOutputFrequency': {
+            'u_o_m': Sensor.UNIT_HERTZ,
+            'precision': 1,
+        },
         'upsOutputNumLines': {},
-        'upsOutputVoltage': {'is_column': True, 'u_o_m': Sensor.UNIT_VOLTS_AC,},
+        'upsOutputVoltage': {
+            'is_column': True,
+            'u_o_m': Sensor.UNIT_VOLTS_AC,
+        },
         'upsOutputCurrent': {
             'is_column': True,
             'u_o_m': Sensor.UNIT_AMPERES,
             'precision': 1,
         },
-        'upsOutputPower': {'is_column': True, 'u_o_m': Sensor.UNIT_WATTS,},
-        'upsOutputPercentLoad': {'is_column': True, 'u_o_m': Sensor.UNIT_PERCENT,},
+        'upsOutputPower': {
+            'is_column': True,
+            'u_o_m': Sensor.UNIT_WATTS,
+        },
+        'upsOutputPercentLoad': {
+            'is_column': True,
+            'u_o_m': Sensor.UNIT_PERCENT,
+        },
         # bypass group
         'upsBypassFrequency': {'u_o_m': Sensor.UNIT_HERTZ, 'precision': 1},
         'upsBypassNumLines': {},
-        'upsBypassVoltage': {'is_column': True, 'u_o_m': Sensor.UNIT_VOLTS_AC,},
+        'upsBypassVoltage': {
+            'is_column': True,
+            'u_o_m': Sensor.UNIT_VOLTS_AC,
+        },
         'upsBypassCurrent': {
             'is_column': True,
             'u_o_m': Sensor.UNIT_AMPERES,
             'precision': 1,
         },
-        'upsBypassPower': {'is_column': True, 'u_o_m': Sensor.UNIT_WATTS,},
+        'upsBypassPower': {
+            'is_column': True,
+            'u_o_m': Sensor.UNIT_WATTS,
+        },
     }
 
     def _get_named_column(self, column):

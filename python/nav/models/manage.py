@@ -417,7 +417,7 @@ class Netbox(models.Model):
         return Interface.sort_ports_by_ifname(ports)
 
     def get_sensors(self):
-        """ Returns sensors associated with this netbox """
+        """Returns sensors associated with this netbox"""
 
         return Sensor.objects.filter(netbox=self)
 

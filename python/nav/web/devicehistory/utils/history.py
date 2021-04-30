@@ -144,7 +144,7 @@ def fetch_history(selection, form):
         )
         .filter(
             Q(netbox__in=[n.id for n in netbox]) | Q(device__in=[d.id for d in device]),
-            *type_filter
+            *type_filter,
         )
         .extra(
             where=[
@@ -174,7 +174,8 @@ def get_page(paginator, page):
 
 def get_messages_for_history(alert_history):
     msgs = AlertHistoryMessage.objects.filter(
-        alert_history__in=[h.id for h in alert_history], language='en',
+        alert_history__in=[h.id for h in alert_history],
+        language='en',
     ).values('alert_history', 'message', 'type', 'state')
     return msgs
 

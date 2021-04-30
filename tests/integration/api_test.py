@@ -33,7 +33,9 @@ TEST_DATA = {
         "snmp_version": 2,
     },
     'room': {'id': 'blapp', 'location': 'mylocation'},
-    'vlan': {'net_type': 'scope',},
+    'vlan': {
+        'net_type': 'scope',
+    },
     'prefix': {'net_address': '158.38.240.0/25'},
 }
 

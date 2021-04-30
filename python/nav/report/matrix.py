@@ -80,7 +80,7 @@ class Matrix(object):
     def build(self):
         """Builds the datastructure for the template to render
 
-            Must be overriden and implemented by subclasses
+        Must be overriden and implemented by subclasses
         """
         raise NotImplementedError('Must be implemented in subclass')
 
@@ -190,7 +190,7 @@ class Matrix(object):
         )
 
     def _add_large_subnet(self, subnet, matrix_row):
-        """Adds correct rowspan to cell for large nets """
+        """Adds correct rowspan to cell for large nets"""
         meta = metaIP.MetaIP(subnet)
         rowspan = 2 ** (self._get_row_size() - subnet.prefixlen())
         matrix_row.append(self._create_cell(subnet, meta, rowspan=rowspan))

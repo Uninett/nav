@@ -24,7 +24,7 @@ PREFIX_AUTHORITATIVE_CATEGORIES = ('GW', 'GSW')
 
 
 class PrefixManager(DefaultManager):
-    """"Manager of Prefix containers"""
+    """ "Manager of Prefix containers"""
 
     def cleanup(self):
         """Cleans up missing static prefixes"""
@@ -50,7 +50,8 @@ class PrefixManager(DefaultManager):
         )
         collected_addrs = [str(p.net_address) for p in statics if p.net_address]
         missing_statics = manage.Prefix.objects.filter(
-            vlan__net_type__id='static', vlan__net_ident__startswith=sysname,
+            vlan__net_type__id='static',
+            vlan__net_ident__startswith=sysname,
         ).exclude(net_address__in=collected_addrs)
         return missing_statics
 

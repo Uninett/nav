@@ -89,14 +89,14 @@ class Dispatcher(object):
 
 class DispatcherException(Exception):
     """Raised when alert could not be sent temporarily and sending should be
-    retried """
+    retried"""
 
     pass
 
 
 class FatalDispatcherException(DispatcherException):
     """Raised when alert could not be sent and further attempts at sending
-    should be ditched """
+    should be ditched"""
 
     pass
 

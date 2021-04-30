@@ -63,8 +63,7 @@ def render_delete(
     delete_operation=qs_delete,
     object_id=None,
 ):
-    """Handles input and rendering of general delete page.
-    """
+    """Handles input and rendering of general delete page."""
 
     # GET with single object_id in url or POST with object_ids as POST query
     if not (object_id or request.method == 'POST'):

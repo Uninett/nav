@@ -200,7 +200,7 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False, vie
 
 
 def _attach_node_positions(graph, node_set):
-    """ Attaches node positions from a set of nodes which is extracted from a
+    """Attaches node positions from a set of nodes which is extracted from a
     given map view earlier in the call stack.
 
     :param graph graph to modify metadata on

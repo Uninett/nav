@@ -65,7 +65,8 @@ class SNMPTrap(object):
         conn = getConnection('snmptrapd')
         cur = conn.cursor()
         cur.execute(
-            "SELECT netboxid, sysname, roomid FROM netbox WHERE ip = %s", (self.agent,),
+            "SELECT netboxid, sysname, roomid FROM netbox WHERE ip = %s",
+            (self.agent,),
         )
 
         if cur.rowcount < 1:

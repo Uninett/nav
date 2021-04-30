@@ -167,7 +167,7 @@ SENSORS = [
 
 
 class CPQPowerMib(mibretriever.MibRetriever):
-    """ Custom class for retrieveing sensors from APC UPSes."""
+    """Custom class for retrieveing sensors from APC UPSes."""
 
     mib = get_mib('CPQPOWER-MIB')
 

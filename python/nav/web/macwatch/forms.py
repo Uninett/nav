@@ -45,7 +45,7 @@ class MacWatchForm(forms.Form):
         )
 
     def clean_macaddress(self):
-        """ Validate macaddress """
+        """Validate macaddress"""
         macaddress = self.cleaned_data.get('macaddress', '')
 
         filteredmacaddress = strip_delimiters(macaddress)

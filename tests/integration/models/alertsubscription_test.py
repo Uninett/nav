@@ -29,7 +29,8 @@ def account():
 @pytest.fixture
 def alert_address(account):
     addr = AlertAddress(
-        account=account, type=AlertSender.objects.get(name=AlertSender.SMS),
+        account=account,
+        type=AlertSender.objects.get(name=AlertSender.SMS),
     )
     addr.save()
     yield addr

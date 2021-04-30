@@ -145,7 +145,8 @@ def management_profile_edit(request, management_profile_id=None):
         form = ManagementProfileForm(request.POST, instance=profile)
         if form.is_valid():
             protocol_form = form.get_protocol_form_class()(
-                request.POST, instance=form.instance,
+                request.POST,
+                instance=form.instance,
             )
             if protocol_form.is_valid():
                 profile = form.save()

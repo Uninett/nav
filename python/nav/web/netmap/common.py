@@ -37,8 +37,7 @@ TRAFFIC_META = {
 
 
 def convert_bits_to_si(bits):
-    """ SI Units, http://en.wikipedia.org/wiki/SI_prefix
-    """
+    """SI Units, http://en.wikipedia.org/wiki/SI_prefix"""
     if bits >= TRAFFIC_META['tb']:
         return '%.2fTbps' % (bits / TRAFFIC_META['tb'])
     elif bits >= TRAFFIC_META['gb']:
@@ -61,9 +60,9 @@ MEGABIT = 1e6
 def get_traffic_load_in_percent(bps, capacity=None):
     """Calculates the load percentage of a link.
 
-     :param bps: bits per second
-     :param capacity: capacity on link in Mbps. (ie 1Gbit = 1000 mbps)
-     :returns: A
+    :param bps: bits per second
+    :param capacity: capacity on link in Mbps. (ie 1Gbit = 1000 mbps)
+    :returns: A
     """
     if not capacity or not bps:
         return None
@@ -144,8 +143,7 @@ def _traffic_gradient(intensity):
 
 # pylint: disable=W0702
 def get_status_image_link(status):
-    """ uplink icon for status
-    """
+    """uplink icon for status"""
     try:
         return STATUS_IMAGE_MAP[status]
     except Exception:

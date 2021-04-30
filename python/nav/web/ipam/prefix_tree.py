@@ -448,21 +448,21 @@ def nodes_from_ips(ips, klass="empty"):
 
 def make_tree(prefixes, family=None, root_ip=None, show_all=None, sort_by="ip"):
     """Return a prefix heap initially populated with RFC1918 addresses. Accepts
-parameters rfc1918, ipv4 and ipv6 to return addresses of those respective
-families. Do note that we distinguish between 'real' IPv4, which is everything
-not part of the RFC1918 ranges.
+    parameters rfc1918, ipv4 and ipv6 to return addresses of those respective
+    families. Do note that we distinguish between 'real' IPv4, which is everything
+    not part of the RFC1918 ranges.
 
-    Args:
-        prefixes: a queryset for or list of nav.models.manage.Prefix
-        family: a list of address types to allow (of "ipv4", "ipv6", "rfc1918")
-        root_ip: prefix string or IPy.IP object to use as the root of the tree
-        show_all: whether or not to create fake nodes that fill in available
-            within a parent (e.g. unused subnets) or nodes that are detected
-            within this prefix for NAV, but still not present in the heap
-        sort_by: key to sort the nodes/children by
+        Args:
+            prefixes: a queryset for or list of nav.models.manage.Prefix
+            family: a list of address types to allow (of "ipv4", "ipv6", "rfc1918")
+            root_ip: prefix string or IPy.IP object to use as the root of the tree
+            show_all: whether or not to create fake nodes that fill in available
+                within a parent (e.g. unused subnets) or nodes that are detected
+                within this prefix for NAV, but still not present in the heap
+            sort_by: key to sort the nodes/children by
 
-    Returns:
-        A prefix heap (tree)
+        Returns:
+            A prefix heap (tree)
 
     """
     family = {"ipv4", "ipv6", "rfc1918"} if family is None else set(family)

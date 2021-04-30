@@ -20,7 +20,10 @@ def test_port_search_should_match_case_insensitively(client, netbox):
     ifc = netbox.interface_set.all()[0]
     url = reverse(
         'ipdevinfo-interface-details-by-name',
-        kwargs={'netbox_sysname': netbox.sysname, 'port_name': ifc.ifdescr.upper(),},
+        kwargs={
+            'netbox_sysname': netbox.sysname,
+            'port_name': ifc.ifdescr.upper(),
+        },
     )
     response = client.get(url)
     assert response.status_code == 200
@@ -28,7 +31,13 @@ def test_port_search_should_match_case_insensitively(client, netbox):
 
 
 @pytest.mark.parametrize(
-    "perspective", ['swportstatus', 'swportactive', 'gwportstatus', 'physportstatus',]
+    "perspective",
+    [
+        'swportstatus',
+        'swportactive',
+        'gwportstatus',
+        'physportstatus',
+    ],
 )
 def test_get_module_view(netbox, perspective):
     module = netbox.module_set.all()[0]

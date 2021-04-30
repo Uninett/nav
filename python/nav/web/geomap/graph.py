@@ -64,8 +64,7 @@ AGGREGATE_PROPERTIES_EDGE = {
 
 
 def build_graph(db_results):
-    """Make a Graph object based on the dictionaries resulting from get_data.
-    """
+    """Make a Graph object based on the dictionaries resulting from get_data."""
     (netboxes, connections) = db_results
     graph = Graph()
 

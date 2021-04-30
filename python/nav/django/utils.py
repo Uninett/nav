@@ -49,11 +49,11 @@ def is_admin(account):
 
 def get_verbose_name(model, lookup):
     """Verbose name introspection of ORM models.
-       Parameters:
-         - model: the django model
-         - lookup: name of the field to find verbose name of.
+    Parameters:
+      - model: the django model
+      - lookup: name of the field to find verbose name of.
 
-       Foreign key lookups is supported, ie. "othermodel__otherfield"
+    Foreign key lookups is supported, ie. "othermodel__otherfield"
     """
     if '__' not in lookup:
         return model._meta.get_field(lookup).verbose_name

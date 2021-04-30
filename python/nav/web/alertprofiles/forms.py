@@ -299,7 +299,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                     css_class='medium-3',
                 ),
             ),
-            *hidden_fields
+            *hidden_fields,
         )
 
     def clean(self):

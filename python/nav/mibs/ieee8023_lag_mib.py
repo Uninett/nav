@@ -21,7 +21,7 @@ from nav.mibs import mibretriever, reduce_index
 
 
 class IEEE8023LagMib(mibretriever.MibRetriever):
-    """"A MibRetriever for handling IEEE8023-LAG-MIB"""
+    """ "A MibRetriever for handling IEEE8023-LAG-MIB"""
 
     mib = get_mib('IEEE8023-LAG-MIB')
 

@@ -129,7 +129,8 @@ class VariableMap(VariableMapBase):
                     varmap[key].save()
             else:
                 obj.variables.create(
-                    variable=key, value=value,
+                    variable=key,
+                    value=value,
                 )
 
 
@@ -167,7 +168,9 @@ class StateVariableMap(VariableMapBase):
                         varmap[state][key].save()
                 else:
                     obj.variables.create(
-                        state=state, variable=key, value=value,
+                        state=state,
+                        variable=key,
+                        value=value,
                     )
 
 
@@ -270,7 +273,9 @@ class EventMixIn(object):
                     return model.objects.get(pk=subid)
                 except model.DoesNotExist:
                     _logger.warning(
-                        "alert subid %s points to non-existant %s", subid, model,
+                        "alert subid %s points to non-existant %s",
+                        subid,
+                        model,
                     )
                     return UnknownEventSubject(self)
 

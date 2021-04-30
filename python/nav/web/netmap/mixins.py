@@ -27,7 +27,9 @@ class DefaultNetmapViewMixin(object):
     """
 
     def get_context_data(self, user, **_kwargs):
-        netmap_views = NetmapViewDefaultView.objects.select_related('view',)
+        netmap_views = NetmapViewDefaultView.objects.select_related(
+            'view',
+        )
         try:
             view = netmap_views.get(owner=user).view
         except NetmapViewDefaultView.DoesNotExist:

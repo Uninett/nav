@@ -454,7 +454,7 @@ def _raise_on_error(err_code):
 
 def _raise_on_protocol_error(response):
     """Raises an appropriate NAV exception for a non-zero SNMP protocol error
-     status value.
+    status value.
 
     """
     response = response.contents

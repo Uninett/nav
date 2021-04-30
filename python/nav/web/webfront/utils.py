@@ -61,8 +61,7 @@ class Tool(object):
 
 
 def quick_read(filename):
-    """Read and return the contents of a file, or None if something went wrong.
-    """
+    """Read and return the contents of a file, or None if something went wrong."""
     try:
         return open(filename).read().strip()
     except IOError:

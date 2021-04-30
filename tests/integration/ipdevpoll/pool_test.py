@@ -15,20 +15,41 @@ from nav.ipdevpoll.pool import InlinePool, WorkerPool
 @pytest_twisted.inlineCallbacks
 def test_reschedule(localhost, ipdevpoll_test_config, pool):
     with pytest.raises(jobs.SuggestedReschedule):
-        yield pool.execute_job('noop', localhost.pk, ['snmpcheck',], 0)
+        yield pool.execute_job(
+            'noop',
+            localhost.pk,
+            [
+                'snmpcheck',
+            ],
+            0,
+        )
 
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
 def test_success(localhost, ipdevpoll_test_config, pool):
-    res = yield pool.execute_job('noop', localhost.pk, ['noop',], 0)
+    res = yield pool.execute_job(
+        'noop',
+        localhost.pk,
+        [
+            'noop',
+        ],
+        0,
+    )
     assert res is True
 
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
 def test_fail(localhost, ipdevpoll_test_config, pool):
-    res = yield pool.execute_job('noop', localhost.pk, ['fail',], 0)
+    res = yield pool.execute_job(
+        'noop',
+        localhost.pk,
+        [
+            'fail',
+        ],
+        0,
+    )
     assert res is True  # TODO: Check job status in database
 
 
@@ -36,7 +57,14 @@ def test_fail(localhost, ipdevpoll_test_config, pool):
 @pytest_twisted.inlineCallbacks
 def test_not_done(localhost, ipdevpoll_test_config, pool):
     NetboxProfile.objects.filter(netbox=localhost).delete()
-    res = yield pool.execute_job('noop', localhost.pk, ['snmpcheck',], 0)
+    res = yield pool.execute_job(
+        'noop',
+        localhost.pk,
+        [
+            'snmpcheck',
+        ],
+        0,
+    )
     assert res is False
 
 
@@ -44,14 +72,28 @@ def test_not_done(localhost, ipdevpoll_test_config, pool):
 @pytest_twisted.inlineCallbacks
 def test_crash(localhost, ipdevpoll_test_config, pool):
     with pytest.raises(jobs.AbortedJobError):
-        yield pool.execute_job('noop', localhost.pk, ['crash',], 0)
+        yield pool.execute_job(
+            'noop',
+            localhost.pk,
+            [
+                'crash',
+            ],
+            0,
+        )
 
 
 @pytest.mark.twisted
 @pytest_twisted.inlineCallbacks
 def test_cancel(localhost, ipdevpoll_test_config, pool):
     with pytest.raises(jobs.AbortedJobError):
-        defered = pool.execute_job('noop', localhost.pk, ['sleep',], 0)
+        defered = pool.execute_job(
+            'noop',
+            localhost.pk,
+            [
+                'sleep',
+            ],
+            0,
+        )
         pool.cancel(defered)
         yield defered
 

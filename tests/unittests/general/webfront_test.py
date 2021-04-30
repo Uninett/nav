@@ -253,7 +253,11 @@ class TestLdapUser(object):
             six.text_type(filtr)
             return []
 
-        conn = Mock(**{'search_s.side_effect': fake_search,})
+        conn = Mock(
+            **{
+                'search_s.side_effect': fake_search,
+            }
+        )
         u = nav.web.ldapauth.LDAPUser(u"Ægir", conn)
         u.is_group_member('cn=noc-operators,cn=groups,dc=example,dc=com')
 

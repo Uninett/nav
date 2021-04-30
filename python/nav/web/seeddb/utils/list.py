@@ -87,8 +87,7 @@ def render_list(
 
 
 def _filter_query(filter_form, queryset):
-    """Apply filter_form to queryset.
-    """
+    """Apply filter_form to queryset."""
     if filter_form and filter_form.is_valid():
         # Convert UI fieldname to DB lookup
         mapper = getattr(filter_form, "map_formfieldname_to_queryname", lambda x: x)

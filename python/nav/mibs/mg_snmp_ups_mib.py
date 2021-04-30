@@ -21,16 +21,32 @@ from nav.models.manage import Sensor
 
 
 class MgSnmpUpsMib(UpsMib):
-    """ A custom class for retrieving sensors from MGE UPSes."""
+    """A custom class for retrieving sensors from MGE UPSes."""
 
     mib = get_mib('MG-SNMP-UPS-MIB')
 
     sensor_columns = {
-        'mginputVoltage': {'u_o_m': Sensor.UNIT_VOLTS_AC, 'precision': 1,},
-        'mginputFrequency': {'u_o_m': Sensor.UNIT_HERTZ, 'precision': 1,},
-        'mgoutputLoadPerPhase': {'u_o_m': Sensor.UNIT_PERCENT,},
-        'mgoutputCurrent': {'u_o_m': Sensor.UNIT_AMPERES,},
-        'upsmgEnvironAmbientTemp': {'u_o_m': Sensor.UNIT_CELSIUS,},
-        'upsmgBatteryLevel': {'u_o_m': Sensor.UNIT_PERCENT,},
-        'upsmgBatteryRemainingTime': {'u_o_m': Sensor.UNIT_SECONDS,},
+        'mginputVoltage': {
+            'u_o_m': Sensor.UNIT_VOLTS_AC,
+            'precision': 1,
+        },
+        'mginputFrequency': {
+            'u_o_m': Sensor.UNIT_HERTZ,
+            'precision': 1,
+        },
+        'mgoutputLoadPerPhase': {
+            'u_o_m': Sensor.UNIT_PERCENT,
+        },
+        'mgoutputCurrent': {
+            'u_o_m': Sensor.UNIT_AMPERES,
+        },
+        'upsmgEnvironAmbientTemp': {
+            'u_o_m': Sensor.UNIT_CELSIUS,
+        },
+        'upsmgBatteryLevel': {
+            'u_o_m': Sensor.UNIT_PERCENT,
+        },
+        'upsmgBatteryRemainingTime': {
+            'u_o_m': Sensor.UNIT_SECONDS,
+        },
     }

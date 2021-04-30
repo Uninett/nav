@@ -93,7 +93,8 @@ def _clear_topology_for_mismatched_state_links():
     stale.
     """
     mismatched = Interface.objects.filter(
-        ifoperstatus=Interface.OPER_DOWN, to_interface__ifoperstatus=Interface.OPER_UP,
+        ifoperstatus=Interface.OPER_DOWN,
+        to_interface__ifoperstatus=Interface.OPER_UP,
     )
     count = mismatched.count()
     if count > 0:

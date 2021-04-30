@@ -40,7 +40,10 @@ def main():
     before = time.time()
     fmt = logging.Formatter(LOG_FORMAT)
     init_generic_logging(
-        logfile=LOG_FILE, stderr=False, formatter=fmt, read_config=True,
+        logfile=LOG_FILE,
+        stderr=False,
+        formatter=fmt,
+        read_config=True,
     )
     _logger = logging.getLogger('')
 

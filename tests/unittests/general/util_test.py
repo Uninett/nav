@@ -20,7 +20,7 @@ from IPy import IP
 
 
 class TestGradient(object):
-    """ tests for the gradient function """
+    """tests for the gradient function"""
 
     gradient_start = 0
     gradient_stop = 952

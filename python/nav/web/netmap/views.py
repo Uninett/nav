@@ -51,7 +51,9 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
         if not user.is_admin():
             netmap_views = netmap_views.filter(
                 Q(is_public=True) | Q(owner=user)
-            ).select_related('owner',)
+            ).select_related(
+                'owner',
+            )
 
         netmap_views_json = json.dumps(
             NetmapViewSerializer(netmap_views, many=True).data

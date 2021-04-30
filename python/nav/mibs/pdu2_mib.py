@@ -69,8 +69,7 @@ class PDU2Mib(MibRetriever):
 
     @defer.inlineCallbacks
     def get_all_sensors(self):
-        """Discovers and returns all eligible sensors.
-        """
+        """Discovers and returns all eligible sensors."""
         result = []
         sensors, inlets = yield self.get_inlet_sensors()
         result += sensors
@@ -111,8 +110,7 @@ class PDU2Mib(MibRetriever):
 
     @defer.inlineCallbacks
     def get_inlet_sensors(self):
-        """Discovers and returns sensors from the inletSensorConfigurationTable.
-        """
+        """Discovers and returns sensors from the inletSensorConfigurationTable."""
         result = []
         table = 'inletSensor'
         inlets = yield self.retrieve_column('inletLabel')
@@ -134,8 +132,7 @@ class PDU2Mib(MibRetriever):
 
     @defer.inlineCallbacks
     def get_inlet_pole_sensors(self, inlets):
-        """Discovers and returns sensors from the inletPoleSensorConfigurationTable.
-        """
+        """Discovers and returns sensors from the inletPoleSensorConfigurationTable."""
         result = []
         table = 'inletPoleSensor'
         channels = yield self.retrieve_sensor_columns(table)
@@ -163,7 +160,7 @@ class PDU2Mib(MibRetriever):
     @defer.inlineCallbacks
     def get_over_current_protection_sensors(self):
         """Discovers and returns sensors from the
-           overCurrentProtectorSensorConfigurationTable.
+        overCurrentProtectorSensorConfigurationTable.
         """
         result = []
         table = 'overCurrentProtectorSensor'

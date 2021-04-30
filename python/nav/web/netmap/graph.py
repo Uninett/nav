@@ -137,9 +137,9 @@ def get_layer2_traffic(location_or_room_id=None):
             'netbox', 'to_netbox', 'to_interface__netbox'
         )
     else:
-        interfaces = Interface.objects.filter(to_netbox__isnull=False,).select_related(
-            'netbox', 'to_netbox', 'to_interface__netbox'
-        )
+        interfaces = Interface.objects.filter(
+            to_netbox__isnull=False,
+        ).select_related('netbox', 'to_netbox', 'to_interface__netbox')
 
         try:
             room = Room.objects.get(id=location_or_room_id)
@@ -180,7 +180,11 @@ def get_layer2_traffic(location_or_room_id=None):
             )
             edge_traffic.append(data)
         traffic.append(
-            {'source': source, 'target': target, 'edges': edge_traffic,}
+            {
+                'source': source,
+                'target': target,
+                'edges': edge_traffic,
+            }
         )
 
     _logger.debug('Total time used: %s', datetime.now() - start)
@@ -200,7 +204,10 @@ def get_layer3_traffic(location_or_room_id=None):
         router_ports = GwPortPrefix.objects.filter(
             prefix__in=prefixes,
             interface__netbox__category__in=('GW', 'GSW'),  # Or might be faster
-        ).select_related('interface', 'interface__to_interface',)
+        ).select_related(
+            'interface',
+            'interface__to_interface',
+        )
     else:
         # Sanity check: Does the room exist?
         room = Room.objects.filter(id=location_or_room_id)
@@ -213,7 +220,10 @@ def get_layer3_traffic(location_or_room_id=None):
             prefix__in=prefixes,
             interface__netbox__room__location=location,
             interface__netbox__category__in=('GW', 'GSW'),  # Or might be faster
-        ).select_related('interface', 'interface__to_interface',)
+        ).select_related(
+            'interface',
+            'interface__to_interface',
+        )
 
     router_ports_prefix_map = defaultdict(list)
     for router_port in router_ports:
@@ -248,7 +258,12 @@ def get_layer3_traffic(location_or_room_id=None):
                 'target': target,
                 'source_ifname': interface.ifname,
                 'target_ifname': to_interface.ifname,
-                'traffic_data': get_traffic_data((interface, to_interface,)).to_json(),
+                'traffic_data': get_traffic_data(
+                    (
+                        interface,
+                        to_interface,
+                    )
+                ).to_json(),
             }
         )
     return traffic

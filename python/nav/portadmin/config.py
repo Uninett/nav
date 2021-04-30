@@ -21,7 +21,7 @@ from nav.portadmin.vlan import FantasyVlan
 
 
 class PortAdminConfig(NAVConfigParser):
-    """"PortAdmin config parser"""
+    """ "PortAdmin config parser"""
 
     DEFAULT_CONFIG_FILES = (join("portadmin", "portadmin.conf"),)
     DEFAULT_CONFIG = """
