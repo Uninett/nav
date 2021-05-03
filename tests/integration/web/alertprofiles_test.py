@@ -135,6 +135,16 @@ def test_alertprofiles_add_public_filter_should_succeed(client):
     response = client.post(url, data=data, follow=True)
     assert response.status_code == 200
 
+
+def test_set_accountgroup_permissions_should_not_crash(db, client):
+    """Regression test for #2281"""
+    url = reverse('alertprofiles-permissions-save')
+    response = client.post(url, follow=True, data={
+        'filter_group': '71',   # G01 All alerts, as hardcoded in navprofiles.sql
+        'group': '3',           # Authenticated users
+    })
+    assert response.status_code == 200
+
 #
 # fixtures and helpers
 #
