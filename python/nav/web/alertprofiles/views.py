@@ -2412,7 +2412,7 @@ def permissions_save(request):
     filter_groups = FilterGroup.objects.filter(
         pk__in=request.POST.getlist('filter_group'))
 
-    group.filtergroup_set = filter_groups
+    group.filtergroup_set.set(filter_groups)
 
     new_message(
         request,
