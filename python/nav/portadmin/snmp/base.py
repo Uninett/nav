@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import time
+from functools import wraps
 from operator import attrgetter
 import logging
 from typing import Dict, Sequence, List, Any
@@ -43,6 +44,28 @@ from nav.smidumps import get_mib
 
 
 _logger = logging.getLogger(__name__)
+
+
+def translate_protocol_errors(func):
+    """Decorator that translates SNMPErrors into PortAdmin ProtocolErrors.
+
+    The PortAdmin API will handle ProtocolErrors gracefully, but other exceptions
+    will bleed through and be handled by Django's 500 handler.
+    """
+
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except SnmpError as error:
+            logmsg = "An SnmpError was raised:"
+            if args and isinstance(args[0], SNMPHandler):
+                sysname = args[0].netbox.sysname
+                logmsg = f"{sysname}: {logmsg}"
+            _logger.exception(logmsg)
+            raise ProtocolError(error)
+
+    return _wrapper
 
 
 class SNMPHandler(ManagementHandler):
