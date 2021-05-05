@@ -16,7 +16,7 @@
 """H3C specific PortAdmin SNMP handling"""
 from nav import Snmp
 from nav.oids import OID
-from nav.portadmin.snmp.base import SNMPHandler
+from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.enterprise.ids import VENDOR_ID_H3C
 
 
@@ -30,6 +30,7 @@ class H3C(SNMPHandler):
     def __init__(self, netbox, **kwargs):
         super(H3C, self).__init__(netbox, **kwargs)
 
+    @translate_protocol_errors
     def commit_configuration(self):
         """Use hh3c-config-man-mib to save running config to startup"""
 
