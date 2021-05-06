@@ -16,7 +16,7 @@
 """Dell specific PortAdmin SNMP handling"""
 import logging
 
-from nav.portadmin.snmp.base import SNMPHandler
+from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.smidumps import get_mib
 from nav.enterprise.ids import VENDOR_ID_DELL_INC
 
@@ -47,12 +47,14 @@ class Dell(SNMPHandler):
     def __init__(self, netbox, **kwargs):
         super(Dell, self).__init__(netbox, **kwargs)
 
+    @translate_protocol_errors
     def commit_configuration(self):
         """Use DNOS-SWITCHING-MIB agentSaveConfig to write to memory.
         Write configuration into non-volatile memory."""
         handle = self._get_read_write_handle()
         return handle.set(self.WRITE_MEM_OID, 'i', 1)
 
+    @translate_protocol_errors
     def set_vlan(self, interface, vlan):
         baseport = interface.baseport
         try:
@@ -68,6 +70,7 @@ class Dell(SNMPHandler):
 
         self._set_netbox_value(self.VlAN_OID, baseport, "i", vlan)
 
+    @translate_protocol_errors
     def set_access(self, interface, access_vlan):
         self._set_swport_mode(interface, self.PORT_MODE_ACCESS)
         self.set_vlan(interface, access_vlan)
@@ -75,6 +78,7 @@ class Dell(SNMPHandler):
         interface.trunk = False
         interface.save()
 
+    @translate_protocol_errors
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         self._set_swport_mode(interface, self.PORT_MODE_TRUNK)
         self.set_trunk_vlans(interface, trunk_vlans)
@@ -87,11 +91,13 @@ class Dell(SNMPHandler):
         baseport = interface.baseport
         self._set_netbox_value(self.PORT_MODE_OID, baseport, 'i', mode)
 
+    @translate_protocol_errors
     def get_interface_native_vlan(self, interface):
         # FIXME This override is potentially only applicable for trunk ports
         baseport = interface.baseport
         return self._query_netbox(self.NATIVE_VLAN_ID, baseport)
 
+    @translate_protocol_errors
     def set_native_vlan(self, interface, vlan):
         """Set native vlan on a trunk interface"""
         baseport = interface.baseport

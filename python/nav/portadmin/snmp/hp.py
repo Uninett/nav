@@ -15,7 +15,7 @@
 #
 """Hewlett-Packard specific PortAdmin SNMP handling"""
 from nav.oids import OID
-from nav.portadmin.snmp.base import SNMPHandler
+from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD
 
 
@@ -30,11 +30,13 @@ class HP(SNMPHandler):
     def __init__(self, netbox, **kwargs):
         super(HP, self).__init__(netbox, **kwargs)
 
+    @translate_protocol_errors
     def is_dot1x_enabled(self, interface):
         """Returns True or False based on state of dot1x"""
         return int(self._query_netbox(
             self.dot1xPortAuth, interface.ifindex)) == 1
 
+    @translate_protocol_errors
     def get_dot1x_enabled_interfaces(self):
         names = self._get_interface_names()
         return {

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011-2015, 2020 UNINETT
+# Copyright (C) 2011-2015, 2020, 2021 UNINETT
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 import time
+from functools import wraps
 from operator import attrgetter
 import logging
 from typing import Dict, Sequence, List, Any
@@ -43,6 +44,28 @@ from nav.smidumps import get_mib
 
 
 _logger = logging.getLogger(__name__)
+
+
+def translate_protocol_errors(func):
+    """Decorator that translates SNMPErrors into PortAdmin ProtocolErrors.
+
+    The PortAdmin API will handle ProtocolErrors gracefully, but other exceptions
+    will bleed through and be handled by Django's 500 handler.
+    """
+
+    @wraps(func)
+    def _wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except SnmpError as error:
+            logmsg = "An SnmpError was raised:"
+            if args and isinstance(args[0], SNMPHandler):
+                sysname = args[0].netbox.sysname
+                logmsg = f"{sysname}: {logmsg}"
+            _logger.exception(logmsg)
+            raise ProtocolError(error)
+
+    return _wrapper
 
 
 class SNMPHandler(ManagementHandler):
@@ -196,6 +219,7 @@ class SNMPHandler(ManagementHandler):
         except SnmpError:
             return False
 
+    @translate_protocol_errors
     def get_interfaces(
         self, interfaces: Sequence[manage.Interface] = None
     ) -> List[Dict[str, Any]]:
@@ -235,6 +259,7 @@ class SNMPHandler(ManagementHandler):
             for oid, value in self._bulkwalk(self.IF_ALIAS_OID)
         }
 
+    @translate_protocol_errors
     def set_interface_description(self, interface, description):
         if isinstance(description, str):
             description = description.encode("utf8")
@@ -242,6 +267,7 @@ class SNMPHandler(ManagementHandler):
             self.IF_ALIAS_OID, interface.ifindex, "s", description
         )
 
+    @translate_protocol_errors
     def get_interface_native_vlan(self, interface):
         return self._query_netbox(self.VlAN_OID, interface.baseport)
 
@@ -267,6 +293,7 @@ class SNMPHandler(ManagementHandler):
             bit[port] = 0
         return bit.to_bytes()
 
+    @translate_protocol_errors
     def set_vlan(self, interface, vlan):
         base_port = interface.baseport
         try:
@@ -290,14 +317,17 @@ class SNMPHandler(ManagementHandler):
         return self._set_netbox_value(self.VLAN_EGRESS_PORTS,
                                       fromvlan, 's', modified_hexport)
 
+    @translate_protocol_errors
     def set_native_vlan(self, interface, vlan):
         self.set_vlan(interface, vlan)
 
+    @translate_protocol_errors
     def set_interface_up(self, interface):
         return self._set_netbox_value(
             self.IF_ADMIN_STATUS, interface.ifindex, "i", self.IF_ADMIN_STATUS_UP
         )
 
+    @translate_protocol_errors
     def set_interface_down(self, interface):
         return self._set_netbox_value(
             self.IF_ADMIN_STATUS, interface.ifindex, "i", self.IF_ADMIN_STATUS_DOWN
@@ -306,6 +336,7 @@ class SNMPHandler(ManagementHandler):
     def commit_configuration(self):
         pass
 
+    @translate_protocol_errors
     def get_interface_admin_status(self, interface):
         return self._query_netbox(self.IF_ADMIN_STATUS, interface.ifindex)
 
@@ -329,6 +360,7 @@ class SNMPHandler(ManagementHandler):
         if_oper_stats = self._bulkwalk(self.IF_OPER_STATUS)
         return self._get_if_stats(if_oper_stats)
 
+    @translate_protocol_errors
     def get_netbox_vlans(self):
         numerical_vlans = self.get_netbox_vlan_tags()
         vlan_objects = Vlan.objects.filter(
@@ -347,6 +379,7 @@ class SNMPHandler(ManagementHandler):
 
         return sorted(list(set(vlans)), key=attrgetter('vlan'))
 
+    @translate_protocol_errors
     def get_netbox_vlan_tags(self):
         if self.available_vlans is None:
             self.available_vlans = [
@@ -355,6 +388,7 @@ class SNMPHandler(ManagementHandler):
                 if status == 1]
         return self.available_vlans
 
+    @translate_protocol_errors
     def get_native_and_trunked_vlans(self, interface):
         native_vlan = self.get_interface_native_vlan(interface)
 
@@ -381,6 +415,7 @@ class SNMPHandler(ManagementHandler):
         octet_string = self._query_netbox(self.CURRENT_VLAN_EGRESS_PORTS, vlan)
         return BitVector(octet_string)
 
+    @translate_protocol_errors
     def set_trunk_vlans(self, interface: Interface, vlans: Sequence[int]):
         """Trunk vlans on this interface.
 
@@ -434,6 +469,7 @@ class SNMPHandler(ManagementHandler):
             _logger.error("Error setting egress ports: %s", error)
             raise error
 
+    @translate_protocol_errors
     def set_access(self, interface, access_vlan):
         _logger.debug('Setting access mode vlan %s on interface %s',
                       access_vlan, interface)
@@ -443,11 +479,13 @@ class SNMPHandler(ManagementHandler):
         interface.trunk = False
         interface.save()
 
+    @translate_protocol_errors
     def set_trunk(self, interface, native_vlan, trunk_vlans):
         self.set_vlan(interface, native_vlan)
         self.set_trunk_vlans(interface, trunk_vlans)
         self._save_trunk_interface(interface, native_vlan, trunk_vlans)
 
+    @translate_protocol_errors
     def _save_trunk_interface(self, interface, native_vlan, trunk_vlans):
         interface.vlan = native_vlan
         interface.trunk = True
