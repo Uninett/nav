@@ -48,6 +48,13 @@ COLUMNS = {
     RACK_CENTER: 'center',
     RACK_RIGHT: 'right',
 }
+# See section 3.2.4 of RFC 3635:
+ETHERNET_INTERFACE_TYPES = (
+    6,  # ethernetCsmacd
+    62,  # fastEther
+    69,  # fastEtherFX
+    117,  # gigabitEthernet
+)
 
 _logger = logging.getLogger('nav.web.info.room')
 
@@ -202,8 +209,11 @@ def render_netboxes(request, roomid):
 
     # Filter interfaces on iftype and add fast last_cam lookup
     for netbox in netboxes:
-        netbox.interfaces = netbox.interface_set.filter(
-            iftype=6).order_by("ifindex").extra(select=cam_query)
+        netbox.interfaces = (
+            netbox.interface_set.filter(iftype__in=ETHERNET_INTERFACE_TYPES)
+            .order_by("ifindex")
+            .extra(select=cam_query)
+        )
 
     return render(
         request,
