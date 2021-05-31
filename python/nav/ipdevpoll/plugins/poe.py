@@ -43,14 +43,10 @@ class Poe(Plugin):
 
         poemib = PowerEthernetMib(self.agent)
         if self._is_cisco():
-            cisco_mib = CiscoPowerEthernetExtMib(self.agent)
-            port_phy_index = yield cisco_mib.retrieve_column(
-                "cpeExtPsePortEntPhyIndex")
-            group_phy_index = yield cisco_mib.retrieve_column(
-                "cpeExtMainPseEntPhyIndex")
-            entity_mib = EntityMib(self.agent)
-            alias_mapping = yield entity_mib.get_alias_mapping()
-            port_ifindices = self._resolve_ifindex(port_phy_index, alias_mapping)
+            (
+                group_phy_index,
+                port_ifindices,
+            ) = yield self._map_cisco_power_ports_to_ifindex()
         else:
             port_ifindices = {}
             group_phy_index = {}
@@ -67,6 +63,32 @@ class Poe(Plugin):
             self.netbox.type
             and self.netbox.type.get_enterprise_id() == VENDOR_ID_CISCOSYSTEMS
         )
+
+    @inlineCallbacks
+    def _map_cisco_power_ports_to_ifindex(self):
+        """Uses the Cisco proprietary CISCO-POWER-ETHERNET-EXT-MIB to map the group/port
+        index pairs used exclusively in PORT-ETHERNET-MIB to an actual ifIndex, that
+        most other MIBs (and NAV's Interface model) uses for identification of
+        interfaces/ports.
+
+        POWER-ETHERNET-MIB provides only a very vague identification of power-enabled
+        ports. These identifiers are not universally and consistently mappable to an
+        ifIndex, for example. A more conclusive mapping to interfaces may be provided
+        on a vendor-by-vendor basis. The only supported vendor for mapping in this
+        codebase so far is Cisco.
+
+        Cisco's mapping is indirect via the ENTITY-MIB - each entry from the power
+        ethernet tables is mapped to a physical port in ENTITY-MIB::entPhysicalTable
+        via its entPhysicalIndex. This table, in turn, can map physical ports to
+        interface indexes from the IF-MIB::ifTable.
+        """
+        cisco_mib = CiscoPowerEthernetExtMib(self.agent)
+        port_phy_index = yield cisco_mib.retrieve_column("cpeExtPsePortEntPhyIndex")
+        group_phy_index = yield cisco_mib.retrieve_column("cpeExtMainPseEntPhyIndex")
+        entity_mib = EntityMib(self.agent)
+        alias_mapping = yield entity_mib.get_alias_mapping()
+        port_ifindices = self._resolve_ifindex(port_phy_index, alias_mapping)
+        returnValue((group_phy_index, port_ifindices))
 
     def _process_groups(self, groups, phy_indices):
         netbox = self.containers.factory(None, shadows.Netbox)
