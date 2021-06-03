@@ -132,12 +132,17 @@ def set_editable_flag_on_interfaces(
     list, indicating whether the PortAdmin UI should allow edits to it or not.
 
     An interface will be considered "editable" only if its native vlan matches one of
-    the vlan tags from `vlans`.
+    the vlan tags from `vlans`. An interface may be considered non-editable if it is
+    an uplink, depending on how portadmin is configured.
     """
     vlan_tags = {vlan.vlan for vlan in vlans}
 
     for interface in interfaces:
-        interface.iseditable = interface.vlan in vlan_tags
+        vlan_is_acceptable = interface.vlan in vlan_tags
+        is_link = bool(interface.to_netbox)
+        refuse_link_edit = not CONFIG.get_link_edit() and is_link
+
+        interface.iseditable = vlan_is_acceptable and not refuse_link_edit
 
 
 def intersect(list_a, list_b):
