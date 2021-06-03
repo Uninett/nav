@@ -62,7 +62,10 @@
             <img src="{{ STATIC_URL }}images/toolbox/arnold.png" width="24" height="24" title="Detained in Arnold">
           </a>
         {% else %}
-          <input type="checkbox" class="ifadminstatus" data-orig="{{ interface.ifadminstatus }}" {% if interface.ifadminstatus == 1 %}checked{% endif %}>
+          <input type="checkbox" class="ifadminstatus" data-orig="{{ interface.ifadminstatus }}"
+                 {% if interface.ifadminstatus == 1 %}checked{% endif %}
+                 {% if not interface.iseditable %}disabled{% endif %}
+          >
         {% endif %}
       </div>
       <div class="medium-1 small-6 column portadmin-status">
