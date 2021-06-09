@@ -100,7 +100,7 @@ class Interfaces(Plugin):
             ),
         )
         if speed is not None:
-            interface.speed = interface.speed
+            interface.speed = speed
 
         interface.ifphysaddress = typesafe_binary_mac_to_hex(row['ifPhysAddress'])
         interface.ifadminstatus = row['ifAdminStatus']
