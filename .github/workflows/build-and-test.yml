@@ -54,6 +54,10 @@ jobs:
           set -xe
           sudo apt-get install -y libldap2-dev libsasl2-dev
 
+      - uses: browser-actions/setup-chrome@latest
+      - run: chrome --version
+      - uses: nanasess/setup-chromedriver@master
+
       - name: "Set up PostgreSQL"
         uses: harmon758/postgresql-action@v1
         with:
@@ -63,4 +67,5 @@ jobs:
 
       - name: "Run tests"
         run: |
+          export DISPLAY=:99
           python -m tox
