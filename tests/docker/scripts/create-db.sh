@@ -33,11 +33,11 @@ create_nav_db() {
     maybesudo postgres:postgres "${BUILDDIR}/bin/navsyncdb" -c --drop-database
 
     if [ -n "$ADMINPASSWORD" ]; then
-      maybesudo postgres:postgres psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'" nav
+      maybesudo postgres:postgres psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'" ${PGDATABASE:-nav}
     fi
 
     # Add generic test data set
-    maybesudo postgres:postgres psql -f "$(dirname $0)/test-data.sql" nav
+    maybesudo postgres:postgres psql -f "$(dirname $0)/test-data.sql" ${PGDATABASE:-nav}
 
 }
 
