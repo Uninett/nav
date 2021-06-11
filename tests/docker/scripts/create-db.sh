@@ -30,7 +30,7 @@ create_nav_db() {
 
     # Create and populate database
     echo Creating and populating initial database
-    maybesudo postgres:postgres "${BUILDDIR}/bin/navsyncdb" -c
+    maybesudo postgres:postgres "${BUILDDIR}/bin/navsyncdb" -c --drop-database
 
     if [ -n "$ADMINPASSWORD" ]; then
       maybesudo postgres:postgres psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'" nav
