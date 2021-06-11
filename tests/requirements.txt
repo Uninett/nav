@@ -9,7 +9,7 @@ pytest-cov==2.7.1
 pytest-selenium==2.0.1
 pytest-timeout
 pytest-twisted==1.12
-pytidylib==0.2.4
+pytidylib==0.3.2
 selenium==3.141.0
 whisper>=0.9.9
 whitenoise==4.1.4
