@@ -22,6 +22,9 @@ jobs:
       - name: "Set environment variables"
         run: |
           echo "WORKSPACE=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "PGHOST=localhost" >> $GITHUB_ENV
+          echo "PGUSER=nav" >> $GITHUB_ENV
+          echo "PGPASSWORD=password" >> $GITHUB_ENV
 
       - name: "Install test runner dependencies"
         run: |
@@ -32,6 +35,13 @@ jobs:
         run: |
           set -xe
           sudo apt-get install -y libldap2-dev libsasl2-dev
+
+      - name: "Set up PostgreSQL"
+        uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '9.4'  # minimum NAV requirement
+          postgresql user: $PGUSER
+          postgresql password: $PGPASSWORD
 
       - name: "Run tests"
         run: |
