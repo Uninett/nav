@@ -24,6 +24,10 @@ jobs:
           set -xe
           python -m pip install --upgrade pip setuptools wheel tox tox-gh-actions coverage virtualenv
 
+      - name: "Install libraries needed to build external dependencies"
+        run: |
+          set -xe
+          sudo apt-get install -y libldap2-dev libsasl2-dev
 
       - name: "Run tests"
         run: |
