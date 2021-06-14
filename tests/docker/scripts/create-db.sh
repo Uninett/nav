@@ -19,7 +19,7 @@ update_nav_db_conf() {
     maybesudo root tee "$DBCONF" <<EOF
 dbhost=${PGHOST:-localhost}
 dbport=${PGPORT:-5432}
-db_nav=${PGDATABASE:-nav}
+db_nav=${PGDATABASE}
 script_default=${PGUSER:-nav}
 userpw_${PGUSER:-nav}=${PGPASSWORD:-notused}
 EOF
@@ -33,11 +33,11 @@ create_nav_db() {
     maybesudo postgres:postgres "${BUILDDIR}/bin/navsyncdb" -c --drop-database
 
     if [ -n "$ADMINPASSWORD" ]; then
-      maybesudo postgres:postgres psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'" ${PGDATABASE:-nav}
+      maybesudo postgres:postgres psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'" $PGDATABASE
     fi
 
     # Add generic test data set
-    maybesudo postgres:postgres psql -f "$(dirname $0)/test-data.sql" ${PGDATABASE:-nav}
+    maybesudo postgres:postgres psql -f "$(dirname $0)/test-data.sql" $PGDATABASE
 
 }
 
@@ -46,6 +46,13 @@ if [ -z "$GITHUB_ACTIONS" ]; then
     PGVERSION=$(gosu root pg_lsclusters -h|awk '{print $1}')
     gosu root pg_dropcluster --stop ${PGVERSION} main || true
     gosu root pg_createcluster --locale=C.UTF-8 --start ${PGVERSION} main -- --nosync
+else
+    # Generate an appropriately unique database name for this test run
+    if [ -z "$PGDATABASE" ] && [ -n "$TOX_ENV_NAME" ]; then
+        export PGDATABASE=${GITHUB_RUN_ID:-tox}_$(echo $TOX_ENV_NAME | tr '-' '_')
+    else
+        export PGDATABASE=nav
+    fi
 fi
 
 update_nav_db_conf
