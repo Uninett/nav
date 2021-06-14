@@ -47,7 +47,7 @@ jobs:
       - name: "Install test runner dependencies"
         run: |
           set -xe
-          python -m pip install --upgrade pip setuptools wheel tox tox-gh-actions coverage virtualenv
+          python -m pip install --upgrade pip setuptools wheel tox tox-gh-actions coverage virtualenv snmpsim
 
       - name: "Install libraries needed to build external dependencies"
         run: |
