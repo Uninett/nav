@@ -48,6 +48,7 @@ jobs:
         run: |
           set -xe
           python -m pip install --upgrade pip setuptools wheel tox tox-gh-actions coverage virtualenv snmpsim
+          sudo apt-get install -y nbtscan
 
       - name: "Install libraries needed to build external dependencies"
         run: |
