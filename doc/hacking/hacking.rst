@@ -21,7 +21,7 @@ developing NAV to support the needs of the Norwegian higher education
 community, contributions from third parties is highly appreciated.
 
 We communicate mainly through mailing lists, GitHub_, and the ``#nav`` IRC
-channel on *FreeNode*. At times, Uninett also arranges workshops and
+channel on *Libera.Chat*. At times, Uninett also arranges workshops and
 gatherings for its customers: Norwegian universities, university colleges and
 research institutions.
 

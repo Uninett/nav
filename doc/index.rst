@@ -19,14 +19,14 @@ Getting help
 * Post a question on `the nav-users mailing list`_ or search the
   `nav-users mailing list archives`_.
 
-* Ask a question on the `#nav IRC channel`_ on freenode.
+* Ask a question on the `#nav IRC channel`_ on Libera.Chat.
 
 * Report a bug in our `bug tracker`_.
 
 .. _wiki pages: https://nav.uninett.no/wiki/
 .. _nav-users mailing list archives: https://sympa.uninett.no/lists/uninett.no/arc/nav-users
 .. _the nav-users mailing list: https://sympa.uninett.no/lists/uninett.no/info/nav-users
-.. _#nav IRC channel: irc://irc.freenode.net/nav
+.. _#nav IRC channel: irc://irc.libera.chat/nav
 .. _bug tracker: https://github.com/Uninett/nav
 
 First steps
