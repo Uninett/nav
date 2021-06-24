@@ -1,3 +1,16 @@
+Version 5.1.4
+(released 24 Jun 2021)
+
+Fixed GitHub issues in this release:
+
+  * #2281 ([BUG] Saving alert permissions crashes Alert Profiles)
+  * #2282 (PortAdmin SNMP error handling is broken in several ways)
+  * #2284 ([BUG] IP device interfaces don't get updated with speed
+           information)
+  * #2285 (Extract Cisco PoE port mapping method)
+  * #2288 (Disable the PortAdmin "Enable" checkbox for interfaces that
+           aren't editable)
+
 Version 5.1.3
 (released 09 Apr 2021)
 
