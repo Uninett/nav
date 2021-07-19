@@ -23,6 +23,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: "Cache tox environments"
+        uses: actions/cache@v2
+        id: tox-cache
+        with:
+          path: .tox
+          key: ${{ runner.os }}-tox-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt', '**/requirements/*.txt', 'tox.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-tox-${{ matrix.python-version }}-
+
       - name: "Set up Python ${{ matrix.python-version }}"
         uses: actions/setup-python@v2
         with:
