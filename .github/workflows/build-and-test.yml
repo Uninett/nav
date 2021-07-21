@@ -69,6 +69,8 @@ jobs:
       - name: "Run tests"
         run: |
           export DISPLAY=:99
+          ulimit -c unlimited
+          sudo sysctl -w kernel.core_pattern=/tmp/core-%e.%p.%h.%t
           python -m tox
 
       - name: Upload Selenium driver logs (${{ matrix.python-version }})
@@ -86,6 +88,14 @@ jobs:
           name: test-reports
           path: |
             reports/**/*
+
+      - name: Upload core dumps (${{ matrix.python-version }})
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: core-dumps
+          path: |
+            /tmp/core-*
 
   publish-test-results:
     name: "Publish test results"
