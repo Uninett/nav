@@ -44,6 +44,7 @@ create_nav_db() {
 if [ -z "$GITHUB_ACTIONS" ]; then
     # If not on GitHub actions, we manipulate PostgreSQL clusters directly
     PGVERSION=$(gosu root pg_lsclusters -h|awk '{print $1}')
+    export PGDATABASE=nav
     gosu root pg_dropcluster --stop ${PGVERSION} main || true
     gosu root pg_createcluster --locale=C.UTF-8 --start ${PGVERSION} main -- --nosync
 else
