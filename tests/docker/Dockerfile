@@ -28,7 +28,7 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
-	libsnmp30 \
+	libsnmp35 \
 	cron \
 	libjpeg62 \
 	postgresql postgresql-contrib postgresql-client \
