@@ -41,7 +41,7 @@ RUN apt-get update && \
 
 
 # Now install NodeJS and NPM for Javascript testing needs -
-RUN curl -sL https://deb.nodesource.com/setup_8.x  | bash - && \
+RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash - && \
     apt-get install -y --no-install-recommends nodejs
 
 # Build and install libtidy5
