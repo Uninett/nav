@@ -37,7 +37,7 @@ RUN apt-get update && \
 	firefox xvfb \
 	imagemagick \
 	x11vnc google-chrome-stable cloc \
-	cmake nbtscan python-gammu
+        cmake nbtscan
 
 
 # Now install NodeJS and NPM for Javascript testing needs -
