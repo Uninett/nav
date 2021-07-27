@@ -1,8 +1,8 @@
 # Full integration test image for NAV
 #
-FROM mbrekkevold/ubuntu-gosu:bionic
+FROM mbrekkevold/ubuntu-gosu:focal
 
-ENV DISTRO buster
+ENV DISTRO focal
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
 ENV DEBIAN_FRONTEND noninteractive
