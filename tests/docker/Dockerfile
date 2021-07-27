@@ -37,20 +37,12 @@ RUN apt-get update && \
 	firefox xvfb \
 	imagemagick \
 	x11vnc google-chrome-stable cloc \
-        cmake nbtscan
+        cmake nbtscan libtidy5deb1
 
 
 # Now install NodeJS and NPM for Javascript testing needs -
 RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash - && \
     apt-get install -y --no-install-recommends nodejs
-
-# Build and install libtidy5
-RUN cd /tmp && \
-    git clone https://github.com/htacg/tidy-html5.git && \
-    cd tidy-html5/build/cmake && \
-    git checkout tags/5.2.0 && \
-    cmake ../.. -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIB:BOOL=ON && \
-    make && make install && echo tidy5 installed
 
 # Install geckodriver to properly run Selenium tests in Firefox versions>=47
 ENV GECKOVERSION=0.21.0
