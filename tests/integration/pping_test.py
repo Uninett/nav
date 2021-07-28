@@ -3,6 +3,8 @@ various pping integration tests
 """
 import os
 import getpass
+from shutil import which
+
 try:
     from subprocess32 import (STDOUT, check_output, TimeoutExpired,
                               CalledProcessError)
@@ -65,7 +67,9 @@ def get_pping_output(timeout=5):
 
     Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
     """
-    cmd = get_root_method() + ['pping.py', '-f']
+    pping = which('pping.py')
+    assert pping, "Cannot find pping.py on path"
+    cmd = get_root_method() + [pping, '-f']
     try:
         output = check_output(cmd, stderr=STDOUT, timeout=timeout)
     except TimeoutExpired as error:
