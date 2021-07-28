@@ -269,7 +269,7 @@ class _MySnmpSession(Session):
         response = netsnmp_pdu_p()
         if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
             _raise_on_protocol_error(response)
-            result = dict(getResult(response.contents))
+            result = dict(getResult(response.contents, self._log))
             lib.snmp_free_pdu(response)
             return result
         else:
@@ -283,7 +283,7 @@ class _MySnmpSession(Session):
         response = netsnmp_pdu_p()
         if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
             _raise_on_protocol_error(response)
-            result = dict(getResult(response.contents))
+            result = dict(getResult(response.contents, self._log))
             lib.snmp_free_pdu(response)
             return result
         else:
@@ -301,7 +301,7 @@ class _MySnmpSession(Session):
         response = netsnmp_pdu_p()
         if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
             _raise_on_protocol_error(response)
-            result = getResult(response.contents)
+            result = getResult(response.contents, self._log)
             lib.snmp_free_pdu(response)
             return result
         else:
@@ -320,7 +320,7 @@ class _MySnmpSession(Session):
         response = netsnmp_pdu_p()
         if lib.snmp_synch_response(self.sess, req, byref(response)) == 0:
             _raise_on_protocol_error(response)
-            result = dict(getResult(response.contents))
+            result = dict(getResult(response.contents, self._log))
             lib.snmp_free_pdu(response)
             return result
         else:

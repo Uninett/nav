@@ -93,7 +93,7 @@ class TrapListener(object):
         generic_type = None
         community = pdu.community[:pdu.community_len]
 
-        varbinds = netsnmp.getResult(pdu)
+        varbinds = netsnmp.getResult(pdu, _logger)
 
         if pdu.version == netsnmp.SNMP_VERSION_1:
             version = 1
