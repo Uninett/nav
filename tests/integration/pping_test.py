@@ -3,6 +3,8 @@ various pping integration tests
 """
 import os
 import getpass
+from shutil import which
+
 try:
     from subprocess32 import (STDOUT, check_output, TimeoutExpired,
                               CalledProcessError)
@@ -24,17 +26,22 @@ def can_be_root():
         return False
 
 
-@pytest.mark.skipif(can_be_root(),
-                    reason="pping can only be tested with root privileges")
+@pytest.mark.timeout(20)
+@pytest.mark.skipif(
+    can_be_root(), reason="pping can only be tested with root privileges"
+)
 def test_pping_localhost_should_work(localhost, pping_test_config):
     output = get_pping_output()
     assert "0 hosts currently marked as down" in output
 
 
-@pytest.mark.skipif(can_be_root(),
-                    reason="pping can only be tested with root privileges")
-def test_pping_nonavailable_host_should_fail(host_expected_to_be_down,
-                                             pping_test_config):
+@pytest.mark.timeout(20)
+@pytest.mark.skipif(
+    can_be_root(), reason="pping can only be tested with root privileges"
+)
+def test_pping_nonavailable_host_should_fail(
+    host_expected_to_be_down, pping_test_config
+):
     expected = "{sysname} ({ip}) marked as down".format(
         sysname=host_expected_to_be_down.sysname,
         ip=host_expected_to_be_down.ip)
@@ -51,7 +58,7 @@ def get_root_method():
     if os.geteuid() == 0:
         return []
     elif os.system("sudo true") == 0:
-        return ["sudo"]
+        return ["sudo", "-E"]
     elif os.system("gosu root true") == 0:
         return ["gosu", "root"]
     else:
@@ -65,19 +72,21 @@ def get_pping_output(timeout=5):
 
     Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
     """
-    cmd = get_root_method() + ['pping.py', '-f']
+    pping = which('pping.py')
+    assert pping, "Cannot find pping.py on path"
+    cmd = get_root_method() + ["/usr/bin/timeout", str(timeout), pping, "-f"]
     try:
-        output = check_output(cmd, stderr=STDOUT, timeout=timeout)
-    except TimeoutExpired as error:
-        # this is the normal case, since we need to kill pping after the timeout
-        print(error.output.decode('utf-8'))
-        return error.output.decode('utf-8')
+        output = check_output(cmd, stderr=STDOUT)
     except CalledProcessError as error:
+        if error.returncode == 124:  # timeout
+            # this is the normal case, since we need to kill pping after the timeout
+            print(error.output.decode('utf-8'))
+            return error.output.decode('utf-8')
         print(error.output.decode('utf-8'))
         raise
     else:
         print(output)
-        assert False, "pping exited with non-zero status"
+        assert False, "pping exited unexpectedly"
 
 
 @pytest.fixture()

@@ -117,9 +117,12 @@ def drop_database():
     postgres_opts.export(os.environ)
 
     print("Dropping database %s" % nav_opts.dbname)
-    trap_and_die(subprocess.CalledProcessError,
-                 "Failed to drop database %s" % nav_opts.dbname,
-                 check_call, ["dropdb", nav_opts.dbname])
+    trap_and_die(
+        subprocess.CalledProcessError,
+        "Failed to drop database %s" % nav_opts.dbname,
+        check_call,
+        ["dropdb", "--if-exists", nav_opts.dbname],
+    )
 
 
 def restore_from_dump(filename):
