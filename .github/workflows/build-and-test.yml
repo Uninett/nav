@@ -69,3 +69,11 @@ jobs:
         run: |
           export DISPLAY=:99
           python -m tox
+
+      - name: Upload Selenium driver logs (${{ matrix.python-version }})
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: pytest-logs
+          path: |
+            /tmp/pytest-of-runner
