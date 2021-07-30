@@ -109,22 +109,3 @@ jobs:
             gdb -ex bt "$program" "$core"
             echo
           done
-
-  publish-test-results:
-    name: "Publish test results"
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    if: success() || failure()
-
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          path: artifacts
-
-      - name: "Publish test results"
-        uses: EnricoMi/publish-unit-test-result-action/composite@v1
-        if: always()
-        with:
-          check_name: "Test results"
-          files: artifacts/**/*-results.xml
