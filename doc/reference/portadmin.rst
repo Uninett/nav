@@ -140,8 +140,9 @@ See above.
 The Config File
 ===============
 
-The way in which PortAdmin operates can be configured through
-:file:`portadmin.conf`. Some of the options that can be set in this file are:
+PortAdmin's operational aspects can be modified through the configuration file
+:file:`portadmin.conf`. All available configuration options are documented in
+the example config file. Some of the options that can be set in this file are:
 
 **voice_vlans**
     Voice VLANs are the VLANs you use for IP telephone traffic. If
@@ -160,6 +161,16 @@ The way in which PortAdmin operates can be configured through
     If using Cisco Voice VLANs, set this option to ``true`` to explicitly
     enable CDP on a port when its voice vlan is configured (and consequently,
     disable CDP when voice vlan is de-configured). The default is ``false``.
+
+**trunk_edit**
+    When set to ``false``, editing the configuration of trunk ports is
+    disabled. The default value is ``true``.
+
+**link_edit**
+    When set to ``false``, editing the configuration of any port that has been
+    found to be an uplink or downlink is disabled. This could be useful to
+    prevent accidental misconfigurations that can cause a switch to become
+    non-reachable. The default value is ``true``.
 
 **vlan_auth**
     If you want to limit what users can do in PortAdmin you activate
