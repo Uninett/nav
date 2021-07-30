@@ -33,6 +33,7 @@ commit = on
 timeout = 3
 retries = 3
 trunk_edit = true
+link_edit = true
 
 [authorization]
 vlan_auth = off
@@ -92,6 +93,10 @@ enabled = false
         Default is to allow trunk edit
         """
         return self.getboolean("general", "trunk_edit", fallback=True)
+
+    def get_link_edit(self):
+        """Gets config option for link edit"""
+        return self.getboolean("general", "link_edit", fallback=True)
 
     def is_dot1x_enabled(self):
         """Checks if dot1x config option is true"""

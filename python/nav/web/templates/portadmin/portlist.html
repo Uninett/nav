@@ -96,7 +96,7 @@
           {% endif %}
         {% else %}
           {% if interface.trunk and not interface.voice_activated %}
-            {% if trunk_edit %}
+            {% if trunk_edit and interface.iseditable %}
               <a href="{% url 'portadmin-render-trunk-edit' interface.id %}">
                 Trunk
               </a>
