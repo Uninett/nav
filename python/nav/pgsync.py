@@ -137,7 +137,7 @@ def drop_database():
         subprocess.CalledProcessError,
         "Failed to drop database %s" % nav_opts.dbname,
         check_call,
-        ["dropdb", nav_opts.dbname],
+        ["dropdb", "--if-exists", nav_opts.dbname],
     )
 
 

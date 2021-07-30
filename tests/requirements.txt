@@ -4,12 +4,13 @@ lxml==4.6.2
 mock==2.0.0
 pylint==2.3.1  ; python_version > '3'
 pylint-django==2.0.6  ; python_version > '3'
-pytest==5.3.3
+pytest==6.2.4
 pytest-cov==2.7.1
-pytest-selenium==1.17.0
+pytest-selenium==2.0.1
+pytest-timeout
 pytest-twisted==1.12
-pytidylib==0.2.4
-selenium==3.4.3
+pytidylib==0.3.2
+selenium==3.141.0
 whisper>=0.9.9
 whitenoise==4.1.4
 subprocess32  ; python_version < '3'

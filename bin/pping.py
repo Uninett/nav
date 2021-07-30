@@ -241,15 +241,15 @@ def start(foreground, socket):
     conf = config.pingconf()
     pidfilename = "pping.pid"
 
-    # Already running?
-    try:
-        nav.daemon.justme(pidfilename)
-    except nav.daemon.AlreadyRunningError as error:
-        sys.exit("pping is already running (pid: %s)" % error.pid)
-    except nav.daemon.DaemonError as error:
-        sys.exit(error)
-
     if not foreground:
+        # Already running?
+        try:
+            nav.daemon.justme(pidfilename)
+        except nav.daemon.AlreadyRunningError as error:
+            sys.exit("pping is already running (pid: %s)" % error.pid)
+        except nav.daemon.DaemonError as error:
+            sys.exit(error)
+
         logfile = open(conf.logfile, "a")
         nav.daemon.daemonize(pidfilename, stdout=logfile, stderr=logfile)
     else:

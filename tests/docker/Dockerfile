@@ -72,9 +72,10 @@ RUN cd /tmp && \
 RUN python3.7 -m pip install tox snmpsim 'virtualenv<20.0.0'
 
 # Add a build user
-RUN adduser --system --group --home=/source --shell=/bin/bash build && \
+ENV USER build
+RUN adduser --system --group --home=/source --shell=/bin/bash $USER && \
     mkdir -p /usr/share/nav/var/uploads && \
-    chown -R build /usr/share/nav
+    chown -R $USER /usr/share/nav
 
 ENV WORKSPACE /source
 ENV HOME /source

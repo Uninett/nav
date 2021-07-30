@@ -1,4 +1,5 @@
 from itertools import cycle
+from shutil import which
 import subprocess
 import time
 import io
@@ -17,10 +18,12 @@ ports = cycle(snmpprotocol.port() for i in range(50))
 
 @pytest.fixture(scope='session')
 def snmpsim():
+    snmpsimd = which('snmpsimd.py')
+    assert snmpsimd, "Could not find snmpsimd.py"
     workspace = os.getenv('WORKSPACE', os.getenv('HOME', '/source'))
     proc = subprocess.Popen(
         [
-            '/usr/local/bin/snmpsimd.py',
+            snmpsimd,
             '--data-dir={}/tests/integration/snmp_fixtures'.format(workspace),
             '--log-level=error',
             '--agent-udpv4-endpoint=127.0.0.1:1024',
