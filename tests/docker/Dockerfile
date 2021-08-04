@@ -1,8 +1,8 @@
 # Full integration test image for NAV
 #
-FROM mbrekkevold/ubuntu-gosu:bionic
+FROM mbrekkevold/ubuntu-gosu:focal
 
-ENV DISTRO buster
+ENV DISTRO focal
 ENV DISPLAY :99
 ENV ADMINPASSWORD omicronpersei8
 ENV DEBIAN_FRONTEND noninteractive
@@ -15,8 +15,8 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get -y install --no-install-recommends \
       curl git build-essential \
-      python3.7 python3.7-dev \
-      python3.8 python3.8-dev \
+      python3.7-dbg python3.7-dev \
+      python3.8-dbg python3.8-dev \
       python3-pip
 
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
@@ -28,7 +28,7 @@ RUN apt-get update && \
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
-	libsnmp30 \
+	libsnmp35 \
 	cron \
 	libjpeg62 \
 	postgresql postgresql-contrib postgresql-client \
@@ -37,20 +37,12 @@ RUN apt-get update && \
 	firefox xvfb \
 	imagemagick \
 	x11vnc google-chrome-stable cloc \
-	cmake nbtscan python-gammu
+        cmake nbtscan libtidy5deb1
 
 
 # Now install NodeJS and NPM for Javascript testing needs -
-RUN curl -sL https://deb.nodesource.com/setup_8.x  | bash - && \
+RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash - && \
     apt-get install -y --no-install-recommends nodejs
-
-# Build and install libtidy5
-RUN cd /tmp && \
-    git clone https://github.com/htacg/tidy-html5.git && \
-    cd tidy-html5/build/cmake && \
-    git checkout tags/5.2.0 && \
-    cmake ../.. -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_SHARED_LIB:BOOL=ON && \
-    make && make install && echo tidy5 installed
 
 # Install geckodriver to properly run Selenium tests in Firefox versions>=47
 ENV GECKOVERSION=0.21.0
