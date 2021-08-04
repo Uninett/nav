@@ -21,8 +21,9 @@ check: build
 lint: build
 	docker run -t -u $(uid):$(gid) -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) tox -e pylint
 
+# Runs an ephemeral container with core dumping capabilities and PostgreSQL on an in-memory tmpfs
 shell:
-	docker run -ti --rm -u $(uid):$(gid) -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) /bin/bash
+	docker run -ti --rm --ulimit core=-1 -u $(uid):$(gid) -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) /bin/bash
 
 name:
 	echo Image name: $(name)
