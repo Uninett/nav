@@ -27,9 +27,10 @@ Then, given an alert object you wish to assign a new severity value to:
     alert.save()
 
 """
+from operator import attrgetter
+import logging
 import typing
 import yaml
-from operator import attrgetter
 
 from nav import config
 from nav.models import event
@@ -42,6 +43,7 @@ __all__ = ["Severity", "SeverityRules"]
 
 DEFAULT_SEVERITY = 3  # middle of the road
 CONFIG_FILE = "severity.yml"
+_logger = logging.getLogger(__name__)
 
 #
 # Type definitions used in this module
@@ -119,9 +121,10 @@ class SeverityRules(tuple):
             try:
                 if all(checks):
                     severity = modifier(severity)
-            except AttributeError:
-                # TODO log rule error
-                pass
+            except AttributeError as error:
+                _logger.error(
+                    "severity rule tried to access invalid attribute: %s", error
+                )
         return severity
 
     @classmethod
