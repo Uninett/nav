@@ -173,6 +173,16 @@ class TestThatSeverityRules:
         alert.severity = 1
         assert rules.evaluate(alert) == 1
 
+    def test_should_ignore_broken_rules(self, broken_ruleset_source):
+        rules = SeverityRules.load(broken_ruleset_source)
+
+        class MockAlert:
+            """Simple Alert mock that does NOT ignore illegal attribute accesses"""
+
+            severity = 5
+
+        assert rules.evaluate(MockAlert()) == 5
+
 
 #
 # Fixtures
@@ -222,4 +232,14 @@ rules:
 def empty_ruleset_source():
     return """
 ---
+"""
+
+
+@pytest.fixture(scope="session")
+def broken_ruleset_source():
+    return """
+---
+rules:
+  - invalid-attribute: foo
+    severity: 1
 """
