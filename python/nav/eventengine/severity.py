@@ -97,11 +97,14 @@ class SeverityRules(tuple):
     @classmethod
     def load_from_file(cls, filename: str = CONFIG_FILE) -> 'SeverityRules':
         """Instantiates a SeverityRules object from rule definitions in a YAML file"""
-        filename = config.find_configfile(filename)
-        if not filename:
+        full_path = config.find_configfile(filename)
+        if not full_path:
+            _logger.debug("could not find severity config file %s", filename)
             return None
+        else:
+            _logger.debug("loading severity rules from %s", full_path)
 
-        with open(config.find_configfile(filename)) as conf:
+        with open(full_path) as conf:
             return cls.load(conf)
 
     @classmethod
@@ -115,12 +118,16 @@ class SeverityRules(tuple):
         """Evaluates this set of rules using the supplied alert object as context,
         returning the resulting severity value.
         """
+        _logger.debug("evaluating rules against %r", alert)
         severity = getattr(alert, "severity", DEFAULT_SEVERITY)
         for expressions, modifier in self:
             checks = (expr.attr(alert) == expr.value for expr in expressions)
             try:
                 if all(checks):
+                    _logger.debug("Matched %r", expressions)
                     severity = modifier(severity)
+                else:
+                    _logger.debug("%r did NOT match", expressions)
             except AttributeError as error:
                 _logger.error(
                     "severity rule tried to access invalid attribute: %s", error
