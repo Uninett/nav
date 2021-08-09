@@ -29,6 +29,7 @@ from nav.models.fields import INFINITY
 import nav.config
 from . import unresolved
 from . import export
+from . import severity
 
 ALERT_TEMPLATE_DIR = nav.config.find_configfile('alertmsg')
 _logger = logging.getLogger(__name__)
@@ -36,6 +37,8 @@ _template_logger = logging.getLogger(__name__ + '.template')
 
 
 class AlertGenerator(dict):
+    severity_rules: severity.SeverityRules = None
+
     def __init__(self, event):
         super(AlertGenerator, self).__init__()
         self.event = event
@@ -82,6 +85,8 @@ class AlertGenerator(dict):
     def make_alert(self):
         """Generates an alert object based on the current attributes"""
         attrs = {}
+        if self.severity_rules:
+            self.severity = self.severity_rules.evaluate(self)
         for attr in (
             'source',
             'device',
@@ -108,6 +113,8 @@ class AlertGenerator(dict):
             start_time=self.time,
             end_time=INFINITY if self.state == Event.STATE_START else None,
         )
+        if self.severity_rules:
+            self.severity = self.severity_rules.evaluate(self)
         for attr in (
             'source',
             'device',
