@@ -5,7 +5,6 @@ import yaml
 from nav.eventengine.severity import (
     Severity,
     Expression,
-    DEFAULT_SEVERITY,
     SeverityRules,
 )
 
@@ -32,11 +31,11 @@ class TestThatSeverity:
 class TestThatSeverityParser:
     """Tests for the internal parsing methods of the SeverityRules class"""
 
-    def test_should_return_default_severity_on_empty_ruleset(self):
+    def test_should_return_original_severity_on_empty_ruleset(self):
         rules = SeverityRules._parse_raw_severity_rules({})
         expressions, modifier = next(rules)
         assert expressions == ()
-        assert modifier(None) == DEFAULT_SEVERITY
+        assert modifier(5) == 5
 
     def test_should_load_simple_ruleset_without_error(self, simple_severity_ruleset):
         assert list(SeverityRules._parse_raw_severity_rules(simple_severity_ruleset))
@@ -159,6 +158,21 @@ class TestThatSeverityRules:
         alert.bar = "0xbadc0de"
         assert rules.evaluate(alert) == 5
 
+    def test_should_evaluate_to_single_rule_on_empty_rulesets(
+        self, empty_ruleset_source
+    ):
+        """Tests that an empty ruleset is parsed into a single default-value rule """
+        rules = SeverityRules.load(empty_ruleset_source)
+        assert len(rules) == 1
+
+    def test_should_return_original_severity_when_no_default_is_set(
+        self, empty_ruleset_source
+    ):
+        rules = SeverityRules.load(empty_ruleset_source)
+        alert = Mock()
+        alert.severity = 1
+        assert rules.evaluate(alert) == 1
+
 
 #
 # Fixtures
@@ -201,4 +215,11 @@ rules:
   - netbox.category: SW
     netbox.room.id: Milliways
     severity: '-1'
+"""
+
+
+@pytest.fixture(scope="session")
+def empty_ruleset_source():
+    return """
+---
 """

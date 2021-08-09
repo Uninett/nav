@@ -105,7 +105,7 @@ class SeverityRules(tuple):
     @classmethod
     def load(cls, string_or_stream: typing.Union[str, typing.IO]) -> 'SeverityRules':
         """Instantiates a new SeverityRules object from YAML rule definitions"""
-        raw_data = yaml.safe_load(string_or_stream)
+        raw_data = yaml.safe_load(string_or_stream) or {}
         rules = cls._parse_raw_severity_rules(raw_data)
         return cls(rules)
 
@@ -133,8 +133,13 @@ class SeverityRules(tuple):
         corresponding severity modifiers.
 
         """
-        default = Severity(definitions.get("default-severity", DEFAULT_SEVERITY))
-        yield (), lambda x: default
+        default = definitions.get("default-severity")
+        if default is None:
+            # Use the alert's original severity value
+            yield (), lambda x: Severity(x)
+        else:
+            default = Severity(default)
+            yield (), lambda x: default
 
         yield from cls._parse_rule_sublist((), definitions.get("rules", []))
 
