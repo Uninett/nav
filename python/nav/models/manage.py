@@ -274,8 +274,7 @@ class Netbox(models.Model):
     def read_only(self):
         """Returns the read-only SNMP community"""
         warnings.warn(
-            "The Netbox.read_only attribute will be removed in the next "
-            "feature release",
+            "The Netbox.read_only attribute will be removed in a future release",
             category=DeprecationWarning,
             stacklevel=2,
         )
@@ -285,8 +284,7 @@ class Netbox(models.Model):
     def read_write(self):
         """Returns the read-write SNMP community"""
         warnings.warn(
-            "The Netbox.read_write attribute will be removed in the next "
-            "feature release",
+            "The Netbox.read_write attribute will be removed in a future release",
             category=DeprecationWarning,
             stacklevel=2,
         )
