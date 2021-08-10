@@ -38,6 +38,8 @@ of alerts. The default configuration looks somewhat like this:
 .. literalinclude:: ../../python/nav/etc/eventengine.conf
    :language: ini
 
+.. _severity_levels:
+
 Alert severity
 --------------
 
