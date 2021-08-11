@@ -72,7 +72,7 @@ def alertsub(alert_address, time_period):
 @pytest.fixture
 def alert():
     alert = AlertQueue(
-        source=Subsystem.objects.first(), time=datetime.now(), value=1, severity=1
+        source=Subsystem.objects.first(), time=datetime.now(), value=1, severity=3
     )
     alert.save()
     yield alert

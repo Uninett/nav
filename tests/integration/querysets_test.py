@@ -37,7 +37,7 @@ class NetboxQuerysetTest(TestCase):
             start_time=dt.datetime.now(),
             value=0,
             end_time=INFINITY,  # UNRESOLVED
-            severity=0,
+            severity=3,
         )
         AlertHistoryVariable.objects.create(alert_history=ah, variable="netbox")
 

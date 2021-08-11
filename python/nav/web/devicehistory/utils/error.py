@@ -55,7 +55,7 @@ def register_error_events(request, **kwargs):
     # here, unless you really know what you are doing.
     source = kwargs.pop('source', 'deviceManagement')
     target = kwargs.pop('target', 'eventEngine')
-    severity = kwargs.pop('severity', 0)
+    severity = kwargs.pop('severity', 3)
     state = kwargs.pop('state', STATE_NONE)
     event_type = kwargs.pop('event_type', 'deviceNotice')
     alert_type = kwargs.pop('alert_type', 'deviceError')

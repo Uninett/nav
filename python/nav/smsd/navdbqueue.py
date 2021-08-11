@@ -130,7 +130,7 @@ class NAVDBQueue(object):
         sql = """SELECT id, msg, severity
             FROM smsq
             WHERE phone = %(phone)s AND sent = %(sent)s
-            ORDER BY severity DESC, time ASC"""
+            ORDER BY severity ASC, time ASC"""
         db.execute(sql, data)
         result = db.fetchall()
         # Rollback so we don't have old open transactions which foobars the

@@ -24,7 +24,7 @@ class AlertFromEventBase(TestCase):
             state=Event.STATE_START,
             time=datetime.datetime.now(),
             value=50,
-            severity=80,
+            severity=2,
         )
 
 

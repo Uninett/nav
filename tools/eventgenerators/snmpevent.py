@@ -36,7 +36,7 @@ def handler(nblist, state):
             netboxid=netboxid,
             eventtypeid='snmpAgentState',
             state=state,
-            severity=100,
+            severity=1,
         )
         e['alerttype'] = 'snmpAgentDown' if state == 's' else 'snmpAgentUp'
         e.post()

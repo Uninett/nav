@@ -37,6 +37,7 @@ from nav.eventengine.plugin import EventHandler
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.config import EVENTENGINE_CONF
 from nav.eventengine import unresolved
+from nav.eventengine.severity import SeverityRules
 from nav.models.event import EventQueue as Event
 import nav.db
 
@@ -133,11 +134,17 @@ class EventEngine(object):
     def start(self):
         "Starts the event engine"
         self._logger.info("--- starting event engine ---")
+        self._load_severity_rules()
         self._start_export_script()
         self._listen()
         self._load_new_events_and_reschedule()
         self._scheduler.run()
         self._logger.debug("scheduler exited")
+
+    @staticmethod
+    def _load_severity_rules():
+        # Imbues the AlertGenerator class with user-defined severity rules
+        AlertGenerator.severity_rules = SeverityRules.load_from_file()
 
     def _start_export_script(self):
         if self.config.has_option("export", "script"):

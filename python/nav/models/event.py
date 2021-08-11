@@ -25,6 +25,7 @@ import datetime as dt
 from django.db import models
 from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from nav.models.fields import VarcharField, DateTimeInfinityField, UNRESOLVED
 
@@ -376,7 +377,10 @@ class EventQueue(models.Model, EventMixIn):
         max_length=1, choices=STATE_CHOICES, default=STATE_STATELESS
     )
     value = models.IntegerField(default=100)
-    severity = models.IntegerField(default=50)
+    severity = models.IntegerField(
+        default=3,
+        validators=[MaxValueValidator(5), MinValueValidator(1)],
+    )
 
     varmap = VariableMap()
 
@@ -498,7 +502,10 @@ class AlertQueue(models.Model, EventMixIn):
         max_length=1, choices=STATE_CHOICES, default=STATE_STATELESS
     )
     value = models.IntegerField()
-    severity = models.IntegerField()
+    severity = models.IntegerField(
+        default=3,
+        validators=[MaxValueValidator(5), MinValueValidator(1)],
+    )
 
     history = models.ForeignKey(
         'AlertHistory',
@@ -643,7 +650,10 @@ class AlertHistory(models.Model, EventMixIn):
         'AlertType', on_delete=models.CASCADE, db_column='alerttypeid', null=True
     )
     value = models.IntegerField()
-    severity = models.IntegerField()
+    severity = models.IntegerField(
+        default=3,
+        validators=[MaxValueValidator(5), MinValueValidator(1)],
+    )
 
     varmap = StateVariableMap()
 

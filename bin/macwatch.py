@@ -79,7 +79,7 @@ def post_event(mac_watch, cam):
     target = "eventEngine"
     eventtypeid = "info"
     value = 100
-    severity = 50
+    severity = 5
     event = Event(
         source=source,
         target=target,
