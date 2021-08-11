@@ -137,7 +137,7 @@ class TestThatSeverityRules:
         alert = Mock()
         alert.first = "level-one"
         alert.second = "level-two"
-        assert rules.evaluate(alert) == 4
+        assert rules.evaluate(alert) == 5
 
     def test_should_properly_set_severity_based_on_nested_attributes(
         self, nested_severity_ruleset_source
@@ -218,7 +218,7 @@ rules:
     severity: '+1'
     rules:
     - second: level-two
-      severity: '+1'
+      severity: '+2'
   - foo: '0xc0ffee'
     bar: '0xbadc0de'
     severity: 5
