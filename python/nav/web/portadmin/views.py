@@ -560,7 +560,7 @@ def response_based_on_result(result):
 
     """
     if result['messages']:
-        return JsonResponse(result, status=500)
+        return JsonResponse(result, status=400)
     else:
         return JsonResponse(result)
 
