@@ -85,7 +85,7 @@ Here is an example severity configuration:
          severity: 5
 
        - netbox.organization.id: foobar
-         severity: '+1'
+         severity: '+2'
 
 This configuration starts off by assigning a *default severity* level of **3**
 to every alert that :program:`Event Engine` generates, regardless of what the
@@ -116,22 +116,36 @@ this type of alert as only *informational*.
 
 The final top-level example rule will match any alert whose associated netbox
 (IP Device) is owned by the organizational id ``foobar``. This rule uses a
-*severity modifier expression* of ``+1``, which will add ``1`` to the current
+*severity modifier expression* of ``+2``, which will add ``2`` to the current
 alert's existing severity value.
-
-.. note:: It is important to note that modifier expressions *must be enclosed
-          in quotes*. Otherwise, YAML would parse ``+1`` as just the positive
-          integer ``1`` (or ``-1`` as the negative integer ``1``).
 
 In summary, if a ``boxDown`` alert is dispatched for a router in your network,
 this rule set will ensure its severity is set to **1**. However, if the router
-belongs to your less important ``foobar`` department, one severity level will
-be deducted, and the alert comes out with a severity of **2**.
+belongs to your less important ``foobar`` department, two severity levels will
+be deducted, and the alert comes out with a severity of **3**.
 
-.. note:: If an alert's severity is already **5**, you need not worry that
-          using a modifier expression of ``'+1'`` will result in a value of
-          **6**. Any attempt to assign a value outside the legal range of **1**
-          through **5** will result in a value at one of the range's endpoints.
+
+Modifier expressions
+~~~~~~~~~~~~~~~~~~~~
+
+There are two types of supported severity modifier expressions for use in rules:
+
+1. Absolute values: An absolute integer will *replace* a matching alert's
+   current severity level.
+2. Relative values: Prefixing an integer with ``+`` (or ``-``) will *increase*
+   (or decrease) the existing severity value by the given amount.
+
+:program:`Event Engine` will silently ensure that no assigned or calculated
+severity value will ever exceed the valid range of 1-5.
+
+.. important:: Please note that relative values **must be enclosed in quotes**,
+               to avoid confusion with absolute values. YAML interprets ``+2``
+               as the absolute value of 2, while ``'+2'`` is a relative
+               value.
+
+               A good practice would be to always quote your values, as that
+               will work as intended in all cases.
+
 
 Exporting alerts from NAV into other systems
 ============================================
