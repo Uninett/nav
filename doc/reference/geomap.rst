@@ -233,7 +233,7 @@ OpenLayers_
 ~~~~~~~~~~~
 
 The OpenLayers_ library is included directly from the http://openlayers.org
-site.  The URL we use always points to the newest version.  
+site.  The URL we use always points to the newest version.
 
 .. NOTE:: This may cause the NAV side of things to break if the OpenLayers API
    changes in a non-compatible way. On the other hand, keeping it at a fixed
@@ -469,9 +469,6 @@ unfamiliar with JavaScript:
   that it may not be very incompatible with old or obscure JavaScript
   implementations).
 
-* The Firebug_ extension to Firefox is **very** helpful when debugging
-  JavaScript code.
-
 
 
 .. _OpenLayers: http://openlayers.org/
@@ -480,4 +477,3 @@ unfamiliar with JavaScript:
 .. _rrdfetch: http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
 .. _Proj4js: http://proj4js.org/
 .. _Core JavaScript Reference: https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference
-.. _Firebug: http://getfirebug.com/
