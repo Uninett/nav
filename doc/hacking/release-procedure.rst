@@ -34,6 +34,25 @@ Getting the code
     git clone -b 4.8.x git@github.com:UNINETT/nav.git
     cd nav
 
+Ensure generated docs are up to date
+------------------------------------
+
+Some documentation source files need to be built using a running PostgreSQL
+database. If any changes have been made to the default event- and
+alert-hierarchies provided by NAV, these documentation source files need to be
+updated and checked into Git.
+
+If you have a full dev environment running (such as the environment defined by
+:file:`docker-compose.yml`), use the following to generate new docs and verify
+whether they have changed::
+
+    make doc
+    git status
+
+If you see files under the :file:`doc` directory were changed, these changes
+need to be checked into Git to ensure the documentation is up to date for the
+new release.
+
 
 Updating changelog and release notes
 ------------------------------------
