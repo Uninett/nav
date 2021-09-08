@@ -146,6 +146,13 @@ severity value will ever exceed the valid range of 1-5.
                A good practice would be to always quote your values, as that
                will work as intended in all cases.
 
+Available ``event_type`` and ``alert_type`` values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Two of the available alert attributes that can be matched against in severity
+rules are ``event_type`` and ``alert_type``. See the :doc:`event- and
+alert-type reference documentation <alerttypes>` for a detailed list of
+available type names to match.
 
 Exporting alerts from NAV into other systems
 ============================================
