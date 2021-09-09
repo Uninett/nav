@@ -46,6 +46,7 @@ from nav.portadmin.handlers import (
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
     ElsEthernetSwitchingInterfaceTable,
+    ElsEthernetSwitchingInterfaceTableJunOS20,
     InterfaceConfigTable,
     ElsVlanTable,
 )
@@ -123,6 +124,22 @@ class Juniper(ManagementHandler):
             self._is_els = self.device.device.facts.get("switch_style") == "VLAN_L2NG"
         return self._is_els
 
+    @property
+    def _els_ethernet_switching_interface_table(self):
+        return (
+            ElsEthernetSwitchingInterfaceTable
+            if self.junos_major_version < 20
+            else ElsEthernetSwitchingInterfaceTableJunOS20
+        )
+
+    @property
+    def junos_major_version(self) -> int:
+        """Returns the major JunOS version running on the switch"""
+        version = self.device.device.facts.get("version")
+        if version:
+            major, _ = version.split(".", maxsplit=1)
+            return int(major)
+
     def get_interfaces(
         self, interfaces: Sequence[manage.Interface] = None
     ) -> List[Dict[str, Any]]:
@@ -167,7 +184,7 @@ class Juniper(ManagementHandler):
                 if not vlan.tagged
             }
         else:
-            switching = ElsEthernetSwitchingInterfaceTable(self.device.device)
+            switching = self._els_ethernet_switching_interface_table(self.device.device)
             switching.get()
             return {port.ifname: port.tag for port in switching if not port.tagged}
 
@@ -206,7 +223,7 @@ class Juniper(ManagementHandler):
             switching.get(interface_name=interface.ifname)
             vlans = switching[interface.ifname].vlans
         else:
-            switching = ElsEthernetSwitchingInterfaceTable(self.device.device)
+            switching = self._els_ethernet_switching_interface_table(self.device.device)
             switching.get(interface_name=interface.ifname)
             vlans = [vlan for vlan in switching if vlan.tagged is not None]
 
