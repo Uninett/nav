@@ -15,6 +15,7 @@ This section contains reference material for end-users.
    cabling_and_patch
    eventengine
    event-templates
+   alerttypes
    geomap
    ipam
    ipdevpoll

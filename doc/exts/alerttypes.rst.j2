@@ -1,0 +1,41 @@
+Event- and alert type hierarchy
+===============================
+
+NAV events and alerts are organized into a type hierarchy. While NAV's backend
+monitoring processes usually generate events, the :program:`Event Engine` is
+responsible for deciding what to do with those events. In most cases, events
+are translated into a corresponding alert by the :program:`Event Engine`.
+
+Most alerts are *stateful*, i.e. they can be viewed as an incident that has a
+start time and an end time. If the end time is set to an infinite value, the
+alert is considered unresolved (also known as *open*).
+
+Some alert types indicate the beginning of a new alert state, while some alert
+types indicate the closure of an existing alert state. E.g. for ``boxState``
+alerts, a ``boxDown`` alert indicates that a new stateful incident has occured:
+A device is no longer responsive. On the other hand, a ``boxUp`` alert will
+cause an existing ``boxState``-type alert to be resolved.
+
+
+All legal event- and alert-types are registered in the NAV database (and can
+thus be extended, even by the user, if need be). The following are the event-
+and alert types that come pre-defined with NAV:
+
+
+{% for event, alerts in types %}
+*{{ event.id }}* events
+{{ '-' * event.id|length }}---------
+{{ event.description }}
+
+.. list-table:: Alerts associated with {{ event.id }} events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+{% for alert in alerts %}   * - ``{{ alert.name }}``
+     - {{ alert.description }}
+{% endfor %}
+
+
+{% endfor %}
