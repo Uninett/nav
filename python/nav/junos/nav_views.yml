@@ -96,6 +96,14 @@ ElsEthernetSwitchingInterfaceTable:
     key: l2iff-interface-handle
     view: ElsEthernetSwitchingInterfaceView
 
+ElsEthernetSwitchingInterfaceTableJunOS20:
+    rpc: get-ethernet-switching-interface-details
+    args:
+        detail: True
+    item: l2ng-l2ald-iff-interface-entry
+    key: l2iff-interface-handle
+    view: ElsEthernetSwitchingInterfaceView
+
 ElsEthernetSwitchingInterfaceView:
     fields:
         ifname: l2iff-interface-name
