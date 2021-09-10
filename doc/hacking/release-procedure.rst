@@ -81,8 +81,8 @@ Announcing the release
 ----------------------
 
 * Draft a new release for the new tag at GitHub.
-* Add a new release entry in the homepage admin panel at
-  https://nav.uninett.no/admin
+* Add a new release entry in the NAV homepage at
+  https://github.com/Uninett/nav-landing-page/tree/master/content/releases
 * Change the topic of the #nav Libera.Chat IRC channel to reference the new
   release + GitHub URL.
 * Send email announcement to the ``nav-users`` mailing list. Use previous
