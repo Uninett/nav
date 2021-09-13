@@ -33,6 +33,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.ifconfig',
+    'sphinxcontrib_django',
     'xref',
 ]
 
@@ -260,7 +261,10 @@ latex_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-# intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {
+    'http://docs.python.org/': None,
+    'https://docs.djangoproject.com/en/2.2': 'https://docs.djangoproject.com/en/2.2/_objects',
+}
 
 
 # External links definitions

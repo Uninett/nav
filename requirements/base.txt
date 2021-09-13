@@ -12,6 +12,8 @@ networkx>=2.2,<2.3
 Pillow>3.3.2,<8.1
 pyrad==2.1
 sphinx==3.3.1
+sphinxcontrib-django
+
 feedparser==6.0.8
 markdown==2.5.1
 dnspython==1.15.0
