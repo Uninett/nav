@@ -28,6 +28,9 @@ Currently, PortAdmin supports these operations:
 * Toggling a port between trunk and access mode
   * Configure tagged and untagged/native VLANs on ports in trunk mode
 * Configure a Voice VLAN on a port (:ref:`more_about_voice_vlan`)
+* When a switch port is detected to have 802.1X authentication enabled,
+  optionally display a custom hyperlink instead of the VLAN configuration
+  dropdown (:ref:`portadmin_dot1x`).
 
 
 What the interface tells you
@@ -186,6 +189,46 @@ the example config file. Some of the options that can be set in this file are:
 **format**
     Experimental feature. Makes you enforce a specific input format on
     the port description.
+
+.. _portadmin_dot1x:
+
+The ``[dot1x]`` section
+-----------------------
+
+PortAdmin cannot (yet) enable or change 801.2X configuration options for switch
+ports, but for several vendors, it is able to *detect* whether a port is
+operating in 802.1X mode already.
+
+The ``[dot1x]`` section of the configuration file will enable you to customize
+hyperlinks to external systems for each 802.1X-enabled port.
+
+A typical usage may be that you have a 3rd party web based system that allows
+for you to control 802.1x options, and you want PortAdmin to display a "Dot1x"
+button that hyperlinks to that system for each 802.1x-enabled switch port.
+
+The options in this section are:
+
+**enabled**
+    When set to ``true``, enables 802.1x detection and hyper link
+    customization. Default value is ``false``.
+
+**port_url_template**
+    A URL template string, used to build a hyperlink to a potential 3rd party
+    system. Into this template is fed a ``Netbox`` (IP Device) object and an
+    ``Interface`` object that describes the device and network interface
+    represented by a line in the port list.
+
+    An example template could be::
+
+        https://netadmin.example.org/dot1x?switch={netbox.sysname}&ifindex={interface.ifindex}
+
+    This builds a URL to an external system at ``netadmin.example.org``, using
+    the values of the ``sysname`` attribute of the netbox/IP device and the
+    SNMP ``ifindex`` value of the interface.
+
+    For more details on which attributes are available, see the reference docs
+    for :py:class:`nav.models.manage.Netbox` and
+    :py:class:`nav.models.manage.Interface`.
 
 
 .. _more_about_voice_vlan:
