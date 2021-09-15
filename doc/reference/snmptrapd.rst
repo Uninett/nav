@@ -5,12 +5,13 @@
 What is the SNMP trap daemon?
 =============================
 
-:program:`snmptrapd` is a program written in Python, designed to receive traps
-sent to the NAV server, and handing them off to trap handler plugins,
-which will process them.  Anyone with some knowledge of Python and SNMP should
+:program:`snmptrapd` is a NAV backend service program, designed to receive SNMP
+trap messages sent to the NAV server. It hands trap messages off to trap
+handler plugins, which will process them, and typically translate them into NAV
+events as they see fit.  Anyone with some knowledge of Python and SNMP should
 be able to write a new trap handler plugin.
 
-snmptrapd uses the :mod:`pynetsnmp-2` library (via NAV's own ``nav.Snmp``
+snmptrapd uses the :mod:`pynetsnmp-2` library (via NAV's own :py:mod:`nav.Snmp`
 adapter module), but is loosely based on this example from the PySNMP library:
 http://pysnmp.sourceforge.net/examples/2.x/snmptrapd.html
 
@@ -19,7 +20,7 @@ Usage
 =====
 
 snmptrapd can be started and stopped using the regular `nav start` and
-`nav stop` commands.  The `snmptrapd.py` program can also be run in
+`nav stop` commands.  The :program:`snmptrapd.py` program can also be run in
 the foreground on the command line, logging all its activites to the
 standard output instead of the log file.
 
