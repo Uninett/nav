@@ -54,3 +54,9 @@ See also :doc:`the release notes <release-notes>` for this version (|version|).
 * **For developers:**
   :doc:`Making a new release <hacking/release-procedure>` |
   :doc:`Hacking index <hacking/index>`
+
+
+Digging deeper
+==============
+
+Check out the :doc:`reference material index <reference/index>`.
