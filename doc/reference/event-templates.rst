@@ -10,8 +10,9 @@ the event details page.
 Creating a template
 ===================
 
-To create a template for an event you need to know what the *event type* and optionally the
-*alert type* is.
+To create a template for an event you need to know what the **event type** and
+optionally the **alert type** is.  For detail on this, please refer to
+:doc:`event and alert type reference documentation <alerttypes>`.
 
 File structure
 --------------
@@ -39,7 +40,7 @@ For a boxDown template it would look like this::
 
 
 Common template for all events
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create a template common for all events, create the *base.html* and add html
 there.
