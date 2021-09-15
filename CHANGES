@@ -1,3 +1,21 @@
+Version 5.2.0
+(released xx Sep 2021)
+
+User-visible features and improvements:
+
+  * #1928 (Document 802.1X support of PortAdmin for end users)
+  * #2289 (Add config option to disallow editing of uplinks and
+           downlinks in PortAdmin)
+  * #2295 (Redefine alert severity levels and make them configurable)
+  * #2297 (Document the event and alert type hierarchy)
+
+Fixed GitHub issues in this release:
+
+  * #2296 ([BUG] Portadmin save API incorrectly returns 500 error where
+           400 is appropriate)
+  * #2298 ([BUG] PortAdmin RpcError on JunOS 20 and newer)
+
+
 Version 5.1.4
 (released 24 Jun 2021)
 
