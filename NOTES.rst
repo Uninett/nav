@@ -8,8 +8,28 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
-NAV 5.2 (unreleased)
-====================
+NAV 5.2
+=======
+
+Dependency changes
+------------------
+
+New dependencies
+~~~~~~~~~~~~~~~~
+
+For building the NAV documentation, the Python module
+:mod:`sphinxcontrib-django` is now required (it is not required for the NAV
+runtime, though).
+
+
+Changed versions
+~~~~~~~~~~~~~~~~
+
+NAV 5.2 moved to a newer version of the Python module :mod:`feedparser`,
+because of Python 3 issues with the old version. The new requirement is:
+
+* :mod:`feedparser==6.0.8`
+
 
 Backwards incompatible changes
 ------------------------------
@@ -37,6 +57,12 @@ More importantly, NAV 5.2 adds the ability for you to configure how these
 values are set. Read more about this in the :ref:`event engine reference
 documentation on severity levels <severity_levels>`.
 
+Changes for developers
+----------------------
+
+NAV 5.2 requires all Python code to be formatted using Black, and introduces
+Git pre-commit hooks to ensure all Python code is formatted using Black before
+commits are accepted. Read all about it in :doc:`hacking/hacking`.
 
 NAV 5.1
 =======
