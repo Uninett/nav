@@ -47,6 +47,11 @@ from .event import Event
 
 _logger = logging.getLogger(__name__)
 
+# The event model requires a valid severity value, even though the event engine will
+# always override it when generating alerts. It therefore doesn't matter what value
+# we use when posting events:
+DEFAULT_SEVERITY = 3
+
 
 def db():
     """Returns a db singleton"""
@@ -245,14 +250,15 @@ class _DB(threading.Thread):
         nextid = self.query("SELECT nextval('eventq_eventqid_seq')")[0][0]
         statement = """INSERT INTO eventq
                        (eventqid, subid, netboxid, eventtypeid,
-                        state, value, source, target)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+                        state, severity, value, source, target)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         values = (
             nextid,
             event.serviceid,
             event.netboxid,
             event.eventtype,
             state,
+            DEFAULT_SEVERITY,
             value,
             event.source,
             "eventEngine",
