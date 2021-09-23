@@ -13,6 +13,7 @@ except ImportError:
 import pytest
 
 from nav.models.manage import Netbox, NetboxProfile
+from nav.models.event import EventQueue
 from nav.config import find_configfile
 
 
@@ -45,6 +46,21 @@ def test_pping_nonavailable_host_should_fail(
     )
     output = get_pping_output()
     assert expected in output
+
+
+@pytest.mark.timeout(20)
+@pytest.mark.skipif(
+    can_be_root(), reason="pping can only be tested with root privileges"
+)
+def test_pping_should_post_event_when_host_is_unreachable(
+    host_expected_to_be_down, pping_test_config
+):
+    get_pping_output()
+    assert EventQueue.objects.filter(
+        netbox=host_expected_to_be_down,
+        event_type_id='boxState',
+        state=EventQueue.STATE_START,
+    ), "The expected boxState start event was not found on the event queue"
 
 
 ########################
