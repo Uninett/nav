@@ -1,3 +1,16 @@
+Version 5.2.1
+(released 23 Sep 2021)
+
+Fixed GitHub issues in this release:
+
+  * #2304 (Display alert severity values in the event/alert details
+           page)
+  * #2306 ([BUG] pping is unable to report unreachable devices in NAV
+           5.2.0)
+  * #2308 ([BUG] Alert Profile severity filters that ship with NAV are
+           outdated)
+
+
 Version 5.2.0
 (released 16 Sep 2021)
 
