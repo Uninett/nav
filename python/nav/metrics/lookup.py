@@ -17,10 +17,14 @@
 
 import re
 
-from django.utils.lru_cache import lru_cache
 from six import iteritems
+
 from nav.models.manage import Netbox, Interface, Prefix, Sensor
 
+try:  # Django >= 3
+    from functools import lru_cache
+except ImportError:
+    from django.utils.lru_cache import lru_cache
 
 __all__ = ['reverses', 'lookup']
 _reverse_handlers = []

@@ -23,7 +23,6 @@ import logging
 from datetime import datetime, timedelta
 
 from django.db import transaction, reset_queries
-from django.utils.lru_cache import lru_cache
 
 from nav.models.profiles import (
     Account,
@@ -35,6 +34,11 @@ from nav.models.profiles import (
     TimePeriod,
 )
 from nav.models.event import AlertQueue
+
+try:  # Django >= 3
+    from functools import lru_cache
+except ImportError:
+    from django.utils.lru_cache import lru_cache
 
 
 _logger = logging.getLogger(__name__)

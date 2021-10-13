@@ -17,10 +17,14 @@
 
 
 import IPy
-from django.utils.lru_cache import lru_cache
 from nav import asyncdns
 
 from nav.util import is_valid_ip
+
+try:  # Django >= 3
+    from functools import lru_cache
+except ImportError:
+    from django.utils.lru_cache import lru_cache
 
 
 def address_sorter(addr_tuple):
