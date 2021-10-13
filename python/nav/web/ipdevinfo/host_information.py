@@ -17,8 +17,8 @@
 
 
 import IPy
-from django.utils.lru_cache import lru_cache
 from nav import asyncdns
+from nav.compatibility import lru_cache
 
 from nav.util import is_valid_ip
 

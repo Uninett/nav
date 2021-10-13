@@ -21,7 +21,7 @@ A class that tries to retrieve all sensors from WeatherGoose I.
 Uses the vendor-specifica IT-WATCHDOGS-MIB to detect and collect
 sensor-information.
 """
-from django.utils.encoding import smart_text
+from nav.compatibility import smart_str
 from django.utils.six import itervalues
 from twisted.internet import defer
 
@@ -346,7 +346,7 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
         if not sensor_oid or not base_oid or not serial or not desc:
             return {}
         oid = OID(base_oid) + OID(sensor_oid)
-        internal_name = smart_text(serial) + desc
+        internal_name = smart_str(serial) + desc
         res = {
             'oid': oid,
             'unit_of_measurement': u_o_m,

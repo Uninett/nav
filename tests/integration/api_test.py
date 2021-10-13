@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-from django.utils.encoding import force_text
+from nav.compatibility import force_str
 
 from datetime import datetime, timedelta
 import json
@@ -12,7 +12,7 @@ from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
 
 
-ENDPOINTS = {name: force_text(url) for name, url in get_endpoints().items()}
+ENDPOINTS = {name: force_str(url) for name, url in get_endpoints().items()}
 
 
 # Data for writable endpoints
@@ -333,7 +333,7 @@ def create_token_endpoint(token, name):
 def get(api_client, endpoint, id=None):
     endpoint = ENDPOINTS[endpoint]
     if id:
-        endpoint = endpoint + force_text(id) + '/'
+        endpoint = endpoint + force_str(id) + '/'
     return api_client.get(endpoint)
 
 
@@ -345,13 +345,13 @@ def create(api_client, endpoint, data):
 def update(api_client, endpoint, id, data):
     """Sends a patch request to endpoint with data"""
     return api_client.patch(
-        ENDPOINTS[endpoint] + force_text(id) + '/', data, format='json'
+        ENDPOINTS[endpoint] + force_str(id) + '/', data, format='json'
     )
 
 
 def delete(api_client, endpoint, id):
     """Sends a delete request to endpoint"""
-    return api_client.delete(ENDPOINTS[endpoint] + force_text(id) + '/')
+    return api_client.delete(ENDPOINTS[endpoint] + force_str(id) + '/')
 
 
 @pytest.mark.parametrize(
