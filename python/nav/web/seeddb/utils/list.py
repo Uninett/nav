@@ -21,7 +21,7 @@ from functools import reduce
 
 from django.db.models import Model
 from django.shortcuts import render
-from django.db.models.fields import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist
 from django.urls import reverse
 from six import iteritems
 

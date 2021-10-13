@@ -16,7 +16,7 @@
 #
 
 """Utility methods for django used in NAV"""
-from django.db.models.fields import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist
 from django.urls import reverse
 from django.utils.http import urlencode
 
