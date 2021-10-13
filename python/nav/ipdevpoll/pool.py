@@ -28,7 +28,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.endpoints import ProcessEndpoint, StandardIOEndpoint
 import twisted.internet.endpoints
 
-from django.utils import six
+import six
 
 from nav.ipdevpoll.config import ipdevpoll_conf
 from . import control, jobs

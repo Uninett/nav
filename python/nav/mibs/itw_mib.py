@@ -22,7 +22,7 @@ Uses the vendor-specifica IT-WATCHDOGS-MIB to detect and collect
 sensor-information.
 """
 from django.utils.encoding import smart_text
-from django.utils.six import itervalues
+from six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index

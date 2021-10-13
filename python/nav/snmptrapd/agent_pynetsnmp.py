@@ -24,7 +24,7 @@ from ctypes import c_ushort, c_char, POINTER, cast, c_long
 from IPy import IP
 from pynetsnmp import netsnmp
 
-from django.utils import six
+import six
 
 from nav.errors import GeneralException
 from nav.oids import OID

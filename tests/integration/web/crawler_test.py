@@ -27,16 +27,16 @@ except ImportError:
 import pytest
 
 from tidylib import tidy_document
-from django.utils import six
-from django.utils.six.moves.urllib.request import (
+import six
+from six.moves.urllib.request import (
     urlopen,
     build_opener,
     install_opener,
     HTTPCookieProcessor,
     Request,
 )
-from django.utils.six.moves.urllib.error import HTTPError, URLError
-from django.utils.six.moves.urllib.parse import (
+from six.moves.urllib.error import HTTPError, URLError
+from six.moves.urllib.parse import (
     urlsplit,
     urlencode,
     urlunparse,

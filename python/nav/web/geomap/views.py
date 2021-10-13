@@ -28,7 +28,7 @@ from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.six import itervalues
+from six import itervalues
 
 import nav.db
 from nav.django.utils import get_account

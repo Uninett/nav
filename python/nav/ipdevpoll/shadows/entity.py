@@ -23,8 +23,8 @@ import networkx as nx
 from networkx.algorithms.traversal.depth_first_search import dfs_tree as subtree
 
 from django.db import transaction
-from django.utils import six
-from django.utils.six import iteritems, itervalues
+import six
+from six import iteritems, itervalues
 
 from nav.toposort import build_graph, topological_sort
 

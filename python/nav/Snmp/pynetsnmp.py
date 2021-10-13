@@ -31,7 +31,7 @@ from ctypes import (
     c_uint64,
 )
 
-from django.utils import six
+import six
 from IPy import IP
 from pynetsnmp import netsnmp
 from pynetsnmp.netsnmp import (

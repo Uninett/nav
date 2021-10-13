@@ -26,8 +26,8 @@ from functools import wraps
 from itertools import chain, tee, groupby, islice
 from operator import itemgetter
 
-from django.utils import six
-from django.utils.six.moves import range
+import six
+from six.moves import range
 
 import IPy
 

@@ -15,7 +15,7 @@
 #
 """Cisco specific PortAdmin SNMP handling"""
 import logging
-from django.utils import six
+import six
 
 from nav.Snmp.errors import SnmpError
 from nav.bitvector import BitVector

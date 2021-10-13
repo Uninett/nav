@@ -22,7 +22,7 @@ from __future__ import print_function, unicode_literals
 import logging
 from os.path import join
 
-from django.utils import six
+import six
 
 import nav.errors
 from nav.config import NAVConfigParser

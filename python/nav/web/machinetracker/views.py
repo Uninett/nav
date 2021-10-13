@@ -23,7 +23,7 @@ from IPy import IP
 
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
-from django.utils import six
+import six
 from django.http import HttpResponseRedirect
 
 from nav.django.utils import reverse_with_query

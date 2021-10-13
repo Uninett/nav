@@ -16,7 +16,7 @@
 """Formatting of table data to readable text."""
 from __future__ import absolute_import
 
-from django.utils import six
+import six
 
 
 class SimpleTableFormatter(object):

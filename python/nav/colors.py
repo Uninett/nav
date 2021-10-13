@@ -31,7 +31,7 @@ from curses import (
     COLOR_WHITE,
     COLOR_YELLOW,
 )
-from django.utils import six
+import six
 
 __all__ = [
     'COLOR_BLACK',

@@ -14,7 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A class for extracting sensors from RFC1628 compatible UPSes"""
-from django.utils.six import itervalues
+from six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index

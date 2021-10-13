@@ -22,7 +22,7 @@ from __future__ import absolute_import
 import json
 
 from django.core.exceptions import ValidationError
-from django.utils import six
+import six
 
 from nav.models.fields import PointField
 from nav.models.manage import Netbox, Room, Organization

@@ -18,7 +18,7 @@
 import re
 
 from django.utils.lru_cache import lru_cache
-from django.utils.six import iteritems
+from six import iteritems
 from nav.models.manage import Netbox, Interface, Prefix, Sensor
 
 

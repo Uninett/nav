@@ -17,7 +17,7 @@
 import time
 import logging
 
-from django.utils.six import itervalues
+from six import itervalues
 from twisted.internet import defer
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import db

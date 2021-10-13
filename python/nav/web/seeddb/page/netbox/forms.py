@@ -30,7 +30,7 @@ from crispy_forms_foundation.layout import (
     Div,
     HTML,
 )
-from django.utils import six
+import six
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit, NavButton

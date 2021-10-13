@@ -23,7 +23,7 @@ import logging
 from IPy import IP
 
 from django.db import DatabaseError, transaction
-from django.utils import six
+import six
 
 from nav import asyncdns
 from nav.models.manage import Prefix, Netbox, Interface

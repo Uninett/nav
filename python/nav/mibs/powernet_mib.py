@@ -14,7 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A class for extracting information from APC devices"""
-from django.utils.six import iteritems
+from six import iteritems
 from twisted.internet import defer
 from nav.smidumps import get_mib
 from nav.mibs import reduce_index

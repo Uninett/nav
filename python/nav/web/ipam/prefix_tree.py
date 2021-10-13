@@ -28,7 +28,7 @@ import logging
 from IPy import IP, IPSet
 
 from django.urls import reverse, NoReverseMatch
-from django.utils import six
+import six
 
 from nav.web.ipam.util import get_available_subnets
 from nav.models.manage import Prefix

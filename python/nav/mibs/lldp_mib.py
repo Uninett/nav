@@ -17,7 +17,7 @@
 import socket
 from collections import namedtuple
 
-from django.utils import six
+import six
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.ip import IP

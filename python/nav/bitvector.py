@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import array
 import re
 
-from django.utils import six
+import six
 
 from .six import encode_array
 

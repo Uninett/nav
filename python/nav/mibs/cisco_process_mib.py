@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-from django.utils.six import itervalues, iteritems
+from six import itervalues, iteritems
 from twisted.internet import defer
 
 from django.utils.encoding import smart_text

@@ -21,7 +21,7 @@ import json
 
 from django import forms
 from django.forms import Field, Textarea
-from django.utils import six
+import six
 
 from nav.util import is_valid_cidr
 from nav.django import validators, widgets

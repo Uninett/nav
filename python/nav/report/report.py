@@ -18,7 +18,7 @@
 import re
 from urllib.parse import quote_plus
 
-from django.utils import six
+import six
 
 
 class Field(object):

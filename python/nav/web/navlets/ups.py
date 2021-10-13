@@ -17,7 +17,7 @@
 
 from django import forms
 from django.db.models import Q
-from django.utils.six.moves.urllib.parse import urlparse
+from six.moves.urllib.parse import urlparse
 
 from nav.models.manage import Netbox, Sensor
 from . import Navlet

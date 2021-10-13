@@ -22,7 +22,7 @@ import re
 import io
 import json
 
-from django.utils import six
+import six
 from IPy import IP
 
 from nav.django.validators import is_valid_point_string

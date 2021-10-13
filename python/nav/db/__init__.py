@@ -27,7 +27,7 @@ import time
 import psycopg2
 import psycopg2.extensions
 
-from django.utils import six
+import six
 
 import nav
 from nav import config

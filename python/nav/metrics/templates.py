@@ -17,7 +17,7 @@
 Metric naming templates for various things that NAV sends/retrieves from
 Graphite.
 """
-from django.utils import six
+import six
 
 from nav.metrics.names import escape_metric_name
 

@@ -17,7 +17,7 @@
 """MibRetriever implementation for IP-MIB"""
 from __future__ import absolute_import
 
-from django.utils import six
+import six
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.oids import OID

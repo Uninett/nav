@@ -34,7 +34,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.http import urlquote
 
-from django.utils import six
+import six
 
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account

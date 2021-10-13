@@ -18,8 +18,8 @@ import contextlib
 import socket
 import base64
 
-from django.utils.six.moves.urllib.parse import urlsplit
-from django.utils.six.moves import http_client
+from six.moves.urllib.parse import urlsplit
+from six.moves import http_client
 
 from nav import buildconf
 from nav.statemon.event import Event

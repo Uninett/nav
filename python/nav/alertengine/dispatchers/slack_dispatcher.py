@@ -3,9 +3,9 @@
 import json
 import time
 
-from django.utils import six
-from django.utils.six.moves.urllib.request import Request, urlopen
-from django.utils.six.moves.urllib.error import HTTPError
+import six
+from six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.error import HTTPError
 
 from nav.alertengine.dispatchers import Dispatcher, DispatcherException
 

@@ -44,7 +44,7 @@ from twisted.names.error import DNSQueryTimeoutError, DNSFormatError
 from twisted.names.error import DNSServerError, DNSNameError
 from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError
 
-from django.utils import six
+import six
 
 
 def reverse_lookup(addresses):

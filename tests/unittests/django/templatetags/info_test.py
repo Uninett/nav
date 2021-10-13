@@ -4,7 +4,7 @@ import unittest
 
 from datetime import timedelta, datetime
 
-from django.utils import six
+import six
 
 from nav.django.templatetags.info import (
     time_since,

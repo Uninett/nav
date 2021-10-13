@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import pytest
 from mock import Mock
-from django.utils import six
+import six
 
 from nav.eventengine.config import EventEngineConfig
 from nav.eventengine.engine import EventEngine

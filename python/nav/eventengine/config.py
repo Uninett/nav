@@ -17,7 +17,7 @@
 from __future__ import unicode_literals
 from configparser import NoSectionError, NoOptionError
 
-from django.utils import six
+import six
 
 from nav.config import NAVConfigParser
 from nav.util import parse_interval

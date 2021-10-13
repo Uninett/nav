@@ -15,7 +15,7 @@
 #
 """A class for extracting information from HPE power devices devices"""
 from __future__ import unicode_literals
-from django.utils.six import iteritems, text_type
+from six import iteritems, text_type
 from twisted.internet import defer
 from nav.smidumps import get_mib
 from nav.mibs import reduce_index

@@ -34,7 +34,7 @@ with a suggested WSGI-based configuration.
 """
 import warnings
 import logging
-from django.utils.six.moves import http_cookies
+from six.moves import http_cookies
 
 from nav.bootstrap import bootstrap_django
 

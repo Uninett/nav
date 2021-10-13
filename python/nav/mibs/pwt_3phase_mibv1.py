@@ -24,8 +24,8 @@ Please note!
 -- not a complete implementation of the mib --
 
 """
-from django.utils import six
-from django.utils.six import itervalues
+import six
+from six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
