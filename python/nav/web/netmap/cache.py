@@ -23,7 +23,7 @@ from django.core.cache import cache
 # TODO: This cache should be invalidated only when the topology is
 # changed, which is somewhat rare, so set to a reasonable long time
 # for now
-from django.utils import six
+import six
 
 CACHE_TIMEOUT = 60 * 60
 # Data is collected every 5 minutes by NAV

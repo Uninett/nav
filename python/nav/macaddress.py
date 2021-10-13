@@ -36,7 +36,7 @@ import re
 # pylint: disable=W0402
 import string
 
-from django.utils import six
+import six
 from django.utils.encoding import python_2_unicode_compatible
 
 # A range of left shift values for the 6 bytes in a MAC address

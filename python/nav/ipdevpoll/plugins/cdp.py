@@ -16,7 +16,7 @@
 "ipdevpoll plugin to collect CDP (Cisco Discovery Protocol) information"
 import string
 
-from django.utils import six
+import six
 from twisted.internet import defer
 
 from nav.macaddress import MacAddress

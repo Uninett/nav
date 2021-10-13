@@ -6,7 +6,7 @@ from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
 from django.forms.models import model_to_dict
-from django.utils import six
+import six
 
 from nav import natsort
 from nav.models.manage import Cam, Arp, GwPortPrefix, Netbox, SwPortVlan

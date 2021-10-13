@@ -18,7 +18,7 @@ from operator import attrgetter
 
 from twisted.internet import defer
 
-from django.utils import six
+import six
 
 from nav.mibs import reduce_index
 from nav.mibs.entity_mib import EntityMib

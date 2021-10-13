@@ -16,7 +16,7 @@
 """Forms used for Bulk import of data"""
 
 from django import forms
-from django.utils import six
+import six
 
 from nav.bulkparse import BulkParseError, CommentStripper
 from nav.bulkimport import BulkImportError

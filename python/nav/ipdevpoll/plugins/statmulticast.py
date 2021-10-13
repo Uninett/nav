@@ -19,7 +19,7 @@ import logging
 from collections import Counter
 from pprint import pformat
 
-from django.utils.six import iteritems
+from six import iteritems
 from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin

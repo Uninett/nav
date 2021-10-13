@@ -23,7 +23,7 @@ from collections import defaultdict
 
 import django
 from django.db import transaction
-from django.utils import six
+import six
 
 from nav import buildconf
 from nav.logs import init_generic_logging

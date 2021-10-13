@@ -22,7 +22,9 @@ import hashlib
 import base64
 import re
 
-from django.utils import crypto, six
+import six
+
+from django.utils import crypto
 
 from nav import errors
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from mock import patch, MagicMock, Mock
-from django.utils import six
+import six
 from django.test import RequestFactory
 
 import pytest

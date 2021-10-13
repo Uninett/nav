@@ -15,7 +15,7 @@
 #
 """Widget for displaying a chart"""
 
-from django.utils.six.moves.urllib.parse import urlparse, parse_qs
+from six.moves.urllib.parse import urlparse, parse_qs
 from django import forms
 from . import Navlet, REFRESH_INTERVAL
 

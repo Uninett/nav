@@ -18,7 +18,7 @@ import re
 
 from twisted.internet import defer
 
-from django.utils import six
+import six
 
 import nav.bitvector
 from nav.smidumps import get_mib

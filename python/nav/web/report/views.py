@@ -34,7 +34,7 @@ from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.urls import reverse
-from django.utils.six import PY2, iteritems, text_type
+from six import PY2, iteritems, text_type
 
 from nav.models.manage import Prefix
 

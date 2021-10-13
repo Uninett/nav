@@ -1,6 +1,6 @@
 from unittest import TestCase
 from mock import Mock
-from django.utils import six
+import six
 
 import pytest
 

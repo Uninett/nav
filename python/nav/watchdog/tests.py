@@ -20,7 +20,8 @@ import itertools
 import logging
 from datetime import datetime, timedelta
 
-from django.utils import six
+import six
+
 from django.utils.timesince import timesince
 from django.db.models import Count
 from django.utils.encoding import python_2_unicode_compatible

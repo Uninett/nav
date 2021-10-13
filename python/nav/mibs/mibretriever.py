@@ -32,7 +32,7 @@ this to allow asynchronous data retrieval.
 
 import logging
 
-from django.utils import six
+import six
 
 from twisted.internet import defer, reactor
 from twisted.internet.defer import returnValue

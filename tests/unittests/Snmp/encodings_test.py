@@ -1,5 +1,5 @@
 from unittest import TestCase
-from django.utils import six
+import six
 
 from nav.Snmp import safestring
 

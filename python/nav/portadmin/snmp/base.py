@@ -19,7 +19,7 @@ from operator import attrgetter
 import logging
 from typing import Dict, Sequence, List, Any
 
-from django.utils import six
+import six
 
 from nav import Snmp
 from nav.Snmp import safestring, OID

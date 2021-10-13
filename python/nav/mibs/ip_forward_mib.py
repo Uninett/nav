@@ -19,7 +19,7 @@ from collections import defaultdict
 from itertools import chain
 from collections import namedtuple
 
-from django.utils.six import iteritems
+from six import iteritems
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.smidumps import get_mib

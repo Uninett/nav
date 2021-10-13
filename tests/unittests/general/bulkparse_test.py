@@ -3,7 +3,7 @@
 # pylint: disable=C0111, C0103, W0614
 
 import pytest
-from django.utils import six
+import six
 
 from nav import bulkparse
 

@@ -20,7 +20,7 @@ from itertools import groupby
 
 from django.db.models import Q
 from django.db import transaction
-from django.utils import six
+import six
 
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar

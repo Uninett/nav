@@ -30,7 +30,7 @@ import sys
 import IPy
 import logging
 
-from django.utils.six.moves import input
+from six.moves import input
 
 from nav.logs import init_stderr_logging
 from nav.statemon import checkermap

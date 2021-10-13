@@ -53,7 +53,7 @@ from configparser import ConfigParser
 import datetime
 import optparse
 
-from django.utils import six
+import six
 
 import nav
 import nav.logs

@@ -29,7 +29,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
 from django.urls import reverse, NoReverseMatch
-from django.utils import six
+import six
 
 from nav.web.message import new_message, Messages
 from nav.models.manage import Netbox, NetboxCategory, NetboxGroup

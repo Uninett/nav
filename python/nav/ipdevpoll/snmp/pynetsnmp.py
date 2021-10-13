@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import inspect
 import os
 
-from django.utils import six
+import six
 
 # pylint: disable=wrong-import-position
 # don't have NET-SNMP load and parse MIB modules, we don't use them

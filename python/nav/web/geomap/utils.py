@@ -24,7 +24,7 @@ import math
 from itertools import groupby
 from functools import reduce
 
-from django.utils.six import iteritems
+from six import iteritems
 
 
 def identity(obj):

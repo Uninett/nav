@@ -17,7 +17,7 @@
 import logging
 from collections import defaultdict
 
-from django.utils.six import iteritems
+from six import iteritems
 
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta

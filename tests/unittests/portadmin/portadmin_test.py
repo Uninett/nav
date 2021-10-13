@@ -2,7 +2,7 @@ from mock import Mock
 
 import unittest
 
-from django.utils import six
+import six
 
 from nav.oids import OID
 from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD, VENDOR_ID_CISCOSYSTEMS

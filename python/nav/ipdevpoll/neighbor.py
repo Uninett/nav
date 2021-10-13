@@ -28,7 +28,7 @@ import threading
 
 from IPy import IP
 from django.db.models import Q
-from django.utils import six
+import six
 
 from nav.util import cachedfor, synchronized
 from nav.models import manage

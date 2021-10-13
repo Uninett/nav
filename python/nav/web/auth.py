@@ -23,12 +23,13 @@ import logging
 from os.path import join
 import os
 
+from six.moves.urllib import parse
+
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six.moves.urllib import parse
 
 try:
     from django.utils.deprecation import MiddlewareMixin

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 from itertools import chain
 import importlib
 
-from django.utils import six
+import six
 
 from nav.config import NAV_CONFIG
 from nav.oids import OID
