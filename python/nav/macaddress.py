@@ -37,7 +37,6 @@ import re
 import string
 
 import six
-from django.utils.encoding import python_2_unicode_compatible
 
 # A range of left shift values for the 6 bytes in a MAC address
 _SHIFT_RANGE = tuple(x * 8 for x in reversed(range(6)))
@@ -177,7 +176,6 @@ class MacAddress(object):
         return _int_to_delimited_hexstring(self._addr, delim, DELIMS_AND_STEPS[delim])
 
 
-@python_2_unicode_compatible
 class MacPrefix(object):
     """Represents the prefix of a range of MacAddress objects.
 

@@ -19,7 +19,6 @@ from __future__ import unicode_literals, absolute_import
 import logging
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.encoding import force_text
 from django.utils.timezone import now as utcnow
 
@@ -30,7 +29,6 @@ from . import find_modelname
 _logger = logging.getLogger(__name__)
 
 
-@python_2_unicode_compatible
 class LogEntry(models.Model):
     """
     Logs mostly user actions in NAV

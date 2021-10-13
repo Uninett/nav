@@ -24,7 +24,6 @@ import datetime as dt
 
 from django.db import models
 from django.db.models import Q
-from django.utils.encoding import python_2_unicode_compatible
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from nav.models.fields import VarcharField, DateTimeInfinityField, UNRESOLVED
@@ -42,7 +41,6 @@ STATE_CHOICES = (
 )
 
 
-@python_2_unicode_compatible
 class Subsystem(models.Model):
     """From NAV Wiki: Defines the subsystems that post or receives an event."""
 
@@ -175,7 +173,6 @@ class StateVariableMap(VariableMapBase):
                     )
 
 
-@python_2_unicode_compatible
 class UnknownEventSubject(object):
     """Representation of unknown alert/event subjects"""
 
@@ -284,7 +281,6 @@ class EventMixIn(object):
         return self.netbox or self.device or UnknownEventSubject(self)
 
 
-@python_2_unicode_compatible
 class ThresholdEvent(object):
     """
     Magic class to act as a threshold event subject that produces useful
@@ -337,7 +333,6 @@ class ThresholdEvent(object):
                 return self.subject.netbox.get_absolute_url()
 
 
-@python_2_unicode_compatible
 class EventQueue(models.Model, EventMixIn):
     """From NAV Wiki: The event queue. Additional data in eventqvar. Different
     subsystem (specified in source) post events on the event queue. Normally
@@ -418,7 +413,6 @@ class EventQueue(models.Model, EventMixIn):
             self.varmap = self.varmap
 
 
-@python_2_unicode_compatible
 class EventType(models.Model):
     """From NAV Wiki: Defines event types."""
 
@@ -440,7 +434,6 @@ class EventType(models.Model):
         return self.id
 
 
-@python_2_unicode_compatible
 class EventQueueVar(models.Model):
     """From NAV Wiki: Defines additional (key,value) tuples that follow
     events."""
@@ -466,7 +459,6 @@ class EventQueueVar(models.Model):
 ### Alert system
 
 
-@python_2_unicode_compatible
 class AlertQueue(models.Model, EventMixIn):
     """From NAV Wiki: The alert queue. Additional data in alertqvar and
     alertmsg. Event engine posts alerts on the alert queue (and in addition on
@@ -535,7 +527,6 @@ class AlertQueue(models.Model, EventMixIn):
             self.varmap = self.varmap
 
 
-@python_2_unicode_compatible
 class AlertType(models.Model):
     """From NAV Wiki: Defines the alert types. An event type may have many alert
     types."""
@@ -555,7 +546,6 @@ class AlertType(models.Model):
         return u'%s, of event type %s' % (self.name, self.event_type)
 
 
-@python_2_unicode_compatible
 class AlertQueueMessage(models.Model):
     """From NAV Wiki: Event engine will, based on alertmsg.conf, preformat the
     alarm messages, one message for each configured alert channel (email, sms),
@@ -581,7 +571,6 @@ class AlertQueueMessage(models.Model):
         return u'%s message in language %s' % (self.type, self.language)
 
 
-@python_2_unicode_compatible
 class AlertQueueVariable(models.Model):
     """From NAV Wiki: Defines additional (key,value) tuples that follow alert.
     Note: the eventqvar tuples are passed along to the alertqvar table so that
@@ -622,7 +611,6 @@ class AlertHistoryQuerySet(models.QuerySet):
         return self.filter(filtr)
 
 
-@python_2_unicode_compatible
 class AlertHistory(models.Model, EventMixIn):
     """From NAV Wiki: The alert history. Simular to the alert queue with one
     important distinction; alert history stores stateful events as one row,
@@ -724,7 +712,6 @@ class AlertHistory(models.Model, EventMixIn):
             self.varmap = self.varmap
 
 
-@python_2_unicode_compatible
 class AlertHistoryMessage(models.Model):
     """From NAV Wiki: To have a history of the formatted messages too, they are
     stored in alerthistmsg."""
@@ -756,7 +743,6 @@ class AlertHistoryMessage(models.Model):
         return u'%s message in language %s' % (self.type, self.language)
 
 
-@python_2_unicode_compatible
 class AlertHistoryVariable(models.Model):
     """From NAV Wiki: Defines additional (key,value) tuples that follow the
     alerthist record."""
@@ -787,7 +773,6 @@ class AlertHistoryVariable(models.Model):
         return u'%s=%s' % (self.variable, self.value)
 
 
-@python_2_unicode_compatible
 class Acknowledgement(models.Model):
     """Alert acknowledgements"""
 

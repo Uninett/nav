@@ -28,7 +28,6 @@ import json
 from django.views.decorators.debug import sensitive_variables
 from django.db import models, transaction
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 from django.forms.models import model_to_dict
 
 from nav.adapters import HStoreField
@@ -80,7 +79,6 @@ _ = lambda a: a
 ### Account models
 
 
-@python_2_unicode_compatible
 class Account(models.Model):
     """NAV's basic account model"""
 
@@ -301,7 +299,6 @@ class Account(models.Model):
         return self.alertaddress_set.filter(type__name=AlertSender.EMAIL)
 
 
-@python_2_unicode_compatible
 class AccountGroup(models.Model):
     """NAV account groups"""
 
@@ -340,7 +337,6 @@ class AccountGroup(models.Model):
         return self.id == self.ADMIN_GROUP
 
 
-@python_2_unicode_compatible
 class NavbarLink(models.Model):
     """A hyperlink on a user's navigation bar."""
 
@@ -358,7 +354,6 @@ class NavbarLink(models.Model):
         return '%s=%s' % (self.name, self.uri)
 
 
-@python_2_unicode_compatible
 class Privilege(models.Model):
     """A privilege granted to an AccountGroup."""
 
@@ -377,7 +372,6 @@ class Privilege(models.Model):
         return '%s for %s' % (self.type, self.target)
 
 
-@python_2_unicode_compatible
 class PrivilegeType(models.Model):
     """A registered privilege type."""
 
@@ -391,7 +385,6 @@ class PrivilegeType(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class AlertAddress(models.Model):
     """Accounts alert addresses, valid types are retrived from
     alertengine.conf
@@ -486,7 +479,6 @@ class AlertAddress(models.Model):
         return True
 
 
-@python_2_unicode_compatible
 class AlertSender(models.Model):
     """A registered alert sender/medium."""
 
@@ -559,7 +551,6 @@ class AlertSender(models.Model):
         db_table = 'alertsender'
 
 
-@python_2_unicode_compatible
 class AlertPreference(models.Model):
     """AlertProfile account preferences"""
 
@@ -583,7 +574,6 @@ class AlertPreference(models.Model):
 ### Profile models
 
 
-@python_2_unicode_compatible
 class AlertProfile(models.Model):
     """Account AlertProfiles"""
 
@@ -665,7 +655,6 @@ class AlertProfile(models.Model):
         return active_timeperiod
 
 
-@python_2_unicode_compatible
 class TimePeriod(models.Model):
     """Defines TimerPeriods and which part of the week they are valid"""
 
@@ -696,7 +685,6 @@ class TimePeriod(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class AlertSubscription(models.Model):
     """Links an address and timeperiod to a filtergroup with a given
     subscription type.
@@ -752,7 +740,6 @@ class AlertSubscription(models.Model):
 ### Equipment models
 
 
-@python_2_unicode_compatible
 class FilterGroupContent(models.Model):
     """Defines how a given filter should be used in a filtergroup"""
 
@@ -801,7 +788,6 @@ class FilterGroupContent(models.Model):
         return '%s filter on %s' % (type_, self.filter)
 
 
-@python_2_unicode_compatible
 class Operator(models.Model):
     """Defines valid operators for a given matchfield."""
 
@@ -893,7 +879,6 @@ class Operator(models.Model):
         return self.IP_OPERATOR_MAPPING[self.type]
 
 
-@python_2_unicode_compatible
 class Expression(models.Model):
     """Combines filer, operator, matchfield and value into an expression that
     can be evaluated.
@@ -926,7 +911,6 @@ class Expression(models.Model):
         return Operator(type=self.operator).get_operator_mapping()
 
 
-@python_2_unicode_compatible
 class Filter(models.Model):
     """One or more expressions that are combined with an and operation.
 
@@ -1051,7 +1035,6 @@ class Filter(models.Model):
         return False
 
 
-@python_2_unicode_compatible
 class FilterGroup(models.Model):
     """A set of filters group contents that an account can subscribe to or be
     given permission to.
@@ -1073,7 +1056,6 @@ class FilterGroup(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class MatchField(models.Model):
     """Defines which fields can be matched upon and how"""
 
@@ -1274,7 +1256,6 @@ class MatchField(models.Model):
 ### AlertEngine models
 
 
-@python_2_unicode_compatible
 class SMSQueue(models.Model):
     """Queue of messages that should be sent or have been sent by SMSd"""
 
@@ -1390,7 +1371,6 @@ class AccountAlertQueue(models.Model):
 LINK_TYPES = (2, 'Layer 2'), (3, 'Layer 3')
 
 
-@python_2_unicode_compatible
 class NetmapView(models.Model):
     """Properties for a specific view in Netmap"""
 
@@ -1443,7 +1423,6 @@ class NetmapViewDefaultView(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class NetmapViewCategories(models.Model):
     """Saved categories for a selected view in Netmap"""
 
@@ -1492,7 +1471,6 @@ class NetmapViewNodePosition(models.Model):
         db_table = u'netmap_view_nodeposition'
 
 
-@python_2_unicode_compatible
 class AccountTool(models.Model):
     """Link between tool and account"""
 
@@ -1511,7 +1489,6 @@ class AccountTool(models.Model):
         db_table = u'accounttool'
 
 
-@python_2_unicode_compatible
 class AccountDashboard(models.Model):
     """Stores dashboards for each user"""
 
@@ -1546,7 +1523,6 @@ class AccountDashboard(models.Model):
         ordering = ('name',)
 
 
-@python_2_unicode_compatible
 class AccountNavlet(models.Model):
     """Store information about a users navlets"""
 
@@ -1575,7 +1551,6 @@ class AccountNavlet(models.Model):
         ordering = ['order']
 
 
-@python_2_unicode_compatible
 class ReportSubscription(models.Model):
     """Subscriptions for availability reports"""
 

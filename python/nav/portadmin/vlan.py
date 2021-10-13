@@ -14,10 +14,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """VLAN specific data structures for use in PortAdmin"""
-from django.utils.encoding import python_2_unicode_compatible
 
 
-@python_2_unicode_compatible
 class FantasyVlan(object):
     """A container object for storing vlans for a netbox
 
