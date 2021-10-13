@@ -19,7 +19,6 @@
 # pylint: disable=R0903
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 
 from nav.models.fields import VarcharField
 from nav.models.manage import Interface
@@ -35,7 +34,6 @@ DETENTION_TYPE_CHOICES = [('disable', 'Block'), ('quarantine', 'Quarantine')]
 KEEP_CLOSED_CHOICES = [('n', 'Open on move'), ('y', 'All closed')]
 
 
-@python_2_unicode_compatible
 class Identity(models.Model):
     """
     The table contains a listing for each computer,interface combo Arnold
@@ -97,7 +95,6 @@ class Identity(models.Model):
         unique_together = ('mac', 'interface')
 
 
-@python_2_unicode_compatible
 class Event(models.Model):
     """A class representing an action taken"""
 
@@ -122,7 +119,6 @@ class Event(models.Model):
         ordering = ('event_time',)
 
 
-@python_2_unicode_compatible
 class Justification(models.Model):
     """Represents the justification for an event"""
 
@@ -138,7 +134,6 @@ class Justification(models.Model):
         ordering = ('name',)
 
 
-@python_2_unicode_compatible
 class QuarantineVlan(models.Model):
     """A quarantine vlan is a vlan where offenders are placed"""
 
@@ -154,7 +149,6 @@ class QuarantineVlan(models.Model):
         ordering = ('vlan',)
 
 
-@python_2_unicode_compatible
 class DetentionProfile(models.Model):
     """A detention profile is a configuration used by an automatic detention"""
 

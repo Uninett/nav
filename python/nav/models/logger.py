@@ -19,12 +19,10 @@ Django ORM wrapper for the NAV logger database
 
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 
 from nav.models.fields import VarcharField
 
 
-@python_2_unicode_compatible
 class LoggerCategory(models.Model):
     """
     Model for the logger.category-table
@@ -39,7 +37,6 @@ class LoggerCategory(models.Model):
         db_table = '"logger"."category"'
 
 
-@python_2_unicode_compatible
 class Origin(models.Model):
     """
     Model for the logger.origin-table
@@ -58,7 +55,6 @@ class Origin(models.Model):
         db_table = '"logger"."origin"'
 
 
-@python_2_unicode_compatible
 class Priority(models.Model):
     """
     Model for the logger.priority-table
@@ -75,7 +71,6 @@ class Priority(models.Model):
         db_table = '"logger"."priority"'
 
 
-@python_2_unicode_compatible
 class LogMessageType(models.Model):
     """
     Model for the logger.log_message_type-table

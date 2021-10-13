@@ -29,7 +29,6 @@ from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 
 try:
     from django.utils.deprecation import MiddlewareMixin
@@ -550,7 +549,6 @@ def get_sudoer(request):
         return Account.objects.get(id=request.session[SUDOER_ID_VAR])
 
 
-@python_2_unicode_compatible
 class SudoRecursionError(Exception):
     msg = u"Already posing as another user"
 
@@ -558,7 +556,6 @@ class SudoRecursionError(Exception):
         return self.msg
 
 
-@python_2_unicode_compatible
 class SudoNotAdminError(Exception):
     msg = u"Not admin"
 

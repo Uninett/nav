@@ -20,7 +20,6 @@ from datetime import datetime
 import logging
 
 from django.db.models import Q
-from django.utils.encoding import python_2_unicode_compatible
 
 from nav.config import CONFIG_LOCATIONS
 from nav.web import webfrontConfig
@@ -32,7 +31,6 @@ from nav.models.profiles import AccountTool
 _logger = logging.getLogger('nav.web.tools.utils')
 
 
-@python_2_unicode_compatible
 class Tool(object):
     """Class representing a tool"""
 

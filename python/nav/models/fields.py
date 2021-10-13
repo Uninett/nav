@@ -17,9 +17,10 @@
 
 import pickle
 import json
-
 from datetime import datetime
 from decimal import Decimal
+
+import six
 
 import django
 from django import forms
@@ -27,8 +28,6 @@ from django.db import models
 from django.db.models import signals
 from django.core import exceptions
 from django.db.models import Q
-from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible
 from django.apps import apps
 
 from nav.util import is_valid_cidr, is_valid_ip
@@ -170,7 +169,6 @@ class PointField(models.CharField):
 # this interfaces with Django model protocols, which generates unnecessary
 # pylint violations:
 # pylint: disable=W0201,W0212
-@python_2_unicode_compatible
 class LegacyGenericForeignKey(object):
     """Generic foreign key for legacy NAV database.
 
