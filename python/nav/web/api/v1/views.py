@@ -28,12 +28,7 @@ import iso8601
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from django_filters.filters import ModelMultipleChoiceFilter
 from rest_framework import status, filters, viewsets, exceptions
-from rest_framework.decorators import (
-    api_view,
-    renderer_classes,
-    list_route,
-    detail_route,
-)
+from rest_framework.decorators import api_view, renderer_classes, action
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import (
     JSONRenderer,
@@ -512,7 +507,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             self.renderer_classes += (InterfaceFragmentRenderer,)
         return super(InterfaceViewSet, self).get_renderers()
 
-    @detail_route()
+    @action(detail=True)
     def metrics(self, _request, pk=None):
         """List all metrics for this interface
 
@@ -521,7 +516,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         """
         return Response(self.get_object().get_port_metrics())
 
-    @detail_route()
+    @action(detail=True)
     def last_used(self, _request, pk=None):
         """Return last used timestamp for this interface
 
@@ -782,7 +777,7 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ModelViewSet):
     serializer_class = serializers.PrefixSerializer
     filter_fields = ('vlan', 'net_address', 'vlan__vlan')
 
-    @list_route()
+    @action(detail=False)
     def search(self, request):
         """Do string-like prefix searching. Currently only supports net_address."""
         net_address = request.GET.get('net_address', None)
