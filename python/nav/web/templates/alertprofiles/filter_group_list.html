@@ -12,7 +12,7 @@
     <th></th>
 
     <th>
-    {% ifequal order_by "name" %}
+    {% if order_by == "name" %}
         <a href="{% url 'alertprofiles-filter_groups' %}?page={{ page_obj.number }}&amp;order_by=-name">
           Name
           <i class="fa fa-caret-down"></i>
@@ -20,15 +20,15 @@
     {% else %}
         <a href="{% url 'alertprofiles-filter_groups' %}?page={{ page_obj.number }}&amp;order_by=name">
           Name
-          {% ifequal order_by "-name" %}
+          {% if order_by == "-name" %}
             <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 
     <th>
-    {% ifequal order_by "owner" %}
+    {% if order_by == "owner" %}
         <a href="{% url 'alertprofiles-filter_groups' %}?page={{ page}}&amp;order_by=-owner">
           Owner
           <i class="fa fa-caret-down"></i>
@@ -36,15 +36,15 @@
     {% else %}
         <a href="{% url 'alertprofiles-filter_groups' %}?page={{ page}}&amp;order_by=owner">
           Owner
-          {% ifequal order_by "-owner" %}
+          {% if order_by == "-owner" %}
             <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 
     <th>
-    {% ifequal order_by "description" %}
+    {% if order_by == "description" %}
         <a href="{% url 'alertprofiles-filter_groups' %}?page={{ page }}&amp;order_by=-description">
           Description
           <i class="fa fa-caret-down"></i>
@@ -52,11 +52,11 @@
     {% else %}
         <a href="{% url 'alertprofiles-filter_groups' %}?page={{ page }}&amp;order_by=description">
           Description
-          {% ifequal order_by "-description" %}
+          {% if order_by == "-description" %}
             <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 {% endblock %}
 

@@ -28,11 +28,11 @@
             {% if is_paginated %}
                 | Pages:
                 {% for p in page_range %}
-                    {% ifequal p page %}
+                    {% if p == page %}
                         <em>{{ p }}</em>
                     {% else %}
                         <a href="?page={{ p }}">{{ p }}</a>
-                    {% endifequal %}
+                    {% endif %}
                 {% endfor %}
             {% endif %}
         </th>

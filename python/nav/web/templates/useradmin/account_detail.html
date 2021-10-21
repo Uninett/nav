@@ -27,7 +27,7 @@
 
         <ul class="inline-list action-list">
           {% if account and current_user_data.is_admin and not current_user_data.sudoer %}
-            {% ifnotequal current_user_data.account.id account.id %}
+            {% if current_user_data.account.id != account.id %}
               <li>
                 <form action="." method="post">
                   <input type="hidden" name="account" value="{{ account.id }}"/>
@@ -35,7 +35,7 @@
                          name="submit_sudo" class="button small"/>
                 </form>
               </li>
-            {% endifnotequal %}
+            {% endif %}
           {% endif %}
 
           {% if account and not account.is_system_account %}
