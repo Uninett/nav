@@ -21,13 +21,13 @@ Exposes a private, read-only API (self/api) for search purposes mostly.
 
 """
 
-from django.conf.urls import url, include
+from django.urls import re_path, include
 from nav.web.ipam.views import index, matrix
 from nav.web.ipam.api import router
 
 
 urlpatterns = [
-    url(r'^$', index),
-    url(r'^matrix', matrix),
-    url(r'^api', include(router.urls)),
+    re_path(r'^$', index),
+    re_path(r'^matrix', matrix),
+    re_path(r'^api', include(router.urls)),
 ]

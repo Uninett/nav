@@ -15,9 +15,9 @@
 #
 """URL configuration for sortedstats"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.sortedstats import views
 
 urlpatterns = [
-    url(r'^$', views.index, name='sortedstats'),
+    re_path(r'^$', views.index, name='sortedstats'),
 ]

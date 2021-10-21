@@ -15,7 +15,7 @@
 #
 """Module comment"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from . import (
     get_user_navlets,
     add_user_navlet,
@@ -30,31 +30,31 @@ from . import (
 
 
 urlpatterns = [
-    url(r'^get-user-navlets/$', get_user_navlets, name='get-user-navlets'),
-    url(
+    re_path(r'^get-user-navlets/$', get_user_navlets, name='get-user-navlets'),
+    re_path(
         r'^get-user-navlets/(?P<dashboard_id>\d+)/$',
         get_user_navlets,
         name='get-user-navlets',
     ),
-    url(r'^add-user-navlet/$', add_user_navlet, name='add-user-navlet'),
-    url(
+    re_path(r'^add-user-navlet/$', add_user_navlet, name='add-user-navlet'),
+    re_path(
         r'^add-user-navlet/(?P<dashboard_id>\d+)/$',
         add_user_navlet,
         name='add-user-navlet',
     ),
-    url(
+    re_path(
         r'^add-user-navlet/graph/$', add_user_navlet_graph, name='add-user-navlet-graph'
     ),
-    url(
+    re_path(
         r'^add-user-navlet/sensor/$',
         add_user_navlet_sensor,
         name='add-user-navlet-sensor',
     ),
-    url(r'^remove-user-navlet/', remove_user_navlet, name='remove-user-navlet'),
-    url(r'^get-user-navlet/(?P<navlet_id>\d+)', dispatcher, name='get-user-navlet'),
-    url(r'^save-navlet-order', save_navlet_order, name='save-navlet-order'),
-    url(r'^navlet-base-template/', render_base_template, name='navlet-base-template'),
-    url(
+    re_path(r'^remove-user-navlet/', remove_user_navlet, name='remove-user-navlet'),
+    re_path(r'^get-user-navlet/(?P<navlet_id>\d+)', dispatcher, name='get-user-navlet'),
+    re_path(r'^save-navlet-order', save_navlet_order, name='save-navlet-order'),
+    re_path(r'^navlet-base-template/', render_base_template, name='navlet-base-template'),
+    re_path(
         r'^set-navlet-preferences',
         set_navlet_preferences,
         name='set-navlet-preferences',

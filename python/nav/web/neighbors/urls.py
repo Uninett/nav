@@ -16,11 +16,11 @@
 #
 """Django URL configuration for unrecognized neighbors system."""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.neighbors import views
 
 
 urlpatterns = [
-    url(r'^$', views.index, name='neighbors-index'),
-    url(r'neighbor-state/', views.set_ignored_state, name='neighbors-set-state'),
+    re_path(r'^$', views.index, name='neighbors-index'),
+    re_path(r'neighbor-state/', views.set_ignored_state, name='neighbors-set-state'),
 ]

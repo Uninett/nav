@@ -15,25 +15,25 @@
 #
 """PortAdmin Django URL config"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.portadmin import views
 
 
 urlpatterns = [
-    url(r'^$', views.index, name='portadmin-index'),
-    url(r'^ip=(?P<ip>[\d\.]+)', views.search_by_ip, name='portadmin-ip'),
-    url(
+    re_path(r'^$', views.index, name='portadmin-index'),
+    re_path(r'^ip=(?P<ip>[\d\.]+)', views.search_by_ip, name='portadmin-ip'),
+    re_path(
         r'^sysname=(?P<sysname>\S+)', views.search_by_sysname, name='portadmin-sysname'
     ),
-    url(
+    re_path(
         r'^interfaceid=(?P<interfaceid>\d+)',
         views.search_by_interfaceid,
         name='portadmin-interface',
     ),
-    url(r'^save_interfaceinfo', views.save_interfaceinfo),
-    url(r'^restart_interfaces', views.restart_interfaces),
-    url(r'^commit_configuration', views.commit_configuration),
-    url(
+    re_path(r'^save_interfaceinfo', views.save_interfaceinfo),
+    re_path(r'^restart_interfaces', views.restart_interfaces),
+    re_path(r'^commit_configuration', views.commit_configuration),
+    re_path(
         r'^trunk/(?P<interfaceid>\d+)',
         views.render_trunk_edit,
         name="portadmin-render-trunk-edit",

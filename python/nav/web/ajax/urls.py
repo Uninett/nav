@@ -24,28 +24,28 @@ The developer should make sure that the data exposed is indeed suitable
 for open access.
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.ajax import views
 
 
 # URL's that does not require authorization
 urlpatterns = [
-    url(
+    re_path(
         r'^open/roommapper/rooms/$',
         views.get_rooms_with_position,
         name='room-positions',
     ),
-    url(
+    re_path(
         r'^open/roommapper/rooms/(?P<roomid>.+)/$',
         views.get_rooms_with_position,
         name='room-position',
     ),
-    url(
+    re_path(
         r'^open/roommapper/locations/(?P<locationid>.+)/$',
         views.get_rooms_with_position_for_location,
         name='location-position',
     ),
-    url(
+    re_path(
         r'^open/neighbormap/(?P<netboxid>\d+)/$',
         views.get_neighbors,
         name='ajax-get-neighbors',

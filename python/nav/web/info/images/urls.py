@@ -15,12 +15,12 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.info.images import views
 
 
 urlpatterns = [
-    url(r'^update_title', views.update_title, name='image-update-title'),
-    url(r'^delete', views.delete_image, name='image-delete-image'),
-    url(r'^update_priority', views.update_priority, name='image-update-priority'),
+    re_path(r'^update_title', views.update_title, name='image-update-title'),
+    re_path(r'^delete', views.delete_image, name='image-delete-image'),
+    re_path(r'^update_priority', views.update_priority, name='image-update-priority'),
 ]

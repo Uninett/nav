@@ -16,7 +16,7 @@
 # pylint: disable=E1101
 """Urlconf for the NAV REST api"""
 
-from django.conf.urls import url, include
+from django.urls import re_path, include
 from rest_framework import routers
 
 from nav.auditlog import api as auditlogapi
@@ -54,19 +54,19 @@ router.register(r'auditlog', auditlogapi.LogEntryViewSet, basename='auditlog')
 
 
 urlpatterns = [
-    url(r'^$', views.api_root),
-    url(r'^token/$', views.get_or_create_token, name="token"),
-    url(r'^version/$', views.get_nav_version, name="version"),
-    url(
+    re_path(r'^$', views.api_root),
+    re_path(r'^token/$', views.get_or_create_token, name="token"),
+    re_path(r'^version/$', views.get_nav_version, name="version"),
+    re_path(
         r"^prefix/routed/?$",
         views.RoutedPrefixList.as_view(),
         name="prefix-routed-list",
     ),
-    url(r"^prefix/usage/?$", views.PrefixUsageList.as_view(), name="prefix-usage-list"),
-    url(
+    re_path(r"^prefix/usage/?$", views.PrefixUsageList.as_view(), name="prefix-usage-list"),
+    re_path(
         r"^prefix/usage/(?P<prefix>.*)$",
         views.PrefixUsageDetail.as_view(),
         name="prefix-usage-detail",
     ),
-    url(r'^', include(router.urls)),
+    re_path(r'^', include(router.urls)),
 ]
