@@ -15,26 +15,26 @@
 #
 """URL configuration for Machinetracker tool"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.machinetracker import views
 
 
 urlpatterns = [
-    url(r'^$', views.ip_search, name='machinetracker'),
-    url(r'^ip/$', views.ip_search, name='machinetracker-ip'),
-    url(
+    re_path(r'^$', views.ip_search, name='machinetracker'),
+    re_path(r'^ip/$', views.ip_search, name='machinetracker-ip'),
+    re_path(
         r'^ip/prefix/(?P<prefix_id>\d+)/$',
         views.ip_prefix_search,
         name='machinetracker-prefixid_search',
     ),
-    url(
+    re_path(
         r'^ip/prefix/(?P<prefix_id>\d+)/active/$',
         views.ip_prefix_search,
         {'active': True},
         name='machinetracker-prefixid_search_active',
     ),
-    url(r'^mac/$', views.mac_search, name='machinetracker-mac'),
-    url(r'^swp/$', views.switch_search, name='machinetracker-swp'),
+    re_path(r'^mac/$', views.mac_search, name='machinetracker-mac'),
+    re_path(r'^swp/$', views.switch_search, name='machinetracker-swp'),
     # NetBIOS
-    url(r'^netbios/$', views.netbios_search, name='machinetracker-netbios'),
+    re_path(r'^netbios/$', views.netbios_search, name='machinetracker-netbios'),
 ]

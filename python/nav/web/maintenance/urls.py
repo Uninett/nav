@@ -15,30 +15,30 @@
 #
 """SeedDB Django URL config"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.maintenance import views
 
 
 urlpatterns = [
-    url(r'^$', views.redirect_to_calendar),
-    url(r'^calendar/$', views.calendar, name='maintenance'),
-    url(r'^calendar/$', views.calendar, name='maintenance-calendar'),
-    url(
+    re_path(r'^$', views.redirect_to_calendar),
+    re_path(r'^calendar/$', views.calendar, name='maintenance'),
+    re_path(r'^calendar/$', views.calendar, name='maintenance-calendar'),
+    re_path(
         r'^calendar/(?P<year>\d{4})/(?P<month>\d{1,2})$',
         views.calendar,
         name='maintenance-calendar',
     ),
-    url(r'^active/$', views.active, name='maintenance-active'),
-    url(r'^planned/$', views.planned, name='maintenance-planned'),
-    url(r'^historic/$', views.historic, name='maintenance-historic'),
-    url(r'^new/$', views.edit, name='maintenance-new'),
-    url(
+    re_path(r'^active/$', views.active, name='maintenance-active'),
+    re_path(r'^planned/$', views.planned, name='maintenance-planned'),
+    re_path(r'^historic/$', views.historic, name='maintenance-historic'),
+    re_path(r'^new/$', views.edit, name='maintenance-new'),
+    re_path(
         r'^new/(?P<start_time>\d{4}-\d{2}-\d{2})/$',
         views.edit,
         name='maintenance-new-date',
     ),
-    url(r'^edit/(?P<task_id>\d+)/$', views.edit, name='maintenance-edit'),
-    url(r'^view/(?P<task_id>\d+)/$', views.view, name='maintenance-view'),
-    url(r'^cancel/(?P<task_id>\d+)/$', views.cancel, name='maintenance-cancel'),
-    url(r'^addnetbox/$', views.add_box_to_maintenance, name='maintenance-add-netbox'),
+    re_path(r'^edit/(?P<task_id>\d+)/$', views.edit, name='maintenance-edit'),
+    re_path(r'^view/(?P<task_id>\d+)/$', views.view, name='maintenance-view'),
+    re_path(r'^cancel/(?P<task_id>\d+)/$', views.cancel, name='maintenance-cancel'),
+    re_path(r'^addnetbox/$', views.add_box_to_maintenance, name='maintenance-add-netbox'),
 ]

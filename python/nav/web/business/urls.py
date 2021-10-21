@@ -15,33 +15,33 @@
 #
 """URL config for business tool"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.business import views
 
 
 urlpatterns = [
-    url(r'^$', views.BusinessView.as_view(), name='business-index'),
-    url(
+    re_path(r'^$', views.BusinessView.as_view(), name='business-index'),
+    re_path(
         '^device_availability/$',
         views.DeviceAvailabilityReport.as_view(),
         name='business-report-device-availability',
     ),
-    url(
+    re_path(
         '^link_availability/$',
         views.LinkAvailabilityReport.as_view(),
         name='business-report-link-availability',
     ),
-    url(
+    re_path(
         '^save_report_subscription',
         views.save_report_subscription,
         name='save-report-subscription',
     ),
-    url(
+    re_path(
         '^render_report_subscriptions',
         views.render_report_subscriptions,
         name='render-report-subscriptions',
     ),
-    url(
+    re_path(
         '^remove_report_subscription',
         views.remove_report_subscription,
         name='remove-report-subscription',

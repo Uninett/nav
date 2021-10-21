@@ -15,16 +15,16 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls import include, url
+from django.urls import re_path, include
 from nav.web.info.views import index
 
 urlpatterns = [
-    url(r'^$', index, name="info-search"),
-    url(r'^room/', include('nav.web.info.room.urls')),
-    url(r'^location/', include('nav.web.info.location.urls')),
-    url(r'^vlan/', include('nav.web.info.vlan.urls')),
-    url(r'^prefix/', include('nav.web.info.prefix.urls')),
-    url(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
-    url(r'^image/', include('nav.web.info.images.urls')),
-    url(r'^event/', include('nav.web.info.event.urls')),
+    re_path(r'^$', index, name="info-search"),
+    re_path(r'^room/', include('nav.web.info.room.urls')),
+    re_path(r'^location/', include('nav.web.info.location.urls')),
+    re_path(r'^vlan/', include('nav.web.info.vlan.urls')),
+    re_path(r'^prefix/', include('nav.web.info.prefix.urls')),
+    re_path(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
+    re_path(r'^image/', include('nav.web.info.images.urls')),
+    re_path(r'^event/', include('nav.web.info.event.urls')),
 ]

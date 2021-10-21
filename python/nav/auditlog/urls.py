@@ -14,14 +14,14 @@
 
 from __future__ import unicode_literals, absolute_import
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from .views import AuditlogOverview, AuditlogNetboxDetail
 
 
 urlpatterns = [
-    url(r'^$', AuditlogOverview.as_view(), name='auditlog-home'),
-    url(
+    re_path(r'^$', AuditlogOverview.as_view(), name='auditlog-home'),
+    re_path(
         r'^netbox/(?P<netboxid>\d+)$',
         AuditlogNetboxDetail.as_view(),
         name='auditlog-netbox-detail',

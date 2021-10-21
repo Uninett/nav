@@ -15,66 +15,66 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.info.room import views
 
 
 urlpatterns = [
-    url(r'^$', views.search, name='room-search'),
-    url(r'^(?P<roomid>.+)/netboxes/', views.render_netboxes, name='room-info-netboxes'),
-    url(
+    re_path(r'^$', views.search, name='room-search'),
+    re_path(r'^(?P<roomid>.+)/netboxes/', views.render_netboxes, name='room-info-netboxes'),
+    re_path(
         r'^(?P<roomid>.+)/deviceinfo/',
         views.render_deviceinfo,
         name='room-info-deviceinfo',
     ),
-    url(r'^(?P<roomid>.+)/upload/', views.upload_image, name='room-info-upload'),
-    url(r'^(?P<roomid>.+)/sensors/', views.render_sensors, name='room-info-sensors'),
-    url(
+    re_path(r'^(?P<roomid>.+)/upload/', views.upload_image, name='room-info-upload'),
+    re_path(r'^(?P<roomid>.+)/sensors/', views.render_sensors, name='room-info-sensors'),
+    re_path(
         r'^(?P<roomid>.+)/racks/add_rack',
         views.add_rack,
         name='room-info-racks-add-rack',
     ),
-    url(
+    re_path(
         r'^(?P<roomid>.+)/racks/(?P<rackid>\d+)/rename_rack',
         views.rename_rack,
         name='room-info-racks-rename-rack',
     ),
-    url(
+    re_path(
         r'^(?P<roomid>.+)/racks/remove_rack',
         views.remove_rack,
         name='room-info-racks-remove-rack',
     ),
-    url(
+    re_path(
         r'^(?P<roomid>.+)/racks/add_sensor',
         views.render_add_sensor,
         name='room-info-racks-add-sensor',
     ),
-    url(
+    re_path(
         r'^(?P<roomid>.+)/racks/remove_sensor',
         views.remove_sensor,
         name='room-info-racks-remove-sensor',
     ),
-    url(
+    re_path(
         r'^(?P<roomid>.+)/racks/save_sensor_order',
         views.save_sensor_order,
         name='room-info-racks-save-sensor-order',
     ),
-    url(
+    re_path(
         r'^(?P<roomid>.+)/racks/save_rack_order',
         views.save_rack_order,
         name='room-info-racks-save-rack-order',
     ),
-    url(
+    re_path(
         r'^(?P<roomid>.+)/racks/save_rack_color',
         views.save_rack_color,
         name='room-info-racks-save-rack-color',
     ),
-    url(
+    re_path(
         r'^(?P<roomid>.+)/racks/save_sensor',
         views.save_sensor,
         name='room-info-racks-save-sensor',
     ),
-    url(r'^(?P<roomid>.+)/racks/', views.render_racks, name='room-info-racks'),
-    url(r'^(?P<roomid>.+)/$', views.roominfo, name='room-info'),
-    url(r'^csv-download$', views.create_csv, name='room-csv'),
+    re_path(r'^(?P<roomid>.+)/racks/', views.render_racks, name='room-info-racks'),
+    re_path(r'^(?P<roomid>.+)/$', views.roominfo, name='room-info'),
+    re_path(r'^csv-download$', views.create_csv, name='room-csv'),
 ]
