@@ -1,2 +1,1 @@
 Django>=3.2,<3.3
-django-filter>=2
