@@ -18,6 +18,7 @@ from collections import defaultdict
 from operator import itemgetter
 
 from django import forms
+from django.forms.utils import pretty_name
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (
     Layout,
@@ -94,7 +95,7 @@ class StatusPanelForm(forms.Form):
 
         self.fields['status_filters'] = forms.MultipleChoiceField(
             choices=[
-                (t, forms.forms.pretty_name(t))
+                (t, pretty_name(t))
                 for t, f in self.fields.items()
                 if isinstance(f, forms.MultipleChoiceField)
             ],
