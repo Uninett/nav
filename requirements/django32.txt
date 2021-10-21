@@ -1,3 +1,1 @@
 Django>=3.2,<3.3
-django-crispy-forms>=1.13
-crispy-forms-foundation>=0.7,<0.8
