@@ -19,7 +19,7 @@ from __future__ import unicode_literals, absolute_import
 import logging
 
 from django.db import models
-from django.utils.encoding import force_text
+from nav.compatibility import force_str
 from django.utils.timezone import now as utcnow
 
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
@@ -97,8 +97,8 @@ class LogEntry(models.Model):
         self.target_pk = target.pk if target else None
         self.timestamp = utcnow()
         self.subsystem = subsystem if subsystem else None
-        self.before = force_text(before)
-        self.after = force_text(after)
+        self.before = force_str(before)
+        self.after = force_str(after)
         self.save()
         return self
 

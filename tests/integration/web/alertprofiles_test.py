@@ -7,7 +7,7 @@ import pytest
 
 from django.test.client import RequestFactory
 from django.urls import reverse
-from django.utils.encoding import smart_text
+from nav.compatibility import smart_str
 
 from nav.models.profiles import AlertProfile, Account, AlertPreference
 from nav.web.alertprofiles.views import set_active_profile
@@ -46,7 +46,7 @@ def test_alertprofiles_view(client, view):
     """Simple GET tests for various non-modifying alertprofiles views"""
     url = reverse(view)
     response = client.get(url)
-    assert "admin" in smart_text(response.content)
+    assert "admin" in smart_str(response.content)
 
 
 def test_alertprofiles_save_profile(db, client):
@@ -66,7 +66,7 @@ def test_alertprofiles_save_profile(db, client):
 
     assert response.status_code == 200
     print(response.content)
-    assert "Saved profile" in smart_text(response.content)
+    assert "Saved profile" in smart_str(response.content)
     assert AlertProfile.objects.filter(name=profile_name).count() > 0
 
 
@@ -94,8 +94,8 @@ def test_alertprofiles_remove_profile(db, client, activated_dummy_profile):
         },
     )
     assert response.status_code == 200
-    assert "Confirm deletion" in smart_text(response.content)
-    assert activated_dummy_profile.name in smart_text(response.content)
+    assert "Confirm deletion" in smart_str(response.content)
+    assert activated_dummy_profile.name in smart_str(response.content)
     assert AlertProfile.objects.filter(pk=activated_dummy_profile.pk).count() == 1
 
 
@@ -110,8 +110,8 @@ def test_alertprofiles_activate_profile(db, client, dummy_profile):
         },
     )
     assert response.status_code == 200
-    assert "Active profile set" in smart_text(response.content)
-    assert dummy_profile.name in smart_text(response.content)
+    assert "Active profile set" in smart_str(response.content)
+    assert dummy_profile.name in smart_str(response.content)
     preference = AlertPreference.objects.get(account=dummy_profile.account)
     assert preference.active_profile == dummy_profile
 
@@ -128,8 +128,8 @@ def test_alertprofiles_deactivate_profile(db, client, activated_dummy_profile):
     )
     assert response.status_code == 200
     print(type(response.content))
-    assert "was deactivated" in smart_text(response.content)
-    assert activated_dummy_profile.name in smart_text(response.content)
+    assert "was deactivated" in smart_str(response.content)
+    assert activated_dummy_profile.name in smart_str(response.content)
     preference = AlertPreference.objects.get(account=activated_dummy_profile.account)
     assert preference.active_profile is None
 

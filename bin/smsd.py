@@ -29,7 +29,7 @@ import socket
 import sys
 import time
 
-from django.utils.encoding import smart_text
+from nav.compatibility import smart_str
 
 import nav.config
 import nav.daemon
@@ -431,8 +431,8 @@ def backoffaction(error, retrylimitaction):
         for index, msg in enumerate(msgs):
             error_message += u'\n%s: "%s" --> %s' % (
                 index + 1,
-                smart_text(msg['msg']),
-                smart_text(msg['name']),
+                smart_str(msg['msg']),
+                smart_str(msg['name']),
             )
 
         error_message += u"\nError message: %s" % error

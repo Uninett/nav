@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.utils.encoding import force_text
+from nav.compatibility import force_str
 from django.db.models import Q
 
 from . import find_modelname
@@ -26,7 +26,7 @@ def get_auditlog_entries(
     if pks is None:
         pks = []
     if queryset is not None and queryset.exists():
-        qs_pks = set(force_text(o.pk) for o in queryset)
+        qs_pks = set(force_str(o.pk) for o in queryset)
         if qs_pks:
             if pks:
                 pks = qs_pks.intersection(pks)
