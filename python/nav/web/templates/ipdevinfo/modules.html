@@ -1,6 +1,6 @@
 {% load crispy_forms_tags %}
 
-{% ifequal port_view.perspective 'swportactive' %}
+{% if port_view.perspective == 'swportactive' %}
   <h5>
     Activity based on CAM records since
     {{ port_view.activity_interval_start|date }}.
@@ -23,7 +23,7 @@
     </div>
   </div>
 
-{% endifequal %}
+{% endif %}
 
 {% for module in port_view.modules %}
   {% include "ipdevinfo/module-port-view.html" %}

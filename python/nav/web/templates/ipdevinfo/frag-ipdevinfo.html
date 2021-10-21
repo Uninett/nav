@@ -240,9 +240,9 @@
               <th>Uptime</th>
               <td>
                 {{ netbox.get_up_display|capfirst }}
-                {% ifequal netbox.up netbox.UP_UP %}
+                {% if netbox.up == netbox.UP_UP %}
                   for {{ netbox.up_since|timesince }}
-                {% endifequal %}
+                {% endif %}
               </td>
             </tr>
 
@@ -577,7 +577,7 @@
             <tr>
               <th>Last active</th>
               <td>
-                {% ifequal no_netbox.dt_max arp.end_time %}
+                {% if no_netbox.dt_max == arp.end_time %}
                   <a href="{% query 'machinetracker-mac' mac=arp.mac days=1 %}">
                     Right now
                   </a>
@@ -590,7 +590,7 @@
                   {% else %}
                     Never
                   {% endif %}
-                {% endifequal %}
+                {% endif %}
               </td>
             </tr>
 

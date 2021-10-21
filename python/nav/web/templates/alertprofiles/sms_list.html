@@ -6,7 +6,7 @@
 
 {% block theadcols %}
     <th>
-    {% ifequal order_by "time" %}
+    {% if order_by == "time" %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=-time">
           Time
           <i class="fa fa-caret-down"></i>
@@ -14,15 +14,15 @@
     {% else %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=time">
           Time
-          {% ifequal order_by "-time" %}
+          {% if order_by == "-time" %}
             <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 
     <th>
-    {% ifequal order_by "time_sent" %}
+    {% if order_by == "time_sent" %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=-time_sent">
           Sent
           <i class="fa fa-caret-down"></i>
@@ -30,15 +30,15 @@
     {% else %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=time_sent">
           Sent
-          {% ifequal order_by "-time_sent" %}
+          {% if order_by == "-time_sent" %}
             <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 
     <th>
-    {% ifequal order_by "phone" %}
+    {% if order_by == "phone" %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=-phone">
           Phone
           <i class="fa fa-caret-down"></i>
@@ -46,15 +46,15 @@
     {% else %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=phone">
           Phone
-          {% ifequal order_by "-phone" %}
+          {% if order_by == "-phone" %}
             <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 
     <th>
-    {% ifequal order_by "message" %}
+    {% if order_by == "message" %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=-message">
           Message
           <i class="fa fa-caret-down"></i>
@@ -62,15 +62,15 @@
     {% else %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=message">
           Message
-          {% ifequal order_by "-message" %}
+          {% if order_by == "-message" %}
             <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 
     <th>
-    {% ifequal order_by "severity" %}
+    {% if order_by == "severity" %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=-severity">
           Severity
           <i class="fa fa-caret-down"></i>
@@ -78,14 +78,14 @@
     {% else %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=severity">
           Severity
-          {% ifequal order_by "-severity" %}
+          {% if order_by == "-severity" %}
               <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
     <th>
-    {% ifequal order_by "sent" %}
+    {% if order_by == "sent" %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=-sent">
           Status
           <i class="fa fa-caret-down"></i>
@@ -93,11 +93,11 @@
     {% else %}
         <a href="{% url 'alertprofiles-sms' %}?page={{ page_obj.number }}&amp;order_by=sent">
           Status
-          {% ifequal order_by "-sent" %}
+          {% if order_by == "-sent" %}
               <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 {% endblock %}
 
@@ -116,21 +116,21 @@
             <td>{{ sms.message }}</td>
             <td>{{ sms.severity }}</td>
             <td
-                {% ifequal sms.sent 'Y' %}
+                {% if sms.sent == 'Y' %}
                     style="color: green">
                     <img src="{{ STATIC_URL }}images/lys/green.png" alt="" />
                     Sent
-                {% endifequal %}
-                {% ifequal sms.sent 'N' %}
+                {% endif %}
+                {% if sms.sent == 'N' %}
                     style="color: red">
                     <img src="{{ STATIC_URL }}images/lys/red.png" alt="" />
                     Not sent
-                {% endifequal %}
-                {% ifequal sms.sent 'I' %}
+                {% endif %}
+                {% if sms.sent == 'I' %}
                     style="color: orange">
                     <img src="{{ STATIC_URL }}images/lys/yellow.png" alt="" />
                     Ignored
-                {% endifequal %}
+                {% endif %}
             </td>
         </tr>
     {% endfor %}

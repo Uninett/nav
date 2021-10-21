@@ -23,7 +23,7 @@
 
     <tbody>
     {% for a in type.subscriptions %}
-      <tr class="{% ifequal a.time_period.get_valid_during_display 'all days' %}all_days_period period_{{ a.time_period.id }} {% endifequal %}align-top">
+      <tr class="{% if a.time_period.get_valid_during_display == 'all days' %}all_days_period period_{{ a.time_period.id }} {% endif %}align-top">
         {# The same time period may appear in both tables, so we need to #}
         {# identify by both the parent loops counter and the time_periods id. #}
 

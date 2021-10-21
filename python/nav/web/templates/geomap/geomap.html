@@ -43,11 +43,11 @@
 
       <p>Variant:
 	{% for other_variant in config.variants.values %}
-	  {% ifequal other_variant.identifier variant %}
+	  {% if other_variant.identifier == variant %}
 	    {{ other_variant.name }}
 	  {% else %}
 	    <a href="/geomap/{{ other_variant.identifier }}/">{{ other_variant.name }}</a>
-	  {% endifequal %}
+	  {% endif %}
 	  {% if not forloop.last %}
 	    |
 	  {% endif %}
@@ -161,12 +161,12 @@
                     {% for option in indicator.options %}
                       <tr>
 			<td>
-                          {% ifequal indicator.property 'color' %}
+                          {% if indicator.property == 'color' %}
                             <div class="colorbox"
 				 style="background-color: {{ option.value }}">
                             </div>
-                          {% endifequal %}
-                          {% ifequal indicator.property 'size' %}
+                          {% endif %}
+                          {% if indicator.property == 'size' %}
                             {% if indicator.type == 'node' %}
                               <div class="node-size-indicator"
 				   style="width: {{ option.value }}px; height: {{ option.value }}px">
@@ -176,7 +176,7 @@
 				   style="height: {{ option.value }}px">
                               </div>
                             {% endif %}
-                          {% endifequal %}
+                          {% endif %}
 			</td>
 			<td>{{ option.label }}</td>
                       </tr>

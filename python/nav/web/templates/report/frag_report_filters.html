@@ -51,9 +51,9 @@
                                   {% if element in descriptions %}
                                   title="{{ descriptions|get_item:element }}"
                                   {% endif %}
-                                  {% ifequal element operator|get_item:a_raw|default:"" %}
+                                  {% if element == operator|get_item:a_raw|default:"" %}
                                   selected
-                                  {% endifequal %}>
+                                  {% endif %}>
                             {{ operators|get_item:element|safe }}
                           </option>
                         {% endfor %}

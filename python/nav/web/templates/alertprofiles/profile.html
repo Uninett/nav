@@ -13,18 +13,18 @@
         <th>&nbsp;</th>
 
         <th>
-          {% ifequal order_by "name" %}
+          {% if order_by == "name" %}
             <a href="{% url 'alertprofiles-profile' %}?page={{ page_obj.number }}&amp;order_by=-name">
               Name <i class="fa fa-caret-down"></i>
             </a>
           {% else %}
             <a href="{% url 'alertprofiles-profile' %}?page={{ page_obj.number }}&amp;order_by=name">
               Name
-            {% ifequal order_by "-name" %}
+            {% if order_by == "-name" %}
               <i class="fa fa-caret-up"></i>
-            {% endifequal %}
+            {% endif %}
             </a>
-          {% endifequal %}
+          {% endif %}
         </th>
 
         <th>
@@ -47,7 +47,7 @@
               <a href="{% url 'alertprofiles-profile-detail' profile.id %}">{{ profile.name }}</a>
             </td>
 
-            {% ifequal profile.id active_profile.id %}
+            {% if profile.id == active_profile.id %}
               <td>
                 Active
               </td>
@@ -61,7 +61,7 @@
               <td>
                 <input type="submit" name="activate={{ profile.id }}" value="Activate" class="button secondary tiny"/>
               </td>
-            {% endifequal %}
+            {% endif %}
           </tr>
         {% endfor %}
         </tbody>
