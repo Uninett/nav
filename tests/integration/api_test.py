@@ -52,7 +52,7 @@ def print_response(response):
         % {
             'cls': response.__class__.__name__,
             'status_code': response.status_code,
-            'content_type': response._headers.get('Content-Type', ''),
+            'content_type': response.get('Content-Type', ''),
         }
     )
 
