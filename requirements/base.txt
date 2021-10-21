@@ -18,6 +18,7 @@ feedparser==6.0.8
 markdown==2.5.1
 dnspython==1.15.0
 
+django-filter>=2
 djangorestframework>=3.12,<3.13
 
 # REST framework
