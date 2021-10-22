@@ -90,7 +90,7 @@ class TestAuthenticationMiddleware(object):
             'nav.web.auth.ensure_account',
             side_effect=auth._set_account(fake_request, PLAIN_ACCOUNT),
         ):
-            AuthenticationMiddleware().process_request(fake_request)
+            AuthenticationMiddleware(lambda x: x).process_request(fake_request)
             assert fake_request.account == PLAIN_ACCOUNT
             assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
 
@@ -105,7 +105,7 @@ class TestAuthenticationMiddleware(object):
             side_effect=auth._set_account(fake_request, PLAIN_ACCOUNT),
         ):
             with patch('nav.web.auth.get_sudoer', return_value=SUDO_ACCOUNT):
-                AuthenticationMiddleware().process_request(fake_request)
+                AuthenticationMiddleware(lambda x: x).process_request(fake_request)
                 assert (
                     getattr(fake_request.account, 'sudo_operator', None) == SUDO_ACCOUNT
                 )
@@ -119,7 +119,7 @@ class TestAuthenticationMiddleware(object):
             side_effect=auth._set_account(fake_request, DEFAULT_ACCOUNT),
         ):
             with patch('nav.web.auth.get_remote_username', return_value=None):
-                AuthenticationMiddleware().process_request(fake_request)
+                AuthenticationMiddleware(lambda x: x).process_request(fake_request)
                 assert fake_request.account == DEFAULT_ACCOUNT
                 assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
 
@@ -138,7 +138,7 @@ class TestAuthenticationMiddleware(object):
                     'nav.web.auth.login_remote_user',
                     side_effect=auth._set_account(fake_request, PLAIN_ACCOUNT),
                 ):
-                    AuthenticationMiddleware().process_request(fake_request)
+                    AuthenticationMiddleware(lambda x: x).process_request(fake_request)
                     assert fake_request.account == PLAIN_ACCOUNT
                     assert fake_request.session[ACCOUNT_ID_VAR] == PLAIN_ACCOUNT.id
 
@@ -159,7 +159,7 @@ class TestAuthenticationMiddleware(object):
                     side_effect=auth._set_account(fake_request, ANOTHER_PLAIN_ACCOUNT),
                 ):
                     with patch('nav.web.auth.logout'):
-                        AuthenticationMiddleware().process_request(fake_request)
+                        AuthenticationMiddleware(lambda x: x).process_request(fake_request)
                         assert fake_request.account == ANOTHER_PLAIN_ACCOUNT
                         assert (
                             ACCOUNT_ID_VAR in fake_request.session
@@ -178,7 +178,7 @@ class TestAuthorizationMiddleware(object):
         fake_request = r.get('/')
         fake_request.account = DEFAULT_ACCOUNT
         with patch('nav.web.auth.authorization_not_required', return_value=True):
-            AuthorizationMiddleware().process_request(fake_request)
+            AuthorizationMiddleware(lambda x: x).process_request(fake_request)
             assert 'REMOTE_USER' not in os.environ
 
     def test_process_request_authorized(self):
@@ -186,7 +186,7 @@ class TestAuthorizationMiddleware(object):
         fake_request = r.get('/')
         fake_request.account = PLAIN_ACCOUNT
         with patch('nav.web.auth.authorization_not_required', return_value=True):
-            AuthorizationMiddleware().process_request(fake_request)
+            AuthorizationMiddleware(lambda x: x).process_request(fake_request)
             assert os.environ.get('REMOTE_USER', None) == PLAIN_ACCOUNT.login
 
     def test_process_request_not_authorized(self):
@@ -199,7 +199,7 @@ class TestAuthorizationMiddleware(object):
                     'nav.web.auth.AuthorizationMiddleware.redirect_to_login',
                     return_value='here',
                 ):
-                    result = AuthorizationMiddleware().process_request(fake_request)
+                    result = AuthorizationMiddleware(lambda x: x).process_request(fake_request)
                     assert result == 'here'
                     assert os.environ.get('REMOTE_USER', None) != PLAIN_ACCOUNT.login
 
