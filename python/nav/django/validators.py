@@ -20,7 +20,7 @@ import json
 from decimal import Decimal, InvalidOperation
 
 import six
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 from django.core.exceptions import ValidationError
 
 
@@ -66,12 +66,12 @@ def validate_hstore(value):
         else:
             dictionary = value
     except ValueError as e:
-        raise ValidationError(ugettext(u'Invalid JSON: {0}').format(e))
+        raise ValidationError(gettext(u'Invalid JSON: {0}').format(e))
 
     # ensure is a dictionary
     if not isinstance(dictionary, dict):
         raise ValidationError(
-            ugettext(u'No lists or values allowed, only dictionaries')
+            gettext(u'No lists or values allowed, only dictionaries')
         )
 
     value = json.dumps(dictionary, cls=JSONBytesEncoder)
