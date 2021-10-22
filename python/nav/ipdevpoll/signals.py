@@ -16,4 +16,5 @@
 """ipdevpoll signals, using Django signals framework."""
 import django.dispatch
 
-netbox_type_changed = django.dispatch.Signal(providing_args=["netbox_id", "new_type"])
+# providing args: "netbox_id", "new_type"
+netbox_type_changed = django.dispatch.Signal()
