@@ -700,7 +700,7 @@ class NetboxEntity(models.Model):
     model_name = VarcharField(null=True)
     alias = VarcharField(null=True)
     asset_id = VarcharField(null=True)
-    fru = models.NullBooleanField(verbose_name='Is a field replaceable unit')
+    fru = models.BooleanField(null=True, verbose_name='Is a field replaceable unit')
     mfg_date = models.DateTimeField(null=True)
     uris = VarcharField(null=True)
     gone_since = models.DateTimeField(null=True)
@@ -2515,7 +2515,7 @@ class IpdevpollJobLog(models.Model):
     job_name = VarcharField(null=False, blank=False)
     end_time = models.DateTimeField(auto_now_add=True, null=False)
     duration = models.FloatField(null=True)
-    success = models.NullBooleanField(default=False, null=True)
+    success = models.BooleanField(default=False, null=True)
     interval = models.IntegerField(null=True)
 
     class Meta(object):
