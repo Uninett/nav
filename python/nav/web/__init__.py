@@ -30,8 +30,6 @@ from nav.config import find_config_file
 
 _logger = logging.getLogger(__name__)
 
-default_app_config = 'nav.web.apps.NAVWebAppConfig'
-
 webfrontConfig = configparser.ConfigParser()
 _configfile = find_config_file(os.path.join('webfront', 'webfront.conf'))
 if _configfile:

@@ -15,8 +15,6 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
-default_app_config = 'nav.models.apps.NavModelsConfig'
-
 # from nav.bootstrap import bootstrap_django
 #
 # bootstrap_django(__file__)
