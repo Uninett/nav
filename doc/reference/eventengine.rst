@@ -150,9 +150,12 @@ Available ``event_type`` and ``alert_type`` values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Two of the available alert attributes that can be matched against in severity
-rules are ``event_type`` and ``alert_type``. See the :doc:`event- and
-alert-type reference documentation <alerttypes>` for a detailed list of
-available type names to match.
+rules are ``event_type`` and ``alert_type``. However, ``event_type`` is a
+Python object: To match against an event type id/name, you must match against
+the object's ``id`` attribute, i.e. ``event_type.id``, as the example
+configuration file shows.  See the :doc:`event- and alert-type reference
+documentation <alerttypes>` for a detailed list of available type names to
+match.
 
 Other matchable attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
