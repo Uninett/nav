@@ -169,6 +169,7 @@ def prefix_edit(request, prefix_id=None):
             'form': prefix_form,
             'vlan_form': vlan_form,
             'sub_active': prefix and {'edit': True} or {'add': True},
+            'detail_link': "",
         }
     )
     return render(request, 'seeddb/edit_prefix.html', context)

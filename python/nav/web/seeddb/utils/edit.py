@@ -32,6 +32,7 @@ from django.urls import reverse, NoReverseMatch
 from django.utils import six
 
 from nav.web.message import new_message, Messages
+from nav.web.seeddb import reverse_lazy
 from nav.models.manage import Netbox, NetboxCategory, NetboxGroup
 
 _logger = logging.getLogger(__name__)
@@ -50,7 +51,6 @@ def render_edit(
     action='edit',
 ):
     """Handles editing for objects in seeddb."""
-
     if not extra_context:
         extra_context = {}
 
@@ -99,9 +99,29 @@ def render_edit(
     }
     if obj:
         if obj.pk:
+            if verbose_name == "room":
+                detail_link = reverse_lazy('room-info', kwargs={'roomid': obj.pk})
+            elif verbose_name == "location":
+                detail_link = reverse_lazy(
+                    'location-info', kwargs={'locationid': obj.pk}
+                )
+            elif verbose_name == "vlan":
+                detail_link = reverse_lazy('vlan-details', kwargs={'vlanid': obj.pk})
+            elif verbose_name == "device group":
+                detail_link = reverse_lazy(
+                    'netbox-group-detail', kwargs={'groupid': obj.pk}
+                )
+            elif verbose_name == "prefix":
+                detail_link = reverse_lazy(
+                    'prefix-details', kwargs={'prefix_id': obj.pk}
+                )
+            else:
+                detail_link = ""
             context.update(
                 {
-                    'title': 'Edit %s "%s"' % (verbose_name, obj),
+                    'title': 'Edit %s' % verbose_name,
+                    'detail_link_name': obj,
+                    'detail_link_url': detail_link,
                     'sub_active': {'edit': True},
                 }
             )
