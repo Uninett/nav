@@ -94,7 +94,7 @@
 
         {% if can_edit %}
           <form id="add-tag-form" class="hidden">
-            {{ form }}
+            {{ form.as_p }}
             <input type="submit" class="button tiny" value="Save tags"/>
             <a class="button tiny secondary close-tag-interface">Close</a>
             <div class="alert-box alert" style="display: none">Test</div>
