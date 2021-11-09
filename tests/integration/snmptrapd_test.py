@@ -4,7 +4,7 @@ import configparser
 import pytest
 import signal
 import time
-from nav.config import find_configfile
+from nav.config import find_config_file
 from nav.snmptrapd.plugin import load_handler_modules
 
 
@@ -31,7 +31,7 @@ def test_plugin_loader_raises_no_exception_if_plugin_has_no_initialize_method():
 
 
 def test_plugin_loader_reading_in_modules_from_config_file():
-    configfile = find_configfile("snmptrapd.conf")
+    configfile = find_config_file("snmptrapd.conf")
     config = configparser.ConfigParser()
     config.read(configfile)
     list_from_config = config.get('snmptrapd', 'handlermodules').split(',')

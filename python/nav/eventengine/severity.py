@@ -97,7 +97,7 @@ class SeverityRules(tuple):
     @classmethod
     def load_from_file(cls, filename: str = CONFIG_FILE) -> 'SeverityRules':
         """Instantiates a SeverityRules object from rule definitions in a YAML file"""
-        full_path = config.find_configfile(filename)
+        full_path = config.find_config_file(filename)
         if not full_path:
             _logger.debug("could not find severity config file %s", filename)
             return None

@@ -287,9 +287,9 @@ def c_version(_args):
 
 def command_config_where(_args):
     """reports the location of NAV's main configuration file"""
-    from nav.config import find_configfile, CONFIG_LOCATIONS
+    from nav.config import find_config_file, CONFIG_LOCATIONS
 
-    path = find_configfile('nav.conf')
+    path = find_config_file('nav.conf')
     if path:
         print(path)
     else:

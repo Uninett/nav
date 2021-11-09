@@ -28,13 +28,13 @@ import re
 import yaml
 from django.utils import six
 
-from nav.config import open_configfile, find_configfile, NAV_CONFIG
+from nav.config import open_configfile, find_config_file, NAV_CONFIG
 from nav.errors import GeneralException
 from nav import buildconf
 
 INFOHEAD = '## info:'
 DAEMON_CONFIG = 'daemons.yml'
-CRON_DIR = find_configfile('cron.d')
+CRON_DIR = find_config_file('cron.d')
 
 
 def get_info_from_content(content):

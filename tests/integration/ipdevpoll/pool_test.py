@@ -6,7 +6,7 @@ import pytest_twisted
 from mock import patch
 
 from nav.models.manage import NetboxProfile
-from nav.config import find_configfile
+from nav.config import find_config_file
 from nav.ipdevpoll import config, jobs, plugins
 from nav.ipdevpoll.pool import InlinePool, WorkerPool
 
@@ -112,7 +112,7 @@ def pool(request):
 @pytest.fixture(scope="module")
 def ipdevpoll_test_config():
     print("placing temporary ipdevpoll config")
-    configfile = find_configfile("ipdevpoll.conf")
+    configfile = find_config_file("ipdevpoll.conf")
     tmpfile = configfile + '.bak'
     os.rename(configfile, tmpfile)
     with open(configfile, "w") as config_handle:

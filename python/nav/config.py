@@ -53,7 +53,7 @@ if _venv:
 
 
 def find_config_dir():
-    nav_conf = find_configfile('nav.conf')
+    nav_conf = find_config_file('nav.conf')
     if nav_conf:
         return os.path.dirname(nav_conf)
 
@@ -148,7 +148,7 @@ class NAVConfigParser(configparser.ConfigParser):
         """Reads all config files in DEFAULT_CONFIG_FILES"""
         filenames = [
             f
-            for f in (find_configfile(name) for name in self.DEFAULT_CONFIG_FILES)
+            for f in (find_config_file(name) for name in self.DEFAULT_CONFIG_FILES)
             if f
         ]
         filenames.extend(os.path.join('.', name) for name in self.DEFAULT_CONFIG_FILES)
@@ -182,7 +182,7 @@ class NavConfigParserDefaultSection(object):
         return self.parser.getboolean(self.section, *args)
 
 
-def find_configfile(filename):
+def find_config_file(filename):
     """Searches for filename in any of the known config file locations
 
     :returns: The first instance of filename found in the CONFIG_LOCATIONS
@@ -199,9 +199,9 @@ def find_configfile(filename):
 def open_configfile(filename):
     """Opens and returns a file handle for a given config file.
 
-    The config file will be found using find_configfile()
+    The config file will be found using find_config_file()
     """
-    name = find_configfile(filename)
+    name = find_config_file(filename)
     if name:
         return io.open(name, encoding='utf-8')
     else:

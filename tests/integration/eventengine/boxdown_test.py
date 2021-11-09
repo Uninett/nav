@@ -8,7 +8,7 @@ except ImportError:
 
 import pytest
 
-from nav.config import find_configfile
+from nav.config import find_config_file
 from nav.models.manage import Netbox
 from nav.models.event import EventQueue as Event
 
@@ -76,7 +76,7 @@ def host_going_down():
 @pytest.fixture(scope="module")
 def eventengine_test_config():
     print("placing temporary eventengine config")
-    configfile = find_configfile("eventengine.conf")
+    configfile = find_config_file("eventengine.conf")
     tmpfile = configfile + ".bak"
     os.rename(configfile, tmpfile)
     with open(configfile, "w") as config:

@@ -4,16 +4,16 @@ import os
 from django.db.models import Count
 from django.http import Http404
 
-from nav.config import find_configfile
+from nav.config import find_config_file
 from nav.models.profiles import AccountDashboard
 
-WELCOME_ANONYMOUS_PATH = find_configfile(
+WELCOME_ANONYMOUS_PATH = find_config_file(
     os.path.join("webfront", "welcome-anonymous.txt")
 )
-WELCOME_REGISTERED_PATH = find_configfile(
+WELCOME_REGISTERED_PATH = find_config_file(
     os.path.join("webfront", "welcome-registered.txt")
 )
-NAV_LINKS_PATH = find_configfile(os.path.join("webfront", "nav-links.conf"))
+NAV_LINKS_PATH = find_config_file(os.path.join("webfront", "nav-links.conf"))
 
 DEFAULT_WIDGET_COLUMNS = 2
 

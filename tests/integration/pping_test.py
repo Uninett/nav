@@ -14,7 +14,7 @@ import pytest
 
 from nav.models.manage import Netbox, NetboxProfile
 from nav.models.event import EventQueue
-from nav.config import find_configfile
+from nav.config import find_config_file
 
 
 def can_be_root():
@@ -122,7 +122,7 @@ def host_expected_to_be_down(management_profile):
 @pytest.fixture(scope="module")
 def pping_test_config():
     print("placing temporary pping config")
-    configfile = find_configfile("pping.conf")
+    configfile = find_config_file("pping.conf")
     tmpfile = configfile + '.bak'
     os.rename(configfile, tmpfile)
     with open(configfile, "w") as config:
