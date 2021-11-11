@@ -47,9 +47,7 @@ _logger = logging.getLogger('nav.autoenable')
 def main():
     """Main controller"""
     init_generic_logging(
-        logfile="arnold/autoenable.log",
-        stderr=False,
-        read_config=True,
+        logfile="arnold/autoenable.log", stderr=False, read_config=True
     )
     _logger.info("Starting autoenable")
 

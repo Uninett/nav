@@ -24,6 +24,7 @@ import configparser
 from django.db import connection, DatabaseError
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.config import NAVConfigParser
@@ -37,6 +38,7 @@ LOGFILE = 'navstats.log'
 
 class NAVStatsConfig(NAVConfigParser):
     """Configparser for NAVStats"""
+
     DEFAULT_CONFIG_FILES = ('navstats.conf',)
 
 
@@ -79,9 +81,10 @@ def collect(metric_path_fmt, query, valueindex):
 
     with connection.cursor() as cursor:
         cursor.execute(query)
-        metrics = [create_metric(result, metric_path_fmt, timestamp,
-                                 valueindex)
-                   for result in cursor.fetchall()]
+        metrics = [
+            create_metric(result, metric_path_fmt, timestamp, valueindex)
+            for result in cursor.fetchall()
+        ]
     send_metrics(metrics)
 
 

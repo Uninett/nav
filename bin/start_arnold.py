@@ -66,11 +66,7 @@ _logger = logging.getLogger('nav.start_arnold')
 def main(args):
     """Main controller"""
 
-    init_generic_logging(
-        logfile=LOG_FILE,
-        stderr=False,
-        read_config=True,
-    )
+    init_generic_logging(logfile=LOG_FILE, stderr=False, read_config=True)
 
     if args.listblocktypes:
         print_detention_profiles()

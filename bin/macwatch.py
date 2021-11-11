@@ -56,9 +56,7 @@ def prioritize_location(cam_objects):
     # Mac _may_ be active on two ports at the same time (due to duplicate
     # mac addresses, error in db and so on). This is such a small problem
     # that we ignore it for the time.
-    prioritized_cams = {
-        0: [],
-    }
+    prioritized_cams = {0: []}
     for value in LOCATION_PRIORITY.values():
         if not value in prioritized_cams:
             prioritized_cams[value] = []

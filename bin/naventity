@@ -29,6 +29,7 @@ import asciitree
 import networkx
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.util import is_valid_ip
@@ -83,11 +84,7 @@ def make_graph(entities, netbox):
         container = entity.get('entPhysicalContainedIn', None)
         if container and container in entities:
             graph.add_edge(index, container)
-        only_string_data = {
-            k: v
-            for k, v in entity.items()
-            if isinstance(k, str)
-        }
+        only_string_data = {k: v for k, v in entity.items() if isinstance(k, str)}
         graph.add_node(index, **only_string_data)
     return graph
 
@@ -111,6 +108,7 @@ def failure_handler(failure):
 def endit(result):
     """Stops the reactor"""
     from twisted.python.failure import Failure
+
     if isinstance(result, Failure):
         result.printTraceback(sys.stderr)
     reactor.stop()
@@ -120,14 +118,16 @@ def endit(result):
 def parse_args():
     """Parses the command line arguments"""
     parser = argparse.ArgumentParser(
-        description=
-        "Outputs entity hierarchy graph from a device's "
+        description="Outputs entity hierarchy graph from a device's "
         "ENTITY-MIB::entPhysicalTable response",
         usage="%(prog)s device",
     )
-    parser.add_argument('device', type=device, help=
-                        "The NAV-monitored IP device to query. Must be either "
-                        "a sysname prefix or an IP address.")
+    parser.add_argument(
+        'device',
+        type=device,
+        help="The NAV-monitored IP device to query. Must be either "
+        "a sysname prefix or an IP address.",
+    )
     return parser.parse_args()
 
 
@@ -145,7 +145,9 @@ def device(devicestring):
         netbox = Netbox.objects.filter(sysname__startswith=devicestring)
         if len(netbox) > 1:
             msg = "%s matches multiple IP devices: %s" % (
-                devicestring, ", ".join(box for box in netbox))
+                devicestring,
+                ", ".join(box for box in netbox),
+            )
             raise argparse.ArgumentTypeError(msg)
         elif len(netbox) == 0:
             msg = "No match found for %s" % devicestring
@@ -166,11 +168,12 @@ def _create_agentproxy(netbox):
 
     port = snmpprotocol.port()
     agent = AgentProxy(
-        netbox.ip, 161,
+        netbox.ip,
+        161,
         community=netbox.read_only,
         snmpVersion='v%s' % netbox.snmp_version,
         protocol=port.protocol,
-        snmp_parameters=snmp_parameter_factory(netbox)
+        snmp_parameters=snmp_parameter_factory(netbox),
     )
     try:
         agent.open()
@@ -187,12 +190,14 @@ class GraphTraversal(asciitree.Traversal):
         self.graph = graph
 
     def get_children(self, node):
-        return [u for u,v in self.graph.in_edges(node)]
+        return [u for u, v in self.graph.in_edges(node)]
 
     def get_text(self, node):
         ent = self.graph.node[node]
-        labels = [ent.get('entPhysicalName'),
-                  "[{}]".format(ent.get('entPhysicalClass'))]
+        labels = [
+            ent.get('entPhysicalName'),
+            "[{}]".format(ent.get('entPhysicalClass')),
+        ]
         serial = ent.get('entPhysicalSerialNum', None)
         if serial:
             labels.append('({})'.format(serial))

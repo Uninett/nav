@@ -58,11 +58,7 @@ _logger = logging.getLogger('nav.t1000')
 
 def main():
     """Main controller"""
-    init_generic_logging(
-        logfile=LOG_FILE,
-        stderr=False,
-        read_config=True,
-    )
+    init_generic_logging(logfile=LOG_FILE, stderr=False, read_config=True)
     _logger.info("Starting t1000")
 
     # Fetch all mac-addresses that we have detained, check if they are

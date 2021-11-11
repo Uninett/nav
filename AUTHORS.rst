@@ -16,11 +16,9 @@ Currently active contributors/maintainers
   logging code, and has put down many hours in migrating to Python 3 and modern
   Django versions.
 
-* Sigmund Augdal <sigmund.augdal at uninett.no>
-  Joined in 2017. An experienced Python developer who, among other things,
-  rewrote the ipdevpoll multiprocess mode. Has since gone a one-year sabbatical
-  :-)
-
+* Johanna England <johanna.england at uninett.no>
+  Joined in 2021. Currently hacking away at open issues and learning the NAV
+  codebase.
 
 Other contributors and previous maintainers
 -------------------------------------------
@@ -33,6 +31,10 @@ Other contributors and previous maintainers
 * John-Magne Bredal <john.m.bredal at uninett.no>
   Joined in 2000, and was instrumental in anything related to end user
   detentions (Arnold), the web interface and the API.
+
+* Sigmund Augdal <sigmund.augdal at uninett.no>
+  Active from 2017, until he left Uninett in 2019. An experienced Python
+  developer who, among other things, rewrote the ipdevpoll multiprocess mode.
 
 * Philipp Petermann <philipp.petermann at unibas.ch>
   Contributed support for enabling CDP when configuring Cisco Voice VLANs in

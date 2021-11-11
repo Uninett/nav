@@ -76,7 +76,7 @@ def parse_args():
     """Parse program arguments"""
     parser = argparse.ArgumentParser(
         description="Parse RFC822 formatted mail messages from 3rd party "
-        "software and convert them to NAV events, using plugins",
+        "software and convert them to NAV events, using plugins"
     )
     parser.add_argument(
         '-i',
