@@ -393,12 +393,13 @@
 
 
         {# Custom key value fields #}
-        {% if netbox.data %}
+        {% with dunderless_dict=netbox.data|dunderless %}
+        {% if dunderless_dict %}
           <table class="vertitable full-width">
             <caption>Custom data</caption>
 
             <tbody>
-              {% for key, value in netbox.data.items %}
+              {% for key, value in dunderless_dict.items %}
                 <tr>
                   <th>{{ key }}</th>
                   <td>{{ value|urlize }}</td>
@@ -408,6 +409,7 @@
 
           </table>
         {% endif %}
+        {% endwith %}
 
 
         {% with netbox.get_last_jobs as jobs %}
