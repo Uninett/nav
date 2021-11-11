@@ -24,6 +24,7 @@ import argparse
 from getpass import getpass
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.models.profiles import Account, AccountGroup
@@ -119,8 +120,10 @@ def passwd(args):
         account.save()
         print("New password saved", file=sys.stderr)
     else:
-        print("Password must be at least {} characters".format(
-              Account.MIN_PASSWD_LENGTH), file=sys.stderr)
+        print(
+            "Password must be at least {} characters".format(Account.MIN_PASSWD_LENGTH),
+            file=sys.stderr,
+        )
         sys.exit(3)
 
 
@@ -175,67 +178,79 @@ def usergetter(login):
 def parse_args():
     """Builds an ArgumentParser and returns parsed program arguments"""
     parser = argparse.ArgumentParser(
-        description=
-        "Lists and manipulates NAV web user accounts",
+        description="Lists and manipulates NAV web user accounts"
     )
     subparsers = parser.add_subparsers(help='sub-command help', dest="command")
     subparsers.required = True
 
     listparser = subparsers.add_parser('list', help='Lists user accounts')
-    listparser.add_argument('--verbose', '-v', action='store_true',
-                            help="Be verbose about it")
+    listparser.add_argument(
+        '--verbose', '-v', action='store_true', help="Be verbose about it"
+    )
     listparser.set_defaults(func=listusers)
 
     passwdparser = subparsers.add_parser(
-        'passwd', help='Sets the password of a user account')
-    passwdparser.add_argument('login', type=usergetter,
-                              help="The login name of the user")
-    passwdparser.add_argument('--noverify', '-n', action='store_true',
-                              help="Do not verify existing password")
+        'passwd', help='Sets the password of a user account'
+    )
+    passwdparser.add_argument(
+        'login', type=usergetter, help="The login name of the user"
+    )
+    passwdparser.add_argument(
+        '--noverify', '-n', action='store_true', help="Do not verify existing password"
+    )
     passwdparser.set_defaults(func=passwd)
 
     verifyparser = subparsers.add_parser(
-        'verify', help='Verifies the password of a user account')
-    verifyparser.add_argument('login', type=usergetter,
-                              help="The login name of the user")
+        'verify', help='Verifies the password of a user account'
+    )
+    verifyparser.add_argument(
+        'login', type=usergetter, help="The login name of the user"
+    )
     verifyparser.set_defaults(func=verify)
 
-    addparser = subparsers.add_parser(
-        'add', help='Adds a new user account')
+    addparser = subparsers.add_parser('add', help='Adds a new user account')
     addparser.add_argument('login', help="The login name of the user")
-    addparser.add_argument('--name', '-n', default='',
-                           help="The full name of the user")
-    addparser.add_argument('--admin', action='store_true',
-                           help="Give the user full admin access")
+    addparser.add_argument('--name', '-n', default='', help="The full name of the user")
+    addparser.add_argument(
+        '--admin', action='store_true', help="Give the user full admin access"
+    )
     addparser.set_defaults(func=adduser)
 
     adminifyparser = subparsers.add_parser(
-        'admin',
-        help='Sets whether an existing user belongs to the admin group'
+        'admin', help='Sets whether an existing user belongs to the admin group'
     )
     adminifyparser.add_argument('login', help="The login name of the user")
     adminifyparser.set_defaults(func=adminify)
-    adminifygroupparser = adminifyparser.add_mutually_exclusive_group(
-        required=True
+    adminifygroupparser = adminifyparser.add_mutually_exclusive_group(required=True)
+    adminifygroupparser.add_argument(
+        '-a',
+        '--add',
+        dest='action',
+        help='Add the user to the admin group',
+        action='store_const',
+        const='add',
     )
-    adminifygroupparser.add_argument('-a', '--add', dest='action',
-                                     help='Add the user to the admin group',
-                                     action='store_const', const='add')
-    adminifygroupparser.add_argument('-r', '--remove', dest='action',
-                                     help='Remove the user from the admin group',
-                                     action='store_const', const='remove')
+    adminifygroupparser.add_argument(
+        '-r',
+        '--remove',
+        dest='action',
+        help='Remove the user from the admin group',
+        action='store_const',
+        const='remove',
+    )
 
     lockparser = subparsers.add_parser('lock', help='Locks a user')
     lockparser.set_defaults(func=lock)
-    lockparser.add_argument('login', type=usergetter,
-                            help="The login name of the user")
+    lockparser.add_argument('login', type=usergetter, help="The login name of the user")
 
     unlockparser = subparsers.add_parser('unlock', help='Unlocks a user')
     unlockparser.set_defaults(func=unlock)
-    unlockparser.add_argument('login', type=usergetter,
-                              help="The login name of the user")
+    unlockparser.add_argument(
+        'login', type=usergetter, help="The login name of the user"
+    )
 
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     main()

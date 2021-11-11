@@ -19,6 +19,7 @@ import argparse
 import sys
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.models.manage import Netbox
@@ -40,16 +41,18 @@ def main():
 def parse_args():
     """Builds an ArgumentParser and returns parsed program arguments"""
     parser = argparse.ArgumentParser(
-        description=
-        "Outputs NAV's SNMP configuration of input devices as NET-SNMP "
+        description="Outputs NAV's SNMP configuration of input devices as NET-SNMP "
         "compatible command line arguments",
         epilog="Example usage:\nsnmpwalk $(%(prog)s example-sw.example.org) "
-               "SNMPv2-MIB::system "
+        "SNMPv2-MIB::system ",
     )
-    parser.add_argument("sysname", nargs='?',
-                        help="sysname of device whose configuration should be "
-                             "output. If omitted, a list of names is taken "
-                             "from stdin instead.")
+    parser.add_argument(
+        "sysname",
+        nargs='?',
+        help="sysname of device whose configuration should be "
+        "output. If omitted, a list of names is taken "
+        "from stdin instead.",
+    )
     return parser.parse_args()
 
 
@@ -73,8 +76,7 @@ def snmp_printer(netbox):
         version = '2c'
 
     if not netbox.read_only or not version:
-        print("%s has no valid SNMP configuration in NAV" % netbox,
-              file=sys.stderr)
+        print("%s has no valid SNMP configuration in NAV" % netbox, file=sys.stderr)
         return
 
     ipaddr = IP(netbox.ip)
@@ -82,8 +84,11 @@ def snmp_printer(netbox):
         ipaddr = "ipv6:[%s]" % ipaddr
 
     print("# {}".format(netbox.sysname), file=sys.stderr)
-    print("-v{version} -c {community} {ipaddr}".format(
-        version=version, community=netbox.read_only, ipaddr=ipaddr))
+    print(
+        "-v{version} -c {community} {ipaddr}".format(
+            version=version, community=netbox.read_only, ipaddr=ipaddr
+        )
+    )
 
 
 if __name__ == '__main__':

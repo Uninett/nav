@@ -27,6 +27,7 @@ from itertools import cycle
 from argparse import ArgumentParser
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.ipdevpoll.snmp.common import snmp_parameter_factory, SnmpError
@@ -87,17 +88,20 @@ def endit(_result):
 def parse_args():
     """Parses the command line arguments"""
     parser = ArgumentParser(
-        description=
-        "Verifies SNMP sub-tree support on a set of NAV-monitored devices",
+        description="Verifies SNMP sub-tree support on a set of NAV-monitored devices",
         usage="%(prog)s baseoid < sysnames.txt",
-        epilog=("Given the root of an SNMP MIB module, a bunch of devices can "
-                "be queried in parallel whether they have any objects below "
-                "the given BASEOID - effectively verifying MIB support in "
-                "these devices."),
+        epilog=(
+            "Given the root of an SNMP MIB module, a bunch of devices can "
+            "be queried in parallel whether they have any objects below "
+            "the given BASEOID - effectively verifying MIB support in "
+            "these devices."
+        ),
     )
     parser.add_argument(
-        'baseoid', type=OID,
-        help="The base OID for which a GETNEXT operation will be performed")
+        'baseoid',
+        type=OID,
+        help="The base OID for which a GETNEXT operation will be performed",
+    )
     return parser.parse_args()
 
 
@@ -105,8 +109,9 @@ def parallel(iterable, count, func, *args, **kwargs):
     """Limits the number of parallel requests to count"""
     coop = task.Cooperator()
     work = (func(elem, *args, **kwargs) for elem in iterable)
-    return defer.DeferredList([coop.coiterate(work) for _ in range(count)],
-                              consumeErrors=True)
+    return defer.DeferredList(
+        [coop.coiterate(work) for _ in range(count)], consumeErrors=True
+    )
 
 
 _ports = cycle([snmpprotocol.port() for _ in range(50)])
@@ -118,11 +123,12 @@ def _create_agentproxy(netbox):
 
     port = next(_ports)
     agent = AgentProxy(
-        netbox.ip, 161,
+        netbox.ip,
+        161,
         community=netbox.read_only,
         snmpVersion='v%s' % netbox.snmp_version,
         protocol=port.protocol,
-        snmp_parameters=snmp_parameter_factory(netbox)
+        snmp_parameters=snmp_parameter_factory(netbox),
     )
     try:
         agent.open()

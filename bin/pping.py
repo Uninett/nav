@@ -59,9 +59,7 @@ def main():
 
 
 def make_argparser():
-    parser = argparse.ArgumentParser(
-        description="Parallel pinger daemon (part of NAV)",
-    )
+    parser = argparse.ArgumentParser(description="Parallel pinger daemon (part of NAV)")
     parser.add_argument(
         "-f", "--foreground", action="store_true", help="run in foreground"
     )

@@ -25,6 +25,7 @@ import json
 
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 import django
@@ -45,8 +46,11 @@ def main():
         SEPARATOR = args.separator
 
     if args.all:
-        keys = [key for key, func in vars(Handlers).items()
-                if type(func) is staticmethod and not key.startswith('_')]
+        keys = [
+            key
+            for key, func in vars(Handlers).items()
+            if type(func) is staticmethod and not key.startswith('_')
+        ]
         for key in keys:
             filename = key + ".txt"
             sys.stdout = _stdout
@@ -75,25 +79,43 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Dumps NAV database seed data to importable files",
+        description="Dumps NAV database seed data to importable files"
     )
     arg = parser.add_argument
-    arg("-s", "--separator",
+    arg(
+        "-s",
+        "--separator",
         help="use SEP to separate fields in output, [default :]",
-        metavar="SEP", default=":")
-    tables = sorted(table for table, func in vars(Handlers).items()
-                    if type(func) is staticmethod and not table.startswith('_'))
-    arg("-t", "--table", help="dump data from TABLE", default="",
-        choices=tables, metavar="TABLE")
-    arg("-o", "--output", help="dump data to FILE instead of stdout",
-        metavar="FILE")
-    arg("-a", "--all", dest="all", action="store_true",
-        help="dump all tables to files named TABLE.txt")
+        metavar="SEP",
+        default=":",
+    )
+    tables = sorted(
+        table
+        for table, func in vars(Handlers).items()
+        if type(func) is staticmethod and not table.startswith('_')
+    )
+    arg(
+        "-t",
+        "--table",
+        help="dump data from TABLE",
+        default="",
+        choices=tables,
+        metavar="TABLE",
+    )
+    arg("-o", "--output", help="dump data to FILE instead of stdout", metavar="FILE")
+    arg(
+        "-a",
+        "--all",
+        dest="all",
+        action="store_true",
+        help="dump all tables to files named TABLE.txt",
+    )
 
     args = parser.parse_args()
     if not (args.table or args.all):
-        parser.error("Please specify which tables to dump, using either "
-                     "--table or --all")
+        parser.error(
+            "Please specify which tables to dump, using either " "--table or --all"
+        )
     return args
 
 
@@ -114,8 +136,7 @@ def header(definition):
 
 def lineout(line):
     """Output line, remove any : in strings"""
-    newline = (u'"%s"' % column if SEPARATOR in column else column
-               for column in line)
+    newline = (u'"%s"' % column if SEPARATOR in column else column for column in line)
     line = SEPARATOR.join(newline) + '\n'
     sys.stdout.write(line)
 
@@ -126,9 +147,11 @@ class Handlers(object):
     @staticmethod
     def netbox():
         """Outputs a line for each netbox in the database"""
-        header("#roomid:ip:orgid:catid:[management_profiles:master:function:"
-               "key1=value1|key2=value2:"
-               "devicegroup1:devicegroup2..]")
+        header(
+            "#roomid:ip:orgid:catid:[management_profiles:master:function:"
+            "key1=value1|key2=value2:"
+            "devicegroup1:devicegroup2..]"
+        )
         for box in manage.Netbox.objects.all():
             profiles = u'|'.join(box.profiles.values_list('name', flat=True))
             data = u'|'.join(u"%s=%s" % (k, v) for k, v in box.data.items())
@@ -197,16 +220,18 @@ class Handlers(object):
     def location():
         header("#locationid[:parent:descr]")
         for location in manage.Location.objects.all():
-            line = [location.id, location.parent_id or '',
-                    location.description or '']
+            line = [location.id, location.parent_id or '', location.description or '']
             lineout(line)
 
     @staticmethod
     def room():
         header("# roomid[:locationid:descr:position:attr=value:...]")
         for room in manage.Room.objects.all():
-            line = [room.id, room.location_id if room.location_id else "",
-                    room.description or ""]
+            line = [
+                room.id,
+                room.location_id if room.location_id else "",
+                room.description or "",
+            ]
             if room.position:
                 line.append("(%s, %s)" % room.position)
             elif room.data:
@@ -218,8 +243,12 @@ class Handlers(object):
     def type():
         header("#vendorid:typename:sysoid[:description:cdp:tftp]")
         for netbox_type in manage.NetboxType.objects.all():
-            line = [netbox_type.vendor.id, netbox_type.name,
-                    netbox_type.sysobjectid, netbox_type.description]
+            line = [
+                netbox_type.vendor.id,
+                netbox_type.name,
+                netbox_type.sysobjectid,
+                netbox_type.description,
+            ]
             lineout(line)
 
     @staticmethod
@@ -240,8 +269,10 @@ class Handlers(object):
         header("#prefix/mask;nettype[;orgid;netident;usage;description;vlan]")
         for prefix in manage.Prefix.objects.all():
             vlan = prefix.vlan
-            line = [prefix.net_address,
-                    vlan and vlan.net_type and vlan.net_type.id or ""]
+            line = [
+                prefix.net_address,
+                vlan and vlan.net_type and vlan.net_type.id or "",
+            ]
             if vlan:
                 line.append(vlan.organization and vlan.organization.id or "")
                 line.append(vlan.net_ident or "")
@@ -264,8 +295,10 @@ class Handlers(object):
         all_services = nav.models.service.Service.objects.all()
         for service in all_services.prefetch_related('serviceproperty_set'):
             line = [service.netbox.sysname, service.handler]
-            properties = ["%s=%s" % (p.property, p.value)
-                          for p in service.serviceproperty_set.all()]
+            properties = [
+                "%s=%s" % (p.property, p.value)
+                for p in service.serviceproperty_set.all()
+            ]
             line.extend(properties)
             lineout(line)
         SEPARATOR = old_sep

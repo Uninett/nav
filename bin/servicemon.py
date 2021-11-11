@@ -162,7 +162,7 @@ def main(foreground):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Service monitor for NAV (Network Administration " "Visualized)",
+        description="Service monitor for NAV (Network Administration " "Visualized)"
     )
     parser.add_argument(
         '--version', action='version', version='NAV ' + buildconf.VERSION

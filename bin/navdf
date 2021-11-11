@@ -23,6 +23,7 @@ from __future__ import print_function
 import argparse
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.models.manage import Netbox
@@ -43,15 +44,17 @@ def main():
 def parse_args():
     """Builds an ArgumentParser and returns parsed program arguments"""
     parser = argparse.ArgumentParser(
-        description=
-        "Lists and filters IP devices monitored by NAV",
+        description="Lists and filters IP devices monitored by NAV",
         usage="%(prog)s [filter]",
     )
-    parser.add_argument('filter', nargs='?',
-                        help="The filter expression must be a method call "
-                             "applicable to the Django-based Netbox model's "
-                             "manager class. Example: "
-                             "\"filter(category__id='GSW')\"")
+    parser.add_argument(
+        'filter',
+        nargs='?',
+        help="The filter expression must be a method call "
+        "applicable to the Django-based Netbox model's "
+        "manager class. Example: "
+        "\"filter(category__id='GSW')\"",
+    )
     return parser.parse_args()
 
 

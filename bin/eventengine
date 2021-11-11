@@ -8,9 +8,11 @@ The NAV eventengine deamon
 # Assuming a production environment, we don't want to raise exceptions
 # while logging
 import logging
+
 logging.raiseExceptions = False
 
 from nav.bootstrap import bootstrap_django
+
 bootstrap_django(__file__)
 
 from nav.eventengine.daemon import main
