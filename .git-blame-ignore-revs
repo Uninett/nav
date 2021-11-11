@@ -2,3 +2,5 @@
 e6634e512c8ecf283c85a701366620e724806ab7
 # Re-ran black on everything due to apparent disagreements on config? @lunkwill42 30/04/2021
 78effe45d0febf7103714b7b3f0b9e277db287e9
+# Ran black on bin scripts, as some of them seem to have been left out of the previous reformats @lunkwill42 11/11/2021
+5d49efe59059c19da2d09d0ae695d498872cdb72
