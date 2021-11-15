@@ -43,16 +43,16 @@ from nav.report.generator import Generator, ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
-from nav.config import find_configfile
+from nav.config import find_config_file
 
 from nav.web.navlets import add_navlet
 
 
 _logger = logging.getLogger(__name__)
 IpGroup = namedtuple('IpGroup', 'private ipv4 ipv6')
-CONFIG_FILE_PACKAGE = find_configfile(os.path.join("report", "report.conf"))
-CONFIG_FILE_LOCAL = find_configfile(os.path.join("report", "report.local.conf"))
-FRONT_FILE = find_configfile(os.path.join("report", "front.html"))
+CONFIG_FILE_PACKAGE = find_config_file(os.path.join("report", "report.conf"))
+CONFIG_FILE_LOCAL = find_config_file(os.path.join("report", "report.local.conf"))
+FRONT_FILE = find_config_file(os.path.join("report", "front.html"))
 DEFAULT_PAGE_SIZE = 25
 PAGE_SIZES = [25, 50, 100, 500, 1000]
 

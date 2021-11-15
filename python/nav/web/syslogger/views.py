@@ -24,7 +24,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
 
-from nav.config import NAV_CONFIG, find_configfile
+from nav.config import NAV_CONFIG, find_config_file
 
 from nav.django.utils import get_account
 
@@ -219,7 +219,7 @@ def exceptions_response(request):
     if not account:
         return HttpResponseRedirect('/')
     config = ConfigParser()
-    config.read(find_configfile('logger.conf'))
+    config.read(find_config_file('logger.conf'))
     options = config.options("priorityexceptions")
     excepts = []
     context = {}

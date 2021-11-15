@@ -43,7 +43,7 @@ import argparse
 from os.path import join
 
 from nav.bootstrap import bootstrap_django
-from nav.config import find_configfile
+from nav.config import find_config_file
 
 bootstrap_django(__file__)
 
@@ -209,7 +209,7 @@ def report_detentions(profile, detentions):
     emails = find_contact_addresses(detentions)
 
     try:
-        mailfile = find_configfile(join("arnold", "mailtemplates", profile.mailfile))
+        mailfile = find_config_file(join("arnold", "mailtemplates", profile.mailfile))
         message_template = open(mailfile).read()
     except IOError as error:
         _logger.error(error)

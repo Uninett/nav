@@ -39,7 +39,7 @@ import nav.Snmp
 from nav.Snmp.errors import AgentError
 import nav.bitvector
 import nav.buildconf
-from nav.config import find_configfile
+from nav.config import find_config_file
 from nav.errors import GeneralException
 from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
@@ -389,7 +389,7 @@ def create_event(identity, comment, username):
 def raise_if_detainment_not_allowed(interface, trunk_ok=False):
     """Raises an exception if this interface should not be detained"""
     netbox = interface.netbox
-    config = get_config(find_configfile(CONFIGFILE))
+    config = get_config(find_config_file(CONFIGFILE))
     allowtypes = [x.strip() for x in str(config.get('arnold', 'allowtypes')).split(',')]
 
     if netbox.category.id not in allowtypes:
@@ -538,7 +538,7 @@ def get_netbios(ip):
 
 def check_non_block(ip):
     """Checks if the ip is in the nonblocklist."""
-    nonblockdict = parse_nonblock_file(find_configfile(NONBLOCKFILE))
+    nonblockdict = parse_nonblock_file(find_config_file(NONBLOCKFILE))
 
     # We have the result of the nonblock.cfg-file in the dict
     # nonblockdict. This dict contains 3 things:

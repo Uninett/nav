@@ -112,7 +112,7 @@ def order_filter_group_content(filter_group):
 
 def read_time_period_templates():
     templates = {}
-    template_dir = nav.config.find_configfile(CONFIGDIR)
+    template_dir = nav.config.find_config_file(CONFIGDIR)
     template_configs = os.listdir(template_dir)
 
     for template_file in template_configs:

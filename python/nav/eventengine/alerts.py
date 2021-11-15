@@ -31,7 +31,7 @@ from . import unresolved
 from . import export
 from . import severity
 
-ALERT_TEMPLATE_DIR = nav.config.find_configfile('alertmsg')
+ALERT_TEMPLATE_DIR = nav.config.find_config_file('alertmsg')
 _logger = logging.getLogger(__name__)
 _template_logger = logging.getLogger(__name__ + '.template')
 

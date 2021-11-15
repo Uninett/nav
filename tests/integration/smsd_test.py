@@ -11,7 +11,7 @@ except ImportError:
 import pytest
 from mock import Mock, patch
 
-from nav.config import find_configfile, find_config_dir
+from nav.config import find_config_file, find_config_dir
 
 
 def test_smsd_test_message_with_uninettmaildispatcher_should_work(
@@ -33,7 +33,7 @@ def test_smsd_test_message_with_uninettmaildispatcher_should_work(
 @pytest.fixture(scope="module")
 def smsd_test_config():
     print("placing temporary smsd config")
-    configfile = find_configfile("smsd.conf")
+    configfile = find_config_file("smsd.conf")
     tmpfile = configfile + '.bak'
     os.rename(configfile, tmpfile)
     with open(configfile, "w") as config:

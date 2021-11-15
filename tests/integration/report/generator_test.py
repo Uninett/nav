@@ -14,10 +14,10 @@ from django.urls import reverse
 
 from nav import db
 from nav.report.generator import ReportList, Generator
-from nav.config import find_configfile
+from nav.config import find_config_file
 
-config_file = find_configfile('report/report.conf')
-config_file_local = find_configfile('report/report.local.conf')
+config_file = find_config_file('report/report.conf')
+config_file_local = find_config_file('report/report.local.conf')
 
 
 def report_list():
