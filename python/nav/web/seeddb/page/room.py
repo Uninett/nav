@@ -109,11 +109,16 @@ def room_edit(request, action='edit', room_id=None, lat=None, lon=None):
         for r in Room.objects.all()
         if r.position
     ]
+    if room_id:
+        detail_page_url = reverse_lazy('room-info', kwargs={'roomid': room_id})
+    else:
+        detail_page_url = ""
     extra_context = {
         'map': True,
         'roompositions': roompositions,
         'copy_url': copy_url,
         'copy_title': 'Use this room as a template for creating a new room',
+        'detail_page_url': detail_page_url,
     }
 
     extra_context.update(info.template_context)

@@ -162,6 +162,12 @@ def prefix_edit(request, prefix_id=None):
     else:
         prefix_form = PrefixForm(instance=prefix, initial=request.GET.dict())
         vlan_form = PrefixVlanForm(instance=vlan, initial=request.GET.dict())
+    if prefix_id:
+        detail_page_url = reverse_lazy(
+            'prefix-details', kwargs={'prefix_id': prefix_id}
+        )
+    else:
+        detail_page_url = ""
     context = info.template_context
     context.update(
         {
@@ -169,6 +175,7 @@ def prefix_edit(request, prefix_id=None):
             'form': prefix_form,
             'vlan_form': vlan_form,
             'sub_active': prefix and {'edit': True} or {'add': True},
+            'detail_page_url': detail_page_url,
         }
     )
     return render_edit(

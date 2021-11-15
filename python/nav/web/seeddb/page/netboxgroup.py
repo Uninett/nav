@@ -99,7 +99,17 @@ def netboxgroup_delete(request, object_id=None):
 
 
 def netboxgroup_edit(request, netboxgroup_id=None):
+    if netboxgroup_id:
+        detail_page_url = reverse_lazy(
+            'netbox-group-detail', kwargs={'groupid': netboxgroup_id}
+        )
+    else:
+        detail_page_url = ""
     info = NetboxGroupInfo()
+    extra_context = {
+        'detail_page_url': detail_page_url,
+    }
+    extra_context.update(info.template_context)
     return render_edit(
         request,
         NetboxGroup,
@@ -107,7 +117,7 @@ def netboxgroup_edit(request, netboxgroup_id=None):
         netboxgroup_id,
         'seeddb-netboxgroup-edit',
         template='seeddb/edit_device_group.html',
-        extra_context=info.template_context,
+        extra_context=extra_context,
     )
 
 
