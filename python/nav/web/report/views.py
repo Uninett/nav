@@ -50,7 +50,7 @@ from nav.web.navlets import add_navlet
 
 _logger = logging.getLogger(__name__)
 IpGroup = namedtuple('IpGroup', 'private ipv4 ipv6')
-CONFIG_DIR = join(find_config_dir() or "", "report")
+CONFIG_DIR = join(find_config_dir() or "", "report", "report.conf.d/")
 FRONT_FILE = find_config_file(join("report", "front.html"))
 DEFAULT_PAGE_SIZE = 25
 PAGE_SIZES = [25, 50, 100, 500, 1000]
