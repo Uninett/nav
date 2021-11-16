@@ -16,10 +16,10 @@
 """Report widget"""
 from django.http import HttpResponse, JsonResponse, QueryDict
 from nav.models.profiles import AccountNavlet
-from nav.web.report.views import CONFIG_FILE_PACKAGE, CONFIG_FILE_LOCAL, make_report
+from nav.web.report.views import CONFIG_DIR, make_report
 from nav.report.generator import ReportList
+from nav.config import list_config_files_from_dir
 from . import Navlet, NAVLET_MODE_EDIT, NAVLET_MODE_VIEW
-from operator import itemgetter
 
 
 class ReportWidget(Navlet):
@@ -40,15 +40,9 @@ class ReportWidget(Navlet):
         query_string = navlet.preferences.get('query_string')
 
         if self.mode == NAVLET_MODE_EDIT:
-            report_list = ReportList(CONFIG_FILE_PACKAGE).get_report_list()
-            report_list.extend(ReportList(CONFIG_FILE_LOCAL).get_report_list())
-            report_list.sort(key=itemgetter(1))
-            reports = {}
-            for report in report_list:
-                reports[report[0]] = (report[1],report[2])
-            report_list = []
-            for key, (val1, val2) in reports.items():
-                report_list.append((key, val1, val2))
+            report_list = ReportList(
+                list_config_files_from_dir(CONFIG_DIR)
+            ).get_report_list()
 
             context['report_list'] = report_list
             context['current_report_id'] = report_id

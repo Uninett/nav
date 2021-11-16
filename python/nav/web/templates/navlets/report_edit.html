@@ -8,10 +8,10 @@
       Choose report
       <select name="report_id">
         <option value="">---</option>
-        {% for report_id, report_name, report_desc in report_list %}
-          <option value="{{ report_id }}"
-                  {% if current_report_id == report_id %}selected{% endif %}>
-            {{ report_name }}
+        {% for report in report_list %}
+          <option value="{{ report.id }}"
+                  {% if current_report_id == report.id %}selected{% endif %}>
+            {{ report.title }}
           </option>
         {% endfor %}
       </select>
