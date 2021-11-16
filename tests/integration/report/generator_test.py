@@ -14,15 +14,16 @@ from django.urls import reverse
 
 from nav import db
 from nav.report.generator import ReportList, Generator
-from nav.config import find_config_file
+from nav.config import find_config_dir, list_config_files_from_dir
 
-config_file = find_config_file('report/report.conf')
-config_file_local = find_config_file('report/report.local.conf')
+from os.path import join
+
+config_files_dir = join(find_config_dir() or "", "report", "report.conf.d/")
 
 
 def report_list():
-    result = ReportList(config_file)
-    return [report[0] for report in result.reports]
+    result = ReportList(list_config_files_from_dir(config_files_dir))
+    return [report.id for report in result.reports]
 
 
 @pytest.mark.parametrize("report_name", report_list())
@@ -33,7 +34,7 @@ def test_report(report_name):
 
     generator = Generator()
     report, contents, neg, operator, adv, config, dbresult = generator.make_report(
-        report_name, config_file, config_file_local, uri, None, None
+        report_name, list_config_files_from_dir(config_files_dir), uri, None, None
     )
 
     assert dbresult, 'dbresult is None'
