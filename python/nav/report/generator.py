@@ -19,11 +19,12 @@ import io
 import re
 from collections import namedtuple
 from operator import attrgetter
+from os.path import basename
 
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
 
-ReportTuple = namedtuple('ReportTuple', 'id title description')
+ReportTuple = namedtuple('ReportTuple', 'id title description report_files')
 
 
 class Generator(object):
@@ -104,17 +105,28 @@ class ReportList(object):
         for config_file in config_files:
             contents = io.open(config_file, encoding='utf-8').read()
             for report in report_pattern.findall(contents):
-                report_dict[report[0]] = report[1]
+                if report[0] in report_dict:
+                    # overwrite configtext, but add config_file to list
+                    report_dict[report[0]][0] = report[1]
+                    report_dict[report[0]][1].append(basename(config_file))
+                else:
+                    report_dict[report[0]] = [
+                        report[1],
+                        [basename(config_file)],
+                    ]
 
         parser = ConfigParser(config_files)
 
-        for report_id, configtext in report_dict.items():
+        for report_id, [configtext, report_files] in report_dict.items():
             parser.parse_configuration(configtext)
             report = parser.configuration
 
             self.reports.append(
                 ReportTuple(
-                    report_id, report.title or report_id, report.description or ""
+                    report_id,
+                    report.title or report_id,
+                    report.description or "",
+                    report_files,
                 )
             )
 

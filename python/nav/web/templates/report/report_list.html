@@ -15,7 +15,7 @@
         {% for report in report_list %}
             <tr>
                 <td><a href="/report/{{ report.id }}">{{ report.title}}</a></td>
-                <td>{{ report.description }}</td>
+                <td title="Source(s): {{ report.report_files }}">{{ report.description }}</td>
             </tr>
         {% endfor %}
         </tbody>
