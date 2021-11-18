@@ -210,9 +210,11 @@ def authenticate_remote_user(request):
 
 def get_login_url(request):
     """Calculate which login_url to use"""
-    default_new_url = '{0}?origin={1}&noaccess'.format(
-        LOGIN_URL, parse.quote(request.get_full_path())
-    )
+    path = parse.quote(request.get_full_path())
+    if path == "/":
+        default_new_url = LOGIN_URL
+    else:
+        default_new_url = '{0}?origin={1}&noaccess'.format(LOGIN_URL, path)
     remote_loginurl = get_remote_loginurl(request)
     return remote_loginurl if remote_loginurl else default_new_url
 
