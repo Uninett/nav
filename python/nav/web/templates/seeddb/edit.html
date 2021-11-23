@@ -23,7 +23,16 @@
 
   <div class="row">
     <div class="small-12 column">
-      <h4>{{ title }}</h4>
+      <h4>{{ title }}
+        {% if detail_page_url %}
+          <a href="{{ detail_page_url }}"
+              title="See more information">
+              {{ detail_page_name }}
+          </a>
+        {% else %}
+          "{{ detail_page_name }}"
+        {% endif %}
+      </h4>
     </div>
 
     <div class="large-6 column{% if not map %} end{% endif %}">

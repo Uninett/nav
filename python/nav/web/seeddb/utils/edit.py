@@ -50,7 +50,6 @@ def render_edit(
     action='edit',
 ):
     """Handles editing for objects in seeddb."""
-
     if not extra_context:
         extra_context = {}
 
@@ -101,7 +100,8 @@ def render_edit(
         if obj.pk:
             context.update(
                 {
-                    'title': 'Edit %s "%s"' % (verbose_name, obj),
+                    'title': 'Edit %s' % verbose_name,
+                    'detail_page_name': obj,
                     'sub_active': {'edit': True},
                 }
             )
