@@ -8,6 +8,19 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.3
+=======
+
+Backwards incompatible changes
+------------------------------
+
+Support a report.conf.d/ style config directory for reports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Previous versions read the files :file:`report.conf` and :file:`report.local.conf` and configured all reports from these. NAV 5.3 added a directory named "report.conf.d" from which all files in it that end with ".conf" and aren't dot-files will be used to configure reports in alphabetical order by filename.
+
+Please ensure to move the configuration files :file:`report.conf` and :file:`report.local.conf` to the :directory:`report.conf.d`, which is a subdirectory of :directory:´report´, where these files currently are located.
+
 NAV 5.2
 =======
 
