@@ -6,12 +6,12 @@
 # s/nav.compatibility \(import \w+_str\)/django.utils.encoding \1/
 try:
     from django.utils.encoding import force_str
-except ImoprtError:
+except ImportError:
     from django.utils.encoding import force_text as force_str
 
 try:
     from django.utils.encoding import smart_str
-except ImoprtError:
+except ImportError:
     from django.utils.encoding import smart_text as smart_str
 
 # lru_cache isn't used that much but one application of sed is faster
