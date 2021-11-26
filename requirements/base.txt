@@ -16,7 +16,7 @@ sphinxcontrib-django
 
 feedparser==6.0.8
 markdown==2.5.1
-dnspython==1.15.0
+dnspython<3.0.0,>=2.1.0
 
 # REST framework
 iso8601
