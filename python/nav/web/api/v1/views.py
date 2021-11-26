@@ -22,7 +22,7 @@ from IPy import IP
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.db.models.fields.related import ManyToOneRel as _RelatedObject
-from django.db.models.fields import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist
 import iso8601
 
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet

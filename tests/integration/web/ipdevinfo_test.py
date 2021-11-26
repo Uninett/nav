@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 from django.urls import reverse
-from django.utils.encoding import smart_text
+from nav.compatibility import smart_str
 
 from nav.models.manage import Netbox, Module, Interface, Device, NetboxProfile
 from nav.web.ipdevinfo.utils import get_module_view
@@ -13,7 +13,7 @@ import pytest
 def test_device_details_should_include_sysname(client, netbox):
     url = reverse('ipdevinfo-details-by-name', args=(netbox.sysname,))
     response = client.get(url)
-    assert netbox.sysname in smart_text(response.content)
+    assert netbox.sysname in smart_str(response.content)
 
 
 def test_port_search_should_match_case_insensitively(client, netbox):
@@ -27,7 +27,7 @@ def test_port_search_should_match_case_insensitively(client, netbox):
     )
     response = client.get(url)
     assert response.status_code == 200
-    assert ifc.ifdescr in smart_text(response.content)
+    assert ifc.ifdescr in smart_str(response.content)
 
 
 @pytest.mark.parametrize(
@@ -58,7 +58,7 @@ def test_bad_name_should_not_crash_ipdevinfo(client, badname):
     url = reverse("ipdevinfo-details-by-name", kwargs={"name": badname})
     response = client.get(url)
     assert response.status_code == 200
-    assert badname in smart_text(response.content)
+    assert badname in smart_str(response.content)
 
 
 ###

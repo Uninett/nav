@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-from django.utils.encoding import force_text
+from nav.compatibility import force_str
 
 from datetime import datetime, timedelta
 import json
@@ -12,7 +12,7 @@ from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
 
 
-ENDPOINTS = {name: force_text(url) for name, url in get_endpoints().items()}
+ENDPOINTS = {name: force_str(url) for name, url in get_endpoints().items()}
 
 
 # Data for writable endpoints
@@ -38,23 +38,6 @@ TEST_DATA = {
     },
     'prefix': {'net_address': '158.38.240.0/25'},
 }
-
-
-# Django newer than 1.9 can send a response that lacks the Content-Type header,
-# like for a delete. The __repr__ in django 1.9 and 1.10 directly looks up the
-# Content-Type header, leading to a KeyError. Therefore, don't print()
-# responses, which depends on __repr__.
-#
-# See django bug #27640. Fixed in Django 1.11
-def print_response(response):
-    print(
-        '<%(cls)s status_code=%(status_code)d%(content_type)s>'
-        % {
-            'cls': response.__class__.__name__,
-            'status_code': response.status_code,
-            'content_type': response._headers.get('Content-Type', ''),
-        }
-    )
 
 
 # Generic tests
@@ -85,10 +68,10 @@ def test_delete(db, api_client, token, endpoint):
     response_delete = delete(api_client, endpoint, res.get('id'))
     response_get = get(api_client, endpoint, res.get('id'))
 
-    print_response(response_delete)
+    print(response_delete)
     assert response_delete.status_code == 204
 
-    print_response(response_get)
+    print(response_get)
     assert response_get.status_code == 404
 
 
@@ -96,7 +79,7 @@ def test_delete(db, api_client, token, endpoint):
 def test_create(db, api_client, token, endpoint):
     create_token_endpoint(token, endpoint)
     response = create(api_client, endpoint, TEST_DATA.get(endpoint))
-    print_response(response)
+    print(response)
     assert response.status_code == 201
 
 
@@ -126,12 +109,12 @@ def test_update_org_on_account(db, api_client, token):
     create_token_endpoint(token, endpoint)
     data = {"organizations": ["myorg"]}
     response = update(api_client, endpoint, 1, data)
-    print_response(response)
+    print(response)
     assert response.status_code == 200
 
     data = {"organizations": []}
     response = update(api_client, endpoint, 1, data)
-    print_response(response)
+    print(response)
     assert response.status_code == 200
 
 
@@ -141,7 +124,7 @@ def test_update_group_on_org(db, api_client, token):
     # Only admin group
     data = {"accountgroups": [1]}
     response = update(api_client, endpoint, 1, data)
-    print_response(response)
+    print(response)
     assert response.status_code == 200
 
 
@@ -155,7 +138,7 @@ def test_update_netbox(db, api_client, token):
     res = json.loads(response_create.content.decode('utf-8'))
     data = {'categoryid': 'GW'}
     response_update = update(api_client, endpoint, res['id'], data)
-    print_response(response_update)
+    print(response_update)
     assert response_update.status_code == 200
 
 
@@ -168,7 +151,7 @@ def test_delete_netbox(db, api_client, token):
     response_get = get(api_client, endpoint, json_create['id'])
     json_get = json.loads(response_get.content.decode('utf-8'))
 
-    print_response(response_delete)
+    print(response_delete)
     print(json_get['deleted_at'])
 
     assert response_delete.status_code == 204
@@ -181,7 +164,7 @@ def test_delete_netbox(db, api_client, token):
 def test_get_wrong_room(db, api_client, token):
     create_token_endpoint(token, 'room')
     response = api_client.get('{}blapp/'.format(ENDPOINTS['room']))
-    print_response(response)
+    print(response)
     assert response.status_code == 404
 
 
@@ -190,7 +173,7 @@ def test_get_new_room(db, api_client, token):
     create_token_endpoint(token, endpoint)
     create(api_client, endpoint, TEST_DATA.get(endpoint))
     response = api_client.get('/api/1/room/blapp/')
-    print_response(response)
+    print(response)
     assert response.status_code == 200
 
 
@@ -198,7 +181,7 @@ def test_patch_room_not_found(db, api_client, token):
     create_token_endpoint(token, 'room')
     data = {'location': 'mylocation'}
     response = api_client.patch('/api/1/room/blapp/', data, format='json')
-    print_response(response)
+    print(response)
     assert response.status_code == 404
 
 
@@ -208,7 +191,7 @@ def test_patch_room_wrong_location(db, api_client, token):
     create(api_client, endpoint, TEST_DATA.get(endpoint))
     data = {'location': 'mylocatio'}
     response = api_client.patch('/api/1/room/blapp/', data, format='json')
-    print_response(response)
+    print(response)
     assert response.status_code == 400
 
 
@@ -219,7 +202,7 @@ def test_patch_room(db, api_client, token):
     data = {'location': 'mylocation'}
     response = api_client.patch('/api/1/room/blapp/', data, format='json')
 
-    print_response(response)
+    print(response)
     assert response.status_code == 200
 
 
@@ -229,7 +212,7 @@ def test_delete_room_wrong_room(db, api_client, token):
     create(api_client, endpoint, TEST_DATA.get(endpoint))
     response = api_client.delete('/api/1/room/blap/')
 
-    print_response(response)
+    print(response)
     assert response.status_code == 404
 
 
@@ -240,7 +223,7 @@ def test_validate_vlan(db, api_client, token):
     testdata.update({'net_type': 'core'})
     response = create(api_client, endpoint, testdata)
 
-    print_response(response)
+    print(response)
     assert response.status_code == 400
 
 
@@ -260,7 +243,7 @@ def test_create_prefix(db, api_client, token):
     testdata = prepare_prefix_test(db, api_client, token)
     response = create(api_client, endpoint, testdata)
 
-    print_response(response)
+    print(response)
     assert response.status_code == 201
 
 
@@ -293,7 +276,7 @@ def test_update_prefix_remove_usage(db, api_client, token, serializer_models):
 def test_nonexistent_alert_should_give_404(db, api_client, token):
     create_token_endpoint(token, 'alert')
     response = api_client.get('{}9999/'.format(ENDPOINTS['alert']))
-    print_response(response)
+    print(response)
     assert response.status_code == 404
 
 
@@ -301,7 +284,7 @@ def test_alert_should_be_visible_in_api(db, api_client, token, serializer_models
     create_token_endpoint(token, 'alert')
     alert = AlertHistory.objects.all()[0]
     response = api_client.get('{url}{id}/'.format(url=ENDPOINTS['alert'], id=alert.id))
-    print_response(response)
+    print(response)
     assert response.status_code == 200
     content = response.content.decode('utf-8')
     # Simple string tests, but they might just as well parse the JSON structure
@@ -333,7 +316,7 @@ def create_token_endpoint(token, name):
 def get(api_client, endpoint, id=None):
     endpoint = ENDPOINTS[endpoint]
     if id:
-        endpoint = endpoint + force_text(id) + '/'
+        endpoint = endpoint + force_str(id) + '/'
     return api_client.get(endpoint)
 
 
@@ -345,13 +328,13 @@ def create(api_client, endpoint, data):
 def update(api_client, endpoint, id, data):
     """Sends a patch request to endpoint with data"""
     return api_client.patch(
-        ENDPOINTS[endpoint] + force_text(id) + '/', data, format='json'
+        ENDPOINTS[endpoint] + force_str(id) + '/', data, format='json'
     )
 
 
 def delete(api_client, endpoint, id):
     """Sends a delete request to endpoint"""
-    return api_client.delete(ENDPOINTS[endpoint] + force_text(id) + '/')
+    return api_client.delete(ENDPOINTS[endpoint] + force_str(id) + '/')
 
 
 @pytest.mark.parametrize(
