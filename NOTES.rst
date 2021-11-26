@@ -28,7 +28,12 @@ Changed versions
 NAV 5.2 moved to a newer version of the Python module :mod:`feedparser`,
 because of Python 3 issues with the old version. The new requirement is:
 
-* :mod:`feedparser==6.0.8`
+* :mod:`feedparser`==6.0.8
+
+Due to recent dependency conflicts with Napalm, NAV also changed the version
+requirement for the :mod:`dnspython` module. This is the current requirement:
+
+* mod:`dnspython`<3.0.0,>=2.1.0
 
 
 Backwards incompatible changes

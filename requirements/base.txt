@@ -17,7 +17,7 @@ sphinxcontrib-django
 Markdown==3.3.6
 
 feedparser==6.0.8
-dnspython==1.15.0
+dnspython<3.0.0,>=2.1.0
 
 django-filter>=2
 djangorestframework>=3.12,<3.13
