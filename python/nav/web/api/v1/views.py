@@ -28,12 +28,7 @@ import iso8601
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from django_filters.filters import ModelMultipleChoiceFilter
 from rest_framework import status, filters, viewsets, exceptions
-from rest_framework.decorators import (
-    api_view,
-    renderer_classes,
-    list_route,
-    detail_route,
-)
+from rest_framework.decorators import api_view, renderer_classes, action
 from rest_framework.reverse import reverse_lazy
 from rest_framework.renderers import (
     JSONRenderer,
@@ -284,7 +279,7 @@ class AccountViewSet(NAVAPIMixin, viewsets.ModelViewSet):
 
     queryset = profiles.Account.objects.all()
     serializer_class = serializers.AccountSerializer
-    filter_fields = ('login', 'ext_sync')
+    filterset_fields = ('login', 'ext_sync')
     search_fields = ('name',)
 
 
@@ -324,7 +319,7 @@ class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
 
     queryset = manage.Room.objects.all()
     serializer_class = serializers.RoomSerializer
-    filter_fields = ('location', 'description')
+    filterset_fields = ('location', 'description')
 
 
 class LocationViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
@@ -342,7 +337,7 @@ class LocationViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
 
     queryset = manage.Location.objects.all()
     serializer_class = serializers.LocationSerializer
-    filter_fields = ('id', 'parent')
+    filterset_fields = ('id', 'parent')
     search_fields = ('description',)
 
 
@@ -361,7 +356,7 @@ class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     queryset = manage.UnrecognizedNeighbor.objects.all()
     serializer_class = serializers.UnrecognizedNeighborSerializer
-    filter_fields = ('netbox', 'source')
+    filterset_fields = ('netbox', 'source')
     search_fields = ('remote_name',)
 
 
@@ -395,7 +390,7 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
 
     queryset = manage.Netbox.objects.all()
     serializer_class = serializers.NetboxSerializer
-    filter_fields = (
+    filterset_fields = (
         'ip',
         'sysname',
         'room',
@@ -498,7 +493,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     # NaturalIfnameFilter returns a list, so IfClassFilter needs to come first
     filter_backends = NAVAPIMixin.filter_backends + (IfClassFilter, NaturalIfnameFilter)
-    filter_class = InterfaceFilterClass
+    filterset_class = InterfaceFilterClass
 
     def get_serializer_class(self):
         request = self.request
@@ -512,7 +507,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
             self.renderer_classes += (InterfaceFragmentRenderer,)
         return super(InterfaceViewSet, self).get_renderers()
 
-    @detail_route()
+    @action(detail=True)
     def metrics(self, _request, pk=None):
         """List all metrics for this interface
 
@@ -521,7 +516,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         """
         return Response(self.get_object().get_port_metrics())
 
-    @detail_route()
+    @action(detail=True)
     def last_used(self, _request, pk=None):
         """Return last used timestamp for this interface
 
@@ -561,7 +556,7 @@ class PatchViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         'cabling__room', 'interface__netbox'
     ).all()
     serializer_class = serializers.PatchSerializer
-    filter_fields = ('cabling', 'cabling__room', 'interface', 'interface__netbox')
+    filterset_fields = ('cabling', 'cabling__room', 'interface', 'interface__netbox')
     search_fields = ('cabling__jack',)
 
 
@@ -584,7 +579,7 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = serializers.CablingSerializer
-    filter_fields = ('room', 'jack', 'building', 'target_room', 'category')
+    filterset_fields = ('room', 'jack', 'building', 'target_room', 'category')
     search_fields = ('jack', 'target_room', 'building')
 
     def get_queryset(self):
@@ -668,7 +663,7 @@ class CamViewSet(MachineTrackerViewSet):
 
     model_class = manage.Cam
     serializer_class = serializers.CamSerializer
-    filter_fields = ('netbox', 'ifindex', 'port')
+    filterset_fields = ('netbox', 'ifindex', 'port')
 
     def list(self, request):
         """Override list so that we can control what is returned"""
@@ -710,7 +705,7 @@ class ArpViewSet(MachineTrackerViewSet):
 
     model_class = manage.Arp
     serializer_class = serializers.ArpSerializer
-    filter_fields = ('netbox', 'prefix')
+    filterset_fields = ('netbox', 'prefix')
 
     def list(self, request):
         """Override list so that we can control what is returned"""
@@ -756,7 +751,7 @@ class VlanViewSet(NAVAPIMixin, viewsets.ModelViewSet):
 
     queryset = manage.Vlan.objects.all()
     serializer_class = serializers.VlanSerializer
-    filter_fields = [
+    filterset_fields = [
         'vlan',
         'net_type',
         'net_ident',
@@ -780,9 +775,9 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ModelViewSet):
 
     queryset = manage.Prefix.objects.all()
     serializer_class = serializers.PrefixSerializer
-    filter_fields = ('vlan', 'net_address', 'vlan__vlan')
+    filterset_fields = ('vlan', 'net_address', 'vlan__vlan')
 
-    @list_route()
+    @action(detail=False)
     def search(self, request):
         """Do string-like prefix searching. Currently only supports net_address."""
         net_address = request.GET.get('net_address', None)
@@ -1054,7 +1049,7 @@ class RackViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     queryset = rack.Rack.objects.all()
     serializer_class = serializers.RackSerializer
-    filter_fields = ['room', 'rackname']
+    filterset_fields = ['room', 'rackname']
     search_fields = ['rackname']
 
 

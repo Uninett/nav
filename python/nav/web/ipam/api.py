@@ -23,7 +23,7 @@ API specific code for the private IPAM API. Exports a router for easy mounting.
 from rest_framework import viewsets, status, routers
 from rest_framework import serializers
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from nav.ip import IP
 
 from nav.models.manage import Prefix
@@ -112,7 +112,7 @@ class PrefixViewSet(viewsets.ViewSet):
         queryset.filter_full_prefixes()
         return queryset.finalize()
 
-    @list_route(methods=["get"])
+    @action(detail=False, methods=["get"])
     def suggest(self, request, *args, **kwargs):
         "Suggests subnets of size=?number_of_hosts for ?prefix"
         params = SuggestParams(data=request.query_params)
@@ -127,7 +127,7 @@ class PrefixViewSet(viewsets.ViewSet):
         )
         return Response(payload, status=status.HTTP_200_OK)
 
-    @detail_route(methods=["get"])
+    @action(detail=True, methods=["get"])
     def usage(self, request, *args, **kwargs):
         "Return usage for Prefix.pk == pk"
         pk = kwargs.pop("pk", None)
@@ -205,5 +205,5 @@ class PrefixFinderSet(viewsets.ViewSet):
 
 
 router = routers.SimpleRouter()
-router.register(r"^/find", PrefixFinderSet, base_name="ipam-api-finder")
-router.register(r"^", PrefixViewSet, base_name="ipam-api")
+router.register(r"^/find", PrefixFinderSet, basename="ipam-api-finder")
+router.register(r"^", PrefixViewSet, basename="ipam-api")
