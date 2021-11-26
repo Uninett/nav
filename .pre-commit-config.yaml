@@ -4,6 +4,12 @@ repos:
     hooks:
     -   id: trailing-whitespace
     -   id: mixed-line-ending
+-   repo: https://github.com/pycqa/flake8
+    rev: 3.9.2
+    hooks:
+    -   id: flake8
+        name: "Flake8: critical"
+        args: ['--count', '--select=E9,F63,F7,F82', '--show-source', '--statistics']
 -   repo: https://github.com/psf/black
     rev: 20.8b1
     hooks:
