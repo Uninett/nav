@@ -31,3 +31,6 @@ pynetsnmp-2==0.1.7
 libsass==0.15.1
 
 napalm==3.0.1
+
+# For 3rd party REST API access
+simple_rest_client==1.0.8
