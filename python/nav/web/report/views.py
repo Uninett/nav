@@ -18,12 +18,12 @@ import logging
 import hashlib
 from functools import wraps
 
-from operator import itemgetter
 from collections import defaultdict, namedtuple
 from time import localtime, strftime
 import csv
-import os
 import re
+from os import stat
+from os.path import join
 
 from IPy import IP
 
@@ -39,20 +39,19 @@ from django.utils.six import PY2, iteritems, text_type
 from nav.models.manage import Prefix
 
 from nav.report.IPtree import get_max_leaf, build_tree
-from nav.report.generator import Generator, ReportList
+from nav.report.generator import Generator, ReportList, ReportTuple
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP
-from nav.config import find_config_file
+from nav.config import find_config_file, find_config_dir, list_config_files_from_dir
 
 from nav.web.navlets import add_navlet
 
 
 _logger = logging.getLogger(__name__)
 IpGroup = namedtuple('IpGroup', 'private ipv4 ipv6')
-CONFIG_FILE_PACKAGE = find_config_file(os.path.join("report", "report.conf"))
-CONFIG_FILE_LOCAL = find_config_file(os.path.join("report", "report.local.conf"))
-FRONT_FILE = find_config_file(os.path.join("report", "front.html"))
+CONFIG_DIR = join(find_config_dir() or "", "report", "report.conf.d/")
+FRONT_FILE = find_config_file(join("report", "front.html"))
 DEFAULT_PAGE_SIZE = 25
 PAGE_SIZES = [25, 50, 100, 500, 1000]
 
@@ -248,14 +247,7 @@ def create_matrix(scope, show_unused):
 
 def report_list(request):
     """Automated report list view"""
-
-    key = itemgetter(1)
-
-    reports = ReportList(CONFIG_FILE_PACKAGE).get_report_list()
-    reports.sort(key=key)
-
-    reports_local = ReportList(CONFIG_FILE_LOCAL).get_report_list()
-    reports_local.sort(key=key)
+    report_list = ReportList(list_config_files_from_dir(CONFIG_DIR)).get_report_list()
 
     context = {
         'title': 'Report - Report List',
@@ -265,8 +257,7 @@ def report_list(request):
             ('Report List', '/report/reportlist'),
         ],
         'heading': 'Report list',
-        'report_list': reports,
-        'report_list_local': reports_local,
+        'report_list': report_list,
     }
 
     return render(request, 'report/report_list.html', context)
@@ -292,18 +283,19 @@ def make_report(request, report_name, export_delimiter, query_dict, paginate=Tru
         ["%s=%s" % (x, y) for x, y in iteritems(query_dict) if x != 'page_number']
     )
 
+    config_files = list_config_files_from_dir(CONFIG_DIR)
+
     @report_cache(
         (
             request.account.login,
             report_name,
-            os.stat(CONFIG_FILE_PACKAGE).st_mtime,
-            os.stat(CONFIG_FILE_LOCAL).st_mtime,
+            [stat(path).st_mtime for path in config_files],
         ),
         query_dict,
     )
     def _fetch_data_from_db():
         (report, contents, neg, operator, adv, config, dbresult) = gen.make_report(
-            report_name, CONFIG_FILE_PACKAGE, CONFIG_FILE_LOCAL, query_dict, None, None
+            report_name, config_files, query_dict, None, None
         )
         if not report:
             raise Http404

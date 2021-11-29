@@ -17,9 +17,14 @@ from __future__ import unicode_literals
 
 import io
 import re
+from collections import namedtuple
+from operator import attrgetter
+from os.path import basename
 
 from nav.report.dbresult import DatabaseResult
 from nav.report.report import Report
+
+ReportTuple = namedtuple('ReportTuple', 'id title description report_files')
 
 
 class Generator(object):
@@ -27,15 +32,11 @@ class Generator(object):
 
     sql = None
 
-    def make_report(
-        self, report_name, config_file, config_file_local, query_dict, config, dbresult
-    ):
+    def make_report(self, report_name, config_files, query_dict, config, dbresult):
         """Makes a report
 
         :param report_name: the name of the report that will be represented
-        :param config_file: the configuration file where the definition resides
-        :param config_file_local: the local configuration file where changes to
-                                the default definition resides
+        :param config_files: a list of all configuration files, sorted
         :param queryDict: mutable QueryDict
         :param config: the parsed configuration object, if cached
         :param dbresult: the database result, if cached
@@ -49,7 +50,7 @@ class Generator(object):
         advanced = 0
 
         if not config:
-            conf_parser = ConfigParser(config_file, config_file_local)
+            conf_parser = ConfigParser(config_files)
             parse_ok = conf_parser.parse_report(report_name)
             config = conf_parser.configuration
             if not parse_ok:
@@ -95,46 +96,57 @@ class Generator(object):
 
 
 class ReportList(object):
-    def __init__(self, config_file):
+    def __init__(self, config_files):
 
         self.reports = []
+        report_dict = {}
 
         report_pattern = re.compile(r"^\s*(\S+)\s*\{(.*?)\}$", re.M | re.S | re.I)
-        contents = io.open(config_file, encoding='utf-8').read()
-        reports = report_pattern.findall(contents)
+        for config_file in config_files:
+            contents = io.open(config_file, encoding='utf-8').read()
+            for report in report_pattern.findall(contents):
+                if report[0] in report_dict:
+                    # overwrite configtext, but add config_file to list
+                    report_dict[report[0]][0] = report[1]
+                    report_dict[report[0]][1].append(basename(config_file))
+                else:
+                    report_dict[report[0]] = [
+                        report[1],
+                        [basename(config_file)],
+                    ]
 
-        parser = ConfigParser(config_file, None)
+        parser = ConfigParser(config_files)
 
-        for rep in reports:
-            configtext = rep[1]
-            rep = rep[0]
-
+        for report_id, [configtext, report_files] in report_dict.items():
             parser.parse_configuration(configtext)
             report = parser.configuration
 
-            self.reports.append((rep, report.title or rep, report.description or None))
+            self.reports.append(
+                ReportTuple(
+                    report_id,
+                    report.title or report_id,
+                    report.description or "",
+                    report_files,
+                )
+            )
+
+        self.reports.sort(key=attrgetter("id"))
 
     def get_report_list(self):
         return self.reports
 
 
 class ConfigParser(object):
-    """Loads the configuration files, parses the contents - the local
-    configuration the default, and returns the results as a ReportConfig object
-    instance
+    """Loads the configuration files, parses the contents, and returns the results as a ReportConfig object instance"""
 
-    """
-
-    def __init__(self, config_file, config_file_local):
+    def __init__(self, config_files):
         """Loads the configuration files"""
-        self.config_file = config_file
-        self.config_file_local = config_file_local
-        self.config = None
-        self.config_local = None
+        self.config_files = config_files
+        self.config_list = []
         self.configuration = ReportConfig()
 
     def parse_report(self, report_name):
-        """Parses the configuration file and returns a Report object according
+        """Parses the configuration files and returns a Report object according
         to the report_name.
 
         :param report_name: the name of the report, tells which part of
@@ -146,25 +158,24 @@ class ConfigParser(object):
         the access methods will probably fit here
         """
 
-        if self.config is None:
-            self.config = io.open(self.config_file, encoding='utf-8').read()
-            self.config_local = io.open(self.config_file_local, encoding='utf-8').read()
+        if not self.config_list:
+            self.config_list = [
+                io.open(config_file, encoding="utf-8").read()
+                for config_file in self.config_files
+            ]
         report_pattern = re.compile(
             r"^\s*" + report_name + r"\s*\{(.*?)\}$", re.M | re.S | re.I
         )
-        match = report_pattern.search(self.config)
-        local_match = report_pattern.search(self.config_local)
+        matches = (report_pattern.search(config) for config in self.config_list)
+        matches = [m for m in matches if m]
 
-        if match:
+        for match in matches:
+            # Later matches will override earlier matches:
             self.parse_configuration(match.group(1))
-        if local_match:
-            # Local report config overloads default report config.
-            self.parse_configuration(local_match.group(1))
 
-        if match or local_match:
+        if matches:
             self.configuration.report_id = report_name
             return True
-
         else:
             return False
 

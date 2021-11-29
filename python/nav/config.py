@@ -52,6 +52,16 @@ if _venv:
     ] + CONFIG_LOCATIONS
 
 
+def list_config_files_from_dir(dirname):
+    return [
+        os.path.join(dirname, f)
+        for f in sorted(os.listdir(dirname))
+        if os.path.isfile(os.path.join(dirname, f))
+        and f.endswith(".conf")
+        and not f.startswith(".")
+    ]
+
+
 def find_config_dir():
     nav_conf = find_config_file('nav.conf')
     if nav_conf:

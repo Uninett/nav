@@ -3,30 +3,8 @@
 
 {% block content %}
 
-{% if report_list_local %}
-
     <table class="listtable full-width">
-        <caption>Local reports</caption>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for report in report_list_local %}
-            <tr>
-                <td><a href="/report/{{ report.0 }}">{{ report.1 }}</a></td>
-                <td>{{ report.2 }}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-{% endif %}
-
-    <table class="listtable full-width">
-        <caption>Default reports</caption>
+        <caption>Reports</caption>
         <thead>
             <tr>
                 <th>Name</th>
@@ -36,8 +14,8 @@
         <tbody>
         {% for report in report_list %}
             <tr>
-                <td><a href="/report/{{ report.0 }}">{{ report.1 }}</a></td>
-                <td>{{ report.2 }}</td>
+                <td><a href="/report/{{ report.id }}">{{ report.title}}</a></td>
+                <td title="Source(s): {{ report.report_files }}">{{ report.description }}</td>
             </tr>
         {% endfor %}
         </tbody>

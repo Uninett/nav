@@ -14,6 +14,9 @@
 #
 
 from __future__ import unicode_literals
+from os import makedirs, remove, rmdir, listdir
+from os.path import join
+
 import pytest
 
 try:
@@ -76,3 +79,72 @@ def test_getconfig(mockinifile):
     assert values['section1']['foo2'] == 'bar2'
     assert values['section2']['foo4'] == 'bar4'
     assert 'foo3' not in values['section2']
+
+
+class TestListConfigFiles:
+    """Tests for listing the report config files from a given dir"""
+
+    @pytest.mark.parametrize(
+        "create_files",
+        [["abc.txt", "hello.py", "a.sh", "b.yaml", "c.xml"]],
+        indirect=True,
+    )
+    def test_should_not_include_other_fileendings(self, create_files):
+        output_files = []
+        gathered_files = config.list_config_files_from_dir(create_files)
+
+        assert gathered_files == output_files
+
+    @pytest.mark.parametrize(
+        "create_files",
+        [[".abc.conf", ".hello.conf", ".a.conf", ".b.conf", ".c.conf"]],
+        indirect=True,
+    )
+    def test_should_not_include_dot_files(self, create_files):
+        output_files = []
+        gathered_files = config.list_config_files_from_dir(create_files)
+
+        assert gathered_files == output_files
+
+    @pytest.mark.parametrize(
+        "create_files",
+        [
+            [
+                "abc.conf",
+                "hello.conf",
+                "a.conf",
+                "b.conf",
+                "_test.conf",
+                "c.conf",
+            ]
+        ],
+        indirect=True,
+    )
+    def test_should_be_sorted_alphabetically(self, create_files):
+        filenames = [
+            "_test.conf",
+            "a.conf",
+            "abc.conf",
+            "b.conf",
+            "c.conf",
+            "hello.conf",
+        ]
+        output_files = [join(create_files, filename) for filename in filenames]
+        gathered_files = config.list_config_files_from_dir(create_files)
+
+        assert gathered_files == output_files
+
+
+#
+# Fixtures
+#
+@pytest.fixture(scope="module")
+def create_files(request):
+    test_dir = "report.conf.d/"
+    makedirs(test_dir)
+    for name in request.param:
+        open(join(test_dir, name), "x")
+    yield test_dir
+    for f in listdir(test_dir):
+        remove(join(test_dir, f))
+    rmdir(test_dir)
