@@ -81,6 +81,12 @@ jobs:
           path: |
             /tmp/pytest-of-runner
 
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+
       - name: Upload test reports (${{ matrix.python-version }})
         if: always()
         uses: actions/upload-artifact@v2
