@@ -17,7 +17,7 @@
 from pprint import pformat
 
 from django.db.models import Q
-from django.utils import six
+import six
 from twisted.internet import defer
 
 from nav.models import manage

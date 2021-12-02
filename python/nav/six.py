@@ -20,7 +20,7 @@ same that six lacks.
 """
 from __future__ import absolute_import
 
-from django.utils import six
+import six
 
 if six.PY3:
 

@@ -20,7 +20,7 @@ from collections import namedtuple
 from pprint import pformat
 import logging
 
-from django.utils.six import iteritems
+from six import iteritems
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
 

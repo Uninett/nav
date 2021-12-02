@@ -18,7 +18,7 @@
 import time
 import logging
 
-from django.utils import six
+import six
 
 from nav.statemon import config, RunQueue, db, statistics, event
 

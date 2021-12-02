@@ -19,7 +19,7 @@ models from nav.models.event.
 """
 from __future__ import absolute_import
 
-from django.utils import six
+import six
 
 from nav.models.event import EventQueue
 

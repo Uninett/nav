@@ -17,7 +17,7 @@
 
 import django.db.models
 from django.db import transaction
-from django.utils import six
+import six
 
 from nav import toposort
 from nav import ipdevpoll

@@ -21,6 +21,8 @@ dnspython<3.0.0,>=2.1.0
 
 django-filter>=2
 djangorestframework>=3.12,<3.13
+django-crispy-forms>=1.8,<1.9
+crispy-forms-foundation>=0.7,<0.8
 
 # REST framework
 iso8601
@@ -31,3 +33,6 @@ pynetsnmp-2==0.1.7
 libsass==0.15.1
 
 napalm==3.0.1
+
+# Remove when rid of Django 2.2
+six

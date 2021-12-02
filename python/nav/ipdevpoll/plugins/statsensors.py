@@ -18,7 +18,7 @@
 import time
 
 from twisted.internet import defer
-from django.utils import six
+import six
 
 from nav.Snmp import safestring
 from nav.ipdevpoll import Plugin

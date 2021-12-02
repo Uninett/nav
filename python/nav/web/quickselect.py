@@ -16,15 +16,14 @@
 #
 """QuickSelect widget for use in various web forms."""
 
+from six import iteritems
+
 from django.template.loader import get_template
-from django.utils.six import iteritems
-from django.utils.encoding import python_2_unicode_compatible
 
 from nav.models.manage import Location, Room, Netbox, Module, NetboxGroup
 from nav.models.service import Service
 
 
-@python_2_unicode_compatible
 class QuickSelect(object):
     """Class for presenting and handling a quickselect form"""
 

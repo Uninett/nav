@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import unittest
 
-from django.utils import six
+import six
 
 from nav.netmap import topology
 from nav.netmap.topology import build_netmap_layer2_graph

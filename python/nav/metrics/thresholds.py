@@ -64,7 +64,7 @@ from functools import partial
 import logging
 import re
 
-from django.utils.six import iteritems, iterkeys
+from six import iteritems, iterkeys
 
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta, extract_series_name

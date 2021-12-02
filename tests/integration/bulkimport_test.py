@@ -4,7 +4,7 @@
 
 from unittest import TestCase
 
-from django.utils import six
+import six
 
 from nav.models import manage
 from nav.tests.cases import DjangoTransactionTestCase

@@ -19,7 +19,7 @@ from __future__ import unicode_literals, absolute_import
 import json
 from decimal import Decimal, InvalidOperation
 
-from django.utils import six
+import six
 from django.utils.translation import ugettext
 from django.core.exceptions import ValidationError
 

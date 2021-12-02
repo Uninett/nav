@@ -20,7 +20,7 @@ from logging import Formatter
 import inspect
 from itertools import islice
 
-from django.utils import six
+import six
 
 
 class ContextFormatter(Formatter):

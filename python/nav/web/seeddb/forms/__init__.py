@@ -24,7 +24,7 @@ from django.utils.safestring import mark_safe
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Field, Fieldset, Row, Column
 
-from django.utils import six
+import six
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit

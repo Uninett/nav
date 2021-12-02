@@ -20,7 +20,7 @@ import logging
 import time
 from IPy import IP
 
-from django.utils.six.moves import range
+from six.moves import range
 
 import nav.activeipcollector.collector as collector
 from nav.metrics.carbon import send_metrics

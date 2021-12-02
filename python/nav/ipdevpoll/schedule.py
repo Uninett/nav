@@ -29,7 +29,7 @@ from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
 from twisted.python.log import err
 
-from django.utils.six import iteritems
+from six import iteritems
 
 from nav import ipdevpoll
 from nav.ipdevpoll import db

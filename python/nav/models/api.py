@@ -19,14 +19,12 @@ from datetime import datetime
 
 from django.db import models
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 
 from nav.adapters import HStoreField
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
 
 
-@python_2_unicode_compatible
 class APIToken(models.Model):
     """APItokens are used for authenticating to the api
 

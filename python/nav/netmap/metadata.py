@@ -17,7 +17,7 @@
 graph"""
 from collections import defaultdict
 from django.urls import reverse, NoReverseMatch
-from django.utils import six
+import six
 
 from IPy import IP
 from nav.netmap.config import NETMAP_CONFIG

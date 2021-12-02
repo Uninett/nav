@@ -35,7 +35,6 @@ from django.db import models
 from django.db.models import Q
 from django.db.models.expressions import RawSQL
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 from django.contrib.postgres.fields import JSONField
 
 from nav import util
@@ -117,7 +116,6 @@ class NetboxQuerySet(models.QuerySet):
         )
 
 
-@python_2_unicode_compatible
 class ManagementProfile(models.Model):
     """Management connection profiles shared between multiple netboxes. These
     may include protocols, credentials etc.
@@ -164,7 +162,6 @@ class ManagementProfile(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class NetboxProfile(models.Model):
     """Stores the relation between Netboxes and their management profiles"""
 
@@ -182,7 +179,6 @@ class NetboxProfile(models.Model):
         return self.netbox.sysname
 
 
-@python_2_unicode_compatible
 class Netbox(models.Model):
     """From NAV Wiki: The netbox table is the heart of the heart so to speak,
     the most central table of them all. The netbox tables contains information
@@ -579,7 +575,6 @@ class Netbox(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class NetboxInfo(models.Model):
     """From NAV Wiki: The netboxinfo table is the place
     to store additional info on a netbox."""
@@ -636,7 +631,6 @@ class NetboxInfo(models.Model):
             return None
 
 
-@python_2_unicode_compatible
 class NetboxEntity(models.Model):
     """
     Represents a physical Entity within a Netbox. Largely modeled after
@@ -791,7 +785,6 @@ class NetboxEntity(models.Model):
         return parents
 
 
-@python_2_unicode_compatible
 class NetboxPrefix(models.Model):
     """Which prefix a netbox is connected to.
 
@@ -821,7 +814,6 @@ class NetboxPrefix(models.Model):
         raise Exception("Cannot save to a view.")
 
 
-@python_2_unicode_compatible
 class Device(models.Model):
     """From NAV Wiki: The device table contains all physical devices in the
     network. As opposed to the netbox table, the device table focuses on the
@@ -842,7 +834,6 @@ class Device(models.Model):
         return self.serial or ''
 
 
-@python_2_unicode_compatible
 class Module(models.Model):
     """From NAV Wiki: The module table defines modules. A module is a part of a
     netbox of category GW, SW and GSW. A module has ports; i.e router ports
@@ -960,7 +951,6 @@ class Module(models.Model):
         return current
 
 
-@python_2_unicode_compatible
 class Memory(models.Model):
     """From NAV Wiki: The mem table describes the memory
     (memory and nvram) of a netbox."""
@@ -983,7 +973,6 @@ class Memory(models.Model):
             return self.type
 
 
-@python_2_unicode_compatible
 class Room(models.Model):
     """From NAV Wiki: The room table defines a wiring closes / network room /
     server room."""
@@ -1048,7 +1037,6 @@ class TreeMixin(object):
         return descendants
 
 
-@python_2_unicode_compatible
 class Location(models.Model, TreeMixin):
     """The location table defines a group of rooms; i.e. a campus."""
 
@@ -1077,7 +1065,6 @@ class Location(models.Model, TreeMixin):
         return Room.objects.filter(location__in=locations)
 
 
-@python_2_unicode_compatible
 class Organization(models.Model, TreeMixin):
     """From NAV Wiki: The org table defines an organization which is in charge
     of a given netbox and is the user of a given prefix."""
@@ -1107,7 +1094,6 @@ class Organization(models.Model, TreeMixin):
         return re.findall(r'(\b[\w.]+@[\w.]+\b)', contact)
 
 
-@python_2_unicode_compatible
 class Category(models.Model):
     """From NAV Wiki: The cat table defines the categories of a netbox
     (GW,GSW,SW,EDGE,WLAN,SRV,OTHER)."""
@@ -1149,7 +1135,6 @@ class Category(models.Model):
         return self.id == 'OTHER'
 
 
-@python_2_unicode_compatible
 class NetboxGroup(models.Model):
     """A group that one or more netboxes belong to
 
@@ -1176,7 +1161,6 @@ class NetboxGroup(models.Model):
         return reverse('netbox-group-detail', kwargs={'groupid': self.pk})
 
 
-@python_2_unicode_compatible
 class NetboxCategory(models.Model):
     """Store the relation between a netbox and its groups"""
 
@@ -1197,7 +1181,6 @@ class NetboxCategory(models.Model):
         return u'%s in category %s' % (self.netbox, self.category)
 
 
-@python_2_unicode_compatible
 class NetboxType(models.Model):
     """From NAV Wiki: The type table defines the type of a netbox, the
     sysobjectid being the unique identifier."""
@@ -1235,7 +1218,6 @@ class NetboxType(models.Model):
 ### Device management
 
 
-@python_2_unicode_compatible
 class Vendor(models.Model):
     """From NAV Wiki: The vendor table defines vendors. A
     type is of a vendor. A product is of a vendor."""
@@ -1254,7 +1236,6 @@ class Vendor(models.Model):
 ### Router/topology
 
 
-@python_2_unicode_compatible
 class GwPortPrefix(models.Model):
     """Defines IP addresses assigned to Interfaces, with a relation to the
     associated Prefix.
@@ -1313,7 +1294,6 @@ class PrefixManager(models.Manager):
         )
 
 
-@python_2_unicode_compatible
 class Prefix(models.Model):
     """From NAV Wiki: The prefix table stores IP prefixes."""
 
@@ -1369,7 +1349,6 @@ class Prefix(models.Model):
         return reverse('prefix-details', args=[self.pk])
 
 
-@python_2_unicode_compatible
 class Vlan(models.Model):
     """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A
     broadcast domain often has a vlan value, it may consist of many IP
@@ -1454,7 +1433,6 @@ class Vlan(models.Model):
             )
 
 
-@python_2_unicode_compatible
 class NetType(models.Model):
     """From NAV Wiki: The nettype table defines network type;lan, core, link,
     elink, loopback, closed, static, reserved, scope. The network types are
@@ -1471,7 +1449,6 @@ class NetType(models.Model):
         return self.id
 
 
-@python_2_unicode_compatible
 class PrefixUsage(models.Model):
     """Combines prefixes and usages for tagging of prefixes"""
 
@@ -1486,7 +1463,6 @@ class PrefixUsage(models.Model):
         return u"{}:{}".format(self.prefix.net_address, self.usage.id)
 
 
-@python_2_unicode_compatible
 class Usage(models.Model):
     """From NAV Wiki: The usage table defines the user group (student, staff
     etc). Usage categories are maintained in the edit database tool."""
@@ -1503,7 +1479,6 @@ class Usage(models.Model):
         return u'%s (%s)' % (self.id, self.description)
 
 
-@python_2_unicode_compatible
 class Arp(models.Model):
     """From NAV Wiki: The arp table contains (ip, mac, time
     start, time end)."""
@@ -1533,7 +1508,6 @@ class Arp(models.Model):
 ### Switch/topology
 
 
-@python_2_unicode_compatible
 class SwPortVlan(models.Model):
     """From NAV Wiki: The swportvlan table defines the
     vlan values on all switch ports. dot1q trunk ports
@@ -1567,7 +1541,6 @@ class SwPortVlan(models.Model):
         return u'%s, on vlan %s' % (self.interface, self.vlan)
 
 
-@python_2_unicode_compatible
 class SwPortAllowedVlan(models.Model):
     """Stores a hexstring that encodes the list of VLANs that are allowed to
     traverse a trunk port.
@@ -1624,7 +1597,6 @@ class SwPortAllowedVlan(models.Model):
         return u'Allowed vlans for swport %s' % self.interface
 
 
-@python_2_unicode_compatible
 class SwPortBlocked(models.Model):
     """This table defines the spanning tree blocked ports for a given vlan for
     a given switch port."""
@@ -1643,7 +1615,6 @@ class SwPortBlocked(models.Model):
         return '%d, at %s' % (self.vlan, self.interface)
 
 
-@python_2_unicode_compatible
 class AdjacencyCandidate(models.Model):
     """A candidate for netbox/interface adjacency.
 
@@ -1690,7 +1661,6 @@ class AdjacencyCandidate(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class NetboxVtpVlan(models.Model):
     """From NAV Wiki: A help table that contains the vtp vlan database of a
     switch. For certain cisco switches cam information is gathered using a
@@ -1710,7 +1680,6 @@ class NetboxVtpVlan(models.Model):
         return u'%d, at %s' % (self.vtp_vlan, self.netbox)
 
 
-@python_2_unicode_compatible
 class Cam(models.Model):
     """From NAV Wiki: The cam table defines (swport, mac, time start, time
     end)"""
@@ -1743,7 +1712,6 @@ class Cam(models.Model):
 ### Interfaces and related attributes
 
 
-@python_2_unicode_compatible
 class Interface(models.Model):
     """The network interfaces, both physical and virtual, of a Netbox."""
 
@@ -2183,7 +2151,6 @@ class GatewayPeerSession(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class Sensor(models.Model):
     """
     This table contains meta-data about available sensors in
@@ -2462,7 +2429,6 @@ class Sensor(models.Model):
         return {}
 
 
-@python_2_unicode_compatible
 class PowerSupplyOrFan(models.Model):
     STATE_UP = u'y'
     STATE_DOWN = u'n'
@@ -2511,7 +2477,6 @@ class PowerSupplyOrFan(models.Model):
         return base + "#!sensors"
 
 
-@python_2_unicode_compatible
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)
     netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
@@ -2538,7 +2503,6 @@ class UnrecognizedNeighbor(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class IpdevpollJobLog(models.Model):
     id = models.AutoField(primary_key=True)
     netbox = models.ForeignKey(

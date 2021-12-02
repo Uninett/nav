@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django.utils import six
+import six
 import pytest
 
 from nav.macaddress import MacAddress, MacPrefix

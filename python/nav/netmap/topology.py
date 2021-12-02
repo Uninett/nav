@@ -19,7 +19,7 @@ import logging
 
 import networkx as nx
 
-from django.utils import six
+import six
 
 from nav.models.manage import SwPortVlan
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2

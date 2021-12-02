@@ -29,7 +29,7 @@ import time
 import threading
 import logging
 
-from django.utils import six
+import six
 
 from . import config
 

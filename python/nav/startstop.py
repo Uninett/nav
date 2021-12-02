@@ -26,7 +26,7 @@ import time
 import re
 
 import yaml
-from django.utils import six
+import six
 
 from nav.config import open_configfile, find_config_file, NAV_CONFIG
 from nav.errors import GeneralException

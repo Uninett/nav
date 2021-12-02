@@ -23,7 +23,7 @@ from operator import attrgetter
 import networkx as nx
 from IPy import IP
 
-from django.utils import six
+import six
 from django.db.models import Q
 from django.db import transaction
 

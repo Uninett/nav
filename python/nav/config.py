@@ -28,7 +28,7 @@ import stat
 import configparser
 import pkg_resources
 
-from django.utils import six
+import six
 
 from nav.errors import GeneralException
 from . import buildconf

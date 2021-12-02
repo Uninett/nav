@@ -18,9 +18,9 @@ import codecs
 from datetime import datetime
 import json
 import logging
-from django.utils.six.moves.urllib.parse import urlencode, urljoin
-from django.utils.six.moves.urllib.request import Request, urlopen
-from django.utils.six.moves.urllib.error import HTTPError, URLError
+from six.moves.urllib.parse import urlencode, urljoin
+from six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.error import HTTPError, URLError
 
 from nav.metrics import CONFIG, errors
 from nav.metrics.templates import (

@@ -29,7 +29,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils import six
+import six
 
 from nav.web.utils import SubListView
 

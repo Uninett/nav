@@ -20,10 +20,10 @@ import itertools
 import logging
 from datetime import datetime, timedelta
 
-from django.utils import six
+import six
+
 from django.utils.timesince import timesince
 from django.db.models import Count
-from django.utils.encoding import python_2_unicode_compatible
 
 from nav.asyncdns import reverse_lookup
 from nav.models.manage import IpdevpollJobLog, Netbox, Arp, Cam
@@ -37,7 +37,6 @@ STATUS_NOT_OK = 'not_ok'
 STATUS_UNKNOWN = 'unknown'
 
 
-@python_2_unicode_compatible
 class TestResult(object):
     """Result for test errors"""
 

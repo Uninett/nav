@@ -23,7 +23,7 @@ try:
     import subprocess32 as subprocess
 except ImportError:
     import subprocess
-from django.utils import six
+import six
 
 from nav.web.api.v1.alert_serializers import AlertQueueSerializer
 

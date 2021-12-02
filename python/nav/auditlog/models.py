@@ -20,7 +20,6 @@ import logging
 from nav.compatibility import force_str
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now as utcnow
 
 from nav.models.fields import VarcharField, LegacyGenericForeignKey
@@ -30,7 +29,6 @@ from . import find_modelname
 _logger = logging.getLogger(__name__)
 
 
-@python_2_unicode_compatible
 class LogEntry(models.Model):
     """
     Logs mostly user actions in NAV

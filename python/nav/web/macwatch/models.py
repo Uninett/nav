@@ -16,7 +16,6 @@
 """macwatch Django models"""
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 
 from nav.macaddress import MacPrefix
 from nav.models.fields import VarcharField
@@ -24,7 +23,6 @@ from nav.models.manage import Cam
 from nav.models.profiles import Account
 
 
-@python_2_unicode_compatible
 class MacWatch(models.Model):
     """Data-model for mac-address that should get watched
     by bin/macwatch.py"""
@@ -70,7 +68,6 @@ class MacWatch(models.Model):
         return MacPrefix(prefix_mac)
 
 
-@python_2_unicode_compatible
 class MacWatchMatch(models.Model):
     """Extra model (helper-model) for mac-watch when macwatch
     only has a mac-adress prefix"""

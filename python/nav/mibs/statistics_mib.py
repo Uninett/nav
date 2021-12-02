@@ -16,7 +16,7 @@
 """HP STATISTICS-MIB"""
 from collections import namedtuple
 from IPy import IP
-from django.utils.six import iteritems
+from six import iteritems
 from twisted.internet import defer
 
 from nav.smidumps import get_mib
