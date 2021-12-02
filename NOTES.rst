@@ -11,6 +11,12 @@ please go to https://github.com/uninett/nav/milestones .
 NAV 5.3
 =======
 
+Dependency changes
+------------------
+
+* NAV 5.3 requires PostgreSQL to be at least version *9.6*.
+
+
 Backwards incompatible changes
 ------------------------------
 
