@@ -15,16 +15,16 @@
 #
 """url config for thresholds app"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.threshold import views
 
 
 urlpatterns = [
-    url(r'^$', views.index, name='threshold-index'),
-    url(r'^add$', views.add_threshold, name='threshold-add'),
-    url(r'^add/(?P<metric>.*)$', views.add_threshold, name='threshold-add'),
-    url(r'^edit/(?P<rule_id>\d+)$', views.edit_threshold, name='threshold-edit'),
-    url(r'^delete/(?P<rule_id>\d+)$', views.delete_threshold, name='threshold-delete'),
-    url(r'^search/$', views.threshold_search, name='threshold-search'),
-    url(r'^graph_url/$', views.get_graph_url, name='threshold-graph'),
+    re_path(r'^$', views.index, name='threshold-index'),
+    re_path(r'^add$', views.add_threshold, name='threshold-add'),
+    re_path(r'^add/(?P<metric>.*)$', views.add_threshold, name='threshold-add'),
+    re_path(r'^edit/(?P<rule_id>\d+)$', views.edit_threshold, name='threshold-edit'),
+    re_path(r'^delete/(?P<rule_id>\d+)$', views.delete_threshold, name='threshold-delete'),
+    re_path(r'^search/$', views.threshold_search, name='threshold-search'),
+    re_path(r'^graph_url/$', views.get_graph_url, name='threshold-graph'),
 ]

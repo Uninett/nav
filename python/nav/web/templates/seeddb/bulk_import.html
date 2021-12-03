@@ -25,15 +25,15 @@
                     {% for obj in processed_objects %}
                     <tr>
                         <td>
-                          {% ifequal obj.status "ok" %}
+                          {% if obj.status == "ok" %}
                             <img src="{{ STATIC_URL }}images/lys/green.png" alt="{{ obj.status }}" />
-                          {% else %}{% ifequal obj.status "other" %}
+                          {% else %}{% if obj.status == "other" %}
                             <img src="{{ STATIC_URL }}images/lys/yellow.png" alt="{{ obj.status }}" />
-                          {% else %}{% ifequal obj.status "syntax" %}
+                          {% else %}{% if obj.status == "syntax" %}
                             <img src="{{ STATIC_URL }}images/lys/red.png" alt="{{ obj.status }}" />
                           {% else %}
                             {{ obj.status }}
-                          {% endifequal %}{% endifequal %}{% endifequal %}
+                          {% endif %}{% endif %}{% endif %}
                         </td>
                         <td>{{ obj.line_number }}</td>
                         <td>{{ obj.input }}</td>

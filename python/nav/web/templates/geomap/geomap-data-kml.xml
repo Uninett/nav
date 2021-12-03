@@ -2,7 +2,7 @@
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
     {% for feature in features %}
-    {% ifequal feature.type 'node' %}
+    {% if feature.type == 'node' %}
     <Placemark>
       <name>Point {{ feature.id }}</name>
       <description>
@@ -28,7 +28,7 @@
         </coordinates>
       </LineString>
     </Placemark>
-    {% endifequal %}
+    {% endif %}
     {% endfor %}
   </Document>
 </kml>

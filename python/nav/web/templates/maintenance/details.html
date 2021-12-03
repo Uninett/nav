@@ -79,9 +79,9 @@
 
     {% if not current_user_data.account.is_default_account %}
       <a href="{% url 'maintenance-edit' task.id %}" class="button small secondary">Edit</a>
-      {% ifnotequal task.state "canceled" %}
+      {% if task.state != "canceled" %}
         <a href="{% url 'maintenance-cancel' task.id %}" class="button small secondary">Cancel now</a>
-      {% endifnotequal %}
+      {% endif %}
     {% endif %}
 
   </div>

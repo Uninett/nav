@@ -16,6 +16,13 @@ Dependency changes
 
 * NAV 5.3 requires PostgreSQL to be at least version *9.6*.
 
+Furthermore, NAV 5.3 moves to Django 3.2, resulting in several changes in
+version dependencies of related libraries:
+
+* :mod:`Django`>=3.2,<3.3
+* :mod:`django-crispy-forms`>=1.8,<1.9
+* :mod:`djangorestframework`>=3.12,<3.13
+* :mod:`markdown`>=3.3,<3.4
 
 Backwards incompatible changes
 ------------------------------

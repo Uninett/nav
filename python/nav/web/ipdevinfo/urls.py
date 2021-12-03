@@ -16,89 +16,89 @@
 #
 """Django URL config for ipdevinfo"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.ipdevinfo import views
 
 
 urlpatterns = [
     # Search
-    url(r'^$', views.search, name='ipdevinfo-search'),
+    re_path(r'^$', views.search, name='ipdevinfo-search'),
     # Service list
-    url(r'^service/$', views.service_list, name='ipdevinfo-service-list-all'),
-    url(
+    re_path(r'^service/$', views.service_list, name='ipdevinfo-service-list-all'),
+    re_path(
         r'^service/handler=(?P<handler>\w+)/$',
         views.service_list,
         name='ipdevinfo-service-list-handler',
     ),
     # Service matrix
-    url(r'^service/matrix/$', views.service_matrix, name='ipdevinfo-service-matrix'),
+    re_path(r'^service/matrix/$', views.service_matrix, name='ipdevinfo-service-matrix'),
     # IP Device details
-    url(
+    re_path(
         r'^ip=(?P<addr>[a-f\d\.:]+)/$',
         views.ipdev_details,
         name='ipdevinfo-details-by-addr',
     ),
-    url(
+    re_path(
         r'^id=(?P<netbox_id>\d+)/$', views.ipdev_details, name='ipdevinfo-details-by-id'
     ),
-    url(r'^(?P<name>[^/]+)/$', views.ipdev_details, name='ipdevinfo-details-by-name'),
-    url(
+    re_path(r'^(?P<name>[^/]+)/$', views.ipdev_details, name='ipdevinfo-details-by-name'),
+    re_path(
         r'^save_port_layout_pref',
         views.save_port_layout_pref,
         name='ipdevinfo-save-port-layout',
     ),
     # Module details
-    url(
+    re_path(
         r'^(?P<netbox_sysname>[^/]+)/module=(?P<module_name>.+)/$',
         views.module_details,
         name='ipdevinfo-module-details',
     ),
     # PoE details
-    url(
+    re_path(
         r'^(?P<netbox_sysname>[^/]+)/poegroup=(?P<grpindex>.+)/$',
         views.poegroup_details,
         name='ipdevinfo-poegroup-details',
     ),
     # Interface details
-    url(
+    re_path(
         r'^(?P<netbox_sysname>[^/]+)/interface=(?P<port_id>\d+)/$',
         views.port_details,
         name='ipdevinfo-interface-details',
     ),
-    url(
+    re_path(
         r'^(?P<netbox_sysname>[^/]+)/ifname=(?P<port_name>[^&]+)/$',
         views.port_details,
         name='ipdevinfo-interface-details-by-name',
     ),
-    url(
+    re_path(
         r'^g/port/(?P<interfaceid>\d+)/$',
         views.port_counter_graph,
         name='interface-counter-graph',
     ),
-    url(
+    re_path(
         r'^g/port/(?P<interfaceid>\d+)/(?P<kind>[^/]+)/$',
         views.port_counter_graph,
         name='interface-counter-graph',
     ),
     # Modules
-    url(
+    re_path(
         r'^(?P<netbox_sysname>.+)/modules/(?P<perspective>\w+)/$',
         views.get_port_view,
         name='ipdevinfo-get-port-view',
     ),
     # What happens if the device goes down
-    url(
+    re_path(
         r'(?P<netboxid>\d+)/affected', views.render_affected, name="ipdevinfo-affected"
     ),
     # DNS
-    url(
+    re_path(
         r'hostinfo/(?P<identifier>.+)',
         views.render_host_info,
         name="ipdevinfo-hostinfo",
     ),
     # Sensors
-    url(r'sensor/(?P<identifier>.+)', views.sensor_details, name="sensor-details"),
-    url(
+    re_path(r'sensor/(?P<identifier>.+)', views.sensor_details, name="sensor-details"),
+    re_path(
         r'^(?P<netboxid>\d+)/unrecognized_neighbors',
         views.unrecognized_neighbors,
         name='ipdevinfo-unrecognized_neighbors',

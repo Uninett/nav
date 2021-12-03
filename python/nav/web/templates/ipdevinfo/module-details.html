@@ -48,11 +48,11 @@
             <tr>
               <th>Status</th>
               <td>
-                {% ifequal module.up module.UP_UP %}
+                {% if module.up == module.UP_UP %}
                   Up
                 {% else %}
                   Down for {{ module.down_since|timesince }}
-                {% endifequal %}
+                {% endif %}
               </td>
             </tr>
             <tr>

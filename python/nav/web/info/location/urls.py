@@ -15,14 +15,14 @@
 #
 """Django URL configuration"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.info.location import views
 
 
 urlpatterns = [
-    url(r'^$', views.search, name='location-search'),
-    url(
+    re_path(r'^$', views.search, name='location-search'),
+    re_path(
         r'^(?P<locationid>.+)/upload/', views.upload_image, name='location-info-upload'
     ),
-    url(r'^(?P<locationid>.+)/$', views.locationinfo, name='location-info'),
+    re_path(r'^(?P<locationid>.+)/$', views.locationinfo, name='location-info'),
 ]

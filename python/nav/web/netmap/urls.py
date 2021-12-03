@@ -15,7 +15,7 @@
 #
 """Netmap backend URL config."""
 
-from django.conf.urls import url
+from django.urls import re_path
 from django.views.decorators.cache import never_cache
 
 from nav.web.netmap.api import (
@@ -36,46 +36,46 @@ from .views import (
 
 
 urlpatterns = [
-    url(r'^$', IndexView.as_view(), name='netmap-index'),
-    url(r'^admin/$', NetmapAdminView.as_view(), name='netmap-admin'),
-    url(r'^views/$', NetmapViewList.as_view(), name='netmap-view-list'),
-    url(
+    re_path(r'^$', IndexView.as_view(), name='netmap-index'),
+    re_path(r'^admin/$', NetmapAdminView.as_view(), name='netmap-admin'),
+    re_path(r'^views/$', NetmapViewList.as_view(), name='netmap-view-list'),
+    re_path(
         r'^views/(?P<viewid>[\d]+)/$',
         NetmapViewEdit.as_view(),
         name='netmap-view-edit',
     ),
-    url(
+    re_path(
         r'^views/create/$',
         NetmapViewCreate.as_view(),
         name='netmap-view-create',
     ),
-    url(
+    re_path(
         r'^views/default/$',
         NetmapViewDefaultViewUpdate.as_view(),
         {'owner': Account.DEFAULT_ACCOUNT},  # Find a more elegant solution?
         name='netmap-defaultview-global',
     ),
-    url(
+    re_path(
         r'^views/default/(?P<owner>[\d]+)/$',
         NetmapViewDefaultViewUpdate.as_view(),
         name='netmap-defaultview-user',
     ),
-    url(
+    re_path(
         r'^views/(?P<viewid>[\d]+)/nodepositions/update/$',
         NodePositionUpdate.as_view(),
         name='netmap-nodepositions-update',
     ),
-    url(
+    re_path(
         r'^graph/layer(?P<layer>[2|3])/$',
         NetmapGraph.as_view(),
         name='netmap-graph',
     ),
-    url(
+    re_path(
         r'^graph/layer(?P<layer>[2|3])/(?P<viewid>[\d]+)/$',
         NetmapGraph.as_view(),
         name='netmap-graph-view',
     ),
-    url(
+    re_path(
         r'^traffic/layer(?P<layer>[2|3])/(?P<roomid>.*)$',
         never_cache(TrafficView.as_view()),
         name='netmap-traffic-data-view',

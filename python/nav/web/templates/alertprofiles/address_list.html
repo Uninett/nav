@@ -14,7 +14,7 @@
     <th>&nbsp;</th>
 
     <th>
-    {% ifequal order_by "address" %}
+    {% if order_by == "address" %}
       <a href="{% url 'alertprofiles-address' %}?page={{ page_obj.number }}&amp;order_by=-address">
         Address
         <i class="fa fa-caret-down"></i>
@@ -22,15 +22,15 @@
     {% else %}
       <a href="{% url 'alertprofiles-address' %}?page={{ page_obj.number }}&amp;order_by=address">
         Address
-        {% ifequal order_by "-address" %}
+        {% if order_by == "-address" %}
         <i class="fa fa-caret-up"></i>
-        {% endifequal %}
+        {% endif %}
       </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 
     <th>
-    {% ifequal order_by "type" %}
+    {% if order_by == "type" %}
       <a href="{% url 'alertprofiles-address' %}?page={{ page_obj.number }}&amp;order_by=-type">
         Type
         <i class="fa fa-caret-down"></i>
@@ -38,11 +38,11 @@
     {% else %}
         <a href="{% url 'alertprofiles-address' %}?page={{ page_obj.number }}&amp;order_by=type">
           Type
-          {% ifequal order_by "-type" %}
+          {% if order_by == "-type" %}
             <i class="fa fa-caret-up"></i>
-          {% endifequal %}
+          {% endif %}
         </a>
-    {% endifequal %}
+    {% endif %}
     </th>
 {% endblock %}
 

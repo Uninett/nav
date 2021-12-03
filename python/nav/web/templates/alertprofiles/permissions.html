@@ -70,9 +70,9 @@
             <td>
               <input type="checkbox" name="filter_group" value="{{ fg.id }}" id="filterid_{{ fg.id }}"
               {% for perm in permissions %}
-                {% ifequal perm.id fg.id %}
+                {% if perm.id == fg.id %}
                 checked="checked"
-                {% endifequal %}
+                {% endif %}
               {% endfor %}
                 />
             </td>

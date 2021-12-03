@@ -17,8 +17,5 @@
 from __future__ import unicode_literals
 
 
-default_app_config = 'nav.auditlog.apps.AuditlogConfig'
-
-
 def find_modelname(obj):
     return obj._meta.db_table

@@ -15,17 +15,17 @@
 #
 """URL definitions for prefix details"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.info.prefix import views
 
 
 urlpatterns = [
-    url(r'^$', views.index, name='prefix-index'),
-    url(r'^(?P<prefix_id>\d+)/$', views.prefix_details, name='prefix-details'),
-    url(
+    re_path(r'^$', views.index, name='prefix-index'),
+    re_path(r'^(?P<prefix_id>\d+)/$', views.prefix_details, name='prefix-details'),
+    re_path(
         r'^(?P<prefix_id>\d+)/addTags/$', views.prefix_add_tags, name='prefix-add-tags'
     ),
-    url(
+    re_path(
         r'^(?P<prefix_id>\d+)/reloadTags/$',
         views.prefix_reload_tags,
         name='prefix-reload-tags',

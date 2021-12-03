@@ -15,29 +15,29 @@
 #
 """Django URL configuration for new status tool"""
 
-from django.conf.urls import url
+from django.urls import re_path
 from nav.web.status2 import views
 
 
 urlpatterns = [
-    url(r'^$', views.StatusView.as_view(), name='status2-index'),
-    url(
+    re_path(r'^$', views.StatusView.as_view(), name='status2-index'),
+    re_path(
         r'^save_preferences/',
         views.save_status_preferences,
         name='status2_save_preferences',
     ),
-    url(r'^alert/resolve/', views.handle_resolve_alerts, name='status2_clear_alert'),
-    url(
+    re_path(r'^alert/resolve/', views.handle_resolve_alerts, name='status2_clear_alert'),
+    re_path(
         r'^alert/acknowledge/',
         views.acknowledge_alert,
         name='status2_acknowledge_alert',
     ),
-    url(
+    re_path(
         r'^alert/put_on_maintenance/',
         views.put_on_maintenance,
         name='status2_put_on_maintenance',
     ),
-    url(
+    re_path(
         r'^alert/delete_module_or_chassis/',
         views.delete_module_or_chassis,
         name='status2_delete_module_or_chassis',
