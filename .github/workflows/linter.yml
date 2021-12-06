@@ -54,5 +54,8 @@ jobs:
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_PYTHON: true
-          LINTER_RULES_PATH: /python
-          PYTHON_PYLINT_CONFIG_FILE: pylint.rc
+          VALIDATE_PYTHON_ISORT: false
+          VALIDATE_PYTHON_MYPY: false
+          VALIDATE_PYTHON_PYLINT: false
+          LINTER_RULES_PATH: /
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
