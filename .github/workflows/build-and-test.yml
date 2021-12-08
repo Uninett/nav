@@ -137,3 +137,11 @@ jobs:
           run: npm test
           working-directory: ./python/nav/web/static/js
 
+      - name: Upload JavaScript test reports
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: javascript-test-reports
+          path: |
+            reports/**/*
+
