@@ -1,26 +1,25 @@
 {
     "name": "NAV",
     "description": "Network Administration Visualized",
-    "version": "0.3.14",
+    "version": "5.2.1",
     "private": true,
     "devDependencies": {
-        "chai": "~3.4.1",
-        "istanbul": "~0.4.2",
-        "jshint": "~2.9.1-rc3",
-        "karma": "~0.13.19",
+        "chai": "~4.3.4",
+        "jshint": "~2.13.1",
+        "karma": "~6.3.9",
         "karma-chai": "~0.1.0",
-        "karma-chrome-launcher": "~0.2.2",
-        "karma-coverage": "~0.5.3",
-        "karma-firefox-launcher": "~0.1.7",
-        "karma-junit-reporter": "~0.3.8",
-        "karma-mocha": "~0.2.1",
-        "karma-phantomjs-launcher": "~1.0.0",
-        "karma-requirejs": "~0.2.3",
-        "mocha": "~2.3.4",
-        "phantomjs-prebuilt": "~2.1",
+        "karma-chrome-launcher": "~3.1.0",
+        "karma-coverage": "~2.1.0",
+        "karma-firefox-launcher": "~2.1.2",
+        "karma-junit-reporter": "~2.0.1",
+        "karma-mocha": "~2.0.1",
+        "karma-phantomjs-launcher": "~1.0.4",
+        "karma-requirejs": "~1.1.0",
+        "mocha": "~5.2.0",
+        "phantomjs-prebuilt2": "~2.1.13",
         "requirejs": "~2.1.22"
     },
     "scripts": {
-        "test": "karma start test/karma.conf.js"
+        "test": "karma start test/karma.conf.buildserver.js"
     }
 }
