@@ -132,7 +132,8 @@ jobs:
           npm install
 
       - name: npm test
-        run: |
-          cd python/nav/web/static/js
-          npm test
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: npm test
+          working-directory: ./python/nav/web/static/js
 
