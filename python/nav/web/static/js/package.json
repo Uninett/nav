@@ -20,6 +20,6 @@
         "requirejs": "~2.1.22"
     },
     "scripts": {
-        "test": "karma start test/karma.conf.js"
+        "test": "karma start test/karma.conf.buildserver.js"
     }
 }
