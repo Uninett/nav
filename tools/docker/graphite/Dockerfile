@@ -29,6 +29,7 @@ RUN apt-get update \
 RUN adduser --system --group --no-create-home --home=/opt/graphite --shell=/bin/bash graphite
 
 ENV PYTHONPATH =/opt/graphite/lib/:/opt/graphite/webapp/
+RUN pip3 install --upgrade pip setuptools
 RUN pip3 install --no-binary=:all: whisper
 RUN pip3 install --no-binary=:all: carbon
 RUN pip3 install --no-binary=:all: graphite-web
