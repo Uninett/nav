@@ -7,8 +7,9 @@ Checklist for releasing a new NAV version
 CI status check
 ---------------
 
-* Verify that the Jenkins jobs (at https://ci.nav.uninett.no/) related to the
-  current stable branch are all green.
+* Verify that the GitHub Actions workflows (at
+  https://github.com/Uninett/nav/actions ) related to the current stable branch
+  are all green.
 * If any tests are failing, these must be resolved before moving forward.
 
 
