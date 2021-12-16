@@ -19,10 +19,10 @@ Dependency changes
 Furthermore, NAV 5.3 moves to Django 3.2, resulting in several changes in
 version dependencies of related libraries:
 
-* :mod:`Django`>=3.2,<3.3
-* :mod:`django-crispy-forms`>=1.8,<1.9
-* :mod:`djangorestframework`>=3.12,<3.13
-* :mod:`markdown`>=3.3,<3.4
+* :mod:`Django` >=3.2,<3.3
+* :mod:`django-crispy-forms` >=1.8,<1.9
+* :mod:`djangorestframework` >=3.12,<3.13
+* :mod:`markdown` >=3.3,<3.4
 
 Backwards incompatible changes
 ------------------------------
@@ -30,9 +30,16 @@ Backwards incompatible changes
 Support a report.conf.d/ style config directory for reports
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Previous versions read the files :file:`report.conf` and :file:`report.local.conf` and configured all reports from these. NAV 5.3 added a directory named "report.conf.d" from which all files in it that end with ".conf" and aren't dot-files will be used to configure reports in alphabetical order by filename.
+Previous versions read the files :file:`report.conf` and
+:file:`report.local.conf` and configured all reports from these. NAV 5.3
+added a directory named "report.conf.d" from which all files in it that
+end with ".conf" and aren't dot-files will be used to configure reports
+in alphabetical order by filename.
 
-Please ensure to move the configuration files :file:`report.conf` and :file:`report.local.conf` to the :directory:`report.conf.d`, which is a subdirectory of :directory:´report´, where these files currently are located.
+Please ensure to move the configuration files :file:`report.conf` and
+:file:`report.local.conf` to the :file:`report.conf.d/`, which is a
+subdirectory of :directory:´report´, where these files currently are
+located.
 
 NAV 5.2
 =======
@@ -54,12 +61,12 @@ Changed versions
 NAV 5.2 moved to a newer version of the Python module :mod:`feedparser`,
 because of Python 3 issues with the old version. The new requirement is:
 
-* :mod:`feedparser`==6.0.8
+* :mod:`feedparser` == 6.0.8
 
 Due to recent dependency conflicts with Napalm, NAV also changed the version
 requirement for the :mod:`dnspython` module. This is the current requirement:
 
-* mod:`dnspython`<3.0.0,>=2.1.0
+* :mod:`dnspython` <3.0.0,>=2.1.0
 
 
 Backwards incompatible changes
