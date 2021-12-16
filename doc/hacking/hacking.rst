@@ -484,8 +484,6 @@ __ Github_
 .. _Git: https://git-scm.com/
 .. _pytest: http://pytest.org/
 .. _tox: https://tox.readthedocs.io/en/latest/
-.. _Buster.JS: http://busterjs.org/
-.. _the Buster documentation: http://docs.busterjs.org/en/latest/#user-s-guide
 .. _Node.js: http://nodejs.org/
 .. _Jenkins: http://jenkins-ci.org/
 .. _pylint: http://www.pylint.org/
