@@ -71,16 +71,16 @@ RUN pip3 install --upgrade 'setuptools<60' wheel && \
     pip3 install --upgrade pip pip-tools
 
 #################################################################################
-### ADDing the requirements file to pip-install Python requirements may bust  ###
-### Docker's cache at this point, so everything you want to keep in the cache ###
-### should go before this.                                                    ###
+### COPYing the requirements file to pip-install Python requirements may bust ###
+### Docker's cache at this point, so everything expensive you want to keep in ###
+### the cache should go before this.                                          ###
 #################################################################################
 
-ADD tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
+COPY tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 
 COPY requirements/ /requirements
-ADD requirements.txt /
-ADD tests/requirements.txt /test-requirements.txt
+COPY requirements.txt /
+COPY tests/requirements.txt /test-requirements.txt
 # Since we used pip3 to install pip globally, pip should now be for Python 3
 RUN pip-compile --output-file /requirements.txt.lock /requirements.txt /test-requirements.txt
 RUN pip-sync /requirements.txt.lock
@@ -88,7 +88,7 @@ RUN pip-sync /requirements.txt.lock
 ARG CUSTOM_PIP=ipython
 RUN pip install ${CUSTOM_PIP}
 
-ADD tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
+COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
 VOLUME ["/source"]
 ENV    DJANGO_SETTINGS_MODULE nav.django.settings
