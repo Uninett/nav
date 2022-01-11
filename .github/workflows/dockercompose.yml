@@ -13,3 +13,17 @@ jobs:
       - name: docker-compose build
         run: |
           docker-compose build --no-cache --pull
+
+      - name: Verify containers stay running at least 1 minute
+        run: |
+          docker-compose up -d
+          sleep 60
+          docker-compose ps
+          echo "Verifying service states"
+          docker-compose ps -q | xargs docker inspect -f '{{.State.Running}}' | grep -q false && exit 1
+          echo "Looks ok"
+
+      - name: Print docker-compose logs
+        if: failure()
+        run: |
+          docker-compose logs
