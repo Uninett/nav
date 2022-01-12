@@ -29,6 +29,7 @@ services:
       - nav_config:/etc/nav
     depends_on:
       - postgres
+    restart: on-failure:5
 
 # Uncomment if you want to start a jupyter notebook server to play with the NAV codebase
 #  jupyter:
@@ -75,11 +76,13 @@ services:
       - nav
     depends_on:
       - nav
+    restart: on-failure:5
 
   postgres:
     image: "postgres:9.6"
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
+    restart: on-failure:5
 
   graphite:
     build: ./tools/docker/graphite
@@ -88,6 +91,7 @@ services:
     volumes:
       - ./python/nav/etc/graphite/storage-schemas.conf:/etc/carbon/storage-schemas.conf
       - ./python/nav/etc/graphite/storage-aggregation.conf:/etc/carbon/storage-aggregation.conf
+    restart: on-failure:5
 
   # Add a service to continuously rebuild the Sphinx documentation if the doc
   # directory is modified:
@@ -96,6 +100,7 @@ services:
     volumes_from:
       - nav
     command: /source/tools/docker/doc-watch.sh
+    restart: on-failure:5
 
   # mydevice.mydomain:
   #   << : *forwarder
