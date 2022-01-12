@@ -2,7 +2,7 @@
 #
 # Defaults NAV to a container with Python 3.
 #
-version: '2'
+version: '3'
 
 # x-forwarder:
 #   &forwarder
