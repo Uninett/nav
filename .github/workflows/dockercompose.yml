@@ -12,7 +12,7 @@ jobs:
 
       - name: docker-compose build
         run: |
-          docker-compose build --no-cache --pull
+          docker-compose build
 
       - name: Verify containers stay running at least 1 minute
         run: |
