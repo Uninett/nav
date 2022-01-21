@@ -35,7 +35,7 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
                 assert type(pair) == Edge
 
     def test_node_a1_and_b1_contains_vlan_metadata(self):
-        vlans = self.netmap_graph.node[self.a]['metadata']['vlans']
+        vlans = self.netmap_graph.nodes[self.a]['metadata']['vlans']
 
         self.assertEqual(1, len(vlans))
         self.assertEqual(vlans[0][1], self.vlan__a1_b1)
