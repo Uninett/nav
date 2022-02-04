@@ -31,6 +31,7 @@ RUN echo 'deb-src http://deb.debian.org/debian bullseye main' >> /etc/apt/source
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
             locales \
+            python3-dbg gdb \
             sudo python3-dev python3-pip python3-virtualenv build-essential supervisor \
 	    debian-keyring debian-archive-keyring ca-certificates
 
