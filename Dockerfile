@@ -20,16 +20,14 @@
 # be world-readable!
 #
 #
-FROM debian:buster
+FROM debian:bullseye
 
 #### Prepare the OS base setup ###
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN echo 'deb-src http://deb.debian.org/debian buster main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://security.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://deb.debian.org/debian buster-updates main' >> /etc/apt/sources.list.d/srcpkg.list
-
+RUN echo 'deb-src http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.list.d/srcpkg.list && \
+    echo 'deb-src http://security.debian.org/debian-security bullseye-security main' >> /etc/apt/sources.list.d/srcpkg.list
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
             locales \
@@ -49,7 +47,7 @@ RUN echo "${TIMEZONE}" > /etc/timezone && cp /usr/share/zoneinfo/${TIMEZONE} /et
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
        git-core \
-       libsnmp30 \
+       libsnmp40 \
        cron \
        sudo \
        inotify-tools \
@@ -57,7 +55,6 @@ RUN apt-get update \
        vim \
        less \
        nbtscan \
-       python3-gammu \
        # Python package build deps: \
        libpq-dev \
        libjpeg-dev \
