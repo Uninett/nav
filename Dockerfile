@@ -65,7 +65,7 @@ RUN apt-get update \
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
 RUN pip3 install --upgrade 'setuptools<60' wheel && \
-    pip3 install --upgrade pip pip-tools
+    pip3 install --upgrade 'pip<22' pip-tools
 
 #################################################################################
 ### COPYing the requirements file to pip-install Python requirements may bust ###
