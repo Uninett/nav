@@ -133,6 +133,7 @@ class JobHandler(object):
 
     def _destroy_agentproxy(self):
         if self.agent:
+            self._logger.debug("Destroying agentproxy", self.agent)
             self.agent.close()
         self.agent = None
 
