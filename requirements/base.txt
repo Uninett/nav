@@ -6,7 +6,8 @@ psycopg2==2.8.4  # requires libpq to build
 IPy==1.00
 pyaml
 
-twisted>=16.6.0,<18
+twisted>=20.0.0,<21
+
 
 networkx==2.6.3
 Pillow>3.3.2,<8.1
