@@ -11,6 +11,23 @@ please go to https://github.com/uninett/nav/milestones .
 NAV 5.3
 =======
 
+Changes in governance and code ownership
+----------------------------------------
+
+On January 1st 2022, Uninett, NSD and Unit (all entities owned by the Norwegian
+government) were merged into the new governmental agency *Sikt - Norwegian
+Agency for Shared Services in Education and Research*.
+
+This does not change our commitment to develop and provide NAV as free and open
+source software. We still have the same ownership and the same goals - we're
+just doing everything under a new name.
+
+In the coming year, references to Uninett, both in the NAV documentation, code
+and related web sites will slowly change into Sikt, but for some time going
+forward, there will be references to both names.  For more information about
+the new organization, we refer you to https://sikt.no/about-sikt
+
+
 Dependency changes
 ------------------
 
