@@ -19,6 +19,7 @@
 import os
 import sys
 import copy
+import warnings
 
 import django
 from django.utils.log import DEFAULT_LOGGING
@@ -66,8 +67,8 @@ try:
             },
         }
     }
-except (IOError, OSError):
-    pass
+except (IOError, OSError) as e:
+    warnings.warn(f"Could not get connection parameters from db.conf: {e}")
 
 # URLs configuration
 ROOT_URLCONF = 'nav.django.urls'
