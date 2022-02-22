@@ -31,21 +31,34 @@ the new organization, we refer you to https://sikt.no/about-sikt
 Dependency changes
 ------------------
 
-* NAV 5.3 requires PostgreSQL to be at least version *9.6*.
+.. IMPORTANT:: NAV 5.3 requires PostgreSQL to be at least version *9.6*.
 
 Furthermore, NAV 5.3 moves to Django 3.2, resulting in several changes in
-version dependencies of related libraries:
+version dependencies of related Python libraries. These changes are normally
+taken care of for you when using ``pip`` and/or virtual environments with the
+supplied :file:`requirements.txt` file:
 
 * :mod:`Django` >=3.2,<3.3
+* :mod:`django-filter` >=2
 * :mod:`django-crispy-forms` >=1.8,<1.9
+* :mod:`crispy-forms-foundation` >=0.7,<0.8
 * :mod:`djangorestframework` >=3.12,<3.13
-* :mod:`markdown` >=3.3,<3.4
+* :mod:`Markdown` ==3.3.6
+
+The new Django version also removes support for Python 2, and therefore removed
+the bundled copy of the :mod:`six` library that NAV utilized for compatibility
+with both Python versions. Therefore, until Python 2 compatibility code has
+been removed entirely from NAV, NAV now depends on:
+
+* :mod:`six`
 
 To ensure NAV runs properly on Python 3.9, these dependency changes have also
 taken place:
 
+* :mod:`IPy` ==1.01
 * :mod:`twisted` >=20.0.0,<21
 * :mod:`networkx` ==2.6.3
+* :mod:`dnspython` <3.0.0,>=2.1.0
 
 To ensure the NAV documentation is built correctly, Sphinx needs an upgrade as
 well:
