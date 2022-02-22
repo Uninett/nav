@@ -68,19 +68,23 @@ well:
 Backwards incompatible changes
 ------------------------------
 
-Support a report.conf.d/ style config directory for reports
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Report configuration files have moved
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Previous versions read the files :file:`report.conf` and
-:file:`report.local.conf` and configured all reports from these. NAV 5.3
-added a directory named "report.conf.d" from which all files in it that
-end with ".conf" and aren't dot-files will be used to configure reports
-in alphabetical order by filename.
+The report generator in previous versions of NAV read two single configuration
+files from the :file:`report/` configuration directory, in the following order:
 
-Please ensure to move the configuration files :file:`report.conf` and
-:file:`report.local.conf` to the :file:`report.conf.d/`, which is a
-subdirectory of :directory:´report´, where these files currently are
-located.
+1. :file:`report.conf`
+2. :file:`report.local.conf`
+
+NAV 5.3 replaces these files with a :file:`report/report.conf.d/` style
+directory. Every non-hidden file that matches the ``*.conf`` glob pattern will
+be read from this directory in alphabetical order by filename.
+
+If you have made local changes to your :file:`report/report.conf` or
+:file:`report/report.local.conf` files, please move these configuration files
+into the new :file:`report/report.conf.d/` directory, to ensure you can still
+generate your reports as expected.
 
 NAV 5.2
 =======
