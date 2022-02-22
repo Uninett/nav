@@ -3,7 +3,7 @@
 
 asciitree==0.3.3  # optional, for naventity
 psycopg2==2.8.4  # requires libpq to build
-IPy==1.00
+IPy==1.01
 pyaml
 
 twisted>=20.0.0,<21
