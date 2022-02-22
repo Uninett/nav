@@ -1750,6 +1750,16 @@ class Interface(models.Model):
         (DUPLEX_HALF, 'half duplex'),
     )
 
+    # These are the subset of IF-MIB::ifType values NAV considers to be
+    # ethernet interfaces. See section 3.2.4 of RFC 3635 for the full list of
+    # ifType values:
+    ETHERNET_INTERFACE_TYPES = (
+        6,  # ethernetCsmacd
+        62,  # fastEther
+        69,  # fastEtherFX
+        117,  # gigabitEthernet
+    )
+
     id = models.AutoField(db_column='interfaceid', primary_key=True)
     netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
     module = models.ForeignKey(
