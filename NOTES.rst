@@ -47,6 +47,10 @@ taken place:
 * :mod:`twisted` >=20.0.0,<21
 * :mod:`networkx` ==2.6.3
 
+To ensure the NAV documentation is built correctly, Sphinx needs an upgrade as
+well:
+
+* :mod:`Sphinx` ==3.5.4
 
 Backwards incompatible changes
 ------------------------------
