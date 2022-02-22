@@ -7,32 +7,36 @@ form of code, documentation or packaging.
 Currently active contributors/maintainers
 -----------------------------------------
 
-* Morten Brekkevold (formerly Vold) <morten.brekkevold at uninett.no>
+* Morten Brekkevold (formerly Vold) <morten.brekkevold at sikt.no>
   NAV's lead developer. Joined in 2002 to make NAV useable outside of NTNU.  Has
   been hacking and improving bits and pieces of NAV ever since.
 
-* Hanne Moa <hanne.moa at uninett.no>
+* Hanne Moa <hanne.moa at sikt.no>
   Joined in 2017. An experienced Python developer who contributied the audit
   logging code, and has put down many hours in migrating to Python 3 and modern
   Django versions.
 
-* Johanna England <johanna.england at uninett.no>
+* Johanna England <johanna.england at sikt.no>
+  Joined in 2021. Currently hacking away at open issues and learning the NAV
+  codebase.
+
+* Simon Oliver Tveit <simon.tveit at sikt.no>
   Joined in 2021. Currently hacking away at open issues and learning the NAV
   codebase.
 
 Other contributors and previous maintainers
 -------------------------------------------
-* Vidar Faltinsen <vidar.faltinsen at uninett.no>
+* Vidar Faltinsen <vidar.faltinsen at sikt.no>
   Founded the project in 1999.  He doesn't code, but he knows his way
   around a network, and has been a NAV mentor for all these years -
   producing documentation and offering keen insight into the problem
   domain.
 
-* John-Magne Bredal <john.m.bredal at uninett.no>
+* John-Magne Bredal
   Joined in 2000, and was instrumental in anything related to end user
   detentions (Arnold), the web interface and the API.
 
-* Sigmund Augdal <sigmund.augdal at uninett.no>
+* Sigmund Augdal
   Active from 2017, until he left Uninett in 2019. An experienced Python
   developer who, among other things, rewrote the ipdevpoll multiprocess mode.
 
@@ -53,7 +57,7 @@ Other contributors and previous maintainers
   search providers, consolidated a new SQL schema baseline from several years
   of migration scripts, and contributed multiple other improvements to NAV.
 
-* Emil Henry Flakk <emil.flakk at uninett.no>
+* Emil Henry Flakk <emil.flakk at sikt.no>
   Wrote the IPAM tool introduced in NAV 4.6, and continues to work on
   Netmap/Geomap fixes, among other things.
 
@@ -72,7 +76,7 @@ Other contributors and previous maintainers
 * Morten Werner Forsbring <werner at debian.org>
   Packaging NAV for Debian 2004-2013.
 
-* Roy Sindre Norangshol <norangshol at uninett.no>
+* Roy Sindre Norangshol <roy.sindre.norangshol at sikt.no>
   Rewrote Netmap from a Java applet to a JavaScript implementation based on
   D3.js. Wrote the tools scripts for building NAV virtual machines based on
   Vagrant, and contributed to improve our automated JavaScript testing.
@@ -92,7 +96,7 @@ Other contributors and previous maintainers
 * Kai Arne Bjørnenak <kai.bjornenak at cc.uit.no>
   Write radius accounting logger.
 
-* Magnus Motzfeldt Eide <magnus.eide at uninett.no>
+* Magnus Motzfeldt Eide
   Active 2008-2012. Rewrote the old PHP-based Alert Profiles interface in
   Python/Django.  General code maintenance and rewrites of mod_python based
   systems to Django, and was also involved in the early development of
@@ -102,20 +106,20 @@ Other contributors and previous maintainers
 
 * Matej Gregr <igregr at fit.vutbr.cz>
 
-* Fredrik Skolmli <fredrik.skolmli at uninett.no>
+* Fredrik Skolmli
   Active 2010.  Contributed bugfixes and started the threshold configuration
   UI.
 
-* Thomas Adamcik <thomas.adamcik at uninett.no>
+* Thomas Adamcik
   Active 2008-2010.  Rewrote the Perl-based Alert Engine in Python.
   Also rewrote the user admin panel to a Django-based solution, and contributed
   much to enable continuous integration using Hudson.
 
-* Jørgen Abrahamsen <jorgen.abrahamsen at uninett.no>
+* Jørgen Abrahamsen
   Active 2008-2010. Bugfixes and features to various parts of NAV, such as
   report, smsd and ipdevinfo.
 
-* Kristian Klette <kristian.klette at uninett.no>
+* Kristian Klette
   Active 2007-2010.  Wrote Netmap and the rewritten Network Explorer.
 
 * Øystein Skartsæterhagen <oysteini at pvv.ntnu.no>, 2009
@@ -123,7 +127,7 @@ Other contributors and previous maintainers
 
 * Roger Kristiansen
 
-* Stein Magnus Jodal <stein.magnus.jodal at uninett.no>, 2006-2008
+* Stein Magnus Jodal,  2006-2008
   Rewrote the SMS daemon from Perl to Python for NAV 3.2.  During the
   next couple of series releases, he cleaned up the entire web
   interface, defined new policies for how to code web interfaces in
@@ -158,10 +162,10 @@ Other contributors and previous maintainers
   Management web tools. Partly involved in event engine's handling of
   device lifecycle events.
 
-* Arne Øslebø <arne.oslebo at uninett.no>
+* Arne Øslebø
   Active 2002-2004.  Wrote the first Alert Engine in Perl.
 
-* Andreas Åkre Solberg <andreas.solberg at uninett.no>
+* Andreas Åkre Solberg <andreas.solberg at sikt.no>
   Active 2002-2004.  Wrote the first Alert Profiles web interface in
   PHP, and parts of the first Alert Engine.
 
@@ -203,8 +207,8 @@ pinger:
   Wrote the original arp cache collector (arplogger.pl), which
   remained mostly unchanged in NAV for 9 years.
 
-These guys were apparently involved in projects that were precursors
-to NAV (such as the first attempt at building a topology graph):
+These guys were involved in projects that were precursors to NAV (such as the
+first attempt at building a topology graph):
 
 * Eric Sandnes, 1999
 * Tor-Arne Kvaløy, 1999
