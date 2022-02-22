@@ -1,7 +1,7 @@
 Version 5.2.1
 (released 23 Sep 2021)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2304 (Display alert severity values in the event/alert details
            page)
@@ -14,7 +14,7 @@ Fixed GitHub issues in this release:
 Version 5.2.0
 (released 16 Sep 2021)
 
-User-visible features and improvements:
+ User-visible features and improvements:
 
   * #1928 (Document 802.1X support of PortAdmin for end users)
   * #2289 (Add config option to disallow editing of uplinks and
@@ -22,7 +22,7 @@ User-visible features and improvements:
   * #2295 (Redefine alert severity levels and make them configurable)
   * #2297 (Document the event and alert type hierarchy)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2296 ([BUG] Portadmin save API incorrectly returns 500 error where
            400 is appropriate)
@@ -32,7 +32,7 @@ Fixed GitHub issues in this release:
 Version 5.1.4
 (released 24 Jun 2021)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2281 ([BUG] Saving alert permissions crashes Alert Profiles)
   * #2282 (PortAdmin SNMP error handling is broken in several ways)
@@ -45,7 +45,7 @@ Fixed GitHub issues in this release:
 Version 5.1.3
 (released 09 Apr 2021)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2159 ([BUG] UPS widget is inconsistent between showing minutes and
            seconds remaining time)
@@ -70,7 +70,7 @@ Fixed GitHub issues in this release:
 Version 5.1.2
 (released 15 Jan 2021)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2210 ([BUG] Traffic graphs use the SI unit system rather than
            binary prefixes)
@@ -90,7 +90,7 @@ Fixed GitHub issues in this release:
 Version 5.1.1
 (released 07 Dec 2020)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2200 ([BUG] HttpChecker crashes when username/password combo is
            configured)
@@ -112,7 +112,7 @@ Fixed GitHub issues in this release:
 Version 5.1.0
 (released 26 Nov 2020)
 
-User-visible features and improvements:
+ User-visible features and improvements:
 
   * #2021 (Add SeedDB action to clone netboxes and rooms)
   * #2051 (Link to affected devices in Management profile)
@@ -131,7 +131,7 @@ User-visible features and improvements:
     - #2205 (Adapt Portadmin UI workflow to meet needs of multiple
              backend protocols)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2078 ([BUG] NAV daemons are unnecessarily run as root)
   * #2103 (Support Django 2.2)
@@ -156,7 +156,7 @@ Fixed GitHub issues in this release:
 Version 5.0.8
 (released 23 Oct 2020)
 
-This release fixes a single regression caused by the 5.0.7 release:
+ This release fixes a single regression caused by the 5.0.7 release:
 
   * #2196 ([BUG] ipdevpoll topo job crashes with a PostgreSQL
            operational error, due to an index size error)
@@ -164,7 +164,7 @@ This release fixes a single regression caused by the 5.0.7 release:
 Version 5.0.7
 (released 15 Oct 2020)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2106 ([BUG] Cached LLDP/CDP records are never re-evaluated)
   * #2182 ([BUG] Delayed delivery alert subscriptions crash Alert
@@ -180,7 +180,7 @@ Fixed GitHub issues in this release:
 Version 5.0.6
 (released 27 Aug 2020)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2144 (Prevent ipdevinfo from crashing on weird device names)
   * #2149 (Inventory failing on DLink DGS-1100 : 'TypeError: argument of
@@ -209,7 +209,7 @@ Fixed GitHub issues in this release:
 Version 5.0.5
 (released 13 Mar 2020)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #1994 (snmptrapd linkupdown plugin does not handle v2 traps)
   * #2101 ([BUG] Geomap data API endpoint crashes with a TypeError)
@@ -228,7 +228,7 @@ Fixed GitHub issues in this release:
 Version 5.0.4
 (released 16 Jan 2020)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2074 ([BUG] ipdevpoll inventory job crashes for many devices with
            an AttributeError)
@@ -254,7 +254,7 @@ Fixed GitHub issues in this release:
 Version 5.0.3
 (released 19 Dec 2019)
 
-Fixed GitHub issues in this release:
+ Fixed GitHub issues in this release:
 
   * #2015 (Broken Mikrotik LLDP-MIB implementation causes ipdevpoll LLDP
            plugin to crash)
