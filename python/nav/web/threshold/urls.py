@@ -24,7 +24,9 @@ urlpatterns = [
     re_path(r'^add$', views.add_threshold, name='threshold-add'),
     re_path(r'^add/(?P<metric>.*)$', views.add_threshold, name='threshold-add'),
     re_path(r'^edit/(?P<rule_id>\d+)$', views.edit_threshold, name='threshold-edit'),
-    re_path(r'^delete/(?P<rule_id>\d+)$', views.delete_threshold, name='threshold-delete'),
+    re_path(
+        r'^delete/(?P<rule_id>\d+)$', views.delete_threshold, name='threshold-delete'
+    ),
     re_path(r'^search/$', views.threshold_search, name='threshold-search'),
     re_path(r'^graph_url/$', views.get_graph_url, name='threshold-graph'),
 ]

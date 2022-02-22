@@ -138,7 +138,7 @@ def _traffic_gradient(intensity):
     elif intensity > 1.0:
         return (255, 255 * ((2.0 - intensity) ** gamma), 0)
     else:
-        return (255 * (intensity ** gamma), 255, 0)
+        return (255 * (intensity**gamma), 255, 0)
 
 
 # pylint: disable=W0702

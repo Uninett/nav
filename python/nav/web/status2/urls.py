@@ -26,7 +26,9 @@ urlpatterns = [
         views.save_status_preferences,
         name='status2_save_preferences',
     ),
-    re_path(r'^alert/resolve/', views.handle_resolve_alerts, name='status2_clear_alert'),
+    re_path(
+        r'^alert/resolve/', views.handle_resolve_alerts, name='status2_clear_alert'
+    ),
     re_path(
         r'^alert/acknowledge/',
         views.acknowledge_alert,

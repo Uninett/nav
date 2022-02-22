@@ -69,7 +69,7 @@ class Host(object):
     def __init__(self, ip):
         self.ip = ip
         # Random value for the cookie
-        self.rnd = random.randint(10000, 2 ** 16 - 1)
+        self.rnd = random.randint(10000, 2**16 - 1)
         # Time the echo was sent
         self.time = 0
         # Used in nextseq
@@ -132,7 +132,7 @@ class Host(object):
         Wrap around at 65536 (values must be unsigned short).
 
         """
-        self.packet.sequence = (self.packet.sequence + 1) % 2 ** 16
+        self.packet.sequence = (self.packet.sequence + 1) % 2**16
         if not self.certain and self.packet.sequence > 2:
             self.certain = 1
 

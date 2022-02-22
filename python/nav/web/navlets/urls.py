@@ -53,7 +53,9 @@ urlpatterns = [
     re_path(r'^remove-user-navlet/', remove_user_navlet, name='remove-user-navlet'),
     re_path(r'^get-user-navlet/(?P<navlet_id>\d+)', dispatcher, name='get-user-navlet'),
     re_path(r'^save-navlet-order', save_navlet_order, name='save-navlet-order'),
-    re_path(r'^navlet-base-template/', render_base_template, name='navlet-base-template'),
+    re_path(
+        r'^navlet-base-template/', render_base_template, name='navlet-base-template'
+    ),
     re_path(
         r'^set-navlet-preferences',
         set_navlet_preferences,

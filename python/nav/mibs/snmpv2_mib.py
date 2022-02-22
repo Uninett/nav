@@ -109,6 +109,6 @@ class Snmpv2Mib(mibretriever.MibRetriever):
             return
 
         expected_delta = (tstamp2 - tstamp1) * 100.0
-        expected_uptime2 = (uptime1 + expected_delta) % 2 ** 32
+        expected_uptime2 = (uptime1 + expected_delta) % 2**32
         deviation = (uptime2 - expected_uptime2) / 100.0
         return deviation

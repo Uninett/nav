@@ -107,4 +107,4 @@ def convert_to_precision(value, sensor):
 
     """
     prec = sensor.get('precision', 0)
-    return value * (10 ** -prec) if value and prec else value
+    return value * (10**-prec) if value and prec else value

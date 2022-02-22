@@ -78,7 +78,9 @@ urlpatterns = [
         name='seeddb-netbox-get-address-info',
     ),
     # Management Profile
-    re_path(r'^management-profile/$', management_profile, name='seeddb-management-profile'),
+    re_path(
+        r'^management-profile/$', management_profile, name='seeddb-management-profile'
+    ),
     re_path(
         r'^management-profile/edit/(?P<management_profile_id>.+)/$',
         management_profile_edit,
@@ -172,7 +174,9 @@ urlpatterns = [
     ),
     # Usage category
     re_path(r'^usage/$', usage.usage, name='seeddb-usage'),
-    re_path(r'^usage/edit/(?P<usage_id>.+)/$', usage.usage_edit, name='seeddb-usage-edit'),
+    re_path(
+        r'^usage/edit/(?P<usage_id>.+)/$', usage.usage_edit, name='seeddb-usage-edit'
+    ),
     re_path(
         r'^usage/delete/(?P<object_id>.+)/$',
         usage.usage_delete,
@@ -222,7 +226,9 @@ urlpatterns = [
     ),
     # Vlan
     re_path(r'^vlan/$', vlan.vlan_list, name='seeddb-vlan'),
-    re_path(r'^vlan/edit/(?P<vlan_id>[\d]+)/$', vlan.vlan_edit, name='seeddb-vlan-edit'),
+    re_path(
+        r'^vlan/edit/(?P<vlan_id>[\d]+)/$', vlan.vlan_edit, name='seeddb-vlan-edit'
+    ),
     # Prefix
     re_path(r'^prefix/$', prefix.get_prefix_view, name='seeddb-prefix'),
     re_path(

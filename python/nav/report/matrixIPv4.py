@@ -138,7 +138,7 @@ class MatrixIPv4(Matrix):
     def _get_column_headers(self):
         netsize = self.end_net.len()
         factor = 32 - self.end_net.prefixlen()
-        return [str((2 ** factor) * i) for i in range(0, 256 // netsize)]
+        return [str((2**factor) * i) for i in range(0, 256 // netsize)]
         # return [str((2**lsb)*i) for i in range(0, msb)]
 
     def __repr__(self):

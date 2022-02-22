@@ -23,7 +23,9 @@ urlpatterns = [
     re_path(r"^$", views.render_detained_ports, name="arnold_index"),
     re_path(r"^history/$", views.render_history, name="arnold-history"),
     re_path(r"^details/(?P<did>\d+)$", views.render_details, name="arnold-details"),
-    re_path(r"^detainedports/$", views.render_detained_ports, name="arnold-detainedports"),
+    re_path(
+        r"^detainedports/$", views.render_detained_ports, name="arnold-detainedports"
+    ),
     re_path(r"^search/$", views.render_search, name="arnold-search"),
     re_path(
         r"^manualdetention/$",

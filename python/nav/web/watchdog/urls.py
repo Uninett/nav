@@ -26,7 +26,9 @@ urlpatterns = [
         views.get_active_addresses,
         name='watchdog-active-addresses',
     ),
-    re_path(r'^serial_numbers', views.get_serial_numbers, name='watchdog-serial-numbers'),
+    re_path(
+        r'^serial_numbers', views.get_serial_numbers, name='watchdog-serial-numbers'
+    ),
     re_path(r'^cam_and_arp', views.get_cam_and_arp, name='watchdog-cam-and-arp'),
     re_path(r'^db_size', views.get_database_size, name='watchdog-db-size'),
 ]

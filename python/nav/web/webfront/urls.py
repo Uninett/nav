@@ -58,14 +58,18 @@ urlpatterns = [
         views.export_dashboard,
         name='export-dashboard',
     ),
-    re_path(r'^index/dashboard/import$', views.import_dashboard, name='import-dashboard'),
+    re_path(
+        r'^index/dashboard/import$', views.import_dashboard, name='import-dashboard'
+    ),
     re_path(r'^index/dashboard/', views.index, name='dashboard-index'),
     re_path(r'^about/', views.about, name='webfront-about'),
     re_path(
         r'^doc/(?P<path>.+)$',
         RedirectView.as_view(url='/static/doc/%(path)s', permanent=True),
     ),
-    re_path(r'^doc/$', RedirectView.as_view(url='/static/doc/index.html', permanent=True)),
+    re_path(
+        r'^doc/$', RedirectView.as_view(url='/static/doc/index.html', permanent=True)
+    ),
     re_path(
         r'^uploads/(?P<path>.*)$',
         RedirectView.as_view(url='/static/uploads/%(path)s', permanent=True),

@@ -40,5 +40,7 @@ urlpatterns = [
     re_path(r'^edit/(?P<task_id>\d+)/$', views.edit, name='maintenance-edit'),
     re_path(r'^view/(?P<task_id>\d+)/$', views.view, name='maintenance-view'),
     re_path(r'^cancel/(?P<task_id>\d+)/$', views.cancel, name='maintenance-cancel'),
-    re_path(r'^addnetbox/$', views.add_box_to_maintenance, name='maintenance-add-netbox'),
+    re_path(
+        r'^addnetbox/$', views.add_box_to_maintenance, name='maintenance-add-netbox'
+    ),
 ]

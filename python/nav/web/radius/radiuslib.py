@@ -146,9 +146,9 @@ def _scale(number):
     if number is None:
         number = 0
 
-    tera, number = divmod(number, 1024 ** 4)
-    giga, number = divmod(number, 1024 ** 3)
-    mega, number = divmod(number, 1024 ** 2)
+    tera, number = divmod(number, 1024**4)
+    giga, number = divmod(number, 1024**3)
+    mega, number = divmod(number, 1024**2)
     kilo, number = divmod(number, 1024)
 
     return tera, giga, mega, kilo, number

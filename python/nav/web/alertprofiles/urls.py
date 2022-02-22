@@ -72,7 +72,9 @@ urlpatterns = [
         views.profile_time_period_subscription_remove,
         name='alertprofiles-profile-timeperiod-subscription-remove',
     ),
-    re_path(r'^language/save/$', views.language_save, name='alertprofiles-language-save'),
+    re_path(
+        r'^language/save/$', views.language_save, name='alertprofiles-language-save'
+    ),
     re_path(r'^sms/$', views.sms_list, name='alertprofiles-sms'),
     # Alert address
     re_path(r'^address/$', views.address_list, name='alertprofiles-address'),
@@ -95,7 +97,9 @@ urlpatterns = [
     ),
     re_path(r'^filters/new/$', views.filter_detail, name='alertprofiles-filters-new'),
     re_path(r'^filters/save/$', views.filter_save, name='alertprofiles-filters-save'),
-    re_path(r'^filters/remove/$', views.filter_remove, name='alertprofiles-filters-remove'),
+    re_path(
+        r'^filters/remove/$', views.filter_remove, name='alertprofiles-filters-remove'
+    ),
     re_path(
         r'^filters/add-expression/$',
         views.filter_addexpression,

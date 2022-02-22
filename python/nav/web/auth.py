@@ -42,7 +42,6 @@ try:
     def fake_password(length):
         return secrets.token_urlsafe(length)
 
-
 except ImportError:
     from random import choice
     import string

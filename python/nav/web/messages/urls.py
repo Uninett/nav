@@ -30,6 +30,8 @@ urlpatterns = [
     re_path(r'^archive/$', views.historic, name='messages-historic'),
     re_path(r'^view/(?P<message_id>\d+)$', views.view, name='messages-view'),
     re_path(r'^expire/(?P<message_id>\d+)$', views.expire, name='messages-expire'),
-    re_path(r'^followup/(?P<message_id>\d+)$', views.followup, name='messages-followup'),
+    re_path(
+        r'^followup/(?P<message_id>\d+)$', views.followup, name='messages-followup'
+    ),
     re_path(r'^rss/$', ActiveMessagesFeed(), name='messages-rss'),
 ]

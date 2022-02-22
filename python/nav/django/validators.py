@@ -70,9 +70,7 @@ def validate_hstore(value):
 
     # ensure is a dictionary
     if not isinstance(dictionary, dict):
-        raise ValidationError(
-            gettext(u'No lists or values allowed, only dictionaries')
-        )
+        raise ValidationError(gettext(u'No lists or values allowed, only dictionaries'))
 
     value = json.dumps(dictionary, cls=JSONBytesEncoder)
     dictionary = json.loads(value)

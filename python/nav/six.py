@@ -27,7 +27,6 @@ if six.PY3:
     def encode_array(array):
         return array.tobytes()
 
-
 else:
 
     def encode_array(array):

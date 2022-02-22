@@ -25,7 +25,9 @@ from nav.web.report import views
 urlpatterns = [
     re_path(r'^$', views.index, name='report-index'),
     re_path(r'^matrix$', views.matrix_report, name='report-matrix'),
-    re_path(r'^matrix/(?P<scope>[^&]+)$', views.matrix_report, name='report-matrix-scope'),
+    re_path(
+        r'^matrix/(?P<scope>[^&]+)$', views.matrix_report, name='report-matrix-scope'
+    ),
     re_path(r'^reportlist$', views.report_list, name='report-reportlist'),
     re_path(r'^(?P<report_name>[^/]+)$', views.get_report, name='report-by-name'),
     re_path(r'^widget/add/', views.add_report_widget, name='report-add-widget'),

@@ -22,7 +22,9 @@ from nav.web.networkexplorer import views
 urlpatterns = [
     re_path(r'^$', views.IndexView.as_view(), name='networkexplorer-index'),
     re_path(r'^search/$', views.SearchView.as_view(), name="networkexplorer-search"),
-    re_path(r'^routers/$', views.RouterJSONView.as_view(), name='networkexplorer-routers'),
+    re_path(
+        r'^routers/$', views.RouterJSONView.as_view(), name='networkexplorer-routers'
+    ),
     re_path(
         r'^expand/router/(?P<pk>\d+)/$',
         views.ExpandRouterView.as_view(),

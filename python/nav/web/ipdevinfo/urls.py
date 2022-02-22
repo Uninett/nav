@@ -31,7 +31,9 @@ urlpatterns = [
         name='ipdevinfo-service-list-handler',
     ),
     # Service matrix
-    re_path(r'^service/matrix/$', views.service_matrix, name='ipdevinfo-service-matrix'),
+    re_path(
+        r'^service/matrix/$', views.service_matrix, name='ipdevinfo-service-matrix'
+    ),
     # IP Device details
     re_path(
         r'^ip=(?P<addr>[a-f\d\.:]+)/$',
@@ -41,7 +43,9 @@ urlpatterns = [
     re_path(
         r'^id=(?P<netbox_id>\d+)/$', views.ipdev_details, name='ipdevinfo-details-by-id'
     ),
-    re_path(r'^(?P<name>[^/]+)/$', views.ipdev_details, name='ipdevinfo-details-by-name'),
+    re_path(
+        r'^(?P<name>[^/]+)/$', views.ipdev_details, name='ipdevinfo-details-by-name'
+    ),
     re_path(
         r'^save_port_layout_pref',
         views.save_port_layout_pref,

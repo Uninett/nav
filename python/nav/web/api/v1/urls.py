@@ -62,7 +62,9 @@ urlpatterns = [
         views.RoutedPrefixList.as_view(),
         name="prefix-routed-list",
     ),
-    re_path(r"^prefix/usage/?$", views.PrefixUsageList.as_view(), name="prefix-usage-list"),
+    re_path(
+        r"^prefix/usage/?$", views.PrefixUsageList.as_view(), name="prefix-usage-list"
+    ),
     re_path(
         r"^prefix/usage/(?P<prefix>.*)$",
         views.PrefixUsageDetail.as_view(),
