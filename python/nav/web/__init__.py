@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2006, 2007, 2009, 2011, 2013, 2018 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
