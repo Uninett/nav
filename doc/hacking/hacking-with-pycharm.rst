@@ -7,15 +7,10 @@ a complete set of tools for productive development with the Python programming
 language. In addition, the IDE provides high-class capabilities for
 professional Web development with Django framework.
 
-JetBrains has kindly issued an open source license to the NAV development
-project.
-
-Obtaining a copy of the open source license
--------------------------------------------
-
-Active NAV developers may be eligible to receive a copy of the open source
-license. The license must be renewed annually. Contact nav-support@uninett.no
-for inquiries.
+JetBrains used to provide NAV developers with a free open source license to
+PyCharm, but their open source policy has since changed. Sikt is now left to
+pay an annual license subscription for a few PyCharm licenses, and these are
+reserved for Sikt employees.
 
 Configuring PyCharm for use with NAV
 ------------------------------------

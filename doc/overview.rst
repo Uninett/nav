@@ -50,3 +50,7 @@ In 2006, Uninett assumed the main responsibility of maintaining and developing
 the software further, and is continually doing so on behalf of its customers,
 the Norwegian universities and university colleges, and research network
 partners.
+
+On January 1st 2022, Uninett, NSD and Unit (all entities owned by the Norwegian
+government) were merged into the new governmental agency *Sikt - Norwegian
+Agency for Shared Services in Education and Research*.

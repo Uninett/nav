@@ -51,7 +51,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'NAV'
-copyright = u'2012-2021, Uninett AS'
+copyright = u'2012-2021 Uninett AS, 2022 Sikt'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -239,7 +239,7 @@ htmlhelp_basename = 'NAVdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'NAV.tex', u'NAV Documentation', u'Uninett AS', 'manual'),
+    ('index', 'NAV.tex', u'NAV Documentation', u'Sikt', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

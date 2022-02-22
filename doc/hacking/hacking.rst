@@ -9,19 +9,18 @@ please read this first.
 Contributing to NAV
 ===================
 
-Originally, NAV was a closed source project, initiated by the
-Norwegian University of Science and Technology (NTNU), and eventually
-sponsored by Uninett on behalf of the Norwegian higher education
-community.  In 2004, however, NTNU and Uninett started distributing
-NAV under the *GNU General Public License*, making it a truly free
-software system.
+Originally, NAV was a closed source project, initiated by the Norwegian
+University of Science and Technology (NTNU), and eventually sponsored by Sikt
+(back then, known as *Uninett*) on behalf of the Norwegian higher education
+community.  In 2004, however, NTNU and Sikt started distributing NAV under the
+*GNU General Public License*, making it a truly free software system.
 
-While Uninett and NTNU are still the main contributors to NAV,
-developing NAV to support the needs of the Norwegian higher education
-community, contributions from third parties is highly appreciated.
+While Sikt is still the main contributor to NAV, developing NAV to support the
+needs of the Norwegian higher education community, contributions from third
+parties are highly appreciated.
 
 We communicate mainly through mailing lists, GitHub_, and the ``#nav`` IRC
-channel on *Libera.Chat*. At times, Uninett also arranges workshops and
+channel on *Libera.Chat*. At times, Sikt also arranges workshops and
 gatherings for its customers: Norwegian universities, university colleges and
 research institutions.
 
@@ -87,9 +86,9 @@ by the CLA assistant.
 Rationale
 ~~~~~~~~~
 
-NAV is a software project primarily made by Uninett AS. Uninett is a
-non-profit, government-owned limited company, who builds and operates
-Norway's national research and education network.
+NAV is a software project primarily made by Sikt. Sikt is a government agency
+that provides shared services in research and education in Norway, which
+includes operating Norway's national research and education network.
 
 Due to our experiences with FOSS license compatibility issues, and with
 switching the 20-year old NAV project explicitly from the GPLv2 to the
@@ -376,7 +375,7 @@ Push access
 -----------
 
 Push access to the official repositories is limited to developers
-employed or commissioned by Uninett.
+employed or commissioned by Sikt.
 
 Testing and Continuous Integration
 ==================================
