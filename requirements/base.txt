@@ -3,12 +3,13 @@
 
 asciitree==0.3.3  # optional, for naventity
 psycopg2==2.8.4  # requires libpq to build
-IPy==1.00
+IPy==1.01
 pyaml
 
-twisted>=16.6.0,<18
+twisted>=20.0.0,<21
 
-networkx>=2.2,<2.3
+
+networkx==2.6.3
 Pillow>3.3.2,<8.1
 pyrad==2.1
 sphinx==3.3.1

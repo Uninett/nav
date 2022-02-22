@@ -20,19 +20,18 @@
 # be world-readable!
 #
 #
-FROM debian:buster
+FROM debian:bullseye
 
 #### Prepare the OS base setup ###
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN echo 'deb-src http://deb.debian.org/debian buster main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://security.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://deb.debian.org/debian buster-updates main' >> /etc/apt/sources.list.d/srcpkg.list
-
+RUN echo 'deb-src http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.list.d/srcpkg.list && \
+    echo 'deb-src http://security.debian.org/debian-security bullseye-security main' >> /etc/apt/sources.list.d/srcpkg.list
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
             locales \
+            python3-dbg gdb \
             sudo python3-dev python3-pip python3-virtualenv build-essential supervisor \
 	    debian-keyring debian-archive-keyring ca-certificates
 
@@ -49,7 +48,7 @@ RUN echo "${TIMEZONE}" > /etc/timezone && cp /usr/share/zoneinfo/${TIMEZONE} /et
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
        git-core \
-       libsnmp30 \
+       libsnmp40 \
        cron \
        sudo \
        inotify-tools \
@@ -57,7 +56,6 @@ RUN apt-get update \
        vim \
        less \
        nbtscan \
-       python3-gammu \
        # Python package build deps: \
        libpq-dev \
        libjpeg-dev \
@@ -68,7 +66,7 @@ RUN apt-get update \
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
 RUN pip3 install --upgrade 'setuptools<60' wheel && \
-    pip3 install --upgrade pip pip-tools
+    pip3 install --upgrade 'pip<22' pip-tools
 
 #################################################################################
 ### COPYing the requirements file to pip-install Python requirements may bust ###
@@ -83,7 +81,7 @@ COPY requirements.txt /
 COPY tests/requirements.txt /test-requirements.txt
 # Since we used pip3 to install pip globally, pip should now be for Python 3
 RUN pip-compile --output-file /requirements.txt.lock /requirements.txt /test-requirements.txt
-RUN pip-sync /requirements.txt.lock
+RUN pip install -r /requirements.txt.lock
 
 ARG CUSTOM_PIP=ipython
 RUN pip install ${CUSTOM_PIP}

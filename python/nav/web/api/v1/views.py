@@ -482,8 +482,8 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     Detail routes
     -------------
-    - last_used: interface/<id\>/last_used/
-    - metrics: interface/<id\>/metrics/
+    - last_used: interface/<id>/last_used/
+    - metrics: interface/<id>/metrics/
 
     Example: `/api/1/interface/?netbox=91&ifclass=trunk&ifclass=swport`
     """

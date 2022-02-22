@@ -41,6 +41,13 @@ version dependencies of related libraries:
 * :mod:`djangorestframework` >=3.12,<3.13
 * :mod:`markdown` >=3.3,<3.4
 
+To ensure NAV runs properly on Python 3.9, these dependency changes have also
+taken place:
+
+* :mod:`twisted` >=20.0.0,<21
+* :mod:`networkx` ==2.6.3
+
+
 Backwards incompatible changes
 ------------------------------
 
