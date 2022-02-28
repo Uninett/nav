@@ -35,6 +35,13 @@ For **Debian 10**, this would instead be::
 
   apt-get install python3-psycopg2 graphite-carbon graphite-web
 
+Unfortunately, the ``graphite-web`` package has been removed from **Debian
+11**. It is not clear why this happened, as it seems to have been reintroduced
+into Debian testing and unstable. There are currently no instructions here on
+how to get the front-end up and running on Debian 11, but you can get the
+carbon backend up and running as described below, after running::
+
+  apt-get install python3-psycopg2 graphite-carbon
 
 Configuring Carbon
 ==================
