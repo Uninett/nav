@@ -3,8 +3,8 @@ Installing Graphite for use with NAV on Debian
 ==============================================
 
 This is a short how-to guide for installing and configuring a simple Graphite
-installation, dedicated to NAV, on a **Debian 9 (Stretch)** or **Debian 10
-(Buster)** server.
+installation, dedicated to NAV, on a **Debian 10 (Buster)** or a **Debian 11
+(Bullseye)** server.
 
 .. warning:: **Do not start NAV** until you have properly configured your
              carbon-cache's storage schemas with NAV's provided storage schema
@@ -26,22 +26,18 @@ send to the former, while utilizing the latter to retrieve metrics and render
 graphs.
 
 Assuming you will be running Graphite on the same Debian server as you are
-running NAV, all you need to do to install Graphite on **Debian 9** is::
-
-  apt-get install python-psycopg2 graphite-carbon \
-    python-whisper/stretch-backports graphite-web/stretch-backports
-
-For **Debian 10**, this would instead be::
+running NAV, all you need to do to install Graphite on **Debian 10 or 11** is::
 
   apt-get install python3-psycopg2 graphite-carbon graphite-web
 
-Unfortunately, the ``graphite-web`` package has been removed from **Debian
-11**. It is not clear why this happened, as it seems to have been reintroduced
-into Debian testing and unstable. There are currently no instructions here on
-how to get the front-end up and running on Debian 11, but you can get the
-carbon backend up and running as described below, after running::
+.. note:: Unfortunately, the ``graphite-web`` package has been removed from the
+   official **Debian 11** distro. It is not clear why this happened, but it
+   seems it will return in the next Debian stable release.
 
-  apt-get install python3-psycopg2 graphite-carbon
+   We therefore provide a backported ``graphite-web`` package in NAV's official
+   Debian APT repositories. If you don't already have this repository
+   configured as a source in your Debian server, instructions to do so can be
+   found at https://nav.uninett.no/install-instructions/#debian
 
 Configuring Carbon
 ==================
@@ -149,10 +145,10 @@ Configure Apache to serve the Graphite web app
 ----------------------------------------------
 
 In principle, you can use any web server that supports the WSGI interface. You
-already have Apache with ``mod_wsgi``, so you could use that. However, if
-you're on **Debian 10**, the ``graphite-web`` package will run on Python 3,
-whereas the current NAV release runs on Python 2. ``mod_wsgi`` can only support
-one version of Python on the same server.
+should already have Apache with ``mod_wsgi`` installed, to serve NAV, so you
+could use that. Alternatively, you can run Graphite (and even NAV, for that
+matter), in a separate WSGI application server like uWSGI, and have Apache
+proxy requests to the application server.
 
 The two following examples will define an Apache virtual host that will serve
 the Graphite web app on port **8000**. Adding SSL encryption is left as an
@@ -168,8 +164,8 @@ up the server to listen only to the localhost interface).
              ``localhost`` will be able to access it.
 
 
-On Debian 9 (Stretch)
-~~~~~~~~~~~~~~~~~~~~~
+Option 1: Apache-based configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Graphite-web will need its own virtualhost, so let's add a new site config for
 Apache (this example is inspired by the one supplied by the ``graphite-web``
@@ -198,10 +194,10 @@ package in :file:`/usr/share/graphite-web/apache2-graphite.conf`):
    </VirtualHost>
 
 
-On Debian 10 (Buster)
-~~~~~~~~~~~~~~~~~~~~~
+Option 2: uWSGI-based configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Graphite-web will still need its own virtualhost, but on this version of Debian
+Graphite-web will still need its own virtualhost, but in this example, we will
 we will run the app using a uWSGI container, and define an Apache virtual host
 to proxy requests to this container.
 
@@ -221,6 +217,7 @@ Then proceed to add a new uWSGI application definition:
    buffer-size = 32768
    chdir = /usr/share/graphite-web
    env = DJANGO_SETTINGS_MODULE=graphite.settings
+   env = GRAPHITE_SETTINGS_MODULE=local_settings
    max-requests = 100
    module = graphite.wsgi:application
    plugins = python3
@@ -272,8 +269,8 @@ Then make sure to enable the required Apache modules to use this site config::
   a2enmod uwsgi proxy proxy_uwsgi
 
 
-Finally, on both Debian versions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Finally, in both configuration options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Enable the new site on port 8000::
 
