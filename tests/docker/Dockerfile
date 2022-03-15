@@ -21,7 +21,8 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
       python3-pip
 
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-RUN apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys A040830F7FAC5991 1397BC53640DB551
+# 78BD65473CB3BD13 Google signing key for chrome (for selenium, functional tests)
+RUN apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends build-dep \
