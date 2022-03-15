@@ -93,6 +93,9 @@ class VlanPatternTest(TestCase):
         match = prefix.VLAN_PATTERN.match("Vl" + self.vlan)
         self.assertEqual(match.group('vlan'), self.vlan)
 
-    def test_juniper_names_names_should_match(self):
+    def test_juniper_irb_names_should_match(self):
         match = prefix.VLAN_PATTERN.match("irb." + self.vlan)
+
+    def test_juniper_reth_names_should_match(self):
+        match = prefix.VLAN_PATTERN.match("reth0." + self.vlan)
         self.assertEqual(match.group('vlan'), self.vlan)
