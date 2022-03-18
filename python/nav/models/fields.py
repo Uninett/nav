@@ -21,8 +21,6 @@ import json
 from datetime import datetime
 from decimal import Decimal
 
-import six
-
 import django
 from django import forms
 from django.db import models
@@ -92,16 +90,14 @@ class DictAsJsonField(models.TextField):
             try:
                 # Needs str
                 return json.loads(
-                    six.text_type(value, encoding="utf-8")
-                    if isinstance(value, six.binary_type)
-                    else value
+                    str(value, encoding="utf-8") if isinstance(value, bytes) else value
                 )
             except ValueError:
                 try:
                     # Needs bytes
                     return pickle.loads(
-                        six.binary_type(value, encoding="utf-8")
-                        if isinstance(value, six.text_type)
+                        bytes(value, encoding="utf-8")
+                        if isinstance(value, str)
                         else value
                     )
                 except ValueError:
@@ -117,8 +113,8 @@ class CIDRField(VarcharField):
     def to_python(self, value):
         """Verifies that the value is a string with a valid CIDR IP address"""
         if value:
-            if isinstance(value, six.binary_type):
-                value = six.text_type(value, encoding='utf-8')
+            if isinstance(value, bytes):
+                value = str(value, encoding='utf-8')
             if not is_valid_cidr(value) and not is_valid_ip(value):
                 raise exceptions.ValidationError("Value must be a valid CIDR address")
         return value
@@ -145,7 +141,7 @@ class PointField(models.CharField):
     def to_python(self, value):
         if not value or isinstance(value, tuple):
             return value
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             if validators.is_valid_point_string(value):
                 if value.startswith('(') and value.endswith(')'):
                     noparens = value[1:-1]
