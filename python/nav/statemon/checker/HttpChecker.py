@@ -18,20 +18,20 @@
 import contextlib
 import socket
 import base64
+import http.client
 
-from six.moves.urllib.parse import urlsplit
-from six.moves import http_client
+from urllib.parse import urlsplit
 
 from nav import buildconf
 from nav.statemon.event import Event
 from nav.statemon.abstractchecker import AbstractChecker
 
 
-class HTTPConnection(http_client.HTTPConnection):
+class HTTPConnection(http.client.HTTPConnection):
     """Customized HTTP protocol interface"""
 
     def __init__(self, timeout, host, port=80):
-        http_client.HTTPConnection.__init__(self, host, port)
+        http.client.HTTPConnection.__init__(self, host, port)
         self.timeout = timeout
         self.connect()
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV)
 #
@@ -25,11 +26,11 @@ from __future__ import absolute_import
 
 from collections import deque
 import heapq
+import sys
 import time
 import threading
 import logging
 
-import six
 
 from . import config
 
@@ -104,7 +105,7 @@ class _RunQueue(object):
 
     def __init__(self, **kwargs):
         self.conf = config.serviceconf()
-        self._max_threads = int(self.conf.get('maxthreads', six.MAXSIZE))
+        self._max_threads = int(self.conf.get('maxthreads', sys.maxsize))
         _logger.info("Setting maxthreads=%i", self._max_threads)
         self._max_run_count = int(self.conf.get('recycle interval', 50))
         _logger.info("Setting maxRunCount=%i", self._max_run_count)

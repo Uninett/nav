@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2018 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,20 +16,19 @@
 #
 """HTTPS Service checker"""
 
+import http.client
 import socket
 
 from ssl import wrap_socket
 
-from six.moves import http_client
-
 from nav.statemon.checker.HttpChecker import HttpChecker
 
 
-class HTTPSConnection(http_client.HTTPSConnection):
+class HTTPSConnection(http.client.HTTPSConnection):
     """Customized HTTPS protocol interface"""
 
     def __init__(self, timeout, host, port=443):
-        http_client.HTTPSConnection.__init__(self, host, port)
+        http.client.HTTPSConnection.__init__(self, host, port)
         self.timeout = timeout
         self.connect()
 

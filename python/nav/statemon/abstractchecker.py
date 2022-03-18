@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2018 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,8 +18,6 @@
 
 import time
 import logging
-
-import six
 
 from nav.statemon import config, RunQueue, db, statistics, event
 
@@ -248,7 +247,7 @@ class AbstractChecker(object):
         return self.timestamp < getattr(obj, 'timestamp', None)
 
     def __hash__(self):
-        tup = (self.serviceid, six.text_type(self.args), self.get_address())
+        tup = (self.serviceid, str(self.args), self.get_address())
         return hash(tup)
 
     def __repr__(self):
