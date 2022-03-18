@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009-2012, 2014, 2015 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -31,8 +32,6 @@ this to allow asynchronous data retrieval.
 """
 
 import logging
-
-import six
 
 from twisted.internet import defer, reactor
 from twisted.internet.defer import returnValue
@@ -122,7 +121,7 @@ class MIBObject(object):
         SNMPv2-TC::TruthValue, it will be translated from int to bool.
 
         """
-        if self.enum and isinstance(value, six.integer_types) and value in self.enum:
+        if self.enum and isinstance(value, int) and value in self.enum:
             value = self.enum[value]
         return value
 
@@ -361,8 +360,7 @@ class MibRetrieverMaker(type):
         cls.text_columns = nodes
 
 
-@six.add_metaclass(MibRetrieverMaker)
-class MibRetriever(object):
+class MibRetriever(object, metaclass=MibRetrieverMaker):
     """Base class for functioning MIB retriever classes."""
 
     mib = None

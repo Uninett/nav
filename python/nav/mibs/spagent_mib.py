@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2014 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -24,7 +25,6 @@ This implementation sticks with the easily graphable sensors,
 like temperature, humidity, voltages and currents.
 
 """
-from six import iteritems
 from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.smidumps import get_mib
@@ -86,7 +86,7 @@ class SPAgentMib(MibRetriever):
     def get_all_sensors(self):
         """Returns a Deferred whose result is a list of sensor dictionaries"""
         result = []
-        for table, config in iteritems(SENSOR_TABLES):
+        for table, config in SENSOR_TABLES.items():
             sensors = yield self._get_sensors(config)
             result.extend(sensors)
         defer.returnValue(result)
@@ -109,7 +109,7 @@ class SPAgentMib(MibRetriever):
         )
 
         sensors = (
-            self._row_to_sensor(config, index, row) for index, row in iteritems(result)
+            self._row_to_sensor(config, index, row) for index, row in result.items()
         )
 
         defer.returnValue([s for s in sensors if s])

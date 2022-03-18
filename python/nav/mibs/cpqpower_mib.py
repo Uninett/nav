@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2019 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,7 +16,6 @@
 #
 """A class for extracting information from HPE power devices devices"""
 from __future__ import unicode_literals
-from six import iteritems, text_type
 from twisted.internet import defer
 from nav.smidumps import get_mib
 from nav.mibs import reduce_index
@@ -206,7 +206,7 @@ class CPQPowerMib(mibretriever.MibRetriever):
         entries = self.translate_result(entries)
 
         result = []
-        for index, row in iteritems(entries):
+        for index, row in entries.items():
             if not filter(row):
                 continue
             result.extend(self._mksensors(index, row, sensors, names))
@@ -225,7 +225,7 @@ class CPQPowerMib(mibretriever.MibRetriever):
             for key, value in config.items():
                 if callable(value):
                     value = value(row)
-                elif isinstance(value, text_type):
+                elif isinstance(value, str):
                     value = value.format(**row)
                 sensor[key] = value
             name = names.get(index[0])

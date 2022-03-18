@@ -23,7 +23,6 @@ Uses the vendor-specifica IT-WATCHDOGS-MIB to detect and collect
 sensor-information.
 """
 from nav.compatibility import smart_str
-from six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
@@ -365,7 +364,7 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
         serial_col = sensor_group['serial']
         sensors = sensor_group['sensors']
 
-        for row in itervalues(table_data):
+        for row in table_data.values():
             if not avail_col or row.get(avail_col):
                 oid = row.get(0)
                 serial = row.get(serial_col)

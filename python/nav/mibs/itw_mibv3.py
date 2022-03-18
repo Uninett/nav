@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008-2019 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -20,7 +21,6 @@ A class that tries to retrieve all sensors from WeatherGoose II.
 Uses the vendor-specifica IT-WATCHDOGS-MIB-V3 to detect and collect
 sensor-information.
 """
-from six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
@@ -394,7 +394,7 @@ class ItWatchDogsMibV3(BaseITWatchDogsMib):
 
     def _get_power_dms_params(self, power_dms):
         sensors = []
-        for power_dm in itervalues(power_dms):
+        for power_dm in power_dms.values():
             power_dm_avail = power_dm.get('powerDMAvail')
             if power_dm_avail:
                 power_dm_oid = power_dm.get(0)
@@ -426,7 +426,7 @@ class ItWatchDogsMibV3(BaseITWatchDogsMib):
 
     def _get_io_expanders_params(self, io_expanders):
         sensors = []
-        for io_expander in itervalues(io_expanders):
+        for io_expander in io_expanders.values():
             io_expander_avail = io_expander.get('ioExpanderAvail', 0)
             if io_expander_avail:
                 io_expander_oid = io_expander.get(0)

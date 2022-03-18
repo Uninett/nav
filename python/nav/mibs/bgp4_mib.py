@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2017 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -20,7 +21,6 @@ from collections import namedtuple
 from pprint import pformat
 import logging
 
-from six import iteritems
 from twisted.internet import defer
 from twisted.internet.defer import returnValue
 
@@ -86,7 +86,7 @@ class BGP4Mib(mibretriever.MibRetriever):
                 (row[self.LOCAL_AS_COLUMN] if self.LOCAL_AS_COLUMN else local_as),
                 row[self.REMOTE_AS_COLUMN],
             )
-            for key, row in iteritems(rows)
+            for key, row in rows.items()
         }
 
         if self._logger.isEnabledFor(logging.DEBUG):

@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,7 +17,6 @@
 """HP STATISTICS-MIB"""
 from collections import namedtuple
 from IPy import IP
-from six import iteritems
 from twisted.internet import defer
 
 from nav.smidumps import get_mib
@@ -64,4 +64,4 @@ class StatisticsMib(mibretriever.MibRetriever):
                 IP('.'.join(str(i) for i in group)), ifindex, vlan, access
             )
 
-        defer.returnValue([_split(i) for i in iteritems(ports)])
+        defer.returnValue([_split(i) for i in ports.items()])

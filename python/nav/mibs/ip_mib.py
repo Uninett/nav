@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009-2011 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,7 +18,6 @@
 """MibRetriever implementation for IP-MIB"""
 from __future__ import absolute_import
 
-import six
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.oids import OID
@@ -108,9 +108,7 @@ class IpMib(mibretriever.MibRetriever):
         if not root or not root.oid.is_a_prefix_of(index):
             return index
 
-        children = (
-            c.oid for c in six.itervalues(cls.nodes) if root.oid.is_a_prefix_of(c.oid)
-        )
+        children = (c.oid for c in cls.nodes.values() if root.oid.is_a_prefix_of(c.oid))
         matched_prefixes = [c for c in children if c.is_a_prefix_of(index)] + [root.oid]
         if matched_prefixes:
             index = index.strip_prefix(matched_prefixes[0])

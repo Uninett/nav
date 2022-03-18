@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2016 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,7 +20,6 @@ from collections import defaultdict
 from itertools import chain
 from collections import namedtuple
 
-from six import iteritems
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.smidumps import get_mib
@@ -72,7 +72,7 @@ class IpForwardMib(mibretriever.MibRetriever):
         protos = yield self.retrieve_column('inetCidrRouteProto')
 
         by_proto = defaultdict(list)
-        for index, proto in iteritems(protos):
+        for index, proto in protos.items():
             name = IANA_IP_ROUTE_PROTOCOLS.get(proto, proto)
             by_proto[name].append(index)
 
