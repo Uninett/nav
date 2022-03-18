@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012-2015 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,7 +18,6 @@
 graph"""
 from collections import defaultdict
 from django.urls import reverse, NoReverseMatch
-import six
 
 from IPy import IP
 from nav.netmap.config import NETMAP_CONFIG
@@ -123,13 +123,13 @@ class Node(object):
                     'up': str(self.node.up),
                     'up_image': get_status_image_link(self.node.up),
                     'roomid': self.node.room.id,
-                    'locationid': six.text_type(locationid),
-                    'location': six.text_type(location_descr),
-                    'room': six.text_type(self.node.room),
+                    'locationid': str(locationid),
+                    'location': str(location_descr),
+                    'room': str(self.node.room),
                     'is_elink_node': False,
                 }
             )
-        return {six.text_type(self.node.id): json}
+        return {str(self.node.id): json}
 
 
 # Ignore too few methods in class
@@ -162,7 +162,7 @@ class Group(object):
     def to_json(self):
         """json presentation of Group"""
         json = {
-            'netbox': six.text_type(self.netbox.id),
+            'netbox': str(self.netbox.id),
         }
         if self.interface is not None:
             ipdevinfo_link = None
@@ -172,8 +172,8 @@ class Group(object):
                 and self.interface.ifname != '?'
             ):
                 kwargs = dict(
-                    netbox_sysname=six.text_type(self.netbox.sysname),
-                    port_name=six.text_type(self.interface.ifname),
+                    netbox_sysname=str(self.netbox.sysname),
+                    port_name=str(self.interface.ifname),
                 )
                 try:
                     ipdevinfo_link = reverse(
@@ -183,7 +183,7 @@ class Group(object):
                     ipdevinfo_link = None
 
             json['interface'] = {
-                'ifname': six.text_type(self.interface.ifname),
+                'ifname': str(self.interface.ifname),
                 'ipdevinfo_link': ipdevinfo_link,
             }
 
@@ -194,7 +194,7 @@ class Group(object):
         if self.vlans is not None:
             json['vlans'] = [swpv.vlan.id for swpv in self.vlans]
         if NETMAP_CONFIG.getboolean('API_DEBUG'):
-            json['d_netbox_sysname'] = six.text_type(self.netbox.sysname)
+            json['d_netbox_sysname'] = str(self.netbox.sysname)
             json['d_vlans'] = [vlan_to_json(swpv.vlan) for swpv in self.vlans]
 
         return json
@@ -356,7 +356,7 @@ class Edge(object):
             json.update(
                 {
                     'prefix': {
-                        'net_address': six.text_type(self.prefix.net_address),
+                        'net_address': str(self.prefix.net_address),
                         'report_link': self.prefix.get_absolute_url(),
                     }
                 }
@@ -382,7 +382,7 @@ def vlan_to_json(vlan):
 
 def get_vlan_lookup_json(vlan_by_interface):
     vlan_lookup = {}
-    for list_of_swpv in six.itervalues(vlan_by_interface):
+    for list_of_swpv in vlan_by_interface.values():
         for swpv in list_of_swpv:
             vlan_lookup[swpv.vlan.id] = vlan_to_json(swpv.vlan)
     return vlan_lookup
@@ -423,8 +423,8 @@ def edge_to_json_layer2(nx_edge, metadata):
         metadata_for_edges.append(edge.to_json())
 
     json = {
-        'source': six.text_type(source.id),
-        'target': six.text_type(target.id),
+        'source': str(source.id),
+        'target': str(target.id),
         'vlans': [swpv.vlan.id for swpv in all_vlans],
         'edges': metadata_for_edges,
     }
@@ -432,8 +432,8 @@ def edge_to_json_layer2(nx_edge, metadata):
     if NETMAP_CONFIG.getboolean('API_DEBUG'):
         json.update(
             {
-                'd_source_sysname': six.text_type(source.sysname),
-                'd_target_sysname': six.text_type(target.sysname),
+                'd_source_sysname': str(source.sysname),
+                'd_target_sysname': str(target.sysname),
                 'd_vlans': [vlan_to_json(swpv.vlan) for swpv in all_vlans],
             }
         )
@@ -450,7 +450,7 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
     source, target = nx_edge
 
     metadata_collection = defaultdict(list)
-    for vlan_id, edges in six.iteritems(nx_metadata['metadata']):
+    for vlan_id, edges in nx_metadata['metadata'].items():
         for edge in edges:
             metadata_collection[vlan_id].append(edge.to_json())
 
@@ -459,19 +459,19 @@ def edge_to_json_layer3(nx_edge, nx_metadata):
         return IP(addr) if addr else addr
 
     # sorting the output based on prefix address
-    for value in six.itervalues(metadata_collection):
+    for value in metadata_collection.values():
         value.sort(key=prefixaddress)
 
     json = {
-        'source': six.text_type(source.id),
-        'target': six.text_type(target.id),
+        'source': str(source.id),
+        'target': str(target.id),
         'edges': metadata_collection,
     }
     if NETMAP_CONFIG.getboolean('API_DEBUG'):
         json.update(
             {
-                'd_source_sysname': six.text_type(source.sysname),
-                'd_target_sysname': six.text_type(target.sysname),
+                'd_source_sysname': str(source.sysname),
+                'd_target_sysname': str(target.sysname),
             }
         )
     return json
