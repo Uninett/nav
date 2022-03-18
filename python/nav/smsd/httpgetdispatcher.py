@@ -28,9 +28,9 @@ Oslo, but could be useful for other similar solutions.
 
 """
 
-from six.moves.urllib.request import urlopen
-from six.moves.urllib.error import HTTPError
-from six.moves.urllib.parse import quote_plus
+from urllib.request import urlopen
+from urllib.error import HTTPError
+from urllib.parse import quote_plus
 
 from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
