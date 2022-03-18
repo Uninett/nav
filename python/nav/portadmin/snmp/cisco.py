@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2011-2015, 2020, 2021 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,7 +16,6 @@
 #
 """Cisco specific PortAdmin SNMP handling"""
 import logging
-import six
 
 from nav.Snmp.errors import SnmpError
 from nav.bitvector import BitVector
@@ -287,7 +287,7 @@ class Cisco(SNMPHandler):
     def is_dot1x_enabled(self, interface):
         """Returns True or False based on state of dot1x"""
         return (
-            six.byte2int(self._query_netbox(self.dot1xPortAuth, interface.ifindex))
+            self._query_netbox(self.dot1xPortAuth, interface.ifindex)[0]
             & self.DOT1X_AUTHENTICATOR
         )
 
@@ -296,7 +296,7 @@ class Cisco(SNMPHandler):
         _logger.error("Querying for dot1x enabled interfaces on Cisco")
         names = self._get_interface_names()
         return {
-            names.get(OID(oid)[-1]): six.byte2int(state) & self.DOT1X_AUTHENTICATOR
+            names.get(OID(oid)[-1]): state[0] & self.DOT1X_AUTHENTICATOR
             for oid, state in self._bulkwalk(self.dot1xPortAuth)
         }
 
