@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -31,7 +32,6 @@ from ctypes import (
     c_uint64,
 )
 
-import six
 from IPy import IP
 from pynetsnmp import netsnmp
 from pynetsnmp.netsnmp import (
@@ -406,7 +406,7 @@ def asn_object_id(value):
 
 @converts(netsnmp.ASN_OCTET_STR)
 def asn_octet_str(value):
-    if not isinstance(value, six.binary_type):
+    if not isinstance(value, bytes):
         raise TypeError("Byte string expected")
     string = c_char_p(value)
     return string, len(value)
