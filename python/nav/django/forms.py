@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2011, 2018 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,7 +22,6 @@ import json
 
 from django import forms
 from django.forms import Field, Textarea
-import six
 
 from nav.util import is_valid_cidr
 from nav.django import validators, widgets
@@ -52,7 +52,7 @@ class JSONWidget(Textarea):
 
         Falsey values are converted to an empty string. Bytestrings are
         considered to be encoded as utf-8 and converted to text."""
-        if value and not isinstance(value, six.string_types):
+        if value and not isinstance(value, str):
             value = json.dumps(
                 value, sort_keys=True, indent=4, cls=validators.JSONBytesEncoder
             )
