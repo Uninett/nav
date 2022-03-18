@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,7 +18,6 @@
 from pprint import pformat
 
 from django.db.models import Q
-import six
 from twisted.internet import defer
 
 from nav.models import manage
@@ -294,7 +294,7 @@ class LLDPNeighbor(Neighbor):
         return self._interface_query(Q(ifphysaddress=mac))
 
     def _interfaces_from_ip(self, ip):
-        ip = six.text_type(ip)
+        ip = str(ip)
         assert ip
         if ip in self._invalid_neighbor_ips:
             return

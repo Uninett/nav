@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,7 +17,6 @@
 "ipdevpoll plugin to collect CDP (Cisco Discovery Protocol) information"
 import string
 
-import six
 from twisted.internet import defer
 
 from nav.macaddress import MacAddress
@@ -173,11 +173,11 @@ class CDP(Plugin):
         ifc = self.containers.factory(record.ifindex, shadows.Interface)
         ifc.ifindex = record.ifindex
 
-        key = (record.ifindex, six.text_type(record.ip), SOURCE)
+        key = (record.ifindex, str(record.ip), SOURCE)
         neighbor = self.containers.factory(key, shadows.UnrecognizedNeighbor)
         neighbor.netbox = self.netbox
         neighbor.interface = ifc
-        neighbor.remote_id = six.text_type(record.ip)
+        neighbor.remote_id = str(record.ip)
         neighbor.remote_name = record.deviceid
         neighbor.source = SOURCE
 

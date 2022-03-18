@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2009-2012, 2015 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,7 +18,6 @@
 ipdevpoll plugin to collect information about physical entities, if any,
 within a Netbox, from the ENTITY-MIB::entPhysicalTable (RFC 4133 and RFC 6933)
 """
-import six
 from twisted.internet import defer
 
 from nav.Snmp import safestring
@@ -74,7 +74,7 @@ class Entity(Plugin):
         ghosts = set()
         for container in containers:
             if container.contained_in:
-                parent_id = six.text_type(container.contained_in)
+                parent_id = str(container.contained_in)
                 parent = by_index.get(parent_id)
                 if parent:
                     container.contained_in = parent

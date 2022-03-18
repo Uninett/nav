@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -28,7 +29,6 @@ import threading
 
 from IPy import IP
 from django.db.models import Q
-import six
 
 from nav.util import cachedfor, synchronized
 from nav.models import manage
@@ -151,7 +151,7 @@ class Neighbor(object):
 
         """
         try:
-            ip = six.text_type(IP(ip))
+            ip = str(IP(ip))
         except ValueError:
             self._logger.warning(
                 "Invalid IP (%s) in neighbor record: %r", ip, self.record
