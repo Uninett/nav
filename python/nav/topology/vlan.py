@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2011-2015, 2017, 2018 Uninett AS
+# Copyright (C) 2018 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,7 +24,6 @@ from operator import attrgetter
 import networkx as nx
 from IPy import IP
 
-import six
 from django.db.models import Q
 from django.db import transaction
 
@@ -565,7 +565,7 @@ def build_layer3_graph(related_extra=None):
                         _logger.warning(
                             "Topology error? %s classified as elink, "
                             "we know %s GwPortPrefixes ...",
-                            six.text_type(prefix),
+                            str(prefix),
                             len(gwportprefixes),
                         )
                         _add_edge(gwportprefixes)
@@ -575,11 +575,11 @@ def build_layer3_graph(related_extra=None):
                     fictive_netbox = stubs.Netbox()
                     if gwportprefixes[0].prefix.vlan.net_ident:
 
-                        fictive_netbox.sysname = six.text_type(
+                        fictive_netbox.sysname = str(
                             gwportprefixes[0].prefix.vlan.net_ident
                         )
                     else:
-                        fictive_netbox.sysname = six.text_type(
+                        fictive_netbox.sysname = str(
                             gwportprefixes[0].interface.ifalias
                         )
                     fictive_netbox.category_id = 'elink'
