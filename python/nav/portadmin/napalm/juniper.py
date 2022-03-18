@@ -248,6 +248,7 @@ class Juniper(ManagementHandler):
         untagged = first_true(vlans, pred=lambda vlan: not vlan.tagged)
         return (untagged.tag if untagged else None), tagged
 
+    @wrap_unhandled_rpc_errors
     def set_interface_description(self, interface: manage.Interface, description: str):
         # never set description on units but on master interface
         master, _ = split_master_unit(interface.ifname)
@@ -260,9 +261,11 @@ class Juniper(ManagementHandler):
         config = template.render(context)
         self.device.load_merge_candidate(config=config)
 
+    @wrap_unhandled_rpc_errors
     def set_vlan(self, interface: manage.Interface, vlan: int):
         self.set_access(interface, vlan)
 
+    @wrap_unhandled_rpc_errors
     def set_access(self, interface: manage.Interface, access_vlan: int):
         master, unit = split_master_unit(interface.ifname)
         current = InterfaceConfigTable(self.device.device).get(master)[master]
@@ -290,6 +293,7 @@ class Juniper(ManagementHandler):
             pass
         interface.save()
 
+    @wrap_unhandled_rpc_errors
     def set_trunk(
         self, interface: manage.Interface, native_vlan: int, trunk_vlans: Sequence[int]
     ):
@@ -340,6 +344,7 @@ class Juniper(ManagementHandler):
         # and that operation will likely delay at least as much as the wait would have
         return super().cycle_interfaces(interfaces=interfaces, wait=0, commit=True)
 
+    @wrap_unhandled_rpc_errors
     def set_interface_down(self, interface: manage.Interface):
         # does not set oper on logical units, only on physical masters
         master, _unit = split_master_unit(interface.ifname)
@@ -349,6 +354,7 @@ class Juniper(ManagementHandler):
 
         self._save_interface_oper(interface, interface.OPER_DOWN)
 
+    @wrap_unhandled_rpc_errors
     def set_interface_up(self, interface: manage.Interface):
         # does not set oper on logical units, only on physical masters
         master, _unit = split_master_unit(interface.ifname)
@@ -368,6 +374,7 @@ class Juniper(ManagementHandler):
             )
             master_interface.update(ifoperstatus=ifoperstatus)
 
+    @wrap_unhandled_rpc_errors
     def commit_configuration(self):
         # Only take our sweet time to commit if there are pending changes
         if self.device.compare_config():
