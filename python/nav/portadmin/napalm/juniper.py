@@ -33,6 +33,7 @@ from typing import List, Any, Dict, Tuple, Sequence
 from django.template.loader import get_template
 from napalm.base.exceptions import ConnectAuthError, ConnectionException
 from jnpr.junos.op.vlan import VlanTable
+from jnpr.junos.exception import RpcError
 
 from nav.napalm import connect as napalm_connect
 from nav.enterprise.ids import VENDOR_ID_JUNIPER_NETWORKS_INC
@@ -42,6 +43,7 @@ from nav.portadmin.handlers import (
     DeviceNotConfigurableError,
     AuthenticationError,
     NoResponseError,
+    ProtocolError,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -59,6 +61,21 @@ __all__ = ["Juniper"]
 # This maps interface oper/admin status values to SNMP values as used in NAV's data
 # model. See IF-MIB::ifOperStatus and IF-MIB::ifAdminStatus from RFC 2863 for details.
 SNMP_STATUS_MAP = {"up": 1, "down": 2, True: 1, False: 2}
+
+
+def wrap_unhandled_rpc_errors(func):
+    """Decorates RPC-enabled handler function to ensure unhandled RpcErrors are
+    translated into ProtocolErrors, which can be reported nicely to the end user by
+    the PortAdmin framework
+    """
+
+    def wrap_rpc_errors(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except RpcError as error:
+            raise ProtocolError(f"Device raised RpcError: {error.message}") from error
+
+    return wrap_rpc_errors
 
 
 class Juniper(ManagementHandler):
