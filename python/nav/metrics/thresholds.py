@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -63,8 +64,6 @@ from datetime import timedelta
 from functools import partial
 import logging
 import re
-
-from six import iteritems, iterkeys
 
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta, extract_series_name
@@ -149,7 +148,7 @@ class ThresholdEvaluator(object):
         )
         self.result = dict(
             (extract_series_name(key), dict(value=value))
-            for key, value in iteritems(averages)
+            for key, value in averages.items()
         )
         return self.result
 
@@ -169,7 +168,7 @@ class ThresholdEvaluator(object):
         matcher = self._get_matcher(expression)
         result = [
             (metric, self.result[metric]['value'])
-            for metric in iterkeys(self.result)
+            for metric in self.result.keys()
             if bool(matcher(metric)) ^ bool(invert)
         ]
         return result

@@ -19,8 +19,6 @@
 import re
 
 from nav.compatibility import lru_cache
-from six import iteritems
-
 from nav.models.manage import Netbox, Interface, Prefix, Sensor
 
 
@@ -113,7 +111,7 @@ def _reverse_prefix(netaddr):
 def _single_like_match(model, related=None, **kwargs):
     args = [
         ("{field}::TEXT LIKE %s".format(field=key), value)
-        for key, value in iteritems(kwargs)
+        for key, value in kwargs.items()
     ]
     where, params = zip(*args)
     qset = model.objects.extra(where=where, params=params)
