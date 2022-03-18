@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright (C) 2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,8 +20,6 @@
 import logging
 import time
 from IPy import IP
-
-from six.moves import range
 
 import nav.activeipcollector.collector as collector
 from nav.metrics.carbon import send_metrics
