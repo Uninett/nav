@@ -19,9 +19,8 @@
 import json
 import time
 
-import six
-from six.moves.urllib.request import Request, urlopen
-from six.moves.urllib.error import HTTPError
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 from nav.alertengine.dispatchers import Dispatcher, DispatcherException
 
@@ -57,7 +56,7 @@ class Slack(Dispatcher):
             'icon_emoji': self.emoji,
         }
         payload = json.dumps(params)
-        if isinstance(payload, six.text_type):
+        if isinstance(payload, str):
             payload = payload.encode("utf-8")
         request = Request(
             address.address, payload, {'Content-Type': 'application/json'}
