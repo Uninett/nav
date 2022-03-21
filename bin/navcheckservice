@@ -30,8 +30,6 @@ import sys
 import IPy
 import logging
 
-from six.moves import input
-
 from nav.logs import init_stderr_logging
 from nav.statemon import checkermap
 import nav.statemon.checker  # necessary for relative imports on python3
