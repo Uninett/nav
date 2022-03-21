@@ -16,7 +16,6 @@
 """Serializer classes for netmap"""
 from django.forms.widgets import SelectMultiple
 from django.shortcuts import get_object_or_404
-from six import iteritems
 
 from rest_framework import serializers
 
@@ -92,7 +91,7 @@ class NetmapViewSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         new_categories = set(validated_data.pop('categories'))
 
-        for key, value in iteritems(validated_data):
+        for key, value in validated_data.items():
             setattr(instance, key, value)
         instance.save()
 

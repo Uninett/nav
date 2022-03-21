@@ -28,7 +28,6 @@ from django.http import HttpResponseRedirect
 from django.http import Http404
 from django.shortcuts import render
 from django.urls import reverse
-from six import itervalues
 
 import nav.db
 from nav.django.utils import get_account
@@ -249,7 +248,7 @@ def _attach_traffic_load(graph, time_interval={'start': '-10min', 'end': 'now'})
     """
     subedges = (
         edge
-        for combo_edge in itervalues(graph.edges)
+        for combo_edge in graph.edges.values()
         for edge in (
             combo_edge.source_data['subedges'],
             combo_edge.target_data['subedges'],
@@ -275,7 +274,7 @@ def _attach_cpu_load(graph, time_interval={'start': '-10min', 'end': 'now'}):
     """
     netboxes = (
         netbox
-        for node in itervalues(graph.nodes)
+        for node in graph.nodes.values()
         for room in node.properties['rooms']
         for netbox in room['netboxes']
     )

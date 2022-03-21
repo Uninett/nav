@@ -20,7 +20,6 @@ from time import strftime
 
 from django.urls import reverse
 from django.utils.html import conditional_escape
-from six.moves import range
 
 from nav.models.manage import Netbox, Room, Location, NetboxGroup
 from nav.models.service import Service

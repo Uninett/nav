@@ -34,7 +34,7 @@ with a suggested WSGI-based configuration.
 """
 import warnings
 import logging
-from six.moves import http_cookies
+from http import cookies
 
 from nav.bootstrap import bootstrap_django
 
@@ -77,7 +77,7 @@ def headerparserhandler(req):
 
 def _get_cookie_dict(req):
     if 'Cookie' in req.headers_in:
-        cookie = http_cookies.SimpleCookie()
+        cookie = cookies.SimpleCookie()
         cookie.load(str(req.headers_in['Cookie']))
         return dict((key, c.value) for key, c in cookie.items())
     else:

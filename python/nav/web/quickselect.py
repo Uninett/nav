@@ -17,8 +17,6 @@
 #
 """QuickSelect widget for use in various web forms."""
 
-from six import iteritems
-
 from django.template.loader import get_template
 
 from nav.models.manage import Location, Room, Netbox, Module, NetboxGroup
@@ -89,7 +87,7 @@ class QuickSelect(object):
                         'multi': self.location_multi,
                         'name': 'loc',
                         'collapse': True,
-                        'objects': sorted(iteritems(locations)),
+                        'objects': sorted(locations.items()),
                     }
                 )
 
@@ -110,7 +108,7 @@ class QuickSelect(object):
                         'multi': self.room_multi,
                         'name': 'room',
                         'collapse': True,
-                        'objects': sorted(iteritems(rooms)),
+                        'objects': sorted(rooms.items()),
                     }
                 )
 
@@ -130,7 +128,7 @@ class QuickSelect(object):
                         'button': self.button % 'IP device',
                         'multi': self.netbox_multi,
                         'name': 'netbox',
-                        'objects': sorted(iteritems(netboxes)),
+                        'objects': sorted(netboxes.items()),
                     }
                 )
 
@@ -146,7 +144,7 @@ class QuickSelect(object):
                         'multi': self.netboxgroup_multi,
                         'name': 'netboxgroup',
                         'collapse': True,
-                        'objects': sorted(iteritems(netboxgroups)),
+                        'objects': sorted(netboxgroups.items()),
                     }
                 )
 
@@ -167,7 +165,7 @@ class QuickSelect(object):
                         'multi': self.service_multi,
                         'name': 'service',
                         'collapse': True,
-                        'objects': sorted(iteritems(services)),
+                        'objects': sorted(services.items()),
                     }
                 )
 
@@ -188,7 +186,7 @@ class QuickSelect(object):
                         'multi': self.module_multi,
                         'name': 'module',
                         'collapse': True,
-                        'objects': sorted(iteritems(modules)),
+                        'objects': sorted(modules.items()),
                     }
                 )
 

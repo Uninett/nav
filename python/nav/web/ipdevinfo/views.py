@@ -23,7 +23,6 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-import six
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
@@ -595,7 +594,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None, port_nam
         ),
         ('Port Details',),
     ]
-    heading = title = 'Port details: ' + six.text_type(port)
+    heading = title = 'Port details: ' + str(port)
 
     try:
         port_metrics = port.get_port_metrics()
@@ -836,7 +835,7 @@ def sensor_details(request, identifier):
         ),
         ('Sensor Details',),
     ]
-    heading = title = 'Sensor details: ' + six.text_type(sensor)
+    heading = title = 'Sensor details: ' + str(sensor)
 
     metric = dict(id=sensor.get_metric_name())
     find_rules([metric])

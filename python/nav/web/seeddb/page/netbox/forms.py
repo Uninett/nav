@@ -30,7 +30,6 @@ from crispy_forms_foundation.layout import (
     Div,
     HTML,
 )
-import six
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit, NavButton
@@ -207,7 +206,7 @@ class NetboxModelForm(forms.ModelForm):
             ip, _ = resolve_ip_and_sysname(name)
         except SocketError:
             raise forms.ValidationError("Could not resolve name %s" % name)
-        return six.text_type(ip)
+        return str(ip)
 
     def clean_sysname(self):
         """Resolve sysname if not set"""

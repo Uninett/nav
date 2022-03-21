@@ -24,8 +24,6 @@ import math
 from itertools import groupby
 from functools import reduce
 
-from six import iteritems
-
 
 def identity(obj):
     """identity(obj) == obj for all obj"""
@@ -166,7 +164,7 @@ def filter_dict(fun, dct):
     true.
 
     """
-    return subdict(dct, [key for key, val in iteritems(dct) if fun(val)])
+    return subdict(dct, [key for key, val in dct.items() if fun(val)])
 
 
 def map_dict(fun, dct):
@@ -176,7 +174,7 @@ def map_dict(fun, dct):
     replaced by the result of applying fun to it.
 
     """
-    return {k: fun(v) for k, v in iteritems(dct)}
+    return {k: fun(v) for k, v in dct.items()}
 
 
 def union_dict(*dicts):

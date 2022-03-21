@@ -21,7 +21,6 @@ import hashlib
 import os
 
 from django.db import transaction
-import six
 
 import nav.config
 import nav.buildconf
@@ -146,7 +145,7 @@ def alert_subscriptions_table(periods):
         # This little snippet magically assigns a class to shared time periods
         # so they appear with the same highlight color.
         if valid_during == TimePeriod.ALL_WEEK:
-            p.css_class = 'shared' + six.text_type(shared_class_id)
+            p.css_class = 'shared' + str(shared_class_id)
             shared_class_id += 1
             if shared_class_id > 7:
                 shared_class_id = 0

@@ -34,8 +34,6 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.http import urlquote
 
-import six
-
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
@@ -112,14 +110,14 @@ def export_dashboard(request, did):
 
 
 dashboard_fields = {
-    'name': six.text_type,
+    'name': str,
     'num_columns': int,
     'widgets': list,
     'version': int,
 }
 
 widget_fields = {
-    'navlet': six.text_type,
+    'navlet': str,
     'column': int,
     'preferences': dict,
     'order': int,

@@ -16,7 +16,6 @@
 """Forms used for Bulk import of data"""
 
 from django import forms
-import six
 
 from nav.bulkparse import BulkParseError, CommentStripper
 from nav.bulkimport import BulkImportError
@@ -44,11 +43,7 @@ class BulkImportForm(forms.Form):
 
     def get_raw_data(self):
         """Returns the bulk data as an utf-8 encoded string"""
-        data = self.cleaned_data.get('bulk_data', None)
-        if six.PY2 and isinstance(data, six.string_types):
-            return data.encode('utf-8')
-        else:
-            return data
+        return self.cleaned_data.get('bulk_data', None)
 
     def get_parser(self):
         """Returns a parser instance primed with the form's bulk data"""

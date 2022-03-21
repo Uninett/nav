@@ -16,9 +16,10 @@
 #
 import logging
 
-from six.moves.urllib.request import Request, urlopen
-from six.moves.urllib.error import HTTPError
-from six.moves.urllib.parse import urljoin
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+from urllib.parse import urljoin
+
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotAllowed
 from nav.metrics import CONFIG
