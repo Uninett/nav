@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2008-2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -49,7 +50,10 @@ from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
-VLAN_PATTERN = re.compile(r"(Vl(an)?|irb\.)(?P<vlan>\d+)", re.IGNORECASE)
+VLAN_PATTERN = re.compile(
+    r"(Vl(an)?|irb\.|reth\d+\.)(?P<vlan>\d+)",
+    re.IGNORECASE,
+)
 
 
 class Prefix(Plugin):
