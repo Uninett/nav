@@ -4,8 +4,6 @@ import unittest
 
 from datetime import timedelta, datetime
 
-import six
-
 from nav.django.templatetags.info import (
     time_since,
     is_max_timestamp,
@@ -53,7 +51,7 @@ class TemplateTagsTest(unittest.TestCase):
     def test_get_attr_basic_lookup(self):
         """Test template filter for getting attributes from objects"""
 
-        self.assertTrue(isinstance(get_attr(self.dummy, 'test'), six.text_type))
+        self.assertTrue(isinstance(get_attr(self.dummy, 'test'), str))
         self.assertTrue(
             isinstance(get_attr(self.dummy, 'dummyobject'), AnotherDummyObject)
         )
@@ -62,9 +60,7 @@ class TemplateTagsTest(unittest.TestCase):
     def test_get_attr_chained_lookup(self):
         """Test template filter for getting attributes from objects"""
 
-        self.assertTrue(
-            isinstance(get_attr(self.dummy, 'dummyobject.test'), six.text_type)
-        )
+        self.assertTrue(isinstance(get_attr(self.dummy, 'dummyobject.test'), str))
 
     def test_get_attr_chained_lookup_error(self):
         """Test template filter for getting attributes from objects"""
@@ -81,9 +77,7 @@ class TemplateTagsTest(unittest.TestCase):
     def test_find_attr_chained_lookup(self):
         """Test helper function for getting attributes from objects"""
 
-        self.assertTrue(
-            isinstance(find_attr(self.dummy, ['dummyobject', 'test']), six.text_type)
-        )
+        self.assertTrue(isinstance(find_attr(self.dummy, ['dummyobject', 'test']), str))
 
     def test_find_attr_error_lookup(self):
         """Test helper function for getting attributes from objects"""

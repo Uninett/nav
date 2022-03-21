@@ -27,16 +27,15 @@ except ImportError:
 import pytest
 
 from tidylib import tidy_document
-import six
-from six.moves.urllib.request import (
+from urllib.request import (
     urlopen,
     build_opener,
     install_opener,
     HTTPCookieProcessor,
     Request,
 )
-from six.moves.urllib.error import HTTPError, URLError
-from six.moves.urllib.parse import (
+from urllib.error import HTTPError, URLError
+from urllib.parse import (
     urlsplit,
     urlencode,
     urlunparse,
@@ -245,7 +244,7 @@ def test_link_should_be_reachable(page):
 
 
 def _content_as_string(content):
-    if isinstance(content, six.string_types) or content is None:
+    if isinstance(content, str) or content is None:
         return content
     else:
         return content.decode('utf-8')

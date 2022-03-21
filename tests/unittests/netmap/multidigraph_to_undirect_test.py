@@ -2,8 +2,6 @@ from __future__ import print_function
 
 import unittest
 
-import six
-
 from nav.netmap import topology
 from nav.netmap.topology import build_netmap_layer2_graph
 
@@ -29,7 +27,7 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
             4,
             len(self.nav_graph.nodes()),
             msg="Original NAV graph should only contain 2 nodes, it contains: "
-            + six.text_type(self.nav_graph.nodes()),
+            + str(self.nav_graph.nodes()),
         )
 
     # [2 / 2]

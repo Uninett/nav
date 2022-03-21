@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from mock import patch, MagicMock, Mock
-import six
 from django.test import RequestFactory
 
 import pytest
@@ -224,8 +223,8 @@ class TestLdapUser(object):
         conn = Mock(
             **{
                 'simple_bind_s.side_effect': lambda x, y: (
-                    six.text_type(x),
-                    six.text_type(y),
+                    str(x),
+                    str(y),
                 ),
             }
         )
@@ -249,8 +248,8 @@ class TestLdapUser(object):
         """LP#1301794"""
 
         def fake_search(base, scope, filtr):
-            six.text_type(base)
-            six.text_type(filtr)
+            str(base)
+            str(filtr)
             return []
 
         conn = Mock(

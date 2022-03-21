@@ -3,8 +3,6 @@ from mock import Mock, patch
 import pytest
 import sys
 
-import six
-
 
 class SnmpTestCase(unittest.TestCase):
     def _patch_cleaning(self, patched_sys_modules_to_modify):
