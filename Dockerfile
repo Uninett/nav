@@ -61,7 +61,12 @@ RUN apt-get update \
        libjpeg-dev \
        libz-dev \
        libldap2-dev \
-       libsasl2-dev
+       libsasl2-dev \
+       # Useful tools for network debugging and SNMP querying: \
+       dnsutils \
+       iproute2 \
+       iputils-ping \
+       snmp
 
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
