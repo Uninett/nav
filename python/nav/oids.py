@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2011 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,8 +16,6 @@
 #
 """OID manipulation"""
 from __future__ import absolute_import
-
-import six
 
 SEPARATOR = '.'
 SEPARATOR_B = b'.'
@@ -45,9 +44,9 @@ class OID(tuple):
     """
 
     def __new__(cls, oid):
-        if isinstance(oid, six.string_types):
+        if isinstance(oid, str):
             oid = map(int, oid.strip(SEPARATOR).split(SEPARATOR))
-        elif isinstance(oid, six.binary_type):
+        elif isinstance(oid, bytes):
             oid = map(int, oid.strip(SEPARATOR_B).split(SEPARATOR_B))
         elif isinstance(oid, OID):
             return oid

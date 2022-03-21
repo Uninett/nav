@@ -22,7 +22,6 @@ import re
 
 from IPy import IP
 
-import six
 from twisted.internet import defer
 from twisted.internet.defer import Deferred
 from twisted.internet import reactor

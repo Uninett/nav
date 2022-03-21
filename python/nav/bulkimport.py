@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2010, 2011, 2013-2015 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,7 +23,6 @@ from __future__ import absolute_import
 import json
 
 from django.core.exceptions import ValidationError
-import six
 
 from nav.models.fields import PointField
 from nav.models.manage import Netbox, Room, Organization
@@ -39,7 +39,7 @@ from nav.web.servicecheckers import get_description
 from nav.bulkparse import BulkParseError
 
 
-class BulkImporter(six.Iterator):
+class BulkImporter:
     """Abstract bulk import iterator"""
 
     def __init__(self, parser):
@@ -51,7 +51,7 @@ class BulkImporter(six.Iterator):
     def __next__(self):
         """Parses and returns next line"""
         try:
-            row = six.next(self.parser)
+            row = next(self.parser)
             row = self._decode_as_utf8(row)
             objects = self._create_objects_from_row(row)
         except BulkParseError as error:
@@ -62,7 +62,7 @@ class BulkImporter(six.Iterator):
     def _decode_as_utf8(row):
         """Decodes all unicode values in row as utf-8 strings"""
         for key, value in row.items():
-            if isinstance(value, six.binary_type):
+            if isinstance(value, bytes):
                 row[key] = value.decode('utf-8')
         return row
 

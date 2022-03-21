@@ -29,8 +29,6 @@ import stat
 import configparser
 import pkg_resources
 
-import six
-
 from nav.errors import GeneralException
 from . import buildconf
 
@@ -80,7 +78,7 @@ def read_flat_config(config_file, delimiter='='):
     :returns: dictionary of the key/value pairs that were read.
     """
 
-    if isinstance(config_file, six.string_types):
+    if isinstance(config_file, str):
         config_file = open_configfile(config_file)
 
     configuration = {}
@@ -109,7 +107,7 @@ def getconfig(configfile, defaults=None):
               section as values.
 
     """
-    if isinstance(configfile, six.string_types):
+    if isinstance(configfile, str):
         configfile = open_configfile(configfile)
 
     config = configparser.RawConfigParser(defaults)

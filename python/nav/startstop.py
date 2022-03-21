@@ -27,7 +27,6 @@ import time
 import re
 
 import yaml
-import six
 
 from nav.config import open_configfile, find_config_file, NAV_CONFIG
 from nav.errors import GeneralException
@@ -428,7 +427,7 @@ class Crontab(object):
     def __setitem__(self, key, content):
 
         block = ['##block %s##' % key, '##end##']
-        if isinstance(content, six.string_types):
+        if isinstance(content, str):
             block[1:1] = content.split('\n')
         else:
             block[1:1] = content

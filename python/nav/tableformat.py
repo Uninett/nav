@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2010 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,8 +16,6 @@
 #
 """Formatting of table data to readable text."""
 from __future__ import absolute_import
-
-import six
 
 
 class SimpleTableFormatter(object):
@@ -45,7 +44,7 @@ class SimpleTableFormatter(object):
         new_row = []
         for index, cell in enumerate(row):
             fmt = u"%%%ds" % widths[index]
-            new_row.append(fmt % six.text_type(cell))
+            new_row.append(fmt % str(cell))
         return ' | '.join(new_row)
 
     def _find_widest_elements(self):
@@ -57,7 +56,7 @@ class SimpleTableFormatter(object):
         return max_widths
 
     def _get_max_width_of_column(self, column_number):
-        widths = [len(six.text_type(row[column_number])) for row in self.data]
+        widths = [len(str(row[column_number])) for row in self.data]
         return max(widths)
 
     def _get_column_count(self):

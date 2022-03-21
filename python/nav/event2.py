@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2015 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,8 +19,6 @@ Next generation event factory functionality for NAV, based on the Django ORM
 models from nav.models.event.
 """
 from __future__ import absolute_import
-
-import six
 
 from nav.models.event import EventQueue
 
@@ -69,7 +68,7 @@ class EventFactory(object):
         else:
             event.netbox = netbox
 
-        event.subid = six.text_type(subid)
+        event.subid = str(subid)
 
         var = dict(varmap or {})
         if alert_type:

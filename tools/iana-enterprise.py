@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
 # Copyright (C) 2015 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,7 +23,7 @@ from __future__ import print_function
 import sys
 import os
 from collections import namedtuple, Counter
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 import re
 import string
 from datetime import datetime

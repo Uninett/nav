@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,7 +24,6 @@ from collections import defaultdict
 
 import django
 from django.db import transaction
-import six
 
 from nav import buildconf
 from nav.logs import init_generic_logging
@@ -176,11 +176,11 @@ def make_event(start, rule, metric, value):
     varmap = dict(
         metric=metric,
         alert=rule.alert,
-        ruleid=six.text_type(rule.id),
-        measured_value=six.text_type(value),
+        ruleid=str(rule.id),
+        measured_value=str(value),
     )
     if rule.clear:
-        varmap['clear'] = six.text_type(rule.clear)
+        varmap['clear'] = str(rule.clear)
     _add_subject_details(event, metric, varmap)
 
     event.save()

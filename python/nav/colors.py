@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013, 2019 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -31,7 +32,6 @@ from curses import (
     COLOR_WHITE,
     COLOR_YELLOW,
 )
-import six
 
 __all__ = [
     'COLOR_BLACK',
@@ -63,10 +63,7 @@ finally:
     if not _set_color:
         _is_term = False
 
-if six.PY3:
-    _term = sys.stdout.buffer
-else:
-    _term = sys.stdout
+_term = sys.stdout.buffer
 
 
 def colorize(color):

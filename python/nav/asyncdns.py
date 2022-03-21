@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2008-2011 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -43,8 +44,6 @@ from twisted.names.error import DomainError, AuthoritativeDomainError
 from twisted.names.error import DNSQueryTimeoutError, DNSFormatError
 from twisted.names.error import DNSServerError, DNSNameError
 from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError
-
-import six
 
 
 def reverse_lookup(addresses):
@@ -136,7 +135,7 @@ class ForwardResolver(Resolver):
     def lookup(self, name):
         """Returns a deferred object with all records related to hostname"""
 
-        if isinstance(name, six.text_type):
+        if isinstance(name, str):
             name = name.encode('idna')
 
         resolver = next(self._resolvers)

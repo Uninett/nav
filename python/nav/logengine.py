@@ -54,8 +54,6 @@ from configparser import ConfigParser
 import datetime
 import optparse
 
-import six
-
 import nav
 import nav.logs
 from nav import db
@@ -322,10 +320,7 @@ def read_log_lines(config):
     logfile = None
     # open log
     try:
-        if six.PY3:
-            logfile = open(filename, "r+", encoding=charset)
-        else:
-            logfile = open(filename, "r+")
+        logfile = open(filename, "r+", encoding=charset)
     except IOError as err:
         # If logfile can't be found, we ignore it.  We won't needlessly
         # spam the NAV admin every minute with a file not found error!
@@ -350,9 +345,6 @@ def read_log_lines(config):
         logfile.close()
 
         for line in fcon:
-            if six.PY2:
-                # Make sure the data is encoded as UTF-8 before we begin work on it
-                line = line.decode(charset).encode("UTF-8")
             yield line
 
 
@@ -454,7 +446,7 @@ def add_category(category, categories, database):
 def add_origin(origin, category, origins, database):
     database.execute("SELECT nextval('origin_origin_seq')")
     originid = database.fetchone()[0]
-    assert isinstance(originid, six.integer_types)
+    assert isinstance(originid, int)
     database.execute(
         "INSERT INTO origin (origin, name, " "category) VALUES (%s, %s, %s)",
         (originid, origin, category),
@@ -466,7 +458,7 @@ def add_origin(origin, category, origins, database):
 def add_type(facility, mnemonic, priorityid, types, database):
     database.execute("SELECT nextval('log_message_type_type_seq')")
     typeid = int(database.fetchone()[0])
-    assert isinstance(typeid, six.integer_types)
+    assert isinstance(typeid, int)
 
     database.execute(
         "INSERT INTO log_message_type (type, facility, "

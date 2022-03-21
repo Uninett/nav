@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2016 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -30,8 +31,6 @@ from struct import unpack
 from IPy import IP
 
 from .oids import OID
-from .six import encode_array
-
 
 IPV4_ID = 1
 IPV6_ID = 2
@@ -70,7 +69,7 @@ def oid_to_ipv6(oid):
     if len(oid) != 16:
         raise ValueError("IPv6 address must be 16 octets, not %d" % len(oid))
     try:
-        high, low = unpack("!QQ", encode_array(array.array("B", oid)))
+        high, low = unpack("!QQ", array.array("B", oid).tobytes())
     except OverflowError as error:
         raise ValueError(error)
     addr = (high << 64) + low
@@ -87,7 +86,7 @@ def oid_to_ipv4(oid):
     if len(oid) != 4:
         raise ValueError("IPv4 address must be 4 octets, not %d" % len(oid))
     try:
-        (addr,) = unpack("!I", encode_array(array.array("B", oid)))
+        (addr,) = unpack("!I", array.array("B", oid).tobytes())
     except OverflowError as error:
         raise ValueError(error)
     return IP(addr, ipversion=4)

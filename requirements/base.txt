@@ -34,6 +34,3 @@ pynetsnmp-2>=0.1.8,<0.2.0
 libsass==0.15.1
 
 napalm==3.0.1
-
-# Remove when rid of Django 2.2
-six
