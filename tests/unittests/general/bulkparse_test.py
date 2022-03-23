@@ -3,7 +3,6 @@
 # pylint: disable=C0111, C0103, W0614
 
 import pytest
-import six
 
 from nav import bulkparse
 
@@ -43,7 +42,7 @@ class TestNetboxBulkParser(object):
     def test_parse_single_line_should_yield_value(self):
         data = b"room1:10.0.0.186:myorg:OTHER:SNMP v2c read profile:::"
         b = bulkparse.NetboxBulkParser(data)
-        out_data = six.next(b)
+        out_data = next(b)
         assert out_data is not None
 
     def test_parse_single_line_yields_columns(self):
@@ -52,7 +51,7 @@ class TestNetboxBulkParser(object):
             b"key=value:blah1:blah2"
         )
         b = bulkparse.NetboxBulkParser(data)
-        out_data = six.next(b)
+        out_data = next(b)
         assert isinstance(out_data, dict)
         assert out_data['roomid'] == 'room1'
         assert out_data['ip'] == '10.0.0.186'
@@ -98,13 +97,13 @@ class TestNetboxBulkParser(object):
         data = b"room1:10.0.x.x:myorg:SW:SNMP v2c read profile::\n"
         b = bulkparse.NetboxBulkParser(data)
         with pytest.raises(bulkparse.InvalidFieldValue):
-            six.next(b)
+            next(b)
 
     def test_short_line_should_raise_error_with_correct_details(self):
         data = b"room1:10.0.0.8"
         b = bulkparse.NetboxBulkParser(data)
         try:
-            six.next(b)
+            next(b)
         except bulkparse.RequiredFieldMissing as error:
             assert error.line_num == 1
             assert error.missing_field == 'orgid'
@@ -117,7 +116,7 @@ class TestManagementProfileBulkParser(object):
         config = b'{"version":1, "community":"public"}'
         data = b'SNMP v1 read profile:SNMP:"' + config.replace(b'"', b'""') + b'"'
         b = bulkparse.ManagementProfileBulkParser(data)
-        first_row = six.next(b)
+        first_row = next(b)
         assert 'configuration' in first_row
         assert first_row['configuration'] == config.decode('utf-8')
 
@@ -129,7 +128,7 @@ class TestUsageBulkParser(object):
     def test_leading_comments_should_be_stripped(self):
         data = b"#comment\nsby:student village"
         b = bulkparse.UsageBulkParser(data)
-        first_row = six.next(b)
+        first_row = next(b)
         assert first_row['usageid'] == 'sby'
 
 
@@ -138,12 +137,12 @@ class TestPrefixBulkParser(object):
         data = b"10.0.0.x/3f:scope"
         b = bulkparse.PrefixBulkParser(data)
         with pytest.raises(bulkparse.InvalidFieldValue):
-            six.next(b)
+            next(b)
 
     def test_valid_prefix_should_not_raise_error(self):
         data = b"10.0.0.0/8:scope"
         b = bulkparse.PrefixBulkParser(data)
-        assert six.next(b)
+        assert next(b)
 
 
 class TestServiceBulkParser(object):
@@ -151,26 +150,26 @@ class TestServiceBulkParser(object):
         data = b"host.example.org;http;port80"
         b = bulkparse.ServiceBulkParser(data)
         with pytest.raises(bulkparse.InvalidFieldValue):
-            six.next(b)
+            next(b)
 
     def test_valid_service_arguments_should_not_raise_error(self):
         data = b"host.example.org;http;port=80;uri=/"
         b = bulkparse.ServiceBulkParser(data)
-        assert six.next(b)
+        assert next(b)
 
 
 class TestCommentStripper(object):
     def test_leading_comment_should_be_stripped(self):
         data = iter(['#leadingcomment\n', 'something\n'])
         stripper = bulkparse.CommentStripper(data)
-        assert six.next(stripper) == '\n'
-        assert six.next(stripper) == 'something\n'
+        assert next(stripper) == '\n'
+        assert next(stripper) == 'something\n'
 
     def test_suffix_comment_should_be_stripped(self):
         data = iter(['somedata\n', 'otherdata    # ignore this\n'])
         stripper = bulkparse.CommentStripper(data)
-        assert six.next(stripper) == 'somedata\n'
-        assert six.next(stripper) == 'otherdata\n'
+        assert next(stripper) == 'somedata\n'
+        assert next(stripper) == 'otherdata\n'
 
 
 class TestHeaderGenerator(object):

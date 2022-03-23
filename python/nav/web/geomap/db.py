@@ -29,8 +29,7 @@ Based on datacollector.py from the old Java-applet based Netmap.
 import logging
 
 from django.core.cache import cache
-from six import iteritems, iterkeys
-from six.moves.urllib.error import HTTPError
+from urllib.error import HTTPError
 
 import nav
 from nav.config import NAV_CONFIG
@@ -384,7 +383,7 @@ CACHE_TIMEOUT = 5 * 60  # 5 minutes
 
 def get_cached_multiple_link_load(items, time_interval):
     """Cached version of get_multiple_link_load()"""
-    item_map = {k: _cache_key(k, time_interval) for k in iterkeys(items)}
+    item_map = {k: _cache_key(k, time_interval) for k in items.keys()}
     # cache lookup
     cached = cache.get_many(item_map.values())
     _logger.debug(
@@ -395,13 +394,13 @@ def get_cached_multiple_link_load(items, time_interval):
     )
 
     # retrieve data for cache misses
-    misses = {k: v for k, v in iteritems(items) if item_map[k] not in cached}
+    misses = {k: v for k, v in items.items() if item_map[k] not in cached}
     if misses:
         get_multiple_link_load(misses, time_interval)
 
     # set data from cache
-    reverse_item_map = {v: k for k, v in iteritems(item_map)}
-    for cache_key, value in iteritems(cached):
+    reverse_item_map = {v: k for k, v in item_map.items()}
+    for cache_key, value in cached.items():
         key = reverse_item_map[cache_key]
         properties = items[key]
         properties['load_in'], properties['load_out'] = value
@@ -409,7 +408,7 @@ def get_cached_multiple_link_load(items, time_interval):
     # add new data to cache
     missed_data = {
         item_map[key]: (properties['load_in'], properties['load_out'])
-        for key, properties in iteritems(misses)
+        for key, properties in misses.items()
     }
     _logger.debug("get_cached_multiple_link_load: caching %d values", len(missed_data))
     cache.set_many(missed_data, CACHE_TIMEOUT)
@@ -431,7 +430,7 @@ def get_multiple_link_load(items, time_interval):
                           time interval in terms valid to Graphite web.
     """
     target_map = {}
-    for (sysname, ifname), properties in iteritems(items):
+    for (sysname, ifname), properties in items.items():
         if not (sysname and ifname):
             continue
 
@@ -449,7 +448,7 @@ def get_multiple_link_load(items, time_interval):
     for chunk in chunks(target_map.keys(), METRIC_CHUNK_SIZE):
         data.update(_get_metric_average(chunk, time_interval))
 
-    for key, value in iteritems(data):
+    for key, value in data.items():
         properties = target_map.get(key, None)
         if properties:
             if value:
@@ -470,7 +469,7 @@ def get_multiple_link_load(items, time_interval):
 
 def get_cached_multiple_cpu_load(items, time_interval):
     """Cached version of get_multiple_link_load()"""
-    item_map = {k: _cache_key(k, time_interval) for k in iterkeys(items)}
+    item_map = {k: _cache_key(k, time_interval) for k in items.keys()}
     # cache lookup
     cached = cache.get_many(item_map.values())
     _logger.debug(
@@ -481,20 +480,20 @@ def get_cached_multiple_cpu_load(items, time_interval):
     )
 
     # retrieve data for cache misses
-    misses = {k: v for k, v in iteritems(items) if item_map[k] not in cached}
+    misses = {k: v for k, v in items.items() if item_map[k] not in cached}
     if misses:
         get_multiple_cpu_load(misses, time_interval)
 
     # set data from cache
-    reverse_item_map = {v: k for k, v in iteritems(item_map)}
-    for cache_key, value in iteritems(cached):
+    reverse_item_map = {v: k for k, v in item_map.items()}
+    for cache_key, value in cached.items():
         key = reverse_item_map[cache_key]
         properties = items[key]
         properties['load'] = value
 
     # add new data to cache
     missed_data = {
-        item_map[key]: properties['load'] for key, properties in iteritems(misses)
+        item_map[key]: properties['load'] for key, properties in misses.items()
     }
     _logger.debug("get_cached_multiple_cpu_load: caching %d values", len(missed_data))
     cache.set_many(missed_data, CACHE_TIMEOUT)
@@ -510,10 +509,10 @@ def get_multiple_cpu_load(items, time_interval):
                           time interval in terms valid to Graphite web.
     """
     target_map = {
-        escape_metric_name(sysname): netbox for sysname, netbox in iteritems(items)
+        escape_metric_name(sysname): netbox for sysname, netbox in items.items()
     }
     targets = []
-    for sysname, netbox in iteritems(items):
+    for sysname, netbox in items.items():
         if not sysname:
             continue
 
@@ -532,8 +531,8 @@ def get_multiple_cpu_load(items, time_interval):
     for chunk in chunks(targets, METRIC_CHUNK_SIZE):
         data.update(_get_metric_average(chunk, time_interval))
 
-    for key, value in iteritems(data):
-        for sysname, netbox in iteritems(target_map):
+    for key, value in data.items():
+        for sysname, netbox in target_map.items():
             if sysname in key:
                 if not is_nan(value):
                     netbox['load'] = value

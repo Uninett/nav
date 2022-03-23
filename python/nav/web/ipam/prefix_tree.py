@@ -28,7 +28,6 @@ import logging
 from IPy import IP, IPSet
 
 from django.urls import reverse, NoReverseMatch
-import six
 
 from nav.web.ipam.util import get_available_subnets
 from nav.models.manage import Prefix
@@ -202,7 +201,7 @@ class IpNodeFacade(IpNode):
     @property
     def empty_ranges(self):
         "Ranges within the node not spanned by its children"
-        return [six.text_type(prefix) for prefix in self.not_in_use()]
+        return [str(prefix) for prefix in self.not_in_use()]
 
     @property
     def net_ident(self):
@@ -266,7 +265,7 @@ class IpNodeFacade(IpNode):
     @property
     def prefix(self):
         "Return the prefix (as a string)"
-        return six.text_type(self.ip)
+        return str(self.ip)
 
     @property
     def children_pks(self):
@@ -284,7 +283,7 @@ class IpNodeFacade(IpNode):
     @property
     def organization(self):
         "The name of the organization connected to the prefix"
-        return six.text_type(getattr(self, "_organization", ""))
+        return str(getattr(self, "_organization", ""))
 
     @property
     def description(self):
@@ -358,7 +357,7 @@ class PrefixNode(IpNodeFacade):
                 prefix.id,
             )
             vlan = FakeVLAN()
-        net_type = six.text_type(vlan.net_type)
+        net_type = str(vlan.net_type)
         super(PrefixNode, self).__init__(ip_addr, primary_key, net_type, sort_fn)
         self._description = vlan.description
         self._organization = vlan.organization

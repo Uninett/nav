@@ -1,5 +1,6 @@
 #
 # Copyright 2008 - 2011, 2014 (C) Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A class for extracting sensors from RFC1628 compatible UPSes"""
-from six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
@@ -124,7 +124,7 @@ class UpsMib(mibretriever.MibRetriever):
             '_get_sensors: %s; %s = %s', self.agent_proxy.ip, object_name, sensor_params
         )
 
-        for row in itervalues(sensor_params):
+        for row in sensor_params.values():
             row_oid = row.get(0, None)
             mibobject = self.nodes.get(object_name, None)
             oid = str(mibobject.oid) + str(row_oid)

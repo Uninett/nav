@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,8 +18,6 @@
 Metric naming templates for various things that NAV sends/retrieves from
 Graphite.
 """
-import six
-
 from nav.metrics.names import escape_metric_name
 
 # pylint: disable=C0111
@@ -174,7 +173,7 @@ def metric_prefix_for_system(sysname):
 
 def metric_prefix_for_multicast_group(group):
     tmpl = "nav.multicast.groups.{group}"
-    return tmpl.format(group=escape_metric_name(six.text_type(group)))
+    return tmpl.format(group=escape_metric_name(str(group)))
 
 
 def metric_path_for_multicast_usage(group, sysname):

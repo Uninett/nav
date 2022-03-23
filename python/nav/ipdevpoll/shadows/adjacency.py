@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -42,8 +43,6 @@ A sentinel record is an AdjacencyCandidate or UnrecognizedNeighbor instance whos
 interface attribute is None, and whose source attribute is a non-empty string.
 
 """
-import six
-
 from nav.models import manage
 from nav.ipdevpoll.storage import Shadow, DefaultManager
 from nav.ipdevpoll.utils import is_invalid_database_string
@@ -227,7 +226,7 @@ class UnrecognizedNeighbor(Shadow):
                 setattr(self, attr, repr(getattr(self, attr)))
             elif not getattr(self, attr):
                 setattr(self, attr, '')
-            elif not isinstance(getattr(self, attr), six.text_type):
+            elif not isinstance(getattr(self, attr), str):
                 value = getattr(self, attr)
                 setattr(self, attr, value.decode('utf-8'))
 

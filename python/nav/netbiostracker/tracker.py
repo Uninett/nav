@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2018 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -24,7 +25,6 @@ from time import time
 from subprocess import Popen, PIPE
 
 from django.db import transaction
-import six
 
 from nav.models.manage import Arp, Netbios
 from nav.macaddress import MacAddress
@@ -98,9 +98,9 @@ def scan(addresses, ignore_failed_sendto=True, encoding="cp850", verbose=False):
     proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdout, stderr = proc.communicate('\n'.join(addresses).encode(encoding))
 
-    if isinstance(stderr, six.binary_type):
+    if isinstance(stderr, bytes):
         stderr = stderr.decode(encoding)
-    if isinstance(stdout, six.binary_type):
+    if isinstance(stdout, bytes):
         stdout = stdout.decode(encoding)
 
     if ignore_failed_sendto:

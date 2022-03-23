@@ -17,10 +17,10 @@
 
 import logging
 from datetime import datetime
-from six.moves.urllib.parse import urlparse
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import TokenAuthentication, BaseAuthentication
+from urllib.parse import urlparse
 
 from nav.models.api import APIToken
 

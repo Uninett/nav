@@ -21,8 +21,6 @@ import itertools
 import logging
 from datetime import datetime, timedelta
 
-import six
-
 from django.utils.timesince import timesince
 from django.db.models import Count
 
@@ -46,7 +44,7 @@ class TestResult(object):
         self.obj = obj  # An optional object representing the test
 
     def __str__(self):
-        return six.text_type(self.description)
+        return str(self.description)
 
 
 class Test(object):

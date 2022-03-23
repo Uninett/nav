@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,8 +17,6 @@
 """eventengine config"""
 from __future__ import unicode_literals
 from configparser import NoSectionError, NoOptionError
-
-import six
 
 from nav.config import NAVConfigParser
 from nav.util import parse_interval
@@ -49,7 +48,7 @@ bgpDown.alert = 1m
                  an int, option is returned unchanged.
 
         """
-        if isinstance(option, six.integer_types):
+        if isinstance(option, int):
             return option
         try:
             return parse_interval(self.get('timeouts', option))

@@ -14,7 +14,6 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-from six import itervalues, iteritems
 from twisted.internet import defer
 
 from nav.compatibility import smart_str
@@ -43,12 +42,12 @@ class CiscoProcessMib(mibretriever.MibRetriever):
         )
         self._logger.debug("cpu load results: %r", load)
         physindexes = [
-            row[PHYSICAL_INDEX] for row in itervalues(load) if row[PHYSICAL_INDEX]
+            row[PHYSICAL_INDEX] for row in load.values() if row[PHYSICAL_INDEX]
         ]
         names = yield self._get_cpu_names(physindexes)
 
         result = {}
-        for index, row in iteritems(load):
+        for index, row in load.items():
             name = names.get(row[PHYSICAL_INDEX], str(index[-1]))
             result[name] = [(5, row[TOTAL_5_MIN_REV]), (1, row[TOTAL_1_MIN_REV])]
         defer.returnValue(result)

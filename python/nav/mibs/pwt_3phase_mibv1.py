@@ -25,8 +25,6 @@ Please note!
 -- not a complete implementation of the mib --
 
 """
-import six
-from six import itervalues
 from twisted.internet import defer
 
 from nav.mibs import reduce_index
@@ -46,8 +44,7 @@ def for_table(table_name):
 
     def decorate(method):
         """Setup link between table and function"""
-        name = method.func_name if six.PY2 else method.__name__
-        for_table.map[table_name] = name
+        for_table.map[table_name] = method.__name__
         return method
 
     return decorate
@@ -101,7 +98,7 @@ class Pwt3PhaseV1Mib(mibretriever.MibRetriever):
     def _get_internal_sensors_params(self, internal_sensors):
         sensors = []
 
-        for sensor in itervalues(internal_sensors):
+        for sensor in internal_sensors.values():
             serial = sensor.get('inletIndex', None)
             # The spesification says the value can be 0 - 3 but I am
             # seeing 0 - 7 and only 0 has value

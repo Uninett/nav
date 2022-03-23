@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2006-2009 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -26,8 +27,6 @@ import time
 
 import psycopg2
 import psycopg2.extensions
-
-import six
 
 import nav
 from nav import config
@@ -88,7 +87,7 @@ def escape(string):
     """
     quoted = psycopg2.extensions.QuotedString(string)
     result = quoted.getquoted()
-    return result if isinstance(result, six.text_type) else result.decode("utf-8")
+    return result if isinstance(result, str) else result.decode("utf-8")
 
 
 def get_connection_parameters(script_name='default', database='nav'):

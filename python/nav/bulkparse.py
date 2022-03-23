@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2010-2015 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,7 +23,6 @@ import re
 import io
 import json
 
-import six
 from IPy import IP
 
 from nav.django.validators import is_valid_point_string
@@ -37,7 +37,7 @@ from nav.models.manage import (
 )
 
 
-class BulkParser(six.Iterator):
+class BulkParser:
     """Abstract base class for bulk parsers"""
 
     format = ()
@@ -49,13 +49,10 @@ class BulkParser(six.Iterator):
         if hasattr(data, 'seek'):
             self.data = data
         else:
-            if six.PY3:
-                if isinstance(data, six.binary_type):
-                    self.data = io.StringIO(data.decode('utf-8'))
-                else:
-                    self.data = io.StringIO(data)
+            if isinstance(data, bytes):
+                self.data = io.StringIO(data.decode('utf-8'))
             else:
-                self.data = io.BytesIO(data)
+                self.data = io.StringIO(data)
 
         if delimiter is None:
             try:
@@ -85,7 +82,7 @@ class BulkParser(six.Iterator):
 
     def __next__(self):
         """Generate next parsed row"""
-        row = six.next(self.reader)
+        row = next(self.reader)
         # although the DictReader doesn't return blank lines, we want
         # to count them so we can pinpoint errors exactly within the
         # source file.
@@ -139,7 +136,7 @@ class BulkParser(six.Iterator):
 
 # don't complain about simple iterators, mr. Pylint!
 # pylint: disable=R0903
-class CommentStripper(six.Iterator):
+class CommentStripper:
     """Iterator that strips comments from the input iterator"""
 
     COMMENT_PATTERN = re.compile(r'\W*#[^\n\r]*')
@@ -152,7 +149,7 @@ class CommentStripper(six.Iterator):
 
     def __next__(self):
         """Returns next line"""
-        line = six.next(self.source_iterator)
+        line = next(self.source_iterator)
         return self.COMMENT_PATTERN.sub('', line)
 
 

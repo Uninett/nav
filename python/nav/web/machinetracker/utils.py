@@ -23,7 +23,6 @@ import logging
 from IPy import IP
 
 from django.db import DatabaseError, transaction
-import six
 
 from nav import asyncdns
 from nav.models.manage import Prefix, Netbox, Interface
@@ -41,7 +40,7 @@ def hostname(ip):
     :returns: A hostname string or a False value if the lookup failed.
 
     """
-    addr = six.text_type(ip)
+    addr = str(ip)
     if addr in _cached_hostname:
         return _cached_hostname[addr]
 
@@ -144,7 +143,7 @@ def min_max_mac(prefix):
     :returns: A tuple of (min_mac_string, max_mac_string)
 
     """
-    return six.text_type(prefix[0]), six.text_type(prefix[-1])
+    return str(prefix[0]), str(prefix[-1])
 
 
 def track_mac(keys, resultset, dns):

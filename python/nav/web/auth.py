@@ -24,7 +24,7 @@ import logging
 from os.path import join
 import os
 
-from six.moves.urllib import parse
+from urllib import parse
 
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore

@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2011,2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -20,7 +21,7 @@ from __future__ import absolute_import
 import inspect
 import os
 
-import six
+import sys
 
 # pylint: disable=wrong-import-position
 # don't have NET-SNMP load and parse MIB modules, we don't use them
@@ -47,10 +48,7 @@ def pynetsnmp_limits_results():
     except ImportError:
         return False
     else:
-        if six.PY2:
-            args = inspect.getargspec(TableRetriever.__init__)[0]
-        else:
-            args = inspect.getfullargspec(TableRetriever.__init__)[0]
+        args = inspect.getfullargspec(TableRetriever.__init__)[0]
         return 'limit' in args
 
 
@@ -62,7 +60,7 @@ class AgentProxy(common.AgentProxyMixIn, twistedsnmp.AgentProxy):
 
         def getTable(self, *args, **kwargs):
             if 'limit' not in kwargs:
-                kwargs['limit'] = six.MAXSIZE
+                kwargs['limit'] = sys.maxsize
             return super(AgentProxy, self).getTable(*args, **kwargs)
 
     def open(self):

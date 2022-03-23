@@ -23,8 +23,6 @@ from datetime import datetime
 import struct
 import sys
 
-import six
-from six import iteritems
 from twisted.internet import defer
 
 from nav.oids import OID
@@ -346,7 +344,7 @@ class EntityTable(dict):
         for ent in self.values():
             if not self.is_chassis(ent):
                 dupes[ent['entPhysicalName']].append(ent)
-        dupes = dict((key, value) for key, value in iteritems(dupes) if len(value) > 1)
+        dupes = dict((key, value) for key, value in dupes.items() if len(value) > 1)
         return dupes
 
     def _clean_unicode(self, encoding="utf-8"):
@@ -357,11 +355,11 @@ class EntityTable(dict):
         """
         for entity in self.values():
             for key, value in entity.items():
-                if isinstance(value, six.binary_type):
+                if isinstance(value, bytes):
                     try:
                         new_value = value.decode(encoding)
                     except UnicodeDecodeError:
-                        new_value = six.text_type(repr(value))
+                        new_value = str(repr(value))
                         _logger.debug(
                             "cannot decode %s value as %s, using python "
                             "string repr instead: %s",

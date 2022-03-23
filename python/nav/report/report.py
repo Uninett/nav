@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2008-2011 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,8 +18,6 @@
 
 import re
 from urllib.parse import quote_plus
-
-import six
 
 
 class Field(object):
@@ -296,10 +295,7 @@ class Report(object):
                     links = link_pattern.findall(uri)
                     if links:
                         for column_ref in links:
-                            value = (
-                                six.text_type(line[self.field_name_map[column_ref]])
-                                or ""
-                            )
+                            value = str(line[self.field_name_map[column_ref]]) or ""
                             pattern = '$' + column_ref
                             uri = uri.replace(pattern, quote_plus(value))
                     newfield.set_hyperlink(uri)
@@ -480,7 +476,7 @@ def unicode_utf8(thing):
     If the argument is None, it is returned unchanged.
 
     """
-    if isinstance(thing, six.binary_type):
+    if isinstance(thing, bytes):
         return thing.decode('utf-8')
     elif thing is not None:
-        return six.text_type(thing)
+        return str(thing)

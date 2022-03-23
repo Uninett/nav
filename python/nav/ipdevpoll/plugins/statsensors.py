@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,7 +19,6 @@
 import time
 
 from twisted.internet import defer
-import six
 
 from nav.Snmp import safestring
 from nav.ipdevpoll import Plugin
@@ -79,15 +79,13 @@ class StatSensors(Plugin):
         metrics = []
         timestamp = time.time()
         data = (
-            (sensors[oid], value)
-            for oid, value in six.iteritems(result)
-            if oid in sensors
+            (sensors[oid], value) for oid, value in result.items() if oid in sensors
         )
         for sensor, value in data:
             # Attempt to support numbers-as-text values
-            if isinstance(value, six.binary_type):
+            if isinstance(value, bytes):
                 value = safestring(value)
-            if isinstance(value, six.text_type):
+            if isinstance(value, str):
                 try:
                     value = float(value)
                 except ValueError:

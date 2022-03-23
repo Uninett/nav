@@ -4,8 +4,6 @@
 
 from unittest import TestCase
 
-import six
-
 from nav.models import manage
 from nav.tests.cases import DjangoTransactionTestCase
 from nav import bulkimport, bulkparse
@@ -50,7 +48,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         )
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
 
         self.assertTrue(isinstance(objects, list), repr(objects))
         self.assertTrue(len(objects) == 2, repr(objects))
@@ -63,7 +61,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'myroom:10.0.90.253:myorg:SRV'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
 
         self.assertTrue(isinstance(objects, list), repr(objects))
         self.assertTrue(len(objects) == 1, repr(objects))
@@ -75,7 +73,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         )
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
 
         (netbox, profile) = objects
         self.assertEqual(netbox.ip, '10.0.90.252')
@@ -90,7 +88,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         )
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
         self.assertTrue(isinstance(objects, bulkimport.DoesNotExist))
 
     def test_netbox_function_is_set(self):
@@ -99,7 +97,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         )
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
 
         types = dict((type(c), c) for c in objects)
         self.assertTrue(manage.NetboxInfo in types, types)
@@ -117,7 +115,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
         data = 'myroom:10.0.90.10:myorg:SRV:::fileserver::WEB:UNIX:MAIL'
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
 
         netboxgroups = [o for o in objects if isinstance(o, manage.NetboxCategory)]
         self.assertTrue(len(netboxgroups) > 0, objects)
@@ -172,7 +170,7 @@ class TestNetboxImporter(DjangoTransactionTestCase):
     def parse_to_objects(data):
         parser = bulkparse.NetboxBulkParser(data)
         importer = bulkimport.NetboxImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
         return objects
 
 
@@ -189,7 +187,7 @@ class TestManagementProfileImporter(DjangoTransactionTestCase):
     def parse_to_objects(data):
         parser = bulkparse.ManagementProfileBulkParser(data)
         importer = bulkimport.ManagementProfileImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
         return objects
 
 
@@ -261,7 +259,7 @@ class TestLocationImporter(DjangoTransactionTestCase):
     def parse_to_objects(data):
         parser = bulkparse.LocationBulkParser(data)
         importer = bulkimport.LocationImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
         return objects
 
 
@@ -277,7 +275,7 @@ class TestPrefixImporter(DjangoTransactionTestCase):
         data = "10.0.1.0/24:lan:uninett:here-there:employee:Employee LAN:20"
         parser = bulkparse.PrefixBulkParser(data)
         importer = bulkimport.PrefixImporter(parser)
-        _line_num, objects = six.next(importer)
+        _line_num, objects = next(importer)
 
         if isinstance(objects, Exception):
             raise objects

@@ -19,9 +19,9 @@
 from collections import OrderedDict
 import itertools
 import json
-from six.moves.urllib.parse import urlencode, urljoin
-from six.moves.urllib.request import Request, urlopen
-from six.moves.urllib.error import URLError
+from urllib.parse import urlencode, urljoin
+from urllib.request import Request, urlopen
+from urllib.error import URLError
 from nav.metrics import CONFIG, errors
 import string
 

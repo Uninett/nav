@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,8 +19,6 @@ from collections import defaultdict
 import logging
 
 import networkx as nx
-
-import six
 
 from nav.models.manage import SwPortVlan
 from nav.netmap.metadata import edge_metadata_layer3, edge_metadata_layer2
@@ -92,9 +91,7 @@ def build_netmap_layer2_graph(
     # sure we fetch all 'loose' ends and makes sure they get attached as
     # metadata into netmap_graph
     for source, neighbors_dict in topology_without_metadata.adjacency():
-        for target, connected_interfaces_at_source_for_target in six.iteritems(
-            neighbors_dict
-        ):
+        for target, connected_interfaces_at_source_for_target in neighbors_dict.items():
             for interface in connected_interfaces_at_source_for_target:
                 # fetch existing metadata that might have been added already
                 existing_metadata = netmap_graph.get_edge_data(source, target) or {}
@@ -132,7 +129,7 @@ def build_netmap_layer2_graph(
         if node in vlan_by_netbox:
             data['metadata'] = {
                 'vlans': sorted(
-                    six.iteritems(vlan_by_netbox[node]), key=lambda x: x[1].vlan.vlan
+                    vlan_by_netbox[node].items(), key=lambda x: x[1].vlan.vlan
                 )
             }
 

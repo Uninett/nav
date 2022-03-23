@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012, 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,8 +17,6 @@
 """Functions for attaching traffic metadata to netmap"""
 import logging
 from collections import defaultdict
-
-from six import iteritems
 
 from nav.metrics.data import get_metric_average
 from nav.metrics.graphs import get_metric_meta
@@ -124,7 +123,7 @@ def get_traffic_for(interfaces):
 
     _logger.debug("received %d metrics in response", len(data))
 
-    for metric, value in iteritems(data):
+    for metric, value in data.items():
         interface = metric_mapping[metric]
         if INOCTETS in metric:
             traffic[interface].update({INOCTETS: value})

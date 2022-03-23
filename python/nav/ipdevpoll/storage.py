@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2009-2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,7 +18,6 @@
 
 import django.db.models
 from django.db import transaction
-import six
 
 from nav import toposort
 from nav import ipdevpoll
@@ -106,8 +106,7 @@ class DefaultManager(object):
         )
 
 
-@six.add_metaclass(MetaShadow)
-class Shadow(object):
+class Shadow(object, metaclass=MetaShadow):
     """Base class to shadow Django model classes.
 
     To create a "dumb" container of values, whose attribute list will

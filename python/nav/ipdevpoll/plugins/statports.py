@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,7 +18,6 @@
 import time
 import logging
 
-from six import itervalues
 from twisted.internet import defer
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import db
@@ -111,7 +111,7 @@ class StatPorts(Plugin):
         timestamp = timestamp or time.time()
         hc_counters = False
 
-        for row in itervalues(stats):
+        for row in stats.values():
             hc_counters = use_hc_counters(row) or hc_counters
             for key in LOGGED_COUNTERS:
                 if key not in row:

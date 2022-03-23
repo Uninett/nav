@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2008-2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -28,8 +29,6 @@ from twisted.internet import task, reactor
 from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
 from twisted.python.log import err
-
-from six import iteritems
 
 from nav import ipdevpoll
 from nav.ipdevpoll import db
@@ -537,7 +536,7 @@ class CounterFlusher(defaultdict):
         _logger.debug("flushing %d counters to graphite", len(self))
         metrics = []
         timestamp = time.time()
-        for counter, count in iteritems(self):
+        for counter, count in self.items():
             metrics.append((counter, (timestamp, count)))
             self[counter] = 0
 

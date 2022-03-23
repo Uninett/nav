@@ -23,8 +23,6 @@ import hashlib
 import base64
 import re
 
-import six
-
 from django.utils import crypto
 
 from nav import errors
@@ -104,9 +102,9 @@ class Hash(object):
         """Update the hash with a new password."""
 
         salt = self.salt
-        if isinstance(salt, six.text_type):
+        if isinstance(salt, str):
             salt = salt.encode('utf-8')
-        if isinstance(password, six.text_type):
+        if isinstance(password, str):
             password = password.encode('utf-8')
 
         hasher = KNOWN_METHODS[self.method]

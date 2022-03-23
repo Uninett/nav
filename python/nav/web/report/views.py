@@ -35,7 +35,6 @@ from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.urls import reverse
-from six import PY2, iteritems, text_type
 
 from nav.models.manage import Prefix
 
@@ -110,7 +109,7 @@ def _strip_empty_arguments(request):
     """
     query = request.GET.copy()
 
-    deletable = [key for key, value in iteritems(query) if not value.strip()]
+    deletable = [key for key, value in query.items() if not value.strip()]
     for key in deletable:
         del query[key]
         if "op_{0}".format(key) in query:
@@ -281,7 +280,7 @@ def make_report(request, report_name, export_delimiter, query_dict, paginate=Tru
     page_size = get_page_size(request)
 
     query_string = "&".join(
-        ["%s=%s" % (x, y) for x, y in iteritems(query_dict) if x != 'page_number']
+        ["%s=%s" % (x, y) for x, y in query_dict.items() if x != 'page_number']
     )
 
     config_files = list_config_files_from_dir(CONFIG_DIR)
@@ -434,12 +433,6 @@ def find_page_range(page_number, page_range, visible_pages=5):
 def generate_export(report, report_name, export_delimiter):
     """Generates a CSV export version of a report"""
 
-    def _cellformatter(cell):
-        if PY2 and isinstance(cell.text, text_type):
-            return cell.text.encode('utf-8')
-        else:
-            return cell.text
-
     response = HttpResponse(content_type="text/x-csv; charset=utf-8")
     response["Content-Type"] = "application/force-download"
     response["Content-Disposition"] = "attachment; filename=report-%s-%s.csv" % (
@@ -449,14 +442,14 @@ def generate_export(report, report_name, export_delimiter):
     writer = csv.writer(response, delimiter=str(export_delimiter))
 
     # Make a list of headers
-    header_row = [_cellformatter(cell) for cell in report.table.header.cells]
+    header_row = [cell.text for cell in report.table.header.cells]
     writer.writerow(header_row)
 
     # Make a list of lists containing each cell. Considers the 'hidden' option
     # from the config.
     rows = []
     for row in report.table.rows:
-        rows.append([_cellformatter(cell) for cell in row.cells])
+        rows.append([cell.text for cell in row.cells])
     writer.writerows(rows)
 
     return response
@@ -495,7 +488,7 @@ def report_cache(key_items, query_dict):
                        request, so these can be included in the cache key
     """
     keys = ['report'] + list(key_items) + [_query_dict_hash(query_dict)]
-    cache_key = ':'.join(text_type(k) for k in keys)
+    cache_key = ':'.join(str(k) for k in keys)
 
     def _decorator(func):
         def _cache_lookup(*args, **kwargs):

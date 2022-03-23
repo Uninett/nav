@@ -18,8 +18,7 @@
 import re
 
 from django.urls import reverse
-import six
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 
 TIMETICKS_IN_DAY = 100 * 3600 * 24
@@ -233,7 +232,7 @@ def get_simple_graph_url(
     :return: The URL that will generate the requested graph.
 
     """
-    if isinstance(metric_paths, six.string_types):
+    if isinstance(metric_paths, str):
         metric_paths = [metric_paths]
 
     target_spec = (
@@ -245,7 +244,7 @@ def get_simple_graph_url(
     if kwargs:
         graph.args.update(kwargs)
 
-    return six.text_type(graph)
+    return str(graph)
 
 
 def get_metric_meta(metric_path):

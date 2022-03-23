@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2007, 2009 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,10 +19,6 @@ from __future__ import absolute_import
 import array
 import re
 
-import six
-
-from .six import encode_array
-
 
 class BitVector(object):
     """
@@ -38,7 +35,7 @@ class BitVector(object):
         self.vector = array.array("B", octetstring)
 
     def to_bytes(self):
-        return encode_array(self.vector)
+        return self.vector.tobytes()
 
     def __len__(self):
         return len(self.vector) * 8
@@ -85,7 +82,7 @@ class BitVector(object):
         if len(hexstring) % 2 != 0:
             raise ValueError("hexstring must contain an even number of digits")
         hex_octets = [hexstring[i : i + 2] for i in range(0, len(hexstring), 2)]
-        octetstring = b''.join([six.int2byte(int(octet, 16)) for octet in hex_octets])
+        octetstring = b''.join([bytes((int(octet, 16),)) for octet in hex_octets])
         return cls(octetstring)
 
     def to_binary(self):

@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,8 +24,6 @@ from ctypes import c_ushort, c_char, POINTER, cast, c_long
 
 from IPy import IP
 from pynetsnmp import netsnmp
-
-import six
 
 from nav.errors import GeneralException
 from nav.oids import OID
@@ -137,7 +136,7 @@ def value_to_str(value):
     """
     if isinstance(value, tuple):
         return str(OID(value))
-    elif isinstance(value, six.binary_type):
+    elif isinstance(value, bytes):
         try:
             return value.decode("utf-8")
         except UnicodeDecodeError:

@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2008-2014 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -14,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A class for extracting information from APC devices"""
-from six import iteritems
 from twisted.internet import defer
 from nav.smidumps import get_mib
 from nav.mibs import reduce_index
@@ -101,7 +101,7 @@ class PowerNetMib(UpsMib):
 
         result = []
         column = self.nodes.get(R_PDU_LOAD_STATUS_LOAD, None)
-        for index, row in iteritems(banks):
+        for index, row in banks.items():
             oid = str(column.oid + str(index))
 
             bank_number = row.get(R_PDU_LOAD_STATUS_BANK_NUMBER, None)

@@ -1,6 +1,5 @@
 from unittest import TestCase
 from mock import Mock
-import six
 
 import pytest
 
@@ -35,7 +34,7 @@ class EncodingTests(TestCase):
             row[k] = None
 
         interface = plugin._convert_row_to_container(netbox, 1, row)
-        self.assertTrue(isinstance(interface.ifalias, six.text_type))
+        self.assertTrue(isinstance(interface.ifalias, str))
 
 
 class TestExtractInterfaceSpeed:

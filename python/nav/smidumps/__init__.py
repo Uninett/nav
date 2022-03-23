@@ -8,8 +8,6 @@ from __future__ import absolute_import
 from itertools import chain
 import importlib
 
-import six
-
 from nav.config import NAV_CONFIG
 from nav.oids import OID
 
@@ -54,8 +52,7 @@ def convert_oids(mib):
 
     """
     for node in chain(
-        mib.get('nodes', {}).values(),
-        mib.get('notifications', {}).values()
+        mib.get('nodes', {}).values(), mib.get('notifications', {}).values()
     ):
-        if isinstance(node['oid'], six.string_types):
+        if isinstance(node['oid'], str):
             node['oid'] = OID(node['oid'])

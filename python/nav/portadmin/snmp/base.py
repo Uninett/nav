@@ -1,5 +1,6 @@
 #
-# Copyright (C) 2011-2015, 2020, 2021 UNINETT
+# Copyright (C) 2011-2015, 2020, 2021 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -18,8 +19,6 @@ from functools import wraps
 from operator import attrgetter
 import logging
 from typing import Dict, Sequence, List, Any
-
-import six
 
 from nav import Snmp
 from nav.Snmp import safestring, OID

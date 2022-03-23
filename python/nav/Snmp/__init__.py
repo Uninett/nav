@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2010, 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -20,7 +21,6 @@ multiple implementations
 
 """
 from __future__ import absolute_import
-import six
 
 BACKEND = None
 
@@ -54,9 +54,9 @@ def safestring(string, encodings_to_try=('utf-8', 'latin-1')):
     if string is None:
         return
 
-    if isinstance(string, six.text_type):
+    if isinstance(string, str):
         return string
-    if isinstance(string, six.binary_type):
+    if isinstance(string, bytes):
         for encoding in encodings_to_try:
             try:
                 return string.decode(encoding)

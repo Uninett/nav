@@ -1,5 +1,6 @@
 #
-# Copyright (C) 2019 UNINETT
+# Copyright (C) 2019 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -23,7 +24,6 @@ try:
     import subprocess32 as subprocess
 except ImportError:
     import subprocess
-import six
 
 from nav.web.api.v1.alert_serializers import AlertQueueSerializer
 
@@ -86,8 +86,6 @@ class StreamExporter(object):
     def _send_string(self, string):
         if self.is_ok():
             self._process.stdin.write(
-                string
-                if not isinstance(string, six.text_type)
-                else string.encode("utf-8")
+                string if not isinstance(string, str) else string.encode("utf-8")
             )
             self._process.stdin.flush()

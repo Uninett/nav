@@ -24,8 +24,6 @@ from django.utils.safestring import mark_safe
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Field, Fieldset, Row, Column
 
-import six
-
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (
@@ -76,9 +74,7 @@ def create_choices(element, ancestors, is_last_child=False):
     :returns: a list of tuples meant to be used as choices in a form select. The
               string element is padded to indicate placement in a tree-structure
     """
-    choices = [
-        (element.pk, tree_pad(six.text_type(element.pk), ancestors, last=is_last_child))
-    ]
+    choices = [(element.pk, tree_pad(str(element.pk), ancestors, last=is_last_child))]
     child_ancestors = ancestors + [is_last_child]
     children = element.get_children()
     num_children = children.count()

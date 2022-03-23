@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 import pytest
 from mock import Mock
-import six
 
 from nav.eventengine.config import EventEngineConfig
 from nav.eventengine.engine import EventEngine
@@ -37,7 +36,7 @@ def test_handler_should_construct_fine_on_supported_event():
 
 def test_find_package_modules_is_list():
     modules = _find_package_modules('nav.eventengine.plugins')
-    assert not isinstance(modules, six.string_types)
+    assert not isinstance(modules, str)
     assert len(modules) >= 0
 
 

@@ -30,7 +30,6 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Q
 from django.urls import reverse, NoReverseMatch
-import six
 
 from nav.web.message import new_message, Messages
 from nav.models.manage import Netbox, NetboxCategory, NetboxGroup
@@ -139,9 +138,9 @@ def resolve_ip_and_sysname(name):
     except ValueError:
         ip_addr = IP(gethostbyname(name))
     try:
-        sysname = gethostbyaddr(six.text_type(ip_addr))[0]
+        sysname = gethostbyaddr(str(ip_addr))[0]
     except SocketError:
-        sysname = six.text_type(ip_addr)
+        sysname = str(ip_addr)
     return (ip_addr, sysname)
 
 
@@ -159,9 +158,9 @@ def does_ip_exist(ip_addr, netbox_id=None):
      - False if not.
     """
     if netbox_id:
-        ip_qs = Netbox.objects.filter(Q(ip=six.text_type(ip_addr)), ~Q(id=netbox_id))
+        ip_qs = Netbox.objects.filter(Q(ip=str(ip_addr)), ~Q(id=netbox_id))
     else:
-        ip_qs = Netbox.objects.filter(ip=six.text_type(ip_addr))
+        ip_qs = Netbox.objects.filter(ip=str(ip_addr))
     return ip_qs.count() > 0
 
 

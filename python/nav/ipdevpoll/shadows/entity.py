@@ -24,8 +24,6 @@ import networkx as nx
 from networkx.algorithms.traversal.depth_first_search import dfs_tree as subtree
 
 from django.db import transaction
-import six
-from six import iteritems, itervalues
 
 from nav.toposort import build_graph, topological_sort
 
@@ -215,7 +213,7 @@ class NetboxEntity(Shadow):
 
     def __setattr__(self, key, value):
         if key == 'index' and value is not None:
-            value = six.text_type(value)
+            value = str(value)
         if key == 'contained_in' and value == 0:
             value = None
         super(NetboxEntity, self).__setattr__(key, value)
@@ -239,7 +237,7 @@ class NetboxEntity(Shadow):
         :type containers: nav.ipdevpoll.storage.ContainerRepository
         """
         if cls in containers:
-            entities = itervalues(containers[cls])
+            entities = containers[cls].values()
             return [
                 e
                 for e in entities
@@ -255,7 +253,7 @@ class NetboxEntity(Shadow):
         :type containers: nav.ipdevpoll.storage.ContainerRepository
         """
         if cls in containers:
-            entities = itervalues(containers[cls])
+            entities = containers[cls].values()
             return [
                 e for e in entities if e.contained_in is None or e.contained_in == -1
             ]
@@ -310,7 +308,7 @@ class EntityIndex(object):
         for ent in self.entities:
             if ent.device and ent.device.serial:
                 by_serial[(ent.source, ent.device.serial)].append(ent)
-        by_serial = {k: v[0] for k, v in iteritems(by_serial) if len(v) == 1}
+        by_serial = {k: v[0] for k, v in by_serial.items() if len(v) == 1}
         return by_serial
 
     def index_by_name(self):
@@ -322,5 +320,5 @@ class EntityIndex(object):
         for ent in self.entities:
             if ent.name:
                 by_name[(ent.source, ent.name)].append(ent)
-        by_name = {k: v[0] for k, v in iteritems(by_name) if len(v) == 1}
+        by_name = {k: v[0] for k, v in by_name.items() if len(v) == 1}
         return by_name

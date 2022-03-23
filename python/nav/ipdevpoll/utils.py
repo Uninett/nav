@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009-2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -21,7 +22,6 @@ import re
 
 from IPy import IP
 
-import six
 from twisted.internet import defer
 from twisted.internet.defer import Deferred
 from twisted.internet import reactor
@@ -62,7 +62,7 @@ def binary_mac_to_hex(binary_mac):
     """
     if binary_mac:
         binary_mac = binary_mac[-6:].rjust(MAX_MAC_ADDRESS_LENGTH, b'\x00')
-        return ":".join("%02x" % x for x in six.iterbytes(binary_mac))
+        return ":".join("%02x" % x for x in binary_mac)
 
 
 def truncate_mac(mac):
@@ -95,9 +95,7 @@ def is_invalid_database_string(string):
     that cannot be decoded as UTF-8, or is another type of object, it is considered
     invalid.
     """
-    return (isinstance(string, six.text_type) and "\x00" in string) or is_invalid_utf8(
-        string
-    )
+    return (isinstance(string, str) and "\x00" in string) or is_invalid_utf8(string)
 
 
 def is_invalid_utf8(string):
@@ -107,7 +105,7 @@ def is_invalid_utf8(string):
     returned.
 
     """
-    if isinstance(string, six.binary_type):
+    if isinstance(string, bytes):
         try:
             string.decode('utf-8')
         except UnicodeDecodeError:

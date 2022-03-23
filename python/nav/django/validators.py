@@ -20,7 +20,6 @@ from __future__ import unicode_literals, absolute_import
 import json
 from decimal import Decimal, InvalidOperation
 
-import six
 from django.utils.translation import gettext
 from django.core.exceptions import ValidationError
 
@@ -42,7 +41,7 @@ def is_valid_point_string(point_string):
 
 class JSONBytesEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, six.binary_type):
+        if isinstance(obj, bytes):
             return obj.decode('utf-8')
         return super(JSONBytesEncoder, self).default(self, obj)
 
@@ -56,11 +55,11 @@ def validate_hstore(value):
     # ensure valid JSON
     try:
         # work on unicode strings only
-        if isinstance(value, six.binary_type):
+        if isinstance(value, bytes):
             value = value.decode('utf-8')
 
         # convert strings to dictionaries
-        if isinstance(value, six.text_type):
+        if isinstance(value, str):
             dictionary = json.loads(value)
 
         # if not a string we'll check at the next control if it's a dict

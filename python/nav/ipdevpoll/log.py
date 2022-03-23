@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2008-2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,8 +20,6 @@ import logging
 from logging import Formatter
 import inspect
 from itertools import islice
-
-import six
 
 
 class ContextFormatter(Formatter):
@@ -61,17 +60,9 @@ class ContextFormatter(Formatter):
         else:
             self._set_format(self._normal_fmt)
 
-    if six.PY3:
-        # Under Python >= 3 we must also set the internal style's format, since
-        # formatting is actually delegated to the style object
-        def _set_format(self, fmt):
-            self._fmt = fmt
-            self._style._fmt = fmt
-
-    else:
-
-        def _set_format(self, fmt):
-            self._fmt = fmt
+    def _set_format(self, fmt):
+        self._fmt = fmt
+        self._style._fmt = fmt
 
     def _strip_logger_prefix(self, record):
         if record.name.startswith(self.prefix):

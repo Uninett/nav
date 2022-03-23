@@ -16,7 +16,6 @@
 import operator
 
 from django.db.models import Q
-import six
 
 from rest_framework import serializers
 from rest_framework import viewsets, filters
@@ -34,7 +33,7 @@ class LGFKRelatedField(serializers.RelatedField):
     """
 
     def to_representation(self, value):
-        return six.text_type(value)
+        return str(value)
 
 
 class LogEntrySerializer(serializers.ModelSerializer):

@@ -8,6 +8,16 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.4 (not yet released)
+==========================
+Dependency changes
+------------------
+Removed dependencies
+~~~~~~~~~~~~~~~~~~~~
+
+NAV no longer requires the :mod:`six` Python module. It was only needed under Python 2 to keep compatibility with both
+Python 2 and 3, but NAV 5.1 dropped support for Python 2.
+
 NAV 5.3
 =======
 

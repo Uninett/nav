@@ -22,8 +22,6 @@ from __future__ import print_function, unicode_literals
 import logging
 from os.path import join
 
-import six
-
 import nav.errors
 from nav.config import NAVConfigParser
 
@@ -409,10 +407,8 @@ def __test():
     logging.basicConfig()
     logging.getLogger('').setLevel(logging.DEBUG)
 
-    uid = six.moves.input("Username: ").strip()
+    uid = input("Username: ").strip()
     password = getpass('Password: ')
-    if six.PY2:
-        password = password.decode('utf-8')
 
     user = authenticate(uid, password)
 

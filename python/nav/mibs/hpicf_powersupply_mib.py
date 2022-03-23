@@ -1,5 +1,6 @@
 #
 # Copyright 2008 - 2011, 2014, 2019 (C) Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,8 +18,6 @@
 from operator import attrgetter
 
 from twisted.internet import defer
-
-import six
 
 from nav.mibs import reduce_index
 from nav.mibs.entity_mib import EntityMib
@@ -105,7 +104,7 @@ class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
 
 
 def _psu_index_from_internal_id(internal_id):
-    if isinstance(internal_id, six.string_types):
+    if isinstance(internal_id, str):
         return int(internal_id.split(":")[1] if ":" in internal_id else internal_id)
     else:
         return internal_id

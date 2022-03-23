@@ -19,7 +19,6 @@ import datetime
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-import six
 
 from nav.metrics.names import raw_metric_query
 from nav.metrics.graphs import get_simple_graph_url, Graph
@@ -191,7 +190,7 @@ def get_graph_url(request):
         metric = request.GET['metric']
         if 'raw' in request.GET:
             graph = Graph(targets=[metric], **graph_args)
-            return redirect(six.text_type(graph))
+            return redirect(str(graph))
         else:
             return redirect(get_simple_graph_url([metric], **graph_args))
 

@@ -2,7 +2,7 @@
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.urls import reverse
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 
 register = template.Library()

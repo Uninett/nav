@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2012, 2016 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,7 +18,6 @@
 import socket
 from collections import namedtuple
 
-import six
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from nav.ip import IP
@@ -205,7 +205,7 @@ class IdType(str):
 class BinaryOrString(IdType):
     def __new__(cls, *args, **_kwargs):
         arg = args[0]
-        if isinstance(arg, six.binary_type):
+        if isinstance(arg, bytes):
             try:
                 arg = arg.decode('utf-8')
             except (ValueError, UnicodeDecodeError):
@@ -218,7 +218,7 @@ class BinaryOrString(IdType):
 class MacAddress(IdType):
     def __new__(cls, *args, **_kwargs):
         arg = args[0]
-        if isinstance(arg, six.binary_type):
+        if isinstance(arg, bytes):
             try:
                 arg = macaddress.MacAddress.from_octets(arg)
             except ValueError:
@@ -240,7 +240,7 @@ class NetworkAddress(IdType):
 
     def __new__(cls, *args, **_kwargs):
         arg = args[0]
-        if arg and isinstance(arg, six.binary_type):
+        if arg and isinstance(arg, bytes):
             addr_type = arg[0]
             addr_string = arg[1:]
             if addr_type in cls.ADDR_FAMILY:

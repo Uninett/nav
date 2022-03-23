@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2009, 2011, 2012 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -17,8 +18,6 @@
 import re
 
 from twisted.internet import defer
-
-import six
 
 import nav.bitvector
 from nav.smidumps import get_mib
@@ -149,7 +148,7 @@ def portlist_juniper(data):
     """
     # data would normally be binary, but since Juniper ignores the spec, it's a comma
     # separated ASCII string:
-    if isinstance(data, six.binary_type):
+    if isinstance(data, bytes):
         try:
             data = data.decode('ascii')
         except UnicodeDecodeError:

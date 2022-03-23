@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2017, 2020 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -27,8 +28,6 @@ from twisted.internet import reactor, protocol
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.endpoints import ProcessEndpoint, StandardIOEndpoint
 import twisted.internet.endpoints
-
-import six
 
 from nav.ipdevpoll.config import ipdevpoll_conf
 from . import control, jobs
@@ -448,7 +447,7 @@ class HackLog(object):
     @staticmethod
     def msg(data, **_kwargs):
         """Logs a message to STDERR"""
-        if six.PY3 and isinstance(data, six.binary_type):
+        if isinstance(data, bytes):
             data = data.decode("utf-8")
         sys.stderr.write(data)
         sys.stderr.flush()
