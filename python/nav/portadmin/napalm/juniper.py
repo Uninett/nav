@@ -33,6 +33,7 @@ from typing import List, Any, Dict, Tuple, Sequence
 from django.template.loader import get_template
 from napalm.base.exceptions import ConnectAuthError, ConnectionException
 from jnpr.junos.op.vlan import VlanTable
+from jnpr.junos.exception import RpcError
 
 from nav.napalm import connect as napalm_connect
 from nav.enterprise.ids import VENDOR_ID_JUNIPER_NETWORKS_INC
@@ -42,6 +43,7 @@ from nav.portadmin.handlers import (
     DeviceNotConfigurableError,
     AuthenticationError,
     NoResponseError,
+    ProtocolError,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -59,6 +61,21 @@ __all__ = ["Juniper"]
 # This maps interface oper/admin status values to SNMP values as used in NAV's data
 # model. See IF-MIB::ifOperStatus and IF-MIB::ifAdminStatus from RFC 2863 for details.
 SNMP_STATUS_MAP = {"up": 1, "down": 2, True: 1, False: 2}
+
+
+def wrap_unhandled_rpc_errors(func):
+    """Decorates RPC-enabled handler function to ensure unhandled RpcErrors are
+    translated into ProtocolErrors, which can be reported nicely to the end user by
+    the PortAdmin framework
+    """
+
+    def wrap_rpc_errors(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except RpcError as error:
+            raise ProtocolError(f"Device raised RpcError: {error.message}") from error
+
+    return wrap_rpc_errors
 
 
 class Juniper(ManagementHandler):
@@ -231,6 +248,7 @@ class Juniper(ManagementHandler):
         untagged = first_true(vlans, pred=lambda vlan: not vlan.tagged)
         return (untagged.tag if untagged else None), tagged
 
+    @wrap_unhandled_rpc_errors
     def set_interface_description(self, interface: manage.Interface, description: str):
         # never set description on units but on master interface
         master, _ = split_master_unit(interface.ifname)
@@ -243,9 +261,11 @@ class Juniper(ManagementHandler):
         config = template.render(context)
         self.device.load_merge_candidate(config=config)
 
+    @wrap_unhandled_rpc_errors
     def set_vlan(self, interface: manage.Interface, vlan: int):
         self.set_access(interface, vlan)
 
+    @wrap_unhandled_rpc_errors
     def set_access(self, interface: manage.Interface, access_vlan: int):
         master, unit = split_master_unit(interface.ifname)
         current = InterfaceConfigTable(self.device.device).get(master)[master]
@@ -273,6 +293,7 @@ class Juniper(ManagementHandler):
             pass
         interface.save()
 
+    @wrap_unhandled_rpc_errors
     def set_trunk(
         self, interface: manage.Interface, native_vlan: int, trunk_vlans: Sequence[int]
     ):
@@ -323,6 +344,7 @@ class Juniper(ManagementHandler):
         # and that operation will likely delay at least as much as the wait would have
         return super().cycle_interfaces(interfaces=interfaces, wait=0, commit=True)
 
+    @wrap_unhandled_rpc_errors
     def set_interface_down(self, interface: manage.Interface):
         # does not set oper on logical units, only on physical masters
         master, _unit = split_master_unit(interface.ifname)
@@ -332,6 +354,7 @@ class Juniper(ManagementHandler):
 
         self._save_interface_oper(interface, interface.OPER_DOWN)
 
+    @wrap_unhandled_rpc_errors
     def set_interface_up(self, interface: manage.Interface):
         # does not set oper on logical units, only on physical masters
         master, _unit = split_master_unit(interface.ifname)
@@ -351,6 +374,7 @@ class Juniper(ManagementHandler):
             )
             master_interface.update(ifoperstatus=ifoperstatus)
 
+    @wrap_unhandled_rpc_errors
     def commit_configuration(self):
         # Only take our sweet time to commit if there are pending changes
         if self.device.compare_config():
