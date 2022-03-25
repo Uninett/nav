@@ -34,6 +34,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.ifconfig',
     'sphinxcontrib_django',
+    'sphinxcontrib.programoutput',
     'xref',
 ]
 
