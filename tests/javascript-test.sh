@@ -11,7 +11,7 @@ REPORTDIR="$WORKSPACE/reports"
 NPM=`which npm`
 
 cd ${JSDIR}
-npm install
+npm ci
 
 echo "Running jshint"
 cd "${WORKSPACE}"
