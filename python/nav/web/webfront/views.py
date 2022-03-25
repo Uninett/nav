@@ -365,16 +365,13 @@ def save_links(request):
     if request.method == 'POST':
         formset = NavbarLinkFormSet(request.POST)
         if formset.is_valid():
-            for form in formset.deleted_forms:
-                instance = form.save(commit=False)
-                instance.account = account
-                instance.save()
-
             instances = formset.save(commit=False)
             for instance in instances:
                 instance.account = account
                 instance.save()
-            new_message(request, 'Your links were saved.', type=Messages.SUCCESS)
+            for form in formset.deleted_objects:
+                instance = form.delete()
+            new_message(request, 'Your links were updated.', type=Messages.SUCCESS)
         else:
             context['navbar_formset'] = formset
 
