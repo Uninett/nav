@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -22,12 +23,15 @@ from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import PowerSupplyOrFan as FRU
 from nav.ipdevpoll.shadows import PowerSupplyOrFan, Device
 
+MEGABYTE = 1024**2
 
 OPERATING_DESCR = "jnxOperatingDescr"
 OPERATING_CPU = "jnxOperatingCPU"
 LOAD_AVG_1MIN = "jnxOperating1MinLoadAvg"
 LOAD_AVG_5MIN = "jnxOperating1MinLoadAvg"
 LOAD_AVG_15MIN = "jnxOperating1MinLoadAvg"
+OPERATING_MEM = "jnxOperatingMemory"
+OPERATING_BUF = "jnxOperatingBuffer"
 
 FRU_STATUS_MAP = {
     "unknown": FRU.STATE_UNKNOWN,
@@ -154,6 +158,26 @@ class JuniperMib(MibRetriever):
 
         """
         return FRU_STATUS_MAP.get(oper_status, FRU.STATE_UNKNOWN)
+
+    @defer.inlineCallbacks
+    def get_memory_usage(self):
+        """Retrieves memory usage stats from a Juniper device.
+
+        :returns: A deferred whose result is a dict
+                  {slot_type: (used_bytes, free_bytes)}
+
+        """
+        result = dict()
+        slots = yield self.retrieve_columns(
+            [OPERATING_DESCR, OPERATING_MEM, OPERATING_BUF]
+        )
+        for row in slots.values():
+            total = row[OPERATING_MEM] * MEGABYTE
+            if total:
+                used = (row[OPERATING_BUF] / 100) * total
+                free = total - used
+                result[row[OPERATING_DESCR]] = (used, free)
+        defer.returnValue(result)
 
 
 def _fru_row_to_powersupply_or_fan(fru_row):
