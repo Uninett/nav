@@ -26,6 +26,7 @@ import hashlib
 from functools import wraps
 from itertools import chain, tee, groupby, islice
 from operator import itemgetter
+from secrets import token_hex
 
 import IPy
 
@@ -469,12 +470,8 @@ def address_to_string(ip, port):
 
 
 def auth_token():
-    """Generates a hash that can be used as an OAuth API token"""
-    from django.conf import settings
-
-    _hash = hashlib.sha1(str(uuid.uuid4()).encode('utf-8'))
-    _hash.update(settings.SECRET_KEY.encode('utf-8'))
-    return _hash.hexdigest()
+    """Generates a hex token that can be used as an OAuth API token"""
+    return token_hex(32)
 
 
 def consecutive(seq):
