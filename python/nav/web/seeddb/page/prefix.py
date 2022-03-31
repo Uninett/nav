@@ -98,7 +98,9 @@ def get_prefix_view(request):
 def prefix_list(request):
     """Controller for listing prefixes"""
     info = PrefixInfo()
-    query = Prefix.objects.filter(vlan__net_type__edit=True)
+    query = Prefix.objects.filter(vlan__net_type__edit=True).select_related(
+        "vlan__net_type", "vlan__organization", "vlan__usage"
+    )
     value_list = (
         'net_address',
         'vlan__net_type',
