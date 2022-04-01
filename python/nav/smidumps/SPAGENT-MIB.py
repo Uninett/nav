@@ -18,6 +18,7 @@ MIB = {
         {"module" : "RFC1155-SMI", "name" : "enterprises"},
         {"module" : "RFC1155-SMI", "name" : "IpAddress"},
         {"module" : "RFC1155-SMI", "name" : "Gauge"},
+        {"module" : "RFC1155-SMI", "name" : "Opaque"},
         {"module" : "", "name" : "OBJECT-TYPE"},
         {"module" : "RFC1213-MIB", "name" : "DisplayString"},
         {"module" : "", "name" : "TRAP-TYPE"},
@@ -120,6 +121,181 @@ MIB = {
             "access" : "readonly",
             "description" :
                 """The hostname""",
+        }, # scalar
+        "spStatusEachModule" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.1.10",
+        }, # node
+        "spStatusRJ45" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.1.10.1",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "warning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "critical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The status of the sensorProbe is the worst status of all sensors on RJ45 port""",
+        }, # scalar
+        "spStatusNoVideoSignal" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.1.10.2",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "warning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "critical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The status of the sensorProbe is the worst status of all No Video Signal sensors""",
+        }, # scalar
+        "spStatusSoundDetector" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.1.10.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "warning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "critical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The status of the sensorProbe is the worst status of Sound Detector sensors""",
+        }, # scalar
+        "spStatusVirtual" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.1.10.4",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "warning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "critical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The status of the sensorProbe is the worst status of all Virtual sensors """,
+        }, # scalar
+        "spStatusSoftMotion" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.1.10.5",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "warning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "critical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The status of the sensorProbe is the worst status of all Camera Motion Detector sensors """,
         }, # scalar
         "spSensor" : {
             "nodetype" : "node",
@@ -2713,6 +2889,170 @@ MIB = {
             "access" : "readwrite",
             "description" :
                 """Enable sending email when sensor change status""",
+        }, # column
+        "sensorProbeIDCVVoltateRatio" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.17.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """iDCV calibrate voltate ratio""",
+        }, # column
+        "sensorProbeIDCVErrorFlag" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.17.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """iDCV error flag""",
+        }, # column
+        "sensorProbeIDCVCalibrate" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.17.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """iDCV calibrate""",
+        }, # column
+        "sensorProbeAirFlowProtocolType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.17.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "analogType" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "i2cType" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Air flow protocol type""",
+        }, # column
+        "sensorProbeAirFlowSensitivity" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.17.1.60",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Air flow (AFS00) sensitivity""",
+        }, # column
+        "sensorProbeAirFlowNormalState" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.17.1.61",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "presense" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "absense" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Air flow (AFS00) normal state""",
+        }, # column
+        "sensorProbeAirFlowCalibrate" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.17.1.62",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Air flow (AFS00) normal state""",
         }, # column
         "sensorProbeSwitchTable" : {
             "nodetype" : "table",
@@ -22986,17 +23326,33 @@ MIB = {
                         "nodetype" : "namednumber",
                         "number" : "2"
                     },
-                    "sensorProbeLinuxWithoutUSB" : {
-                        "nodetype" : "namednumber",
-                        "number" : "3"
-                    },
-                    "sensorProbeLinuxWithUSB" : {
+                    "cameraProbe" : {
                         "nodetype" : "namednumber",
                         "number" : "4"
                     },
                     "securityProbe" : {
                         "nodetype" : "namednumber",
                         "number" : "5"
+                    },
+                    "securityProbe5E" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "securityProbe5ES" : {
+                        "nodetype" : "namednumber",
+                        "number" : "11"
+                    },
+                    "securityProbe5ESV" : {
+                        "nodetype" : "namednumber",
+                        "number" : "12"
+                    },
+                    "securityProbeDCU" : {
+                        "nodetype" : "namednumber",
+                        "number" : "13"
+                    },
+                    "sensorProbePlus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "16"
                     },
                 },
             },
@@ -23078,38 +23434,9 @@ MIB = {
                     },
                 },
             },
-            "access" : "readwrite",
+            "access" : "readonly",
             "description" :
                 """Use web password as SNMP password""",
-        }, # scalar
-        "sensorProbeWebPassword" : {
-            "nodetype" : "node",
-            "moduleName" : "SPAGENT-MIB",
-            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.115",
-        }, # node
-        "sensorProbeWebAdminPassword" : {
-            "nodetype" : "scalar",
-            "moduleName" : "SPAGENT-MIB",
-            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.115.1",
-            "status" : "current",
-            "syntax" : {
-                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
-            },
-            "access" : "readwrite",
-            "description" :
-                """Password Admin for login web and other connections""",
-        }, # scalar
-        "sensorProbeWebUserPassword" : {
-            "nodetype" : "scalar",
-            "moduleName" : "SPAGENT-MIB",
-            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.115.2",
-            "status" : "current",
-            "syntax" : {
-                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
-            },
-            "access" : "readwrite",
-            "description" :
-                """Password User for login web and other connections""",
         }, # scalar
         "sensorProbeReloadNetwork" : {
             "nodetype" : "scalar",
@@ -23487,7 +23814,7 @@ MIB = {
             "description" :
                 """A Description of Sensor Type Name on web interface""",
         }, # scalar
-        "sensorProbeTypeThurmostatName" : {
+        "sensorProbeTypeThermostatName" : {
             "nodetype" : "scalar",
             "moduleName" : "SPAGENT-MIB",
             "oid" : "1.3.6.1.4.1.3854.1.2.2.1.118.128",
@@ -23594,6 +23921,119 @@ MIB = {
             "access" : "readonly",
             "description" :
                 """SP only: Revision number""",
+        }, # scalar
+        "sensorProbePowerMeter" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125",
+        }, # node
+        "sensorProbePowerMeter1phDelayBetweenCommand" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A delay time between command for 1ph power meter(in milliseconds)""",
+        }, # scalar
+        "sensorProbePowerMeter3phDelayBetweenCommand" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A delay time between command for 3ph power meter(in milliseconds)""",
+        }, # scalar
+        "sensorProbePowerMeter1phDelayBetweenMeter" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125.3",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A delay time of command between power meter(in milliseconds)""",
+        }, # scalar
+        "sensorProbePowerMeter3phDelayBetweenMeter" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A delay time of command between power meter(in milliseconds)""",
+        }, # scalar
+        "sensorProbePowerMeterWaitTimeout" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A waiting timeout for receiving a command(in milliseconds)""",
+        }, # scalar
+        "sensorProbePowerMeterCountSentPacket" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125.6",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Count send packets of this sensorProbe""",
+        }, # scalar
+        "sensorProbePowerMeterCountRecievedPacket" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125.7",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Count received packets of this sensorProbe""",
+        }, # scalar
+        "sensorProbePowerMeterCountTimeoutPacket" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125.8",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Count timeout packets of this sensorProbe""",
+        }, # scalar
+        "sensorProbePowerMeterCountCRCErrorPacket" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.1.2.2.1.125.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Count error crc packets of this sensorProbe""",
         }, # scalar
         "sensorProbeTraps" : {
             "nodetype" : "node",
@@ -23850,6 +24290,10 @@ MIB = {
                         "nodetype" : "namednumber",
                         "number" : "134"
                     },
+                    "door" : {
+                        "nodetype" : "namednumber",
+                        "number" : "138"
+                    },
                 },
             },
             "access" : "readonly",
@@ -24082,6 +24526,18 @@ MIB = {
             "description" :
                 """...""",
         }, # column
+        "deviceWorstSensotStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.1.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """...""",
+        }, # column
         "deviceIntelligentTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -24170,6 +24626,18 @@ MIB = {
                 "type" : { "module" :"", "name" : "Integer32"},
             },
             "access" : "readwrite",
+            "description" :
+                """...""",
+        }, # column
+        "deviceIntelligentWorstSensotStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.2.1.7",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
             "description" :
                 """...""",
         }, # column
@@ -24420,6 +24888,18 @@ MIB = {
             "nodetype" : "column",
             "moduleName" : "SPAGENT-MIB",
             "oid" : "1.3.6.1.4.1.3854.2.2.3.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """...""",
+        }, # column
+        "deviceDryContactWorstSensotStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.3.1.6",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"", "name" : "Integer32"},
@@ -24780,6 +25260,486 @@ MIB = {
             "description" :
                 """...""",
         }, # column
+        "deviceAccessTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.4",
+            "status" : "current",
+            "description" :
+                """This table contains the property for every plugged-in device.""",
+        }, # table
+        "deviceAccessEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.4.1",
+            "status" : "current",
+            "linkage" : [
+                "deviceAccessIndex",
+            ],
+            "description" :
+                """This is an entry in the deviceEntry Table""",
+        }, # row
+        "deviceAccessIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.4.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The index into the deviceAccess table""",
+        }, # column
+        "deviceAccessDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.4.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this device""",
+        }, # column
+        "deviceAccessInfo" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.4.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """A information of this device""",
+        }, # column
+        "deviceAccessStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.4.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """...""",
+        }, # column
+        "deviceAccessWorstSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.4.1.7",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """...""",
+        }, # column
+        "devicePowerMeterTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5",
+            "status" : "current",
+            "description" :
+                """This table contains the property for every power meter plugged-in.""",
+        }, # table
+        "devicePowerMeterEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1",
+            "status" : "current",
+            "linkage" : [
+                "devicePowerMeterIndex",
+            ],
+            "description" :
+                """This is an entry in the devicePowerMeterEntry Table""",
+        }, # row
+        "devicePowerMeterIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "184549375"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "184549375"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The index into the power meter table""",
+        }, # column
+        "devicePowerMeterDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this power meter""",
+        }, # column
+        "devicePowerMeterInfo" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """A information of this power meter""",
+        }, # column
+        "devicePowerMeterStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """A status of this power meter""",
+        }, # column
+        "devicePowerMeterWorstSensotStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.7",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """...""",
+        }, # column
+        "devicePowerMeterType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """A type of this power meter""",
+        }, # column
+        "devicePowerMeterDelayBetweenCommand" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A delay time between communication packet of this power meter(in milliseconds)""",
+        }, # column
+        "devicePowerMeterCountSentPacket" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Count send packets of this sensor""",
+        }, # column
+        "devicePowerMeterCountRecievedPacket" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Count received packets of this sensor""",
+        }, # column
+        "devicePowerMeterCountTimeoutPacket" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Count timeout packets of this sensor""",
+        }, # column
+        "devicePowerMeterCountCRCerrorPacket" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.5.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Count error crc packets of this sensor""",
+        }, # column
+        "deviceLicense" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6",
+        }, # node
+        "deviceLicenseExpTotal" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Expansion License Total""",
+        }, # scalar
+        "deviceLicenseExpUsed" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Expansion License Used""",
+        }, # scalar
+        "deviceLicenseExpAvailable" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.3",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Expansion License Available""",
+        }, # scalar
+        "deviceLicensePmsTotal" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """PMS License Total""",
+        }, # scalar
+        "deviceLicensePmsUsed" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """PMS License Used""",
+        }, # scalar
+        "deviceLicensePmsAvailable" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.6",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """PMS License Available""",
+        }, # scalar
+        "deviceLicenseVrtTotal" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.7",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Virtual License Total""",
+        }, # scalar
+        "deviceLicenseVrtUsed" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.8",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Virtual License Used""",
+        }, # scalar
+        "deviceLicenseVrtAvailable" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Virtual License Available""",
+        }, # scalar
+        "deviceLicenseIPv6Enable" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """IPv6 License Enable (0 : Disable, 1 : Enable)""",
+        }, # scalar
+        "deviceLicenseTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.11",
+            "status" : "current",
+            "description" :
+                """This table contains the license of Expansion board, PMS and Virtual sensor.""",
+        }, # table
+        "deviceLicenseEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.11.1",
+            "status" : "current",
+            "linkage" : [
+                "deviceLicenseIndex",
+            ],
+            "description" :
+                """This is an entry in the deviceLicenseEntry Table""",
+        }, # row
+        "deviceLicenseIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.11.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The index into the device table (License Key)""",
+        }, # column
+        "deviceLicenseExpCount" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.11.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Expansion Connection""",
+        }, # column
+        "deviceLicensePmsCount" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.11.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """PMS Unit number""",
+        }, # column
+        "deviceLicenseVrtCount" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.11.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Virtual Sensor""",
+        }, # column
+        "deviceLicenseIpv6" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.11.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """IPv6 license enable (0 : Disable, 1 : Enable)""",
+        }, # column
+        "deviceLicenseStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.2.6.11.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "activated" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "deactivated" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """License status""",
+        }, # column
         "secSensor" : {
             "nodetype" : "node",
             "moduleName" : "SPAGENT-MIB",
@@ -24856,7 +25816,7 @@ MIB = {
                         "nodetype" : "namednumber",
                         "number" : "2"
                     },
-                    "temperature2" : {
+                    "temperature-dual" : {
                         "nodetype" : "namednumber",
                         "number" : "3"
                     },
@@ -25352,6 +26312,64 @@ MIB = {
             "description" :
                 """A Off Color of this sensor""",
         }, # column
+        "sensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.1.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Sensor acknowledge""",
+        }, # column
+        "sensorValueFormatFloat" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.1.1.99",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "OctetString",
+                    "parent module" : {
+                        "name" : "SNMPv2-SMI",
+                        "type" : "Opaque",
+                    },
+                    "ranges" : [
+                    {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The floating-point IEEE Standard 754 reading value in this sensor""",
+        }, # column
+        "sensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.1.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorTemperatureTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -25426,6 +26444,10 @@ MIB = {
                     "thermocouple" : {
                         "nodetype" : "namednumber",
                         "number" : "20"
+                    },
+                    "arraytemp" : {
+                        "nodetype" : "namednumber",
+                        "number" : "23"
                     },
                 },
             },
@@ -25986,6 +27008,49 @@ MIB = {
             "access" : "readwrite",
             "description" :
                 """A SensorError Color of this sensor""",
+        }, # column
+        "sensorTemperatureAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.2.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature sensor acknowledge""",
+        }, # column
+        "sensorTemperatureSerialNumber" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.2.1.71",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Serial Number of Temperature Sensor in the following format
+x is Hex Digit xx-xx-xx-xx-xx-xx-xx-xx""",
+        }, # column
+        "sensorTemperatureId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.2.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
         }, # column
         "sensorHumidityTable" : {
             "nodetype" : "table",
@@ -26596,6 +27661,36 @@ MIB = {
             "description" :
                 """A SensorError Color of this sensor""",
         }, # column
+        "sensorHumidityAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.3.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Humidity sensor acknowledge""",
+        }, # column
+        "sensorHumidityId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.3.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorDryContactTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -27036,6 +28131,36 @@ MIB = {
             "access" : "readwrite",
             "description" :
                 """A Off Color of this sensor""",
+        }, # column
+        "sensorDryContactAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.4.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Dry Contact sensor acknowledge""",
+        }, # column
+        "sensorDryContactId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.4.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
         }, # column
         "sensor4to20mATable" : {
             "nodetype" : "table",
@@ -27693,6 +28818,36 @@ MIB = {
             "access" : "readwrite",
             "description" :
                 """A SensorError Color of this sensor""",
+        }, # column
+        "sensor4to20mASensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.5.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """4to20mA sensor acknowledge""",
+        }, # column
+        "sensor4to20mAId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.5.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
         }, # column
         "sensorDCvoltageTable" : {
             "nodetype" : "table",
@@ -28405,6 +29560,36 @@ MIB = {
             "description" :
                 """A SensorError Color of this sensor""",
         }, # column
+        "sensorDCvoltageAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.6.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """DCvoltage sensor acknowledge""",
+        }, # column
+        "sensorDCvoltageId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.6.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorAirflowTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -28990,6 +30175,36 @@ MIB = {
             "description" :
                 """A SensorError Color of this sensor""",
         }, # column
+        "sensorAirflowAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.7.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Airflow sensor acknowledge""",
+        }, # column
+        "sensorAirflowId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.7.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorMotionTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -29228,6 +30443,36 @@ MIB = {
             "access" : "readwrite",
             "description" :
                 """A Normal Color of this sensor""",
+        }, # column
+        "sensorMotionAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.8.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Motion sensor acknowledge""",
+        }, # column
+        "sensorMotionId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.8.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
         }, # column
         "sensorWaterTable" : {
             "nodetype" : "table",
@@ -29468,6 +30713,36 @@ MIB = {
             "description" :
                 """A Normal Color of this sensor""",
         }, # column
+        "sensorWaterAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.9.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Water sensor acknowledge""",
+        }, # column
+        "sensorWaterId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.9.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorSecurityTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -29706,6 +30981,36 @@ MIB = {
             "access" : "readwrite",
             "description" :
                 """A Normal Color of this sensor""",
+        }, # column
+        "sensorSecurityAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.10.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Security sensor acknowledge""",
+        }, # column
+        "sensorSecurityId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.10.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
         }, # column
         "sensorSirenTable" : {
             "nodetype" : "table",
@@ -30029,6 +31334,36 @@ MIB = {
             "access" : "readwrite",
             "description" :
                 """A Off Color of this sensor""",
+        }, # column
+        "sensorSirenAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.11.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Siren sensor acknowledge""",
+        }, # column
+        "sensorSirenId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.11.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
         }, # column
         "sensorRelayTable" : {
             "nodetype" : "table",
@@ -30375,6 +31710,36 @@ MIB = {
             "description" :
                 """A Off Color of this sensor""",
         }, # column
+        "sensorRelayAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.12.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Relay sensor acknowledge""",
+        }, # column
+        "sensorRelayId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.12.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorACvoltageTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -30614,6 +31979,36 @@ MIB = {
             "description" :
                 """A Normal Color of this sensor""",
         }, # column
+        "sensorACvoltageAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.13.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """ACvoltage sensor acknowledge""",
+        }, # column
+        "sensorACvoltageId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.13.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorSmokeTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -30852,6 +32247,36 @@ MIB = {
             "access" : "readwrite",
             "description" :
                 """A Normal Color of this sensor""",
+        }, # column
+        "sensorSmokeAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.14.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Smoke sensor acknowledge""",
+        }, # column
+        "sensorSmokeId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.14.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
         }, # column
         "sensorThermostatTable" : {
             "nodetype" : "table",
@@ -31426,6 +32851,36 @@ MIB = {
             "description" :
                 """A SensorError Color of this sensor""",
         }, # column
+        "sensorThermostatAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.20.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Thermostat sensor acknowledge""",
+        }, # column
+        "sensorThermostatId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.20.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorWaterRopeTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -31665,6 +33120,24 @@ MIB = {
             "description" :
                 """A SensorError Color of this sensor""",
         }, # column
+        "sensorWaterRopeAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.21.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Water Rope sensor acknowledge""",
+        }, # column
         "sensorWaterRopeLength" : {
             "nodetype" : "column",
             "moduleName" : "SPAGENT-MIB",
@@ -31726,6 +33199,18 @@ MIB = {
             "access" : "readwrite",
             "description" :
                 """Water rope sensing cable type""",
+        }, # column
+        "sensorWaterRopeId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.21.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
         }, # column
         "sensorPowerTable" : {
             "nodetype" : "table",
@@ -32388,6 +33873,76 @@ MIB = {
             "description" :
                 """A SensorError Color of this sensor""",
         }, # column
+        "sensorPowerValueFormatString" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.22.1.66",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The string-based reading value in this sensor""",
+        }, # column
+        "sensorPowerValueFormatFloat" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.22.1.67",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "OctetString",
+                    "parent module" : {
+                        "name" : "SNMPv2-SMI",
+                        "type" : "Opaque",
+                    },
+                    "ranges" : [
+                    {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The floating-point IEEE Standard 754 reading value in this sensor""",
+        }, # column
+        "sensorPowerAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.22.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Power sensor acknowledge""",
+        }, # column
+        "sensorPowerId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.22.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorFuelTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -32961,6 +34516,36 @@ MIB = {
             "description" :
                 """A SensorError Color of this sensor""",
         }, # column
+        "sensorFuelAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.24.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Fuel sensor acknowledge""",
+        }, # column
+        "sensorFuelId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.24.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
         "sensorTankSenderTable" : {
             "nodetype" : "table",
             "moduleName" : "SPAGENT-MIB",
@@ -33510,6 +35095,21761 @@ MIB = {
             "description" :
                 """A SensorError Color of this sensor""",
         }, # column
+        "sensorTankSenderAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.26.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Tank Sender sensor acknowledge""",
+        }, # column
+        "sensorTankSenderId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.26.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "sensorDoorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "sensorDoorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1",
+            "status" : "current",
+            "linkage" : [
+                "sensorDoorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorDoorEntry Table""",
+        }, # row
+        "sensorDoorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The index into the sensor table""",
+        }, # column
+        "sensorDoorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "sensorDoorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value in this sensor""",
+        }, # column
+        "sensorDoorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "closed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "heldOpen" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "fire" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "opened" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "forceOpened" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "sensorDoorUnlockPeriod" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1.62",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Door unlock period""",
+        }, # column
+        "sensorDoorOpenPeriod" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1.63",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Door open period""",
+        }, # column
+        "sensorDoorCmd" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1.64",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Door command""",
+        }, # column
+        "sensorDoorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Door sensor acknowledge""",
+        }, # column
+        "sensorDoorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.27.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "sensorTemperatureArrayTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every Temperature sensor.""",
+        }, # table
+        "sensorTemperatureArrayEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1",
+            "status" : "current",
+            "linkage" : [
+                "sensorTemperatureArrayIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureArrayEntry Table""",
+        }, # row
+        "sensorTemperatureArrayIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The index into the sensor table""",
+        }, # column
+        "sensorTemperatureArrayDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "sensorTemperatureArrayType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "arraytemp" : {
+                        "nodetype" : "namednumber",
+                        "number" : "23"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Enter the type of this Sensor""",
+        }, # column
+        "sensorTemperatureArrayDegree" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The degrees in this sensor""",
+        }, # column
+        "sensorTemperatureArrayUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unit string""",
+        }, # column
+        "sensorTemperatureArrayStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "sensorTemperatureArrayGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "sensorTemperatureArrayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a critical event""",
+        }, # column
+        "sensorTemperatureArrayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a warning""",
+        }, # column
+        "sensorTemperatureArrayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a warning""",
+        }, # column
+        "sensorTemperatureArrayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a critical event""",
+        }, # column
+        "sensorTemperatureArrayRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "sensorTemperatureArrayDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "sensorTemperatureArrayDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "sensorTemperatureArrayDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "sensorTemperatureArrayDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "sensorTemperatureArrayDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "sensorTemperatureArrayDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "sensorTemperatureArrayRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The raw degree data from the temperature sensor, slightly higher resolution""",
+        }, # column
+        "sensorTemperatureArrayOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature Offset reading""",
+        }, # column
+        "sensorTemperatureArrayPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "sensorTemperatureArraySubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "sensorTemperatureArrayDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "sensorTemperatureArrayDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature display style""",
+        }, # column
+        "sensorTemperatureArrayHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "sensorTemperatureArrayLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "sensorTemperatureArrayNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "sensorTemperatureArrayLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "sensorTemperatureArrayHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "sensorTemperatureArraySensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "sensorTemperatureArrayHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "sensorTemperatureArrayLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "sensorTemperatureArrayNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "sensorTemperatureArrayLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "sensorTemperatureArrayHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "sensorTemperatureArraySensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "sensorTemperatureArrayAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature sensor acknowledge""",
+        }, # column
+        "sensorTemperatureArraySerialNumber" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.71",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Serial Number of Temperature Sensor
+x is Hex Digit xx-xx-xx-xx-xx-xx-xx-xx""",
+        }, # column
+        "sensorTemperatureArrayId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.3.28.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "secNotification" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4",
+        }, # node
+        "action" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4.1",
+        }, # node
+        "actionTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4.1.1",
+            "status" : "current",
+            "description" :
+                """This table contains the property for every action of notification.""",
+        }, # table
+        "actionEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4.1.1.1",
+            "status" : "current",
+            "linkage" : [
+                "actionIndex",
+            ],
+            "description" :
+                """This is an entry in the actionTable Table""",
+        }, # row
+        "actionIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4.1.1.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The index into the action table.""",
+        }, # column
+        "actionType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4.1.1.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "trap" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "email" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "sms" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "mms" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "sound" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "speech" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "dial" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relay" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "custom" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                    "ftp" : {
+                        "nodetype" : "namednumber",
+                        "number" : "10"
+                    },
+                    "event" : {
+                        "nodetype" : "namednumber",
+                        "number" : "11"
+                    },
+                    "fax" : {
+                        "nodetype" : "namednumber",
+                        "number" : "12"
+                    },
+                    "soundlog" : {
+                        "nodetype" : "namednumber",
+                        "number" : "13"
+                    },
+                    "camera" : {
+                        "nodetype" : "namednumber",
+                        "number" : "14"
+                    },
+                    "siren" : {
+                        "nodetype" : "namednumber",
+                        "number" : "15"
+                    },
+                    "mobile" : {
+                        "nodetype" : "namednumber",
+                        "number" : "16"
+                    },
+                    "shut" : {
+                        "nodetype" : "namednumber",
+                        "number" : "17"
+                    },
+                    "windows" : {
+                        "nodetype" : "namednumber",
+                        "number" : "19"
+                    },
+                    "skype" : {
+                        "nodetype" : "namednumber",
+                        "number" : "20"
+                    },
+                    "drycontact" : {
+                        "nodetype" : "namednumber",
+                        "number" : "21"
+                    },
+                    "ctrSensorAction" : {
+                        "nodetype" : "namednumber",
+                        "number" : "22"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The type of this action.""",
+        }, # column
+        "actionName" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4.1.1.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A name of this action.""",
+        }, # column
+        "actionMaxResend" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4.1.1.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum number of times to resend action. If set to 0 only send once. The maximum value is 5.""",
+        }, # column
+        "actionResendInterval" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4.1.1.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How often to resend action. Enter the number of seconds from 15 to 65535.""",
+        }, # column
+        "actionTest" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.4.1.1.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Do test an action of notification.""",
+        }, # column
+        "sensorByPort" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5",
+        }, # node
+        "commonSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every Sensor.""",
+        }, # table
+        "commonSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1",
+            "status" : "current",
+            "linkage" : [
+                "commonSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the commonSensorTable""",
+        }, # row
+        "commonSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "commonSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "commonSensorType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "temperature" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "humidity" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "temperature-dual" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "four-20mA" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "dcvoltage" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "airflow" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "io" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "drycontact" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "motion" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                    "water" : {
+                        "nodetype" : "namednumber",
+                        "number" : "10"
+                    },
+                    "security" : {
+                        "nodetype" : "namednumber",
+                        "number" : "11"
+                    },
+                    "siren" : {
+                        "nodetype" : "namednumber",
+                        "number" : "12"
+                    },
+                    "relay" : {
+                        "nodetype" : "namednumber",
+                        "number" : "13"
+                    },
+                    "acvoltage" : {
+                        "nodetype" : "namednumber",
+                        "number" : "14"
+                    },
+                    "vrms" : {
+                        "nodetype" : "namednumber",
+                        "number" : "15"
+                    },
+                    "irms" : {
+                        "nodetype" : "namednumber",
+                        "number" : "16"
+                    },
+                    "watt" : {
+                        "nodetype" : "namednumber",
+                        "number" : "17"
+                    },
+                    "watthour" : {
+                        "nodetype" : "namednumber",
+                        "number" : "18"
+                    },
+                    "xrelay" : {
+                        "nodetype" : "namednumber",
+                        "number" : "19"
+                    },
+                    "thermocouple" : {
+                        "nodetype" : "namednumber",
+                        "number" : "20"
+                    },
+                    "smoke" : {
+                        "nodetype" : "namednumber",
+                        "number" : "21"
+                    },
+                    "drycontact-array" : {
+                        "nodetype" : "namednumber",
+                        "number" : "22"
+                    },
+                    "temperature-array" : {
+                        "nodetype" : "namednumber",
+                        "number" : "23"
+                    },
+                    "thermostat" : {
+                        "nodetype" : "namednumber",
+                        "number" : "128"
+                    },
+                    "virtual" : {
+                        "nodetype" : "namednumber",
+                        "number" : "129"
+                    },
+                    "sound" : {
+                        "nodetype" : "namednumber",
+                        "number" : "130"
+                    },
+                    "softmotion" : {
+                        "nodetype" : "namednumber",
+                        "number" : "131"
+                    },
+                    "camera-dummy" : {
+                        "nodetype" : "namednumber",
+                        "number" : "132"
+                    },
+                    "board-state" : {
+                        "nodetype" : "namednumber",
+                        "number" : "133"
+                    },
+                    "nosignal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "224"
+                    },
+                    "test" : {
+                        "nodetype" : "namednumber",
+                        "number" : "255"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Enter the type of this Sensor""",
+        }, # column
+        "commonSensorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The value in this sensor""",
+        }, # column
+        "commonSensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unit string""",
+        }, # column
+        "commonSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor""",
+        }, # column
+        "commonSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "commonSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "commonSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "commonSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "commonSensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature display style""",
+        }, # column
+        "commonSensorHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "commonSensorLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "commonSensorSensorNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "commonSensorLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "commonSensorHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "commonSensorSensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "commonSensorOnDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A On Description of this sensor""",
+        }, # column
+        "commonSensorOffDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.53",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Off Description of this sensor""",
+        }, # column
+        "commonSensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "commonSensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "commonSensorSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "commonSensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "commonSensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "commonSensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "commonSensorOnColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.60",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A On Color of this sensor""",
+        }, # column
+        "commonSensorOffColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.61",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Off Color of this sensor""",
+        }, # column
+        "commonSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Sensor acknowledge""",
+        }, # column
+        "commonSensorValueFormatFloat" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.99",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "OctetString",
+                    "parent module" : {
+                        "name" : "SNMPv2-SMI",
+                        "type" : "Opaque",
+                    },
+                    "ranges" : [
+                    {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The floating-point IEEE Standard 754 reading value in this sensor""",
+        }, # column
+        "commonSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.1.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "temperatureSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every Temperature sensor.""",
+        }, # table
+        "temperatureSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1",
+            "status" : "current",
+            "linkage" : [
+                "temperatureSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the temperatureSensorEntry Table""",
+        }, # row
+        "temperatureSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "temperatureSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "temperatureSensorType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "temperature" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "dualsensor" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "thermocouple" : {
+                        "nodetype" : "namednumber",
+                        "number" : "20"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Enter the type of this Sensor""",
+        }, # column
+        "temperatureSensorDegree" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The degrees in this sensor""",
+        }, # column
+        "temperatureSensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unit string""",
+        }, # column
+        "temperatureSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "temperatureSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "temperatureSensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a critical event""",
+        }, # column
+        "temperatureSensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a warning""",
+        }, # column
+        "temperatureSensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a warning""",
+        }, # column
+        "temperatureSensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a critical event""",
+        }, # column
+        "temperatureSensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "temperatureSensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "temperatureSensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "temperatureSensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "temperatureSensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "temperatureSensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "temperatureSensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "temperatureSensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The raw degree data from the temperature sensor, slightly higher resolution""",
+        }, # column
+        "temperatureSensorOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature Offset reading""",
+        }, # column
+        "temperatureSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "temperatureSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "temperatureSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "temperatureSensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature display style""",
+        }, # column
+        "temperatureSensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "temperatureSensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "temperatureSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "temperatureSensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "temperatureSensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "temperatureSensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "temperatureSensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "temperatureSensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "temperatureSensorSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "temperatureSensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "temperatureSensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "temperatureSensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "temperatureSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature sensor acknowledge""",
+        }, # column
+        "temperatureSensorSerialNumber" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.71",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Serial Number of Temperature Sensor
+x is Hex Digit xx-xx-xx-xx-xx-xx-xx-xx""",
+        }, # column
+        "temperatureSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.2.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "humiditySensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "humiditySensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1",
+            "status" : "current",
+            "linkage" : [
+                "humiditySensorIndex",
+            ],
+            "description" :
+                """This is an entry in the cmpTemperatureEntry Table""",
+        }, # row
+        "humiditySensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "humiditySensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "humiditySensorPercent" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The relative humidity percentage measured by this sensor""",
+        }, # column
+        "humiditySensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The unit string""",
+        }, # column
+        "humiditySensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "humiditySensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "humiditySensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a critical event""",
+        }, # column
+        "humiditySensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a warning""",
+        }, # column
+        "humiditySensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a warning""",
+        }, # column
+        "humiditySensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a critical event""",
+        }, # column
+        "humiditySensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "humiditySensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "humiditySensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "humiditySensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "humiditySensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "humiditySensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "humiditySensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "humiditySensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unformatted, raw, A/D value in this sensor. Contains more resolution than the formated percentage. This number can go from 0 to 1023 depending on the input voltage""",
+        }, # column
+        "humiditySensorOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Humidity Offset reading""",
+        }, # column
+        "humiditySensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "humiditySensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "humiditySensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "humiditySensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Humidity display style""",
+        }, # column
+        "humiditySensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "humiditySensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "humiditySensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "humiditySensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "humiditySensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "humiditySensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "humiditySensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "humiditySensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "humiditySensorSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "humiditySensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "humiditySensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "humiditySensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "humiditySensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Humidity sensor acknowledge""",
+        }, # column
+        "humiditySensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.3.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "dryContactSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "dryContactSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1",
+            "status" : "current",
+            "linkage" : [
+                "dryContactSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "dryContactSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "dryContactSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "dryContactSensorType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "drycontact-inout" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "drycontact-input" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "drycontact-array" : {
+                        "nodetype" : "namednumber",
+                        "number" : "22"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Enter the type of this Sensor""",
+        }, # column
+        "dryContactSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "outputLow" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "outputHigh" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "dryContactSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "dryContactSensorDirection" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.22",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "input" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "output" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To set a switch to input enter 0. To set a switch to output enter 1""",
+        }, # column
+        "dryContactSensorNormalState" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.23",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "closed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "open" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The normal state of an input switch. If an input switch is in this state it is normal, else it is critical. An open switch senses +5 volts. A closed switch senses 0 volts.""",
+        }, # column
+        "dryContactSensorControlMode" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.24",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "manual-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "sensor-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "time-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "thermostat-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Control Mode used for selecting the mode to control a sensor output.""",
+        }, # column
+        "dryContactSensorOutputManualCycleTime" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.25",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Toggle period in seconds for Manual Cycle action.""",
+        }, # column
+        "dryContactSensorOutputManualAction" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "low" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "high" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "cycle-Low-High-Low" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "cycle-High-Low-High" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Control the sensor output manualy""",
+        }, # column
+        "dryContactSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "dryContactSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "dryContactSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "dryContactSensorCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Description of this sensor""",
+        }, # column
+        "dryContactSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "dryContactSensorOnDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A On Description of this sensor""",
+        }, # column
+        "dryContactSensorOffDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.53",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Off Description of this sensor""",
+        }, # column
+        "dryContactSensorCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Color of this sensor""",
+        }, # column
+        "dryContactSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "dryContactSensorOnColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.60",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A On Color of this sensor""",
+        }, # column
+        "dryContactSensorOffColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.61",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Off Color of this sensor""",
+        }, # column
+        "dryContactSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Dry Contact sensor acknowledge""",
+        }, # column
+        "dryContactSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.4.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "current4to20mASensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "current4to20mASensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1",
+            "status" : "current",
+            "linkage" : [
+                "current4to20mASensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "current4to20mASensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "current4to20mASensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "current4to20mASensorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value in this sensor""",
+        }, # column
+        "current4to20mASensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The unit string""",
+        }, # column
+        "current4to20mASensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "current4to20mASensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "current4to20mASensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a critical event""",
+        }, # column
+        "current4to20mASensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a warning""",
+        }, # column
+        "current4to20mASensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a warning""",
+        }, # column
+        "current4to20mASensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a critical event""",
+        }, # column
+        "current4to20mASensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "current4to20mASensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "current4to20mASensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "current4to20mASensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "current4to20mASensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "current4to20mASensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "current4to20mASensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "current4to20mASensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unformatted, raw, A/D value in this sensor. Contains more resolution than the formated percentage. This number can go from 0 to 1023 depending on the input voltage""",
+        }, # column
+        "current4to20mASensorOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """4to20mA Offset reading""",
+        }, # column
+        "current4to20mASensorAmountMaxVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.33",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum scale of 4to20mA conversion.""",
+        }, # column
+        "current4to20mASensorAmountBaseVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.34",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base scale of 4to20mA conversion.""",
+        }, # column
+        "current4to20mASensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "current4to20mASensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "current4to20mASensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "current4to20mASensorMaxVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.43",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The max range for use in conversion.""",
+        }, # column
+        "current4to20mASensorBaseVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.44",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base range for use in conversion.""",
+        }, # column
+        "current4to20mASensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """4to20mA display style""",
+        }, # column
+        "current4to20mASensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "current4to20mASensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "current4to20mASensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "current4to20mASensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "current4to20mASensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "current4to20mASensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "current4to20mASensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "current4to20mASensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "current4to20mASensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "current4to20mASensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "current4to20mASensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "current4to20mASensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "current4to20mASensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """4to20mA sensor acknowledge""",
+        }, # column
+        "current4to20mASensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.5.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "dcVoltageSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "dcVoltageSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1",
+            "status" : "current",
+            "linkage" : [
+                "dcVoltageSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "dcVoltageSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "dcVoltageSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "dcVoltageSensorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value in this sensor""",
+        }, # column
+        "dcVoltageSensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The unit string""",
+        }, # column
+        "dcVoltageSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "dcVoltageSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "dcVoltageSensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a critical event""",
+        }, # column
+        "dcVoltageSensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a warning""",
+        }, # column
+        "dcVoltageSensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a warning""",
+        }, # column
+        "dcVoltageSensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a critical event""",
+        }, # column
+        "dcVoltageSensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "dcVoltageSensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "dcVoltageSensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "dcVoltageSensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "dcVoltageSensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "dcVoltageSensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "dcVoltageSensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "dcVoltageSensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unformatted, raw, A/D value in this sensor. Contains more resolution than the formated percentage. This number can go from 0 to 1023 depending on the input voltage""",
+        }, # column
+        "dcVoltageSensorOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """DC voltage Offset reading""",
+        }, # column
+        "dcVoltageSensorJumper" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.32",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "jumperAt-60" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-600"
+                    },
+                    "jumperAt-40" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-400"
+                    },
+                    "jumperAt-30" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-300"
+                    },
+                    "jumperAt-20" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-200"
+                    },
+                    "jumperAt-10" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-100"
+                    },
+                    "jumperAt10" : {
+                        "nodetype" : "namednumber",
+                        "number" : "100"
+                    },
+                    "jumperAt20" : {
+                        "nodetype" : "namednumber",
+                        "number" : "200"
+                    },
+                    "jumperAt30" : {
+                        "nodetype" : "namednumber",
+                        "number" : "300"
+                    },
+                    "jumperAt40" : {
+                        "nodetype" : "namednumber",
+                        "number" : "400"
+                    },
+                    "jumperAt60" : {
+                        "nodetype" : "namednumber",
+                        "number" : "600"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Selected voltage scale (jumper 0) in DC voltage conversion.""",
+        }, # column
+        "dcVoltageSensorAmountMaxVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.33",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum scale of DC voltage conversion.""",
+        }, # column
+        "dcVoltageSensorAmountBaseVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.34",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base scale of DC voltage conversion.""",
+        }, # column
+        "dcVoltageSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "dcVoltageSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "dcVoltageSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "dcVoltageSensorMaxVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.43",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The max voltage range for use in conversion.""",
+        }, # column
+        "dcVoltageSensorBaseVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.44",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base voltage range for use in conversion.""",
+        }, # column
+        "dcVoltageSensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """DCVoltage display style""",
+        }, # column
+        "dcVoltageSensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "dcVoltageSensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "dcVoltageSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "dcVoltageSensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "dcVoltageSensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "dcVoltageSensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "dcVoltageSensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "dcVoltageSensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "dcVoltageSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "dcVoltageSensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "dcVoltageSensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "dcVoltageSensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "dcVoltageSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """DCvoltage sensor acknowledge""",
+        }, # column
+        "dcVoltageSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.6.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "airflowSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "airflowSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1",
+            "status" : "current",
+            "linkage" : [
+                "airflowSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "airflowSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "airflowSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "airflowSensorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value in this sensor""",
+        }, # column
+        "airflowSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "airflowSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "airflowSensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a critical event""",
+        }, # column
+        "airflowSensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a warning""",
+        }, # column
+        "airflowSensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a warning""",
+        }, # column
+        "airflowSensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a critical event""",
+        }, # column
+        "airflowSensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "airflowSensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "airflowSensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "airflowSensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "airflowSensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "airflowSensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "airflowSensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "airflowSensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unformatted, raw, A/D value in this sensor. Contains more resolution than the formated percentage. This number can go from 0 to 1023 depending on the input voltage""",
+        }, # column
+        "airflowSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "airflowSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "airflowSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "airflowSensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Airflow display style""",
+        }, # column
+        "airflowSensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "airflowSensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "airflowSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "airflowSensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "airflowSensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "airflowSensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "airflowSensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "airflowSensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "airflowSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "airflowSensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "airflowSensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "airflowSensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "airflowSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Airflow sensor acknowledge""",
+        }, # column
+        "airflowSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.7.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "motionSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "motionSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1",
+            "status" : "current",
+            "linkage" : [
+                "motionSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "motionSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "motionSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "motionSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "motionSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "motionSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "motionSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "motionSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "motionSensorCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Description of this sensor""",
+        }, # column
+        "motionSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "motionSensorCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Color of this sensor""",
+        }, # column
+        "motionSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "motionSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Motion sensor acknowledge""",
+        }, # column
+        "motionSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.8.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "waterSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "waterSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1",
+            "status" : "current",
+            "linkage" : [
+                "waterSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "waterSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "waterSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "waterSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "waterSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "waterSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "waterSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "waterSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "waterSensorCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Description of this sensor""",
+        }, # column
+        "waterSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "waterSensorCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Color of this sensor""",
+        }, # column
+        "waterSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "waterSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Water sensor acknowledge""",
+        }, # column
+        "waterSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.9.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "securitySensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "securitySensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1",
+            "status" : "current",
+            "linkage" : [
+                "securitySensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "securitySensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "securitySensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "securitySensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "securitySensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "securitySensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "securitySensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "securitySensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "securitySensorCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Description of this sensor""",
+        }, # column
+        "securitySensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "securitySensorCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Color of this sensor""",
+        }, # column
+        "securitySensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "securitySensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Security sensor acknowledge""",
+        }, # column
+        "securitySensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.10.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "sirenSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "sirenSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1",
+            "status" : "current",
+            "linkage" : [
+                "sirenSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "sirenSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "sirenSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "sirenSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "sirenSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "sirenSensorControlMode" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.24",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "manual-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "sensor-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "time-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "thermostat-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Control Mode used for selecting the mode to control a siren.""",
+        }, # column
+        "sirenSensorManualCycleTime" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.25",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Toggle period in seconds for Manual Cycle action.""",
+        }, # column
+        "sirenSensorManualAction" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "turn-On" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "turn-Off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "cycle-On-Off-On" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "cycle-Off-On-Off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Control the siren manualy""",
+        }, # column
+        "sirenSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "sirenSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "sirenSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "sirenSensorOnDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A On Description of this sensor""",
+        }, # column
+        "sirenSensorOffDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.53",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Off Description of this sensor""",
+        }, # column
+        "sirenSensorOnColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.60",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A On Color of this sensor""",
+        }, # column
+        "sirenSensorOffColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.61",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Off Color of this sensor""",
+        }, # column
+        "sirenSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Siren sensor acknowledge""",
+        }, # column
+        "sirenSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.11.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "relaySensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "relaySensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1",
+            "status" : "current",
+            "linkage" : [
+                "relaySensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "relaySensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "relaySensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "relaySensorType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "relay" : {
+                        "nodetype" : "namednumber",
+                        "number" : "13"
+                    },
+                    "xrelay" : {
+                        "nodetype" : "namednumber",
+                        "number" : "19"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Enter the type of this Sensor""",
+        }, # column
+        "relaySensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "relaySensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "relaySensorControlMode" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.24",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "manual-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "sensor-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "time-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "thermostat-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Control Mode used for selecting the mode to control a relay.""",
+        }, # column
+        "relaySensorManualCycleTime" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.25",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Toggle period in seconds for Manual Cycle action.""",
+        }, # column
+        "relaySensorManualAction" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "turn-On" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "turn-Off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "cycle-On-Off-On" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "cycle-Off-On-Off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Control the relay manualy""",
+        }, # column
+        "relaySensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "relaySensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "relaySensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "relaySensorOnDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A On Description of this sensor""",
+        }, # column
+        "relaySensorOffDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.53",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Off Description of this sensor""",
+        }, # column
+        "relaySensorOnColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.60",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A On Color of this sensor""",
+        }, # column
+        "relaySensorOffColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.61",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Off Color of this sensor""",
+        }, # column
+        "relaySensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Relay sensor acknowledge""",
+        }, # column
+        "relaySensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.12.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "acVoltageSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "acVoltageSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1",
+            "status" : "current",
+            "linkage" : [
+                "acVoltageSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "acVoltageSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "acVoltageSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "acVoltageSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "acVoltageSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To put online enter a 1, to take offline enter a 2""",
+        }, # column
+        "acVoltageSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "acVoltageSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "acVoltageSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "acVoltageSensorCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Description of this sensor""",
+        }, # column
+        "acVoltageSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "acVoltageSensorCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Color of this sensor""",
+        }, # column
+        "acVoltageSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "acVoltageSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """ACvoltage sensor acknowledge""",
+        }, # column
+        "acVoltageSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.13.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "smokeSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "smokeSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1",
+            "status" : "current",
+            "linkage" : [
+                "smokeSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "smokeSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "smokeSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "smokeSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "smokeSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "smokeSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "smokeSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "smokeSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "smokeSensorCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Description of this sensor""",
+        }, # column
+        "smokeSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "smokeSensorCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Color of this sensor""",
+        }, # column
+        "smokeSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "smokeSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Smoke sensor acknowledge""",
+        }, # column
+        "smokeSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.14.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "thermostatSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "thermostatSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1",
+            "status" : "current",
+            "linkage" : [
+                "thermostatSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the sensorTemperatureEntry Table""",
+        }, # row
+        "thermostatSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "thermostatSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "thermostatSensorDegree" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The degrees in this sensor""",
+        }, # column
+        "thermostatSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "thermostatSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "thermostatSensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a critical event""",
+        }, # column
+        "thermostatSensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a warning""",
+        }, # column
+        "thermostatSensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a warning""",
+        }, # column
+        "thermostatSensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a critical event""",
+        }, # column
+        "thermostatSensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "thermostatSensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "thermostatSensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "thermostatSensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "thermostatSensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "thermostatSensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "thermostatSensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "thermostatSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "thermostatSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "thermostatSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "thermostatSensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Thermostat display style""",
+        }, # column
+        "thermostatSensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "thermostatSensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "thermostatSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "thermostatSensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "thermostatSensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "thermostatSensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "thermostatSensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "thermostatSensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "thermostatSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "thermostatSensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "thermostatSensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "thermostatSensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "thermostatSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Thermostat sensor acknowledge""",
+        }, # column
+        "thermostatSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.20.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "waterRopeSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "waterRopeSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1",
+            "status" : "current",
+            "linkage" : [
+                "waterRopeSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the waterRopeSensorEntry Table""",
+        }, # row
+        "waterRopeSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "waterRopeSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "waterRopeSensorLeakLocation" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Location of leakage of water rope sensor.""",
+        }, # column
+        "waterRopeSensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Display unit of water rope sensor.""",
+        }, # column
+        "waterRopeSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "waterRopeSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "waterRopeSensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Raw value of location or length in ohms""",
+        }, # column
+        "waterRopeSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "waterRopeSensorCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Description of this sensor""",
+        }, # column
+        "waterRopeSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "waterRopeSensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "waterRopeSensorCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Color of this sensor""",
+        }, # column
+        "waterRopeSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "waterRopeSensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "waterRopeSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Water Rope sensor acknowledge""",
+        }, # column
+        "waterRopeSensorLength" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.100",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Length of water rope sensor.""",
+        }, # column
+        "waterRopeSensorImpedance" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.101",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Sensing wire impedance per meter value times 100""",
+        }, # column
+        "waterRopeSensorType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.103",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "custom" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "water" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "fuel" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Water rope sensing cable type""",
+        }, # column
+        "waterRopeSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.21.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "powerSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "powerSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1",
+            "status" : "current",
+            "linkage" : [
+                "powerSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the powerSensorEntry Table""",
+        }, # row
+        "powerSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "powerSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "powerSensorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value in this sensor""",
+        }, # column
+        "powerSensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The unit string""",
+        }, # column
+        "powerSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "powerSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "powerSensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a critical event""",
+        }, # column
+        "powerSensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a warning""",
+        }, # column
+        "powerSensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a warning""",
+        }, # column
+        "powerSensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a critical event""",
+        }, # column
+        "powerSensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "powerSensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "powerSensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "powerSensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "powerSensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "powerSensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "powerSensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "powerSensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "powerSensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "powerSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "powerSensorTimeOut" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.38",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "5",
+                        "max" : "30"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "5",
+                        "max" : "30"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The polling timeout of Power Sensor.""",
+        }, # column
+        "powerSensorInterval" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.39",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "5",
+                        "max" : "720"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "5",
+                        "max" : "720"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The polling interval of Power Sensor.""",
+        }, # column
+        "powerSensorErrorRetryNum" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.40",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Number of retry before error.""",
+        }, # column
+        "powerSensorMaxValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.41",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum scale of Power value.""",
+        }, # column
+        "powerSensorMinValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.42",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The minimum scale of Power value.""",
+        }, # column
+        "powerSensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Power display style.""",
+        }, # column
+        "powerSensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "powerSensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "powerSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "powerSensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "powerSensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "powerSensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "powerSensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "powerSensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "powerSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "powerSensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "powerSensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "powerSensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "powerSensorValueFormatString" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.66",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The string-based reading value in this sensor""",
+        }, # column
+        "powerSensorValueFormatFloat" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.67",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "OctetString",
+                    "parent module" : {
+                        "name" : "SNMPv2-SMI",
+                        "type" : "Opaque",
+                    },
+                    "ranges" : [
+                    {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The floating-point IEEE Standard 754 reading value in this sensor""",
+        }, # column
+        "powerSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Power sensor acknowledge""",
+        }, # column
+        "powerSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.22.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "fuelSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "fuelSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1",
+            "status" : "current",
+            "linkage" : [
+                "fuelSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the fuelSensorEntry Table""",
+        }, # row
+        "fuelSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "fuelSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "fuelSensorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value in this sensor""",
+        }, # column
+        "fuelSensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The unit string""",
+        }, # column
+        "fuelSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "fuelSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "fuelSensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Level value of this sensor gets before it sends a critical event""",
+        }, # column
+        "fuelSensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Level value of this sensor gets before it sends a warning""",
+        }, # column
+        "fuelSensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Level value of this sensor gets before it sends a warning""",
+        }, # column
+        "fuelSensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Level value of this sensor gets before it sends a critical event""",
+        }, # column
+        "fuelSensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "fuelSensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "fuelSensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "fuelSensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "fuelSensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "fuelSensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "fuelSensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "fuelSensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unformatted, raw, A/D value in this sensor. Contains more resolution than the formated percentage.""",
+        }, # column
+        "fuelSensorAmountMaxValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.33",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum scale of value conversion.""",
+        }, # column
+        "fuelSensorAmountBaseValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.34",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base scale of value conversion.""",
+        }, # column
+        "fuelSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "fuelSensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Fuel display style""",
+        }, # column
+        "fuelSensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "fuelSensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "fuelSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "fuelSensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "fuelSensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "fuelSensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "fuelSensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "fuelSensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "fuelSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "fuelSensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "fuelSensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "fuelSensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "fuelSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Fuel sensor acknowledge""",
+        }, # column
+        "fuelSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.24.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "tankSenderSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "tankSenderSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1",
+            "status" : "current",
+            "linkage" : [
+                "tankSenderSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the tankSenderSensorEntry Table""",
+        }, # row
+        "tankSenderSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "tankSenderSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "tankSenderSensorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value in this sensor""",
+        }, # column
+        "tankSenderSensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The unit string""",
+        }, # column
+        "tankSenderSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "tankSenderSensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "tankSenderSensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Level value of this sensor gets before it sends a critical event""",
+        }, # column
+        "tankSenderSensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Level value of this sensor gets before it sends a warning""",
+        }, # column
+        "tankSenderSensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Level value of this sensor gets before it sends a warning""",
+        }, # column
+        "tankSenderSensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Level value of this sensor gets before it sends a critical event""",
+        }, # column
+        "tankSenderSensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "tankSenderSensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "tankSenderSensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "tankSenderSensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "tankSenderSensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "tankSenderSensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "tankSenderSensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "tankSenderSensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unformatted, raw, A/D value in this sensor. Contains more resolution than the formated percentage.""",
+        }, # column
+        "tankSenderSensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "tankSenderSensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """TankSender display style""",
+        }, # column
+        "tankSenderSensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "tankSenderSensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "tankSenderSensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "tankSenderSensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "tankSenderSensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "tankSenderSensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "tankSenderSensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "tankSenderSensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "tankSenderSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "tankSenderSensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "tankSenderSensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "tankSenderSensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "tankSenderSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Tank Sender sensor acknowledge""",
+        }, # column
+        "tankSenderSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.26.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "doorSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "doorSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1",
+            "status" : "current",
+            "linkage" : [
+                "doorSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the doorSensorEntry Table""",
+        }, # row
+        "doorSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "doorSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "doorSensorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value in this sensor""",
+        }, # column
+        "doorSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "closed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "heldOpen" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "fire" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "opened" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "forceOpened" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "doorSensorUnlockPeriod" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1.62",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Door unlock period""",
+        }, # column
+        "doorSensorOpenPeriod" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1.63",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Door open period""",
+        }, # column
+        "doorSensorCmd" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1.64",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Door command""",
+        }, # column
+        "doorSensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Door sensor acknowledge""",
+        }, # column
+        "doorSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.27.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "temperatureArraySensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every Temperature sensor.""",
+        }, # table
+        "temperatureArraySensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1",
+            "status" : "current",
+            "linkage" : [
+                "temperatureArraySensorIndex",
+            ],
+            "description" :
+                """This is an entry in the temperatureArraySensorEntry Table""",
+        }, # row
+        "temperatureArraySensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "temperatureArraySensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "temperatureArraySensorType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "temperature" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "dualsensor" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "thermocouple" : {
+                        "nodetype" : "namednumber",
+                        "number" : "20"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Enter the type of this Sensor""",
+        }, # column
+        "temperatureArraySensorDegree" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The degrees in this sensor""",
+        }, # column
+        "temperatureArraySensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unit string""",
+        }, # column
+        "temperatureArraySensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "temperatureArraySensorGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "temperatureArraySensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a critical event""",
+        }, # column
+        "temperatureArraySensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How cold this sensor gets before it sends a warning""",
+        }, # column
+        "temperatureArraySensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a warning""",
+        }, # column
+        "temperatureArraySensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How hot this sensor gets before it sends a critical event""",
+        }, # column
+        "temperatureArraySensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of degrees to rearm the status. For example if status goes from normal to warning, the temp must go down spTempRearm degrees below warning before the status goes to normal""",
+        }, # column
+        "temperatureArraySensorDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor has been in error status before report as an error""",
+        }, # column
+        "temperatureArraySensorDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds after the sensor change from error to normal before report as normal""",
+        }, # column
+        "temperatureArraySensorDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "temperatureArraySensorDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "temperatureArraySensorDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "temperatureArraySensorDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "temperatureArraySensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The raw degree data from the temperature sensor, slightly higher resolution""",
+        }, # column
+        "temperatureArraySensorOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature Offset reading""",
+        }, # column
+        "temperatureArraySensorPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "temperatureArraySensorSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "temperatureArraySensorDeviceIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """Device Index of sensor""",
+        }, # column
+        "temperatureArraySensorDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature display style""",
+        }, # column
+        "temperatureArraySensorHighCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Description of this sensor""",
+        }, # column
+        "temperatureArraySensorLowCriticalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Description of this sensor""",
+        }, # column
+        "temperatureArraySensorNormalDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "temperatureArraySensorLowWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Description of this sensor""",
+        }, # column
+        "temperatureArraySensorHighWarningDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Description of this sensor""",
+        }, # column
+        "temperatureArraySensorSensorErrorDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Description of this sensor""",
+        }, # column
+        "temperatureArraySensorHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighCritical Color of this sensor""",
+        }, # column
+        "temperatureArraySensorLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowCritical Color of this sensor""",
+        }, # column
+        "temperatureArraySensorSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "temperatureArraySensorLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A LowWarning Color of this sensor""",
+        }, # column
+        "temperatureArraySensorHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A HighWarning Color of this sensor""",
+        }, # column
+        "temperatureArraySensorSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A SensorError Color of this sensor""",
+        }, # column
+        "temperatureArraySensorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Temperature sensor acknowledge""",
+        }, # column
+        "temperatureArraySensorSerialNumber" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.71",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Serial Number of Temperature Sensor
+x is Hex Digit xx-xx-xx-xx-xx-xx-xx-xx""",
+        }, # column
+        "temperatureArraySensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.28.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "virtualSensor" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129",
+        }, # node
+        "virtualAnalogSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2",
+            "status" : "current",
+            "description" :
+                """This table contains the data for every VirtualAnalog Sensor in the SensorArray. Each row in the table contains data for a different VirtualAnalog Sensor.""",
+        }, # table
+        "virtualAnalogSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1",
+            "status" : "current",
+            "linkage" : [
+                "virtualAnalogSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the virtualAnalogSensorEntry Table""",
+        }, # row
+        "virtualAnalogSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "virtualAnalogSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "virtualAnalogSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "virtualAnalogSensorOnline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "offline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """If this Sensor is currently online""",
+        }, # column
+        "virtualAnalogSensorGoOnline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "goOnline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To put online enter a 1, to take offline enter a 2""",
+        }, # column
+        "virtualAnalogSensorHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.7",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How high the relative VirtualAnalog this sensor measures before it sends a warning""",
+        }, # column
+        "virtualAnalogSensorHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How high the relative VirtualAnalog this sensor measures before it becomes critical""",
+        }, # column
+        "virtualAnalogSensorLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How low the relative VirtualAnalog this sensor measures before it sends a warning""",
+        }, # column
+        "virtualAnalogSensorLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """How low the relative VirtualAnalog this sensor measures before it becomes critical""",
+        }, # column
+        "virtualAnalogSensorRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The percent relative VirtualAnalog to rearm the status. For example if status goes from normal to warning, the VirtualAnalog must go down spAnalogueRearm below warning before the status goes to normal""",
+        }, # column
+        "virtualAnalogSensorRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The unformatted, raw, A/D value in this sensor. Contains more resolution than the formated percentage. This number can go from 0 to 1023 depending on the input voltage""",
+        }, # column
+        "virtualAnalogSensorEmailTrapLimit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable email/trap limit feature""",
+        }, # column
+        "virtualAnalogSensorUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.27",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Display unit in VirtualAnalog.""",
+        }, # column
+        "virtualAnalogSensorAcknowledgement" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.41",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Acknowledged sensor error and stop notification""",
+        }, # column
+        "virtualAnalogSensorURL" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.43",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Sensor URL link.""",
+        }, # column
+        "virtualAnalogSensorOpenURL" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.44",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "cur-window" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "new-window" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Open URL in this browser or open in a new window.""",
+        }, # column
+        "virtualAnalogSensorContTimeHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "virtualAnalogSensorContTimeHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Warning before accepting new Status.""",
+        }, # column
+        "virtualAnalogSensorContTimeNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Normal before accepting new Status.""",
+        }, # column
+        "virtualAnalogSensorContTimeLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Warning before accepting new Status.""",
+        }, # column
+        "virtualAnalogSensorContTimeLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Low Critical before accepting new Status.""",
+        }, # column
+        "virtualAnalogSensorContTimeSensorError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Sensor Error before accepting new Status.""",
+        }, # column
+        "virtualAnalogSensorCalendar" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable or disable the calendar filtering working hours of sensor.""",
+        }, # column
+        "virtualAnalogSensorValueFactor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "x1" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "x0-1" : {
+                        "nodetype" : "namednumber",
+                        "number" : "10"
+                    },
+                    "x0-01" : {
+                        "nodetype" : "namednumber",
+                        "number" : "100"
+                    },
+                    "x0-001" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1000"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To change the ratio of value.""",
+        }, # column
+        "virtualAnalogSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.2.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "virtualSwitchSensorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4",
+            "status" : "current",
+            "description" :
+                """This table contains the data for every VirtualSwitch Sensor in the SensorArray. Each row in the table contains data for a different VirtualSwitch Sensor.""",
+        }, # table
+        "virtualSwitchSensorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1",
+            "status" : "current",
+            "linkage" : [
+                "virtualSwitchSensorIndex",
+            ],
+            "description" :
+                """This is an entry in the virtualSwitchSensorEntry Table""",
+        }, # row
+        "virtualSwitchSensorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "virtualSwitchSensorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor""",
+        }, # column
+        "virtualSwitchSensorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor""",
+        }, # column
+        "virtualSwitchSensorOnline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "offline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """If this Sensor is currently online""",
+        }, # column
+        "virtualSwitchSensorGoOnline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "goOnline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To put online enter a 1, to take offline enter a 2""",
+        }, # column
+        "virtualSwitchSensorEmailTrapLimit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable email/trap limit feature""",
+        }, # column
+        "virtualSwitchSensorContTimeHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in High Critical before accepting new Status.""",
+        }, # column
+        "virtualSwitchSensorContTimeNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.22",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Continuous time for this sensor to be in Normal before accepting new Status.""",
+        }, # column
+        "virtualSwitchSensorDescriptionCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Description of status when the virsual switch is critical""",
+        }, # column
+        "virtualSwitchSensorDescriptionNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.27",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Description of status when the virsual switch is normal""",
+        }, # column
+        "virtualSwitchSensorAcknowledgement" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.41",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Acknowledged sensor error and stop notification""",
+        }, # column
+        "virtualSwitchSensorURL" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.43",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Sensor URL link.""",
+        }, # column
+        "virtualSwitchSensorOpenURL" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.44",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "cur-window" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "new-window" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Open URL in this browser or open in a new window.""",
+        }, # column
+        "virtualSwitchSensorCalendar" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable or disable the calendar filtering working hours of sensor.""",
+        }, # column
+        "virtualSwitchSensorNormalState" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The normal state of a return of the virsual switch. If a return of the virsual switch is equal this normal state value, it is normal. Otherwise, it is critical.""",
+        }, # column
+        "virtualSwitchSensorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.2.5.129.4.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "plusSeries" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3",
+        }, # node
+        "summary" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.1",
+        }, # node
+        "device" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2",
+        }, # node
+        "config" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1",
+        }, # node
+        "cfgServerAddress" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "IpAddress"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The DCIM's IP Address that device is connected to.""",
+        }, # scalar
+        "cfgServerPort" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The DCIM's Port that device is connected to. Default is 5000.""",
+        }, # scalar
+        "cfgDevicePassword" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The local Administrator account's password for accessing the Web UI, Telnet and SSH services of the device. Default is 'public'.""",
+        }, # scalar
+        "cfgSystemDescription" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The system's description of the device.""",
+        }, # scalar
+        "cfgSystemName" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The system name for the device.""",
+        }, # scalar
+        "cfgSystemLocation" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The system location for the device.""",
+        }, # scalar
+        "cfgSystemContact" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The administrator contact for the system.""",
+        }, # scalar
+        "cfgIPAddress" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "IpAddress"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The device's Ethernet IP Address.""",
+        }, # scalar
+        "cfgSubnetMask" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "IpAddress"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The device's Ethernet Subnet Mask.""",
+        }, # scalar
+        "cfgDefaultGateway" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "IpAddress"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The device's Ethernet Default Gateway.""",
+        }, # scalar
+        "cfgDefaultDNS" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "IpAddress"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The device's Ethernet Default Domain Name System (DNS) for name resolution.""",
+        }, # scalar
+        "cfgDeviceUseDHCP" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "no" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "yes" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable Ethernet Dynamic Host Configuration Protocol (DHCP) on the device; it will automatically provide IP Address for the device.""",
+        }, # scalar
+        "cfgNTPMode" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "do-not-use" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "one-time" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "on-system-start-up" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "once-a-month" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "once-a-week" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "once-a-day" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "once-a-hour" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "continuously" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Network Time Protocol (NTP) Mode; this will define how often the device synchronizes time with the NTP Server.""",
+        }, # scalar
+        "cfgNTPServer1" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The first server that the device will synchronize time with, when NTP is enabled.""",
+        }, # scalar
+        "cfgNTPServer2" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.22",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The second server that the device will synchronize time with, when NTP is enabled.""",
+        }, # scalar
+        "cfgTimeZone" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.23",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The Time Zone of the device.""",
+        }, # scalar
+        "cfgGSMConnectionMethod" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.24",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "never-dial" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "dial-if-eth-failed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "dial-only" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The GSM Modem's Connection method. It will be defined when the device will be connecting via GSM's Modem.""",
+        }, # scalar
+        "cfgGSMConnectionType" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.25",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The GSM Modem's Connection type. It will be defined when the GSM Modem is always being used to connect, or depends on the Connection Method Setting.""",
+        }, # scalar
+        "cfgGSMInitString" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The GSM Modem's Initialization String, a list of AT commands that will be sent when a connection to the modem is being established.""",
+        }, # scalar
+        "cfgGSMConnectionMode" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.27",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The GSM Modem's Connection Mode, it defines which GSM protocol will be used to transfer data.""",
+        }, # scalar
+        "cfgGSMAPN" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.28",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Access Point Name (APN), the name of a gateway between a GSM, GPRS, 3G or 4G mobile network and another computer network, frequently the public Internet.""",
+        }, # scalar
+        "cfgGSMRetry" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.29",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The number of attempts that the GSM modem will use to redial if previous attempts have failed.""",
+        }, # scalar
+        "cfgGSMIdleTimeout" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.30",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Time in seconds for the GSM modem to be idle before hanging up automatically.""",
+        }, # scalar
+        "cfgGSMLogin" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.31",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """GSM modem Point-to-Point Protocol (PPP)'s Login Name.""",
+        }, # scalar
+        "cfgGSMPassword" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.32",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """GSM Modem Point-to-Point Protocol (PPP)'s Password.""",
+        }, # scalar
+        "cfgGSMDNS" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.33",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "IpAddress"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """IP address for the Domain Name System (DNS) for GSM Modem Connection.""",
+        }, # scalar
+        "cfgWEBPasswordEnable" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.34",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable/disable password checking for the Web UI.""",
+        }, # scalar
+        "cfgWEBPort" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Web interface port (default value is 80).""",
+        }, # scalar
+        "cfgWEBSecurePort" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Secured Web interface port (default value is 443).""",
+        }, # scalar
+        "cfgWEBSecureEnabled" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.37",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "useByDefault" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable/disable Secured Web interface.""",
+        }, # scalar
+        "cfgWEBEnabled" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.41",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable/disable Web interface.""",
+        }, # scalar
+        "cfgSNMPReadCommunity" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.42",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """SNMP read community, the community password for use with SNMP to read variables. Default is 'public'.""",
+        }, # scalar
+        "cfgSNMPWriteCommunity" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.43",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """SNMP write community, the community password for use with SNMP to write variables. Default is 'public'.""",
+        }, # scalar
+        "cfgSNMPv3Mode" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "authNoPriv" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "authPriv" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "noAuthNoPriv" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Security Level for SNMPv3 to be used during communication.""",
+        }, # scalar
+        "cfgEMailEnable" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable/disable the usage of the E-Mail feature on the device.""",
+        }, # scalar
+        "cfgSMTPServer" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The name or IP address of the SMTP server, to be used for sending an E-Mail.""",
+        }, # scalar
+        "cfgSMTPPort" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The port number for the SMTP connection. Default is 25.""",
+        }, # scalar
+        "cfgSMTPAuth" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-required" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "required" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable/disable the SMTP authentication for the E-Mail service on the device.""",
+        }, # scalar
+        "cfgSMTPLogin" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user name for the SMTP server login.""",
+        }, # scalar
+        "cfgSMTPPassword" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user's password for the SMTP server login.""",
+        }, # scalar
+        "cfgEMailResendInterval" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+        }, # scalar
+        "cfgEMailMaxResend" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+        }, # scalar
+        "cfgKeepAliveTime" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.78",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The DCIM's keep-alive time in seconds.""",
+        }, # scalar
+        "cfgHostID" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.79",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Server host ID""",
+        }, # scalar
+        "cfgHostUID" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.80",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Server host update ID""",
+        }, # scalar
+        "cfgHostSensorUID" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.81",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Server host update ID for updating sensor and board properties""",
+        }, # scalar
+        "cfgVPNServerPort" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.83",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The VPN connection's port number on the DCIM. Default is 1194.""",
+        }, # scalar
+        "cfgVPNServerDNSName" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.84",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The Domain Name System (DNS) name of the DCIM for the VPN connection.""",
+        }, # scalar
+        "cfgRSysLogServerAddress" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.85",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "IpAddress"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """IP address for the Remote SysLog server.""",
+        }, # scalar
+        "cfgRSysLogServerPort" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.86",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The port number for the Remote SysLog server.""",
+        }, # scalar
+        "cfgSMTPSSL" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.87",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "no-encryption" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "ssl-tls" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "starttls" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The SMTP security level's protocol that will be used upon connection to an SMTP Server.""",
+        }, # scalar
+        "cfgVPNCipherType" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.90",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "none" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "blowfish" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "aes128" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "des-ede3" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The VPN cipher protocol that will be used to communicate with the DCIM over the network.""",
+        }, # scalar
+        "cfgVPNPassword" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.91",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The VPN Password for connecting to the DCIM's VPN server.""",
+        }, # scalar
+        "cfgVPNEnabled" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.92",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "no" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "yes" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable/disable the VPN feature on the device. If enabled, the device will try to connect to the DCIM VPN server if the configuration is correct.""",
+        }, # scalar
+        "cfgSNMPPort" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.93",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The port used for SNMP communication.""",
+        }, # scalar
+        "cfgSNMPv3EngineId" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.94",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The Engine ID that will be used for connection with SNMPv3.""",
+        }, # scalar
+        "cfgSNMPv3UserName" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.95",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user name for connecting with SNMPv3 to this device.""",
+        }, # scalar
+        "cfgSNMPv3AuthProtocol" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.96",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "md5" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "sha1" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The Authentication protocol that will be used with SNMPv3 connection (MD5 / SHA).""",
+        }, # scalar
+        "cfgSNMPv3AuthPassword" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.97",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Opaque"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The SNMPv3 authentication password.""",
+        }, # scalar
+        "cfgSNMPv3PrivProtocol" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.98",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "des" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "aes" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The SNMPv3 privacy protocol that will be used with SNMPv3 connection (DES / AES).""",
+        }, # scalar
+        "cfgSNMPv3PrivPassword" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.99",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Opaque"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The SNMPv3 privacy password.""",
+        }, # scalar
+        "cfgSNMPv3AccessPrivelege" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.100",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "read-only" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "read-write" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The access privilege of SNMPv3 (read only / read-write).""",
+        }, # scalar
+        "cfgSNMPv1Disable" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.101",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Disable SNMPv1 and SNMPv2c from being used.""",
+        }, # scalar
+        "cfgSNMPv3Disable" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.102",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Disable SNMPv3 from being used.""",
+        }, # scalar
+        "cfgGraphDataCollectionPeriod" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.104",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The graph data collection period in seconds. The more seconds you define, the more graph data can be stored.""",
+        }, # scalar
+        "cfgServiceTelnet" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.105",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable/disable the Telnet service on the device.""",
+        }, # scalar
+        "cfgEnableNotiFilteringOnBoot" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.106",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enable" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable/disable notifications filtering when the device is booting up. If enabled (set to nonzero) will trigger notification on device boot (initial sensor state change events). If disabled (set to zero) will filter notifications on software boot on initial sensor status change events. This is useful to avoid false notifications on initial sensor status change events.""",
+        }, # scalar
+        "cfgSystemURL" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.107",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Custom URL what users can use in Email and SMS notifications to expand macro $[SYSURL]. It can point to a page on the device, or to any external URL.""",
+        }, # scalar
+        "cfgServerIntegrationEnabled" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.108",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disabled" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enabled" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable/disable the DCIM Integration.""",
+        }, # scalar
+        "cfgServerIntegrationPort" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.109",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Port for DCIM Integration.""",
+        }, # scalar
+        "cfgSMTPEMailFrom" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.110",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The default E-mail address that will show in an E-mail's 'From' field and which will be used to send mail to support.""",
+        }, # scalar
+        "cfgSupportEMail" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.111",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The E-mail address of the device's support department.""",
+        }, # scalar
+        "cfgDHCPHostName" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.1.137",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """DHCP hostname.""",
+        }, # scalar
+        "licenses" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2",
+        }, # node
+        "licenseTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1",
+            "status" : "current",
+        }, # table
+        "licenseEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1.1",
+            "status" : "current",
+            "linkage" : [
+                "licenseIndex",
+            ],
+        }, # row
+        "licenseIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readonly",
+        }, # column
+        "license5DC" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+        }, # column
+        "licenseSNMPv3" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disallowed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "allowed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readonly",
+        }, # column
+        "licenseVPN" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disallowed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "allowed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readonly",
+        }, # column
+        "licenseVSens" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+        }, # column
+        "licenseAccessUsers" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+        }, # column
+        "license3rdPartyPMS" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disallowed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "allowed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readonly",
+        }, # column
+        "lic5DCTotal" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+        }, # scalar
+        "lic5DCUsed" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.3",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+        }, # scalar
+        "licSNMPv3" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.4",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "forbidden" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "allowed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readonly",
+        }, # scalar
+        "licVPN" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "forbidden" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "allowed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readonly",
+        }, # scalar
+        "licVSensTotal" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.8",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+        }, # scalar
+        "licVSensUsed" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+        }, # scalar
+        "licAccessUsersTotal" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+        }, # scalar
+        "licAccessUsersUsed" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+        }, # scalar
+        "lic3rdPartyPMS" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.12",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "forbidden" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "allowed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readonly",
+        }, # scalar
+        "licAddKey" : {
+            "nodetype" : "scalar",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.2.2.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+        }, # scalar
+        "notifications" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.4",
+        }, # node
+        "sensors" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5",
+        }, # node
+        "commonTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each any sensor""",
+        }, # table
+        "commonEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1",
+            "status" : "current",
+            "linkage" : [
+                "commonIndex",
+            ],
+        }, # row
+        "commonIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "commonDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "commonType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "temperature" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "humidity" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "temperature-dual" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "four-20mA" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "dcvoltage" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "airflow" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "io" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "drycontact" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "motion" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                    "water" : {
+                        "nodetype" : "namednumber",
+                        "number" : "10"
+                    },
+                    "security" : {
+                        "nodetype" : "namednumber",
+                        "number" : "11"
+                    },
+                    "siren" : {
+                        "nodetype" : "namednumber",
+                        "number" : "12"
+                    },
+                    "relay" : {
+                        "nodetype" : "namednumber",
+                        "number" : "13"
+                    },
+                    "acvoltage" : {
+                        "nodetype" : "namednumber",
+                        "number" : "14"
+                    },
+                    "vrms" : {
+                        "nodetype" : "namednumber",
+                        "number" : "15"
+                    },
+                    "irms" : {
+                        "nodetype" : "namednumber",
+                        "number" : "16"
+                    },
+                    "watt" : {
+                        "nodetype" : "namednumber",
+                        "number" : "17"
+                    },
+                    "watthour" : {
+                        "nodetype" : "namednumber",
+                        "number" : "18"
+                    },
+                    "xrelay" : {
+                        "nodetype" : "namednumber",
+                        "number" : "19"
+                    },
+                    "thermocouple" : {
+                        "nodetype" : "namednumber",
+                        "number" : "20"
+                    },
+                    "smoke" : {
+                        "nodetype" : "namednumber",
+                        "number" : "21"
+                    },
+                    "drycontact-array" : {
+                        "nodetype" : "namednumber",
+                        "number" : "22"
+                    },
+                    "temperature-array" : {
+                        "nodetype" : "namednumber",
+                        "number" : "23"
+                    },
+                    "waterrope" : {
+                        "nodetype" : "namednumber",
+                        "number" : "24"
+                    },
+                    "five-drycontacts" : {
+                        "nodetype" : "namednumber",
+                        "number" : "31"
+                    },
+                    "thermostat" : {
+                        "nodetype" : "namednumber",
+                        "number" : "128"
+                    },
+                    "virtual" : {
+                        "nodetype" : "namednumber",
+                        "number" : "129"
+                    },
+                    "sound" : {
+                        "nodetype" : "namednumber",
+                        "number" : "130"
+                    },
+                    "softmotion" : {
+                        "nodetype" : "namednumber",
+                        "number" : "131"
+                    },
+                    "camera-dummy" : {
+                        "nodetype" : "namednumber",
+                        "number" : "132"
+                    },
+                    "board-state" : {
+                        "nodetype" : "namednumber",
+                        "number" : "133"
+                    },
+                    "nosignal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "224"
+                    },
+                    "test" : {
+                        "nodetype" : "namednumber",
+                        "number" : "255"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The type of the sensor; it represents the sensor's functionality.""",
+        }, # column
+        "commonValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The value reading for this sensor; it's a different measure for each sensor type.""",
+        }, # column
+        "commonUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's value unit; it defines the sensor value's reading unit.""",
+        }, # column
+        "commonStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "commonGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "commonRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "commonPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "commonSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors.""",
+        }, # column
+        "commonDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "commonHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "commonLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "commonSensorNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "commonLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "commonHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "commonSensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "commonOnDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'On' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "commonOffDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.53",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Off' Description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "commonHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "commonLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "commonSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "commonLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "commonHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "commonSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "commonOnColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.60",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'On' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "commonOffColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.61",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Off' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "commonAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "commonValueFormatFloat" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.99",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "OctetString",
+                    "parent module" : {
+                        "name" : "SNMPv2-SMI",
+                        "type" : "Opaque",
+                    },
+                    "ranges" : [
+                    {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The floating-point IEEE 754 Standard reading value for this sensor (in commonValue float form instead of integer).""",
+        }, # column
+        "commonId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.1.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "temperatureTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each temperature sensor""",
+        }, # table
+        "temperatureEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1",
+            "status" : "current",
+            "linkage" : [
+                "temperatureIndex",
+            ],
+        }, # row
+        "temperatureIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "temperatureDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "temperature" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "temperature-dual" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "thermocouple" : {
+                        "nodetype" : "namednumber",
+                        "number" : "20"
+                    },
+                    "temperature-array" : {
+                        "nodetype" : "namednumber",
+                        "number" : "23"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The type of the sensor; it represents the sensor's functionality. For the temperature sensor, it has 3 sub-types: Normal temperature sensor, Dual sensor, and Thermocouple sensor.""",
+        }, # column
+        "temperatureDegree" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The temperature degree value in numerical reading.""",
+        }, # column
+        "temperatureUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's value unit string, in what the sensor's value is read in. For the temperature sensor it can be Celsius or Fahrenheit.""",
+        }, # column
+        "temperatureStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "temperatureGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "temperatureLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """This value tells how many degrees the sensor has to reach beyond the threshold value, before changing to a new status. Useful to prevent the quick fluctuation of readings.""",
+        }, # column
+        "temperatureDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Error' status before its status is changed.""",
+        }, # column
+        "temperatureDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Normal' status before its status is changed.""",
+        }, # column
+        "temperatureDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Critical' status before its status is changed.""",
+        }, # column
+        "temperatureDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Warning' status before its status is changed.""",
+        }, # column
+        "temperatureDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Warning' status before its status is changed.""",
+        }, # column
+        "temperatureDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Critical' status before its status is changed.""",
+        }, # column
+        "temperatureRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "temperatureOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The offset value for this sensor. It's used to adjust the reading value in case the reading is incorrect.""",
+        }, # column
+        "temperaturePort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "temperatureSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors. For Temperature Sensor, it's for the array of Temperature Sensors and Dual Sensors.  For example x.1, x.2, x.3 ...""",
+        }, # column
+        "temperatureDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "temperatureHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureSensorNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureSensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureSensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "temperatureSerialNumber" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.71",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The serial number of temperature sensor, used to indicate which sensor it is in an array. It matches the MAC ID of the sensor for a DCT sensor array.""",
+        }, # column
+        "temperatureId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.2.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "humidityTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each humidity sensor""",
+        }, # table
+        "humidityEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1",
+            "status" : "current",
+            "linkage" : [
+                "humidityIndex",
+            ],
+        }, # row
+        "humidityIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "humidityDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "humidityPercent" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The relative humidity percentage measured by this sensor""",
+        }, # column
+        "humidityUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's value unit string, in what the sensor's value is read in.""",
+        }, # column
+        "humidityStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "humidityGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "humidityLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "humidityLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "humidityHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "humidityHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "humidityRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """This value tells how many percentage the sensor has to reach beyond the threshold value, before changing to a new status. Useful to prevent the quick fluctuation of readings.""",
+        }, # column
+        "humidityDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Error' status before its status is changed.""",
+        }, # column
+        "humidityDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Normal' status before its status is changed.""",
+        }, # column
+        "humidityDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Critical' status before its status is changed.""",
+        }, # column
+        "humidityDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Warning' status before its status is changed.""",
+        }, # column
+        "humidityDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Warning' status before its status is changed.""",
+        }, # column
+        "humidityDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Critical' status before its status is changed.""",
+        }, # column
+        "humidityRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "humidityOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The offset value for this sensor. It's used to adjust the reading value in case the reading is incorrect.""",
+        }, # column
+        "humidityPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "humiditySubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors. For Humidity Sensor, it's for the Dual Sensors.""",
+        }, # column
+        "humidityDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "humidityHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "humidityLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "humiditySensorNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "humidityLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "humidityHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "humiditySensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "humidityHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "humidityLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "humiditySensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "humidityLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "humidityHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "humiditySensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "humidityAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "humidityId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.3.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "drycontactTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each drycontact sensor""",
+        }, # table
+        "drycontactEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1",
+            "status" : "current",
+            "linkage" : [
+                "drycontactIndex",
+            ],
+        }, # row
+        "drycontactIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "drycontactDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "drycontactType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "drycontact-inout" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "drycontact-input" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "drycontact-array" : {
+                        "nodetype" : "namednumber",
+                        "number" : "22"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The type of the sensor; it represents the sensor's functionality. For the drycontact sensor, it has 3 sub-types: drycontact-input, drycontact-output and drycontact-array.""",
+        }, # column
+        "drycontactStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "outputLow" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "outputHigh" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "drycontactGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "drycontactDirection" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.22",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "input" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "output" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The functional direction of this drycontact sensors: use value '0' for input drycontact and '1' for output drycontact""",
+        }, # column
+        "drycontactNormalState" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.23",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "closed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "open" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The normal state of the input drycontact. If an input switch is in this state it is normal, else it is critical. An open drycontact senses +5 volts. A closed drycontact senses 0 volts.""",
+        }, # column
+        "drycontactControlMode" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.24",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "manual-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "sensor-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "time-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "thermostat-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The Control Mode for controlling this drycontact sensor with, it can be one of these: Manual, Notification, Time, Thermostat.""",
+        }, # column
+        "drycontactOutputManualCycleTime" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.25",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds that the drycontact will stay in a state, before changing to the next state in case the cycle action have been used.""",
+        }, # column
+        "drycontactOutputManualAction" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "low" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "high" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "cycle-Low-High-Low" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "cycle-High-Low-High" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The manual output control for the drycontact state: Low, High, Toggle Low-High, Toggle High-Low.""",
+        }, # column
+        "drycontactPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "drycontactSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors.""",
+        }, # column
+        "drycontactCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "drycontactNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "drycontactOnDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'On' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "drycontactOffDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.53",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Off' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "drycontactCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "drycontactNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "drycontactOnColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.60",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'On' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "drycontactOffColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.61",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Off' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "drycontactAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "drycontactId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.4.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "current4to20mATable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each 4-20mAmp sensor""",
+        }, # table
+        "current4to20mAEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1",
+            "status" : "current",
+            "linkage" : [
+                "current4to20mAIndex",
+            ],
+        }, # row
+        "current4to20mAIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "current4to20mADescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mAValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The value in numerical reading.""",
+        }, # column
+        "current4to20mAUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's value unit string, in what the sensor's value is read in.""",
+        }, # column
+        "current4to20mAStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "current4to20mAGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "current4to20mALowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mALowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mAHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mAHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mARearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """This value tells how many values the sensor has to reach beyond the threshold value, before changing to a new status. Useful to prevent the quick fluctuation of readings.""",
+        }, # column
+        "current4to20mADelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Error' status before its status is changed.""",
+        }, # column
+        "current4to20mADelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Normal' status before its status is changed.""",
+        }, # column
+        "current4to20mADelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Critical' status before its status is changed.""",
+        }, # column
+        "current4to20mADelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Warning' status before its status is changed.""",
+        }, # column
+        "current4to20mADelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Warning' status before its status is changed.""",
+        }, # column
+        "current4to20mADelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Critical' status before its status is changed.""",
+        }, # column
+        "current4to20mARaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "current4to20mAOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The offset value for this sensor. It's used to adjust the reading value in case the reading is incorrect.""",
+        }, # column
+        "current4to20mAAmountMaxVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.33",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum scale of 4to20mA conversion.""",
+        }, # column
+        "current4to20mAAmountBaseVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.34",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base scale of 4to20mA conversion.""",
+        }, # column
+        "current4to20mAPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "current4to20mASubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors. For Temperature Sensor, it's for the array of Temperature Sensors and Dual Sensors.  For example x.1, x.2, x.3 ...""",
+        }, # column
+        "current4to20mAMaxVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.43",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum range for use in conversion.""",
+        }, # column
+        "current4to20mABaseVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.44",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base range for use in conversion.""",
+        }, # column
+        "current4to20mADisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "current4to20mAHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mALowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mANormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mALowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mAHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mASensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mAHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mALowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mANormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mALowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mAHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mASensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "current4to20mAAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "current4to20mAId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.5.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "dcVoltageTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each DC voltage sensor""",
+        }, # table
+        "dcVoltageEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1",
+            "status" : "current",
+            "linkage" : [
+                "dcVoltageIndex",
+            ],
+        }, # row
+        "dcVoltageIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "dcVoltageDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The value in numerical reading.""",
+        }, # column
+        "dcVoltageUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's value unit string, in what the sensor's value is read in.""",
+        }, # column
+        "dcVoltageStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "dcVoltageGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "dcVoltageLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """This value tells how many values the sensor has to reach beyond the threshold value, before changing to a new status. Useful to prevent the quick fluctuation of readings.""",
+        }, # column
+        "dcVoltageDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Error' status before its status is changed.""",
+        }, # column
+        "dcVoltageDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Normal' status before its status is changed.""",
+        }, # column
+        "dcVoltageDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Critical' status before its status is changed.""",
+        }, # column
+        "dcVoltageDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Warning' status before its status is changed.""",
+        }, # column
+        "dcVoltageDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Warning' status before its status is changed.""",
+        }, # column
+        "dcVoltageDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Critical' status before its status is changed.""",
+        }, # column
+        "dcVoltageRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "dcVoltageOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The offset value for this sensor. It's used to adjust the reading value in case the reading is incorrect.""",
+        }, # column
+        "dcVoltageJumper" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.32",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "jumperAt-60" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-600"
+                    },
+                    "jumperAt-40" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-400"
+                    },
+                    "jumperAt-30" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-300"
+                    },
+                    "jumperAt-20" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-200"
+                    },
+                    "jumperAt-10" : {
+                        "nodetype" : "namednumber",
+                        "number" : "-100"
+                    },
+                    "jumperAt10" : {
+                        "nodetype" : "namednumber",
+                        "number" : "100"
+                    },
+                    "jumperAt20" : {
+                        "nodetype" : "namednumber",
+                        "number" : "200"
+                    },
+                    "jumperAt30" : {
+                        "nodetype" : "namednumber",
+                        "number" : "300"
+                    },
+                    "jumperAt40" : {
+                        "nodetype" : "namednumber",
+                        "number" : "400"
+                    },
+                    "jumperAt60" : {
+                        "nodetype" : "namednumber",
+                        "number" : "600"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Selected voltage scale (jumper 0) in DC voltage conversion.""",
+        }, # column
+        "dcVoltageAmountMaxVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.33",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum scale of DC voltage conversion.""",
+        }, # column
+        "dcVoltageAmountBaseVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.34",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base scale of DC voltage conversion.""",
+        }, # column
+        "dcVoltagePort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "dcVoltageSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors. For Temperature Sensor, it's for the array of Temperature Sensors and Dual Sensors.  For example x.1, x.2, x.3 ...""",
+        }, # column
+        "dcVoltageMaxVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.43",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum voltage range for use in conversion.""",
+        }, # column
+        "dcVoltageBaseVoltage" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.44",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base voltage range for use in conversion.""",
+        }, # column
+        "dcVoltageDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "dcVoltageHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageSensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "dcVoltageAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "dcVoltageId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.6.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "airflowTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each airflow sensor""",
+        }, # table
+        "airflowEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1",
+            "status" : "current",
+            "linkage" : [
+                "airflowIndex",
+            ],
+        }, # row
+        "airflowIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "airflowDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "airflowValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The value in numerical reading.""",
+        }, # column
+        "airflowStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "airflowGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "airflowLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "airflowLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "airflowHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "airflowHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "airflowRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """This value tells how many values the sensor has to reach beyond the threshold value, before changing to a new status. Useful to prevent the quick fluctuation of readings.""",
+        }, # column
+        "airflowDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Error' status before its status is changed.""",
+        }, # column
+        "airflowDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Normal' status before its status is changed.""",
+        }, # column
+        "airflowDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Critical' status before its status is changed.""",
+        }, # column
+        "airflowDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Warning' status before its status is changed.""",
+        }, # column
+        "airflowDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Warning' status before its status is changed.""",
+        }, # column
+        "airflowDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Critical' status before its status is changed.""",
+        }, # column
+        "airflowRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "airflowPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "airflowSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors.""",
+        }, # column
+        "airflowDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "airflowHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "airflowLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "airflowNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "airflowLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "airflowHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "airflowSensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "airflowHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "airflowLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "airflowNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "airflowLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "airflowHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "airflowSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "airflowAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "airflowId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.7.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "motionTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "motionEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1",
+            "status" : "current",
+            "linkage" : [
+                "motionIndex",
+            ],
+        }, # row
+        "motionIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "motionDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Description of this sensor Switch""",
+        }, # column
+        "motionStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this Sensor, only input switches have a status""",
+        }, # column
+        "motionGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """To take offline enter a 2""",
+        }, # column
+        "motionPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor port""",
+        }, # column
+        "motionSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Sensor sub port""",
+        }, # column
+        "motionCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Description of this sensor""",
+        }, # column
+        "motionNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Description of this sensor""",
+        }, # column
+        "motionCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Critical Color of this sensor""",
+        }, # column
+        "motionNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """A Normal Color of this sensor""",
+        }, # column
+        "motionAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Motion sensor acknowledge""",
+        }, # column
+        "motionId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.8.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "waterTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each water sensor""",
+        }, # table
+        "waterEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1",
+            "status" : "current",
+            "linkage" : [
+                "waterIndex",
+            ],
+        }, # row
+        "waterIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "waterDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "waterStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "waterGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "waterPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "waterSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors. For Temperature Sensor, it's for the array of Temperature Sensors and Dual Sensors.  For example x.1, x.2, x.3 ...""",
+        }, # column
+        "waterCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "waterNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "waterCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "waterNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "waterAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "waterId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.9.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "securityTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each security sensor""",
+        }, # table
+        "securityEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1",
+            "status" : "current",
+            "linkage" : [
+                "securityIndex",
+            ],
+        }, # row
+        "securityIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "securityDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "securityStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "securityGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "securityPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "securitySubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors.""",
+        }, # column
+        "securityCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "securityNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "securityCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "securityNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "securityAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "securityId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.10.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "sirenTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for siren sensor.""",
+        }, # table
+        "sirenEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1",
+            "status" : "current",
+            "linkage" : [
+                "sirenIndex",
+            ],
+        }, # row
+        "sirenIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "sirenDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "sirenStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "sirenGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "sirenControlMode" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.24",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "manual-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "sensor-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "time-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "thermostat-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The Control Mode for controlling this siren sensor with, it can be one of these: Manual, Notification, Time, Thermostat.""",
+        }, # column
+        "sirenManualCycleTime" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.25",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds that the relay will stay in a state, before changing to the next state in case the cycle action have been used.""",
+        }, # column
+        "sirenManualAction" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "turn-On" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "turn-Off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "cycle-On-Off-On" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "cycle-Off-On-Off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The manual control for the relay state: Off, On, Toggle Off-On, Toggle On-Off.""",
+        }, # column
+        "sirenPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "sirenSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors.""",
+        }, # column
+        "sirenOnDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'On' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "sirenOffDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.53",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Off' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "sirenOnColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.60",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'On' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "sirenOffColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.61",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Off' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "sirenAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "sirenId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.11.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "relayTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each relay sensor""",
+        }, # table
+        "relayEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1",
+            "status" : "current",
+            "linkage" : [
+                "relayIndex",
+            ],
+        }, # row
+        "relayIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "relayDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "relayType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "relay" : {
+                        "nodetype" : "namednumber",
+                        "number" : "13"
+                    },
+                    "xrelay" : {
+                        "nodetype" : "namednumber",
+                        "number" : "19"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The type of the sensor; it represents the sensor's functionality. For the relay sensor, it has 2 sub-type: normal relay, and xrelay.""",
+        }, # column
+        "relayStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "relayGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "relayControlMode" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.24",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "manual-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "sensor-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "time-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "thermostat-control" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The Control Mode for controlling this relay sensor with, it can be one of these: Manual, Notification, Time, Thermostat.""",
+        }, # column
+        "relayManualCycleTime" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.25",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "1",
+                        "max" : "255"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds that the relay will stay in a state, before changing to the next state in case the cycle action have been used.""",
+        }, # column
+        "relayManualAction" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "turn-On" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "turn-Off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "cycle-On-Off-On" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "cycle-Off-On-Off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The manual control for the relay state: Off, On, Toggle Off-On, Toggle On-Off.""",
+        }, # column
+        "relayPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "relaySubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor on the array of a relay (xelay) sensor. For example x.1, x.2, x.3 ...""",
+        }, # column
+        "relayOnDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.52",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'On' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "relayOffDesc" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.53",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Off' Description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "relayOnColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.60",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'On' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "relayOffColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.61",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Off' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "relayAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "relayId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.12.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "acVoltageTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each AC voltage sensor""",
+        }, # table
+        "acVoltageEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1",
+            "status" : "current",
+            "linkage" : [
+                "acVoltageIndex",
+            ],
+        }, # row
+        "acVoltageIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "acVoltageDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "acVoltageStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "acVoltageGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "acVoltagePort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "acVoltageSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor on the array of sensors.""",
+        }, # column
+        "acVoltageCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "acVoltageNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "acVoltageCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "acVoltageNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "acVoltageAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "acVoltageId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.13.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "smokeTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each smoke sensor""",
+        }, # table
+        "smokeEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1",
+            "status" : "current",
+            "linkage" : [
+                "smokeIndex",
+            ],
+        }, # row
+        "smokeIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "smokeDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "smokeStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                    "relayOn" : {
+                        "nodetype" : "namednumber",
+                        "number" : "8"
+                    },
+                    "relayOff" : {
+                        "nodetype" : "namednumber",
+                        "number" : "9"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "smokeGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "smokePort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "smokeSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors.""",
+        }, # column
+        "smokeCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "smokeNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "smokeCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "smokeNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "smokeAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "smokeId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.14.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "waterRopeTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each water rope sensor""",
+        }, # table
+        "waterRopeEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1",
+            "status" : "current",
+            "linkage" : [
+                "waterRopeIndex",
+            ],
+        }, # row
+        "waterRopeIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "waterRopeDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "waterRopeLeakLocation" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Location of leakage from the begining of water rope sensor.""",
+        }, # column
+        "waterRopeUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's value unit string, in what the sensor's value is read in.""",
+        }, # column
+        "waterRopeStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "waterRopeGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "waterRopeRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "waterRopeCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "waterRopeNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "waterRopeSensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "waterRopeCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "waterRopeNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "waterRopeSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "waterRopeAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "waterRopeLength" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.100",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """Length of water rope sensor.""",
+        }, # column
+        "waterRopeImpedance" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.101",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """Sensing wire impedance per meter value times 100""",
+        }, # column
+        "waterRopeType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.103",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "custom" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "water" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "fuel" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The type of the sensor; it represents the sensor's functionality.""",
+        }, # column
+        "waterRopeId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.21.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "powerTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each power sensor""",
+        }, # table
+        "powerEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1",
+            "status" : "current",
+            "linkage" : [
+                "powerIndex",
+            ],
+        }, # row
+        "powerIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "powerDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "powerValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The value in numerical reading.""",
+        }, # column
+        "powerUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's value unit string, in what the sensor's value is read in.""",
+        }, # column
+        "powerStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "powerGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "powerLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "powerLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "powerHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "powerHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "powerRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """This value tells how many value the sensor has to reach beyond the threshold value, before changing to a new status. Useful to prevent the quick fluctuation of readings.""",
+        }, # column
+        "powerDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Error' status before its status is changed.""",
+        }, # column
+        "powerDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Normal' status before its status is changed.""",
+        }, # column
+        "powerDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Critical' status before its status is changed.""",
+        }, # column
+        "powerDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Warning' status before its status is changed.""",
+        }, # column
+        "powerDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Warning' status before its status is changed.""",
+        }, # column
+        "powerDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65535"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Critical' status before its status is changed.""",
+        }, # column
+        "powerRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "powerPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "powerSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Integer32",
+                    "ranges" : [
+                    {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "0",
+                        "max" : "65534"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors.""",
+        }, # column
+        "powerDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "powerHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "powerLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "powerNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "powerLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "powerHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "powerSensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "powerHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "powerLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "powerNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "powerLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "powerHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "powerSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "powerValueFormatString" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.66",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The string-based reading value in this sensor.""",
+        }, # column
+        "powerValueFormatFloat" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.67",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "OctetString",
+                    "parent module" : {
+                        "name" : "SNMPv2-SMI",
+                        "type" : "Opaque",
+                    },
+                    "ranges" : [
+                    {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                    ],
+                    "range" : {
+                        "min" : "4",
+                        "max" : "4"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The floating-point IEEE Standard 754 reading value in this sensor.""",
+        }, # column
+        "powerAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "powerId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.22.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "fuelTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each fuel sensor""",
+        }, # table
+        "fuelEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1",
+            "status" : "current",
+            "linkage" : [
+                "fuelIndex",
+            ],
+        }, # row
+        "fuelIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "fuelDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "fuelValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value in this sensor""",
+        }, # column
+        "fuelUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's value unit string, in what the sensor's value is read in.""",
+        }, # column
+        "fuelStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "fuelGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "fuelLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "fuelLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "fuelHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "fuelHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "fuelRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """This value tells how many value the sensor has to reach beyond the threshold value, before changing to a new status. Useful to prevent the quick fluctuation of readings.""",
+        }, # column
+        "fuelDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Error' status before its status is changed.""",
+        }, # column
+        "fuelDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Normal' status before its status is changed.""",
+        }, # column
+        "fuelDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Critical' status before its status is changed.""",
+        }, # column
+        "fuelDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Warning' status before its status is changed.""",
+        }, # column
+        "fuelDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Warning' status before its status is changed.""",
+        }, # column
+        "fuelDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Critical' status before its status is changed.""",
+        }, # column
+        "fuelRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "fuelAmountMaxValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.33",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The maximum scale of value conversion.""",
+        }, # column
+        "fuelAmountBaseValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.34",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The base scale of value conversion.""",
+        }, # column
+        "fuelDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "fuelHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "fuelLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "fuelNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "fuelLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "fuelHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "fuelSensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "fuelHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "fuelLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "fuelNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "fuelLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "fuelHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "fuelSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "fuelAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "fuelId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.24.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "tankSenderTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26",
+            "status" : "current",
+            "description" :
+                """This table contains the property and reading value for every sensor.""",
+        }, # table
+        "tankSenderEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1",
+            "status" : "current",
+            "linkage" : [
+                "tankSenderIndex",
+            ],
+        }, # row
+        "tankSenderIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "tankSenderDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor value in numerical reading.""",
+        }, # column
+        "tankSenderUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's value unit string, in what the sensor's value is read in.""",
+        }, # column
+        "tankSenderStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "tankSenderGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "tankSenderLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """This value tells how many value the sensor has to reach beyond the threshold value, before changing to a new status. Useful to prevent the quick fluctuation of readings.""",
+        }, # column
+        "tankSenderDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Error' status before its status is changed.""",
+        }, # column
+        "tankSenderDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Normal' status before its status is changed.""",
+        }, # column
+        "tankSenderDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Critical' status before its status is changed.""",
+        }, # column
+        "tankSenderDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Warning' status before its status is changed.""",
+        }, # column
+        "tankSenderDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Warning' status before its status is changed.""",
+        }, # column
+        "tankSenderDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Critical' status before its status is changed.""",
+        }, # column
+        "tankSenderRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "tankSenderDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "tankSenderHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderSensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderSensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "tankSenderAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "tankSenderId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.26.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "doorTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each door sensor""",
+        }, # table
+        "doorEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1",
+            "status" : "current",
+            "linkage" : [
+                "doorIndex",
+            ],
+        }, # row
+        "doorIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "doorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "doorValue" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The reading value for this sensor. It will be used to calculate the sensor status.""",
+        }, # column
+        "doorStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "closed" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "heldOpen" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "fire" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "opened" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "forceOpened" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "doorUnlockPeriod" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1.62",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds for the door to stay unlocked before it is automatically locked again.""",
+        }, # column
+        "doorOpenPeriod" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1.63",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds for the door to stay in the 'Open' status before it sends the alert 'Door is held open'.""",
+        }, # column
+        "doorCmd" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1.64",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "none" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "trig-open" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "trig-close" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The Door Sensor's command, used to open/close the door.""",
+        }, # column
+        "doorAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "doorId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.27.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "temperatureArrayTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each temperature array sensor""",
+        }, # table
+        "temperatureArrayEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1",
+            "status" : "current",
+            "linkage" : [
+                "temperatureArrayIndex",
+            ],
+        }, # row
+        "temperatureArrayIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "temperatureArrayDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayType" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.3",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "temperature" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "thermocouple" : {
+                        "nodetype" : "namednumber",
+                        "number" : "20"
+                    },
+                    "arraytemp" : {
+                        "nodetype" : "namednumber",
+                        "number" : "23"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The type of the sensor; it represents the sensor's functionality. For the temperature sensor, it has 3 sub-types: Normal temperature sensor, One-wire temperature sensor, and Thermocouple sensor.""",
+        }, # column
+        "temperatureArrayDegree" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.4",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The temperature degree value in numerical reading.""",
+        }, # column
+        "temperatureArrayUnit" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.5",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's value unit string, in what the sensor's value is read in. For the temperature sensor it can be Celsius or Fahrenheit.""",
+        }, # column
+        "temperatureArrayStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "highWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "3"
+                    },
+                    "highCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "4"
+                    },
+                    "lowWarning" : {
+                        "nodetype" : "namednumber",
+                        "number" : "5"
+                    },
+                    "lowCritical" : {
+                        "nodetype" : "namednumber",
+                        "number" : "6"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "temperatureArrayGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "temperatureArrayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.9",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.10",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.11",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.12",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' value of this sensor. The unit will check the current reading against this value, and send an alert if it's configured. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayRearm" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.13",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """This value tells how many degrees the sensor has to reach beyond the threshold value, before changing to a new status. Useful to prevent the quick fluctuation of readings.""",
+        }, # column
+        "temperatureArrayDelayError" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.14",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Error' status before its status is changed.""",
+        }, # column
+        "temperatureArrayDelayNormal" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.15",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Normal' status before its status is changed.""",
+        }, # column
+        "temperatureArrayDelayLowCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Critical' status before its status is changed.""",
+        }, # column
+        "temperatureArrayDelayLowWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'Low Warning' status before its status is changed.""",
+        }, # column
+        "temperatureArrayDelayHighWarning" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Warning' status before its status is changed.""",
+        }, # column
+        "temperatureArrayDelayHighCritical" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The time in seconds (continuous time) that the sensor has to be in 'High Critical' status before its status is changed.""",
+        }, # column
+        "temperatureArrayRaw" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The sensor's unformatted (raw) value that is being read directly from sensor, before it is converted to the preferred value.""",
+        }, # column
+        "temperatureArrayOffset" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The offset value for this sensor. It's used to adjust the reading value in case the reading is incorrect.""",
+        }, # column
+        "temperatureArrayPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "temperatureArraySubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors. For Temperature Sensor, it's for the array of Temperature Sensors and Dual Sensors.  For example x.1, x.2, x.3 ...""",
+        }, # column
+        "temperatureArrayDisplayStyle" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.45",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "basic" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "gauge" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The sensor's Display Style for the Web UI, to display the reading as a gauge or bar. 0 = bar style, 1 = gauge style.""",
+        }, # column
+        "temperatureArrayHighCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.46",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayLowCriticalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.47",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArraySensorNormalDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.48",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayLowWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.49",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayHighWarningDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.50",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArraySensorErrorDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.51",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayHighCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.54",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayLowCriticalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.55",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Critical' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArraySensorNormalColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.56",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Normal' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayLowWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.57",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Low Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayHighWarningColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.58",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'High Warning' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArraySensorErrorColor" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.59",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified 'Sensor Error' status field color. The unit will show this color on its web interface and in DCIM. Unless specified, the default value is used.""",
+        }, # column
+        "temperatureArrayAcknowledge" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.70",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "not-acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "acked" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "ack" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The acknowledge status for the current status of the sensor: 0 = the status has been changed and waiting to be acknowledged, 1 = status is normal or have been already acknowledged, 2 = acknowledge the current status (this status is write-only)""",
+        }, # column
+        "temperatureArraySerialNumber" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.71",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The serial number of temperature sensor, used to indicate which sensor it is in an array. It matches the MAC ID of the sensor for a DCT sensor array.""",
+        }, # column
+        "temperatureArrayId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.28.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "towerLEDTable" : {
+            "nodetype" : "table",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29",
+            "status" : "current",
+            "description" :
+                """This table contains the properties for each TowerLED sensor""",
+        }, # table
+        "towerLEDEntry" : {
+            "nodetype" : "row",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1",
+            "status" : "current",
+            "linkage" : [
+                "towerLEDIndex",
+            ],
+        }, # row
+        "towerLEDIndex" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.1",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor Compound ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "towerLEDDescription" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.2",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"RFC1213-MIB", "name" : "DisplayString"},
+            },
+            "access" : "readwrite",
+            "description" :
+                """The user specified description of this sensor. Unless specified, the default value is used.""",
+        }, # column
+        "towerLEDStatus" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.6",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "noStatus" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "normal" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                    "sensorError" : {
+                        "nodetype" : "namednumber",
+                        "number" : "7"
+                    },
+                },
+            },
+            "access" : "readonly",
+            "description" :
+                """The current status of this sensor.""",
+        }, # column
+        "towerLEDGoOffline" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.8",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "online" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "goOffline" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Command to offline this sensor: use value '2' to set the sensor offline.""",
+        }, # column
+        "towerLEDPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.35",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The device's sensor port number, where this sensor is plugged in to.""",
+        }, # column
+        "towerLEDSubPort" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.36",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The logical port number of this sensor in the array, or in a set of sensors.""",
+        }, # column
+        "towerLEDControlMode" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.72",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "standard" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "worst-status" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """The Control Mode for controlling towerLED sensor, it can be one of these: standard or worst-status""",
+        }, # column
+        "towerLEDBuzzerEnable" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.73",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "disabled" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "enabled" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """Enable internal TowerLED's buzzer""",
+        }, # column
+        "towerLEDRedLEDControl" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.74",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "led-off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "led-on" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "led-blink" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """LED control code to manage Red LED, it can be off, on or blink""",
+        }, # column
+        "towerLEDOrangeLEDControl" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.75",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "led-off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "led-on" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "led-blink" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """LED control code to manage Orange LED, it can be off, on or blink""",
+        }, # column
+        "towerLEDGreenLEDControl" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.76",
+            "status" : "current",
+            "syntax" : {
+                "type" :                 {
+                    "basetype" : "Enumeration",
+                    "led-off" : {
+                        "nodetype" : "namednumber",
+                        "number" : "0"
+                    },
+                    "led-on" : {
+                        "nodetype" : "namednumber",
+                        "number" : "1"
+                    },
+                    "led-blink" : {
+                        "nodetype" : "namednumber",
+                        "number" : "2"
+                    },
+                },
+            },
+            "access" : "readwrite",
+            "description" :
+                """LED control code to manage Green LED, it can be off, on or blink""",
+        }, # column
+        "towerLEDId" : {
+            "nodetype" : "column",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.5.29.1.1000",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"", "name" : "Integer32"},
+            },
+            "access" : "readonly",
+            "description" :
+                """The Sensor ID of this sensor, used to identify which sensor it is in the system configuration.""",
+        }, # column
+        "virtual" : {
+            "nodetype" : "node",
+            "moduleName" : "SPAGENT-MIB",
+            "oid" : "1.3.6.1.4.1.3854.3.6",
+        }, # node
     }, # nodes
 
     "notifications" : {
