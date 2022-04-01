@@ -175,12 +175,12 @@ class EntityTable(dict):
 
         self.clean()
 
-    @staticmethod
-    def is_module(entity):
+    def is_module(self, entity):
         return (
             entity['entPhysicalClass'] == 'module'
             and entity['entPhysicalIsFRU']
             and entity['entPhysicalSerialNum']
+            and not self.is_transceiver(entity)
         )
 
     @staticmethod
@@ -198,6 +198,10 @@ class EntityTable(dict):
     @staticmethod
     def is_fan(entity):
         return entity["entPhysicalClass"] == "fan"
+
+    def is_transceiver(self, entity):
+        transceiver_in_name = "transceiver" in entity['entPhysicalDescr'].lower()
+        return transceiver_in_name and self.get_nearest_port_parent(entity)
 
     def get_modules(self):
         """Return the subset of entities that are modules.
