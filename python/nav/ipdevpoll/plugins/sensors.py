@@ -77,7 +77,6 @@ class Sensors(Plugin):
                     "Found %d sensors from %s", len(all_sensors), type(mib).__name__
                 )
                 self._store_sensors(all_sensors)
-                break
 
     @defer.inlineCallbacks
     def mibfactory(self):
