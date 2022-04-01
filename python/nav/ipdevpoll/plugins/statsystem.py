@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -63,6 +64,7 @@ CPU_MIBS = {
 MEMORY_MIBS = {
     VENDOR_ID_CISCOSYSTEMS: [CiscoMemoryPoolMib],
     VENDOR_ID_HEWLETT_PACKARD: [NetswitchMib],
+    VENDOR_ID_JUNIPER_NETWORKS_INC: [JuniperMib],
 }
 
 
