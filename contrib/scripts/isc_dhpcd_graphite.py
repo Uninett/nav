@@ -11,6 +11,7 @@ import json
 from math import trunc
 import pathlib
 import pickle
+import re
 import socket
 import struct
 import subprocess
@@ -120,7 +121,8 @@ def exec_dhcpd_pools(config_file, cmd_path=DEFAULT_CMD_PATH, cmd_flags=""):
 
 # reformat the data
 def _clean_vlan(location):
-    return location.split("_", 1)[0]
+    regex = re.search("vlan\d+", location)
+    return regex.match
 
 
 def _tuplify(jsonblob, prefix):
