@@ -109,10 +109,9 @@ def parse_args():
 
 
 # run command and store json output
-def exec_dhcpd_pools(config_file, cmd_path=DEFAULT_CMD_PATH, cmd_flags=""):
-    flags = cmd_flags.split()
-    default_flags = f"-c {config_file} {FLAGS}".split()
-    cmd = [cmd_path] + list(default_flags) + list(flags)
+def exec_dhcpd_pools(config_file, cmd_path=DEFAULT_CMD_PATH):
+    flags = f"-c {config_file} {FLAGS}".split()
+    cmd = [cmd_path] + list(flags)
     result = subprocess.run(cmd, capture_output=True)
     if result.returncode:
         sys.exit(result.stderr)
