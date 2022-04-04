@@ -65,13 +65,15 @@ def parse_args():
         default=DEFAULT_CMD_PATH,
     )
     parser.add_argument(
-        "-p", "--prefix",
+        "-p",
+        "--prefix",
         help="Path prefix to use for the metric, overriding the default",
         type=str,
         default=DEFAULT_PREFIX,
     )
     parser.add_argument(
-        "-l", "--location",
+        "-l",
+        "--location",
         help="Location, if any, to append to the metric prefix",
         type=str,
     )
