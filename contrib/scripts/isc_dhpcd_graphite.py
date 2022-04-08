@@ -164,7 +164,7 @@ def _tuplify(jsonblob, prefix):
 
 def _clean_vlan(location):
     regex = re.search("vlan\d+", location)
-    return regex.match
+    return regex.group()
 
 
 # send the data
