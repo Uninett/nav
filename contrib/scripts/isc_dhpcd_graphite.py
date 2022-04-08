@@ -122,24 +122,6 @@ def exec_dhcpd_pools(config_file, cmd_path=DEFAULT_CMD_PATH):
 
 
 # reformat the data
-def _clean_vlan(location):
-    regex = re.search("vlan\d+", location)
-    return regex.match
-
-
-def _tuplify(jsonblob, prefix):
-    timestamp = trunc(time())
-    data = jsonblob["shared-networks"]
-    output = list()
-    for vlan_stat in data:
-        vlan = _clean_vlan(vlan_stat["location"])
-        for key, metric in METRIC_MAPPER.items():
-            path = f"{prefix}.{vlan}.{metric}"
-            value = vlan_stat[key]
-            output.append(Metric(path, value, timestamp))
-    return output
-
-
 def render(jsonblob, prefix, protocol=DEFAULT_PROTOCOL):
     if isinstance(protocol, int):
         return _render_pickle(jsonblob, prefix, protocol)
@@ -165,6 +147,24 @@ def _render_pickle(jsonblob, prefix, protocol):
     header = struct.pack("!L", len(payload))
     message = header + payload
     return message
+
+
+def _tuplify(jsonblob, prefix):
+    timestamp = trunc(time())
+    data = jsonblob["shared-networks"]
+    output = list()
+    for vlan_stat in data:
+        vlan = _clean_vlan(vlan_stat["location"])
+        for key, metric in METRIC_MAPPER.items():
+            path = f"{prefix}.{vlan}.{metric}"
+            value = vlan_stat[key]
+            output.append(Metric(path, value, timestamp))
+    return output
+
+
+def _clean_vlan(location):
+    regex = re.search("vlan\d+", location)
+    return regex.match
 
 
 # send the data
