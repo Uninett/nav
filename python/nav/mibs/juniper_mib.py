@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 Uninett AS
+# Copyright (C) 2022 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -19,15 +20,20 @@ from twisted.internet import defer
 from nav.oids import OID
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
+from nav.mibs import reduce_index
 from nav.models.manage import PowerSupplyOrFan as FRU
 from nav.ipdevpoll.shadows import PowerSupplyOrFan, Device
+from nav.models.manage import Sensor
 
+MEGABYTE = 1024**2
 
 OPERATING_DESCR = "jnxOperatingDescr"
 OPERATING_CPU = "jnxOperatingCPU"
 LOAD_AVG_1MIN = "jnxOperating1MinLoadAvg"
 LOAD_AVG_5MIN = "jnxOperating1MinLoadAvg"
 LOAD_AVG_15MIN = "jnxOperating1MinLoadAvg"
+OPERATING_MEM = "jnxOperatingMemory"
+OPERATING_BUF = "jnxOperatingBuffer"
 
 FRU_STATUS_MAP = {
     "unknown": FRU.STATE_UNKNOWN,
@@ -40,6 +46,15 @@ FRU_STATUS_MAP = {
     "offline": FRU.STATE_DOWN,
     "diagnostic": FRU.STATE_WARNING,
     "standby": FRU.STATE_WARNING,
+}
+
+SENSOR_TABLES = {
+    'jnxOperatingTable': {
+        'descr': 'jnxOperatingDescr',
+        'unit': Sensor.UNIT_CELSIUS,
+        'readout': 'jnxOperatingTemp',
+        'internal_prefix': 'temperature',
+    },
 }
 
 
@@ -146,6 +161,64 @@ class JuniperMib(MibRetriever):
     get_fan_status = get_fru_status
     get_power_supply_status = get_fru_status
 
+    @defer.inlineCallbacks
+    def get_all_sensors(self):
+        """Returns a Deferred whose result is a list of sensor dictionaries"""
+        result = []
+        for table, config in SENSOR_TABLES.items():
+            sensors = yield self._get_sensors(config)
+            result.extend(sensors)
+        defer.returnValue(result)
+
+    @defer.inlineCallbacks
+    def _get_sensors(self, config):
+        """
+        Collects sensor columns according to the config dict, and translates
+        the results into sensor dicts.
+
+        """
+        columns = [config['descr'], config['readout']]
+
+        result = (
+            yield self.retrieve_columns(columns)
+            .addCallback(self.translate_result)
+            .addCallback(reduce_index)
+        )
+
+        sensors = (
+            self._row_to_sensor(config, index, row) for index, row in result.items()
+        )
+
+        defer.returnValue([s for s in sensors if s])
+
+    def _row_to_sensor(self, config, index, row):
+        """
+        Converts a collect SNMP table row into a sensor dict, using the
+        options defined in the config dict.
+
+        """
+        # Dont include sensor if temperature not set
+        readout = row.get(config['readout'], 0)
+        if not readout:
+            return
+
+        internal_name = config['internal_prefix'] + str(index)
+        descr = row.get(config['descr'], internal_name) + " Temperature"
+
+        mibobject = self.nodes.get(config['readout'])
+        readout_oid = str(mibobject.oid + str(index))
+
+        return {
+            'oid': readout_oid,
+            'unit_of_measurement': config['unit'],
+            'precision': 0,
+            'scale': None,
+            'description': descr,
+            'name': descr,
+            'internal_name': internal_name,
+            'mib': self.get_module_name(),
+        }
+
     @staticmethod
     def _translate_fru_status_value(oper_status):
         """Translates the FRU status value from the MIB to a NAV PSU status value.
@@ -154,6 +227,26 @@ class JuniperMib(MibRetriever):
 
         """
         return FRU_STATUS_MAP.get(oper_status, FRU.STATE_UNKNOWN)
+
+    @defer.inlineCallbacks
+    def get_memory_usage(self):
+        """Retrieves memory usage stats from a Juniper device.
+
+        :returns: A deferred whose result is a dict
+                  {slot_type: (used_bytes, free_bytes)}
+
+        """
+        result = dict()
+        slots = yield self.retrieve_columns(
+            [OPERATING_DESCR, OPERATING_MEM, OPERATING_BUF]
+        )
+        for row in slots.values():
+            total = row[OPERATING_MEM] * MEGABYTE
+            if total:
+                used = (row[OPERATING_BUF] / 100) * total
+                free = total - used
+                result[row[OPERATING_DESCR]] = (used, free)
+        defer.returnValue(result)
 
 
 def _fru_row_to_powersupply_or_fan(fru_row):
