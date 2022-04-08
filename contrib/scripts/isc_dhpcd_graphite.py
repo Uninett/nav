@@ -75,7 +75,11 @@ def parse_args():
     parser.add_argument(
         "-l",
         "--location",
-        help="Location, if any, to append to the metric prefix",
+        help=(
+            "Location, if any, to append to the metric prefix to build the path."
+            ' If the vlan is named "vlan1" and the location is "building1.cellar"'
+            " the resulting metric path would be PREFIX.building1.cellar.vlan1"
+        ),
         type=str,
     )
     protocol_choices = ("text",) + tuple(str(p) for p in PICKLE_PROTOCOL)
