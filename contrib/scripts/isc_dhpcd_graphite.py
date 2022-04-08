@@ -21,9 +21,10 @@ from time import time
 DEFAULT_PREFIX = "nav.dhcp"
 DEFAULT_CONFIG_FILE = "/etc/dhcpd/dhcpd.conf"
 DEFAULT_CMD_PATH = pathlib.Path("/usr/bin/dhcpd-pools")
-DEFAULT_PROTOCOL = 2  # Python 3: 3, Python 3.8+: 4
 DEFAULT_PORT = "2004"
+DEFAULT_PROTOCOL = 'text'  # MB doesn't trust pickle so we go with text
 
+# graphite likes pickle protocol 2. Python 3: 3, Python 3.8+: 4
 PICKLE_PROTOCOL = range(0, pickle.HIGHEST_PROTOCOL + 1)
 FLAGS = "-f j"
 METRIC_MAPPER = {
