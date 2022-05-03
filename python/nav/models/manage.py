@@ -33,10 +33,9 @@ import IPy
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import JSONField, Q
 from django.db.models.expressions import RawSQL
 from django.urls import reverse
-from django.contrib.postgres.fields import JSONField
 
 from nav import util
 from nav.adapters import HStoreField
