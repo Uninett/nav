@@ -52,6 +52,7 @@ from nav.metrics.templates import (
     metric_path_for_sensor,
     metric_path_for_prefix,
     metric_path_for_power,
+    metric_path_for_vlan_dhcp,
 )
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
@@ -1432,6 +1433,17 @@ class Vlan(models.Model):
                 ),
                 format='json',
             )
+
+    def get_dhcp_graph_url(self):
+        """Creates the graph url used for graphing dhcp stats for this vlan"""
+        path = partial(metric_path_for_vlan_dhcp, self.vlan)
+        ip_max = 'alias({0}, "Max addresses ")'.format(path('max'))
+        ip_cur = 'alias({0}, "Addresses in use")'.format(path('cur'))
+        ip_touch = 'alias({0}, "Expired addresses")'.format(path('touch'))
+        metrics = [ip_max, ip_cur, ip_touch]
+        return get_simple_graph_url(
+            metrics, title=f"DHCP stats for vlan {self.vlan}", format='json'
+        )
 
 
 class NetType(models.Model):
