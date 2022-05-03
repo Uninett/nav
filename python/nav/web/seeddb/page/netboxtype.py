@@ -56,7 +56,7 @@ def netboxtype(request):
 
 def netboxtype_list(request):
     info = NetboxTypeInfo()
-    query = NetboxType.objects.all()
+    query = NetboxType.objects.select_related("vendor").all()
     filter_form = NetboxTypeFilterForm(request.GET)
     value_list = ('name', 'vendor', 'description', 'sysobjectid')
     return render_list(
