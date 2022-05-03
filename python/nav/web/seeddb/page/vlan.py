@@ -80,15 +80,19 @@ class VlanForm(forms.ModelForm):
 
 def vlan_list(request):
     info = VlanInfo()
-    query = Vlan.objects.extra(
-        select={
-            'prefixes': (
-                "array_to_string("
-                "ARRAY(SELECT netaddr FROM prefix "
-                "WHERE vlanid=vlan.vlanid), ', ')"
-            )
-        }
-    ).all()
+    query = (
+        Vlan.objects.extra(
+            select={
+                'prefixes': (
+                    "array_to_string("
+                    "ARRAY(SELECT netaddr FROM prefix "
+                    "WHERE vlanid=vlan.vlanid), ', ')"
+                )
+            }
+        )
+        .select_related("net_type", "organization", "usage")
+        .all()
+    )
     filter_form = VlanFilterForm(request.GET)
     value_list = (
         'net_type',
