@@ -1,2 +1,2 @@
--r ../requirements/django22.txt
+-r ../requirements/django32.txt
 -r ../requirements/base.txt
