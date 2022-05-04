@@ -19,7 +19,7 @@ import hashlib
 import time
 import os
 from os.path import exists, join, splitext
-from PIL import Image
+from PIL import Image, ImageOps
 from django.db.models import Max
 
 THUMBNAILWIDTH = 300  # Maximum width for thumbnail
@@ -76,6 +76,6 @@ def save_image(image, imagefullpath):
 def save_thumbnail(imagename, imagedirectory, thumb_dir):
     """Save a thumbnail for this image"""
     create_image_directory(thumb_dir)
-    image = Image.open(join(imagedirectory, imagename))
+    image = ImageOps.exif_transpose(Image.open(join(imagedirectory, imagename)))
     image.thumbnail((THUMBNAILWIDTH, THUMBNAILHEIGHT))
     image.save(join(thumb_dir, imagename))
