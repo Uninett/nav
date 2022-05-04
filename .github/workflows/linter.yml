@@ -58,3 +58,4 @@ jobs:
           LINTER_RULES_PATH: /
           PYTHON_BLACK_CONFIG_FILE: pyproject.toml
           PYTHON_FLAKE8_CONFIG_FILE: tox.ini
+          FILTER_REGEX_EXCLUDE: .*python/nav/smidumps/.*
