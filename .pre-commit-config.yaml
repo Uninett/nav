@@ -1,3 +1,4 @@
+exclude: smidumps/
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
@@ -10,8 +11,8 @@ repos:
     -   id: flake8
         name: "Flake8: critical"
         args: ['--count', '--select=E9,F63,F7,F82', '--show-source', '--statistics']
+        exclude: smidumps/
 -   repo: https://github.com/psf/black
     rev: 22.1.0
     hooks:
     -   id: black
-        exclude: smidumps/
