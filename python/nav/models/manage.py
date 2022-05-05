@@ -41,7 +41,7 @@ from django.contrib.postgres.fields import JSONField
 from nav import util
 from nav.adapters import HStoreField
 from nav.bitvector import BitVector
-from nav.metrics.data import get_netboxes_availability
+from nav.metrics.data import get_netboxes_availability, get_metric_average
 from nav.metrics.graphs import get_simple_graph_url, Graph
 from nav.metrics.names import get_all_leaves_below
 from nav.metrics.templates import (
@@ -1436,14 +1436,25 @@ class Vlan(models.Model):
 
     def get_dhcp_graph_url(self):
         """Creates the graph url used for graphing dhcp stats for this vlan"""
-        path = partial(metric_path_for_vlan_dhcp, self.vlan)
-        ip_max = 'alias({0}, "Max addresses ")'.format(path('max'))
-        ip_cur = 'alias({0}, "Addresses in use")'.format(path('cur'))
-        ip_touch = 'alias({0}, "Expired addresses")'.format(path('touch'))
+        max, cur, touch = self.get_dhcp_metric_paths()
+        ip_max = f'alias({max}, "Max addresses")'
+        ip_cur = f'alias({cur}, "Addresses in use")'
+        ip_touch = f'alias({touch}, "Expired addresses")'
         metrics = [ip_max, ip_cur, ip_touch]
         return get_simple_graph_url(
             metrics, title=f"DHCP stats for vlan {self.vlan}", format='json'
         )
+
+    def has_dhcp_stats(self):
+        """Returns True if any DHCP statistic exists"""
+        for metric_path in self.get_dhcp_metric_paths():
+            if get_metric_average(metric_path):
+                return True
+
+    def get_dhcp_metric_paths(self):
+        """Returns a tuple with metric paths for max, cur and touch respectively"""
+        path = partial(metric_path_for_vlan_dhcp, self.vlan)
+        return (path('max'), path('cur'), path('touch'))
 
 
 class NetType(models.Model):

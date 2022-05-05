@@ -161,9 +161,11 @@
   <h2>DHCP graphs</h2>
 
   <ul class="small-block-grid-1 large-block-grid-2">
-    <li class="dhcpgraph graphitegraph" data-url="{{ vlan.get_dhcp_graph_url }}">
-      <div class="rickshaw-container"></div>
-    </li>
+    {% if vlan.has_dhcp_stats %}
+      <li class="dhcpgraph graphitegraph" data-url="{{ vlan.get_dhcp_graph_url }}">
+        <div class="rickshaw-container"></div>
+      </li>
+    {% endif %}
   </ul>
 
 {% endblock %}
