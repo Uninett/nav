@@ -488,7 +488,7 @@ def report_cache(key_items, query_dict):
                        request, so these can be included in the cache key
     """
     keys = ['report'] + list(key_items) + [_query_dict_hash(query_dict)]
-    cache_key = ':'.join(str(k) for k in keys)
+    cache_key = ':'.join(str(k).replace(' ', '') for k in keys)
 
     def _decorator(func):
         def _cache_lookup(*args, **kwargs):
