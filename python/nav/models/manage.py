@@ -1442,7 +1442,7 @@ class Vlan(models.Model):
         ip_touch = f'alias({touch}, "Expired addresses")'
         metrics = [ip_max, ip_cur, ip_touch]
         return get_simple_graph_url(
-            metrics, title=f"DHCP stats for vlan {self.vlan}", format='json'
+            metrics, title=f"DHCP stats for vlan {str(self)}", format='json'
         )
 
     def has_dhcp_stats(self):
