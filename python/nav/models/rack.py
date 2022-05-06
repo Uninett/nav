@@ -59,7 +59,9 @@ class Rack(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, db_column='roomid')
     rackname = VarcharField(blank=True)
     ordering = models.IntegerField()
-    _configuration = VarcharField(default=None, db_column='configuration')
+    _configuration = models.JSONField(
+        default=None, db_column='configuration', encoder=RackEncoder
+    )
     __configuration = None
     item_counter = models.IntegerField(default=0, null=False, db_column='item_counter')
 
@@ -94,10 +96,6 @@ class Rack(models.Model):
             self.__configuration = self._configuration
 
         return self.__configuration
-
-    def save(self, *args, **kwargs):
-        self._configuration = json.dumps(self.configuration, cls=RackEncoder)
-        return super(Rack, self).save(*args, **kwargs)
 
     def _column(self, column):
         return self.configuration[column]
