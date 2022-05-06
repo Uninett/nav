@@ -40,6 +40,16 @@ class RackManager(models.Manager):
         return set(chain(*sensor_pks))
 
 
+class RackEncoder(json.JSONEncoder):
+    """JSON encoder for rack items"""
+
+    def default(self, obj):
+        if isinstance(obj, BaseRackItem):
+            return obj.to_json()
+        # Let the base class default method raise the TypeError
+        return json.JSONEncoder.default(self, obj)
+
+
 class Rack(models.Model):
     """A physical rack placed in a room."""
 
@@ -166,16 +176,6 @@ def rack_decoder(obj):
         if obj['__type__'] == 'SensorsSumRackItem':
             return SensorsSumRackItem(**obj)
     return obj
-
-
-class RackEncoder(json.JSONEncoder):
-    """TODO: Write doc"""
-
-    def default(self, obj):
-        if isinstance(obj, BaseRackItem):
-            return obj.to_json()
-        # Let the base class default method raise the TypeError
-        return json.JSONEncoder.default(self, obj)
 
 
 class BaseRackItem(object):
