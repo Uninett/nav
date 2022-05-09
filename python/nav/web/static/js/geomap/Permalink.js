@@ -68,10 +68,10 @@ function Permalink(htmlId, mapObj, parameters, listenHooks) {
     mapObj.addControl(this.permalinkControl);
     this.parameters = parameters;
 
-    var queryString = OpenLayers.Util.getParameters();
-    for (var i in parameters) {
-        if (i in queryString) {
-            parameters[i] = queryString[i];
+    var queryDict = OpenLayers.Util.getParameters();
+    for (var i in Object.keys(parameters)) {
+        if (i in queryDict) {
+            parameters[i] = queryDict[i];
         }
     }
 
