@@ -1436,10 +1436,10 @@ class Vlan(models.Model):
 
     def get_dhcp_graph_url(self):
         """Creates the graph url used for graphing dhcp stats for this vlan"""
-        max, cur, touch = self.get_dhcp_metric_paths()
-        ip_max = f'alias({max}, "Max addresses")'
-        ip_cur = f'alias({cur}, "Addresses in use")'
-        ip_touch = f'alias({touch}, "Expired addresses")'
+        max_path, cur_path, touch_path = self.get_dhcp_metric_paths()
+        ip_max = f'alias({max_path}, "Max addresses")'
+        ip_cur = f'alias({cur_path}, "Addresses in use")'
+        ip_touch = f'alias({touch_path}, "Expired addresses")'
         metrics = [ip_max, ip_cur, ip_touch]
         return get_simple_graph_url(
             metrics, title=f"DHCP stats for vlan {str(self)}", format='json'
