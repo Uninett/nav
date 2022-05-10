@@ -41,9 +41,9 @@ from django.contrib.postgres.fields import JSONField
 from nav import util
 from nav.adapters import HStoreField
 from nav.bitvector import BitVector
-from nav.metrics.data import get_netboxes_availability, get_metric_data
+from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url, Graph
-from nav.metrics.names import get_all_leaves_below
+from nav.metrics.names import get_all_leaves_below, raw_metric_query
 from nav.metrics.templates import (
     metric_prefix_for_interface,
     metric_prefix_for_ports,
@@ -1448,7 +1448,7 @@ class Vlan(models.Model):
     def has_dhcp_stats(self):
         """Returns True if any DHCP statistic exists"""
         for metric_path in self.get_dhcp_metric_paths():
-            if get_metric_data(metric_path):
+            if raw_metric_query(metric_path):
                 return True
 
     def get_dhcp_metric_paths(self):
