@@ -105,7 +105,7 @@ class Vendor(Shadow):
 class Module(Shadow):
     __shadowclass__ = manage.Module
     __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
-    event = EventFactory('ipdevpoll', 'eventEngine', 'moduleState')
+    module_state_event = EventFactory('ipdevpoll', 'eventEngine', 'moduleState')
 
     @classmethod
     def prepare_for_save(cls, containers):
@@ -219,7 +219,7 @@ class Module(Shadow):
                 shortlist,
             )
             for module in missing_modules:
-                cls.event.start(module.device, module.netbox, module.id).save()
+                cls.module_state_event.start(module.device, module.netbox, module.id).save()
 
         if reappeared_modules:
             shortlist = ", ".join(m.name for m in reappeared_modules)
@@ -230,7 +230,7 @@ class Module(Shadow):
                 shortlist,
             )
             for module in reappeared_modules:
-                cls.event.end(module.device, module.netbox, module.id).save()
+                cls.module_state_event.end(module.device, module.netbox, module.id).save()
 
     @classmethod
     def cleanup_after_save(cls, containers):
