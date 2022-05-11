@@ -49,6 +49,7 @@ from .gwpeers import GatewayPeerSession
 # Django models being shadowed:
 # pylint: disable=C0111
 
+device_state_event = EventFactory('ipdevpoll', 'eventEngine', 'deviceState')
 
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
@@ -142,6 +143,15 @@ class Module(Shadow):
         self._fix_binary_garbage()
         self._fix_missing_name()
         self._resolve_duplicate_names()
+
+    def save(self, containers):
+        is_new = not bool(self.get_existing_model())
+        super(Module, self).save(containers)
+        if is_new:
+            module = self.get_existing_model()
+            device_state_event.notify(
+                module.device, module.netbox, module.id, alert_type='registerModule'
+            ).save()
 
     def _fix_binary_garbage(self):
         """Fixes string attributes that appear as binary garbage."""
