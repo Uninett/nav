@@ -241,8 +241,13 @@ class Device(Shadow):
     __shadowclass__ = manage.Device
     __lookups__ = ['serial']
 
+    def __init__(self, *args, **kwargs):
+        super(Device, self).__init__(*args, **kwargs)
+        self.changed_versions = {}
+
     def prepare(self, containers):
         self._fix_binary_garbage()
+        self._detect_version_changes()
 
     def _fix_binary_garbage(self):
         """Fixes version strings that appear as binary garbage."""
@@ -258,6 +263,24 @@ class Device(Shadow):
                 self._logger.warning("Invalid value for %s: %r", attr, value)
                 setattr(self, attr, repr(value))
         self.clear_cached_objects()
+
+    def _detect_version_changes(self):
+        """
+        Detects if the software, hardware or firmware version changed for each device.
+
+        Saves this information in changed_versions in the Device instance.
+        """
+        old_device = self.get_existing_model()
+        if old_device:
+            changed_versions = set(self.get_diff_attrs(old_device)).intersection(
+                (
+                    'hardware_version',
+                    'software_version',
+                    'firmware_version',
+                )
+            )
+            for version in changed_versions:
+                self.changed_versions[version] = getattr(old_device, version)
 
 
 class Location(Shadow):
