@@ -1,0 +1,3 @@
+Subject: New device {{device.serial}}
+
+A new device {{device.serial}} has been created at {{time}}.
