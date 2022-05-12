@@ -270,6 +270,13 @@ class Device(Shadow):
                 setattr(self, attr, repr(value))
         self.clear_cached_objects()
 
+    def save(self, containers):
+        is_new = not bool(self.get_existing_model())
+        super(Device, self).save(containers)
+        if is_new:
+            device = self.get_existing_model()
+            device_state_event.notify(device, alert_type='newDevice').save()
+
 
 class Location(Shadow):
     __shadowclass__ = manage.Location
