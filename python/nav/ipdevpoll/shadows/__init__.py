@@ -49,6 +49,12 @@ from .gwpeers import GatewayPeerSession
 # Django models being shadowed:
 # pylint: disable=C0111
 
+ALERT_TYPE_MAPPING = {
+    "hardware_version": "deviceHwUpgrade",
+    "software_version": "deviceSwUpgrade",
+    "firmware_version": "deviceFwUpgrade",
+}
+
 
 class NetboxType(Shadow):
     __shadowclass__ = manage.NetboxType
@@ -240,6 +246,7 @@ class Module(Shadow):
 class Device(Shadow):
     __shadowclass__ = manage.Device
     __lookups__ = ['serial']
+    event = EventFactory('ipdevpoll', 'eventEngine', 'deviceNotice')
 
     def __init__(self, *args, **kwargs):
         super(Device, self).__init__(*args, **kwargs)
@@ -281,6 +288,23 @@ class Device(Shadow):
             )
             for version in changed_versions:
                 self.changed_versions[version] = getattr(old_device, version)
+
+    def cleanup(self, containers):
+        if self.changed_versions:
+            self._post_events_version_changes(containers)
+
+    def _post_events_version_changes(self, containers):
+        """Posts events for software, hardware or firmware changes."""
+        device = self.get_existing_model()
+        for alert_type, old_version in self.changed_versions.items():
+            self.event.notify(
+                device=device,
+                netbox=containers.get(None, Netbox).get_existing_model(),
+                alert_type=ALERT_TYPE_MAPPING[alert_type],
+                varmap={
+                    "old_version": old_version,
+                },
+            ).save()
 
 
 class Location(Shadow):
