@@ -313,6 +313,7 @@ class ArgumentParser(object):
         # Set a default operator
         operat = "="
         negate = "not " if field in self.negated else ""
+        multi = False
 
         if value == "null":
             operat, negate = ("is not", "") if negate else ("is", negate)
@@ -334,8 +335,13 @@ class ArgumentParser(object):
             elif fieldoper == "leq":
                 operat, negate = (">", "") if negate else ("<=", negate)
             elif fieldoper == "in":
-                operat = "in"
-                value = tuple(value.split(","))
+                if "*" in value:
+                    operat = "ilike"
+                    value = [elem.replace("*", "%") for elem in value.split(",")]
+                    multi = True
+                else:
+                    operat = "in"
+                    value = tuple(value.split(","))
 
             elif fieldoper == "between":
                 operat = "between %s and"
@@ -351,7 +357,11 @@ class ArgumentParser(object):
                     )
                     value = [None, None]
 
-        self.config.where.append(field + " " + negate + operat + " %s")
+        where_string = f"{field} {negate}{operat} %s"
+        if multi:
+            _combinator = " and " if negate else " or "
+            where_string = f"({_combinator.join(where_string for _ in value)})"
+        self.config.where.append(where_string)
         if isinstance(value, list):
             self.config.parameters.extend(value)
         else:
