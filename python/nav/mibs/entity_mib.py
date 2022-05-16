@@ -281,8 +281,6 @@ class EntityTable(dict):
     def clean(self):
         """Cleans the table data"""
 
-        if sys.version_info[0] == 2:  # Python 2 only
-            self._clean_unicode()
         self._parse_mfg_date()
         self._strip_whitespace()
         self._fix_broken_chassis_relative_positions()
@@ -350,28 +348,6 @@ class EntityTable(dict):
                 dupes[ent['entPhysicalName']].append(ent)
         dupes = dict((key, value) for key, value in dupes.items() if len(value) > 1)
         return dupes
-
-    def _clean_unicode(self, encoding="utf-8"):
-        """Decodes every string attribute of every entity as UTF-8.
-
-        Strings that cannot be successfully decoded as UTF-8 will instead be
-        encoded as a Python string repr (and debug logged).
-        """
-        for entity in self.values():
-            for key, value in entity.items():
-                if isinstance(value, bytes):
-                    try:
-                        new_value = value.decode(encoding)
-                    except UnicodeDecodeError:
-                        new_value = str(repr(value))
-                        _logger.debug(
-                            "cannot decode %s value as %s, using python "
-                            "string repr instead: %s",
-                            key,
-                            encoding,
-                            new_value,
-                        )
-                    entity[key] = new_value
 
 
 EIGHT_OCTET_DATEANDTIME = struct.Struct("HBBBBBB")

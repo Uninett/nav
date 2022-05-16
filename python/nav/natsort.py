@@ -24,14 +24,8 @@ An example of how to naturally sort a directory listing:
   foo = os.listdir('/path/to/bar')
   foo.sort(key=natsort.split)
 """
-import sys
 import re
 from functools import total_ordering
-
-if sys.version_info.major == 2:
-    _string_types = (basestring,)  # Python 2
-else:
-    _string_types = (str,)  # Python 3
 
 _split_pattern = re.compile(r'(\d+|\D+)')
 
@@ -51,7 +45,7 @@ class ComparableThing(object):
     """
 
     def __init__(self, value):
-        if isinstance(value, _string_types) and value.isdigit():
+        if isinstance(value, str) and value.isdigit():
             self.value = int(value)
         else:
             self.value = value
@@ -67,9 +61,7 @@ class ComparableThing(object):
 
         if isinstance(self.value, int) and not isinstance(other.value, int):
             return True
-        if isinstance(self.value, _string_types) and not isinstance(
-            other.value, _string_types
-        ):
+        if isinstance(self.value, str) and not isinstance(other.value, str):
             return False
 
         return self.value < other.value
