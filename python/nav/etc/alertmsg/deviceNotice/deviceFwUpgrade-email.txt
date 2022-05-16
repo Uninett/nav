@@ -1,0 +1,2 @@
+Subject: Device {{ device.get_extended_description }} had a firmware upgrade
+Device {{ device.get_extended_description }} had a firmware upgrade from version {{ old_version }} to version {{ device.firmware_version }}.
