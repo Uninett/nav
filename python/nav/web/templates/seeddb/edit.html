@@ -30,7 +30,9 @@
               {{ detail_page_name }}
           </a>
         {% else %}
-          "{{ detail_page_name }}"
+          {% if detail_page_name %}
+              "{{ detail_page_name }}"
+          {% endif %}
         {% endif %}
       </h4>
     </div>
