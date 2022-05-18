@@ -92,5 +92,5 @@ class EventFactory(object):
     def notify(self, device=None, netbox=None, subid='', varmap=None, alert_type=None):
         """Creates and returns a stateless event"""
         event = self.base(device, netbox, subid, varmap, alert_type or self.start_type)
-        event.event_type = event.STATE_STATELESS
+        event.state = event.STATE_STATELESS
         return event
