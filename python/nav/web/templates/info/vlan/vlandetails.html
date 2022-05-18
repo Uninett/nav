@@ -163,7 +163,7 @@
   <ul class="small-block-grid-1 large-block-grid-2">
     {% if graphite_error %}
       <span class="label alert">Graphite unreachable</span>
-    {% elif vlan.has_dhcp_stats %}
+    {% elif dhcp_graph_url %}
       <li class="dhcpgraph graphitegraph" data-url="{{ dhcp_graph_url }}">
         <div class="rickshaw-container"></div>
       </li>
