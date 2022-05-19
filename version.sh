@@ -29,7 +29,7 @@ get_version() {
 }
 
 get_version_from_changelog() {
-    head -n 2 CHANGES | awk '/^Version/ { print $2 }'
+    head -n10 CHANGELOG.md | awk '/^## \[[0-9]/ { print $2 }' | tr -d '[]'
 }
 
 git_tag_exists() {
