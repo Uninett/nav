@@ -44,6 +44,10 @@ jobs:
           echo "PGUSER=nav" >> $GITHUB_ENV
           echo "PGPASSWORD=password" >> $GITHUB_ENV
 
+      - name: "Update APT package lists"
+        run: |
+          apt-get update -y
+
       - name: "Install test runner dependencies"
         run: |
           set -xe
