@@ -73,8 +73,8 @@ def format_issue(issue):
 
 
 def format_issue_markdown(issue):
-    line = "- [#{number:<4}]({url}) ({title})"
-    return line.format(number=issue.number, title=issue.title, url=issue.html_url,)
+    line = "- {title} ([#{number:<4}]({url}))"
+    return line.format(number=issue.number, title=issue.title, url=issue.html_url)
 
 
 if __name__ == '__main__':
