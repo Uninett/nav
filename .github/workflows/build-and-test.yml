@@ -46,7 +46,7 @@ jobs:
 
       - name: "Update APT package lists"
         run: |
-          apt-get update -y
+          sudo apt-get update -y
 
       - name: "Install test runner dependencies"
         run: |
