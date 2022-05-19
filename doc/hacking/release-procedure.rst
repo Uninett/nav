@@ -66,8 +66,11 @@ Updating changelog and release notes
   ``pip install PyGithub``.
   (`PyGithub documentation <https://pygithub.readthedocs.io/en/latest/>`_)
 
-* Add a new entry to the CHANGES file for for the new release and paste the
-  list produced by the above command. Commit the changes::
+* Add a new entry :file:`CHANGELOG.md` for for the new release and paste the
+  list produced by the above command. Sort items into types of changes
+  according to the principles of `Keep A Changelog
+  <https://keepachangelog.com/en/1.0.0/>`_, and optionally change item titles
+  to be more end-user friendly if need be.  Commit the changes::
 
     git commit -m 'Update changelog for the upcoming X.Y.Z release'
 
