@@ -8,15 +8,35 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
-NAV 5.4 (not yet released)
-==========================
+NAV 5.4
+=======
+
 Dependency changes
 ------------------
+
+Changed dependencies
+~~~~~~~~~~~~~~~~~~~~
+
+These Python modules have changed version requirements:
+
+* :mod:`sphinx` ==4.4.0
+* :mod:`pynetsnmp-2` >=0.1.8,<0.2.0
+* :mod:`napalm` ==3.4.1
+
+New dependencies
+~~~~~~~~~~~~~~~~
+
+Dependencies to these Python modules have been added:
+
+* :mod:`sphinxcontrib-programoutput` ==0.17
+
 Removed dependencies
 ~~~~~~~~~~~~~~~~~~~~
 
-NAV no longer requires the :mod:`six` Python module. It was only needed under Python 2 to keep compatibility with both
-Python 2 and 3, but NAV 5.1 dropped support for Python 2.
+* The :mod:`six` Python module is no longer required. It was only needed under
+  Python 2 to keep compatibility with both Python 2 and 3, but NAV 5.1 dropped
+  support for Python 2.
+
 
 NAV 5.3
 =======
