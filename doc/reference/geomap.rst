@@ -401,18 +401,6 @@ what users actually want to see.
 Various small issues
 --------------------
 
-* The initial position and zoom level of the map (if none is specified
-  in the query string) is hardcoded in ``geomap.js``, and the chosen
-  position be regarded as a bit too Trondheim-centric for general use.
-
-  Some ideas for improvement:
-
-  * Make the initial position and zoom level configurable properties (add them
-    to the configuration file ``geomap/config.py``).
-
-  * Write some code to make a reasonable guess for a good default position
-    based on the positions of rooms in the database.
-
 * Geomap is tested almost exclusively in Firefox 3 on Ubuntu (it looks like it
   is working in Opera 9 on Ubuntu too).  Since there is a lot of JavaScript
   code here, there is great potential for differences between browsers.  It
