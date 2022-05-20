@@ -31,7 +31,7 @@ There are two types of resources in Geomap:
 
 1. The web page showing the map ( ``/geomap/[variant]/`` )
 2. Geographical network data in GeoJSON or KML format
-   ( ``/geo ap/[variant]/data?[parameters]`` )
+   ( ``/geomap/[variant]/data?[parameters]`` )
 
 Where ``[variant]`` represents a variant name defined in the configuration
 file.  The URL ``/geomap`` redirects to ``/geomap/[v]/``, where ``[v]`` is the
@@ -47,7 +47,8 @@ ignores them):
 
 ``bbox``
   Bounding box of area to display.  The format of this field follows the
-  definition of the "box" parameter in the `OpenSearch Geo extension`_.
+  definition of the "box" parameter in the `OpenSearch Geo extension`_
+  (a dump of the original wiki site can also be found on `Github`_).
 
 ``lat`` and ``lon``
   Position for center of map
@@ -63,7 +64,7 @@ ignores them):
 ``time``
   Selected time interval for load data.  Interval size (index, 1-5), dash,
   start time (``YYYYMMDDhhmm`).  The interval sizes are: 1: month; 2: week; 3:
-  day; 4: hour; 5: 5 minutes.  (See ``media/js/geomap/TimeInterval.js``)
+  day; 4: hour; 5: 10 minutes.  (See ``media/js/geomap/TimeInterval.js``)
 
 The arguments (``lat``, ``lon``, ``zoom``, ``layers``, ``time``) are intended
 to be used together.  They specify (more or less) the complete state of the
@@ -252,8 +253,8 @@ so sometimes it is useful to compare with the full documentation (or
 the source code).
 
 ================================= ==========================================================
-API documentation for OpenLayers  http://dev.openlayers.org/apidocs/files/OpenLayers-js.html
-Full documentation for OpenLayers http://dev.openlayers.org/docs/files/OpenLayers-js.html
+API documentation for OpenLayers  https://openlayers.org/en/latest/apidoc/
+Full documentation for OpenLayers https://openlayers.org/en/latest/doc/
 ================================= ==========================================================
 
 
@@ -363,7 +364,7 @@ showing the currently displayed area in Netmap.  The way to do this
 would be to listen on the map's ``moveend`` event to update the link
 each time the map is moved, and call ``getExtent()`` on the map to get the
 bounds to use in the link.
-(See http://dev.openlayers.org/apidocs/files/OpenLayers/Map-js.html)
+(See https://openlayers.org/en/latest/apidoc/)
 
 
 Link from Netmap to Geomap.
@@ -399,18 +400,6 @@ what users actually want to see.
 
 Various small issues
 --------------------
-
-* The initial position and zoom level of the map (if none is specified
-  in the query string) is hardcoded in ``geomap.js``, and the chosen
-  position be regarded as a bit too Trondheim-centric for general use.
-
-  Some ideas for improvement:
-
-  * Make the initial position and zoom level configurable properties (add them
-    to the configuration file ``geomap/config.py``).
-
-  * Write some code to make a reasonable guess for a good default position
-    based on the positions of rooms in the database.
 
 * Geomap is tested almost exclusively in Firefox 3 on Ubuntu (it looks like it
   is working in Opera 9 on Ubuntu too).  Since there is a lot of JavaScript
@@ -458,23 +447,10 @@ Various small issues
 
 
 
-
-Hacking tips
-============
-
-A large part of Geomap is JavaScript code.  A few tips for those
-unfamiliar with JavaScript:
-
-* Mozilla's `Core JavaScript Reference`_ describes the language and builtin
-  objects (The Geomap code tries to keep itself at JavaScript 1.5 in the hope
-  that it may not be very incompatible with old or obscure JavaScript
-  implementations).
-
-
-
 .. _OpenLayers: http://openlayers.org/
 .. _OpenStreetMap: http://openstreetmap.org/
-.. _OpenSearch Geo extension: http://www.opensearch.org/Specifications/OpenSearch/Extensions/Geo/1.0/Draft_1#The_.22box.22_parameter
+.. _OpenSearch Geo extension: https://web.archive.org/web/20180427065533/http://www.opensearch.org/Specifications/OpenSearch/Extensions/Geo/1.0/Draft_2#The_.22box.22_parameter
+.. _Github: https://github.com/dewitt/opensearch/blob/master/mediawiki/Specifications/OpenSearch/Extensions/Geo/1.0/Draft%202.wiki
 .. _rrdfetch: http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
 .. _Proj4js: http://proj4js.org/
 .. _Core JavaScript Reference: https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference
