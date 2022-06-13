@@ -117,10 +117,10 @@ def vlan_details(request, vlanid):
     navpath = get_path([(str(vlan), '')])
 
     try:
-        dhcp_graph_url = vlan.get_dhcp_graph_url()
+        has_dhcp_stats = vlan.has_dhcp_stats()
         graphite_error = False
     except GraphiteUnreachableError:
-        dhcp_graph_url = None
+        has_dhcp_stats = False
         graphite_error = True
 
     return render(
@@ -134,7 +134,7 @@ def vlan_details(request, vlanid):
             'has_v4': has_v4,
             'has_v6': has_v6,
             'title': create_title(navpath),
-            'dhcp_graph_url': dhcp_graph_url,
+            'has_dhcp_stats': has_dhcp_stats,
             'graphite_error': graphite_error,
         },
     )
