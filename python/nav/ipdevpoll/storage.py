@@ -455,11 +455,20 @@ class Shadow(object, metaclass=MetaShadow):
         """This method is run in a separate thread after containers have been
         saved, once for each type of container class.
 
+        This will invoke the cleanup method of each container object of the cls
+        type.
+
         Overriding this will enable a Shadow class to do things like database
         maintenance after changes have taken place.
 
+        The containers argument is the complete repository of containers
+        created during the job run, and can be sneakily modified by this method
+        if you are so inclined.
+
         """
-        pass
+        if cls in containers:
+            for container in containers[cls].values():
+                container.cleanup(containers)
 
     def prepare(self, containers):
         """Run by prepare_for_save before conversion of this object into a
@@ -533,6 +542,16 @@ class Shadow(object, metaclass=MetaShadow):
             return hasattr(other, attr) and myvalue != getattr(other, attr)
 
         return [a for a in self.get_touched() if _is_different(a)]
+
+    def cleanup(self, containers):
+        """This method is run in a separate thread after containers have been
+        saved, once for each container instance.
+
+        By default this method does nothing, but can be overridden for custom
+        logic.
+
+        """
+        pass
 
 
 def shadowify(model):
