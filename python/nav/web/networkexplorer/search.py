@@ -365,7 +365,7 @@ def vlan_search(vlan, exact=False):
     for gwportprefix in GwPortPrefix.objects.filter(prefix__in=matching_prefixes):
         gwport_matches.add(gwportprefix.interface)
 
-    for netbox in Netbox.objects.filter(netboxprefix__prefix__in=matching_prefixes):
+    for netbox in Netbox.objects.filter(netbox_prefix__prefix__in=matching_prefixes):
         netbox_search = search_expand_netbox(netbox=netbox)
         gwport_matches.update(netbox_search[0])
         swport_matches.update(netbox_search[1])

@@ -783,6 +783,7 @@ class Acknowledgement(models.Model):
         null=False,
         blank=False,
         primary_key=True,
+        related_name="acknowledgement",
     )
     account = models.ForeignKey(
         'Account', on_delete=models.CASCADE, null=False, blank=False

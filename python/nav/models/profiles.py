@@ -125,7 +125,7 @@ class Account(models.Model):
     def get_active_profile(self):
         """Returns the account's active alert profile"""
         try:
-            return self.alertpreference.active_profile
+            return self.alert_preference.active_profile
         except (AlertPreference.DoesNotExist, AlertProfile.DoesNotExist):
             pass
 
@@ -556,10 +556,18 @@ class AlertPreference(models.Model):
     """AlertProfile account preferences"""
 
     account = models.OneToOneField(
-        'Account', primary_key=True, on_delete=models.CASCADE, db_column='accountid'
+        'Account',
+        primary_key=True,
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        related_name="alert_preference",
     )
     active_profile = models.OneToOneField(
-        'AlertProfile', on_delete=models.CASCADE, db_column='activeprofile', null=True
+        'AlertProfile',
+        on_delete=models.CASCADE,
+        db_column='activeprofile',
+        null=True,
+        related_name="alert_preference",
     )
     last_sent_day = models.DateTimeField(db_column='lastsentday')
     last_sent_week = models.DateTimeField(db_column='lastsentweek')

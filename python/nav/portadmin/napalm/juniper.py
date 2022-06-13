@@ -287,7 +287,7 @@ class Juniper(ManagementHandler):
         interface.trunk = False
         interface.vlan = access_vlan
         try:
-            allowedvlans = interface.swportallowedvlan
+            allowedvlans = interface.sw_port_allowed_vlan
             allowedvlans.save()
         except manage.SwPortAllowedVlan.DoesNotExist:
             pass

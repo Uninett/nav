@@ -519,7 +519,7 @@ class SNMPHandler(ManagementHandler):
     @staticmethod
     def _set_interface_hex(interface, trunk_vlans):
         try:
-            allowedvlan = interface.swportallowedvlan
+            allowedvlan = interface.sw_port_allowed_vlan
         except SwPortAllowedVlan.DoesNotExist:
             allowedvlan = SwPortAllowedVlan(interface=interface)
 

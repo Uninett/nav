@@ -466,7 +466,7 @@ class Netbox(models.Model):
     def get_prefix(self):
         """Returns the prefix address for this netbox' IP address."""
         try:
-            return self.netboxprefix.prefix
+            return self.netbox_prefix.prefix
         except models.ObjectDoesNotExist:
             return None
 
@@ -793,7 +793,11 @@ class NetboxPrefix(models.Model):
     """
 
     netbox = models.OneToOneField(
-        'Netbox', on_delete=models.CASCADE, db_column='netboxid', primary_key=True
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        primary_key=True,
+        related_name="netbox_prefix",
     )
     prefix = models.ForeignKey(
         'Prefix',
@@ -1584,7 +1588,11 @@ class SwPortAllowedVlan(models.Model):
     """
 
     interface = models.OneToOneField(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid', primary_key=True
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        primary_key=True,
+        related_name="sw_port_allowed_vlan",
     )
     hex_string = VarcharField(db_column='hexstring')
     _cached_hex_string = ''
@@ -1887,7 +1895,7 @@ class Interface(models.Model):
         :rtype: nav.util.NumberRange
         """
         try:
-            allowed = self.swportallowedvlan.get_allowed_vlans()
+            allowed = self.sw_port_allowed_vlan.get_allowed_vlans()
         except SwPortAllowedVlan.DoesNotExist:
             pass
         else:
@@ -1983,7 +1991,7 @@ class Interface(models.Model):
             return ",".join(
                 as_range(y)
                 for x, y in groupby(
-                    sorted(self.swportallowedvlan.get_allowed_vlans()),
+                    sorted(self.sw_port_allowed_vlan.get_allowed_vlans()),
                     lambda n, c=count(): n - next(c),
                 )
             )
