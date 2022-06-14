@@ -123,7 +123,7 @@ def filter_netboxes(room):
 def roominfo(request, roomid):
     """Controller for displaying roominfo"""
     room = get_object_or_404(Room, id=roomid)
-    images = room.image_set.all()
+    images = room.images.all()
     navpath = get_path() + [(room.id,)]
     room.sorted_data = sorted(room.data.items())
     room.meta_data = get_room_meta(room)
