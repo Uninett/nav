@@ -1,9 +1,9 @@
 <div id="services">
-    {% if netbox and netbox.service_set.count %}
+    {% if netbox and netbox.services.count %}
         <table class="listtable">
             <caption>Services
                 at {{ netbox.get_short_sysname }}</caption>
-            {% with netbox.service_set.all as service_list %}
+            {% with netbox.services.all as service_list %}
                 {% include "ipdevinfo/service-list-table.html" %}
             {% endwith %}
         </table>

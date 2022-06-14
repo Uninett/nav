@@ -137,7 +137,7 @@ class MaintenanceTask(models.Model):
         """
         Returns the list of model objects involved in this task
         """
-        return [c.component for c in self.maintenancecomponent_set.all()]
+        return [c.component for c in self.maintenance_components.all()]
 
     def get_event_subjects(self):
         """
@@ -171,7 +171,10 @@ class MaintenanceComponent(models.Model):
 
     id = models.AutoField(primary_key=True)  # Serial for faking primary key
     maintenance_task = models.ForeignKey(
-        MaintenanceTask, on_delete=models.CASCADE, db_column='maint_taskid'
+        MaintenanceTask,
+        on_delete=models.CASCADE,
+        db_column='maint_taskid',
+        related_name="maintenance_components",
     )
     key = VarcharField()
     value = VarcharField()
@@ -191,10 +194,16 @@ class MessageToMaintenanceTask(models.Model):
 
     id = models.AutoField(primary_key=True)  # Serial for faking primary key
     message = models.ForeignKey(
-        Message, on_delete=models.CASCADE, db_column='messageid'
+        Message,
+        on_delete=models.CASCADE,
+        db_column='messageid',
+        related_name="messages_to_maintenance_tasks",
     )
     maintenance_task = models.ForeignKey(
-        MaintenanceTask, on_delete=models.CASCADE, db_column='maint_taskid'
+        MaintenanceTask,
+        on_delete=models.CASCADE,
+        db_column='maint_taskid',
+        related_name="messages_to_maintenance_tasks",
     )
 
     class Meta(object):

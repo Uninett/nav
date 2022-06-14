@@ -353,7 +353,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     # Only display services tab for certain instances
     display_services_tab = netbox and (
-        netbox.category.is_srv() or netbox.service_set.count()
+        netbox.category.is_srv() or netbox.services.count()
     )
 
     return render(
