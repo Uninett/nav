@@ -82,7 +82,7 @@ def overview(request):
     account = get_account(request)
 
     # Get information about user
-    groups = account.accountgroup_set.all()
+    groups = account.account_groups.all()
     try:
         active_profile = account.get_active_profile()
     except ObjectDoesNotExist:
@@ -2512,7 +2512,7 @@ def permission_list(request, group_id=None):
                 request, _('Requested account group does not exist.')
             )
 
-        permissions = AccountGroup.objects.get(pk=group_id).filtergroup_set.all()
+        permissions = AccountGroup.objects.get(pk=group_id).filter_groups.all()
 
     active = {'permissions': True}
     info_dict = {
@@ -2551,7 +2551,7 @@ def permissions_save(request):
         pk__in=request.POST.getlist('filter_group')
     )
 
-    group.filtergroup_set.set(filter_groups)
+    group.filter_groups.set(filter_groups)
 
     new_message(
         request,

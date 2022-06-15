@@ -52,7 +52,10 @@ class Message(models.Model):
         null=True,
     )
     maintenance_tasks = models.ManyToManyField(
-        'MaintenanceTask', through='MessageToMaintenanceTask', blank=True
+        'MaintenanceTask',
+        through='MessageToMaintenanceTask',
+        blank=True,
+        related_name="messages",
     )
 
     class Meta(object):
@@ -147,7 +150,7 @@ class MaintenanceTask(models.Model):
         subjects = []
         for component in self.get_components():
             if isinstance(component, (manage.Room, manage.NetboxGroup)):
-                subjects.extend(component.netbox_set.all())
+                subjects.extend(component.netboxes.all())
             elif isinstance(component, manage.Location):
                 for location in component.get_descendants(include_self=True):
                     subjects.extend(

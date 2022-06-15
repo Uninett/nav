@@ -276,5 +276,5 @@ class DevicegroupSearchProvider(SearchProvider):
             SearchResult(g.get_absolute_url(), g)
             for g in NetboxGroup.objects.filter(id__icontains=self.query)
             .order_by('id')
-            .annotate(num_netboxes=Count('netbox'))
+            .annotate(num_netboxes=Count('netboxes'))
         ]

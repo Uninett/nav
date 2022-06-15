@@ -105,7 +105,10 @@ class Account(models.Model):
     preferences = HStoreField(default=dict)
 
     organizations = models.ManyToManyField(
-        Organization, db_table='accountorg', blank=True
+        Organization,
+        db_table='accountorg',
+        blank=True,
+        related_name="accounts",
     )
 
     # Set this in order to provide a link to the actual operator when Account
@@ -136,7 +139,7 @@ class Account(models.Model):
         try:
             return self._cached_groups
         except AttributeError:
-            self._cached_groups = self.accountgroup_set.values_list('id', flat=True)
+            self._cached_groups = self.account_groups.values_list('id', flat=True)
             return self._cached_groups
 
     def get_privileges(self):
@@ -312,7 +315,10 @@ class AccountGroup(models.Model):
     name = VarcharField()
     description = VarcharField(db_column='descr')
     # FIXME this uses a view hack, was AccountInGroup
-    accounts = models.ManyToManyField('Account')
+    accounts = models.ManyToManyField(
+        'Account',
+        related_name="account_groups",
+    )
 
     class Meta(object):
         db_table = u'accountgroup'
@@ -1055,7 +1061,9 @@ class FilterGroup(models.Model):
     description = VarcharField()
 
     group_permissions = models.ManyToManyField(
-        'AccountGroup', db_table='filtergroup_group_permission'
+        'AccountGroup',
+        db_table='filtergroup_group_permission',
+        related_name="filter_groups",
     )
 
     class Meta(object):
@@ -1396,7 +1404,9 @@ class NetmapView(models.Model):
     display_orphans = models.BooleanField(default=False)
     location_room_filter = models.CharField(max_length=255, blank=True)
     categories = models.ManyToManyField(
-        Category, through='NetmapViewCategories', related_name='netmap_views'
+        Category,
+        through='NetmapViewCategories',
+        related_name='netmap_views',
     )
 
     def __str__(self):

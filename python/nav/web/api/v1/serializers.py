@@ -39,7 +39,7 @@ class AccountSerializer(serializers.ModelSerializer):
     """Serializer for accounts"""
 
     accountgroups = serializers.PrimaryKeyRelatedField(
-        source='accountgroup_set',
+        source='account_groups',
         many=True,
         queryset=profiles.AccountGroup.objects.all(),
     )

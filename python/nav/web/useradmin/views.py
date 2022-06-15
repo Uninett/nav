@@ -198,12 +198,12 @@ def save_account_group(request, account, group_form):
         messages.error(request, 'Default user may not be added to "%s" group.' % group)
     else:
         try:
-            account.accountgroup_set.get(id=group.id)
+            account.account_groups.get(id=group.id)
             messages.warning(
                 request, 'Group was not added as it has already ' 'been added.'
             )
         except AccountGroup.DoesNotExist:
-            account.accountgroup_set.add(group)
+            account.account_groups.add(group)
             messages.success(request, 'Added "%s" to group "%s"' % (account, group))
             log_add_account_to_group(request, group, account)
 
@@ -328,7 +328,7 @@ def account_group_remove(request, account_id, group_id, caller='account'):
         return list_redirect
 
     try:
-        group = account.accountgroup_set.get(id=group_id)
+        group = account.account_groups.get(id=group_id)
     except AccountGroup.DoesNotExist:
         messages.warning(
             request,
@@ -350,7 +350,7 @@ def account_group_remove(request, account_id, group_id, caller='account'):
         return detail_redirect
 
     if request.method == 'POST':
-        account.accountgroup_set.remove(group)
+        account.account_groups.remove(group)
         messages.success(request, '%s has been removed from %s.' % (account, group))
 
         LogEntry.add_log_entry(

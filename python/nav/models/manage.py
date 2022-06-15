@@ -208,14 +208,22 @@ class Netbox(models.Model):
     category = models.ForeignKey(
         'Category', on_delete=models.CASCADE, db_column='catid'
     )
-    groups = models.ManyToManyField('NetboxGroup', through='NetboxCategory', blank=True)
+    groups = models.ManyToManyField(
+        'NetboxGroup',
+        through='NetboxCategory',
+        blank=True,
+        related_name="netboxes",
+    )
     groups.help_text = ''
     organization = models.ForeignKey(
         'Organization', on_delete=models.CASCADE, db_column='orgid'
     )
 
     profiles = models.ManyToManyField(
-        'ManagementProfile', through='NetboxProfile', blank=True
+        'ManagementProfile',
+        through='NetboxProfile',
+        blank=True,
+        related_name="netboxes",
     )
 
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
@@ -1343,7 +1351,10 @@ class Prefix(models.Model):
     net_address = CIDRField(db_column='netaddr', unique=True)
     vlan = models.ForeignKey('Vlan', on_delete=models.CASCADE, db_column='vlanid')
     usages = models.ManyToManyField(
-        'Usage', through='PrefixUsage', through_fields=('prefix', 'usage')
+        'Usage',
+        through='PrefixUsage',
+        through_fields=('prefix', 'usage'),
+        related_name="prefixes",
     )
 
     class Meta(object):
