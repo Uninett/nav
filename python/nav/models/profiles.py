@@ -158,7 +158,7 @@ class Account(models.Model):
         """Get the tool list for this account"""
         return [
             tool
-            for tool in self.accounttool_set.all().order_by('priority')
+            for tool in self.account_tools.all().order_by('priority')
             if self.has_perm('web_access', tool.tool.uri)
         ]
 
@@ -1450,7 +1450,12 @@ class NetmapView(models.Model):
     """Properties for a specific view in Netmap"""
 
     viewid = models.AutoField(primary_key=True)
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE, db_column='owner')
+    owner = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        db_column='owner',
+        related_name="netmap_views",
+    )
     title = models.TextField()
     description = models.TextField(null=True, blank=True)
     topology = models.IntegerField(choices=LINK_TYPES)
@@ -1488,8 +1493,18 @@ class NetmapViewDefaultView(models.Model):
     """Default view for each user"""
 
     id = models.AutoField(primary_key=True)
-    view = models.ForeignKey(NetmapView, on_delete=models.CASCADE, db_column='viewid')
-    owner = models.ForeignKey(Account, on_delete=models.CASCADE, db_column='ownerid')
+    view = models.ForeignKey(
+        NetmapView,
+        on_delete=models.CASCADE,
+        db_column='viewid',
+        related_name="netmap_view_default_views",
+    )
+    owner = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        db_column='ownerid',
+        related_name="netmap_view_default_views",
+    )
 
     class Meta(object):
         db_table = u'netmap_view_defaultview'
@@ -1508,13 +1523,13 @@ class NetmapViewCategories(models.Model):
         NetmapView,
         on_delete=models.CASCADE,
         db_column='viewid',
-        related_name='categories_set',
+        related_name='netmap_view_categories',
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
         db_column='catid',
-        related_name='netmapview_set',
+        related_name='netmap_view_categories',
     )
 
     def __str__(self):
@@ -1533,13 +1548,13 @@ class NetmapViewNodePosition(models.Model):
         NetmapView,
         on_delete=models.CASCADE,
         db_column='viewid',
-        related_name='node_position_set',
+        related_name='node_positions',
     )
     netbox = models.ForeignKey(
         Netbox,
         on_delete=models.CASCADE,
         db_column='netboxid',
-        related_name='node_position_set',
+        related_name='node_positions',
     )
     x = models.IntegerField()
     y = models.IntegerField()
@@ -1554,7 +1569,10 @@ class AccountTool(models.Model):
     id = models.AutoField(primary_key=True, db_column='account_tool_id')
     toolname = VarcharField()
     account = models.ForeignKey(
-        Account, on_delete=models.CASCADE, db_column='accountid'
+        Account,
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        related_name="account_tools",
     )
     display = models.BooleanField(default=True)
     priority = models.IntegerField(default=0)
@@ -1575,6 +1593,7 @@ class AccountDashboard(models.Model):
     account = models.ForeignKey(
         Account,
         on_delete=models.CASCADE,
+        related_name="account_dashboards",
     )
 
     def __str__(self):
@@ -1605,11 +1624,18 @@ class AccountNavlet(models.Model):
 
     navlet = VarcharField()
     order = models.IntegerField(default=0, db_column='displayorder')
-    account = models.ForeignKey(Account, on_delete=models.CASCADE, db_column='account')
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        db_column='account',
+        related_name="widgets",
+    )
     preferences = DictAsJsonField(null=True)
     column = models.IntegerField(db_column='col')
     dashboard = models.ForeignKey(
-        AccountDashboard, on_delete=models.CASCADE, related_name='widgets'
+        AccountDashboard,
+        on_delete=models.CASCADE,
+        related_name='widgets',
     )
 
     def __str__(self):
@@ -1643,10 +1669,12 @@ class ReportSubscription(models.Model):
     account = models.ForeignKey(
         Account,
         on_delete=models.CASCADE,
+        related_name="report_subscriptions",
     )
     address = models.ForeignKey(
         AlertAddress,
         on_delete=models.CASCADE,
+        related_name="report_subscriptions",
     )
     period = VarcharField(choices=PERIODS)
     report_type = VarcharField(choices=TYPES)

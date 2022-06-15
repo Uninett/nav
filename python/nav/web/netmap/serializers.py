@@ -109,12 +109,14 @@ class NetmapViewSerializer(serializers.Serializer):
 
     @staticmethod
     def _update_categories(instance, new_categories):
-        old_categories = set(instance.categories.all())
+        old_categories = set(instance.netmap_view_categories.category.all())
         add_categories = new_categories - old_categories
         del_categories = old_categories - new_categories
 
         # Delete removed categories
-        instance.categories_set.filter(category__in=del_categories).delete()
+        instance.netmap_view_categories.category.filter(
+            category__in=del_categories
+        ).delete()
 
         # Create added categories
         profiles.NetmapViewCategories.objects.bulk_create(

@@ -133,7 +133,7 @@ def tool_list(account):
 
 def get_account_tools(account, all_tools):
     """Get tools for this account"""
-    account_tools = account.accounttool_set.all()
+    account_tools = account.account_tools.all()
     tools = []
     for tool in all_tools:
         try:
