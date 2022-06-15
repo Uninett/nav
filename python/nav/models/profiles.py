@@ -300,7 +300,7 @@ class Account(models.Model):
             return self.password[1:] if self.password else ''
 
     def get_email_addresses(self):
-        return self.alertaddress_set.filter(type__name=AlertSender.EMAIL)
+        return self.alert_addresses.filter(type__name=AlertSender.EMAIL)
 
 
 class AccountGroup(models.Model):
@@ -348,7 +348,10 @@ class NavbarLink(models.Model):
     """A hyperlink on a user's navigation bar."""
 
     account = models.ForeignKey(
-        'Account', on_delete=models.CASCADE, db_column='accountid'
+        'Account',
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        related_name="navbar_links",
     )
     name = models.CharField('Link text', blank=False, max_length=100)
     uri = models.CharField('URL', blank=False, max_length=100)
@@ -365,10 +368,16 @@ class Privilege(models.Model):
     """A privilege granted to an AccountGroup."""
 
     group = models.ForeignKey(
-        'AccountGroup', on_delete=models.CASCADE, db_column='accountgroupid'
+        'AccountGroup',
+        on_delete=models.CASCADE,
+        db_column='accountgroupid',
+        related_name="priviledges",
     )
     type = models.ForeignKey(
-        'PrivilegeType', on_delete=models.CASCADE, db_column='privilegeid'
+        'PrivilegeType',
+        on_delete=models.CASCADE,
+        db_column='privilegeid',
+        related_name="priviledges",
     )
     target = VarcharField()
 
@@ -401,9 +410,17 @@ class AlertAddress(models.Model):
     DEBUG_MODE = False
 
     account = models.ForeignKey(
-        'Account', on_delete=models.CASCADE, db_column='accountid'
+        'Account',
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        related_name="alert_addresses",
     )
-    type = models.ForeignKey('AlertSender', on_delete=models.CASCADE, db_column='type')
+    type = models.ForeignKey(
+        'AlertSender',
+        on_delete=models.CASCADE,
+        db_column='type',
+        related_name="alert_addresses",
+    )
     address = VarcharField()
 
     class Meta(object):
@@ -612,7 +629,10 @@ class AlertProfile(models.Model):
     )
 
     account = models.ForeignKey(
-        'Account', on_delete=models.CASCADE, db_column='accountid'
+        'Account',
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        related_name="alert_profiles",
     )
     name = VarcharField()
     daily_dispatch_time = models.TimeField(default='08:00')
@@ -645,7 +665,7 @@ class AlertProfile(models.Model):
         # The following code should get the currently active timeperiod.
         active_timeperiod = None
         timeperiods = list(
-            self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start')
+            self.time_periods.filter(valid_during__in=valid_during).order_by('start')
         )
         # If the current time is before the start of the first time
         # period, the active time period is the last one (i.e. from
@@ -684,7 +704,10 @@ class TimePeriod(models.Model):
     )
 
     profile = models.ForeignKey(
-        'AlertProfile', on_delete=models.CASCADE, db_column='alert_profile_id'
+        'AlertProfile',
+        on_delete=models.CASCADE,
+        db_column='alert_profile_id',
+        related_name="time_periods",
     )
     start = models.TimeField(db_column='start_time', default='08:00')
     valid_during = models.IntegerField(choices=VALID_DURING_CHOICES, default=ALL_WEEK)
@@ -721,14 +744,17 @@ class AlertSubscription(models.Model):
     alert_address = models.ForeignKey(
         'AlertAddress',
         on_delete=models.CASCADE,
+        related_name="alert_subscriptions",
     )
     time_period = models.ForeignKey(
         'TimePeriod',
         on_delete=models.CASCADE,
+        related_name="alert_subscriptions",
     )
     filter_group = models.ForeignKey(
         'FilterGroup',
         on_delete=models.CASCADE,
+        related_name="alert_subscriptions",
     )
     type = models.IntegerField(
         db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW
@@ -739,7 +765,7 @@ class AlertSubscription(models.Model):
         db_table = u'alertsubscription'
 
     def delete(self):
-        for a in self.accountalertqueue_set.all():
+        for a in self.account_alert_queues.all():
             a.delete()
         super(AlertSubscription, self).delete()
 
@@ -781,10 +807,12 @@ class FilterGroupContent(models.Model):
     filter = models.ForeignKey(
         'Filter',
         on_delete=models.CASCADE,
+        related_name="filter_group_contents",
     )
     filter_group = models.ForeignKey(
         'FilterGroup',
         on_delete=models.CASCADE,
+        related_name="filter_group_contents",
     )
 
     class Meta(object):
@@ -876,6 +904,7 @@ class Operator(models.Model):
     match_field = models.ForeignKey(
         'MatchField',
         on_delete=models.CASCADE,
+        related_name="operators",
     )
 
     class Meta(object):
@@ -903,10 +932,12 @@ class Expression(models.Model):
     filter = models.ForeignKey(
         'Filter',
         on_delete=models.CASCADE,
+        related_name="expressions",
     )
     match_field = models.ForeignKey(
         'MatchField',
         on_delete=models.CASCADE,
+        related_name="expressions",
     )
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
     value = VarcharField()
@@ -932,7 +963,12 @@ class Filter(models.Model):
     Handles the actual construction of queries to be run taking into account
     special cases like the IP datatype and WILDCARD lookups."""
 
-    owner = models.ForeignKey('Account', on_delete=models.CASCADE, null=True)
+    owner = models.ForeignKey(
+        'Account',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="filters",
+    )
     name = VarcharField()
 
     class Meta(object):
@@ -959,7 +995,7 @@ class Filter(models.Model):
         exclude = {}
         extra = {'where': [], 'params': []}
 
-        for expression in self.expression_set.all():
+        for expression in self.expressions.all():
             # Handle IP datatypes:
             if expression.match_field.data_type == MatchField.IP:
                 # Trick the ORM into joining the tables we want
@@ -1056,7 +1092,12 @@ class FilterGroup(models.Model):
 
     """
 
-    owner = models.ForeignKey('Account', on_delete=models.CASCADE, null=True)
+    owner = models.ForeignKey(
+        'Account',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="filter_groups",
+    )
     name = VarcharField()
     description = VarcharField()
 
@@ -1287,7 +1328,11 @@ class SMSQueue(models.Model):
     )
 
     account = models.ForeignKey(
-        'Account', on_delete=models.CASCADE, db_column='accountid', null=True
+        'Account',
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        null=True,
+        related_name="sms_queues",
     )
     time = models.DateTimeField(auto_now_add=True)
     phone = models.CharField(max_length=15)
@@ -1314,11 +1359,24 @@ class SMSQueue(models.Model):
 class AccountAlertQueue(models.Model):
     """Defines which alerts should be keept around and sent at a later time"""
 
-    account = models.ForeignKey('Account', on_delete=models.CASCADE, null=True)
-    subscription = models.ForeignKey(
-        'AlertSubscription', on_delete=models.CASCADE, null=True
+    account = models.ForeignKey(
+        'Account',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="account_alert_queues",
     )
-    alert = models.ForeignKey('AlertQueue', on_delete=models.CASCADE, null=True)
+    subscription = models.ForeignKey(
+        'AlertSubscription',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="account_alert_queues",
+    )
+    alert = models.ForeignKey(
+        'AlertQueue',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="account_alert_queues",
+    )
     insertion_time = models.DateTimeField(auto_now_add=True)
 
     class Meta(object):
@@ -1337,7 +1395,7 @@ class AccountAlertQueue(models.Model):
 
         # Remove the alert from the AlertQueue if we are the last item
         # depending upon it.
-        if self.alert.accountalertqueue_set.count() == 0:
+        if self.alert.account_alert_queues.count() == 0:
             self.alert.delete()
 
     def send(self):

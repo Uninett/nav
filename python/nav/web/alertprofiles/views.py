@@ -1783,7 +1783,7 @@ def filter_group_show_form(request, filter_group_id=None, filter_group_form=None
         page_name = filter_group.name
 
         profiles = AlertProfile.objects.filter(
-            timeperiod__alertsubscription__filter_group=filter_group
+            time_periods__alert_subscriptions__filter_group=filter_group
         ).distinct()
         if profiles:
             names = ', '.join([p.name for p in profiles])
@@ -1930,7 +1930,7 @@ def filter_group_remove(request):
             time_periods = TimePeriod.objects.filter(
                 alertsubscription__in=subscriptions
             )
-            profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
+            profiles = AlertProfile.objects.filter(time_periods__in=time_periods)
             warnings = []
 
             try:
@@ -2308,13 +2308,13 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         if not matchfield_form:
             matchfield_form = MatchFieldForm(instance=matchfield)
         matchfield_operators_id = [
-            m_operator.type for m_operator in matchfield.operator_set.all()
+            m_operator.type for m_operator in matchfield.operators.all()
         ]
 
         page_name = matchfield.name
 
         expressions = Expression.objects.filter(match_field=matchfield)
-        filters = Filter.objects.filter(expression__in=expressions)
+        filters = Filter.objects.filter(expressions__in=expressions)
 
         if filters:
             names = ', '.join([f.name for f in filters])
@@ -2398,8 +2398,8 @@ def matchfield_save(request):
     operators = []
     for oper in request.POST.getlist('operator'):
         operators.append(Operator(type=int(oper), match_field=matchfield))
-    matchfield.operator_set.all().delete()
-    matchfield.operator_set.add(*operators)
+    matchfield.operators.all().delete()
+    matchfield.operators.add(*operators)
 
     new_message(
         request,
@@ -2431,7 +2431,7 @@ def matchfield_remove(request):
         )
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
     else:
-        matchfields = MatchField.objects.prefetch_related('expression_set').filter(
+        matchfields = MatchField.objects.prefetch_related('expressions').filter(
             pk__in=request.POST.getlist('matchfield')
         )
 
@@ -2441,7 +2441,7 @@ def matchfield_remove(request):
 
         elements = []
         for match_field in matchfields:
-            expressions = match_field.expression_set.all()
+            expressions = match_field.expressions.all()
             warnings = []
             for expr in expressions:
                 warnings.append(

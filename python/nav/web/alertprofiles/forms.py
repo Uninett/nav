@@ -546,7 +546,7 @@ class ExpressionForm(forms.ModelForm):
 
         if isinstance(match_field, MatchField):
             # Get all operators and make a choice field
-            operators = match_field.operator_set.all()
+            operators = match_field.operators.all()
             self.fields['operator'] = forms.models.ChoiceField(
                 choices=[(o.type, o) for o in operators]
             )

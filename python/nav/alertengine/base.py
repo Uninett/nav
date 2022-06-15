@@ -70,7 +70,7 @@ def check_alerts(debug=False):
     now = datetime.now()
 
     # Get all alerts that aren't in alert queue due to subscription
-    new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
+    new_alerts = AlertQueue.objects.filter(account_alert_queues__isnull=True)
     num_new_alerts = len(new_alerts)
 
     initial_alerts = AlertQueue.objects.values_list('id', flat=True)
@@ -191,7 +191,7 @@ def handle_new_alerts(new_alerts):
             continue
 
         current_alertsubscriptions = sorted(
-            time_period.alertsubscription_set.all(), key=subscription_sort_key
+            time_period.alert_subscriptions.all(), key=subscription_sort_key
         )
 
         tmp = []
@@ -199,7 +199,7 @@ def handle_new_alerts(new_alerts):
             tmp.append(
                 (
                     alertsubscription,
-                    alertsubscription.filter_group.filtergroupcontent_set.all(),
+                    alertsubscription.filter_group.filter_group_contents.all(),
                 )
             )
 
@@ -208,7 +208,7 @@ def handle_new_alerts(new_alerts):
             for filtergroup in FilterGroup.objects.filter(
                 group_permissions__accounts__in=[account]
             ):
-                permissions.append(filtergroup.filtergroupcontent_set.all())
+                permissions.append(filtergroup.filter_group_contents.all())
 
             accounts.append((account, tmp, permissions))
             del permissions
@@ -562,7 +562,7 @@ def _get_number_of_timeperiods_today(alertprofile, now):
         valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
     else:
         valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
-    return alertprofile.timeperiod_set.filter(valid_during__in=valid_during).count()
+    return alertprofile.time_periods.filter(valid_during__in=valid_during).count()
 
 
 def _calculate_timeperiod_start(timeperiod, now=None):
