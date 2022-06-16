@@ -140,7 +140,7 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
 
         """
         ifc = self.get_target()
-        vlans = ifc.swportvlan_set.values('vlan__vlan')
+        vlans = ifc.sw_port_vlans.values('vlan__vlan')
         vlans = {row['vlan__vlan'] for row in vlans}
         return vlans
 
@@ -214,7 +214,7 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
             )
             return
 
-        new_event = copy.copy(self.event)  # type: nav.models.event.EventQueue
+        new_event = copy.copy(self.event)  # type nav.models.event.EventQueue
         new_event.pk = None
         new_event.netbox = instance
         new_event.device = None

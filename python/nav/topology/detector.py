@@ -143,7 +143,7 @@ def do_vlan_detection(vlans):
 @with_exception_logging
 def delete_unused_vlans():
     """Deletes vlans unassociated with prefixes or switch ports"""
-    unused = Vlan.objects.filter(prefix__isnull=True, swportvlan__isnull=True)
+    unused = Vlan.objects.filter(prefix__isnull=True, sw_port_vlans__isnull=True)
     if unused:
         _logger.info("deleting unused vlans: %r", unused)
         unused.delete()

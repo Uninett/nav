@@ -125,7 +125,7 @@ class ExpandRouterContextMixin(object):
             }
             gwport_prefixes.append(p)
 
-            vlans = prefix.prefix.vlan.swportvlan_set.exclude(
+            vlans = prefix.prefix.vlan.sw_port_vlans.exclude(
                 vlan__net_type='static'
             ).filter(interface__netbox=gwport.netbox)
             for vlan in vlans:
@@ -158,7 +158,7 @@ class ExpandGWPortMixin(object):
         vlans_found = set()
         for prefix in prefixes:
             for vlan in (
-                prefix.prefix.vlan.swportvlan_set.select_related(
+                prefix.prefix.vlan.sw_port_vlans.select_related(
                     'interface__to_interface__netbox',
                     'interface__netbox',
                     'vlan',

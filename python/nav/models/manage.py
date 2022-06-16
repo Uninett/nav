@@ -461,7 +461,7 @@ class Netbox(models.Model):
         result = []
 
         for iface in self.connected_to_interface.all():
-            if iface.swportvlan_set.filter(direction=SwPortVlan.DIRECTION_DOWN).count():
+            if iface.sw_port_vlans.filter(direction=SwPortVlan.DIRECTION_DOWN).count():
                 result.append(
                     {
                         'other': iface,
@@ -1485,7 +1485,10 @@ class Vlan(models.Model):
     id = models.AutoField(db_column='vlanid', primary_key=True)
     vlan = models.IntegerField(null=True, blank=True)
     net_type = models.ForeignKey(
-        'NetType', on_delete=models.CASCADE, db_column='nettype'
+        'NetType',
+        on_delete=models.CASCADE,
+        db_column='nettype',
+        related_name="vlans",
     )
     organization = models.ForeignKey(
         'Organization',
@@ -1493,14 +1496,25 @@ class Vlan(models.Model):
         db_column='orgid',
         null=True,
         blank=True,
+        related_name="vlans",
     )
     usage = models.ForeignKey(
-        'Usage', on_delete=models.CASCADE, db_column='usageid', null=True, blank=True
+        'Usage',
+        on_delete=models.CASCADE,
+        db_column='usageid',
+        null=True,
+        blank=True,
+        related_name="vlans",
     )
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
     description = VarcharField(null=True, blank=True)
     netbox = models.ForeignKey(
-        'NetBox', on_delete=models.SET_NULL, db_column='netboxid', null=True, blank=True
+        'NetBox',
+        on_delete=models.SET_NULL,
+        db_column='netboxid',
+        null=True,
+        blank=True,
+        related_name="vlans",
     )
 
     class Meta(object):
@@ -1580,8 +1594,18 @@ class PrefixUsage(models.Model):
     """Combines prefixes and usages for tagging of prefixes"""
 
     id = models.AutoField(db_column='prefix_usage_id', primary_key=True)
-    prefix = models.ForeignKey('Prefix', on_delete=models.CASCADE, db_column='prefixid')
-    usage = models.ForeignKey('Usage', on_delete=models.CASCADE, db_column='usageid')
+    prefix = models.ForeignKey(
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid',
+        related_name="prefix_usages",
+    )
+    usage = models.ForeignKey(
+        'Usage',
+        on_delete=models.CASCADE,
+        db_column='usageid',
+        related_name="prefix_usages",
+    )
 
     class Meta(object):
         db_table = 'prefix_usage'
@@ -1612,10 +1636,18 @@ class Arp(models.Model):
 
     id = models.AutoField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey(
-        'Netbox', on_delete=models.CASCADE, db_column='netboxid', null=True
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        null=True,
+        related_name="arps",
     )
     prefix = models.ForeignKey(
-        'Prefix', on_delete=models.CASCADE, db_column='prefixid', null=True
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid',
+        null=True,
+        related_name="arps",
     )
     sysname = VarcharField()
     ip = models.GenericIPAddressField()
@@ -1653,9 +1685,17 @@ class SwPortVlan(models.Model):
 
     id = models.AutoField(db_column='swportvlanid', primary_key=True)
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="sw_port_vlans",
     )
-    vlan = models.ForeignKey('Vlan', on_delete=models.CASCADE, db_column='vlanid')
+    vlan = models.ForeignKey(
+        'Vlan',
+        on_delete=models.CASCADE,
+        db_column='vlanid',
+        related_name="sw_port_vlans",
+    )
     direction = models.CharField(
         max_length=1, choices=DIRECTION_CHOICES, default=DIRECTION_UNDEFINED
     )
@@ -1969,7 +2009,7 @@ class Interface(models.Model):
         # XXX: This causes a DB query per port
         vlans = [
             swpv.vlan.vlan
-            for swpv in self.swportvlan_set.select_related('vlan', 'interface')
+            for swpv in self.sw_port_vlans.select_related('vlan', 'interface')
         ]
         if self.vlan is not None and self.vlan not in vlans:
             vlans.append(self.vlan)
@@ -2146,7 +2186,7 @@ class Interface(models.Model):
 
     def get_sorted_vlans(self):
         """Returns a queryset of sorted swportvlans"""
-        return self.swportvlan_set.select_related('vlan').order_by('vlan__vlan')
+        return self.sw_port_vlans.select_related('vlan').order_by('vlan__vlan')
 
     def is_on_maintenace(self):
         """Returns True if the owning Netbox is on maintenance"""
