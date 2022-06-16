@@ -62,7 +62,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for port in poegroup.poeport_set.all %}
+            {% for port in poegroup.poe_ports.all %}
               <tr>
                 <td>
                   {% if port.interface %}

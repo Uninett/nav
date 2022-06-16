@@ -56,8 +56,8 @@
       <td>{{ port.ifphysaddress|default:"N/A"|upper }}</td>
   </tr>
 
-  {% if port.poeport_set.exists %}
-    {%with port.poeport_set.first as poeport %}
+  {% if port.poe_ports.exists %}
+    {%with port.poe_ports.first as poeport %}
     <tr>
       <th>PoE Status</th>
       <td>

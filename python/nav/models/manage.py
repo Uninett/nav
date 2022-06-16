@@ -2836,9 +2836,18 @@ class POEGroup(models.Model):
     """Model representing a group of power over ethernet ports"""
 
     id = models.AutoField(db_column='poegroupid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="poe_groups",
+    )
     module = models.ForeignKey(
-        'Module', on_delete=models.CASCADE, db_column='moduleid', null=True
+        'Module',
+        on_delete=models.CASCADE,
+        db_column='moduleid',
+        null=True,
+        related_name="poe_groups",
     )
     index = models.IntegerField()
 
@@ -2858,7 +2867,7 @@ class POEGroup(models.Model):
         return get_simple_graph_url([metric], time_frame=time_frame)
 
     def get_active_ports(self):
-        return self.poeport_set.filter(
+        return self.poe_ports.filter(
             admin_enable=True, detection_status=POEPort.STATUS_DELIVERING_POWER
         )
 
@@ -2879,12 +2888,24 @@ class POEPort(models.Model):
     """Model representing a PoE port"""
 
     id = models.AutoField(db_column='poeportid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="poe_ports",
+    )
     poegroup = models.ForeignKey(
-        'POEGroup', on_delete=models.CASCADE, db_column='poegroupid'
+        'POEGroup',
+        on_delete=models.CASCADE,
+        db_column='poegroupid',
+        related_name="poe_ports",
     )
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid', null=True
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        null=True,
+        related_name="poe_ports",
     )
     admin_enable = models.BooleanField(default=False)
     index = models.IntegerField()
