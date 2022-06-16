@@ -117,7 +117,7 @@ def process_searchform(form):
 
 def filter_netboxes(room):
     """Filter netboxes based on interesting categories"""
-    return room.netbox_set.filter(category__in=CATEGORIES)
+    return room.netboxes.filter(category__in=CATEGORIES)
 
 
 def roominfo(request, roomid):
@@ -143,7 +143,7 @@ def get_room_meta(room):
     """Find meta data for the room"""
     room_interfaces = Interface.objects.filter(netbox__room=room)
     return {
-        'devices': room.netbox_set.count(),
+        'devices': room.netboxes.count(),
         'interfaces': room_interfaces.count(),
         'interfaces_with_link': room_interfaces.filter(
             ifoperstatus=Interface.OPER_UP
@@ -155,7 +155,7 @@ def get_room_meta(room):
 def render_deviceinfo(request, roomid):
     """Controller for rendering device info"""
     room = get_object_or_404(Room, id=roomid)
-    all_netboxes = room.netbox_set.select_related(
+    all_netboxes = room.netboxes.select_related(
         "type", "category", "organization"
     ).order_by("sysname")
 
@@ -248,7 +248,7 @@ def create_csv(request):
 def render_sensors(request, roomid):
     """Gets the environment devices for a room"""
     room = get_object_or_404(Room, pk=roomid)
-    netboxes = room.netbox_set.filter(category='ENV')
+    netboxes = room.netboxes.filter(category='ENV')
 
     for netbox in netboxes:
         netbox.env_sensors = netbox.sensor_set.filter(

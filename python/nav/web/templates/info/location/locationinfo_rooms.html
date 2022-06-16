@@ -3,7 +3,7 @@
 
 
   <div class="medium-6 column">
-    {% if location.room_set.exists %}
+    {% if location.rooms.exists %}
     <table id="roomtable" class="vertitable full-width">
       <caption>Rooms in {{location}}</caption>
       <thead>
@@ -13,7 +13,7 @@
         </tr>
       </thead>
       <tbody>
-      {% for room in location.room_set.all %}
+      {% for room in location.rooms.all %}
       <tr>
         <td><a href="{% url 'room-info' room.id %}">{{ room.id }}</a></td>
         <td>{{ room.description }}</td>

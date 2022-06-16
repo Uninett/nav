@@ -768,7 +768,7 @@ class POEGroup(Shadow):
                 netbox=self.netbox.id, index=self.phy_index
             ).first()
             if entity and entity.device:
-                self.module = entity.device.module_set.first()
+                self.module = entity.device.modules.first()
         vendor = self.netbox.type.vendor.id if self.netbox.type else ''
         if vendor == 'hp' and not self.module:
             module = manage.Module.objects.filter(

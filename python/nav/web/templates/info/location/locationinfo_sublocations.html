@@ -3,12 +3,12 @@
 
 
   <div class="medium-6 column">
-    {% if location.location_set.exists %}
+    {% if location.child_locations.exists %}
     <button id="collapse-all" class="button small">Collapse all</button>
     <button id="expand-all" class="button small">Expand all</button>
 
     <ul class="tree-list no-bullet">
-      {% for subloc in location.location_set.all %}
+      {% for subloc in location.child_locations.all %}
       {% with location=subloc %}
       {% include 'info/location/fragment_sublocation.html' %}
       {% endwith %}

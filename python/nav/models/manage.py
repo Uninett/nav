@@ -166,9 +166,17 @@ class NetboxProfile(models.Model):
     """Stores the relation between Netboxes and their management profiles"""
 
     id = models.AutoField(primary_key=True, db_column='netbox_profileid')
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="netbox_profiles",
+    )
     profile = models.ForeignKey(
-        'ManagementProfile', on_delete=models.CASCADE, db_column='profileid'
+        'ManagementProfile',
+        on_delete=models.CASCADE,
+        db_column='profileid',
+        related_name="netbox_profiles",
     )
 
     class Meta(object):
@@ -196,17 +204,26 @@ class Netbox(models.Model):
 
     id = models.AutoField(db_column='netboxid', primary_key=True)
     ip = models.GenericIPAddressField(unique=True)
-    room = models.ForeignKey('Room', on_delete=models.CASCADE, db_column='roomid')
+    room = models.ForeignKey(
+        'Room',
+        on_delete=models.CASCADE,
+        db_column='roomid',
+        related_name="netboxes",
+    )
     type = models.ForeignKey(
         'NetboxType',
         on_delete=models.CASCADE,
         db_column='typeid',
         blank=True,
         null=True,
+        related_name="netboxes",
     )
     sysname = VarcharField(unique=True, blank=False)
     category = models.ForeignKey(
-        'Category', on_delete=models.CASCADE, db_column='catid'
+        'Category',
+        on_delete=models.CASCADE,
+        db_column='catid',
+        related_name="netboxes",
     )
     groups = models.ManyToManyField(
         'NetboxGroup',
@@ -216,7 +233,10 @@ class Netbox(models.Model):
     )
     groups.help_text = ''
     organization = models.ForeignKey(
-        'Organization', on_delete=models.CASCADE, db_column='orgid'
+        'Organization',
+        on_delete=models.CASCADE,
+        db_column='orgid',
+        related_name="netboxes",
     )
 
     profiles = models.ManyToManyField(
@@ -570,7 +590,7 @@ class Netbox(models.Model):
 
     def get_chassis(self):
         """Returns a QuerySet of chassis devices seen on this netbox"""
-        return self.entity_set.filter(
+        return self.entities.filter(
             device__isnull=False,
             physical_class=NetboxEntity.CLASS_CHASSIS,
         ).select_related('device')
@@ -686,14 +706,17 @@ class NetboxEntity(models.Model):
         'Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
-        related_name='entity_set',
+        related_name='entities',
     )
     index = models.IntegerField()
     source = VarcharField(default='ENTITY-MIB')
     descr = VarcharField(null=True)
     vendor_type = VarcharField(null=True)
     contained_in = models.ForeignKey(
-        'NetboxEntity', on_delete=models.CASCADE, null=True
+        'NetboxEntity',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="contained_netboxes",
     )
     physical_class = models.IntegerField(choices=CLASS_CHOICES, null=True)
     parent_relpos = models.IntegerField(null=True)
@@ -702,7 +725,11 @@ class NetboxEntity(models.Model):
     firmware_revision = VarcharField(null=True)
     software_revision = VarcharField(null=True)
     device = models.ForeignKey(
-        'Device', on_delete=models.CASCADE, null=True, db_column='deviceid'
+        'Device',
+        on_delete=models.CASCADE,
+        null=True,
+        db_column='deviceid',
+        related_name="netboxes",
     )
     mfg_name = VarcharField(null=True)
     model_name = VarcharField(null=True)
@@ -811,7 +838,7 @@ class NetboxPrefix(models.Model):
         'Prefix',
         on_delete=models.CASCADE,
         db_column='prefixid',
-        related_name='netbox_set',
+        related_name='netboxes',
     )
 
     class Meta(object):
@@ -896,8 +923,18 @@ class Module(models.Model):
     )
 
     id = models.AutoField(db_column='moduleid', primary_key=True)
-    device = models.ForeignKey('Device', on_delete=models.CASCADE, db_column='deviceid')
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    device = models.ForeignKey(
+        'Device',
+        on_delete=models.CASCADE,
+        db_column='deviceid',
+        related_name="modules",
+    )
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="modules",
+    )
     module_number = models.IntegerField(db_column='module')
     name = VarcharField()
     model = VarcharField()
@@ -1004,7 +1041,12 @@ class Memory(models.Model):
     (memory and nvram) of a netbox."""
 
     id = models.AutoField(db_column='memid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="memories",
+    )
     type = VarcharField(db_column='memtype')
     device = VarcharField()
     size = models.IntegerField()
@@ -1027,7 +1069,10 @@ class Room(models.Model):
 
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
     location = models.ForeignKey(
-        'Location', on_delete=models.CASCADE, db_column='locationid'
+        'Location',
+        on_delete=models.CASCADE,
+        db_column='locationid',
+        related_name="rooms",
     )
     description = VarcharField(db_column='descr', blank=True)
     position = PointField(null=True, blank=True, default=None)
@@ -1090,7 +1135,12 @@ class Location(models.Model, TreeMixin):
 
     id = models.CharField(db_column='locationid', max_length=30, primary_key=True)
     parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, db_column='parent', blank=True, null=True
+        'self',
+        on_delete=models.CASCADE,
+        db_column='parent',
+        blank=True,
+        null=True,
+        related_name="child_locations",
     )
     description = VarcharField(db_column='descr', blank=True)
     data = HStoreField(default=dict)
@@ -1119,7 +1169,12 @@ class Organization(models.Model, TreeMixin):
 
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
     parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, db_column='parent', blank=True, null=True
+        'self',
+        on_delete=models.CASCADE,
+        db_column='parent',
+        blank=True,
+        null=True,
+        related_name="child_organizations",
     )
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)
@@ -1216,9 +1271,17 @@ class NetboxCategory(models.Model):
     # Django only supports specifying the name of the M2M-table, and not the
     # column names.
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="netbox_categories",
+    )
     category = models.ForeignKey(
-        'NetboxGroup', on_delete=models.CASCADE, db_column='category'
+        'NetboxGroup',
+        on_delete=models.CASCADE,
+        db_column='category',
+        related_name="netbox_categories",
     )
 
     class Meta(object):

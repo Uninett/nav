@@ -306,7 +306,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     else:
         alert_info = get_recent_alerts(netbox)
-        netboxgroups = netbox.netboxcategory_set.all()
+        netboxgroups = netbox.netbox_categories.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
         job_descriptions = get_job_descriptions()
 
@@ -430,7 +430,7 @@ def get_port_view(request, netbox_sysname, perspective):
         port_view['activity_complete_data'] = False
 
     # Add the modules
-    for module in netbox.module_set.select_related():
+    for module in netbox.modules.select_related():
         port_view['modules'].append(
             utils.get_module_view(module, perspective, activity_interval)
         )
