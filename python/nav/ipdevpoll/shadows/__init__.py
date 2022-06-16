@@ -235,7 +235,6 @@ class Module(Shadow):
     @classmethod
     def cleanup_after_save(cls, containers):
         cls._handle_missing_modules(containers)
-        return super(Module, cls).cleanup_after_save(containers)
 
 
 class Device(Shadow):
