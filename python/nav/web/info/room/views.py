@@ -251,7 +251,7 @@ def render_sensors(request, roomid):
     netboxes = room.netboxes.filter(category='ENV')
 
     for netbox in netboxes:
-        netbox.env_sensors = netbox.sensor_set.filter(
+        netbox.env_sensors = netbox.sensors.filter(
             Q(unit_of_measurement__icontains='celsius')
             | Q(unit_of_measurement__icontains='percent')
             | Q(unit_of_measurement__icontains='degrees')

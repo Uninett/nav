@@ -324,7 +324,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         except GraphiteUnreachableError:
             graphite_error = True
 
-        for sensor in netbox.sensor_set.all():
+        for sensor in netbox.sensors.all():
             metric_id = sensor.get_metric_name()
             metric = {
                 'id': metric_id,
@@ -415,7 +415,7 @@ def get_port_view(request, netbox_sysname, perspective):
 
     # Check if we got data for the entire search interval
     try:
-        port_view['activity_data_start'] = netbox.cam_set.order_by('start_time')[
+        port_view['activity_data_start'] = netbox.cams.order_by('start_time')[
             0
         ].start_time
         port_view['activity_data_interval'] = (
@@ -478,7 +478,7 @@ def module_details(request, netbox_sysname, module_name):
 
             # Check if we got data for the entire search interval
             try:
-                module['activity_data_start'] = module_object.netbox.cam_set.order_by(
+                module['activity_data_start'] = module_object.netbox.cams.order_by(
                     'start_time'
                 )[0].start_time
                 module['activity_data_interval'] = (
@@ -604,7 +604,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None, port_nam
         graphite_error = True
 
     sensor_metrics = []
-    for sensor in port.sensor_set.all():
+    for sensor in port.sensors.all():
         metric_id = sensor.get_metric_name()
         metric = {
             'id': metric_id,

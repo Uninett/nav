@@ -31,7 +31,7 @@
       <h4>Sensors</h4>
       <a href="javascript:void(0);" class="all-graph-opener button secondary small">Show all graphs</a>
       <a href="javascript:void(0);" class="all-graph-closer button secondary small">Hide all graphs</a>
-      {% with netbox.sensor_set.all as sensors %}
+      {% with netbox.sensors.all as sensors %}
       {% if sensors|length %}
       <table>
         {% include "ipdevinfo/frag-sensortable.html" %}

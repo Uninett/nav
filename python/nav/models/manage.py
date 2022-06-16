@@ -72,7 +72,7 @@ class UpsManager(models.Manager):
         return (
             super(UpsManager, self)
             .get_queryset()
-            .filter(category='POWER', sensor__internal_name__startswith='ups')
+            .filter(category='POWER', sensors__internal_name__startswith='ups')
             .distinct()
         )
 
@@ -552,12 +552,12 @@ class Netbox(models.Model):
         return self.alert_histories.unresolved(kind)
 
     def get_powersupplies(self):
-        return self.powersupplyorfan_set.filter(physical_class='powerSupply').order_by(
-            'name'
-        )
+        return self.power_supplies_or_fans.filter(
+            physical_class='powerSupply'
+        ).order_by('name')
 
     def get_fans(self):
-        return self.powersupplyorfan_set.filter(physical_class='fan').order_by('name')
+        return self.power_supplies_or_fans.filter(physical_class='fan').order_by('name')
 
     def get_system_metrics(self):
         """Gets a list of available Graphite metrics related to this Netbox,
@@ -586,7 +586,7 @@ class Netbox(models.Model):
 
     def has_unignored_unrecognized_neighbors(self):
         """Returns true if this netbox has unignored unrecognized neighbors"""
-        return self.unrecognizedneighbor_set.filter(ignored_since=None).count() > 0
+        return self.unrecognized_neighbors.filter(ignored_since=None).count() > 0
 
     def get_chassis(self):
         """Returns a QuerySet of chassis devices seen on this netbox"""
@@ -597,7 +597,7 @@ class Netbox(models.Model):
 
     def get_environment_sensors(self):
         """Returns the sensors to be displayed on the Environment Sensor tab"""
-        return self.sensor_set.filter(
+        return self.sensors.filter(
             Q(unit_of_measurement__icontains='celsius')
             | Q(unit_of_measurement__icontains='percent')
         )
@@ -1796,22 +1796,30 @@ class AdjacencyCandidate(models.Model):
     """
 
     id = models.AutoField(db_column='adjacency_candidateid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="from_adjacency_candidates",
+    )
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="from_adjacency_candidates",
     )
     to_netbox = models.ForeignKey(
         'Netbox',
         on_delete=models.CASCADE,
         db_column='to_netboxid',
-        related_name='to_adjacencycandidate_set',
+        related_name='to_adjacency_candidates',
     )
     to_interface = models.ForeignKey(
         'Interface',
         on_delete=models.CASCADE,
         db_column='to_interfaceid',
         null=True,
-        related_name='to_adjacencycandidate_set',
+        related_name='to_adjacency_candidates',
     )
     source = VarcharField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
@@ -1840,7 +1848,12 @@ class NetboxVtpVlan(models.Model):
     information."""
 
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="netbox_vtp_vlans",
+    )
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
 
     class Meta(object):
@@ -1857,7 +1870,11 @@ class Cam(models.Model):
 
     id = models.AutoField(db_column='camid', primary_key=True)
     netbox = models.ForeignKey(
-        'Netbox', on_delete=models.CASCADE, db_column='netboxid', null=True
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        null=True,
+        related_name="cams",
     )
     sysname = VarcharField()
     ifindex = models.IntegerField()
@@ -2031,7 +2048,7 @@ class Interface(models.Model):
     def get_last_cam_record(self):
         """Returns the newest cam record gotten from this switch port."""
         try:
-            return self.netbox.cam_set.filter(ifindex=self.ifindex).latest('end_time')
+            return self.netbox.cams.filter(ifindex=self.ifindex).latest('end_time')
         except Cam.DoesNotExist:
             return None
 
@@ -2053,7 +2070,7 @@ class Interface(models.Model):
             # XXX: This causes a DB query per port
             # Use .values() to avoid creating additional objects we do not need
             last_cam_entry_end_time = (
-                self.netbox.cam_set.filter(ifindex=self.ifindex, end_time__gt=min_time)
+                self.netbox.cams.filter(ifindex=self.ifindex, end_time__gt=min_time)
                 .order_by('-end_time')
                 .values('end_time')[0]['end_time']
             )
@@ -2197,7 +2214,7 @@ class Interface(models.Model):
         not ignored
         """
         return (
-            self.unrecognizedneighbor_set.filter(ignored_since__isnull=True).count() > 0
+            self.unrecognized_neighbors.filter(ignored_since__isnull=True).count() > 0
         )
 
 
@@ -2257,7 +2274,10 @@ class RoutingProtocolAttribute(models.Model):
 
     id = models.IntegerField(primary_key=True)
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="routing_protocol_attributes",
     )
     name = VarcharField(db_column='protoname')
     metric = models.IntegerField()
@@ -2280,7 +2300,12 @@ class GatewayPeerSession(models.Model):
     )
 
     id = models.AutoField(primary_key=True, db_column='peersessionid')
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="gateway_peer_sessions",
+    )
     protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
     peer = models.GenericIPAddressField()
     state = VarcharField()
@@ -2457,9 +2482,18 @@ class Sensor(models.Model):
     )
 
     id = models.AutoField(db_column='sensorid', primary_key=True)
-    netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="sensors",
+    )
     interface = models.ForeignKey(
-        Interface, on_delete=models.CASCADE, db_column='interfaceid', null=True
+        Interface,
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        null=True,
+        related_name="sensors",
     )
     oid = VarcharField(db_column="oid")
     unit_of_measurement = VarcharField(
@@ -2624,8 +2658,18 @@ class PowerSupplyOrFan(models.Model):
     )
 
     id = models.AutoField(db_column='powersupplyid', primary_key=True)
-    netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
-    device = models.ForeignKey(Device, on_delete=models.CASCADE, db_column='deviceid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="power_supplies_or_fans",
+    )
+    device = models.ForeignKey(
+        Device,
+        on_delete=models.CASCADE,
+        db_column='deviceid',
+        related_name="power_supplies_or_fans",
+    )
     name = VarcharField(db_column='name')
     model = VarcharField(db_column='model', null=True)
     descr = VarcharField(db_column='descr', null=True)
@@ -2660,9 +2704,17 @@ class PowerSupplyOrFan(models.Model):
 
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)
-    netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="unrecognized_neighbors",
+    )
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="unrecognized_neighbors",
     )
     remote_id = VarcharField()
     remote_name = VarcharField()
