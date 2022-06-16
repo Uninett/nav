@@ -407,7 +407,7 @@ class Netbox(models.Model):
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(
-            netbox=self, gwportprefix__isnull=False
+            netbox=self, gw_port_prefixes__isnull=False
         ).distinct()
 
     def get_gwports_sorted(self):
@@ -963,7 +963,7 @@ class Module(models.Model):
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(
-            module=self, gwportprefix__isnull=False
+            module=self, gw_port_prefixes__isnull=False
         ).distinct()
 
     def get_gwports_sorted(self):
@@ -1297,7 +1297,12 @@ class NetboxType(models.Model):
     sysobjectid being the unique identifier."""
 
     id = models.AutoField(db_column='typeid', primary_key=True)
-    vendor = models.ForeignKey('Vendor', on_delete=models.CASCADE, db_column='vendorid')
+    vendor = models.ForeignKey(
+        'Vendor',
+        on_delete=models.CASCADE,
+        db_column='vendorid',
+        related_name="netbox_types",
+    )
     name = VarcharField(db_column='typename', verbose_name="type name")
     sysobjectid = VarcharField(unique=True)
     description = VarcharField(db_column='descr')
@@ -1354,9 +1359,17 @@ class GwPortPrefix(models.Model):
     """
 
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="gw_port_prefixes",
     )
-    prefix = models.ForeignKey('Prefix', on_delete=models.CASCADE, db_column='prefixid')
+    prefix = models.ForeignKey(
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid',
+        related_name="gw_port_prefixes",
+    )
     gw_ip = CIDRField(db_column='gwip', primary_key=True)
     virtual = models.BooleanField(default=False)
 
@@ -1441,7 +1454,7 @@ class Prefix(models.Model):
     def get_router_ports(self):
         """Returns a ordered list of GwPortPrefix objects on this prefix"""
         return (
-            self.gwportprefix_set.filter(
+            self.gw_port_prefixes.filter(
                 interface__netbox__category__id__in=('GSW', 'GW')
             )
             .select_related('interface', 'interface__netbox')
@@ -2083,7 +2096,7 @@ class Interface(models.Model):
         other hosts.
 
         """
-        return self.gwportprefix_set.count() > 0
+        return self.gw_port_prefixes.count() > 0
 
     def is_physical_port(self):
         """Returns true if this interface has a physical connector present"""
@@ -2244,7 +2257,7 @@ class GatewayPeerSession(models.Model):
         :rtype: Netbox
 
         """
-        expr = Q(ip=self.peer) | Q(interface__gwportprefix__gw_ip=self.peer)
+        expr = Q(ip=self.peer) | Q(interface__gw_port_prefixes__gw_ip=self.peer)
         netboxes = Netbox.objects.filter(expr)
         if netboxes:
             return netboxes[0]

@@ -156,7 +156,7 @@ def delete_unused_prefixes():
     manually entered into NAV.
     """
     holy_vlans = Q(vlan__net_type__in=('scope', 'reserved', 'static'))
-    unused_prefixes = Prefix.objects.filter(gwportprefix__isnull=True).exclude(
+    unused_prefixes = Prefix.objects.filter(gw_port_prefixes__isnull=True).exclude(
         holy_vlans
     )
 

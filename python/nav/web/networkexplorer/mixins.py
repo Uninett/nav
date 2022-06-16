@@ -150,7 +150,7 @@ class ExpandGWPortMixin(object):
 
     def get_context_data(self, **kwargs):
         gwport = kwargs.pop('object')
-        prefixes = gwport.gwportprefix_set.select_related(
+        prefixes = gwport.gw_port_prefixes.select_related(
             'prefix__vlan',
         ).exclude(prefix__vlan__net_type='static')
 
