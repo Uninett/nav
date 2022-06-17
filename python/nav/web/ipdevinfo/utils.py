@@ -305,7 +305,7 @@ def find_children(netbox, netboxes=None):
     if not netboxes:
         netboxes = [netbox]
 
-    interfaces = netbox.interface_set.filter(
+    interfaces = netbox.interfaces.filter(
         to_netbox__isnull=False, sw_port_vlans__direction=SwPortVlan.DIRECTION_DOWN
     )
     for interface in interfaces:
@@ -332,7 +332,7 @@ def find_vlan_organizations(netboxes):
     """Find contacts for the vlans on the downlinks on the netboxes"""
     vlans = []
     for netbox in netboxes:
-        interfaces = netbox.interface_set.filter(
+        interfaces = netbox.interfaces.filter(
             to_netbox__isnull=False,
             sw_port_vlans__direction=SwPortVlan.DIRECTION_DOWN,
             sw_port_vlans__vlan__organization__isnull=False,

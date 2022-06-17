@@ -122,7 +122,7 @@
       </thead>
 
       <tbody>
-      {% for interface in netbox.interfaces %}
+      {% for interface in netbox.interfaces_list %}
         <tr>
 
           <td title="Interface speed: {{ interface.speed }}">

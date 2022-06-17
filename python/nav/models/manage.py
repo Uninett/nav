@@ -1957,9 +1957,18 @@ class Interface(models.Model):
     )
 
     id = models.AutoField(db_column='interfaceid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="interfaces",
+    )
     module = models.ForeignKey(
-        'Module', on_delete=models.CASCADE, db_column='moduleid', null=True
+        'Module',
+        on_delete=models.CASCADE,
+        db_column='moduleid',
+        null=True,
+        related_name="interfaces",
     )
     ifindex = models.IntegerField()
     ifname = VarcharField()
@@ -2330,7 +2339,7 @@ class GatewayPeerSession(models.Model):
         :rtype: Netbox
 
         """
-        expr = Q(ip=self.peer) | Q(interface__gw_port_prefixes__gw_ip=self.peer)
+        expr = Q(ip=self.peer) | Q(interface_hello__gw_port_prefixes__gw_ip=self.peer)
         netboxes = Netbox.objects.filter(expr)
         if netboxes:
             return netboxes[0]

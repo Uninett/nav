@@ -17,7 +17,7 @@ def test_device_details_should_include_sysname(client, netbox):
 
 
 def test_port_search_should_match_case_insensitively(client, netbox):
-    ifc = netbox.interface_set.all()[0]
+    ifc = netbox.interfaces.all()[0]
     url = reverse(
         'ipdevinfo-interface-details-by-name',
         kwargs={

@@ -122,7 +122,7 @@ class Netbox(Shadow):
 
         # Delete interfaces and stored hardware information
         netbox.modules.all().delete()
-        netbox.interface_set.all().delete()
+        netbox.interfaces.all().delete()
         netbox.entites.all().delete()
         netbox.sensors.all().delete()
         netbox.power_supplies_or_fans.all().delete()
