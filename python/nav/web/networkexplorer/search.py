@@ -90,7 +90,7 @@ def search_expand_swport(swportid=None, swport=None, scanned=[]):
     for swportvlan in swport.sw_port_vlans.exclude(
         vlan__net_type='static'
     ).select_related():
-        for prefix in swportvlan.vlan.prefix_set.all():
+        for prefix in swportvlan.vlan.prefixes.all():
             for gwportprefix in prefix.gw_port_prefixes.all():
                 found_gwports.append(gwportprefix.interface)
 

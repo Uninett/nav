@@ -129,7 +129,7 @@ class ExpandRouterContextMixin(object):
                 vlan__net_type='static'
             ).filter(interface__netbox=gwport.netbox)
             for vlan in vlans:
-                if not vlan.interface.swportblocked_set.filter(
+                if not vlan.interface.blocked_sw_ports.filter(
                     vlan=vlan.vlan.vlan
                 ).count():
                     has_children = True
@@ -168,7 +168,7 @@ class ExpandGWPortMixin(object):
             ):
 
                 # Check if port is spanningtreeblocked
-                if vlan.interface.swportblocked_set.filter(
+                if vlan.interface.blocked_sw_ports.filter(
                     vlan=vlan.vlan.vlan  # really!
                 ).count():
                     continue

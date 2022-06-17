@@ -1425,7 +1425,12 @@ class Prefix(models.Model):
 
     id = models.AutoField(db_column='prefixid', primary_key=True)
     net_address = CIDRField(db_column='netaddr', unique=True)
-    vlan = models.ForeignKey('Vlan', on_delete=models.CASCADE, db_column='vlanid')
+    vlan = models.ForeignKey(
+        'Vlan',
+        on_delete=models.CASCADE,
+        db_column='vlanid',
+        related_name="prefixes",
+    )
     usages = models.ManyToManyField(
         'Usage',
         through='PrefixUsage',
@@ -1544,7 +1549,7 @@ class Vlan(models.Model):
     def get_graph_url(self, family=4):
         """Creates a graph url for the given family with all prefixes stacked"""
         assert family in [4, 6]
-        prefixes = self.prefix_set.extra(where=["family(netaddr)=%s" % family])
+        prefixes = self.prefixes.extra(where=["family(netaddr)=%s" % family])
         # Put metainformation in the alias so that Rickshaw can pick it up and
         # know how to draw the series.
         series = [
@@ -1774,7 +1779,10 @@ class SwPortBlocked(models.Model):
 
     id = models.AutoField(db_column='swportblockedid', primary_key=True)
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="blocked_sw_ports",
     )
     vlan = models.IntegerField()
 
