@@ -39,7 +39,7 @@ class QuickSelect(object):
         self.location_label = kwargs.pop('location_label', '%(id)s (%(description)s)')
         self.room_label = kwargs.pop('room_label', '%(id)s (%(description)s)')
         self.netbox_label = kwargs.pop('netbox_label', '%(sysname)s')
-        self.netboxgroup_label = kwargs.pop('netboxgroup_label', '%(pk)s')
+        self.netbox_group_label = kwargs.pop('netboxgroup_label', '%(pk)s')
         self.service_label = kwargs.pop('service_label', '%(handler)s')
         self.module_label = kwargs.pop('module_label', '%(name)s')
 
@@ -53,14 +53,14 @@ class QuickSelect(object):
         for key in kwargs:
             raise TypeError('__init__() got an unexpected keyword argument ' '%s' % key)
 
-        self.netbox_set = (
+        self.netboxes = (
             Netbox.objects.with_chassis_serials().order_by('sysname').values()
         )
-        self.location_set = Location.objects.order_by(('id')).values()
-        self.service_set = Service.objects.order_by('handler').values()
-        self.module_set = Module.objects.order_by('module_number').values()
-        self.room_set = Room.objects.order_by('id').values()
-        self.netboxgroup_set = NetboxGroup.objects.order_by('id').values()
+        self.locations = Location.objects.order_by(('id')).values()
+        self.services = Service.objects.order_by('handler').values()
+        self.modules = Module.objects.order_by('module_number').values()
+        self.rooms = Room.objects.order_by('id').values()
+        self.netbox_groups = NetboxGroup.objects.order_by('id').values()
 
         self.output = []
 
@@ -73,7 +73,7 @@ class QuickSelect(object):
 
             if self.location:
                 locations = {'': []}
-                for location in self.location_set:
+                for location in self.locations:
                     location_name[location['id']] = self.location_label % location
                     locations[''].append(
                         (location['id'], location_name[location['id']])
@@ -93,7 +93,7 @@ class QuickSelect(object):
 
             if self.room:
                 rooms = {}
-                for room in self.room_set:
+                for room in self.rooms:
                     location = location_name.get(room['location_id'])
                     room_name[room['id']] = self.room_label % room
                     if location in rooms:
@@ -114,7 +114,7 @@ class QuickSelect(object):
 
             if self.netbox:
                 netboxes = {}
-                for netbox in self.netbox_set:
+                for netbox in self.netboxes:
                     room = room_name.get(netbox['room_id'])
                     netbox_name[netbox['id']] = self.netbox_label % netbox
                     if room in netboxes:
@@ -134,7 +134,7 @@ class QuickSelect(object):
 
             if self.netboxgroup:
                 netboxgroups = {'': []}
-                for netboxgroup in self.netboxgroup_set:
+                for netboxgroup in self.netbox_groups:
                     netboxgroups[''].append((netboxgroup['id'], netboxgroup['id']))
 
                 output.append(
@@ -150,7 +150,7 @@ class QuickSelect(object):
 
             if self.service:
                 services = {}
-                for service in self.service_set:
+                for service in self.services:
                     netbox = netbox_name[service['netbox_id']]
                     name = self.service_label % service
                     if netbox in services:
@@ -171,7 +171,7 @@ class QuickSelect(object):
 
             if self.module:
                 modules = {}
-                for module in self.module_set:
+                for module in self.modules:
                     netbox = netbox_name[module['netbox_id']]
                     name = self.module_label % module
                     if netbox in modules:
