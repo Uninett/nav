@@ -416,12 +416,12 @@ def group_detail(request, group_id=None):
                 target = privilege_form.cleaned_data['target']
 
                 try:
-                    group.privilege_set.get(type=message_type, target=target)
+                    group.privileges.get(type=message_type, target=target)
                     messages.warning(
                         request, 'Privilege was not added as it ' 'already exists.'
                     )
                 except Privilege.DoesNotExist:
-                    group.privilege_set.create(type=message_type, target=target)
+                    group.privileges.create(type=message_type, target=target)
                     messages.success(request, 'Privilege has been added.')
 
                 return HttpResponseRedirect(
@@ -504,7 +504,7 @@ def group_privilege_remove(request, group_id, privilege_id):
         return HttpResponseRedirect(reverse('useradmin-group_list'))
 
     try:
-        privilege = group.privilege_set.get(id=privilege_id)
+        privilege = group.privileges.get(id=privilege_id)
     except Privilege.DoesNotExist:
         messages.warning(
             request,
