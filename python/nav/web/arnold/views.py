@@ -183,8 +183,8 @@ def is_deletable(justification):
     :type justification: Justification
 
     """
-    is_in_detentionset = bool(justification.detentionprofile_set.all())
-    has_been_used = bool(justification.identity_set.all())
+    is_in_detentionset = justification.detentionprofile_set.exists()
+    has_been_used = justification.identity_set.exists()
 
     return not (has_been_used or is_in_detentionset)
 
