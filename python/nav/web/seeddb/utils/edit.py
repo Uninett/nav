@@ -112,8 +112,8 @@ def render_edit(
                     'sub_active': {'edit': True},
                 }
             )
-    extra_context.update(context)
-    return render(request, template, extra_context)
+    context.update(extra_context)
+    return render(request, template, context)
 
 
 def _get_object(model, object_id, identifier_attr='pk'):
