@@ -833,6 +833,30 @@ class Device(models.Model):
     def __str__(self):
         return self.serial or ''
 
+    def get_related_objects(self):
+        modules = self.module_set.all()
+        power_supplies_or_fans = self.powersupplyorfan_set.all()
+        netbox_entities = self.netboxentity_set.all()
+        return modules or power_supplies_or_fans or netbox_entities
+
+    def get_preferred_related_object(self):
+        related_objects = self.get_related_objects()
+        if not related_objects:
+            return None
+        if len(related_objects) > 1:
+            _logger.info(
+                "Device.get_related_objects(): %s weirdly appears to have "
+                "duplicate entities, returning just one",
+                self,
+            )
+        return related_objects[0]
+
+    def get_extended_description(self):
+        related_object = self.get_preferred_related_object()
+        if related_object:
+            return str(related_object)
+        return str(self)
+
 
 class Module(models.Model):
     """From NAV Wiki: The module table defines modules. A module is a part of a
