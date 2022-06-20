@@ -184,7 +184,7 @@ def is_deletable(justification):
 
     """
     is_in_detentionset = justification.detentionprofile_set.all()
-    has_been_used = justification.identityies.all()
+    has_been_used = justification.identities.all()
 
     return not (has_been_used or is_in_detentionset)
 
