@@ -13,11 +13,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+import datetime
 
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field
-
+from django.forms import IntegerField
 from nav.models.fields import INFINITY
 
 
@@ -72,3 +73,10 @@ class MaintenanceAddSingleNetbox(forms.Form):
     a custom variable-checker"""
 
     netboxid = forms.IntegerField(required=True)
+
+
+class MaintenanceCalendarForm(forms.Form):
+    """A form used for displaying a maintenance calendar"""
+
+    month = IntegerField(initial=None, required=True, min_value=1, max_value=12)
+    year = IntegerField(initial=None, required=True, min_value=2000, max_value=2100)

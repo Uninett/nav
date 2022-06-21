@@ -38,7 +38,7 @@ from nav.web.maintenance.utils import get_component_keys, PRIMARY_KEY_INTEGER
 from nav.web.maintenance.utils import structure_component_data
 from nav.web.maintenance.utils import task_form_initial, infodict_by_state
 from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
-from nav.web.maintenance.forms import MaintenanceTaskForm
+from nav.web.maintenance.forms import MaintenanceTaskForm, MaintenanceCalendarForm
 from nav.web.maintenance.forms import MaintenanceAddSingleNetbox
 import nav.maintengine
 
@@ -54,6 +54,9 @@ def redirect_to_calendar(_request):
 
 def calendar(request, year=None, month=None):
     # If the form was used to get here, redirect to the appropriate page
+    form = MaintenanceCalendarForm()
+    heading = "Maintenance schedule"
+
     if "year" in request.GET and "month" in request.GET:
         return redirect(
             "maintenance-calendar",
@@ -61,7 +64,6 @@ def calendar(request, year=None, month=None):
             month=request.GET.get("month"),
         )
 
-    heading = "Maintenance schedule"
     try:
         year = int(year)
         month = int(month)
@@ -98,6 +100,7 @@ def calendar(request, year=None, month=None):
         'maintenance/calendar.html',
         {
             'active': {'calendar': True},
+            'calendarform': form,
             'navpath': NAVPATH,
             'title': TITLE,
             'heading': heading,
