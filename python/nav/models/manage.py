@@ -155,12 +155,23 @@ class ManagementProfile(models.Model):
 
     @property
     def snmp_version(self):
+        """Returns the configured SNMP version as an integer"""
         if self.is_snmp:
-            return self.configuration['version']
+            value = self.configuration['version']
+            if value == "2c":
+                return 2
+            return int(value)
 
         raise ValueError(
-            "Getting snmp protocol version for non-snmp " "management profile"
+            "Getting snmp protocol version for non-snmp management profile"
         )
+
+    @property
+    def snmp_community(self):
+        if self.is_snmp:
+            return self.configuration['community']
+
+        raise ValueError("Getting snmp community for non-snmp management profile")
 
 
 class NetboxProfile(models.Model):
@@ -321,6 +332,26 @@ class Netbox(models.Model):
         )
         if profiles:
             return profiles[0].configuration.get(variable)
+
+    def get_preferred_snmp_management_profile(self, writeable=None):
+        """
+        Returns the snmp management profile with the highest available
+        SNMP version.
+        """
+        query = Q(protocol=ManagementProfile.PROTOCOL_SNMP)
+        if writeable:
+            query = query & Q(configuration__write=True)
+        elif writeable is not None:
+            query = query & (
+                Q(configuration__write=False) | ~Q(configuration__has_key='write')
+            )
+        profiles = sorted(
+            self.profiles.filter(query),
+            key=lambda p: str(p.configuration.get('version') or 0),
+            reverse=True,
+        )
+        if profiles:
+            return profiles[0]
 
     def is_up(self):
         """Returns True if the Netbox isn't known to be down or in shadow"""
