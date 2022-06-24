@@ -110,39 +110,55 @@ def get_metric_data(target, start="-5min", end="now"):
     if isinstance(end, datetime):
         end = end.strftime('%H:%M%Y%m%d')
 
-    query = {
-        'target': target,
-        'from': start,
-        'until': end,
-        'format': 'json',
-    }
-    query = urlencode(query, True)
+    def divide_chunks(list, n):
+        for i in range(0, len(list), n):
+            yield list[i : i + n]
 
-    _logger.debug("get_metric_data%r", (target, start, end))
-    req = Request(url, data=query.encode('utf-8'))
-    try:
-        response = urlopen(req)
-        json_data = json.load(codecs.getreader('utf-8')(response))
-        _logger.debug("get_metric_data: returning %d results", len(json_data))
-        return json_data
-    except HTTPError as err:
-        _logger.error(
-            "Got a 500 error from graphite-web when fetching %s" "with data %s",
-            err.url,
-            query,
-        )
-        _logger.error("Graphite output: %s", err.fp.read())
-        raise errors.GraphiteUnreachableError("{0} is unreachable".format(base), err)
-    except URLError as err:
-        raise errors.GraphiteUnreachableError("{0} is unreachable".format(base), err)
-    except ValueError:
-        # response could not be decoded
-        return []
-    finally:
+    queries = [
+        {
+            'target': target_chunk,
+            'from': start,
+            'until': end,
+            'format': 'json',
+        }
+        for target_chunk in divide_chunks(target, 100)
+    ]
+    json_data = []
+
+    for query in queries:
+        query = urlencode(query, True)
+
+        _logger.debug("get_metric_data%r", (target, start, end))
+        req = Request(url, data=query.encode('utf-8'))
         try:
-            response.close()
-        except NameError:
-            pass
+            response = urlopen(req)
+            json_data_chunk = json.load(codecs.getreader('utf-8')(response))
+            _logger.debug("get_metric_data: returning %d results", len(json_data_chunk))
+            json_data.extend(json_data_chunk)
+        except HTTPError as err:
+            _logger.error(
+                "Got a 500 error from graphite-web when fetching %s" "with data %s",
+                err.url,
+                query,
+            )
+            _logger.error("Graphite output: %s", err.fp.read())
+            raise errors.GraphiteUnreachableError(
+                "{0} is unreachable".format(base), err
+            )
+        except URLError as err:
+            raise errors.GraphiteUnreachableError(
+                "{0} is unreachable".format(base), err
+            )
+        except ValueError:
+            # response could not be decoded
+            return []
+        finally:
+            try:
+                response.close()
+            except NameError:
+                pass
+
+    return json_data
 
 
 DEFAULT_TIME_FRAMES = ('day', 'week', 'month')
