@@ -33,7 +33,11 @@ def connect(host: Host, profile: manage.ManagementProfile) -> NetworkDriver:
     driver = get_driver(profile)
     config = profile.configuration
     hostname = host if not isinstance(host, manage.Netbox) else host.ip
-    optional_args = {"config_lock": True, "lock_disable": True}
+    optional_args = {
+        "config_lock": True,
+        "lock_disable": True,
+        "auto_probe": config.get("timeout", 60),
+    }
     key_file = _write_key_to_temporary_file(config, optional_args)
 
     try:
