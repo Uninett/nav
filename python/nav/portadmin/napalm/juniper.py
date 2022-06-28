@@ -115,9 +115,7 @@ class Juniper(ManagementHandler):
     def profile(self) -> manage.ManagementProfile:
         """Returns the selected NAPALM profile for this netbox"""
         if not self._profile:
-            profiles = self.netbox.profiles.filter(protocol=self.PROTOCOL)
-            if profiles:
-                self._profile = profiles[0]
+            self._profile = self.netbox.profiles.filter(protocol=self.PROTOCOL).first()
         return self._profile
 
     @property
