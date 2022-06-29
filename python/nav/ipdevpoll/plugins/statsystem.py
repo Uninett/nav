@@ -33,6 +33,7 @@ from nav.metrics.templates import (
     metric_prefix_for_memory,
 )
 from nav.mibs.cisco_memory_pool_mib import CiscoMemoryPoolMib
+from nav.mibs.cisco_enhanced_memory_pool_mib import CiscoEnhancedMemoryPoolMib
 
 from nav.mibs.esswitch_mib import ESSwitchMib
 from nav.mibs.cisco_c2900_mib import CiscoC2900Mib
@@ -62,7 +63,7 @@ CPU_MIBS = {
 }
 
 MEMORY_MIBS = {
-    VENDOR_ID_CISCOSYSTEMS: [CiscoMemoryPoolMib],
+    VENDOR_ID_CISCOSYSTEMS: [CiscoMemoryPoolMib, CiscoEnhancedMemoryPoolMib],
     VENDOR_ID_HEWLETT_PACKARD: [NetswitchMib],
     VENDOR_ID_JUNIPER_NETWORKS_INC: [JuniperMib],
 }
