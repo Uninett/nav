@@ -25,11 +25,15 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import db
 from nav.ipdevpoll.db import run_in_thread
 from nav.metrics.carbon import send_metrics
-from nav.metrics.templates import metric_path_for_sensor
+from nav.metrics.templates import metric_path_for_sensor, metric_path_for_threshold
 from nav.models.manage import Sensor
+from nav.mibs.juniper_dom_mib import JuniperDomMib
+from nav.enterprise.ids import VENDOR_ID_JUNIPER_NETWORKS_INC
 
 # Ask for no more than this number of values in a single SNMP GET operation
 MAX_SENSORS_PER_REQUEST = 5
+
+THRESHOLD_MIBS = {VENDOR_ID_JUNIPER_NETWORKS_INC: [JuniperDomMib]}
 
 
 class StatSensors(Plugin):
@@ -59,6 +63,11 @@ class StatSensors(Plugin):
             defer.returnValue(None)
         netboxes = yield db.run_in_thread(self._get_netbox_list)
         sensors = yield run_in_thread(self._get_sensors)
+        yield self._handle_sensor_stats(sensors, netboxes)
+        yield self._handle_thresholds(sensors, netboxes)
+
+    @defer.inlineCallbacks
+    def _handle_sensor_stats(self, sensors, netboxes):
         self._logger.debug("retrieving data from %d sensors", len(sensors))
         oids = list(sensors.keys())
         requests = [
@@ -73,6 +82,8 @@ class StatSensors(Plugin):
 
     def _get_sensors(self):
         sensors = Sensor.objects.filter(netbox=self.netbox.id).values()
+        for sensor in sensors:
+            self._logger.info(f"Internal names: {sensor.get('internal_name', None)}")
         return dict((row['oid'], row) for row in sensors)
 
     def _response_to_metrics(self, result, sensors, netboxes):
@@ -97,6 +108,52 @@ class StatSensors(Plugin):
                 metrics.append((path, (timestamp, value)))
         send_metrics(metrics)
         return metrics
+
+    @defer.inlineCallbacks
+    def _handle_thresholds(self, sensors, netboxes):
+        metrics = yield self._collect_thresholds(netboxes, sensors)
+        self._logger.info(f"Metrics: {metrics}")
+        if metrics:
+            send_metrics(metrics)
+
+    @defer.inlineCallbacks
+    def _collect_thresholds(self, netboxes, sensors):
+        for mib in self._mibs_for_me(THRESHOLD_MIBS):
+            try:
+                metrics = yield self._collect_thresholds_from_mib(
+                    mib, netboxes, sensors
+                )
+            except (TimeoutError, defer.TimeoutError):
+                self._logger.debug(
+                    "collect_thresholds: ignoring timeout in %s", mib.mib['moduleName']
+                )
+            else:
+                if metrics:
+                    defer.returnValue(metrics)
+        defer.returnValue([])
+
+    @defer.inlineCallbacks
+    def _collect_thresholds_from_mib(self, mib, netboxes, sensors):
+        metrics = []
+        timestamp = time.time()
+        thresholds = yield mib.get_all_thresholds()
+        self._logger.debug(f"Threshold: {thresholds}")
+        for threshold in thresholds:
+            sensor = sensors[threshold['sensor_oid']]
+            value = self.convert_to_precision(threshold['value'], sensor)
+            for netbox in netboxes:
+                path = metric_path_for_threshold(
+                    netbox, sensor['internal_name'], threshold['name']
+                )
+                # thresholds will have the same precision etc. as its related sensor
+                metrics.append((path, (timestamp, value)))
+            return metrics
+
+    def _mibs_for_me(self, mib_class_dict):
+        vendor = self.netbox.type.get_enterprise_id() if self.netbox.type else None
+        mib_classes = mib_class_dict.get(vendor, None) or mib_class_dict.get(None, [])
+        for mib_class in mib_classes:
+            yield mib_class(self.agent)
 
 
 def convert_to_precision(value, sensor):
