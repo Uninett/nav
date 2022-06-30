@@ -51,6 +51,33 @@ COLUMNS = {
     },
 }
 
+THRESHOLD_COLUMNS = {
+    "jnxDomCurrentRxLaserPower": [
+        "jnxDomCurrentRxLaserPowerHighAlarmThreshold",
+        "jnxDomCurrentRxLaserPowerLowAlarmThreshold",
+        "jnxDomCurrentRxLaserPowerHighWarningThreshold",
+        "jnxDomCurrentRxLaserPowerLowWarningThreshold",
+    ],
+    "jnxDomCurrentTxLaserBiasCurrent": [
+        "jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold",
+        "jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold",
+        "jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold",
+        "jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold",
+    ],
+    "jnxDomCurrentTxLaserOutputPower": [
+        "jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold",
+        "jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold",
+        "jnxDomCurrentTxLaserOutputPowerHighWarningThreshold",
+        "jnxDomCurrentTxLaserOutputPowerLowWarningThreshold",
+    ],
+    "jnxDomCurrentModuleTemperature": [
+        "jnxDomCurrentModuleTemperatureHighAlarmThreshold",
+        "jnxDomCurrentModuleTemperatureLowAlarmThreshold",
+        "jnxDomCurrentModuleTemperatureHighWarningThreshold",
+        "jnxDomCurrentModuleTemperatureLowWarningThreshold",
+    ],
+}
+
 
 class JuniperDomMib(MibRetriever):
     """MibRetriever for Juniper DOM Sensors"""
@@ -64,11 +91,11 @@ class JuniperDomMib(MibRetriever):
         """
         sensors = []
         for column, config in COLUMNS.items():
-            sensors += yield self.handle_column(column, config)
+            sensors += yield self.handle_sensor_column(column, config)
         returnValue(sensors)
 
     @defer.inlineCallbacks
-    def handle_column(self, column, config):
+    def handle_sensor_column(self, column, config):
         """Returns the sensors of the given type"""
         result = []
         value_oid = self.nodes[column].oid
@@ -83,4 +110,32 @@ class JuniperDomMib(MibRetriever):
             )
             sensor.update(config)
             result.append(sensor)
+        returnValue(result)
+
+    @defer.inlineCallbacks
+    def get_all_thresholds(self):
+        thresholds = []
+        for sensor_column, threshold_columns in THRESHOLD_COLUMNS.items():
+            sensor_oid = self.nodes[sensor_column].oid
+            for threshold_column in threshold_columns:
+                thresholds += yield self.handle_threshold_column(
+                    threshold_column, sensor_oid
+                )
+        returnValue(thresholds)
+
+    @defer.inlineCallbacks
+    def handle_threshold_column(self, column, sensor_oid):
+        """Returns the sensor thresholds of the given type"""
+        result = []
+        value_oid = self.nodes[column].oid
+        rows = yield self.retrieve_column(column)
+        for row, value in rows.items():
+            threshold = dict(
+                oid=str(value_oid + row),
+                mib=self.get_module_name(),
+                name=column,
+                value=value,
+                sensor_oid=str(sensor_oid + row),
+            )
+            result.append(threshold)
         returnValue(result)
