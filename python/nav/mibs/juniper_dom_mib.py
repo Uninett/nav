@@ -23,7 +23,7 @@ from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
 
-COLUMNS = {
+SENSOR_COLUMNS = {
     "jnxDomCurrentRxLaserPower": {
         "unit_of_measurement": Sensor.UNIT_DBM,
         "precision": 2,
@@ -52,30 +52,30 @@ COLUMNS = {
 }
 
 THRESHOLD_COLUMNS = {
-    "jnxDomCurrentRxLaserPower": [
-        "jnxDomCurrentRxLaserPowerHighAlarmThreshold",
-        "jnxDomCurrentRxLaserPowerLowAlarmThreshold",
-        "jnxDomCurrentRxLaserPowerHighWarningThreshold",
-        "jnxDomCurrentRxLaserPowerLowWarningThreshold",
-    ],
-    "jnxDomCurrentTxLaserBiasCurrent": [
-        "jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold",
-        "jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold",
-        "jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold",
-        "jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold",
-    ],
-    "jnxDomCurrentTxLaserOutputPower": [
-        "jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold",
-        "jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold",
-        "jnxDomCurrentTxLaserOutputPowerHighWarningThreshold",
-        "jnxDomCurrentTxLaserOutputPowerLowWarningThreshold",
-    ],
-    "jnxDomCurrentModuleTemperature": [
-        "jnxDomCurrentModuleTemperatureHighAlarmThreshold",
-        "jnxDomCurrentModuleTemperatureLowAlarmThreshold",
-        "jnxDomCurrentModuleTemperatureHighWarningThreshold",
-        "jnxDomCurrentModuleTemperatureLowWarningThreshold",
-    ],
+    "jnxDomCurrentRxLaserPower": {
+        "high_alarm_threshold": "jnxDomCurrentRxLaserPowerHighAlarmThreshold",
+        "low_alarm_threshold": "jnxDomCurrentRxLaserPowerLowAlarmThreshold",
+        "high_warning_threshold": "jnxDomCurrentRxLaserPowerHighWarningThreshold",
+        "low_warning_threshold": "jnxDomCurrentRxLaserPowerLowWarningThreshold",
+    },
+    "jnxDomCurrentTxLaserBiasCurrent": {
+        "high_alarm_threshold": "jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold",
+        "low_alarm_threshold": "jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold",
+        "high_warning_threshold": "jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold",
+        "low_warning_threshold": "jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold",
+    },
+    "jnxDomCurrentTxLaserOutputPower": {
+        "high_alarm_threshold": "jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold",
+        "low_alarm_threshold": "jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold",
+        "high_warning_threshold": "jnxDomCurrentTxLaserOutputPowerHighWarningThreshold",
+        "low_warning_threshold": "jnxDomCurrentTxLaserOutputPowerLowWarningThreshold",
+    },
+    "jnxDomCurrentModuleTemperature": {
+        "high_alarm_threshold": "jnxDomCurrentModuleTemperatureHighAlarmThreshold",
+        "low_alarm_threshold": "jnxDomCurrentModuleTemperatureLowAlarmThreshold",
+        "high_warning_threshold": "jnxDomCurrentModuleTemperatureHighWarningThreshold",
+        "low_warning_threshold": "jnxDomCurrentModuleTemperatureLowWarningThreshold",
+    },
 }
 
 
@@ -90,7 +90,7 @@ class JuniperDomMib(MibRetriever):
         device.
         """
         sensors = []
-        for column, config in COLUMNS.items():
+        for column, config in SENSOR_COLUMNS.items():
             sensors += yield self.handle_sensor_column(column, config)
         returnValue(sensors)
 
@@ -115,16 +115,16 @@ class JuniperDomMib(MibRetriever):
     @defer.inlineCallbacks
     def get_all_thresholds(self):
         thresholds = []
-        for sensor_column, threshold_columns in THRESHOLD_COLUMNS.items():
+        for sensor_column, thresholds in THRESHOLD_COLUMNS.items():
             sensor_oid = self.nodes[sensor_column].oid
-            for threshold_column in threshold_columns:
+            for threshold_name, threshold_column in thresholds.items():
                 thresholds += yield self.handle_threshold_column(
-                    threshold_column, sensor_oid
+                    threshold_column, threshold_name, sensor_oid
                 )
         returnValue(thresholds)
 
     @defer.inlineCallbacks
-    def handle_threshold_column(self, column, sensor_oid):
+    def handle_threshold_column(self, column, name, sensor_oid):
         """Returns the sensor thresholds of the given type"""
         result = []
         value_oid = self.nodes[column].oid
@@ -133,7 +133,7 @@ class JuniperDomMib(MibRetriever):
             threshold = dict(
                 oid=str(value_oid + row),
                 mib=self.get_module_name(),
-                name=column,
+                name=name,
                 value=value,
                 sensor_oid=str(sensor_oid + row),
             )
