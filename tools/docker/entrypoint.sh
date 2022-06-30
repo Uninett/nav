@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 if [ "$EUID" == "0" ]; then
     # Sneakily modify the nav user to match the UID/GID of the real user who owns
     # the mounted /source volume.
