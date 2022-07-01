@@ -85,7 +85,9 @@ def parse_args():
         'handler',
         metavar='HANDLER',
         choices=checkermap.checkers.keys(),
-        help='Handler name of the checker plugin to use',
+        help='Handler name of the checker plugin to use. Available handler plugins are '
+        + ', '.join(checkermap.checkers.keys())
+        + '.',
     )
     return parser.parse_args()
 
