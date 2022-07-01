@@ -303,6 +303,12 @@ class SubInterfaceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class AggregatedInterfaceSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = manage.Interface
+        fields = ['id', 'ifname']
+
+
 class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
 
@@ -311,6 +317,10 @@ class InterfaceSerializer(serializers.ModelSerializer):
     object_url = serializers.CharField(source='get_absolute_url')
     to_netbox = SubNetboxSerializer()
     to_interface = SubInterfaceSerializer()
+    aggregator = AggregatedInterfaceSerializer(source='get_aggregator')
+    bundled_interfaces = AggregatedInterfaceSerializer(
+        source='get_bundled_interfaces', many=True
+    )
     netbox = SubNetboxSerializer()
 
     class Meta(object):
