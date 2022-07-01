@@ -3,6 +3,7 @@
 #
 cd /source
 # Build once first
+sudo -u nav python3 setup.py build  # ensure build data and .eggs aren't stored as root
 python3 setup.py develop
 sudo -u nav python3 setup.py build_sphinx
 # Then re-build on any changes to the doc directory
