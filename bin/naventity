@@ -193,7 +193,7 @@ class GraphTraversal(asciitree.Traversal):
         return [u for u, v in self.graph.in_edges(node)]
 
     def get_text(self, node):
-        ent = self.graph.node[node]
+        ent = self.graph.nodes[node]
         labels = [
             ent.get('entPhysicalName'),
             "[{}]".format(ent.get('entPhysicalClass')),
