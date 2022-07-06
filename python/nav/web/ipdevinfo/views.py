@@ -415,7 +415,7 @@ def get_port_view(request, netbox_sysname, perspective):
 
     # Check if we got data for the entire search interval
     try:
-        port_view['activity_data_start'] = netbox.cams.order_by('start_time')[
+        port_view['activity_data_start'] = netbox.cam_set.order_by('start_time')[
             0
         ].start_time
         port_view['activity_data_interval'] = (
@@ -478,7 +478,7 @@ def module_details(request, netbox_sysname, module_name):
 
             # Check if we got data for the entire search interval
             try:
-                module['activity_data_start'] = module_object.netbox.cams.order_by(
+                module['activity_data_start'] = module_object.netbox.cam_set.order_by(
                     'start_time'
                 )[0].start_time
                 module['activity_data_interval'] = (

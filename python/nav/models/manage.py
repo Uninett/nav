@@ -1882,7 +1882,7 @@ class Cam(models.Model):
         on_delete=models.CASCADE,
         db_column='netboxid',
         null=True,
-        related_name="cams",
+        related_name="cam_set",
     )
     sysname = VarcharField()
     ifindex = models.IntegerField()
@@ -2065,7 +2065,7 @@ class Interface(models.Model):
     def get_last_cam_record(self):
         """Returns the newest cam record gotten from this switch port."""
         try:
-            return self.netbox.cams.filter(ifindex=self.ifindex).latest('end_time')
+            return self.netbox.cam_set.filter(ifindex=self.ifindex).latest('end_time')
         except Cam.DoesNotExist:
             return None
 
@@ -2087,7 +2087,7 @@ class Interface(models.Model):
             # XXX: This causes a DB query per port
             # Use .values() to avoid creating additional objects we do not need
             last_cam_entry_end_time = (
-                self.netbox.cams.filter(ifindex=self.ifindex, end_time__gt=min_time)
+                self.netbox.cam_set.filter(ifindex=self.ifindex, end_time__gt=min_time)
                 .order_by('-end_time')
                 .values('end_time')[0]['end_time']
             )
