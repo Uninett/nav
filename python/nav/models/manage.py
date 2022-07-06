@@ -877,9 +877,9 @@ class Device(models.Model):
         Returns the related modules/power supplies/fans/netbox
         entities of a device.
         """
-        modules = self.module_set.all()
-        power_supplies_or_fans = self.powersupplyorfan_set.all()
-        netbox_entities = self.netboxentity_set.all()
+        modules = self.modules.all()
+        power_supplies_or_fans = self.power_supplies_or_fans.all()
+        netbox_entities = self.netboxes.all()
         return modules or power_supplies_or_fans or netbox_entities
 
     def get_preferred_related_object(self):
