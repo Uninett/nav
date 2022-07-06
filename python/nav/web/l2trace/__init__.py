@@ -239,7 +239,7 @@ def get_vlan_gateway(vlan):
     )
     gateways = Netbox.objects.filter(
         category__in=('GW', 'GSW'),
-        interfaces__gw_port_prefixes__in=gwport_prefixes,
+        interfaces__gwport_prefixes__in=gwport_prefixes,
     ).distinct()
     if gateways:
         return gateways[0]

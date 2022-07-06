@@ -298,4 +298,4 @@ class LLDPNeighbor(Neighbor):
         assert ip
         if ip in self._invalid_neighbor_ips:
             return
-        return self._interface_query(Q(gw_port_prefixes__gw_ip=ip))
+        return self._interface_query(Q(gwport_prefixes__gw_ip=ip))

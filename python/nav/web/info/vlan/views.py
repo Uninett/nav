@@ -237,7 +237,7 @@ def find_gwportprefixes(vlan):
     gwportprefixes = []
     for prefix in vlan.prefixes.all():
         gwportprefixes.extend(
-            prefix.gw_port_prefixes.filter(
+            prefix.gwport_prefixes.filter(
                 interface__netbox__category__id__in=['GSW', 'GW']
             )
         )

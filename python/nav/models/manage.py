@@ -407,7 +407,7 @@ class Netbox(models.Model):
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(
-            netbox=self, gw_port_prefixes__isnull=False
+            netbox=self, gwport_prefixes__isnull=False
         ).distinct()
 
     def get_gwports_sorted(self):
@@ -461,7 +461,7 @@ class Netbox(models.Model):
         result = []
 
         for iface in self.connected_to_interface.all():
-            if iface.sw_port_vlans.filter(direction=SwPortVlan.DIRECTION_DOWN).count():
+            if iface.swport_vlans.filter(direction=SwPortVlan.DIRECTION_DOWN).count():
                 result.append(
                     {
                         'other': iface,
@@ -963,7 +963,7 @@ class Module(models.Model):
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(
-            module=self, gw_port_prefixes__isnull=False
+            module=self, gwport_prefixes__isnull=False
         ).distinct()
 
     def get_gwports_sorted(self):
@@ -1362,13 +1362,13 @@ class GwPortPrefix(models.Model):
         'Interface',
         on_delete=models.CASCADE,
         db_column='interfaceid',
-        related_name="gw_port_prefixes",
+        related_name="gwport_prefixes",
     )
     prefix = models.ForeignKey(
         'Prefix',
         on_delete=models.CASCADE,
         db_column='prefixid',
-        related_name="gw_port_prefixes",
+        related_name="gwport_prefixes",
     )
     gw_ip = CIDRField(db_column='gwip', primary_key=True)
     virtual = models.BooleanField(default=False)
@@ -1459,7 +1459,7 @@ class Prefix(models.Model):
     def get_router_ports(self):
         """Returns a ordered list of GwPortPrefix objects on this prefix"""
         return (
-            self.gw_port_prefixes.filter(
+            self.gwport_prefixes.filter(
                 interface__netbox__category__id__in=('GSW', 'GW')
             )
             .select_related('interface', 'interface__netbox')
@@ -1693,13 +1693,13 @@ class SwPortVlan(models.Model):
         'Interface',
         on_delete=models.CASCADE,
         db_column='interfaceid',
-        related_name="sw_port_vlans",
+        related_name="swport_vlans",
     )
     vlan = models.ForeignKey(
         'Vlan',
         on_delete=models.CASCADE,
         db_column='vlanid',
-        related_name="sw_port_vlans",
+        related_name="swport_vlans",
     )
     direction = models.CharField(
         max_length=1, choices=DIRECTION_CHOICES, default=DIRECTION_UNDEFINED
@@ -1724,7 +1724,7 @@ class SwPortAllowedVlan(models.Model):
         on_delete=models.CASCADE,
         db_column='interfaceid',
         primary_key=True,
-        related_name="sw_port_allowed_vlan",
+        related_name="swport_allowed_vlan",
     )
     hex_string = VarcharField(db_column='hexstring')
     _cached_hex_string = ''
@@ -1782,7 +1782,7 @@ class SwPortBlocked(models.Model):
         'Interface',
         on_delete=models.CASCADE,
         db_column='interfaceid',
-        related_name="blocked_sw_ports",
+        related_name="blocked_swports",
     )
     vlan = models.IntegerField()
 
@@ -2043,7 +2043,7 @@ class Interface(models.Model):
         # XXX: This causes a DB query per port
         vlans = [
             swpv.vlan.vlan
-            for swpv in self.sw_port_vlans.select_related('vlan', 'interface')
+            for swpv in self.swport_vlans.select_related('vlan', 'interface')
         ]
         if self.vlan is not None and self.vlan not in vlans:
             vlans.append(self.vlan)
@@ -2056,7 +2056,7 @@ class Interface(models.Model):
         :rtype: nav.util.NumberRange
         """
         try:
-            allowed = self.sw_port_allowed_vlan.get_allowed_vlans()
+            allowed = self.swport_allowed_vlan.get_allowed_vlans()
         except SwPortAllowedVlan.DoesNotExist:
             pass
         else:
@@ -2152,7 +2152,7 @@ class Interface(models.Model):
             return ",".join(
                 as_range(y)
                 for x, y in groupby(
-                    sorted(self.sw_port_allowed_vlan.get_allowed_vlans()),
+                    sorted(self.swport_allowed_vlan.get_allowed_vlans()),
                     lambda n, c=count(): n - next(c),
                 )
             )
@@ -2170,7 +2170,7 @@ class Interface(models.Model):
         other hosts.
 
         """
-        return self.gw_port_prefixes.count() > 0
+        return self.gwport_prefixes.count() > 0
 
     def is_physical_port(self):
         """Returns true if this interface has a physical connector present"""
@@ -2220,7 +2220,7 @@ class Interface(models.Model):
 
     def get_sorted_vlans(self):
         """Returns a queryset of sorted swportvlans"""
-        return self.sw_port_vlans.select_related('vlan').order_by('vlan__vlan')
+        return self.swport_vlans.select_related('vlan').order_by('vlan__vlan')
 
     def is_on_maintenace(self):
         """Returns True if the owning Netbox is on maintenance"""
@@ -2339,7 +2339,7 @@ class GatewayPeerSession(models.Model):
         :rtype: Netbox
 
         """
-        expr = Q(ip=self.peer) | Q(interface_hello__gw_port_prefixes__gw_ip=self.peer)
+        expr = Q(ip=self.peer) | Q(interface_hello__gwport_prefixes__gw_ip=self.peer)
         netboxes = Netbox.objects.filter(expr)
         if netboxes:
             return netboxes[0]
