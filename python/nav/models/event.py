@@ -363,14 +363,14 @@ class EventQueue(models.Model, EventMixIn):
         on_delete=models.CASCADE,
         db_column='deviceid',
         null=True,
-        related_name="event_queues",
+        related_name="events",
     )
     netbox = models.ForeignKey(
         'models.Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
         null=True,
-        related_name="event_queues",
+        related_name="events",
     )
     subid = VarcharField(default='')
     time = models.DateTimeField(default=dt.datetime.now)
@@ -378,7 +378,7 @@ class EventQueue(models.Model, EventMixIn):
         'EventType',
         on_delete=models.CASCADE,
         db_column='eventtypeid',
-        related_name="event_queues",
+        related_name="events",
     )
     state = models.CharField(
         max_length=1, choices=STATE_CHOICES, default=STATE_STATELESS
