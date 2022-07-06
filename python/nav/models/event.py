@@ -489,21 +489,21 @@ class AlertQueue(models.Model, EventMixIn):
         'Subsystem',
         on_delete=models.CASCADE,
         db_column='source',
-        related_name="alert_queues",
+        related_name="alerts",
     )
     device = models.ForeignKey(
         'models.Device',
         on_delete=models.CASCADE,
         db_column='deviceid',
         null=True,
-        related_name="alert_queues",
+        related_name="alerts",
     )
     netbox = models.ForeignKey(
         'models.Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
         null=True,
-        related_name="alert_queues",
+        related_name="alerts",
     )
     subid = VarcharField(default='')
     time = models.DateTimeField()
@@ -511,14 +511,14 @@ class AlertQueue(models.Model, EventMixIn):
         'EventType',
         on_delete=models.CASCADE,
         db_column='eventtypeid',
-        related_name="alert_queues",
+        related_name="alerts",
     )
     alert_type = models.ForeignKey(
         'AlertType',
         on_delete=models.CASCADE,
         db_column='alerttypeid',
         null=True,
-        related_name="alert_queues",
+        related_name="alerts",
     )
     state = models.CharField(
         max_length=1, choices=STATE_CHOICES, default=STATE_STATELESS
@@ -535,7 +535,7 @@ class AlertQueue(models.Model, EventMixIn):
         null=True,
         blank=True,
         db_column='alerthistid',
-        related_name="alert_queues",
+        related_name="alerts",
     )
 
     varmap = VariableMap()
