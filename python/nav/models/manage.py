@@ -539,7 +539,7 @@ class Netbox(models.Model):
                   otherwise None
         """
         try:
-            lastdown = self.alert_histories.filter(
+            lastdown = self.alerthistory_set.filter(
                 event_type__id='boxState', end_time__isnull=False
             ).order_by("-end_time")[0]
         except IndexError:
@@ -549,7 +549,7 @@ class Netbox(models.Model):
 
     def get_unresolved_alerts(self, kind=None):
         """Returns a queryset of unresolved alert states"""
-        return self.alert_histories.unresolved(kind)
+        return self.alerthistory_set.unresolved(kind)
 
     def get_powersupplies(self):
         return self.power_supplies_or_fans.filter(

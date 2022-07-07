@@ -657,21 +657,21 @@ class AlertHistory(models.Model, EventMixIn):
         'Subsystem',
         on_delete=models.CASCADE,
         db_column='source',
-        related_name="alert_histories",
+        related_name="alerthistory_set",
     )
     device = models.ForeignKey(
         'models.Device',
         on_delete=models.CASCADE,
         db_column='deviceid',
         null=True,
-        related_name="alert_histories",
+        related_name="alerthistory_set",
     )
     netbox = models.ForeignKey(
         'models.Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
         null=True,
-        related_name="alert_histories",
+        related_name="alerthistory_set",
     )
     subid = VarcharField(default='')
     start_time = models.DateTimeField()
@@ -680,14 +680,14 @@ class AlertHistory(models.Model, EventMixIn):
         'EventType',
         on_delete=models.CASCADE,
         db_column='eventtypeid',
-        related_name="alert_histories",
+        related_name="alerthistory_set",
     )
     alert_type = models.ForeignKey(
         'AlertType',
         on_delete=models.CASCADE,
         db_column='alerttypeid',
         null=True,
-        related_name="alert_histories",
+        related_name="alerthistory_set",
     )
     value = models.IntegerField()
     severity = models.IntegerField(

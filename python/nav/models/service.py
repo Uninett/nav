@@ -111,7 +111,7 @@ class Service(models.Model):
                   otherwise None
         """
         try:
-            lastdown = self.netbox.alert_histories.filter(
+            lastdown = self.netbox.alerthistory_set.filter(
                 event_type__id='serviceState', end_time__isnull=False
             ).order_by("-end_time")[0]
         except IndexError:
