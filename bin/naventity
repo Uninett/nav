@@ -48,27 +48,28 @@ def main():
     options = parse_args()
 
     if options.device:
-        reactor.callWhenRunning(reactor_main, options.device)
+        reactor.callWhenRunning(reactor_main, options.device, options.port)
         reactor.run()
         sys.exit(_exit_code)
 
 
-def reactor_main(box):
+def reactor_main(box, portnumber):
     """The main function to start in the event reactor"""
-    header = "{sysname} ({ip})".format(**vars(box))
+    header = "{sysname} ({ip}:{port})".format(port=portnumber, **vars(box))
     print(header)
     print("-" * len(header))
-    df = collect_entities(box).addErrback(failure_handler)
+    df = collect_entities(box, portnumber)
     df.addCallback(make_graph, box)
     df.addCallback(print_graph)
+    df.addErrback(failure_handler)
     df.addBoth(endit)
     return df
 
 
 @defer.inlineCallbacks
-def collect_entities(netbox):
+def collect_entities(netbox, portnumber):
     """Collects the entPhysicalTable"""
-    agent = _create_agentproxy(netbox)
+    agent = _create_agentproxy(netbox, portnumber)
     if not agent:
         defer.returnValue(None)
 
@@ -128,6 +129,14 @@ def parse_args():
         help="The NAV-monitored IP device to query. Must be either "
         "a sysname prefix or an IP address.",
     )
+    parser.add_argument(
+        "--port",
+        "-p",
+        type=int,
+        help="change the portnumber, [default: 161]",
+        metavar="PORT",
+        default=161,
+    )
     return parser.parse_args()
 
 
@@ -162,14 +171,14 @@ def device(devicestring):
     return netbox
 
 
-def _create_agentproxy(netbox):
+def _create_agentproxy(netbox, portnumber):
     if not netbox.read_only:
         return
 
     port = snmpprotocol.port()
     agent = AgentProxy(
         netbox.ip,
-        161,
+        portnumber,
         community=netbox.read_only,
         snmpVersion='v%s' % netbox.snmp_version,
         protocol=port.protocol,
@@ -193,7 +202,7 @@ class GraphTraversal(asciitree.Traversal):
         return [u for u, v in self.graph.in_edges(node)]
 
     def get_text(self, node):
-        ent = self.graph.node[node]
+        ent = self.graph.nodes[node]
         labels = [
             ent.get('entPhysicalName'),
             "[{}]".format(ent.get('entPhysicalClass')),
