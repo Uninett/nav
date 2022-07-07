@@ -1275,13 +1275,11 @@ class NetboxCategory(models.Model):
         'Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
-        related_name="netbox_categories",
     )
     category = models.ForeignKey(
         'NetboxGroup',
         on_delete=models.CASCADE,
         db_column='category',
-        related_name="netbox_categories",
     )
 
     class Meta(object):

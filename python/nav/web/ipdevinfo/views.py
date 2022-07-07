@@ -306,7 +306,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     else:
         alert_info = get_recent_alerts(netbox)
-        netboxgroups = netbox.netbox_categories.all()
+        netboxgroups = netbox.groups.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
         job_descriptions = get_job_descriptions()
 

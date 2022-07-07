@@ -1189,7 +1189,7 @@ class MatchField(models.Model):
         ARP: 'netbox__arp_set',
         CAM: 'netbox__cam',
         CATEGORY: 'netbox__category',
-        NETBOXGROUP: 'netbox__netbox_categories__category',
+        NETBOXGROUP: 'netbox__categories',
         DEVICE: 'netbox__device',
         EVENT_TYPE: 'event_type',
         LOCATION: 'netbox__room__location',
