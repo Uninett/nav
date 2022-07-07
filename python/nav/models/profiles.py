@@ -1193,7 +1193,7 @@ class MatchField(models.Model):
         DEVICE: 'netbox__device',
         EVENT_TYPE: 'event_type',
         LOCATION: 'netbox__room__location',
-        MEMORY: 'netbox__memories',
+        MEMORY: 'netbox__memory_set',
         MODULE: 'netbox__modules',
         NETBOX: 'netbox',
         NETBOXINFO: 'netbox__info',

@@ -1045,7 +1045,7 @@ class Memory(models.Model):
         'Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
-        related_name="memories",
+        related_name="memory_set",
     )
     type = VarcharField(db_column='memtype')
     device = VarcharField()
