@@ -221,6 +221,8 @@ Registers a notice on a device
      - Software upgrade on device.
    * - ``deviceHwUpgrade``
      - Hardware upgrade on device.
+   * - ``deviceFwUpgrade``
+     - Firmware upgrade on device.
 
 
 
