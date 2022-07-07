@@ -765,7 +765,7 @@ class AlertSubscription(models.Model):
         db_table = u'alertsubscription'
 
     def delete(self):
-        for a in self.account_alerts.all():
+        for a in self.queued_alerts.all():
             a.delete()
         super(AlertSubscription, self).delete()
 
@@ -1363,19 +1363,19 @@ class AccountAlertQueue(models.Model):
         'Account',
         on_delete=models.CASCADE,
         null=True,
-        related_name="account_alerts",
+        related_name="queued_alerts",
     )
     subscription = models.ForeignKey(
         'AlertSubscription',
         on_delete=models.CASCADE,
         null=True,
-        related_name="account_alerts",
+        related_name="queued_alerts",
     )
     alert = models.ForeignKey(
         'AlertQueue',
         on_delete=models.CASCADE,
         null=True,
-        related_name="account_alerts",
+        related_name="queued_alerts",
     )
     insertion_time = models.DateTimeField(auto_now_add=True)
 
@@ -1395,7 +1395,7 @@ class AccountAlertQueue(models.Model):
 
         # Remove the alert from the AlertQueue if we are the last item
         # depending upon it.
-        if self.alert.account_alerts.count() == 0:
+        if self.alert.queued_alerts.count() == 0:
             self.alert.delete()
 
     def send(self):
