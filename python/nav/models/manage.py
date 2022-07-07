@@ -1174,7 +1174,7 @@ class Organization(models.Model, TreeMixin):
         db_column='parent',
         blank=True,
         null=True,
-        related_name="child_organizations",
+        related_name="children",
     )
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)

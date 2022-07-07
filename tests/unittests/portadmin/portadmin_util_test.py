@@ -29,13 +29,13 @@ class TestPortAdminUtil(unittest.TestCase):
         self.org3 = Mock()
 
         self.org1.vlans.all.return_value = [self.vlan1]
-        self.org1.child_organizations.all.return_value = [self.org2]
+        self.org1.children.all.return_value = [self.org2]
 
         self.org2.vlans.all.return_value = [self.vlan2]
-        self.org2.child_organizations.all.return_value = [self.org3]
+        self.org2.children.all.return_value = [self.org3]
 
         self.org3.vlans.all.return_value = [self.vlan3]
-        self.org3.child_organizations.all.return_value = []
+        self.org3.children.all.return_value = []
 
     def test_find_vlans_in_org_no_children(self):
         """Should return all vlans in this org"""
