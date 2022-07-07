@@ -142,7 +142,7 @@ class ServiceProperty(models.Model):
         Service,
         on_delete=models.CASCADE,
         db_column='serviceid',
-        related_name="service_properties",
+        related_name="properties",
     )
     property = models.CharField(max_length=64)
     value = VarcharField()
