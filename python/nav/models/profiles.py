@@ -158,7 +158,7 @@ class Account(models.Model):
         """Get the tool list for this account"""
         return [
             tool
-            for tool in self.account_tools.all().order_by('priority')
+            for tool in self.accounttool_set.all().order_by('priority')
             if self.has_perm('web_access', tool.tool.uri)
         ]
 
@@ -1567,10 +1567,7 @@ class AccountTool(models.Model):
     id = models.AutoField(primary_key=True, db_column='account_tool_id')
     toolname = VarcharField()
     account = models.ForeignKey(
-        Account,
-        on_delete=models.CASCADE,
-        db_column='accountid',
-        related_name="account_tools",
+        Account, on_delete=models.CASCADE, db_column='accountid'
     )
     display = models.BooleanField(default=True)
     priority = models.IntegerField(default=0)
