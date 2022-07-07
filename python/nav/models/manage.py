@@ -727,7 +727,7 @@ class NetboxEntity(models.Model):
         on_delete=models.CASCADE,
         null=True,
         db_column='deviceid',
-        related_name="netboxes",
+        related_name='entities',
     )
     mfg_name = VarcharField(null=True)
     model_name = VarcharField(null=True)
