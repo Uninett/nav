@@ -371,13 +371,13 @@ class Privilege(models.Model):
         'AccountGroup',
         on_delete=models.CASCADE,
         db_column='accountgroupid',
-        related_name="priviledges",
+        related_name="privileges",
     )
     type = models.ForeignKey(
         'PrivilegeType',
         on_delete=models.CASCADE,
         db_column='privilegeid',
-        related_name="priviledges",
+        related_name="privileges",
     )
     target = VarcharField()
 
