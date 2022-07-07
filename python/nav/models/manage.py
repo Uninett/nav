@@ -714,7 +714,7 @@ class NetboxEntity(models.Model):
         'NetboxEntity',
         on_delete=models.CASCADE,
         null=True,
-        related_name="contained_netboxes",
+        related_name="contained_entities",
     )
     physical_class = models.IntegerField(choices=CLASS_CHOICES, null=True)
     parent_relpos = models.IntegerField(null=True)
