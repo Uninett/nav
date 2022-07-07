@@ -170,13 +170,11 @@ class NetboxProfile(models.Model):
         'Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
-        related_name="netbox_profiles",
     )
     profile = models.ForeignKey(
         'ManagementProfile',
         on_delete=models.CASCADE,
         db_column='profileid',
-        related_name="netbox_profiles",
     )
 
     class Meta(object):
