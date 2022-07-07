@@ -838,7 +838,7 @@ class NetboxPrefix(models.Model):
         'Prefix',
         on_delete=models.CASCADE,
         db_column='prefixid',
-        related_name='netboxes',
+        related_name='netbox_prefixes',
     )
 
     class Meta(object):
