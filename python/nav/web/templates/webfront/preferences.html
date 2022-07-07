@@ -34,9 +34,9 @@
                 <tr>
                     <th>Groups</th>
                     <td>
-                        {% if account.account_groups.all %}
+                        {% if account.groups.all %}
                             <ul class="inside">
-                                {% for g in account.account_groups.all %}
+                                {% for g in account.groups.all %}
                                     <li>{{ g }}</li>
                                 {% endfor %}
                             </ul>

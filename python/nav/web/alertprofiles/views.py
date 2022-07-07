@@ -82,7 +82,7 @@ def overview(request):
     account = get_account(request)
 
     # Get information about user
-    groups = account.account_groups.all()
+    groups = account.groups.all()
     try:
         active_profile = account.get_active_profile()
     except ObjectDoesNotExist:

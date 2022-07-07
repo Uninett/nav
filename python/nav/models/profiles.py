@@ -139,7 +139,7 @@ class Account(models.Model):
         try:
             return self._cached_groups
         except AttributeError:
-            self._cached_groups = self.account_groups.values_list('id', flat=True)
+            self._cached_groups = self.groups.values_list('id', flat=True)
             return self._cached_groups
 
     def get_privileges(self):
@@ -317,7 +317,7 @@ class AccountGroup(models.Model):
     # FIXME this uses a view hack, was AccountInGroup
     accounts = models.ManyToManyField(
         'Account',
-        related_name="account_groups",
+        related_name="groups",
     )
 
     class Meta(object):
