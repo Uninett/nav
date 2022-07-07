@@ -55,7 +55,7 @@ def main():
 
 def reactor_main(box, portnumber):
     """The main function to start in the event reactor"""
-    header = "{sysname} ({ip})".format(**vars(box))
+    header = "{sysname} ({ip}:{port})".format(port=portnumber, **vars(box))
     print(header)
     print("-" * len(header))
     df = collect_entities(box, portnumber)
