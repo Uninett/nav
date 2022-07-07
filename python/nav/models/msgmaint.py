@@ -200,13 +200,11 @@ class MessageToMaintenanceTask(models.Model):
         Message,
         on_delete=models.CASCADE,
         db_column='messageid',
-        related_name="messages_to_maintenance_tasks",
     )
     maintenance_task = models.ForeignKey(
         MaintenanceTask,
         on_delete=models.CASCADE,
         db_column='maint_taskid',
-        related_name="messages_to_maintenance_tasks",
     )
 
     class Meta(object):
