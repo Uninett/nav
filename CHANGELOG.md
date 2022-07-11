@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## [Unreleased]
+
+## Fixed
+
+- Metric values of 0.0 are evaluated correctly by threshold rules [#2447](https://github.com/Uninett/nav/issues/2447)
+
 ## [5.4.0] - 2022-05-19
 
 ## Changed

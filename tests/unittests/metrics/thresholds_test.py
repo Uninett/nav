@@ -1,40 +1,24 @@
-import pytest
-
-from nav.metrics.graphs import extract_series_name, translate_serieslist_to_regex
-
-series_name_data = (
-    (
-        'scaleToSeconds(nonNegativeDerivative(scale(nav.devices.example-sw_example_org.ports.Po3.ifOutOctets,8)),1)',
-        'nav.devices.example-sw_example_org.ports.Po3.ifOutOctets',
-    ),
-    ('scale(nav.something.*.{in,out}data, 8)', 'nav.something.*.{in,out}data'),
-)
+"""Unit tests for nav.metrics.thresholds"""
+from nav.metrics.thresholds import ThresholdEvaluator
 
 
-@pytest.mark.parametrize("series, expected", series_name_data)
-def test_extract_series_name(series, expected):
-    assert extract_series_name(series) == expected
+class TestThatThresholdEvaluator:
+    def test_evaluates_zero_as_less_than_positive_number(self):
+        """A regression test for #2447"""
+        t = ThresholdEvaluator('data.*')
+        t.result = {
+            'data.good': {'value': 200.0},
+            'data.zero': {'value': 0.0},
+        }
 
+        assert ('data.zero', 0.0) in t.evaluate('<120')
 
-translate_data = (
-    ('plain.jane', ['plain.jane'], ['plain.joe']),
-    (
-        'far.out.in.the.*.western.spiral.{arm,leg}',
-        [
-            'far.out.in.the.uncharted.western.spiral.arm',
-            'far.out.in.the.charted.western.spiral.leg',
-        ],
-        ['far.out.in.the.forgotten.western.spiral.neck'],
-    ),
-    ('one.two.thre?', ['one.two.three', 'one.two.threx'], ['one.two.throws']),
-)
+    def test_evaluates_zero_as_greater_than_negative_number(self):
+        """A regression test for #2447"""
+        t = ThresholdEvaluator('data.*')
+        t.result = {
+            'data.good': {'value': -50.0},
+            'data.zero': {'value': 0.0},
+        }
 
-
-@pytest.mark.parametrize("series,matches,nonmatches", translate_data)
-def test_translate_serieslist_to_regex(series, matches, nonmatches):
-    pattern = translate_serieslist_to_regex(series)
-    for string in matches:
-        assert pattern.match(string), "%s doesn't match %s" % (string, series)
-
-    for string in nonmatches:
-        assert not pattern.match(string), "%s matches %s" % (string, series)
+        assert ('data.zero', 0.0) in t.evaluate('>-120')
