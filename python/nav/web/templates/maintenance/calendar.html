@@ -11,8 +11,18 @@
       </a>
 
       <form action="{% url 'maintenance-calendar' %}" method="get" class="inline-form">
-          <input type="number" name="month" value="{{ this_month.month }}" min="1" max="12" required id="id_month"/>
-          <input type="number" name="year" value="{{ this_month.year }}" min="2000" max="2100" required id="id_year"/>
+          <input type="number" name="year"
+                 value="{{ calendarform.year.value }}"
+                 min="{{ calendarform.year.field.min_value }}"
+                 max="{{ calendarform.year.field.max_value }}"
+                 required
+                 id="id_year"/>
+          <input type="number" name="month"
+                 value="{{ calendarform.month.value }}"
+                 min="{{ calendarform.month.field.min_value }}"
+                 max="{{ calendarform.month.field.max_value }}"
+                 required
+                 id="id_month"/>
         <button type="submit" class="small secondary"><i class="fa fa-search"></i></button>
       </form>
 
