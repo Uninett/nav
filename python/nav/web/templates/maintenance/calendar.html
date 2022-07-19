@@ -36,8 +36,11 @@
         <i class="fa fa-step-forward fa-lg" title="Next month"></i>
       </a>
     </div>
-
-    {{ calendar }}
+      {% if calendarform.errors %}
+          {{ calendarform.errors }}
+      {% else %}
+          {{ calendar }}
+      {% endif %}
   </div>
 
 {% endblock %}
