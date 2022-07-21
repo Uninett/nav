@@ -187,6 +187,24 @@ def get_dot1d_instances(agentproxy):
     defer.returnValue([])
 
 
+@defer.inlineCallbacks
+def get_arista_vrf_instances(agentproxy) -> Deferred:
+    """
+    Gets a list of alternative VRF instances from an Arista agent
+
+    :returns: A list of [(description, community), ...] for each alternate
+              VRF
+
+    """
+    from nav.mibs.arista_vrf_mib import AristaVrfMib
+
+    vrf_mib = AristaVrfMib(agentproxy)
+    states = yield vrf_mib.get_vrf_states(only='active')
+    vrfs = [('', agentproxy.community)]
+    vrfs.extend((vrf, f"{agentproxy.community}@{vrf}") for vrf in states)
+    defer.returnValue(vrfs)
+
+
 _VLAN_RE = re.compile('^vlan([0-9]+)', re.IGNORECASE)
 
 
