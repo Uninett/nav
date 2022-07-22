@@ -1,28 +1,7 @@
-from itertools import cycle
-
 import pytest
 import pytest_twisted
 
-from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
-from nav.ipdevpoll.snmp.common import SNMPParameters
 from nav.mibs import comet, pdu2_mib, powernet_mib
-
-
-ports = cycle(snmpprotocol.port() for i in range(50))
-
-
-@pytest.fixture()
-def snmp_agent_proxy(snmpsim):
-    port = next(ports)
-    agent = AgentProxy(
-        '127.0.0.1',
-        1024,
-        community='placeholder',
-        snmpVersion='v2c',
-        protocol=port.protocol,
-        snmp_parameters=SNMPParameters(timeout=1, max_repetitions=5, throttle_delay=0),
-    )
-    return agent
 
 
 @pytest.mark.twisted
