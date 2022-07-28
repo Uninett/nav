@@ -1903,7 +1903,7 @@ class Interface(models.Model):
     def get_active_time(self, interval=600):
         """
         Time since last CAM activity on port, looking at CAM entries
-        for the last ``interval'' days.
+        for the last ``interval`` days.
 
         Returns None if no activity is found, else number of days since last
         activity as a datetime.timedelta object.

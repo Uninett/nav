@@ -188,12 +188,12 @@ class ThresholdEvaluator(object):
 
     def _gt(self, value, percent, metric):
         current = self._calculate_current(percent, metric)
-        if current:
+        if current is not None:
             return current > value
 
     def _lt(self, value, percent, metric):
         current = self._calculate_current(percent, metric)
-        if current:
+        if current is not None:
             return current < value
 
     def _calculate_current(self, percent, metric):

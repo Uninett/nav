@@ -3,7 +3,9 @@ import os
 import io
 import re
 import shlex
+from shutil import which
 import subprocess
+import time
 
 import pytest
 from django.test import Client
@@ -294,3 +296,33 @@ def api_client(token):
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION='Token ' + token.token)
     return client
+
+
+@pytest.fixture(scope='session')
+def snmpsim():
+    snmpsimd = which('snmpsimd.py')
+    assert snmpsimd, "Could not find snmpsimd.py"
+    workspace = os.getenv('WORKSPACE', os.getenv('HOME', '/source'))
+    proc = subprocess.Popen(
+        [
+            snmpsimd,
+            '--data-dir={}/tests/integration/snmp_fixtures'.format(workspace),
+            '--log-level=error',
+            '--agent-udpv4-endpoint=127.0.0.1:1024',
+        ],
+        env={'HOME': workspace},
+    )
+
+    while not _lookfor('0100007F:0400', '/proc/net/udp'):
+        print("Still waiting for snmpsimd to listen for queries")
+        proc.poll()
+        time.sleep(0.1)
+
+    yield
+    proc.kill()
+
+
+def _lookfor(string, filename):
+    """Very simple grep-like function"""
+    data = io.open(filename, 'r', encoding='utf-8').read()
+    return string in data
