@@ -28,8 +28,11 @@ from nav.metrics.templates import (
     metric_path_for_packet_loss,
     metric_path_for_roundtrip_time,
 )
+from nav.util import chunks
 
 _logger = logging.getLogger(__name__)
+
+MAX_TARGETS_PER_REQUEST = 100
 
 
 def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
@@ -110,55 +113,39 @@ def get_metric_data(target, start="-5min", end="now"):
     if isinstance(end, datetime):
         end = end.strftime('%H:%M%Y%m%d')
 
-    def divide_chunks(list, n):
-        for i in range(0, len(list), n):
-            yield list[i : i + n]
+    query = {
+        'target': target,
+        'from': start,
+        'until': end,
+        'format': 'json',
+    }
+    query = urlencode(query, True)
 
-    queries = [
-        {
-            'target': target_chunk,
-            'from': start,
-            'until': end,
-            'format': 'json',
-        }
-        for target_chunk in divide_chunks(target, 100)
-    ]
-    json_data = []
-
-    for query in queries:
-        query = urlencode(query, True)
-
-        _logger.debug("get_metric_data%r", (target, start, end))
-        req = Request(url, data=query.encode('utf-8'))
+    _logger.debug("get_metric_data%r", (target, start, end))
+    req = Request(url, data=query.encode('utf-8'))
+    try:
+        response = urlopen(req)
+        json_data = json.load(codecs.getreader('utf-8')(response))
+        _logger.debug("get_metric_data: returning %d results", len(json_data))
+        return json_data
+    except HTTPError as err:
+        _logger.error(
+            "Got a 500 error from graphite-web when fetching %s" "with data %s",
+            err.url,
+            query,
+        )
+        _logger.error("Graphite output: %s", err.fp.read())
+        raise errors.GraphiteUnreachableError("{0} is unreachable".format(base), err)
+    except URLError as err:
+        raise errors.GraphiteUnreachableError("{0} is unreachable".format(base), err)
+    except ValueError:
+        # response could not be decoded
+        return []
+    finally:
         try:
-            response = urlopen(req)
-            json_data_chunk = json.load(codecs.getreader('utf-8')(response))
-            _logger.debug("get_metric_data: returning %d results", len(json_data_chunk))
-            json_data.extend(json_data_chunk)
-        except HTTPError as err:
-            _logger.error(
-                "Got a 500 error from graphite-web when fetching %s" "with data %s",
-                err.url,
-                query,
-            )
-            _logger.error("Graphite output: %s", err.fp.read())
-            raise errors.GraphiteUnreachableError(
-                "{0} is unreachable".format(base), err
-            )
-        except URLError as err:
-            raise errors.GraphiteUnreachableError(
-                "{0} is unreachable".format(base), err
-            )
-        except ValueError:
-            # response could not be decoded
-            return []
-        finally:
-            try:
-                response.close()
-            except NameError:
-                pass
-
-    return json_data
+            response.close()
+        except NameError:
+            pass
 
 
 DEFAULT_TIME_FRAMES = ('day', 'week', 'month')
@@ -213,7 +200,9 @@ def get_netboxes_availability(
 
 def populate_for_interval(result, targets, netboxes, start_time, end_time):
     """Populate results based on a time interval"""
-    avg = get_metric_average(targets, start=start_time, end=end_time)
+    avg = {}
+    for request in chunks(targets, MAX_TARGETS_PER_REQUEST):
+        avg.update(get_metric_average(request, start=start_time, end=end_time))
 
     for netbox in netboxes:
         root = result[netbox.id]
@@ -233,7 +222,9 @@ def populate_for_interval(result, targets, netboxes, start_time, end_time):
 def populate_for_time_frame(result, targets, netboxes, time_frames):
     """Populate results based on a list of time frames"""
     for time_frame in time_frames:
-        avg = get_metric_average(targets, start="-1%s" % time_frame)
+        avg = {}
+        for request in chunks(targets, MAX_TARGETS_PER_REQUEST):
+            avg.update(get_metric_average(request, start="-1%s" % time_frame))
 
         for netbox in netboxes:
             root = result[netbox.id]
