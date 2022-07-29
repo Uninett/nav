@@ -20,6 +20,7 @@ from django.shortcuts import render
 
 from .forms import ViewForm
 from . import CLASSMAP
+from nav.metrics.errors import GraphiteUnreachableError
 
 _logger = logging.getLogger(__name__)
 
@@ -27,21 +28,28 @@ _logger = logging.getLogger(__name__)
 def index(request):
     """Sorted stats search & result view"""
     result = None
-    if 'view' in request.GET:
-        form = ViewForm(request.GET)
-        if form.is_valid():
-            cls = CLASSMAP[form.cleaned_data['view']]
-            result = cls(form.cleaned_data['timeframe'], form.cleaned_data['rows'])
-            result.collect()
+    graphite_unreachable = False
 
-    else:
-        form = ViewForm()
+    try:
+        if 'view' in request.GET:
+            form = ViewForm(request.GET)
+            if form.is_valid():
+                cls = CLASSMAP[form.cleaned_data['view']]
+                result = cls(form.cleaned_data['timeframe'], form.cleaned_data['rows'])
+                result.collect()
+
+        else:
+            form = ViewForm()
+
+    except GraphiteUnreachableError:
+        graphite_unreachable = True
 
     context = {
         'title': 'Statistics',
         'navpath': [('Home', '/'), ('Statistics', False)],
         'result': result,
         'form': form,
+        'graphite_unreachable': graphite_unreachable,
     }
 
     return render(request, 'sortedstats/sortedstats.html', context)
