@@ -9,6 +9,10 @@ found in the [HISTORY](HISTORY) file.
 
 ## [Unreleased]
 
+### Added
+
+- Added a report of software upgrade logs ([#2466](https://github.com/Uninett/nav/pull/2466), [#2457](https://github.com/Uninett/nav/issues/2457))
+
 ### Fixed
 
 - Avoid running command line scripts twice on every invocation ([#2877](https://github.com/Uninett/nav/issues/2877), [#2878](https://github.com/Uninett/nav/pull/2878))
