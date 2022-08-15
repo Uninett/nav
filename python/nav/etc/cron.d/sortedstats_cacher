@@ -1,0 +1,5 @@
+## info: Regularly update cache for sortedstats
+*/15 * * * * sortedstats_cacher.py hour
+0 * * * * sortedstats_cacher.py day
+0 */6 * * * sortedstats_cacher.py week
+0 0 * * * sortedstats_cacher.py month
