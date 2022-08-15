@@ -4,9 +4,9 @@
 
 {% block base_header_additional_head %}
   <style type="text/css">
-   .statistics-chart {
+    .statistics-chart {
        margin: 0 2em 2em 0;
-   }
+    }
   </style>
   <script type="text/javascript">require(['src/statistics']);</script>
 {% endblock %}
@@ -23,6 +23,14 @@
   {# Display view if exists #}
   {% if result %}
     {% if result.graph_url %}
+      <div>
+        {% if from_cache %}
+          <p>Showing cached results ({{ duration }} sec) </p>
+        {% else %}
+          <p>Showing live results ({{ duration }} sec) </p>
+        {% endif %}
+      </div>
+
       <ul class="button-group">
         <li>
           <a id="line-chart" href="javascript:void(0);" class="button small active">Line chart</a>
