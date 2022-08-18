@@ -57,7 +57,6 @@ class StatusPanelForm(forms.Form):
         self.fields['event_type'] = forms.MultipleChoiceField(
             choices=get_event_types(), required=False
         )
-
         self.fields['alert_type'] = forms.MultipleChoiceField(
             choices=alert_types, required=False
         )
@@ -70,9 +69,11 @@ class StatusPanelForm(forms.Form):
         self.fields['device_group'] = forms.MultipleChoiceField(
             choices=get_device_groups(), required=False
         )
-
         self.fields['location'] = forms.MultipleChoiceField(
             choices=get_locations(), required=False
+        )
+        self.fields['severity'] = forms.MultipleChoiceField(
+            choices=get_severity(), required=False
         )
 
         self.fields['not_event_type'] = forms.MultipleChoiceField(
@@ -92,6 +93,9 @@ class StatusPanelForm(forms.Form):
         )
         self.fields['not_location'] = forms.MultipleChoiceField(
             choices=get_locations(), required=False
+        )
+        self.fields['not_severity'] = forms.MultipleChoiceField(
+            choices=get_severity(), required=False
         )
 
         self.fields['status_filters'] = forms.MultipleChoiceField(
@@ -121,12 +125,14 @@ class StatusPanelForm(forms.Form):
                         Field('event_type', css_class='select2'),
                         Field('location', css_class='select2'),
                         Field('organization', css_class='select2'),
+                        Field('severity', css_class='select2'),
                         Field('not_alert_type', css_class='select2'),
                         Field('not_category', css_class='select2'),
                         Field('not_device_group', css_class='select2'),
                         Field('not_event_type', css_class='select2'),
                         Field('not_location', css_class='select2'),
                         Field('not_organization', css_class='select2'),
+                        Field('not_severity', css_class='select2'),
                         css_class='field_list',
                     ),
                     css_class=column_class,
@@ -220,6 +226,12 @@ class StatusWidgetForm(StatusPanelForm):
                 ),
             ),
             Row(
+                Column(Field('severity', css_class='select2'), css_class=column_class),
+                Column(
+                    Field('not_severity', css_class='select2'), css_class=column_class
+                ),
+            ),
+            Row(
                 Column('stateless', 'stateless_threshold', css_class=column_class),
                 Column(
                     'acknowledged',
@@ -272,3 +284,8 @@ def get_device_groups():
 def get_locations():
     """Gets all locations formatted as choices"""
     return [(l.id, l.id) for l in Location.objects.all()]
+
+
+def get_severity():
+    """Gets all severity values formatted as choices"""
+    return [(i, i) for i in range(1, 6)]
