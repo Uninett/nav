@@ -135,6 +135,22 @@ function(Spinner, fullscreen) {
             var requestedBounds = OpenLayers.Bounds.fromArray(parameters.bbox);
             requestedBounds.transform(map.displayProjection, map.getProjectionObject());
             map.zoomToExtent(requestedBounds);
+        } else if (parameters.zoom !== null && parameters.zoom !== undefined) {
+            try {
+                if (parameters.lat !== null && parameters.lat !== undefined
+                    && parameters.lon !== null && parameters.lon !== undefined) {
+                    map.setView(
+                        new OpenLayers.View({
+                            center: OpenLayers.Projection.fromLonLat([parameters.lon, parameters.lat]),
+                            extent: map.getView().calculateExtent(map.getSize()),
+                            zoom: parameters.zoom
+                        })
+                    );
+                } else {
+                    map.getView.setZoom(parameters.zoom);
+                }
+                map.getView.setZoom(parameters.zoom);
+            } catch (e) {}
         } else if (boundingBox) {
             boundingBox.transform(map.displayProjection, map.getProjectionObject());
             map.zoomToExtent(boundingBox);
@@ -153,7 +169,5 @@ function(Spinner, fullscreen) {
                 document.getElementById(mapSelector), true);
         }
     }
-
     return geomap;
-
 });
