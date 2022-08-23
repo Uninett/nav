@@ -1,0 +1,1 @@
+Device {{ device.get_extended_description }} has been found on {{netbox}} as a module
