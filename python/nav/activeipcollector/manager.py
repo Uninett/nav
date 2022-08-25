@@ -42,13 +42,8 @@ def store(data):
 
     """
 
-    # Suspecting package drop - dividing into chunks and giving some
-    # breathing room for each batch of updates.
-    chunks = [data[x : x + 100] for x in range(0, len(data), 100)]
-    for chunk in chunks:
-        for db_tuple in chunk:
-            store_tuple(db_tuple)
-        time.sleep(2)
+    for db_tuple in data:
+        store_tuple(db_tuple)
 
     _logger.info('Sent %s updates', len(data))
 
