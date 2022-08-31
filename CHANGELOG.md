@@ -15,7 +15,7 @@ found in the [HISTORY](HISTORY) file.
 
 ## [5.4.0] - 2022-05-19
 
-## Changed
+### Changed
 
 - The changelog format has changed from the legacy format into one based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Transceivers are no longer classed as modules ([#1154](https://github.com/Uninett/nav/issues/1154))
@@ -23,7 +23,7 @@ found in the [HISTORY](HISTORY) file.
 - Remaining instances of "Uninett" in footer FAQ have changed to Sikt ([#2367](https://github.com/Uninett/nav/pull/2367))
 - Upgrade to napalm 3.4.1 ([#2403](https://github.com/Uninett/nav/pull/2403))
 
-## Added
+### Added
 
 - Support more recent AKCP environment probes ([#2107](https://github.com/Uninett/nav/issues/2107)
 - Collect and graph temperature readings from JUNIPER-MIB ([#2342](https://github.com/Uninett/nav/issues/2342))
@@ -33,7 +33,7 @@ found in the [HISTORY](HISTORY) file.
 - Document NAV's various command line utilities ([#2368](https://github.com/Uninett/nav/pull/2368))
 - Add a contrib script to ship ISC DHCP server lease stats to NAV's Graphite instance ([#2371](https://github.com/Uninett/nav/issues/2371))
 
-## Fixed
+### Fixed
 
 - Don't display JavaScript alert dialog box when generating links to the current Geomap configuration ([#1016](https://github.com/Uninett/nav/issues/1016))
 - Optimize SeedDB prefix listing queries ([#2156](https://github.com/Uninett/nav/issues/2156))
@@ -52,7 +52,7 @@ found in the [HISTORY](HISTORY) file.
 - Remove unnecessary quotation marks in SeedDB ([#2416](https://github.com/Uninett/nav/pull/2416))
 - Fix incorrect handling of stateless event posting in internal APIs ([#2417](https://github.com/Uninett/nav/pull/2417))
 
-## Removed
+### Removed
 
 - Remaining Python 2 compatibility code ([#2319](https://github.com/Uninett/nav/issues/2319))
 - Dependency on the `six` Python module
