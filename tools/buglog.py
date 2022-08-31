@@ -20,12 +20,20 @@ fixed issues for a release changelog entry.
 """
 from __future__ import print_function, unicode_literals
 
+import re
 import sys
 import textwrap
 import operator
 from argparse import ArgumentParser
 
 from github import Github  # pip install PyGithub
+from git import Repo  # pip install GitPython
+
+COMMIT_LOG_ISSUE_PATTERN = re.compile(
+    r"\b(merge.*|close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) "
+    r"#(?P<issueno>[0-9]+)",
+    re.IGNORECASE,
+)
 
 
 def main():
@@ -38,6 +46,12 @@ def main():
         action="store_true",
         help="Output in legacy format rather than markdown",
     )
+    parser.add_argument(
+        "--gitlog",
+        action="store_true",
+        help="Get issue list from git log comments rather than a milestone. Uses git "
+        "log output for -r <version>..HEAD",
+    )
     args = parser.parse_args()
 
     if args.token:
@@ -46,22 +60,47 @@ def main():
         hub = Github()
 
     repo = hub.get_user('Uninett').get_repo('nav')
+    if args.gitlog:
+        issues = get_issues_from_gitlog(repo, args.version)
+    else:
+        issues = get_issues_from_milestone(repo, args.version)
+
+    formatter = format_issue if args.no_markdown else format_issue_markdown
+    for issue in sorted(issues, key=operator.attrgetter('number')):
+        print(formatter(issue))
+
+
+def get_issues_from_milestone(github_repo, version):
     milestones = [
-        m for m in repo.get_milestones(state='all') if m.title == args.version
+        m for m in github_repo.get_milestones(state='all') if m.title == version
     ]
     if milestones:
         mstone = milestones[0]
     else:
-        print("Couldn't find milestone for {}".format(args.version), file=sys.stderr)
+        print("Couldn't find milestone for {}".format(version), file=sys.stderr)
         sys.exit(1)
 
-    issues = repo.get_issues(state='closed', milestone=mstone)
-    for issue in sorted(issues, key=operator.attrgetter('number')):
-        if args.no_markdown:
-            output = format_issue(issue)
-        else:
-            output = format_issue_markdown(issue)
-        print(output)
+    return github_repo.get_issues(state='closed', milestone=mstone)
+
+
+def get_issues_from_gitlog(github_repo, version):
+    issue_numbers = set()
+    local_repo = Repo('.', search_parent_directories=True)
+    for commit in local_repo.iter_commits(rev=f"{version}..HEAD"):
+        for match in COMMIT_LOG_ISSUE_PATTERN.finditer(commit.message):
+            issue_numbers.add(int(match.group('issueno')))
+
+    queue = list(issue_numbers)
+    while queue:
+        number = queue.pop()
+        issue = github_repo.get_issue(number)
+        yield issue
+        if issue.pull_request and issue.body:
+            for match in COMMIT_LOG_ISSUE_PATTERN.finditer(issue.body):
+                linked_issue_no = int(match.group('issueno'))
+                if linked_issue_no not in issue_numbers:
+                    issue_numbers.add(linked_issue_no)
+                    queue.append(linked_issue_no)
 
 
 def format_issue(issue):
