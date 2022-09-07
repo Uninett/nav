@@ -12,6 +12,7 @@ found in the [HISTORY](HISTORY) file.
 ### Changed
 
 - Bump `lxml` from 4.6.5 to 4.9.1 in /tests ([#2443](https://github.com/Uninett/nav/pull/2443))
+- Links and documented references to the NAV mailing lists have changed to the `lister.sikt.no` domain.
 
 ### Added
 
