@@ -99,7 +99,7 @@ class MaintenanceCalendarForm(forms.Form):
 
     @property
     def cleaned_month(self):
-        """Returns the cleaned month is valid, current month otherwise"""
+        """Returns the cleaned month if valid, current month otherwise"""
         return self.cleaned_data['month'] if self.is_valid() else _get_current_month()
 
     @property
