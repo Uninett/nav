@@ -217,10 +217,13 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',
+    'django.contrib.contenttypes',
+    'django.contrib.auth',
     'django_filters',
     'crispy_forms',
     'crispy_forms_foundation',
     'rest_framework',
+    'rest_framework_simplejwt',
     'nav.auditlog',
     'nav.web.macwatch',
     'nav.web.geomap',
@@ -235,6 +238,9 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_PAGINATION_CLASS': 'nav.web.api.v1.NavPageNumberPagination',
     'UNAUTHENTICATED_USER': 'nav.django.utils.default_account',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
+    ),
 }
 
 # Classes that implement a search engine for the web navbar
