@@ -55,12 +55,16 @@
 
       </table>
     {% elif graphite_unreachable %}
-        <td><span class="label alert">The statistics could not be displayed due to a problem with reaching the Graphite server.
-            Try again or contact a NAV admin to resolve the issue. </span></td>
+      <div class="alert-box error">
+        The statistics could not be displayed due to a problem with reaching the
+        Graphite server. Try again or contact a NAV admin to resolve the issue.
+      </div>
     {% else %}
-        <td><span class="label alert">No data was found for the given timeframe. This may indicate a problem
-            with the data collection and/or presentation. Try choosing a longer
-            timeframe to see when the problem started.</span></td>
+      <div class="alert-box error">
+        No data was found for the given timeframe. This may indicate a problem
+        with the data collection and/or presentation. Try choosing a longer
+        timeframe to see when the problem started.
+      </div>
     {% endif %}
   {% endif %}
 
