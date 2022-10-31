@@ -50,7 +50,12 @@ from nav.buildconf import VERSION
 from nav.web.api.v1 import serializers, alert_serializers
 from nav.web.status2 import STATELESS_THRESHOLD
 from nav.macaddress import MacPrefix
-from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
+from .auth import (
+    APIPermission,
+    APIAuthentication,
+    NavBaseAuthentication,
+    JWTAuthentication,
+)
 from .helpers import prefix_collector
 from .filter_backends import (
     AlertHistoryFilterBackend,
@@ -199,7 +204,11 @@ class RelatedOrderingFilter(filters.OrderingFilter):
 class NAVAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
 
-    authentication_classes = (NavBaseAuthentication, APIAuthentication)
+    authentication_classes = (
+        NavBaseAuthentication,
+        APIAuthentication,
+        JWTAuthentication,
+    )
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     filter_backends = (filters.SearchFilter, DjangoFilterBackend, RelatedOrderingFilter)
