@@ -20,6 +20,7 @@ from datetime import datetime
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import TokenAuthentication, BaseAuthentication
+from rest_framework_simplejwt.tokens import Token as JWTToken
 from urllib.parse import urlparse
 
 from nav.models.api import APIToken
@@ -66,7 +67,7 @@ class LoggedInPermission(BasePermission):
         return not request.account.is_default_account()
 
 
-class TokenPermission(BasePermission):
+class APITokenPermission(BasePermission):
     """Checks if the token has correct permissions"""
 
     url_prefix = '/api'
@@ -74,7 +75,7 @@ class TokenPermission(BasePermission):
 
     def has_permission(self, request, _view):
         token = request.auth  # type: APIToken
-        if not token:
+        if not token or not isinstance(token, APIToken):
             return False
 
         endpoints_ok = self._check_endpoints(request)
@@ -95,14 +96,13 @@ class TokenPermission(BasePermission):
         """Verify that this token has permission to access the request path
         :type request: rest_framework.request.Request
         :type token: APIToken
-
         NB: This will fail if the version is not specified in the request url
         """
         token = request.auth
         if not token.endpoints:
             return False
 
-        return TokenPermission.is_path_in_endpoints(request.path, token.endpoints)
+        return APITokenPermission.is_path_in_endpoints(request.path, token.endpoints)
 
     @staticmethod
     def _check_read_write(request):
@@ -118,10 +118,12 @@ class TokenPermission(BasePermission):
         :return: if the path is in one of the endpoints for this token
         """
         # Create prefix for the current api version
-        prefix = '/'.join([TokenPermission.url_prefix, str(TokenPermission.version)])
+        prefix = '/'.join(
+            [APITokenPermission.url_prefix, str(APITokenPermission.version)]
+        )
         # Cut prefix from path
-        request_path = TokenPermission._ensure_trailing_slash(
-            request_path.replace(prefix, '').replace(TokenPermission.url_prefix, '')
+        request_path = APITokenPermission._ensure_trailing_slash(
+            request_path.replace(prefix, '').replace(APITokenPermission.url_prefix, '')
         )
         # Create a list of endpoints and remove prefix from them
         endpoints = [e.replace(prefix, '') for e in endpoints.values()]
@@ -129,7 +131,7 @@ class TokenPermission(BasePermission):
         return any(
             [
                 request_path.startswith(
-                    TokenPermission._ensure_trailing_slash(urlparse(endpoint).path)
+                    APITokenPermission._ensure_trailing_slash(urlparse(endpoint).path)
                 )
                 for endpoint in endpoints
             ]
@@ -143,6 +145,19 @@ class TokenPermission(BasePermission):
         return path if path.endswith('/') else path + '/'
 
 
+class JWTTokenPermission(BasePermission):
+    """Checks if the token has correct permissions"""
+
+    url_prefix = '/api'
+    version = 1
+
+    def has_permission(self, request, _view):
+        token = request.auth  # type: JWTToken
+        if not token or not isinstance(token, JWTToken):
+            return False
+        return True
+
+
 class APIPermission(BasePermission):
     """Checks for correct permissions when accessing the API"""
 
@@ -150,6 +165,8 @@ class APIPermission(BasePermission):
         """Checks if request is permissable
         :type request: rest_framework.request.Request
         """
-        return LoggedInPermission().has_permission(
-            request, view
-        ) or TokenPermission().has_permission(request, view)
+        return (
+            LoggedInPermission().has_permission(request, view)
+            or APITokenPermission().has_permission(request, view)
+            or JWTTokenPermission().has_permission(request, view)
+        )
