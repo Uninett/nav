@@ -21,6 +21,10 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import TokenAuthentication, BaseAuthentication
 from rest_framework_simplejwt.tokens import Token as JWTToken
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.authentication import (
+    JWTAuthentication as SimpleJWTAuthentication,
+)
 from urllib.parse import urlparse
 
 from nav.models.api import APIToken
@@ -48,6 +52,28 @@ class APIAuthentication(TokenAuthentication):
                 )
                 raise AuthenticationFailed
             return None, token
+
+
+class JWTAuthentication(SimpleJWTAuthentication):
+    """Authenticates JWT tokens"""
+
+    def authenticate(self, request):
+        header = self.get_header(request)
+        if header is None:
+            return None
+
+        raw_token = self.get_raw_token(header)
+        if raw_token is None:
+            return None
+
+        validated_token = self.get_validated_token(raw_token)
+        _logger.info(f"Token payload: {validated_token.payload}")
+
+        if 'exp' not in validated_token:
+            raise InvalidToken("Token contained no expiry date")
+        if 'nbf' not in validated_token:
+            raise InvalidToken("Token contained no valid before date")
+        return None, validated_token
 
 
 class NavBaseAuthentication(BaseAuthentication):
