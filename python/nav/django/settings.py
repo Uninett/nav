@@ -255,6 +255,17 @@ SEARCHPROVIDERS = [
     'nav.web.info.searchproviders.UnrecognizedNeighborSearchProvider',
 ]
 
+_verifying_key = None
+_pub_key_path = NAV_CONFIG.get('VERIFYING_KEY_PATH', '')
+if os.path.isfile(_pub_key_path):
+    with open(_pub_key_path) as f:
+        _verifying_key = f.read()
+
+SIMPLE_JWT = {
+    'ALGORITHM': 'RS256',
+    'VERIFYING_KEY': _verifying_key,
+}
+
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
 if _config_dir:
