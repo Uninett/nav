@@ -70,9 +70,9 @@ class JWTAuthentication(SimpleJWTAuthentication):
         _logger.info(f"Token payload: {validated_token.payload}")
 
         if 'exp' not in validated_token:
-            raise InvalidToken("Token contained no expiry date")
+            raise InvalidToken("Token did not contain a 'exp' claim")
         if 'nbf' not in validated_token:
-            raise InvalidToken("Token contained no valid before date")
+            raise InvalidToken("Token did not contain a 'nbf' claim")
         return None, validated_token
 
 
