@@ -66,7 +66,8 @@ RUN apt-get update \
        dnsutils \
        iproute2 \
        iputils-ping \
-       snmp
+       snmp \
+       openssh-client
 
 RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
 
