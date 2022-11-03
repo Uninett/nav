@@ -12,6 +12,7 @@ found in the [HISTORY](HISTORY) file.
 ## Fixed
 
 - Metric values of 0.0 are evaluated correctly by threshold rules [#2447](https://github.com/Uninett/nav/issues/2447)
+- Validate maintenance calendar input form to avoid e-mail spam from bots scanning for vulnerabilities [#2420](https://github.com/Uninett/nav/issues/2420)
 
 ## [5.4.0] - 2022-05-19
 
