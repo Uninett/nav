@@ -24,6 +24,7 @@ from nav.web.info.views import get_path
 from nav.web.utils import create_title
 from nav.models.manage import NetboxGroup, Netbox, NetboxCategory
 from nav.metrics.data import get_netboxes_availability
+from nav.metrics.errors import GraphiteUnreachableError
 
 
 class NetboxGroupForm(SearchForm):
@@ -95,9 +96,16 @@ def group_detail(request, groupid):
     """
     group = get_object_or_404(NetboxGroup, pk=groupid)
     netboxes = group.netbox_set.select_related('organization', 'category', 'type')
-    availabilities = get_netboxes_availability(
-        netboxes, data_sources=['availability'], time_frames=['week', 'month']
-    )
+    availabilities = {}
+    graphite_error = False
+
+    try:
+        availabilities = get_netboxes_availability(
+            netboxes, data_sources=['availability'], time_frames=['week', 'month']
+        )
+    except GraphiteUnreachableError:
+        graphite_error = True
+
     navpath = get_netboxgroup_path([(group.pk,)])
 
     return render(
@@ -109,6 +117,7 @@ def group_detail(request, groupid):
             'availabilities': availabilities,
             'navpath': navpath,
             'title': create_title(navpath),
+            'graphite_error': graphite_error,
         },
     )
 
