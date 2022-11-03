@@ -41,7 +41,9 @@ from datetime import datetime, timedelta
 from IPy import IP
 from twisted.internet import defer
 
-from nav.mibs.ip_mib import IpMib
+from nav.enterprise.ids import VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC
+from nav.ipdevpoll.utils import get_arista_vrf_instances
+from nav.mibs.ip_mib import IpMib, MultiIpMib
 from nav.mibs.ipv6_mib import Ipv6Mib
 from nav.mibs.cisco_ietf_ip_mib import CiscoIetfIpMib
 
@@ -75,7 +77,7 @@ class Arp(Plugin):
         self._logger.debug("Collecting IP/MAC mappings")
 
         # Fetch standard MIBs
-        ip_mib = IpMib(self.agent)
+        ip_mib = yield self._get_ip_mib()
         mappings = yield ip_mib.get_ifindex_ip_mac_mappings()
         self._logger.debug("Found %d mappings in IP-MIB", len(mappings))
 
@@ -96,6 +98,22 @@ class Arp(Plugin):
             mappings.update(cisco_ip_mappings)
 
         yield self._process_data(mappings)
+
+    @defer.inlineCallbacks
+    def _get_ip_mib(self):
+        if not self.is_arista():
+            defer.returnValue(IpMib(self.agent))  # regular IpMib for regular folks
+        else:
+            instances = yield get_arista_vrf_instances(self.agent)
+            defer.returnValue(MultiIpMib(self.agent, instances=instances))
+
+    def is_arista(self):
+        """Returns True if this is an Arista device"""
+        return (
+            self.netbox.type
+            and self.netbox.type.get_enterprise_id()
+            == VENDOR_ID_ARISTA_NETWORKS_INC_FORMERLY_ARASTRA_INC
+        )
 
     @defer.inlineCallbacks
     def _process_data(self, mappings):
