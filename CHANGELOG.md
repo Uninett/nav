@@ -16,6 +16,8 @@ found in the [HISTORY](HISTORY) file.
 
 ### Added
 
+- Add ability to filter by alert severity in the status tool ([#2467](https://github.com/Uninett/nav/pull/2467))
+- Support for fetching ARP cache entries from all Arista VRF instances ([#2262](https://github.com/Uninett/nav/issues/2262), [#2454](https://github.com/Uninett/nav/pull/2454)))
 - Link aggregation information added to NAV API ([#1765](https://github.com/Uninett/nav/issues/1765), [#2440](https://github.com/Uninett/nav/pull/2440))
 - Support fetching memory stats from `CISCO-ENHANCED-MEMPOOL-MIB` ([#2236](https://github.com/Uninett/nav/issues/2236), [#2439](https://github.com/Uninett/nav/pull/2439))
 - Added a flag to `navcheckservice` that shows all available handler plugins ([#2378](https://github.com/Uninett/nav/issues/2378), [#2437](https://github.com/Uninett/nav/pull/2437))
@@ -25,6 +27,10 @@ found in the [HISTORY](HISTORY) file.
 
 ### Fixed
 
+- PortAdmin now ignores incorrectly configured VLAN tags (tagged as `NA`) on Juniper switches, instead of crashing ([#2452](https://github.com/Uninett/nav/issues/2452), [#2453](https://github.com/Uninett/nav/pull/2453))
+- Fix potential ipdevpoll crashes due to database fetches in wrong thread ([#2480](https://github.com/Uninett/nav/pull/2480))
+- Handle Graphite connection issues gracefully in ranked statistics page ([#2459](https://github.com/Uninett/nav/pull/2459))
+- Handle Graphite connection issues gracefully in device group detail page ([#2434](https://github.com/Uninett/nav/pull/2434))
 - Removed needless carbon data chunking from `activeipcollector` ([#1696](https://github.com/Uninett/nav/issues/1696), [#2462](https://github.com/Uninett/nav/pull/2462))
 - Evaluate `0.0` as a valid numeric metric value during threshold rule evaluations ([#2447](https://github.com/Uninett/nav/issues/2447)
 - Updated dead links in Geomap documentation ([#2419](https://github.com/Uninett/nav/pull/2419))
