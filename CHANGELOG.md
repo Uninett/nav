@@ -16,6 +16,7 @@ found in the [HISTORY](HISTORY) file.
 
 ### Added
 
+- Add `mac_addresses` attribute to `/netbox/` API endpoint ([#2487](https://github.com/Uninett/nav/pull/2487), [#2490](https://github.com/Uninett/nav/pull/2490))
 - Add ability to filter by alert severity in the status tool ([#2467](https://github.com/Uninett/nav/pull/2467))
 - Support for fetching ARP cache entries from all Arista VRF instances ([#2262](https://github.com/Uninett/nav/issues/2262), [#2454](https://github.com/Uninett/nav/pull/2454)))
 - Link aggregation information added to NAV API ([#1765](https://github.com/Uninett/nav/issues/1765), [#2440](https://github.com/Uninett/nav/pull/2440))
