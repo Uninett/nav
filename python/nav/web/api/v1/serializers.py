@@ -204,6 +204,8 @@ class NetboxSerializer(serializers.ModelSerializer):
         queryset=manage.ManagementProfile.objects,
     )
 
+    mac_addresses = serializers.ListField()
+
     class Meta(object):
         model = manage.Netbox
         depth = 1
