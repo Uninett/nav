@@ -106,6 +106,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
         'alert_type': 'alert_type__name',
         'device_group': 'netbox__groups__id',
         'location': 'netbox__room__location',
+        'severity': 'severity',
     }
 
     MULTIVALUE_EXCLUDES = {
@@ -115,6 +116,7 @@ class AlertHistoryFilterBackend(filters.BaseFilterBackend):
         'not_alert_type': 'alert_type__name',
         'not_device_group': 'netbox__groups__id',
         'not_location': 'netbox__room__location',
+        'not_severity': 'severity',
     }
 
     def filter_queryset(self, request, queryset, view):
