@@ -28,6 +28,7 @@ from itertools import count, groupby
 import logging
 import math
 import re
+from typing import Set
 
 import IPy
 from django.conf import settings
@@ -573,6 +574,15 @@ class Netbox(models.Model):
             Q(unit_of_measurement__icontains='celsius')
             | Q(unit_of_measurement__icontains='percent')
         )
+
+    @property
+    def mac_addresses(self) -> Set[str]:
+        """Returns a set of collected chassis MAC addresses for this Netbox"""
+        macinfo_match = (Q(key="bridge_info") & Q(variable="base_address")) | (
+            Q(key="lldp") & Q(variable="chassis_mac")
+        )
+        macs = self.info_set.filter(macinfo_match).distinct("value").only("value")
+        return set(mac.value for mac in macs)
 
 
 class NetboxInfo(models.Model):

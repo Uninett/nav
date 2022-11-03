@@ -389,7 +389,7 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     When the filtered item is an object, it will filter on the id.
     """
 
-    queryset = manage.Netbox.objects.all()
+    queryset = manage.Netbox.objects.all().prefetch_related("info_set")
     serializer_class = serializers.NetboxSerializer
     filterset_fields = (
         'ip',
