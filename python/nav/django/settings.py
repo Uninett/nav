@@ -28,6 +28,7 @@ from django.utils.log import DEFAULT_LOGGING
 from nav.config import NAV_CONFIG, getconfig, find_config_dir
 from nav.db import get_connection_parameters
 import nav.buildconf
+from nav.web.api.config import API_CONF
 
 ALLOWED_HOSTS = ['*']
 
@@ -256,11 +257,10 @@ SEARCHPROVIDERS = [
 ]
 
 
-with open(NAV_CONFIG['VERIFYING_KEY']) as f:
-    SIMPLE_JWT = {
-        'ALGORITHM': 'RS256',
-        'VERIFYING_KEY': f.read(),
-    }
+SIMPLE_JWT = {
+    'ALGORITHM': 'RS256',
+    'VERIFYING_KEY': API_CONF.get_public_key(),
+}
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
