@@ -40,6 +40,10 @@ Other contributors and previous maintainers
   Active from 2017, until he left Uninett in 2019. An experienced Python
   developer who, among other things, rewrote the ipdevpoll multiprocess mode.
 
+* Ragnhild Bodsberg
+  Contributed various bugfixes to NAV as an intern at Sikt, during the summer
+  of 2022.
+
 * Philipp Petermann <philipp.petermann at unibas.ch>
   Contributed support for enabling CDP when configuring Cisco Voice VLANs in
   PortAdmin.
