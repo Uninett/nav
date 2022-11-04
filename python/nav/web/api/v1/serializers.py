@@ -204,7 +204,7 @@ class NetboxSerializer(serializers.ModelSerializer):
         queryset=manage.ManagementProfile.objects,
     )
 
-    mac_addresses = serializers.ListField()
+    mac_addresses = serializers.ListField(read_only=True, required=False)
 
     class Meta(object):
         model = manage.Netbox
