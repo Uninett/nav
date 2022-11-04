@@ -24,6 +24,10 @@ Currently active contributors/maintainers
   Joined in 2021. Currently hacking away at open issues and learning the NAV
   codebase.
 
+* Ilona Podliashanyk <ilona.podliashanyk at sikt.no>
+  Joined in 2022, working mainly as a front-end developer. Currently hacking
+  away at open issues and learning the NAV codebase.
+
 Other contributors and previous maintainers
 -------------------------------------------
 * Vidar Faltinsen <vidar.faltinsen at sikt.no>
