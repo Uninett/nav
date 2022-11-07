@@ -7,20 +7,15 @@ class APIConfig(NAVConfigParser):
     DEFAULT_CONFIG = """
 [keys]
 public_key=jwtRS256.key.pub
-private_key=jwtRS256.key
 """
 
     def get_public_key(self):
         self.get_key('public_key')
 
-    def get_private_key(self):
-        self.get_key('private_key')
-
     def get_key(self, key_name):
         path = self.get('keys', key_name)
         if not isabs(path):
             path = join(find_config_dir(), "api", path)
-
         with open(path) as f:
             return f.read()
 
