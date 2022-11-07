@@ -16,7 +16,7 @@ if [[ ! -f "/etc/nav/nav.conf" ]]; then
     echo "Copying initial NAV config files into this container"
     nav config install --verbose /etc/nav
     # Generate fresh JWT keys
-    ssh-keygen -t rsa -b 4096 -m PEM -f /etc/nav/api/jwtRS256.key -N ""
+    ssh-keygen -t rsa -b 4096 -m PEM -f /etc/nav/api/jwtRS256.key -q -N ""
     openssl rsa -in /etc/nav/api/jwtRS256.key -pubout -outform PEM -out /etc/nav/api/jwtRS256.key.pub
     chown -R nav:nav /etc/nav
     cd /etc/nav
