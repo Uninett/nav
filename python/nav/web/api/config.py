@@ -4,7 +4,7 @@ from nav.config import NAVConfigParser, find_config_dir
 
 class APIConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = (join("api", "api.conf"),)
-    DEFAULT_CONFIG = """
+    DEFAULT_CONFIG = u"""
 [keys]
 public_key=jwtRS256.key.pub
 """
