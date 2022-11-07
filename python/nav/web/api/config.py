@@ -18,6 +18,10 @@ public_key=/etc/nav/api/jwtRS256.key.pub
             raise ConfigurationError(f"{key_name} is not configured")
         if not isabs(path):
             config_file = find_config_file(self.DEFAULT_CONFIG_FILES[0])
+            if not config_file:
+                raise FileNotFoundError(
+                    f"Could not find {self.DEFAULT_CONFIG_FILES[0]}"
+                )
             path = join(dirname(config_file), path)
         with open(path) as f:
             return f.read()
