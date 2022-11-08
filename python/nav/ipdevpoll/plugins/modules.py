@@ -81,6 +81,10 @@ class Modules(Plugin):
             serial_number = None
             device_key = 'unknown-%s' % ent[0]
 
+        if serial_number in self.ignored_serials:
+            self._logger.debug("ignoring %r due to ignored serial number", ent)
+            return None
+
         device = self.containers.factory(device_key, shadows.Device)
         if serial_number:
             device.serial = serial_number
@@ -113,6 +117,8 @@ class Modules(Plugin):
         for ent in modules:
             entity_index = ent[0]
             device = self._device_from_entity(ent)
+            if not device:
+                continue  # this device was ignored
             module = self._module_from_entity(ent)
             module.device = device
 
