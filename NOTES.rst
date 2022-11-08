@@ -8,6 +8,44 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.5
+=======
+
+Dependency changes
+------------------
+
+None :-)
+
+API changes
+-----------
+
+The ``/netbox/`` API endpoint adds a new read-only attribute:
+``mac_addresses``. This is a list of MAC addresses associated with an IP
+Device's chassis, typically collected from either ``LLDP-MIB`` or
+``BRIDGE-MIB``. In most cases, devices will only have a single address here,
+but sometimes, the two MIBs will disagree on what is the main "chassis"
+address.
+
+The ``/interface`` endpoint has gained two new read-only attributes for LAG
+information:
+
+* ``aggregator``: An interface that is part of an aggregate will have the
+  aggregate interface specified here. The aggregator will be identified by both
+  its ``id`` and ``ifname`` attributes.
+* ``bundled_interfaces``: An interface that aggregates multiple interfaces will
+  have those interfaces listed here. Each interface in the list will be
+  identified by their ``id`` and ``ifname`` attrbutes.
+
+Software upgrade history
+------------------------
+
+NAV has finally regained the ability to save device software, firmware and/or
+hardware upgrades as events to their history, as the new ``deviceSwUpgrade``,
+``deviceFwUpgrade`` and ``deviceHwUpgrade`` alert types have been added to the
+``deviceNotice`` event hierarchy.  These alerts can now be subscribed to in
+Alert Profiles, and will be searchable in the Device History tool.  See also
+:doc:`reference/alerttypes` for the full list of events/alerts NAV provides.
+
 NAV 5.4
 =======
 
