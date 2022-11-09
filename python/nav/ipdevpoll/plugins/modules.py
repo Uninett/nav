@@ -25,6 +25,10 @@ entity and an interface from IF-MIB is kept.  For each mapping found,
 the interface will have its module set to be whatever the ancestor
 module of the physical entity is.
 """
+from typing import List
+import configparser
+import re
+
 from twisted.internet import defer
 
 from nav.mibs.entity_mib import EntityMib, EntityTable
@@ -42,6 +46,12 @@ class Modules(Plugin):
         self.alias_mapping = {}
         self.entitymib = EntityMib(self.agent)
         self.stampcheck = TimestampChecker(self.agent, self.containers, INFO_VAR_NAME)
+
+    @classmethod
+    def on_plugin_load(cls):
+        from nav.ipdevpoll.config import ipdevpoll_conf
+
+        cls.ignored_serials = get_ignored_serials(ipdevpoll_conf)
 
     @defer.inlineCallbacks
     def handle(self):
@@ -70,6 +80,10 @@ class Modules(Plugin):
         else:
             serial_number = None
             device_key = 'unknown-%s' % ent[0]
+
+        if serial_number in self.ignored_serials:
+            self._logger.debug("ignoring %r due to ignored serial number", ent)
+            return None
 
         device = self.containers.factory(device_key, shadows.Device)
         if serial_number:
@@ -103,6 +117,8 @@ class Modules(Plugin):
         for ent in modules:
             entity_index = ent[0]
             device = self._device_from_entity(ent)
+            if not device:
+                continue  # this device was ignored
             module = self._module_from_entity(ent)
             module.device = device
 
@@ -146,3 +162,13 @@ class Modules(Plugin):
 
         module_containers = self._process_modules(entities)
         self._process_ports(entities, module_containers)
+
+
+def get_ignored_serials(config: configparser.ConfigParser) -> List[str]:
+    """Returns a list of ignored serial numbers from a ConfigParser instance"""
+    if config is None:
+        return []
+
+    raw_string = config.get("modules", "ignored-serials", fallback="BUILTIN")
+    values = re.split(r" +", raw_string)
+    return [v for v in values if v]
