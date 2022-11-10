@@ -6,7 +6,7 @@ import signal
 import time
 from nav.config import find_config_file
 from nav.snmptrapd.plugin import load_handler_modules
-
+from nav.snmptrapd.trap import SNMPTrap
 
 # Implementation tests for plugins
 
@@ -75,3 +75,20 @@ def test_traplistener_does_not_raise_error_on_signals():
         handler.close()
         signal.signal(signal.SIGALRM, signal.SIG_DFL)
         signal.alarm(0)
+
+
+class TestSnmpTrap:
+    def test_trap_agent_should_be_correctly_identified(self, localhost_using_legacy_db):
+        trap = SNMPTrap(
+            src="127.0.0.1",
+            agent="127.0.0.1",
+            type=None,
+            genericType=None,
+            snmpTrapOID=None,
+            uptime=None,
+            community="public",
+            version=2,
+            varbinds={},
+        )
+        netbox = trap.netbox
+        assert netbox.netboxid == localhost_using_legacy_db
