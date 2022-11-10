@@ -69,9 +69,8 @@ class SNMPTrap(object):
             "FROM gwportprefix "
             "JOIN interface USING (interfaceid) "
             "JOIN netbox USING (netboxid) "
-            "WHERE %s IN (ip, gwip) "(
-                self.agent,
-            ),
+            "WHERE %s IN (ip, gwip) ",
+            (self.agent,),
         )
 
         if cur.rowcount < 1:
