@@ -159,6 +159,8 @@ def _tuplify(jsonblob, prefix):
     output = list()
     for vlan_stat in data:
         vlan = _clean_vlan(vlan_stat["location"])
+        if not vlan:
+            continue
         for key, metric in METRIC_MAPPER.items():
             path = f"{prefix}.{vlan}.{metric}"
             value = vlan_stat[key]
@@ -168,7 +170,10 @@ def _tuplify(jsonblob, prefix):
 
 def _clean_vlan(location):
     regex = re.search("vlan\d+", location)
-    return regex.group()
+    if regex:
+        return regex.group()
+    sys.stderr.write(f"No vlan found in location {location}: invalid\n")
+    return None
 
 
 # send the data
