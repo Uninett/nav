@@ -36,5 +36,12 @@ jobs:
         id: slack
         if: failure()
         uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {
+              "title": "Building NAV's Docker Compose dev environment failed",
+              "github_ref_name": "${{ github.ref_name }}",
+              "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
