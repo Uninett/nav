@@ -13,11 +13,11 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+from datetime import date
 
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field
-
 from nav.models.fields import INFINITY
 
 
@@ -72,3 +72,63 @@ class MaintenanceAddSingleNetbox(forms.Form):
     a custom variable-checker"""
 
     netboxid = forms.IntegerField(required=True)
+
+
+def _get_current_year():
+    return date.today().year
+
+
+def _get_current_month():
+    return date.today().month
+
+
+class MaintenanceCalendarForm(forms.Form):
+    """A form used for displaying a maintenance calendar"""
+
+    year = forms.IntegerField(
+        initial=_get_current_year, required=True, min_value=2000, max_value=2100
+    )
+    month = forms.IntegerField(
+        initial=_get_current_month, required=True, min_value=1, max_value=12
+    )
+
+    @property
+    def cleaned_year(self):
+        """Returns the cleaned year value if valid, current year otherwise"""
+        return self.cleaned_data['year'] if self.is_valid() else _get_current_year()
+
+    @property
+    def cleaned_month(self):
+        """Returns the cleaned month if valid, current month otherwise"""
+        return self.cleaned_data['month'] if self.is_valid() else _get_current_month()
+
+    @property
+    def this_month_start(self):
+        """Returns the first date of the month represented by this form instance"""
+        return date(self.cleaned_year, self.cleaned_month, 1)
+
+    @property
+    def next_month_start(self):
+        """Returns the first date of the month after the one represented by this form
+        instance
+        """
+        year = self.cleaned_year
+        month = self.cleaned_month + 1
+
+        if month > 12:
+            year += 1
+            month = 1
+        return date(year, month, 1)
+
+    @property
+    def previous_month_start(self):
+        """Returns the first date of the month before the one represented by this form
+        instance
+        """
+        year = self.cleaned_year
+        month = self.cleaned_month - 1
+
+        if month < 1:
+            year -= 1
+            month = 12
+        return date(year, month, 1)

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## [Unreleased]
+
+## Fixed
+
+- Merge two fixes from the 5.4.x stable series that never actually made it into the 5.5 series:
+  - Metric values of 0.0 are evaluated correctly by threshold rules [#2447](https://github.com/Uninett/nav/issues/2447)
+  - Validate maintenance calendar input form to avoid e-mail spam from bots scanning for vulnerabilities [#2420](https://github.com/Uninett/nav/issues/2420)
+
+
 ## [5.5.2] - 2022-11-10
 
 ### Fixed
