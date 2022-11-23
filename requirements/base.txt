@@ -35,3 +35,6 @@ pynetsnmp-2>=0.1.8,<0.2.0
 libsass==0.15.1
 
 napalm==3.4.1
+
+pyjwt
+drf-oidc-auth==3.0.0

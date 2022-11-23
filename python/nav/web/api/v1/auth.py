@@ -17,10 +17,14 @@
 
 import logging
 from datetime import datetime
+from urllib.parse import urlparse
+import json
+import jwt
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import TokenAuthentication, BaseAuthentication
-from urllib.parse import urlparse
+from oidc_auth.authentication import JSONWebTokenAuthentication
+from oidc_auth.settings import api_settings
 
 from nav.models.api import APIToken
 
@@ -58,6 +62,56 @@ class NavBaseAuthentication(BaseAuthentication):
             return request.account, None
 
 
+class JWTToken(dict):
+    pass
+
+
+class JWTAuthentication(JSONWebTokenAuthentication):
+    REQUIRED_CLAIMS = ["exp", "nbf", "aud", "iss"]
+    SUPPORTED_ALGORITHMS = ["RS256", "RS384", "RS512"]
+
+    def authenticate(self, request):
+        auth_result = super().authenticate(request)
+        if auth_result:
+            user, token = auth_result
+            return user, JWTToken(token)
+        else:
+            return None
+
+    def decode_jwt(self, jwt_value):
+        kid = self.get_kid(jwt_value)
+        try:
+            validated_token = jwt.decode(
+                jwt=jwt_value,
+                algorithms=self.SUPPORTED_ALGORITHMS,
+                key=self.get_public_key(kid),
+                options={"require": self.REQUIRED_CLAIMS},
+                audience=api_settings.OIDC_CLAIMS_OPTIONS['aud']['value'],
+                issuer=self.issuer,
+            )
+            return validated_token
+        except jwt.exceptions.PyJWTError as e:
+            raise AuthenticationFailed(f"Error validating token: {e}")
+
+    def get_kid(self, token):
+        header = jwt.get_unverified_header(token)
+        kid = header.get("kid")
+        if not kid:
+            raise AuthenticationFailed("Token must include the 'kid' header")
+        return kid
+
+    def get_public_key(self, kid):
+        jwks = self.jwks_data()
+        for jwk in jwks.get("keys"):
+            if jwk["kid"] == kid:
+                return jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwk))
+        raise AuthenticationFailed(f"Invalid kid '{kid}'")
+
+    def validate_claims(self, id_token):
+        """Do nothing. All validation is done in decode_jwt"""
+        return
+
+
 class LoggedInPermission(BasePermission):
     """Checks if the user is logged in"""
 
@@ -74,7 +128,7 @@ class TokenPermission(BasePermission):
 
     def has_permission(self, request, _view):
         token = request.auth  # type: APIToken
-        if not token:
+        if not token or not isinstance(token, APIToken):
             return False
 
         endpoints_ok = self._check_endpoints(request)
@@ -143,6 +197,19 @@ class TokenPermission(BasePermission):
         return path if path.endswith('/') else path + '/'
 
 
+class JWTPermission(BasePermission):
+    """Checks if the token has correct permissions"""
+
+    url_prefix = '/api'
+    version = 1
+
+    def has_permission(self, request, _view):
+        token = request.auth  # type: JWTToken
+        if not token or not isinstance(token, JWTToken):
+            return False
+        return True
+
+
 class APIPermission(BasePermission):
     """Checks for correct permissions when accessing the API"""
 
@@ -150,6 +217,12 @@ class APIPermission(BasePermission):
         """Checks if request is permissable
         :type request: rest_framework.request.Request
         """
-        return LoggedInPermission().has_permission(
-            request, view
-        ) or TokenPermission().has_permission(request, view)
+        return (
+            LoggedInPermission().has_permission(request, view)
+            or TokenPermission().has_permission(request, view)
+            or JWTPermission().has_permission(request, view)
+        )
+
+
+def get_user(self, token):
+    return None
