@@ -272,7 +272,8 @@ OIDC_AUTH = {
     # at <endpoint>/.well-known/openid-configuration
     'OIDC_ENDPOINT': os.environ.get("OIDC_ENDPOINT"),
     # The Claims Options can now be defined by a static string.
-    # ref: https://docs.authlib.org/en/latest/jose/jwt.html#jwt-payload-claims-validation
+    # ref:
+    # https://docs.authlib.org/en/latest/jose/jwt.html#jwt-payload-claims-validation
     # The old OIDC_AUDIENCES option is removed in favor of this new option.
     # `aud` is only required, when you set it as an essential claim.
     ##### For NAV this is only used to specify the 'aud' claim
@@ -290,7 +291,8 @@ OIDC_AUTH = {
     'OIDC_RESOLVE_USER_FUNCTION': 'nav.web.api.v1.auth.get_user',
     # (Optional) Time before signing keys will be refreshed (default 24 hrs)
     'OIDC_JWKS_EXPIRATION_TIME': 24 * 60 * 60,
-    # (Optional) Time before bearer token validity is verified again (default 10 minutes)
+    # (Optional) Time before bearer token validity is verified again
+    # (default 10 minutes)
     'OIDC_BEARER_TOKEN_EXPIRATION_TIME': 10 * 60,
     # (Optional) Token prefix in JWT authorization header (default 'JWT')
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
