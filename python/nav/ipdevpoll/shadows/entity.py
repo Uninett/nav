@@ -242,7 +242,7 @@ class NetboxEntity(Shadow):
 
     def _handle_new_entity(self):
         entity = self.get_existing_model()
-        if self.is_new and entity.is_chassis():
+        if self.is_new and entity.is_chassis() and entity.device.serial:
             device_event.notify(
                 device=entity.device,
                 netbox=entity.netbox,

@@ -253,7 +253,11 @@ class Module(Shadow):
         # but its possible if the standard MIBs detects something as a module
         # and proprietary MIBs detect the same thing as a chassis.
         module = self.get_existing_model()
-        if self.is_new and not module.get_entity().is_chassis():
+        if (
+            self.is_new
+            and not module.get_entity().is_chassis()
+            and module.device.serial
+        ):
             device_event.notify(
                 device=module.device,
                 netbox=module.netbox,
@@ -787,18 +791,18 @@ class PowerSupplyOrFan(Shadow):
         self._handle_new_psu_or_fan()
 
     def _handle_new_psu_or_fan(self):
-        if self.is_new:
-            psufan = self.get_existing_model()
-            try:
+        if not self.is_new:
+            return
+        psufan = self.get_existing_model()
+        try:
+            if psufan.device.serial:
                 device_event.notify(
                     device=psufan.device,
                     netbox=psufan.netbox,
                     alert_type="deviceNewPsu" if psufan.is_psu() else "deviceNewFan",
                 ).save()
-            except manage.Device.DoesNotExist:
-                self._logger.debug(
-                    f"New PowerSupplyOrFan does not have a Device defined."
-                )
+        except manage.Device.DoesNotExist:
+            return
 
     @classmethod
     def cleanup_after_save(cls, containers):
