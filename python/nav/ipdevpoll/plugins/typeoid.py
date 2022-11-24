@@ -81,6 +81,7 @@ class TypeOid(Plugin):
         self._set_type(shadows.NetboxType(new_type))
 
     @staticmethod
+    @db.synchronous_db_access
     def _get_type_from_oid(oid):
         """Loads from db a type object matching the sysobjectid."""
         term = str(oid).strip(".")

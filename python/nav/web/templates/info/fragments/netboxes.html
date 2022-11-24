@@ -40,12 +40,19 @@
               <img src="{{ STATIC_URL }}images/lys/{% if netbox.up == 'y' %}green.png{% else %}red.png{% endif %}">
             </td>
 
-            {% with data=availabilities|get_value:netbox.id %}
-              {% with availability=data|get_value:'availability' %}
-                <td class="numeric">{{ availability|get_value:'week'|floatformat:'2' }}%</td>
-                <td class="numeric">{{ availability|get_value:'month'|floatformat:'2' }}%</td>
-              {% endwith %}
-            {% endwith %}
+            {% if availabilities %}
+                {% with data=availabilities|get_value:netbox.id %}
+                {% with availability=data|get_value:'availability' %}
+                    <td class="numeric">{{ availability|get_value:'week'|floatformat:'2' }}%</td>
+                    <td class="numeric">{{ availability|get_value:'month'|floatformat:'2' }}%</td>
+                {% endwith %}
+                {% endwith %}
+            {% elif graphite_error %}
+                <td><span class="label alert">Graphite unreachable</span></td>
+                <td><span class="label alert">Graphite unreachable</span></td>
+            {% else %}
+                N/A
+            {% endif %}
         </tr>
     {% endfor %}
     </tbody>

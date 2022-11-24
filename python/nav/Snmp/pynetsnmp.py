@@ -200,7 +200,10 @@ class Snmp(object):
         current_oid = root_oid
 
         while 1:
-            response = self.handle.sgetnext(current_oid)
+            try:
+                response = self.handle.sgetnext(current_oid)
+            except (EndOfMibViewError, NoSuchObjectError):
+                break
             if response is None:
                 break
             response_oid, value = list(response.items())[0]
@@ -260,9 +263,12 @@ class Snmp(object):
         current_oid = root_oid
 
         while 1:
-            response = self.handle.sgetbulk(
-                self.NON_REPEATERS, self.MAX_REPETITIONS, [current_oid]
-            )
+            try:
+                response = self.handle.sgetbulk(
+                    self.NON_REPEATERS, self.MAX_REPETITIONS, [current_oid]
+                )
+            except EndOfMibViewError:
+                break
             if response is None:
                 break
             for response_oid, value in response:

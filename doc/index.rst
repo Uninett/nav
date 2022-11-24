@@ -24,8 +24,8 @@ Getting help
 * Report a bug in our `bug tracker`_.
 
 .. _wiki pages: https://nav.uninett.no/wiki/
-.. _nav-users mailing list archives: https://sympa.uninett.no/lists/uninett.no/arc/nav-users
-.. _the nav-users mailing list: https://sympa.uninett.no/lists/uninett.no/info/nav-users
+.. _nav-users mailing list archives: https://lister.sikt.no/hyperkitty/list/nav-users@lister.sikt.no/
+.. _the nav-users mailing list: https://lister.sikt.no/postorius/lists/nav-users.lister.sikt.no/
 .. _#nav IRC channel: irc://irc.libera.chat/nav
 .. _bug tracker: https://github.com/Uninett/nav
 

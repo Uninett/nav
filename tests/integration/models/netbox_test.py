@@ -53,6 +53,16 @@ def test_netbox_should_be_annotated_with_chassis_serial(db, localhost):
     assert netbox.chassis_serial == "first"
 
 
+def test_netbox_mac_addresses_should_return_distinct_set_of_addresses(
+    db, localhost: Netbox
+):
+    mac = "00:c0:ff:ee:ba:be"
+    localhost.info_set.create(key="lldp", variable="chassis_mac", value=mac)
+    localhost.info_set.create(key="bridge_info", variable="base_address", value=mac)
+
+    assert localhost.mac_addresses == set([mac])
+
+
 @pytest.fixture
 def wanted_profile():
     return ManagementProfile(

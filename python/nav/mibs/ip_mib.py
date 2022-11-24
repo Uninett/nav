@@ -347,6 +347,20 @@ class IpMib(mibretriever.MibRetriever):
         returnValue(result)
 
 
+class MultiIpMib(IpMib, mibretriever.MultiMibMixIn):
+    """A version of IpMib that supports collection of ip/mac mappings from multiple
+    logical instances.
+    """
+
+    def get_ifindex_ip_mac_mappings(self):
+        method = super().get_ifindex_ip_mac_mappings
+        return self._multiquery(method, integrator=_set_integrator)
+
+
+def _set_integrator(results):
+    return set().union(*(result_set for vrf, result_set in results))
+
+
 class IndexToIpException(Exception):
     """A collected OID row index could not be converted to an IP address"""
 

@@ -8,6 +8,69 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.5
+=======
+
+Dependency changes
+------------------
+
+None :-)
+
+API changes
+-----------
+
+The ``/netbox/`` API endpoint adds a new read-only attribute:
+``mac_addresses``. This is a list of MAC addresses associated with an IP
+Device's chassis, typically collected from either ``LLDP-MIB`` or
+``BRIDGE-MIB``. In most cases, devices will only have a single address here,
+but sometimes, the two MIBs will disagree on what is the main "chassis"
+address.
+
+The ``/interface`` endpoint has gained two new read-only attributes for LAG
+information:
+
+* ``aggregator``: An interface that is part of an aggregate will have the
+  aggregate interface specified here. The aggregator will be identified by both
+  its ``id`` and ``ifname`` attributes.
+* ``bundled_interfaces``: An interface that aggregates multiple interfaces will
+  have those interfaces listed here. Each interface in the list will be
+  identified by their ``id`` and ``ifname`` attrbutes.
+
+Software upgrade history
+------------------------
+
+NAV has finally regained the ability to save device software, firmware and/or
+hardware upgrades as events to their history, as the new ``deviceSwUpgrade``,
+``deviceFwUpgrade`` and ``deviceHwUpgrade`` alert types have been added to the
+``deviceNotice`` event hierarchy.  These alerts can now be subscribed to in
+Alert Profiles, and will be searchable in the Device History tool.  See also
+:doc:`reference/alerttypes` for the full list of events/alerts NAV provides.
+
+Juniper ``BUILTIN`` devices
+---------------------------
+
+Juniper equipment tends to report soldered-on linecards as field-replaceable
+modules through their implementation of ``ENTITY-MIB::entPhysicalTable``. These
+modules are also all reported as having the same serial number: ``BUILTIN``.
+
+NAV versions prior to 5.5.1 did not safeguard against this Juniper bug. This
+would cause NAV installations that monitor Juniper equipment to have a single
+device with the ``BUILTIN`` serial number, which was shared between all
+monitored Juniper netboxes.  The attributes of ``BUILTIN`` devices (such as
+software or firmware revision) would be different across most Juniper netboxes,
+causing them to compete for updates of the attributes in the NAV database.
+
+This went under the radar until NAV 5.5.0 re-introduced the ``device*Upgrade``
+set of alerts. Now, every time a Juniper netbox is polleed and the shared
+``BUILTIN`` device's software/hardware/firmware revision was changed, an alert
+would be generated. For those unfortunate enough to subscribe to all NAV
+alerts, this would lead to a storm of alerts.
+
+Subsequently, NAV 5.5.1 deletes this shared ``BUILTIN`` device from the
+database, and adds functionality to ignore any module or entity that reports
+this as its serial number.
+
+
 NAV 5.4
 =======
 

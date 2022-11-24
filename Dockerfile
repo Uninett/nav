@@ -85,7 +85,7 @@ COPY requirements/ /requirements
 COPY requirements.txt /
 COPY tests/requirements.txt /test-requirements.txt
 # Since we used pip3 to install pip globally, pip should now be for Python 3
-RUN pip-compile --output-file /requirements.txt.lock /requirements.txt /test-requirements.txt
+RUN pip-compile --resolver=backtracking --output-file /requirements.txt.lock /requirements.txt /test-requirements.txt
 RUN pip install -r /requirements.txt.lock
 
 ARG CUSTOM_PIP=ipython

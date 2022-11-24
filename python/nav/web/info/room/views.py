@@ -158,18 +158,24 @@ def render_deviceinfo(request, roomid):
     all_netboxes = room.netbox_set.select_related(
         "type", "category", "organization"
     ).order_by("sysname")
+    availabilities = {}
+    graphite_error = False
 
     try:
         availabilities = get_netboxes_availability(
             all_netboxes, data_sources=["availability"], time_frames=["week", "month"]
         )
     except GraphiteUnreachableError:
-        availabilities = None
+        graphite_error = True
 
     return render(
         request,
         "info/room/roominfo_devices.html",
-        {"netboxes": all_netboxes, "availabilities": availabilities},
+        {
+            "netboxes": all_netboxes,
+            "availabilities": availabilities,
+            'graphite_error': graphite_error,
+        },
     )
 
 

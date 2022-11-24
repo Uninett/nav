@@ -221,7 +221,11 @@ class Juniper(ManagementHandler):
                     tag, netident=vlan_object.net_ident, descr=vlan_object.description
                 )
 
-        result = {_make_vlan(vlan) for vlan in self.vlans}
+        result = {
+            _make_vlan(vlan)
+            for vlan in self.vlans
+            if isinstance(vlan.tag, int) or vlan.tag.isdigit()
+        }
         return sorted(result, key=attrgetter("vlan"))
 
     def get_netbox_vlan_tags(self) -> List[int]:

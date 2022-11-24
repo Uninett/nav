@@ -25,6 +25,7 @@ from nav.ipdevpoll.shadows.entity import NetboxEntity
 
 from nav.mibs.entity_mib import EntityMib, EntityTable
 from nav.ipdevpoll import Plugin, shadows
+from nav.ipdevpoll.plugins.modules import get_ignored_serials
 from nav.ipdevpoll.timestamps import TimestampChecker
 from nav.models import manage
 from nav.oids import OID
@@ -40,6 +41,12 @@ class Entity(Plugin):
         self.alias_mapping = {}
         self.entitymib = EntityMib(self.agent)
         self.stampcheck = TimestampChecker(self.agent, self.containers, INFO_VAR_NAME)
+
+    @classmethod
+    def on_plugin_load(cls):
+        from nav.ipdevpoll.config import ipdevpoll_conf
+
+        cls.ignored_serials = get_ignored_serials(ipdevpoll_conf)
 
     @defer.inlineCallbacks
     def handle(self):
@@ -135,9 +142,10 @@ class Entity(Plugin):
             if value is not None:
                 setattr(container, attr, value)
 
-        if getattr(container, 'serial', None):
+        serial_num = getattr(container, 'serial', None)
+        if serial_num and serial_num not in self.ignored_serials:
             device = self.containers.factory(container.serial, shadows.Device)
-            device.serial = container.serial
+            device.serial = serial_num
             for key in ('hardware', 'firmware', 'software'):
                 val = getattr(container, key + '_revision')
                 if val:

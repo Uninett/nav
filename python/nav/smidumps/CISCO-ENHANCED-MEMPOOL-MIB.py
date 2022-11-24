@@ -4,7 +4,7 @@
 #
 #   smidump -f python CISCO-ENHANCED-MEMPOOL-MIB
 
-FILENAME = "CISCO-ENHANCED-MEMPOOL-MIB.mib"
+FILENAME = "CISCO-ENHANCED-MEMPOOL-MIB.my"
 
 MIB = {
     "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
@@ -30,11 +30,30 @@ E-mail: cs-memory@cisco.com""",
 of all physical entities on a managed system.""",
         "revisions" : (
             {
-                "date" : "2005-11-30 00:00",
+                "date" : "2008-12-05 00:00",
                 "description" :
-                    """Added the types nvram(14), mbuf(15), cluster(16) and
-malloc(17) to CempMemPoolTypes. Changed the group
-cempMemBufferGroup from mandatory to optional.""",
+                    """Added the following High Capacity and Overflow objects
+in cempMemPoolTable.
+cempMemPoolUsedOvrflw, cempMemPoolHCUsed,
+cempMemPoolFreeOvrflw, cempMemPoolHCFree,
+cempMemPoolLargestFreeOvrflw, cempMemPoolHCLargestFree,
+cempMemPoolLowestFreeOvrflw, cempMemPoolHCLowestFree,
+cempMemPoolUsedLowWaterMarkOvrflw,
+cempMemPoolHCUsedLowWaterMark,
+cempMemPoolSharedOvrflw, cempMemPoolHCShared.
+Added couple of new groups cempMemPoolHCGroup and
+cempMemPoolOvrflwGroup.
+Added a new compliance cempMIBComplianceRev3 which deprecates
+cempMIBComplianceRev2.""",
+            },
+            {
+                "date" : "2008-05-07 00:00",
+                "description" :
+                    """Added a new object cempMemPoolShared in cempMemPoolTable.
+Deprecated cempMemPoolGroup OBJECT-GROUP. 
+Added cempMemPoolGroupRev1 OBJECT-GROUP.  
+Deprecated cempMIBComplianceRev1 MODULE-COMPLIANCE. 
+Added cempMIBComplianceRev2 MODULE-COMPLIANCE.""",
             },
             {
                 "date" : "2003-02-24 00:00",
@@ -76,16 +95,17 @@ to the existing cempMemPoolTable, added buffer pools.
         {"module" : "SNMPv2-SMI", "name" : "Gauge32"},
         {"module" : "SNMPv2-SMI", "name" : "Counter32"},
         {"module" : "SNMPv2-SMI", "name" : "Unsigned32"},
+        {"module" : "SNMPv2-CONF", "name" : "MODULE-COMPLIANCE"},
+        {"module" : "SNMPv2-CONF", "name" : "OBJECT-GROUP"},
+        {"module" : "SNMPv2-CONF", "name" : "NOTIFICATION-GROUP"},
         {"module" : "SNMPv2-TC", "name" : "TEXTUAL-CONVENTION"},
         {"module" : "SNMPv2-TC", "name" : "TruthValue"},
         {"module" : "SNMPv2-TC", "name" : "AutonomousType"},
         {"module" : "SNMPv2-TC", "name" : "TimeStamp"},
         {"module" : "SNMP-FRAMEWORK-MIB", "name" : "SnmpAdminString"},
         {"module" : "ENTITY-MIB", "name" : "entPhysicalIndex"},
-        {"module" : "SNMPv2-CONF", "name" : "MODULE-COMPLIANCE"},
-        {"module" : "SNMPv2-CONF", "name" : "OBJECT-GROUP"},
-        {"module" : "SNMPv2-CONF", "name" : "NOTIFICATION-GROUP"},
-        {"module" : "", "name" : "ciscoMgmt"},
+        {"module" : "HCNUM-TC", "name" : "CounterBasedGauge64"},
+        {"module" : "CISCO-SMI", "name" : "ciscoMgmt"},
     ),
 
     "typedefs" : {
@@ -189,21 +209,9 @@ need to be referenced.""",
                 "nodetype" : "namednumber",
                 "number" : "13"
             },
-            "nvram" : {
+            "posixMemory" : {
                 "nodetype" : "namednumber",
                 "number" : "14"
-            },
-            "mbuf" : {
-                "nodetype" : "namednumber",
-                "number" : "15"
-            },
-            "cluster" : {
-                "nodetype" : "namednumber",
-                "number" : "16"
-            },
-            "malloc" : {
-                "nodetype" : "namednumber",
-                "number" : "17"
             },
             "description" :
                 """Represents the different types of memory pools that
@@ -247,21 +255,9 @@ imageMemory -
 asicMemory - 
          Application Specific Integrated Circuit
          memory.
-nvram -
-         Non-Volatile Random Access Memory, a type of
-         memory that retains its contents when the
-         power is turned off.
-mbuf -
-         Memory buffers management in the kernel IPC
-         subsystem. The basic buffering mechanism used
-         in Berkeley-based TCP/IP.
-cluster -
-         A cluster is a data structure that holds
-         heterogeneous data for extending the data
-         carrying capability of an individual mbuf.
-malloc -
-         Allocation of memory storage for dynamic
-         memory allocation.""",
+posixMemory -
+          Heap memory associated with posix style
+          processes in ion.""",
         },
         "CempMemBufferPoolIndex" : {
             "basetype" : "Unsigned32",
@@ -290,28 +286,28 @@ not overlap among different memory pools.""",
         "ciscoEnhancedMemPoolMIB" : {
             "nodetype" : "node",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221",
+            "oid" : "1.3.6.1.4.1.9.9.221",
             "status" : "current",
         }, # node
         "cempMIBNotifications" : {
             "nodetype" : "node",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.0",
+            "oid" : "1.3.6.1.4.1.9.9.221.0",
         }, # node
         "cempMIBObjects" : {
             "nodetype" : "node",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1",
         }, # node
         "cempMemPool" : {
             "nodetype" : "node",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1",
         }, # node
         "cempMemPoolTable" : {
             "nodetype" : "table",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1",
             "status" : "current",
             "description" :
                 """A table of memory pool monitoring entries for all
@@ -320,7 +316,7 @@ physical entities on a managed system.""",
         "cempMemPoolEntry" : {
             "nodetype" : "row",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1",
             "status" : "current",
             "linkage" : [
                 "entPhysicalIndex",
@@ -332,7 +328,7 @@ physical entities on a managed system.""",
         "cempMemPoolIndex" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.1",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"CISCO-ENHANCED-MEMPOOL-MIB", "name" : "CempMemPoolIndex"},
@@ -347,7 +343,7 @@ contiguously starting from 1.""",
         "cempMemPoolType" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.2",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.2",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"CISCO-ENHANCED-MEMPOOL-MIB", "name" : "CempMemPoolTypes"},
@@ -360,7 +356,7 @@ contains information.""",
         "cempMemPoolName" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.3",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.3",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMP-FRAMEWORK-MIB", "name" : "SnmpAdminString"},
@@ -375,7 +371,7 @@ pool types.""",
         "cempMemPoolPlatformMemory" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.4",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.4",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-TC", "name" : "AutonomousType"},
@@ -394,7 +390,7 @@ is returned.""",
         "cempMemPoolAlternate" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.5",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.5",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"CISCO-ENHANCED-MEMPOOL-MIB", "name" : "CempMemPoolIndexOrNone"},
@@ -414,7 +410,7 @@ cempMemPoolType of the alternate pool.""",
         "cempMemPoolValid" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.6",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.6",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-TC", "name" : "TruthValue"},
@@ -434,7 +430,7 @@ less than the actual values).""",
         "cempMemPoolUsed" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.7",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.7",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -449,7 +445,7 @@ physical entity.""",
         "cempMemPoolFree" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.8",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.8",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -466,7 +462,7 @@ is the total amount of memory in the pool""",
         "cempMemPoolLargestFree" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.9",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.9",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -481,7 +477,7 @@ the physical entity.""",
         "cempMemPoolLowestFree" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.10",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.10",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -495,7 +491,7 @@ recorded at any time during the operation of the system.""",
         "cempMemPoolUsedLowWaterMark" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.11",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.11",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -515,7 +511,7 @@ cempMemPoolFree  - cempMemPoolLowestFree.""",
         "cempMemPoolAllocHit" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.12",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.12",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -528,7 +524,7 @@ the memory pool""",
         "cempMemPoolAllocMiss" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.13",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.13",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -541,7 +537,7 @@ the memory pool""",
         "cempMemPoolFreeHit" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.14",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.14",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -554,7 +550,7 @@ deallocations from the memory pool""",
         "cempMemPoolFreeMiss" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.1.1.15",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.15",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -565,12 +561,217 @@ deallocations from the memory pool""",
 to free/deallocate memory from the memory pool.
 For example, this could be due to ownership errors 
 where the application that did not assign the 
-memory is trying to free it. """,
+memory is trying to free it.""",
+        }, # column
+        "cempMemPoolShared" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.16",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """Indicates the number of bytes from the memory pool
+that are currently shared on the physical entity.""",
+        }, # column
+        "cempMemPoolUsedOvrflw" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.17",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """This object represents the upper 32-bits of cempMemPoolUsed.
+This object needs to be supported only if the used bytes in the
+memory pool exceeds 32-bits, otherwise this object value would
+be set to 0.""",
+        }, # column
+        "cempMemPoolHCUsed" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.18",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"HCNUM-TC", "name" : "CounterBasedGauge64"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """Indicates the number of bytes from the memory pool
+that are currently in use by applications on the
+physical entity. This object is a 64-bit version of
+cempMemPoolUsed.""",
+        }, # column
+        "cempMemPoolFreeOvrflw" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.19",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """This object represents the upper 32-bits of cempMemPoolFree.
+This object needs to be supported only if the unused bytes in
+the memory pool exceeds 32-bits, otherwise this object value
+would be set to 0.""",
+        }, # column
+        "cempMemPoolHCFree" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.20",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"HCNUM-TC", "name" : "CounterBasedGauge64"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """Indicates the number of bytes from the memory pool
+that are currently unused on the physical entity.
+This object is a 64-bit version of cempMemPoolFree.""",
+        }, # column
+        "cempMemPoolLargestFreeOvrflw" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.21",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """This object represents the upper 32-bits of
+cempMemPoolLargestFree. This object needs to 
+be supported only if the value of 
+cempMemPoolLargestFree exceeds 32-bits, otherwise
+this object value would be set to 0.""",
+        }, # column
+        "cempMemPoolHCLargestFree" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.22",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"HCNUM-TC", "name" : "CounterBasedGauge64"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """Indicates the largest number of contiguous bytes from the
+memory pool that are currently unused on the physical entity.
+This object is a 64-bit version of cempMemPoolLargestFree.""",
+        }, # column
+        "cempMemPoolLowestFreeOvrflw" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.23",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """This object represents the upper 32-bits of
+cempMemPoolLowestFree. This object needs to
+be supported only if the value of
+cempMemPoolLowestFree exceeds 32-bits, otherwise
+this object value would be set to 0.""",
+        }, # column
+        "cempMemPoolHCLowestFree" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.24",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"HCNUM-TC", "name" : "CounterBasedGauge64"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """The lowest amount of available memory in the memory pool
+recorded at any time during the operation of the system.
+This object is a 64-bit version of cempMemPoolLowestFree.""",
+        }, # column
+        "cempMemPoolUsedLowWaterMarkOvrflw" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.25",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """This object represents the upper 32-bits of
+cempMemPoolUsedLowWaterMark. This object
+needs to be supported only if the value of
+cempMemPoolUsedLowWaterMark exceeds 32-bits,
+otherwise this object value would be set to 0.""",
+        }, # column
+        "cempMemPoolHCUsedLowWaterMark" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.26",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"HCNUM-TC", "name" : "CounterBasedGauge64"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """Indicates the lowest number of bytes from the memory
+pool that have been used by applications on the physical
+entity since sysUpTime. This object is a 64-bit version
+of cempMemPoolUsedLowWaterMark.""",
+        }, # column
+        "cempMemPoolSharedOvrflw" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.27",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """This object represents the upper 32-bits of cempMemPoolShared.
+This object needs to be supported only if the value of
+cempMemPoolShared exceeds 32-bits, otherwise this object value
+would be set to 0.""",
+        }, # column
+        "cempMemPoolHCShared" : {
+            "nodetype" : "column",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.1.1.28",
+            "status" : "current",
+            "syntax" : {
+                "type" : { "module" :"HCNUM-TC", "name" : "CounterBasedGauge64"},
+            },
+            "access" : "readonly",
+            "units" : "bytes",
+            "description" :
+                """Indicates the number of bytes from the memory pool that are
+currently shared on the physical entity. This object is a
+64-bit version of cempMemPoolShared.""",
         }, # column
         "cempMemBufferPoolTable" : {
             "nodetype" : "table",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2",
             "status" : "current",
             "description" :
                 """Entries in this table define entities (buffer pools
@@ -602,7 +803,7 @@ cempMemPoolTable.
         "cempMemBufferPoolEntry" : {
             "nodetype" : "row",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1",
             "status" : "current",
             "linkage" : [
                 "entPhysicalIndex",
@@ -617,7 +818,7 @@ memory buffer pools are present.""",
         "cempMemBufferPoolIndex" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.1",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"CISCO-ENHANCED-MEMPOOL-MIB", "name" : "CempMemBufferPoolIndex"},
@@ -630,7 +831,7 @@ to represent each buffer pool.""",
         "cempMemBufferMemPoolIndex" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.2",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.2",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"CISCO-ENHANCED-MEMPOOL-MIB", "name" : "CempMemPoolIndex"},
@@ -644,7 +845,7 @@ from which buffers are allocated.""",
         "cempMemBufferName" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.3",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.3",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMP-FRAMEWORK-MIB", "name" : "SnmpAdminString"},
@@ -655,12 +856,12 @@ from which buffers are allocated.""",
 object is suitable for output to a human operator,
 and may also be used to distinguish among the various
 buffer types.
-For example: 'Small', 'Big', 'Serial0/1' etc. """,
+For example: 'Small', 'Big', 'Serial0/1' etc.""",
         }, # column
         "cempMemBufferDynamic" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.4",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.4",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-TC", "name" : "TruthValue"},
@@ -677,7 +878,7 @@ or to zero.""",
         "cempMemBufferSize" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.5",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.5",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"", "name" : "Unsigned32"},
@@ -691,7 +892,7 @@ on the physical entity.""",
         "cempMemBufferMin" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.6",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.6",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"", "name" : "Unsigned32"},
@@ -708,7 +909,7 @@ pool.""",
         "cempMemBufferMax" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.7",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.7",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"", "name" : "Unsigned32"},
@@ -725,7 +926,7 @@ pool.""",
         "cempMemBufferPermanent" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.8",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.8",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"", "name" : "Unsigned32"},
@@ -738,7 +939,7 @@ pool on the physical entity.""",
         "cempMemBufferTransient" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.9",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.9",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"", "name" : "Unsigned32"},
@@ -755,7 +956,7 @@ a system restart.""",
         "cempMemBufferTotal" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.10",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.10",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -769,7 +970,7 @@ buffer pool on the physical entity.""",
         "cempMemBufferFree" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.11",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.11",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -784,7 +985,7 @@ to cempMemBufferTotal.""",
         "cempMemBufferHit" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.12",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.12",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -797,7 +998,7 @@ allocated from the buffer pool.""",
         "cempMemBufferMiss" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.13",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.13",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -814,7 +1015,7 @@ a fall back to its corresponding public buffer pool.""",
         "cempMemBufferFreeHit" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.14",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.14",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -827,7 +1028,7 @@ from the buffer pool.""",
         "cempMemBufferFreeMiss" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.15",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.15",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -838,12 +1039,12 @@ from the buffer pool.""",
 to free/deallocate a buffer from the buffer pool. 
 For example, this could be due to ownership errors
 where the application that did not assign the 
-buffer is trying to free it. """,
+buffer is trying to free it.""",
         }, # column
         "cempMemBufferPermChange" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.16",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.16",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"", "name" : "Integer32"},
@@ -860,7 +1061,7 @@ of buffers in the pool.""",
         "cempMemBufferPeak" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.17",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.17",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -873,7 +1074,7 @@ physical entity.""",
         "cempMemBufferPeakTime" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.18",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.18",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-TC", "name" : "TimeStamp"},
@@ -886,7 +1087,7 @@ number of buffers (cempMemBufferPeak object) in the pool.""",
         "cempMemBufferTrim" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.19",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.19",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -901,7 +1102,7 @@ allowed buffers(cempMemBufferMax).""",
         "cempMemBufferGrow" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.20",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.20",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -915,7 +1116,7 @@ was less than minimum(cempMemBufferMix).""",
         "cempMemBufferFailures" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.21",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.21",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -933,7 +1134,7 @@ preferable to fail the request.""",
         "cempMemBufferNoStorage" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.2.1.22",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.2.1.22",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -947,7 +1148,7 @@ memory in the system.""",
         "cempMemBufferCachePoolTable" : {
             "nodetype" : "table",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.3",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.3",
             "status" : "current",
             "description" :
                 """A table that lists the cache buffer pools
@@ -966,7 +1167,7 @@ configured on a managed system.
         "cempMemBufferCachePoolEntry" : {
             "nodetype" : "row",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.3.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.3.1",
             "status" : "current",
             "linkage" : [
                 "entPhysicalIndex",
@@ -984,7 +1185,7 @@ entry in cempMemBufferCachePoolTable.""",
         "cempMemBufferCacheSize" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.3.1.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.3.1.1",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"", "name" : "Unsigned32"},
@@ -997,7 +1198,7 @@ on the physical entity.""",
         "cempMemBufferCacheTotal" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.3.1.2",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.3.1.2",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -1010,7 +1211,7 @@ allowed in the cache pool.""",
         "cempMemBufferCacheUsed" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.3.1.3",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.3.1.3",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -1025,7 +1226,7 @@ equal to cempMemBufferCacheTotal.""",
         "cempMemBufferCacheHit" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.3.1.4",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.3.1.4",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -1038,7 +1239,7 @@ allocated from the cache pool.""",
         "cempMemBufferCacheMiss" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.3.1.5",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.3.1.5",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -1052,7 +1253,7 @@ cache pool.""",
         "cempMemBufferCacheThreshold" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.3.1.6",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.3.1.6",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Gauge32"},
@@ -1065,7 +1266,7 @@ buffers used(cempMemBufferCacheUsed).""",
         "cempMemBufferCacheThresholdCount" : {
             "nodetype" : "column",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.1.3.1.7",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.1.3.1.7",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-SMI", "name" : "Counter32"},
@@ -1079,12 +1280,12 @@ threshold value(cempMemBufferCacheThreshold).""",
         "cempNotificationConfig" : {
             "nodetype" : "node",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.2",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.2",
         }, # node
         "cempMemBufferNotifyEnabled" : {
             "nodetype" : "scalar",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.1.2.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.1.2.1",
             "status" : "current",
             "syntax" : {
                 "type" : { "module" :"SNMPv2-TC", "name" : "TruthValue"},
@@ -1103,17 +1304,17 @@ is disabled.""",
         "cempMIBConformance" : {
             "nodetype" : "node",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3",
+            "oid" : "1.3.6.1.4.1.9.9.221.3",
         }, # node
         "cempMIBCompliances" : {
             "nodetype" : "node",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.1",
         }, # node
         "cempMIBGroups" : {
             "nodetype" : "node",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.2",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2",
         }, # node
     }, # nodes
 
@@ -1121,7 +1322,7 @@ is disabled.""",
         "cempMemBufferNotify" : {
             "nodetype" : "notification",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.0.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.0.1",
             "status" : "current",
             "objects" : {
                 "cempMemBufferName" : {
@@ -1149,8 +1350,8 @@ enabled/disabled via the cempMemBufferNotifyEnabled object.""",
         "cempMemPoolGroup" : {
             "nodetype" : "group",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.2.1",
-            "status" : "current",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.1",
+            "status" : "deprecated",
             "members" : {
                 "cempMemPoolType" : {
                     "nodetype" : "member",
@@ -1180,7 +1381,7 @@ monitoring.""",
         "cempMemPoolExtGroup" : {
             "nodetype" : "group",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.2.2",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.2",
             "status" : "deprecated",
             "members" : {
                 "cempMemPoolPlatformMemory" : {
@@ -1212,7 +1413,7 @@ it's place.""",
         "cempMemBufferGroup" : {
             "nodetype" : "group",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.2.3",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.3",
             "status" : "current",
             "members" : {
                 "cempMemBufferMemPoolIndex" : {
@@ -1307,7 +1508,7 @@ monitoring.""",
         "cempMemBufferExtGroup" : {
             "nodetype" : "group",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.2.4",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.4",
             "status" : "current",
             "members" : {
                 "cempMemBufferCacheSize" : {
@@ -1346,7 +1547,7 @@ buffer pool monitoring.""",
         "cempMemBufferNotifyEnableGroup" : {
             "nodetype" : "group",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.2.5",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.5",
             "status" : "current",
             "members" : {
                 "cempMemBufferNotifyEnabled" : {
@@ -1360,7 +1561,7 @@ buffer pool monitoring.""",
         "cempMemBufferNotifyGroup" : {
             "nodetype" : "group",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.2.6",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.6",
             "status" : "current",
             "members" : {
                 "cempMemBufferNotify" : {
@@ -1375,7 +1576,7 @@ memory buffer pool monitoring.""",
         "cempMemPoolExtGroupRev1" : {
             "nodetype" : "group",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.2.7",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.7",
             "status" : "current",
             "members" : {
                 "cempMemPoolPlatformMemory" : {
@@ -1420,13 +1621,119 @@ memory buffer pool monitoring.""",
 pool information.This group deprecates 
 cempMemPoolExtGroup.""",
         }, # group
+        "cempMemPoolGroupRev1" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.8",
+            "status" : "current",
+            "members" : {
+                "cempMemPoolType" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolName" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolValid" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolUsed" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolFree" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolShared" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+            }, # members
+            "description" :
+                """A collection of objects providing memory pool
+monitoring. This group deprecates 
+cempMemPoolGroup.""",
+        }, # group
+        "cempMemPoolHCGroup" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.9",
+            "status" : "current",
+            "members" : {
+                "cempMemPoolHCUsed" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolHCFree" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolHCLargestFree" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolHCLowestFree" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolHCUsedLowWaterMark" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolHCShared" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+            }, # members
+            "description" :
+                """A collection of High Capacity(HC) objects providing memory pool
+monitoring.""",
+        }, # group
+        "cempMemPoolOvrflwGroup" : {
+            "nodetype" : "group",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.2.10",
+            "status" : "current",
+            "members" : {
+                "cempMemPoolUsedOvrflw" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolFreeOvrflw" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolLargestFreeOvrflw" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolLowestFreeOvrflw" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolUsedLowWaterMarkOvrflw" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolSharedOvrflw" : {
+                    "nodetype" : "member",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+            }, # members
+            "description" :
+                """A collection of Overflow (Ovrflw) objects providing memory pool
+monitoring.""",
+        }, # group
     }, # groups
 
     "compliances" : {
         "cempMIBCompliance" : {
             "nodetype" : "compliance",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.1.1",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.1.1",
             "status" : "deprecated",
             "description" :
                 """The compliance statement for entities which
@@ -1447,7 +1754,7 @@ implement the Cisco Enhanced MemPool MIB.""",
         "cempMIBComplianceRev1" : {
             "nodetype" : "compliance",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.1.2",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.1.2",
             "status" : "deprecated",
             "description" :
                 """The compliance statement for entities which
@@ -1501,15 +1808,19 @@ if bufferpool statistics is required.""",
         "cempMIBComplianceRev2" : {
             "nodetype" : "compliance",
             "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
-            "oid" : "0.221.3.1.3",
-            "status" : "current",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.1.3",
+            "status" : "deprecated",
             "description" :
                 """The compliance statement for entities which
 implement the Cisco Enhanced MemPool MIB.
 This compliance module deprecates 
 cempMIBComplianceRev1.""",
             "requires" : {
-                "cempMemPoolGroup" : {
+                "cempMemPoolGroupRev1" : {
+                    "nodetype" : "mandatory",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemBufferGroup" : {
                     "nodetype" : "mandatory",
                     "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
                 },
@@ -1521,14 +1832,6 @@ cempMIBComplianceRev1.""",
 Support for these objects is mandatory
 if mempool statistics is required.This group
 is defined after deprecating cempMemPoolExtGroup.""",
-                },
-                "cempMemBufferGroup" : {
-                    "nodetype" : "optional",
-                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB",
-                    "description" :
-                        """This group is optional for all entities.
-Support for these objects is mandatory
-if bufferpool statistics is required.""",
                 },
                 "cempMemBufferExtGroup" : {
                     "nodetype" : "optional",
@@ -1553,6 +1856,74 @@ if bufferpool statistics is required.""",
                         """This group is optional for all entities.
 Support for these objects is mandatory
 if bufferpool statistics is required.""",
+                },
+            }, # requires
+        }, # compliance
+        "cempMIBComplianceRev3" : {
+            "nodetype" : "compliance",
+            "moduleName" : "CISCO-ENHANCED-MEMPOOL-MIB",
+            "oid" : "1.3.6.1.4.1.9.9.221.3.1.4",
+            "status" : "current",
+            "description" :
+                """The compliance statement for entities which
+implement the Cisco Enhanced MemPool MIB.
+This compliance module deprecates 
+cempMIBComplianceRev2.""",
+            "requires" : {
+                "cempMemPoolGroupRev1" : {
+                    "nodetype" : "mandatory",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemBufferGroup" : {
+                    "nodetype" : "mandatory",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB"
+                },
+                "cempMemPoolExtGroupRev1" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB",
+                    "description" :
+                        """This group is optional for all entities.
+Support for these objects is mandatory
+if mempool statistics is required.This group
+is defined after deprecating cempMemPoolExtGroup.""",
+                },
+                "cempMemBufferExtGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB",
+                    "description" :
+                        """This group is optional for all entities.
+Support for these objects is mandatory
+if bufferpool statistics is required.""",
+                },
+                "cempMemBufferNotifyEnableGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB",
+                    "description" :
+                        """This group is optional for all entities.
+Support for these objects is mandatory
+if bufferpool statistics is required.""",
+                },
+                "cempMemBufferNotifyGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB",
+                    "description" :
+                        """This group is optional for all entities.
+Support for these objects is mandatory
+if bufferpool statistics is required""",
+                },
+                "cempMemPoolHCGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB",
+                    "description" :
+                        """This group is optional for the entities which do not
+support memory pools greater than 32bits in size.""",
+                },
+                "cempMemPoolOvrflwGroup" : {
+                    "nodetype" : "optional",
+                    "module" : "CISCO-ENHANCED-MEMPOOL-MIB",
+                    "description" :
+                        """This group is optional for the entities which do not
+support memory pools greater than 32bits in size.""",
                 },
             }, # requires
         }, # compliance

@@ -13,6 +13,9 @@
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :alt: Code style: black
    :target: https://github.com/psf/black
+.. image:: https://img.shields.io/badge/irc.libera.chat-%23nav-blue.svg
+   :alt: #nav@libera.chat
+   :target: https://web.libera.chat/?channel=#nav
 
 
 This is NAV - Network Administration Visualized - an advanced software suite

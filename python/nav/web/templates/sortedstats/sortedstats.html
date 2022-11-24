@@ -54,6 +54,11 @@
         {% endfor %}
 
       </table>
+    {% elif graphite_unreachable %}
+      <div class="alert-box error">
+        The statistics could not be displayed due to a problem with reaching the
+        Graphite server. Try again or contact a NAV admin to resolve the issue.
+      </div>
     {% else %}
       <div class="alert-box error">
         No data was found for the given timeframe. This may indicate a problem

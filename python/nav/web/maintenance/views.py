@@ -38,7 +38,7 @@ from nav.web.maintenance.utils import get_component_keys, PRIMARY_KEY_INTEGER
 from nav.web.maintenance.utils import structure_component_data
 from nav.web.maintenance.utils import task_form_initial, infodict_by_state
 from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
-from nav.web.maintenance.forms import MaintenanceTaskForm
+from nav.web.maintenance.forms import MaintenanceTaskForm, MaintenanceCalendarForm
 from nav.web.maintenance.forms import MaintenanceAddSingleNetbox
 import nav.maintengine
 
@@ -55,56 +55,41 @@ def redirect_to_calendar(_request):
 def calendar(request, year=None, month=None):
     # If the form was used to get here, redirect to the appropriate page
     if "year" in request.GET and "month" in request.GET:
-        return redirect(
-            "maintenance-calendar",
-            year=request.GET.get("year"),
-            month=request.GET.get("month"),
+        form = MaintenanceCalendarForm(data=request.GET.dict())
+        if form.is_valid():
+            return redirect(
+                "maintenance-calendar",
+                year=request.GET.get("year"),
+                month=request.GET.get("month"),
+            )
+    elif year and month:
+        form = MaintenanceCalendarForm(
+            data={'year': year, 'month': month},
         )
+    else:
+        form = MaintenanceCalendarForm()
 
-    heading = "Maintenance schedule"
-    try:
-        year = int(year)
-        month = int(month)
-        this_month_start = date(year, month, 1)
-    except (TypeError, ValueError):
-        year = date.today().year
-        month = date.today().month
-        this_month_start = date(year, month, 1)
-
-    next_month = month + 1
-    next_year = year
-    if next_month > 12:
-        next_year = year + 1
-        next_month = 1
-
-    prev_month = month - 1
-    prev_year = year
-    if prev_month < 1:
-        prev_year = year - 1
-        prev_month = 12
-
-    prev_month_start = date(prev_year, prev_month, 1)
-    next_month_start = date(next_year, next_month, 1)
     tasks = (
         MaintenanceTask.objects.filter(
-            start_time__lt=next_month_start, end_time__gt=this_month_start
+            start_time__lt=form.next_month_start, end_time__gt=form.this_month_start
         )
         .exclude(state=MaintenanceTask.STATE_CANCELED)
         .order_by('start_time')
     )
-    cal = MaintenanceCalendar(tasks).formatmonth(year, month)
+    cal = MaintenanceCalendar(tasks).formatmonth(form.cleaned_year, form.cleaned_month)
     return render(
         request,
         'maintenance/calendar.html',
         {
             'active': {'calendar': True},
+            'calendarform': form,
             'navpath': NAVPATH,
             'title': TITLE,
-            'heading': heading,
+            'heading': "Maintenance schedule",
             'calendar': mark_safe(cal),
-            'prev_month': prev_month_start,
-            'this_month': this_month_start,
-            'next_month': next_month_start,
+            'prev_month': form.previous_month_start,
+            'this_month': form.this_month_start,
+            'next_month': form.next_month_start,
             'curr_month': datetime.today(),
         },
     )

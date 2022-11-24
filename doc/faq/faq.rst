@@ -17,7 +17,7 @@ these have been a mainstay in the Norwegian higher education sector for years.
 
 For any other vendors, we suggest that you just add your devices to NAV and
 see whether NAV reports what you want it to report. If it doesn't, submit a
-question to the mailing list, nav-users@uninett.no.
+question to the mailing list, nav-users@lister.sikt.no.
 
 Why are there gaps in my graphs?
 --------------------------------

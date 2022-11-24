@@ -24,6 +24,10 @@ Currently active contributors/maintainers
   Joined in 2021. Currently hacking away at open issues and learning the NAV
   codebase.
 
+* Ilona Podliashanyk <ilona.podliashanyk at sikt.no>
+  Joined in 2022, working mainly as a front-end developer. Currently hacking
+  away at open issues and learning the NAV codebase.
+
 Other contributors and previous maintainers
 -------------------------------------------
 * Vidar Faltinsen <vidar.faltinsen at sikt.no>
@@ -39,6 +43,10 @@ Other contributors and previous maintainers
 * Sigmund Augdal
   Active from 2017, until he left Uninett in 2019. An experienced Python
   developer who, among other things, rewrote the ipdevpoll multiprocess mode.
+
+* Ragnhild Bodsberg
+  Contributed various bugfixes to NAV as an intern at Sikt, during the summer
+  of 2022.
 
 * Philipp Petermann <philipp.petermann at unibas.ch>
   Contributed support for enabling CDP when configuring Cisco Voice VLANs in

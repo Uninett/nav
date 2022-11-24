@@ -28,8 +28,11 @@ from nav.metrics.templates import (
     metric_path_for_packet_loss,
     metric_path_for_roundtrip_time,
 )
+from nav.util import chunks
 
 _logger = logging.getLogger(__name__)
+
+MAX_TARGETS_PER_REQUEST = 100
 
 
 def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
@@ -197,7 +200,9 @@ def get_netboxes_availability(
 
 def populate_for_interval(result, targets, netboxes, start_time, end_time):
     """Populate results based on a time interval"""
-    avg = get_metric_average(targets, start=start_time, end=end_time)
+    avg = {}
+    for request in chunks(targets, MAX_TARGETS_PER_REQUEST):
+        avg.update(get_metric_average(request, start=start_time, end=end_time))
 
     for netbox in netboxes:
         root = result[netbox.id]
@@ -217,7 +222,9 @@ def populate_for_interval(result, targets, netboxes, start_time, end_time):
 def populate_for_time_frame(result, targets, netboxes, time_frames):
     """Populate results based on a list of time frames"""
     for time_frame in time_frames:
-        avg = get_metric_average(targets, start="-1%s" % time_frame)
+        avg = {}
+        for request in chunks(targets, MAX_TARGETS_PER_REQUEST):
+            avg.update(get_metric_average(request, start="-1%s" % time_frame))
 
         for netbox in netboxes:
             root = result[netbox.id]

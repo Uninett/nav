@@ -65,7 +65,11 @@ class SNMPTrap(object):
         conn = getConnection('snmptrapd')
         cur = conn.cursor()
         cur.execute(
-            "SELECT netboxid, sysname, roomid FROM netbox WHERE ip = %s",
+            "SELECT DISTINCT netboxid, sysname, roomid "
+            "FROM netbox "
+            "LEFT JOIN interface USING (netboxid) "
+            "LEFT JOIN gwportprefix USING (interfaceid) "
+            "WHERE %s IN (ip, gwip) ",
             (self.agent,),
         )
 
