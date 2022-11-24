@@ -794,6 +794,7 @@ class PowerSupplyOrFan(Shadow):
         if not self.is_new:
             return
         psufan = self.get_existing_model()
+        # Device not existing seems to be an issue exclusive to PowerSupplyOrFan objects
         try:
             if psufan.device.serial:
                 device_event.notify(
