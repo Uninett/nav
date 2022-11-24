@@ -248,16 +248,14 @@ class Module(Shadow):
         self._handle_new_module()
 
     def _handle_new_module(self):
+        if not self.is_new:
+            return
+        module = self.get_existing_model()
         # If a module is also registered as a chassis, then avoid duplicate
         # events and let NetboxEntity handle it. This should not really happen,
         # but its possible if the standard MIBs detects something as a module
         # and proprietary MIBs detect the same thing as a chassis.
-        module = self.get_existing_model()
-        if (
-            self.is_new
-            and not module.get_entity().is_chassis()
-            and module.device.serial
-        ):
+        if not module.get_entity().is_chassis() and module.device.serial:
             device_event.notify(
                 device=module.device,
                 netbox=module.netbox,
