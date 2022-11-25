@@ -1,0 +1,44 @@
+# This compose file shows an example of how you can add SNMP proxying
+# services to the Docker Compose development environment.
+
+# To set up a full dev environment with proxying, either copy the examples
+# from this file to docker-compose.override.yml, or tell docker compose to also
+# use this file:
+#
+# docker compose -f docker-compose.yml -f docker-compose.snmp.yml up
+#
+version: '3'
+
+# YAML template for an SNMP forwarding/proxying service. This should work on
+# Linux (not necessarily MacOS) by mounting your SSH agent communication socket
+# inside a container, so that ssh can be used non-interactively inside that
+# container to reach a hop-host using your credentials:
+x-forwarder:
+  &forwarder
+  build:
+    context: tools/forward
+    args:
+      - USER
+  volumes:
+    - ${SSH_AUTH_SOCK}:/auth_sock
+    - /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts
+    - ${HOME}/.ssh/known_hosts:${HOME}/.ssh/known_hosts
+  environment:
+    - SSH_AUTH_SOCK=/auth_sock
+  # The following section is needed only if you've configured the service
+  # network explicitly in docker-compose.
+  # networks:
+  #   - nav_net
+
+services:
+  # This creates a service in the internal network of the compose environment,
+  # using the hostname `mydevice.mydomain`. Assuming 192.168.0.1 is not
+  # reachable for SNMP traffic from your host, only from `my-hop-host`, this
+  # service proxies SNMP requests to 192.168.0.1 by using an SSH tunnel through
+  # `my-hop-host` (tunneling through port 10000). You can add multiple of these
+  # in your environment if you wish to talk to multiple SNMP agents that
+  # arent't reachable directly from your host (but you should use different
+  # tunnel ports for each of them).
+  mydevice.mydomain:
+    << : *forwarder
+    command: 192.168.0.1 user@my-hop-host 10000
