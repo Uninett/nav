@@ -154,6 +154,7 @@ def get_endpoints(request=None, version=1):
         ),
         'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
         'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
+        'module': reverse_lazy('{}module-list'.format(prefix), **kwargs),
     }
 
 
