@@ -8,7 +8,7 @@ For arguments, try::
 
         isc_dhcpd_graphite.py --help
 
-The script runs ``dhcpd_pool`` (full patch given with -C) with the flag
+The script runs ``dhcpd_pool`` (full path given with -C) with the flag
 ``-f j`` to make it emit json.
 
 Building the prefix
