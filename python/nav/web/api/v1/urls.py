@@ -52,6 +52,7 @@ router.register(
     basename='unrecognized-neighbor',
 )
 router.register(r'auditlog', auditlogapi.LogEntryViewSet, basename='auditlog')
+router.register(r'module', views.ModuleViewSet, basename='module')
 
 
 urlpatterns = [
