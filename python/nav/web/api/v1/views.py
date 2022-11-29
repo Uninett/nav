@@ -1081,3 +1081,24 @@ def get_nav_version(request):
     :type request: django.http.HttpRequest
     """
     return JsonResponse({"version": VERSION})
+
+
+class ModuleViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Lists all modules.
+
+    Search
+    ------
+    Searches in *device__serial*
+
+    Filters
+    -------
+    - netbox
+
+    Example: `/api/1/module/?netbox=91&search=AB12345`
+    """
+
+    queryset = manage.Module.objects.all()
+    search_fields = ('device__serial',)
+    filter_backends = NAVAPIMixin.filter_backends
+    filterset_fields = ('netbox',)
+    serializer_class = serializers.ModuleSerializer
