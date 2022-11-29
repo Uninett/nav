@@ -46,6 +46,10 @@ from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
 from nav.netbiostracker.tracker import scan, parse_get_workstations
 from nav.portadmin.management import ManagementFactory
+from nav.portadmin.snmp.base import (
+    InvalidManagementProfileError,
+    NoReadWriteManagementProfileError,
+)
 from nav.util import is_valid_ip
 
 CONFIGFILE = os.path.join("arnold", "arnold.conf")
@@ -167,12 +171,6 @@ class FileError(GeneralException):
 
 class BlockonTrunkError(DetainmentNotAllowedError):
     """No action on trunked interface allowed"""
-
-    pass
-
-
-class NoReadWriteCommunityError(GeneralException):
-    """No write community on switch"""
 
     pass
 
@@ -299,8 +297,10 @@ def disable(candidate, justification, username, comment="", autoenablestep=0):
         candidate.interface,
     )
 
-    if not candidate.interface.netbox.read_write:
-        raise NoReadWriteCommunityError(candidate.interface.netbox)
+    if not candidate.interface.netbox.get_preferred_snmp_management_profile(
+        writeable=True
+    ):
+        raise NoReadWriteManagementProfileError(candidate.interface.netbox)
     identity = check_identity(candidate)
     change_port_status('disable', identity)
     identity.status = 'disabled'
@@ -319,8 +319,10 @@ def quarantine(candidate, qvlan, justification, username, comment="", autoenable
         candidate.interface,
     )
 
-    if not candidate.interface.netbox.read_write:
-        raise NoReadWriteCommunityError(candidate.interface.netbox)
+    if not candidate.interface.netbox.get_preferred_snmp_management_profile(
+        writeable=True
+    ):
+        raise NoReadWriteManagementProfileError(candidate.interface.netbox)
     identity = check_identity(candidate)
     identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
     identity.tovlan = qvlan
@@ -457,7 +459,18 @@ def change_port_status(action, identity):
 
     # Create snmp-object
     netbox = identity.interface.netbox
-    agent = nav.Snmp.Snmp(netbox.ip, netbox.read_write, version=netbox.snmp_version)
+    profile = netbox.get_preferred_snmp_management_profile(writeable=True)
+
+    if not profile:
+        raise NoReadWriteManagementProfileError
+    if not hasattr(profile, "snmp_community") or not hasattr(profile, "snmp_version"):
+        raise InvalidManagementProfileError
+
+    agent = nav.Snmp.Snmp(
+        host=netbox.ip,
+        community=profile.snmp_community,
+        version=profile.snmp_version,
+    )
 
     # Disable or enable based on input
     try:
