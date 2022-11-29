@@ -275,6 +275,10 @@ class ModuleSerializer(serializers.ModelSerializer):
     """Serializer for the module model"""
 
     object_url = serializers.CharField(source='get_absolute_url')
+    netboxid = serializers.PrimaryKeyRelatedField(
+        source='netbox', queryset=manage.Netbox.objects.all()
+    )
+    sysname = serializers.StringRelatedField(source='netbox')
 
     class Meta(object):
         model = manage.Module
