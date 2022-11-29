@@ -69,13 +69,14 @@ def get_matching_boxes(patterns):
 
 
 def snmp_printer(netbox):
+    profile = netbox.get_preferred_snmp_management_profile()
     version = ''
-    if netbox.snmp_version == 1:
+    if getattr(profile, "snmp_version", None) == 1:
         version = '1'
-    elif netbox.snmp_version == 2:
+    elif getattr(profile, "snmp_version", None) == 2:
         version = '2c'
 
-    if not netbox.read_only or not version:
+    if not profile or not version:
         print("%s has no valid SNMP configuration in NAV" % netbox, file=sys.stderr)
         return
 
@@ -86,7 +87,9 @@ def snmp_printer(netbox):
     print("# {}".format(netbox.sysname), file=sys.stderr)
     print(
         "-v{version} -c {community} {ipaddr}".format(
-            version=version, community=netbox.read_only, ipaddr=ipaddr
+            version=version,
+            community=profile.snmp_community,
+            ipaddr=ipaddr,
         )
     )
 
