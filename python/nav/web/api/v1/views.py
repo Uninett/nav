@@ -1087,10 +1087,6 @@ def get_nav_version(request):
 class ModuleViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """Lists all modules.
 
-    Search
-    ------
-    Searches in *device__serial*
-
     Filters
     -------
     - netbox
