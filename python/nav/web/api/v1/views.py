@@ -1094,12 +1094,15 @@ class ModuleViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     Filters
     -------
     - netbox
+    - device__serial
 
-    Example: `/api/1/module/?netbox=91&search=AB12345`
+    Example: `/api/1/module/?netbox=91&device__serial=AB12345`
     """
 
     queryset = manage.Module.objects.all()
-    search_fields = ('device__serial',)
     filter_backends = NAVAPIMixin.filter_backends
-    filterset_fields = ('netbox',)
+    filterset_fields = (
+        'netbox',
+        'device__serial',
+    )
     serializer_class = serializers.ModuleSerializer
