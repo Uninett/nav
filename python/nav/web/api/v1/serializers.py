@@ -287,6 +287,16 @@ class DeviceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ModuleInlineSerializer(serializers.ModelSerializer):
+    """Serializer for including module information in other serializers"""
+
+    object_url = serializers.CharField(source='get_absolute_url')
+
+    class Meta(object):
+        model = manage.Module
+        fields = '__all__'
+
+
 class ModuleSerializer(serializers.ModelSerializer):
     """Serializer for the module model"""
 
@@ -333,7 +343,7 @@ class InterfaceSerializer(serializers.ModelSerializer):
     """Serializer for the interface model"""
 
     patches = SpecificPatchSerializer()
-    module = ModuleSerializer()
+    module = ModuleInlineSerializer()
     object_url = serializers.CharField(source='get_absolute_url')
     to_netbox = SubNetboxSerializer()
     to_interface = SubInterfaceSerializer()
