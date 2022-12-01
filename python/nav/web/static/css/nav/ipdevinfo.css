@@ -1,0 +1,178 @@
+/* Subsystem stylesheet for NAV
+ *
+  * Copyright 2006-2008 Uninett AS
+ *
+ * This file is part of Network Administration Visualized (NAV)
+ *
+ * NAV is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * NAV is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with NAV; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * Authors: Stein Magnus Jodal <stein.magnus.jodal@uninett.no>
+ *
+ */
+/* Device details table */
+.multitable {
+  overflow: auto; }
+
+.multitable > table {
+  float: left;
+  margin-right: 1em; }
+
+#service-matrix-links {
+  float: right; }
+
+.indent {
+  text-indent: 1em; }
+
+.nowrap {
+  white-space: nowrap; }
+
+/* Status table */
+ul.normalize-font-size {
+  font-size: 0.875rem; }
+
+/* Port view */
+.module {
+  border: 0px;
+  white-space: nowrap; }
+
+.module td {
+  line-height: 1.5em;
+  text-align: center;
+  vertical-align: middle; }
+
+.port {
+  background: white;
+  border: 1px solid #666; }
+
+.port a {
+  color: black;
+  display: block;
+  padding: 0.3em 0.5em;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle; }
+
+/* Port legend box */
+#portlegend table th, #portlegend table td {
+  padding: 0.5em; }
+
+#portlegend table td {
+  padding-right: 1em; }
+
+#portlegend table td .port {
+  margin-right: 0.5em;
+  padding: 0.2em; }
+
+.module, #portlegend {
+  /* Speed legend */
+  /* Frame legend */
+  /* Activity legend */ }
+  .module .passive, #portlegend .passive {
+    background: #ccc; }
+  .module .disabled, #portlegend .disabled {
+    background: #c99; }
+  .module .Mb10, #portlegend .Mb10 {
+    background: #deebf7; }
+  .module .Mb100, #portlegend .Mb100 {
+    background: #c6dbef; }
+  .module .Mb1000, #portlegend .Mb1000 {
+    background: #aecae1; }
+  .module .Mb10000, #portlegend .Mb10000 {
+    background: #8baed6; }
+  .module .hduplex, #portlegend .hduplex {
+    border: 1px dashed #666; }
+  .module .fduplex, #portlegend .fduplex {
+    border: 1px solid #666; }
+  .module .trunk, #portlegend .trunk {
+    border: 3px double #666; }
+  .module .blocked, #portlegend .blocked {
+    text-decoration: line-through; }
+  .module .inactive, #portlegend .inactive {
+    border: 1px dashed #666; }
+  .module .active, #portlegend .active {
+    border: 1px dashed #333; }
+  .module .link, #portlegend .link {
+    border: 1px solid #666; }
+
+/* Service table */
+.status_up {
+  background: #91cf60;
+  color: black; }
+
+.status_down {
+  background: #fc8d59;
+  color: black; }
+
+.status_shadow {
+  background: #fee090;
+  color: black; }
+
+.status_maintenance {
+  background: #eeeeee;
+  color: black; }
+
+.hidden {
+  display: none; }
+
+.cell-center {
+  text-align: center; }
+
+.cell-right {
+  text-align: right; }
+
+table.module {
+  border-collapse: separate;
+  border-spacing: 0.2em; }
+
+table.module td div.portcell {
+  position: relative;
+  width: 100%; }
+
+table.module td div.portcell span.oplayer {
+  position: absolute;
+  right: -6px;
+  bottom: -13px;
+  font-size: 0.8em; }
+
+#metrictabs.ui-tabs, #moduletabs.ui-tabs {
+  display: block; }
+
+#portmetrics strong {
+  margin-left: 0.4em; }
+
+#portmetrics .graphitegraph {
+  margin-left: 1.5em; }
+  #portmetrics .graphitegraph img {
+    border: 1px solid #DDDDDD; }
+
+#portmetrics .floatme {
+  background: #ffffff;
+  border-bottom: 2px solid white;
+  border-right: 2px solid white;
+  position: fixed;
+  top: 0px;
+  z-index: 200; }
+  #portmetrics .floatme button, #portmetrics .floatme .button {
+    margin-bottom: 0; }
+  #portmetrics .floatme .button-group:last-child {
+    margin-right: 0; }
+
+#poe ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start; }
+  #poe ul li {
+    padding: 20px;
+    list-style-type: none; }

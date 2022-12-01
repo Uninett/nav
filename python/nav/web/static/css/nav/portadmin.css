@@ -1,0 +1,21 @@
+/* Threshold for using alternative font color.
+
+NB: This variable is introduced by us because Foundation allowed font color with
+too little contrast according to WCAG2.0. This variable must be manually
+introduced in Foundation scss files when updating Foundation.
+
+Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
+#portadmin-wrapper .changed {
+  background-color: bisque; }
+
+#portadmin-wrapper .success {
+  background-color: #dff0d8; }
+
+#portadmin-wrapper .error {
+  background-color: #f2dede; }
+
+#portadmin-wrapper .error-column {
+  line-height: inherit;
+  margin: 0; }
+  #portadmin-wrapper .error-column .alert-box {
+    margin: 0; }

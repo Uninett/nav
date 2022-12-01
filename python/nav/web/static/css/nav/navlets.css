@@ -1,0 +1,294 @@
+/* Threshold for using alternative font color.
+
+NB: This variable is introduced by us because Foundation allowed font color with
+too little contrast according to WCAG2.0. This variable must be manually
+introduced in Foundation scss files when updating Foundation.
+
+Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
+/* Generally useful mixins */
+#navlets:fullscreen {
+  background-color: #EEE; }
+
+#navlets:-webkit-full-screen {
+  background-color: #EEE; }
+
+#navlets:-moz-full-screen {
+  background-color: #EEE; }
+
+#navlets:-ms-fullscreen {
+  background-color: #EEE; }
+
+.asteriskField {
+  display: none; }
+
+#navlets .highlight {
+  background-color: #d6d6d6;
+  border: 1px solid #aaaaaa;
+  margin-bottom: 1em; }
+
+/* Is a column is empty, make sure it has some size to be visible */
+.navletColumn {
+  min-width: 20px;
+  min-height: 100px; }
+
+.navlet {
+  background-color: #ffffff;
+  border: 1px solid #DDDDDD;
+  margin-bottom: 1em;
+  padding: 0.5em 1em 1em 1.2em;
+  position: relative;
+  min-height: 100px;
+  transition: box-shadow .5s; }
+  .navlet.outline {
+    border: 1px dashed black; }
+  .navlet.mark-new {
+    box-shadow: #666 0px 5px 10px 7px;
+    z-index: 2; }
+  .navlet.colorblock-navlet {
+    background-color: #1570a6;
+    color: #fff; }
+    .navlet.colorblock-navlet .subheader {
+      color: #fff; }
+    .navlet.colorblock-navlet a {
+      color: #fff; }
+  .navlet .navlet-header {
+    margin-bottom: 1em; }
+    .navlet .navlet-header .navlet-drag-button i {
+      cursor: grab;
+      cursor: -webkit-grab;
+      cursor: -moz-grab; }
+      .navlet .navlet-header .navlet-drag-button i:active {
+        cursor: grabbing;
+        cursor: -webkit-grabbing;
+        cursor: -moz-grabbing; }
+    .navlet .navlet-header .deprecated-warning {
+      margin-bottom: auto;
+      margin-top: 1.25rem; }
+  .navlet .navlet-body {
+    max-height: 90vh;
+    overflow: auto; }
+  .navlet .navlet-action-group {
+    float: right; }
+    .navlet .navlet-action-group i {
+      color: darkgrey;
+      margin-left: 0.5em; }
+      .navlet .navlet-action-group i:hover {
+        color: black; }
+  .navlet .subheader {
+    font-size: 1.1em;
+    position: relative; }
+    .navlet .subheader i {
+      font-size: 0.8em;
+      margin-left: 0.3em; }
+
+.navlet .panel {
+  font-size: 0.9em; }
+
+/* Styling for individual navlets */
+.MessagesNavlet .panel .message-card-footer {
+  font-size: 0.8em;
+  color: #999;
+  overflow: hidden; }
+  .MessagesNavlet .panel .message-card-footer .message-card-publish {
+    float: left; }
+  .MessagesNavlet .panel .message-card-footer .message-card-tasks {
+    float: right; }
+
+.WatchDogWidget .watchdog-tests ul {
+  max-height: 200px;
+  overflow: auto; }
+
+.WatchDogWidget .watchdog-tests li {
+  padding: 0.2em; }
+  .WatchDogWidget .watchdog-tests li .label.alert {
+    cursor: pointer; }
+  .WatchDogWidget .watchdog-tests li:nth-child(odd) {
+    background-color: #F9F9F9; }
+
+.WatchDogWidget .watchdog-tests .label {
+  line-height: 1.4em;
+  width: 60px; }
+
+.Status2Widget .status2-widget-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between; }
+
+.SensorWidget {
+  /* Threshold for using alternative font color.
+
+NB: This variable is introduced by us because Foundation allowed font color with
+too little contrast according to WCAG2.0. This variable must be manually
+introduced in Foundation scss files when updating Foundation.
+
+Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
+  /*
+ * Styles for everything in the environment tab
+ */
+  /* .rickshaw_graph is the name of the class added to graph element by RickShaw */ }
+  .SensorWidget .room-sensors {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end; }
+  .SensorWidget .room-sensor {
+    width: 300px;
+    margin-bottom: 1em; }
+    .SensorWidget .room-sensor h5 {
+      text-align: center; }
+    .SensorWidget .room-sensor .button-wrapper {
+      text-align: center; }
+    .SensorWidget .room-sensor .current {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 300px;
+      height: 110px;
+      margin-bottom: 1em; }
+      .SensorWidget .room-sensor .current .counter-node {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: steelblue;
+        color: white;
+        height: 110px;
+        width: 110px; }
+        .SensorWidget .room-sensor .current .counter-node .values {
+          text-align: center; }
+          .SensorWidget .room-sensor .current .counter-node .values .value {
+            font-size: 2em; }
+    .SensorWidget .room-sensor .rs-graph {
+      position: relative;
+      margin-bottom: 1em;
+      /* Add all jquery ui styles so that the slider appears correct */ }
+      .SensorWidget .room-sensor .rs-graph .rs-ynode {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 40px; }
+      .SensorWidget .room-sensor .rs-graph .rs-graphnode {
+        margin-left: 40px;
+        position: relative; }
+      .SensorWidget .room-sensor .rs-graph .rs-slidernode {
+        margin-left: 40px;
+        margin-top: 20px;
+        height: 0.8em;
+        position: relative;
+        text-align: left;
+        border: 1px solid #AAA; }
+        .SensorWidget .room-sensor .rs-graph .rs-slidernode div {
+          top: 0;
+          height: 100%;
+          border: 0 none;
+          background: url("../../images/jqueryui/ui-bg_highlight-soft_75_cccccc_1x100.png") repeat-x scroll 50% 50% #cccccc;
+          position: absolute;
+          z-index: 1;
+          font-size: 0.7em;
+          display: block;
+          color: #222;
+          font-weight: bold; }
+        .SensorWidget .room-sensor .rs-graph .rs-slidernode span {
+          top: -0.25em;
+          margin-left: -0.6em;
+          position: absolute;
+          z-index: 2;
+          width: 1.2em;
+          height: 1.2em;
+          cursor: default;
+          border: 1px solid #D3D3D3;
+          background: url("../../images/jqueryui/ui-bg_glass_75_e6e6e6_1x400.png") repeat-x scroll 50% 50% #e6e6e6;
+          font-weight: normal;
+          color: #555; }
+  .SensorWidget .rickshaw_graph .detail {
+    z-index: 100; }
+  .SensorWidget .rickshaw_graph .detail .date {
+    color: #a0a0a0; }
+  .SensorWidget .rickshaw_graph .detail .x_label {
+    display: none; }
+  .SensorWidget .rickshaw_graph .detail .item {
+    line-height: 1.4;
+    padding: 0.5em; }
+  .SensorWidget .rickshaw_graph .detail .series_value {
+    padding-right: 20px;
+    width: 200px;
+    white-space: pre-wrap; }
+  .SensorWidget .rickshaw_graph .detail .detail_swatch {
+    float: right;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin: 2px 4px 0 0; }
+  .SensorWidget .rickshaw_graph .x_tick .title {
+    bottom: -15px;
+    left: -19px; }
+  .SensorWidget .room-sensor {
+    display: flex;
+    justify-content: center;
+    width: auto; }
+
+.UpsWidget .io-display {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden; }
+  .UpsWidget .io-display .panel {
+    margin-bottom: 0;
+    padding: .4rem .6rem;
+    position: relative;
+    z-index: 2; }
+    .UpsWidget .io-display .panel .marklow {
+      background-color: lightcoral; }
+  .UpsWidget .io-display .line {
+    background-color: steelblue;
+    color: white; }
+  .UpsWidget .io-display .left-wrapper {
+    display: flex;
+    flex-direction: column; }
+    .UpsWidget .io-display .left-wrapper .vertical.line {
+      height: 50px;
+      display: flex; }
+    .UpsWidget .io-display .left-wrapper .vertical.line .left-box {
+      background-color: white;
+      width: 50%;
+      z-index: 2; }
+    .UpsWidget .io-display .left-wrapper .vertical.line .middle-box {
+      width: 1.2rem;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center; }
+    .UpsWidget .io-display .left-wrapper .vertical.line .right-box {
+      background-color: white;
+      width: 50%; }
+  .UpsWidget .io-display .horizontal.line {
+    position: absolute;
+    line-height: 1.2rem;
+    width: 100%;
+    text-align: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); }
+
+.AlertWidget fieldset {
+  padding: .3em .8em; }
+
+.RoomStatus .ui-accordion a, .LocationStatus .ui-accordion a {
+  color: #027bbb; }
+
+.RoomStatus .ui-accordion .ui-accordion-header, .LocationStatus .ui-accordion .ui-accordion-header {
+  background: #f2dede;
+  border-color: #eed3d7;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; }
+  .RoomStatus .ui-accordion .ui-accordion-header .label, .LocationStatus .ui-accordion .ui-accordion-header .label {
+    margin-bottom: 0; }
+
+.RoomStatus .ui-accordion .ui-accordion-content, .LocationStatus .ui-accordion .ui-accordion-content {
+  border-radius: 0;
+  padding: 1rem; }
+  .RoomStatus .ui-accordion .ui-accordion-content ul, .LocationStatus .ui-accordion .ui-accordion-content ul {
+    margin-bottom: 0; }
+    .RoomStatus .ui-accordion .ui-accordion-content ul li, .LocationStatus .ui-accordion .ui-accordion-content ul li {
+      font-size: 80%; }

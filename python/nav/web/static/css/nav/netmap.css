@@ -1,0 +1,145 @@
+/* Threshold for using alternative font color.
+
+NB: This variable is introduced by us because Foundation allowed font color with
+too little contrast according to WCAG2.0. This variable must be manually
+introduced in Foundation scss files when updating Foundation.
+
+Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
+#graph-view {
+  background: #ffffff;
+  border: 1px solid #000000;
+  min-height: 600px;
+  min-width: 600px;
+  position: relative; }
+
+#filter-category-list li {
+  float: left;
+  width: 5rem; }
+
+#filter-labels .label {
+  margin-right: 0.3em; }
+
+.nopadding {
+  padding: 0; }
+
+.maxwidth {
+  width: 100%; }
+
+#graph-info-modal table {
+  text-align: center; }
+
+#traffic-gradient {
+  width: 100%; }
+
+#traffic-gradient tr th, #traffic-gradient tr td {
+  padding: 0.2rem;
+  text-align: center; }
+
+.traffic-rgb {
+  height: 30px; }
+
+.load-arrow {
+  color: lightgray; }
+
+#netmap-admin tr.current-global-default td:first-child {
+  font-weight: bold;
+  background: url("../../images/netmap/emblem-favorite.png") no-repeat center right; }
+
+/* D3JS Netmap style */
+#netmap-userid {
+  display: none; }
+
+.clear {
+  clear: both; }
+
+.netmap-node-menu {
+  margin: 0 0 10px 0;
+  list-style-type: none; }
+
+.netmap-node-menu li {
+  margin: 0;
+  display: inline; }
+
+#graph-info-vlan-list {
+  max-height: 350px;
+  overflow-y: scroll;
+  overflow-x: hidden; }
+
+#graph-info-vlan-list ul {
+  list-style: none; }
+
+#graph-info-vlan-list li {
+  margin: 0 0 2px 0;
+  border-bottom: 1px dotted #ccc; }
+
+#graph-info-vlan-list .vlan {
+  display: block;
+  width: auto;
+  font-size: 11px;
+  padding-left: 2.5em;
+  position: relative;
+  height: auto !important;
+  min-height: 1em;
+  cursor: pointer; }
+
+#graph-info-vlan-list .vlan:hover {
+  color: orange; }
+
+#graph-info-vlan-list .vlan > span {
+  display: block;
+  position: absolute;
+  width: 1.5rem;
+  left: 0;
+  background: #577899;
+  color: #fff;
+  font-weight: normal;
+  text-align: center;
+  height: 100%; }
+
+#graph-info-vlan-list .selected-vlan span {
+  background: orange; }
+
+/* svg styles below */
+circle {
+  stroke-width: 1.5px; }
+
+line.speed0-100 {
+  stroke-width: 2px; }
+
+line.speed100-512 {
+  stroke-width: 2.5px; }
+
+line.speed512-2048 {
+  stroke-width: 4px; }
+
+line.speed2048-4096 {
+  stroke-width: 5.5px; }
+
+line.speed4096 {
+  stroke-width: 7px; }
+
+circle {
+  fill: #ccc;
+  stroke: #333;
+  stroke-width: 3px; }
+
+circle.node {
+  stroke-opacity: 1; }
+
+text {
+  font: 14px sans-serif;
+  pointer-events: none;
+  background: #c0c0c0; }
+
+text.node {
+  font: 12pt sans-serif; }
+
+text.shadow {
+  stroke: #fff;
+  stroke-width: 4px; }
+
+@media print {
+  nav, #nav-breadcrumbs, footer, #navigation-view, .navbody > div:first-child, .navbody > div:last-of-type {
+    display: none; }
+  #graph-view {
+    border: none; } }

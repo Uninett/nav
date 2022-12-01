@@ -1,0 +1,15 @@
+#navlets.compact {
+  font-size: 90%; }
+  #navlets.compact .navlet {
+    margin-bottom: 0;
+    padding: 0.5em 0 0.5em; }
+    #navlets.compact .navlet .navlet-header {
+      margin-bottom: 0; }
+    #navlets.compact .navlet .navlet-body .alert-box {
+      margin-bottom: 0; }
+    #navlets.compact .navlet .navlet-body ul {
+      font-size: inherit; }
+    #navlets.compact .navlet .navlet-body table td, #navlets.compact .navlet .navlet-body table th, #navlets.compact .navlet .navlet-body table caption {
+      font-size: inherit; }
+    #navlets.compact .navlet .navlet-body h1, #navlets.compact .navlet .navlet-body h2, #navlets.compact .navlet .navlet-body h3, #navlets.compact .navlet .navlet-body h4, #navlets.compact .navlet .navlet-body h5 {
+      font-size: initial; }

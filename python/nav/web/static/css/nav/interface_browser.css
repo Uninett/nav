@@ -1,0 +1,67 @@
+/* Threshold for using alternative font color.
+
+NB: This variable is introduced by us because Foundation allowed font color with
+too little contrast according to WCAG2.0. This variable must be manually
+introduced in Foundation scss files when updating Foundation.
+
+Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
+.navbody .select2-container-multi .select2-choices .select2-search-field input {
+  height: 33px; }
+
+.navbody .dataTables_wrapper .dataTables_paginate {
+  float: none;
+  padding: 0; }
+  .navbody .dataTables_wrapper .dataTables_paginate .paginate_button {
+    margin: 0; }
+
+#portlist-table_wrapper {
+  display: inline-block; }
+
+#portlist-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; }
+
+#columns-controls > div {
+  margin-right: 1em; }
+
+#column-toggler {
+  display: none;
+  position: relative;
+  width: 180px; }
+  #column-toggler .toggle-header {
+    cursor: pointer;
+    margin: 0;
+    width: 100%; }
+  #column-toggler .toggle-container {
+    background-color: white;
+    border: 2px solid #243640;
+    padding: 1em;
+    position: absolute;
+    width: 100%;
+    z-index: 10; }
+    #column-toggler .toggle-container > ul {
+      list-style: none;
+      margin: 0; }
+      #column-toggler .toggle-container > ul > li {
+        margin-bottom: .3rem; }
+        #column-toggler .toggle-container > ul > li > label {
+          display: flex;
+          align-items: center; }
+          #column-toggler .toggle-container > ul > li > label input {
+            margin: 0 .3rem 0 0; }
+
+#filters {
+  display: flex; }
+  #filters > * {
+    margin-right: 1em; }
+  #filters .label-netbox-filter {
+    width: 20em; }
+  #filters .label-vlan-filter {
+    width: 4em; }
+  #filters .label-query-filter {
+    width: 20em; }
+  #filters .select2-container-multi .select2-search-choice {
+    padding: 7px 5px 7px 18px; }
+  #filters .select2-container-multi .select2-search-choice-close {
+    top: 7px; }

@@ -1,0 +1,78 @@
+.readonly {
+  border: none; }
+
+.advanced {
+  display: none; }
+
+/* Style the tables on the index page */
+.seeddbtable td:first-child {
+  width: 15%; }
+
+.seeddbtable td:nth-child(2) {
+  width: 70%; }
+
+.seeddbtable td:nth-child(3) {
+  width: 5%; }
+
+.seeddbtable td:last-child {
+  width: 10%; }
+
+.required:after {
+  content: " *";
+  color: #F00;
+  font-weight: bold; }
+
+.asteriskField {
+  color: #F00;
+  font-weight: bold; }
+
+/* Style the general info tables */
+#tablewrapper {
+  margin-bottom: 1em; }
+
+#seeddb-content th {
+  white-space: nowrap; }
+
+/* Style the form for bulk upload */
+#id_bulk_data {
+  height: 20em; }
+
+#map {
+  height: 400px;
+  width: 100%; }
+
+/* Make sure tables are wide enough */
+.tabcontent form table.edit {
+  min-width: 50%; }
+
+/* Style thekey value pairs for editing hstore fields */
+.hstoreValues .remove-hstore-row .fa {
+  margin-left: auto; }
+
+.hstoreValues .column {
+  margin-bottom: 0.5em; }
+
+/* Sets monospaced font on the select2 dropdown that is used in "parent"-selections */
+.parent-element .select2-results {
+  font-family: "Courier New", Courier, monospace; }
+  .parent-element .select2-results .select2-result-label {
+    font-size: 1.2rem;
+    line-height: 1.1;
+    padding: 0; }
+
+/* Choices in form of radiobuttons. Use as is or if crispy forms wrap in div and
+give this class  */
+.choice-radio-button ul {
+  margin-left: 0;
+  margin-bottom: 1rem;
+  list-style-type: none;
+  display: flex; }
+  .choice-radio-button ul li {
+    margin: .5rem 1rem .5rem 0; }
+    .choice-radio-button ul li:last-child {
+      margin-right: 0; }
+    .choice-radio-button ul li label {
+      display: flex;
+      align-items: center; }
+      .choice-radio-button ul li label input {
+        margin: 0 .2em 0 0; }

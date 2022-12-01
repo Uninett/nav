@@ -1,0 +1,46 @@
+/* Styles for / */
+#index-leftcontent {
+  float: left;
+  width: 600px; }
+
+@media screen and (max-width: 900px) {
+  #index-leftcontent {
+    width: 100%; }
+  div.boxes {
+    display: table;
+    width: 100%; }
+  div.boxes table {
+    display: table-cell;
+    width: auto;
+    border-right: 1px solid white; }
+  div.boxes table:last-child {
+    border: none; }
+  div.boxes table th {
+    white-space: nowrap; } }
+
+/* Smartphone landscape */
+@media only screen and (max-width: 480px) {
+  div.boxes {
+    display: none; } }
+
+/* Dashboard and widget stuff */
+.right-action-content.f-dropdown {
+  border: 7px solid #243640;
+  box-shadow: #666 0 5px 10px;
+  z-index: 1000; }
+  .right-action-content.f-dropdown form {
+    margin-bottom: 1em; }
+  .right-action-content.f-dropdown input, .right-action-content.f-dropdown select, .right-action-content.f-dropdown .button {
+    margin-bottom: 0; }
+  .right-action-content.f-dropdown .dashboard-title {
+    cursor: pointer; }
+  .right-action-content.f-dropdown .dashboard-title i {
+    display: none; }
+  .right-action-content.f-dropdown .dashboard-title:hover i {
+    display: inline-block; }
+
+#form-rename-dashboard label {
+  overflow: hidden; }
+
+#form-rename-dashboard input[type=text] {
+  width: 100%; }

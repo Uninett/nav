@@ -1,0 +1,19 @@
+#action-buttons {
+  display: inline-block; }
+
+#ignored-feedback {
+  display: none; }
+
+#unrecognized-neighbors-table {
+  display: none; }
+  #unrecognized-neighbors-table * {
+    box-sizing: initial; }
+  #unrecognized-neighbors-table thead {
+    border-top: 2px solid black; }
+  #unrecognized-neighbors-table td.has-add-button span {
+    float: left; }
+  #unrecognized-neighbors-table td.has-add-button a {
+    float: right;
+    margin-left: 1em;
+    position: relative;
+    top: 0.16rem; }

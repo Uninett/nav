@@ -1,0 +1,122 @@
+#map {
+  height: 75vh; }
+
+#navbody.loading, #navbody.loading #map {
+  cursor: progress; }
+
+#legend table {
+  border: none;
+  background: none; }
+  #legend table tr {
+    background: inherit; }
+    #legend table tr th {
+      text-decoration: underline; }
+    #legend table tr td {
+      height: 1.3em;
+      padding: 0 1em 0 0; }
+  #legend table .colorbox {
+    width: 1em;
+    height: 1em;
+    border: thin solid black; }
+  #legend table .edge-size-indicator {
+    background-color: black;
+    width: 80px; }
+  #legend table .node-size-indicator {
+    background-color: black; }
+
+#map-container img {
+  max-width: none; }
+
+#time-panel .panel {
+  margin-bottom: 0; }
+
+#time-navigation-selected-time {
+  font-weight: bold;
+  font-size: 120%; }
+
+#time-navigation-prev-jump.enabled, #time-navigation-prev.enabled,
+#time-navigation-next.enabled, #time-navigation-next-jump.enabled,
+#time-navigation-last.enabled, #time-navigation-up.enabled {
+  cursor: pointer; }
+
+#time-navigation p {
+  margin-bottom: 0; }
+
+#time-navigation-prev-jump.enabled:before {
+  content: url("../../images/geomap/left2.png"); }
+
+#time-navigation-prev-jump.disabled:before {
+  content: url("../../images/geomap/left2_grey.png"); }
+
+#time-navigation-prev.enabled:before {
+  content: url("../../images/geomap/left1.png"); }
+
+#time-navigation-prev.disabled:before {
+  content: url("../../images/geomap/left1_grey.png"); }
+
+#time-navigation-next.enabled:before {
+  content: url("../../images/geomap/right1.png"); }
+
+#time-navigation-next.disabled:before {
+  content: url("../../images/geomap/right1_grey.png"); }
+
+#time-navigation-next-jump.enabled:before {
+  content: url("../../images/geomap/right2.png"); }
+
+#time-navigation-next-jump.disabled:before {
+  content: url("../../images/geomap/right2_grey.png"); }
+
+#time-navigation-last.enabled:before {
+  content: url("../../images/geomap/right_last.png"); }
+
+#time-navigation-last.disabled:before {
+  content: url("../../images/geomap/right_last_grey.png"); }
+
+#time-navigation-up.enabled:before {
+  content: url("../../images/geomap/up1.png"); }
+
+#time-navigation-up.disabled:before {
+  content: url("../../images/geomap/up1_grey.png"); }
+
+#time-navigation-down.disabled {
+  display: none; }
+
+#time-navigation-calendar {
+  border: 1px solid black;
+  margin-top: 1.1em; }
+
+#time-navigation-calendar-month {
+  border-collapse: separate; }
+
+#time-navigation-calendar.enabled .selected {
+  background-color: #999999; }
+
+#time-navigation-calendar.enabled .selectable {
+  cursor: pointer;
+  color: blue; }
+
+#time-navigation-calendar.enabled .selectable:hover,
+#time-navigation-calendar.enabled .selectable:hover .selectable {
+  background-color: #6666FF;
+  color: white; }
+
+#time-navigation-calendar-body td.today {
+  border: 1px dashed black; }
+
+#time-navigation-calendar.disabled {
+  background-color: #CCCCCC;
+  color: #999999; }
+
+#time-navigation-calendar td {
+  padding: .1em .5em; }
+
+#time-navigation-calendar-head-row td {
+  text-align: center; }
+
+#time-navigation-calendar-body td {
+  text-align: right; }
+
+.place-popup, .network-popup {
+  font-size: 1.1em; }
+  .place-popup table, .network-popup table {
+    width: 100%; }

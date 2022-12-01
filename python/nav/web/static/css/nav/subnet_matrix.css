@@ -1,0 +1,79 @@
+/* Subsystem stylesheet for NAV
+ *
+ * Copyright (C) 2006 Uninett AS
+ *
+ * This file is part of Network Administration Visualized (NAV).
+ *
+ * NAV is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.  You should have received a copy of the GNU General Public
+ * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+#subnet-matrix td:first-child, #subnet-matrix th:first-child {
+  width: 10.4%;
+  text-align: left; }
+
+#subnet-matrix td, #subnet-matrix th {
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+  transition: color 3s, background-color 3s; }
+  #subnet-matrix td.has-data, #subnet-matrix th.has-data {
+    border: 1px solid #FFFFFF;
+    background-color: #DDD; }
+    #subnet-matrix td.has-data a, #subnet-matrix th.has-data a {
+      /* Need darker colors for links with all these different backgrounds here */
+      color: #005580; }
+      #subnet-matrix td.has-data a:hover, #subnet-matrix th.has-data a:hover {
+        text-decoration: underline; }
+    #subnet-matrix td.has-data .fill-cell, #subnet-matrix th.has-data .fill-cell {
+      display: block;
+      width: 100%; }
+  #subnet-matrix td.has-loaded, #subnet-matrix th.has-loaded {
+    cursor: pointer; }
+
+#subnet-matrix.ipv4 td, #subnet-matrix.ipv4 th {
+  width: 1.4%; }
+
+#subnet-matrix.ipv4 th {
+  text-align: left; }
+
+#subnet-matrix.ipv4 td.usage-high {
+  background-color: #d2322d; }
+  #subnet-matrix.ipv4 td.usage-high a {
+    color: white; }
+
+#subnet-matrix.ipv4 td.usage-medium {
+  background-color: #ffc999; }
+
+#subnet-matrix.ipv4 td.usage-low {
+  background-color: #efe0cd; }
+
+#subnet-matrix.ipv4 td.usage-vlow {
+  background-color: #c5d2c8; }
+
+#subnet-matrix.ipv4 td.subnet-other {
+  background-color: #e0c39e; }
+
+#subnet-matrix.ipv4 td.subnet-large {
+  background-color: #ada7c8; }
+
+#subnet-matrix.ipv6 td, #subnet-matrix.ipv6 th {
+  width: 5.625%; }
+
+.tooltip a {
+  color: #33bbff; }
+
+.tooltip p {
+  margin-bottom: 0.5rem; }
+
+.tooltip .usage-sparkline {
+  background-color: cornflowerblue;
+  margin-top: 1em;
+  padding: 5px 3px; }

@@ -1,0 +1,195 @@
+/* Threshold for using alternative font color.
+
+NB: This variable is introduced by us because Foundation allowed font color with
+too little contrast according to WCAG2.0. This variable must be manually
+introduced in Foundation scss files when updating Foundation.
+
+Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
+/*
+ * Styles for everything in the environment tab
+ */
+.room-sensors {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end; }
+
+.room-sensor {
+  width: 300px;
+  margin-bottom: 1em; }
+  .room-sensor h5 {
+    text-align: center; }
+  .room-sensor .button-wrapper {
+    text-align: center; }
+  .room-sensor .current {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    height: 110px;
+    margin-bottom: 1em; }
+    .room-sensor .current .counter-node {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: steelblue;
+      color: white;
+      height: 110px;
+      width: 110px; }
+      .room-sensor .current .counter-node .values {
+        text-align: center; }
+        .room-sensor .current .counter-node .values .value {
+          font-size: 2em; }
+  .room-sensor .rs-graph {
+    position: relative;
+    margin-bottom: 1em;
+    /* Add all jquery ui styles so that the slider appears correct */ }
+    .room-sensor .rs-graph .rs-ynode {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 40px; }
+    .room-sensor .rs-graph .rs-graphnode {
+      margin-left: 40px;
+      position: relative; }
+    .room-sensor .rs-graph .rs-slidernode {
+      margin-left: 40px;
+      margin-top: 20px;
+      height: 0.8em;
+      position: relative;
+      text-align: left;
+      border: 1px solid #AAA; }
+      .room-sensor .rs-graph .rs-slidernode div {
+        top: 0;
+        height: 100%;
+        border: 0 none;
+        background: url("../../images/jqueryui/ui-bg_highlight-soft_75_cccccc_1x100.png") repeat-x scroll 50% 50% #cccccc;
+        position: absolute;
+        z-index: 1;
+        font-size: 0.7em;
+        display: block;
+        color: #222;
+        font-weight: bold; }
+      .room-sensor .rs-graph .rs-slidernode span {
+        top: -0.25em;
+        margin-left: -0.6em;
+        position: absolute;
+        z-index: 2;
+        width: 1.2em;
+        height: 1.2em;
+        cursor: default;
+        border: 1px solid #D3D3D3;
+        background: url("../../images/jqueryui/ui-bg_glass_75_e6e6e6_1x400.png") repeat-x scroll 50% 50% #e6e6e6;
+        font-weight: normal;
+        color: #555; }
+
+/* .rickshaw_graph is the name of the class added to graph element by RickShaw */
+.rickshaw_graph .detail {
+  z-index: 100; }
+
+.rickshaw_graph .detail .date {
+  color: #a0a0a0; }
+
+.rickshaw_graph .detail .x_label {
+  display: none; }
+
+.rickshaw_graph .detail .item {
+  line-height: 1.4;
+  padding: 0.5em; }
+
+.rickshaw_graph .detail .series_value {
+  padding-right: 20px;
+  width: 200px;
+  white-space: pre-wrap; }
+
+.rickshaw_graph .detail .detail_swatch {
+  float: right;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 2px 4px 0 0; }
+
+.rickshaw_graph .x_tick .title {
+  bottom: -15px;
+  left: -19px; }
+
+#netboxes .dataTables_wrapper {
+  display: inline-block;
+  margin-bottom: 1em;
+  margin-right: 3em;
+  vertical-align: top; }
+
+table.compact {
+  border-collapse: collapse;
+  margin-bottom: 0.5em;
+  font-size: 0.9em; }
+
+table.cluttered tr td {
+  background-color: #CCDDEE;
+  padding: 0.2em; }
+
+.center-content {
+  text-align: center; }
+
+.pointer {
+  cursor: pointer; }
+
+.help {
+  cursor: help; }
+
+.brighten {
+  color: #777; }
+
+img.textbottom {
+  vertical-align: text-bottom; }
+
+/* Drag styles */
+.drag {
+  cursor: grab;
+  cursor: -moz-grab;
+  cursor: -webkit-grab; }
+
+.drag:active {
+  cursor: grabbing;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing; }
+
+/* Image cards */
+.imagecard {
+  background-color: white;
+  border: 1px solid #DDDDDD;
+  padding: 0.5em 1em; }
+  .imagecard img {
+    width: 100%; }
+  .imagecard .actions {
+    overflow: hidden; }
+    .imagecard .actions i {
+      margin-left: 0.5em;
+      cursor: pointer; }
+  .imagecard .meta {
+    font-size: 0.7em; }
+  .imagecard .heading {
+    border-bottom: 1px solid #DDDDDD; }
+    .imagecard .heading input {
+      margin-bottom: 0; }
+
+/* Ensure lightbox captions don't overlap with the image */
+.visible-img img {
+  padding-bottom: 50px; }
+
+/* Prevent OpenStreetmap to show through the image clearing */
+.clearing-blackout {
+  z-index: 1010; }
+
+#room_map {
+  height: 300px;
+  width: auto; }
+
+#uploadform {
+  display: inline-block; }
+
+.user-feedback {
+  display: inline-block; }
+  .user-feedback .alert-box {
+    display: inline-block;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem; }

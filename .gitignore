@@ -33,8 +33,6 @@ doc/html
 /build
 /dist
 
-# Static files and cached static files genereated
-python/nav/web/static/css
 
 # Javascript Testing libraries
 python/nav/web/static/js/node_modules

@@ -1,0 +1,372 @@
+/* Custom global styles */
+/* Threshold for using alternative font color.
+
+NB: This variable is introduced by us because Foundation allowed font color with
+too little contrast according to WCAG2.0. This variable must be manually
+introduced in Foundation scss files when updating Foundation.
+
+Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
+/* NAV logo top-bar style */
+.top-bar .name h1 a {
+  padding: 0; }
+  .top-bar .name h1 a .nav-logo {
+    position: relative;
+    height: 28px;
+    top: -2px; }
+
+@media only screen and (min-width: 40.063em) {
+  #navbar-search-form {
+    width: 400px; }
+  .remove-widget {
+    max-width: 250px; } }
+
+@media only screen and (max-width: 40em) {
+  .remove-widget {
+    width: 100%; } }
+
+/* MEGADROP MEGADROP MEGADROP MEGADROP MEGADROP  */
+#megadroptoggler i {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px; }
+
+#megadrop {
+  background-color: white;
+  border-bottom: 5px solid #027BBB;
+  position: absolute;
+  z-index: 10000;
+  -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); }
+  #megadrop ul {
+    margin-top: 1em; }
+    #megadrop ul li {
+      margin: 1em 0; }
+      #megadrop ul li a {
+        color: black; }
+  #megadrop img {
+    height: 24px;
+    width: 24px;
+    position: relative;
+    top: -2px; }
+  #megadrop h5 {
+    margin-top: 1.3em; }
+
+#toolboxdropdown img {
+  height: 48px;
+  width: 48px; }
+
+/* Dashboard control center */
+#widgets-actions {
+  box-shadow: 0px 3px 5px grey;
+  color: white;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 40px;
+  z-index: 1000; }
+  #widgets-actions div {
+    background-color: #243640;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center; }
+    #widgets-actions div:hover {
+      background-color: #027bbb;
+      cursor: pointer; }
+    #widgets-actions div:not(:last-child) {
+      border-bottom: 1px solid gainsboro; }
+
+/* Padding for all pages */
+.top-bar, #megadrop {
+  padding-left: 3.5em;
+  padding-right: 3.5em; }
+
+.navbody, .breadcrumbs {
+  padding-left: 3.5em;
+  padding-right: 3.5em; }
+
+@media only screen and (max-width: 40em) {
+  footer, .top-bar, #megadrop {
+    padding-left: 0em;
+    padding-right: 0em; }
+  .navbody, .breadcrumbs {
+    padding-left: 1em;
+    padding-right: 1em; } }
+
+.navbody {
+  margin-bottom: 1em; }
+
+.breadcrumbs {
+  padding-top: 0.5625em;
+  padding-bottom: 0.5625em; }
+
+/* Background-color for main display elements  */
+.tabs .tabcontent, .ui-tabs .ui-tabs-panel, .accordion .tabactive {
+  background-color: #fff; }
+
+fieldset legend {
+  background-color: transparent; }
+
+.full-width {
+  width: 100%; }
+
+.break-word {
+  word-break: break-all; }
+
+.float-clear {
+  clear: both; }
+
+.hidden {
+  display: none; }
+
+.notvisible {
+  visibility: hidden; }
+
+/* Sudoer bar is the bar that appears when you switch users from the
+   'User Administration' page */
+.sudoer-bar {
+  background-color: #d3d7cf;
+  border-bottom: 1px solid #555753;
+  padding-left: 2em;
+  line-height: 3em; }
+  .sudoer-bar form, .sudoer-bar input {
+    margin: 0; }
+  .sudoer-bar img {
+    vertical-align: middle; }
+
+/* Custom form styles */
+table form, table input[type="text"], table input[type="password"],
+table input[type="date"], table input[type="datetime"], table input[type="checkbox"],
+table input[type="datetime-local"], table input[type="month"],
+table input[type="week"], table input[type="email"],
+table input[type="number"], table input[type="search"], table select,
+table input[type="tel"], table input[type="time"], table input[type="url"],
+table textarea, form.custom table .custom.dropdown {
+  margin: 0; }
+
+table .button {
+  margin: 0; }
+
+fieldset.secondary {
+  background-color: #f2f2f2; }
+  fieldset.secondary legend {
+    background-color: transparent; }
+
+/* Styles regarding use of OpenLayers maps */
+.mapwrapper {
+  margin: 1em 0; }
+  .mapwrapper img {
+    max-width: none;
+    /* Openlayers maps need this to override a foundation style to display properly */ }
+
+.smallmap {
+  height: 400px;
+  width: 600px; }
+
+.navletmap {
+  height: 400px;
+  width: auto;
+  position: relative; }
+
+.bigmap {
+  height: 600px; }
+
+/* jquery ui tabs */
+ul.ui-tabs-nav {
+  font-size: 0.9em; }
+
+/* List styles */
+ul.errorlist {
+  background-color: #d2322d;
+  color: white;
+  font-size: .7rem;
+  font-style: italic;
+  list-style-type: none;
+  margin: 0;
+  padding: 0.375rem 0.5625rem 0.5625rem; }
+
+small.error ul.errorlist {
+  margin-left: 0; }
+
+ul.clean, ol.clean, dl.clean {
+  margin: 0;
+  list-style-type: none; }
+
+li.list-header {
+  background: #567899;
+  color: white;
+  font-weight: bold;
+  padding: 0.3em 0.5em;
+  text-align: left; }
+
+/* Lists inside vertical tables must align properly */
+.vertitable ul, .vertitable ol, .vertitable dl {
+  line-height: inherit; }
+  .vertitable ul li, .vertitable ol li, .vertitable dl li {
+    margin-bottom: 2px; }
+  .vertitable ul li:last-of-type, .vertitable ol li:last-of-type, .vertitable dl li:last-of-type {
+    margin-bottom: 0; }
+
+/* This class should be used with the .inline-list class */
+ul.comma-separated {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-left: 0; }
+  ul.comma-separated li {
+    margin-left: 0; }
+    ul.comma-separated li:after {
+      content: ",\00A0"; }
+    ul.comma-separated li:last-child:after {
+      content: ""; }
+
+/* Alert-box style */
+.alert-box ul, .error ul {
+  margin-bottom: 0; }
+
+/* highlighting */
+.highlight {
+  background: #FFF7BC !important; }
+
+.highlight .highlight {
+  background: #FEE391; }
+
+.highlight .highlight .highlight {
+  background: #FEC44F; }
+
+.logo-text {
+  color: white;
+  font-size: 28px;
+  position: relative;
+  top: 3px; }
+
+/* Add margin to font awesome in buttons */
+button > i.pad-left, .button > i.pad-left, a > i.pad-left {
+  margin-left: 0.4rem; }
+
+button > i.pad-right, .button > i.pad-right, a > i.pad-right {
+  margin-right: 0.4rem; }
+
+/* Form styles */
+form.inline-form {
+  display: inline-block; }
+  form.inline-form > * {
+    display: inline-block;
+    width: auto; }
+  form.inline-form > .custom.dropdown {
+    display: inline-block;
+    width: auto; }
+  form.inline-form input[type=submit] {
+    font-size: 0.875em;
+    padding-top: 0;
+    padding-bottom: 0;
+    text-align: center;
+    line-height: 2.125em;
+    height: 2.3125em; }
+
+form label .fa {
+  line-height: 1.5em; }
+
+/* This will align the label from crispy forms to the right of the checkbox */
+.checkboxinput + label {
+  display: inline-block; }
+
+/* This will try to center the checkbox vertically when adjacent to input fields */
+.checkboxinput.input-align {
+  margin: 1.5em 0.2em 1.5em 0.2em; }
+
+/* Limit the vertical size of an element and display a scroll-bar instead */
+.limit-size {
+  max-height: 200px;
+  overflow: auto; }
+
+/*
+ * Make sure the arrow in select boxes does not overflow the text.
+ * 21 px refers to the size of the background-image that Foundation uses.
+ */
+select {
+  padding-right: 21px; }
+
+/* Reveal modal should always be as high as possible */
+/* Alert icon */
+.deleteicon {
+  color: #d2322d; }
+
+/* NAV header */
+.nav-header h2 {
+  margin-bottom: 0; }
+
+.nav-header h5 {
+  position: relative;
+  font-size: 1em;
+  top: -10px; }
+  .nav-header h5 a {
+    margin-right: .2rem; }
+
+/* Debug */
+#debug {
+  background-color: #ffffff; }
+
+/* Foundation does strange things with select multiple */
+select[multiple] {
+  background: #FFFFFF;
+  height: auto; }
+
+.graph-toggler {
+  cursor: pointer; }
+
+/* Tooltip related stylings */
+.tooltip > p {
+  font-size: inherit;
+  line-height: inherit; }
+
+.tooltip h3,
+.tooltip > h5 {
+  color: white; }
+
+[data-tooltip] {
+  cursor: help; }
+
+/* Used for adding link to documentation from subheaders. For instance used in
+ * Cabling and Patch-pages in SeedDB
+ */
+.documentation-subheader {
+  font-size: .8rem;
+  line-height: 2em;
+  position: relative;
+  top: -1rem; }
+
+/**
+ * Fullscreen styles
+ *
+ * Force browsers to resize fullscreen element to cover viewport
+ * For some MOTHERFUCKING reason it will not apply if the rules are combined.
+ */
+:-ms-fullscreen {
+  position: fixed;
+  width: 100%;
+  height: 100% !important;
+  top: 0;
+  background: none; }
+
+:-webkit-full-screen {
+  /* position: fixed; */
+  width: 100% !important;
+  height: 100% !important;
+  top: 0;
+  background: none; }
+
+#jqstooltip {
+  box-sizing: content-box; }
+
+/**
+ * Fix padding for buttons in graphitegraphs
+ */
+.graphitegraph button {
+  margin-bottom: 0; }
+
+/* Geo is a microformat standard
+ * https://en.wikipedia.org/wiki/Geo_(microformat)
+ */
+.geo:before {
+  font-family: FontAwesome;
+  content: "\f0ac"; }

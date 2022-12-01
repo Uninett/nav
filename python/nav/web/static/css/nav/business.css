@@ -1,0 +1,16 @@
+#report-list .button {
+  height: 100%; }
+  #report-list .button h3 {
+    color: white; }
+  #report-list .button p {
+    margin-bottom: 2em; }
+  #report-list .button small {
+    position: absolute;
+    bottom: 1em;
+    left: 0;
+    right: 0; }
+
+/* Style for the incidents panel in availability records */
+#record-table .incident-row td {
+  box-shadow: 0px 0px 6px #AAA inset;
+  background-color: #EEE; }

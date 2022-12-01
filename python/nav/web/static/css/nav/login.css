@@ -1,0 +1,52 @@
+/* Login stylesheet for NAV
+ *
+ * Copyright (C) 2007 Uninett AS
+ *
+ * This file is part of Network Administration Visualized (NAV).
+ *
+ * NAV is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.  You should have received a copy of the GNU General Public
+ * License along with NAV. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+/* Threshold for using alternative font color.
+
+NB: This variable is introduced by us because Foundation allowed font color with
+too little contrast according to WCAG2.0. This variable must be manually
+introduced in Foundation scss files when updating Foundation.
+
+Currently used in _labels.scss and _buttons.scss, where the it replaces 70% */
+html, body {
+  background-color: #EEE; }
+
+.logincontainer {
+  background-color: #ffffff;
+  margin-top: 100px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 350px; }
+  .logincontainer ul {
+    margin-bottom: 0; }
+  .logincontainer .logo-wrapper {
+    margin-bottom: 1em; }
+    .logincontainer .logo-wrapper .navlogo {
+      width: 30%; }
+  .logincontainer .asteriskField {
+    display: none; }
+  .logincontainer .origin {
+    overflow: hidden;
+    text-overflow: ellipsis; }
+
+@media only screen and (max-width: 40em) {
+  .logincontainer {
+    margin-top: 1em;
+    width: 90%; }
+  .logincontainer2 {
+    margin-top: 1em;
+    width: 90%; } }
