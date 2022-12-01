@@ -1,5 +1,7 @@
 """Regression tests to validate smidump file contents"""
 import os
+
+import pynetsnmp.netsnmp
 import pytest
 
 from nav.Snmp.pynetsnmp import Snmp
@@ -58,7 +60,7 @@ def validator():
             # Uses the internal handle to avoid synchronously waiting for a response
             # that will never come
             snmp.handle.get([oid])
-        except errors.SnmpError as err:
+        except (errors.SnmpError, pynetsnmp.netsnmp.SnmpError) as err:
             print(err)
             return False
         return True
