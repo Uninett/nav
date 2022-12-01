@@ -271,6 +271,14 @@ class SpecificPatchSerializer(serializers.ModelSerializer):
         fields = ('id', 'cabling', 'split')
 
 
+class NetboxInlineSerializer(serializers.ModelSerializer):
+    """Serializer for including netbox information in other serializers"""
+
+    class Meta(object):
+        model = manage.Netbox
+        fields = ('id', 'sysname')
+
+
 class DeviceSerializer(serializers.ModelSerializer):
     """Serializer for the device model"""
 
@@ -283,8 +291,8 @@ class ModuleSerializer(serializers.ModelSerializer):
     """Serializer for the module model"""
 
     object_url = serializers.CharField(source='get_absolute_url')
-    sysname = serializers.StringRelatedField(source='netbox')
     device = DeviceSerializer()
+    netbox = NetboxInlineSerializer()
 
     class Meta(object):
         model = manage.Module
