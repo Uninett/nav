@@ -55,7 +55,6 @@ from .auth import (
     APIPermission,
     APIAuthentication,
     NavBaseAuthentication,
-    JWTAuthentication,
 )
 from .helpers import prefix_collector
 from .filter_backends import (

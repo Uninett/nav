@@ -168,7 +168,3 @@ class APIPermission(BasePermission):
             permission().has_permission(request, view)
             for permission in (LoggedInPermission, TokenPermission, JWTPermission)
         )
-
-
-def get_user(self, token):
-    return None
