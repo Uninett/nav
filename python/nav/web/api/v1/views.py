@@ -40,6 +40,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView, get_object_or_404
+from oidc_auth.authentication import JSONWebTokenAuthentication
 
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
@@ -208,7 +209,7 @@ class NAVAPIMixin(APIView):
     authentication_classes = (
         NavBaseAuthentication,
         APIAuthentication,
-        JWTAuthentication,
+        JSONWebTokenAuthentication,
     )
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)

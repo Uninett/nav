@@ -69,9 +69,6 @@ services:
 
   web:
     build: .
-    environment:
-      - OIDC_ENDPOINT=https://auth.dataporten.no
-      - JWT_AUDIENCE=NAV
     command: ["/source/tools/docker/web.sh"]
     ports:
       - "80:80"

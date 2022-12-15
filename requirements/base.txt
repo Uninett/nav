@@ -36,5 +36,5 @@ libsass==0.15.1
 
 napalm==3.4.1
 
-pyjwt
-drf-oidc-auth==3.0.0
+pyjwt=2.6.0
+https://github.com/Uninett/drf-oidc-auth@fromscratch#egg=drf-oidc-auth

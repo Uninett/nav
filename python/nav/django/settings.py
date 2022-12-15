@@ -217,8 +217,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',
-    'django.contrib.contenttypes',
-    'django.contrib.auth',
     'django_filters',
     'crispy_forms',
     'crispy_forms_foundation',
@@ -267,37 +265,10 @@ except NameError:
 
 
 OIDC_AUTH = {
-    # Specify OpenID Connect endpoint. Configuration will be
-    # automatically done based on the discovery document found
-    # at <endpoint>/.well-known/openid-configuration
-    'OIDC_ENDPOINT': os.environ.get("OIDC_ENDPOINT"),
-    # The Claims Options can now be defined by a static string.
-    # ref:
-    # https://docs.authlib.org/en/latest/jose/jwt.html#jwt-payload-claims-validation
-    # The old OIDC_AUDIENCES option is removed in favor of this new option.
-    # `aud` is only required, when you set it as an essential claim.
-    ##### For NAV this is only used to specify the 'aud' claim
     'OIDC_CLAIMS_OPTIONS': {
-        'aud': {
-            'value': os.environ.get("JWT_AUDIENCE"),
+        'nbf': {
             'essential': True,
         }
     },
-    # (Optional) Function that resolves id_token into user.
-    # This function receives a request and an id_token dict and expects to
-    # return a User object. The default implementation tries to find the user
-    # based on username (natural key) taken from the 'sub'-claim of the
-    # id_token.
-    'OIDC_RESOLVE_USER_FUNCTION': 'nav.web.api.v1.auth.get_user',
-    # (Optional) Time before signing keys will be refreshed (default 24 hrs)
-    'OIDC_JWKS_EXPIRATION_TIME': 24 * 60 * 60,
-    # (Optional) Time before bearer token validity is verified again
-    # (default 10 minutes)
-    'OIDC_BEARER_TOKEN_EXPIRATION_TIME': 10 * 60,
-    # (Optional) Token prefix in JWT authorization header (default 'JWT')
-    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
-    # (Optional) Which Django cache to use
-    'OIDC_CACHE_NAME': 'default',
-    # (Optional) A cache key prefix when storing and retrieving cached values
-    'OIDC_CACHE_PREFIX': 'oidc_auth.',
+    'ISSUERS': {},
 }
