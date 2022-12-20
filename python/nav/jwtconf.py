@@ -19,7 +19,7 @@ class JWTConf(NAVConfigParser):
                 get = partial(self.get, section)
                 key = self._validate_key(get('key'))
                 aud = self._validate_key(get('audience'))
-                key_type = self._validate_key(get('type'))
+                key_type = self._validate_key(get('keytype'))
                 if key == 'PEM':
                     with open("demofile.txt", "r") as f:
                         key = f.read()
