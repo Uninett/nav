@@ -8,7 +8,7 @@ _logger = logging.getLogger('nav.jwtconf')
 
 
 class JWTConf(NAVConfigParser):
-    """ipdevpoll config parser"""
+    """jwt.conf config parser"""
 
     DEFAULT_CONFIG_FILES = ('jwt.conf',)
 
