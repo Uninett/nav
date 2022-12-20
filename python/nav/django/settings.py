@@ -28,6 +28,7 @@ from django.utils.log import DEFAULT_LOGGING
 from nav.config import NAV_CONFIG, getconfig, find_config_dir
 from nav.db import get_connection_parameters
 import nav.buildconf
+from nav.jwtconf import JWTConf
 
 ALLOWED_HOSTS = ['*']
 
@@ -263,6 +264,7 @@ except NameError:
     except ImportError:
         pass
 
+_issuers_setting = JWTConf().get_issuers_setting()
 
 OIDC_AUTH = {
     'OIDC_CLAIMS_OPTIONS': {
@@ -270,5 +272,5 @@ OIDC_AUTH = {
             'essential': True,
         }
     },
-    'ISSUERS': {},
+    'ISSUERS': _issuers_setting,
 }
