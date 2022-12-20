@@ -249,7 +249,7 @@ SEARCHPROVIDERS = [
     'nav.web.info.searchproviders.UnrecognizedNeighborSearchProvider',
 ]
 
-# Hack for hackers to use features like debug_toolbar etc.
+# Hack for hackers to use features like debug_toolbar etc.d
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
 if _config_dir:
     sys.path.append(os.path.join(_config_dir, "python"))
