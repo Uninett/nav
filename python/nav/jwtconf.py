@@ -40,11 +40,11 @@ class JWTConf(NAVConfigParser):
     def _validate_type(self, key_type):
         if key_type not in ['JWKS', 'PEM']:
             raise ConfigurationError(
-                "Invalid 'type': 'type' must be either 'JWKS' or 'PEM'"
+                "Invalid 'keytype': 'keytype' must be either 'JWKS' or 'PEM'"
             )
         return key_type
 
     def _validate_audience(self, audience):
         if not audience:
-            raise ConfigurationError("Invalid 'audience': 'audience' must not be empty")
+            raise ConfigurationError("Invalid 'aud': 'aud' must not be empty")
         return audience
