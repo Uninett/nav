@@ -267,10 +267,5 @@ except NameError:
 _issuers_setting = JWTConf().get_issuers_setting()
 
 OIDC_AUTH = {
-    'OIDC_CLAIMS_OPTIONS': {
-        'nbf': {
-            'essential': True,
-        }
-    },
     'ISSUERS': _issuers_setting,
 }
