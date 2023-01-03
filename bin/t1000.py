@@ -137,7 +137,7 @@ def is_detained_by_profile(identity):
 
 def find_autoenable_step(identity):
     """Find and set autoenablestep"""
-    event = identity.event_set.filter(
+    event = identity.events.filter(
         autoenablestep__isnull=False, justification=identity.justification
     ).order_by('-event_time')[0]
 
