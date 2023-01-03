@@ -13,7 +13,7 @@
 </div>
 
 <ul id="editimages" class="large-block-grid-4">
-  {% for image in object.image_set.all %}
+  {% for image in object.images.all %}
   <li class="imagecardcontainer">
     <div data-imageid="{{ image.id }}" class="imagecard">
       <div class="actions">

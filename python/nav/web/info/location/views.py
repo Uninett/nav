@@ -102,7 +102,7 @@ def locationinfo(request, locationid):
         {
             "location": location,
             "navpath": navpath,
-            "images": location.image_set.all(),
+            "images": location.images.all(),
             "title": create_title(navpath),
         },
     )
