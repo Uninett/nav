@@ -194,7 +194,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
         filter_stateful = Q(end_time__gt=lowest_end_time)
         filter_stateless = Q(end_time__isnull=True) & Q(start_time__gt=lowest_end_time)
-        queryset = netbox.alerthistory_set.filter(
+        queryset = netbox.alert_history_set.filter(
             filter_stateful | filter_stateless
         ).order_by('-start_time')
         count = queryset.count()
