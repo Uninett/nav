@@ -51,7 +51,7 @@ jobs:
       - name: "Install test runner dependencies"
         run: |
           set -xe
-          python -m pip install --upgrade pip setuptools wheel tox tox-gh-actions coverage virtualenv snmpsim
+          python -m pip install --upgrade pip setuptools wheel 'tox<4' tox-gh-actions coverage virtualenv snmpsim
           sudo apt-get install -y nbtscan
 
       # virtualenv seems to currently be embedding a broken version of
@@ -64,7 +64,7 @@ jobs:
       - name: "Install libraries needed to build external dependencies"
         run: |
           set -xe
-          sudo apt-get install -y libldap2-dev libsasl2-dev libtidy5deb1 libsnmp35
+          sudo apt-get install -y libldap2-dev libsasl2-dev libtidy5deb1 libsnmp40
 
       - uses: browser-actions/setup-chrome@latest
       - run: chrome --version
