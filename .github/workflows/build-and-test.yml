@@ -12,7 +12,7 @@ jobs:
         python-version: [3.7, 3.8, 3.9]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Cache pip packages"
         uses: actions/cache@v3
@@ -132,7 +132,7 @@ jobs:
     name: "Test Javascript code"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: browser-actions/setup-chrome@latest
       - uses: browser-actions/setup-firefox@latest
       - run: chrome --version
