@@ -53,7 +53,7 @@ router.register(
 )
 router.register(r'auditlog', auditlogapi.LogEntryViewSet, basename='auditlog')
 router.register(r'module', views.ModuleViewSet, basename='module')
-
+router.register(r'refresh', views.JWTRefreshViewSet, basename='refresh')
 
 urlpatterns = [
     re_path(r'^$', views.api_root),

@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 import logging
 
 from IPy import IP
+import jwt
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.db.models.fields.related import ManyToOneRel as _RelatedObject
@@ -43,6 +44,7 @@ from rest_framework.generics import ListAPIView, get_object_or_404
 from oidc_auth.authentication import JSONWebTokenAuthentication
 
 from nav.models import manage, event, cabling, rack, profiles
+from nav.models.api import JWTRefreshToken
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 from nav.util import auth_token
@@ -51,6 +53,7 @@ from nav.buildconf import VERSION
 from nav.web.api.v1 import serializers, alert_serializers
 from nav.web.status2 import STATELESS_THRESHOLD
 from nav.macaddress import MacPrefix
+from nav.django.settings import JWT_PRIVATE_KEY
 from .auth import (
     APIPermission,
     APIAuthentication,
@@ -65,6 +68,8 @@ from .filter_backends import (
 )
 
 EXPIRE_DELTA = timedelta(days=365)
+ACCESS_EXPIRE_DELTA = timedelta(hours=1)
+REFRESH_EXPIRE_DELTA = timedelta(days=1)
 MINIMUMPREFIXLENGTH = 4
 
 _logger = logging.getLogger(__name__)
@@ -1062,6 +1067,48 @@ class RackViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.RackSerializer
     filterset_fields = ['room', 'rackname']
     search_fields = ['rackname']
+
+
+class JWTRefreshViewSet(APIView):
+    """
+    Accepts a valid refresh token.
+    Returns a new refresh token and an access token.
+    """
+
+    def post(self, request):
+        try:
+            db_token = JWTRefreshToken.objects.get(
+                token=request.data.get('refresh_token')
+            )
+        except JWTRefreshToken.DoesNotExist:
+            return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
+        if not db_token.is_active():
+            return Response("Inactive token", status=status.HTTP_403_FORBIDDEN)
+        token_data = db_token.data()
+        access_token = self._generate_access_token(token_data)
+        refresh_token = self._generate_refresh_token(token_data)
+        db_token.token = refresh_token
+        response_data = {
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        }
+        return Response(response_data)
+
+    def _generate_access_token(self, token_data):
+        return self._generate_token(token_data, ACCESS_EXPIRE_DELTA)
+
+    def _generate_refresh_token(self, token_data):
+        return self._generate_token(token_data, REFRESH_EXPIRE_DELTA)
+
+    def _generate_token(self, token_data, expiry_delta):
+        new_token = dict(token_data)
+        now = datetime.now()
+        new_token['exp'] = (now + expiry_delta).timestamp()
+        new_token['nbf'] = now.timestamp()
+        return self._encode_token(new_token)
+
+    def _encode_token(self, token_data):
+        return jwt.encode(token_data, JWT_PRIVATE_KEY)
 
 
 def get_or_create_token(request):

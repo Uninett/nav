@@ -270,3 +270,6 @@ OIDC_AUTH = {
     'JWT_ISSUERS': _issuers_setting,
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
+
+with open(os.environ['JWT_PRIVATE_KEY']) as f:
+    JWT_PRIVATE_KEY = f.read()
