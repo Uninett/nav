@@ -17,6 +17,8 @@
 
 from datetime import datetime
 
+import jwt
+
 from django.db import models
 from django.urls import reverse
 
@@ -66,3 +68,26 @@ class APIToken(models.Model):
 
     class Meta(object):
         db_table = 'apitoken'
+
+
+class JWTRefreshToken(models.Model):
+    """RefreshTokens are used for generating new access tokens"""
+
+    token = VarcharField()
+    name = VarcharField()
+
+    def __str__(self):
+        return self.token
+
+    def is_active(self):
+        """Check if token is active. Returns true if 'exp' and 'nbf' claims are valid"""
+        data = self.data()
+        now = datetime.now().timestamp()
+        return now < data['exp'] and now > data['nbf']
+
+    def data(self):
+        """Body of token as a dict"""
+        return jwt.decode(options={'verify_signature': False})
+
+    class Meta(object):
+        db_table = 'jwtrefreshtoken'
