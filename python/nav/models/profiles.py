@@ -807,10 +807,12 @@ class FilterGroupContent(models.Model):
     filter = models.ForeignKey(
         'Filter',
         on_delete=models.CASCADE,
+        related_name="filter_group_contents",
     )
     filter_group = models.ForeignKey(
         'FilterGroup',
         on_delete=models.CASCADE,
+        related_name="filter_group_contents",
     )
 
     class Meta(object):
@@ -902,6 +904,7 @@ class Operator(models.Model):
     match_field = models.ForeignKey(
         'MatchField',
         on_delete=models.CASCADE,
+        related_name="operators",
     )
 
     class Meta(object):
@@ -929,10 +932,12 @@ class Expression(models.Model):
     filter = models.ForeignKey(
         'Filter',
         on_delete=models.CASCADE,
+        related_name="expressions",
     )
     match_field = models.ForeignKey(
         'MatchField',
         on_delete=models.CASCADE,
+        related_name="expressions",
     )
     operator = models.IntegerField(choices=Operator.OPERATOR_TYPES)
     value = VarcharField()
@@ -958,7 +963,12 @@ class Filter(models.Model):
     Handles the actual construction of queries to be run taking into account
     special cases like the IP datatype and WILDCARD lookups."""
 
-    owner = models.ForeignKey('Account', on_delete=models.CASCADE, null=True)
+    owner = models.ForeignKey(
+        'Account',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="filters",
+    )
     name = VarcharField()
 
     class Meta(object):
@@ -1082,12 +1092,19 @@ class FilterGroup(models.Model):
 
     """
 
-    owner = models.ForeignKey('Account', on_delete=models.CASCADE, null=True)
+    owner = models.ForeignKey(
+        'Account',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="filter_groups",
+    )
     name = VarcharField()
     description = VarcharField()
 
     group_permissions = models.ManyToManyField(
-        'AccountGroup', db_table='filtergroup_group_permission'
+        'AccountGroup',
+        db_table='filtergroup_group_permission',
+        related_name="filter_groups",
     )
 
     class Meta(object):
