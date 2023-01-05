@@ -320,7 +320,7 @@ def render_racks(request, roomid):
 
     context = {
         'room': room,
-        'racks': room.rack_set.all().order_by('ordering'),
+        'racks': room.racks.all().order_by('ordering'),
         'color_classes': background_color_classes,
     }
     return render(request, 'info/room/roominfo_racks.html', context)
