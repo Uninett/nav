@@ -105,7 +105,10 @@ class Account(models.Model):
     preferences = HStoreField(default=dict)
 
     organizations = models.ManyToManyField(
-        Organization, db_table='accountorg', blank=True
+        Organization,
+        db_table='accountorg',
+        blank=True,
+        related_name="accounts",
     )
 
     # Set this in order to provide a link to the actual operator when Account
@@ -312,7 +315,10 @@ class AccountGroup(models.Model):
     name = VarcharField()
     description = VarcharField(db_column='descr')
     # FIXME this uses a view hack, was AccountInGroup
-    accounts = models.ManyToManyField('Account')
+    accounts = models.ManyToManyField(
+        'Account',
+        related_name="groups",
+    )
 
     class Meta(object):
         db_table = u'accountgroup'
@@ -342,7 +348,10 @@ class NavbarLink(models.Model):
     """A hyperlink on a user's navigation bar."""
 
     account = models.ForeignKey(
-        'Account', on_delete=models.CASCADE, db_column='accountid'
+        'Account',
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        related_name="navbar_links",
     )
     name = models.CharField('Link text', blank=False, max_length=100)
     uri = models.CharField('URL', blank=False, max_length=100)
@@ -359,10 +368,16 @@ class Privilege(models.Model):
     """A privilege granted to an AccountGroup."""
 
     group = models.ForeignKey(
-        'AccountGroup', on_delete=models.CASCADE, db_column='accountgroupid'
+        'AccountGroup',
+        on_delete=models.CASCADE,
+        db_column='accountgroupid',
+        related_name="privileges",
     )
     type = models.ForeignKey(
-        'PrivilegeType', on_delete=models.CASCADE, db_column='privilegeid'
+        'PrivilegeType',
+        on_delete=models.CASCADE,
+        db_column='privilegeid',
+        related_name="privileges",
     )
     target = VarcharField()
 
@@ -395,9 +410,17 @@ class AlertAddress(models.Model):
     DEBUG_MODE = False
 
     account = models.ForeignKey(
-        'Account', on_delete=models.CASCADE, db_column='accountid'
+        'Account',
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        related_name="alert_addresses",
     )
-    type = models.ForeignKey('AlertSender', on_delete=models.CASCADE, db_column='type')
+    type = models.ForeignKey(
+        'AlertSender',
+        on_delete=models.CASCADE,
+        db_column='type',
+        related_name="alert_addresses",
+    )
     address = VarcharField()
 
     class Meta(object):
@@ -556,10 +579,18 @@ class AlertPreference(models.Model):
     """AlertProfile account preferences"""
 
     account = models.OneToOneField(
-        'Account', primary_key=True, on_delete=models.CASCADE, db_column='accountid'
+        'Account',
+        primary_key=True,
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        related_name="alert_preference",
     )
     active_profile = models.OneToOneField(
-        'AlertProfile', on_delete=models.CASCADE, db_column='activeprofile', null=True
+        'AlertProfile',
+        on_delete=models.CASCADE,
+        db_column='activeprofile',
+        null=True,
+        related_name="alert_preference",
     )
     last_sent_day = models.DateTimeField(db_column='lastsentday')
     last_sent_week = models.DateTimeField(db_column='lastsentweek')
