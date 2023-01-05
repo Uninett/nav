@@ -158,7 +158,7 @@ class Account(models.Model):
         """Get the tool list for this account"""
         return [
             tool
-            for tool in self.accounttool_set.all().order_by('priority')
+            for tool in self.account_tools.all().order_by('priority')
             if self.has_perm('web_access', tool.tool.uri)
         ]
 
@@ -765,7 +765,7 @@ class AlertSubscription(models.Model):
         db_table = u'alertsubscription'
 
     def delete(self):
-        for a in self.accountalertqueue_set.all():
+        for a in self.queued_alerts.all():
             a.delete()
         super(AlertSubscription, self).delete()
 
@@ -1395,7 +1395,7 @@ class AccountAlertQueue(models.Model):
 
         # Remove the alert from the AlertQueue if we are the last item
         # depending upon it.
-        if self.alert.accountalertqueue_set.count() == 0:
+        if self.alert.queued_alerts.count() == 0:
             self.alert.delete()
 
     def send(self):

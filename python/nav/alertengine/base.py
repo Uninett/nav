@@ -70,7 +70,7 @@ def check_alerts(debug=False):
     now = datetime.now()
 
     # Get all alerts that aren't in alert queue due to subscription
-    new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
+    new_alerts = AlertQueue.objects.filter(queued_alerts__isnull=True)
     num_new_alerts = len(new_alerts)
 
     initial_alerts = AlertQueue.objects.values_list('id', flat=True)
