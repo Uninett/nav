@@ -629,7 +629,10 @@ class AlertProfile(models.Model):
     )
 
     account = models.ForeignKey(
-        'Account', on_delete=models.CASCADE, db_column='accountid'
+        'Account',
+        on_delete=models.CASCADE,
+        db_column='accountid',
+        related_name="alert_profiles",
     )
     name = VarcharField()
     daily_dispatch_time = models.TimeField(default='08:00')
@@ -701,7 +704,10 @@ class TimePeriod(models.Model):
     )
 
     profile = models.ForeignKey(
-        'AlertProfile', on_delete=models.CASCADE, db_column='alert_profile_id'
+        'AlertProfile',
+        on_delete=models.CASCADE,
+        db_column='alert_profile_id',
+        related_name="time_periods",
     )
     start = models.TimeField(db_column='start_time', default='08:00')
     valid_during = models.IntegerField(choices=VALID_DURING_CHOICES, default=ALL_WEEK)
@@ -738,14 +744,17 @@ class AlertSubscription(models.Model):
     alert_address = models.ForeignKey(
         'AlertAddress',
         on_delete=models.CASCADE,
+        related_name="alert_subscriptions",
     )
     time_period = models.ForeignKey(
         'TimePeriod',
         on_delete=models.CASCADE,
+        related_name="alert_subscriptions",
     )
     filter_group = models.ForeignKey(
         'FilterGroup',
         on_delete=models.CASCADE,
+        related_name="alert_subscriptions",
     )
     type = models.IntegerField(
         db_column='subscription_type', choices=SUBSCRIPTION_TYPES, default=NOW
