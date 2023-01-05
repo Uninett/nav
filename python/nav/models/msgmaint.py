@@ -140,7 +140,7 @@ class MaintenanceTask(models.Model):
         """
         Returns the list of model objects involved in this task
         """
-        return [c.component for c in self.maintenancecomponent_set.all()]
+        return [c.component for c in self.maintenance_components.all()]
 
     def get_event_subjects(self):
         """
