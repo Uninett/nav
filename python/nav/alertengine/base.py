@@ -191,7 +191,7 @@ def handle_new_alerts(new_alerts):
             continue
 
         current_alertsubscriptions = sorted(
-            time_period.alertsubscription_set.all(), key=subscription_sort_key
+            time_period.alert_subscriptions.all(), key=subscription_sort_key
         )
 
         tmp = []
@@ -562,7 +562,7 @@ def _get_number_of_timeperiods_today(alertprofile, now):
         valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
     else:
         valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
-    return alertprofile.timeperiod_set.filter(valid_during__in=valid_during).count()
+    return alertprofile.time_periods.filter(valid_during__in=valid_during).count()
 
 
 def _calculate_timeperiod_start(timeperiod, now=None):

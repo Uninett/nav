@@ -1783,7 +1783,7 @@ def filter_group_show_form(request, filter_group_id=None, filter_group_form=None
         page_name = filter_group.name
 
         profiles = AlertProfile.objects.filter(
-            timeperiod__alertsubscription__filter_group=filter_group
+            time_periods__alert_subscriptions__filter_group=filter_group
         ).distinct()
         if profiles:
             names = ', '.join([p.name for p in profiles])
@@ -1928,7 +1928,7 @@ def filter_group_remove(request):
         for fgroup in filter_groups:
             subscriptions = AlertSubscription.objects.filter(filter_group=fgroup)
             time_periods = TimePeriod.objects.filter(
-                alertsubscription__in=subscriptions
+                alert_subscriptions__in=subscriptions
             )
             profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
             warnings = []

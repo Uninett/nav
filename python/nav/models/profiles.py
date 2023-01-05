@@ -665,7 +665,7 @@ class AlertProfile(models.Model):
         # The following code should get the currently active timeperiod.
         active_timeperiod = None
         timeperiods = list(
-            self.timeperiod_set.filter(valid_during__in=valid_during).order_by('start')
+            self.time_periods.filter(valid_during__in=valid_during).order_by('start')
         )
         # If the current time is before the start of the first time
         # period, the active time period is the last one (i.e. from
