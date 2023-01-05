@@ -44,7 +44,7 @@ def get_account(request):
 
 def is_admin(account):
     """Check if user is a member of the administrator group"""
-    return account.accountgroup_set.filter(pk=AccountGroup.ADMIN_GROUP).count() > 0
+    return account.groups.filter(pk=AccountGroup.ADMIN_GROUP).count() > 0
 
 
 def get_verbose_name(model, lookup):

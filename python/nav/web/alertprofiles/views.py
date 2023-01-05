@@ -82,7 +82,7 @@ def overview(request):
     account = get_account(request)
 
     # Get information about user
-    groups = account.accountgroup_set.all()
+    groups = account.groups.all()
     try:
         active_profile = account.get_active_profile()
     except ObjectDoesNotExist:
@@ -131,7 +131,7 @@ def show_profile(request):
         order_by = 'name'
 
     try:
-        active_profile = account.alertpreference.active_profile
+        active_profile = account.alert_preference.active_profile
     except Exception:
         active_profile = None
 

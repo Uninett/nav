@@ -45,7 +45,7 @@ def account_owns_filters(account, *filters):
     """
 
     # Check if user is admin
-    groups = account.accountgroup_set.filter(pk=ADMINGROUP).count()
+    groups = account.groups.filter(pk=ADMINGROUP).count()
     if groups > 0:
         # User is admin
         return True

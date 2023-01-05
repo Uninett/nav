@@ -128,7 +128,7 @@ class Account(models.Model):
     def get_active_profile(self):
         """Returns the account's active alert profile"""
         try:
-            return self.alertpreference.active_profile
+            return self.alert_preference.active_profile
         except (AlertPreference.DoesNotExist, AlertProfile.DoesNotExist):
             pass
 
@@ -139,7 +139,7 @@ class Account(models.Model):
         try:
             return self._cached_groups
         except AttributeError:
-            self._cached_groups = self.accountgroup_set.values_list('id', flat=True)
+            self._cached_groups = self.groups.values_list('id', flat=True)
             return self._cached_groups
 
     def get_privileges(self):
@@ -300,7 +300,7 @@ class Account(models.Model):
             return self.password[1:] if self.password else ''
 
     def get_email_addresses(self):
-        return self.alertaddress_set.filter(type__name=AlertSender.EMAIL)
+        return self.alert_addresses.filter(type__name=AlertSender.EMAIL)
 
 
 class AccountGroup(models.Model):

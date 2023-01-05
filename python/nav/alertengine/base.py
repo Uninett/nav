@@ -182,7 +182,7 @@ def handle_new_alerts(new_alerts):
     # Build datastructure that contains accounts and corresponding
     # filtergroupcontent_set so that we don't redo db queries to much
     for account in Account.objects.filter(
-        alertpreference__active_profile__isnull=False
+        alert_preference__active_profile__isnull=False
     ):
         profile = account.get_active_profile()
         time_period = profile.get_active_timeperiod() if profile else None
@@ -415,7 +415,7 @@ def process_single_queued_notification(queued_alert, now):
     )
 
     try:
-        subscription.time_period.profile.alertpreference
+        subscription.time_period.profile.alert_preference
     except AlertPreference.DoesNotExist:
         subscription = None
 
@@ -474,7 +474,7 @@ def _verify_daily_dispatch(queued_alert, now, _logger=_logger):
     subscription = queued_alert.subscription
     daily_time = subscription.time_period.profile.daily_dispatch_time
     last_sent = (
-        subscription.time_period.profile.alertpreference.last_sent_day or datetime.min
+        subscription.time_period.profile.alert_preference.last_sent_day or datetime.min
     )
     # If the last sent date is less than the current date, and we are
     # past the daily time and the alert was added to the queue before
@@ -498,7 +498,7 @@ def _verify_weekly_dispatch(queued_alert, now, _logger=_logger):
     weekly_time = subscription.time_period.profile.weekly_dispatch_time
     weekly_day = subscription.time_period.profile.weekly_dispatch_day
     last_sent = (
-        subscription.time_period.profile.alertpreference.last_sent_week or datetime.min
+        subscription.time_period.profile.alert_preference.last_sent_week or datetime.min
     )
 
     # Check that we are at the correct weekday, and that the last sent

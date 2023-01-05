@@ -110,11 +110,11 @@
           <fieldset>
             <legend>Group memberships</legend>
 
-            {% if account.accountgroup_set.all %}
+            {% if account.groups.all %}
               <div class="long-listing">
                 <table class="hover expand">
                   <tbody>
-                    {% for group in account.accountgroup_set.all %}
+                    {% for group in account.groups.all %}
                       <tr>
                         <td>
                           <a href="{% url 'useradmin-group_detail' group.id %}">{{ group }}</a>
