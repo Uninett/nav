@@ -614,7 +614,7 @@ class Netbox(models.Model):
 
     def get_chassis(self):
         """Returns a QuerySet of chassis devices seen on this netbox"""
-        return self.entity_set.filter(
+        return self.entities.filter(
             device__isnull=False,
             physical_class=NetboxEntity.CLASS_CHASSIS,
         ).select_related('device')
@@ -906,9 +906,9 @@ class Device(models.Model):
         Returns the related modules/power supplies/fans/netbox
         entities of a device.
         """
-        modules = self.module_set.all()
+        modules = self.modules.all()
         power_supplies_or_fans = self.powersupplyorfan_set.all()
-        netbox_entities = self.netboxentity_set.all()
+        netbox_entities = self.entities.all()
         return modules or power_supplies_or_fans or netbox_entities
 
     def get_preferred_related_object(self):
