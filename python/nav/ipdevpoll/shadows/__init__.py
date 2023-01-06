@@ -287,7 +287,10 @@ class Device(Shadow):
                 )
             )
             for version in changed_versions:
-                self.changed_versions[version] = getattr(old_device, version)
+                self.changed_versions[version] = (
+                    getattr(old_device, version),
+                    getattr(self, version),
+                )
 
     def cleanup(self, containers):
         if self.changed_versions:
@@ -296,13 +299,14 @@ class Device(Shadow):
     def _post_events_version_changes(self, containers):
         """Posts events for software, hardware or firmware changes."""
         device = self.get_existing_model()
-        for alert_type, old_version in self.changed_versions.items():
+        for alert_type, (old_version, new_version) in self.changed_versions.items():
             self.event.notify(
                 device=device,
                 netbox=containers.get(None, Netbox).get_existing_model(),
                 alert_type=ALERT_TYPE_MAPPING[alert_type],
                 varmap={
                     "old_version": old_version,
+                    "new_version": new_version,
                 },
             ).save()
 
