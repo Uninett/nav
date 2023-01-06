@@ -1556,7 +1556,7 @@ class Vlan(models.Model):
     def get_graph_url(self, family=4):
         """Creates a graph url for the given family with all prefixes stacked"""
         assert family in [4, 6]
-        prefixes = self.prefix_set.extra(where=["family(netaddr)=%s" % family])
+        prefixes = self.prefixes.extra(where=["family(netaddr)=%s" % family])
         # Put metainformation in the alias so that Rickshaw can pick it up and
         # know how to draw the series.
         series = [
