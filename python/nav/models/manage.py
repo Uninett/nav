@@ -208,26 +208,46 @@ class Netbox(models.Model):
 
     id = models.AutoField(db_column='netboxid', primary_key=True)
     ip = models.GenericIPAddressField(unique=True)
-    room = models.ForeignKey('Room', on_delete=models.CASCADE, db_column='roomid')
+    room = models.ForeignKey(
+        'Room',
+        on_delete=models.CASCADE,
+        db_column='roomid',
+        related_name="netboxes",
+    )
     type = models.ForeignKey(
         'NetboxType',
         on_delete=models.CASCADE,
         db_column='typeid',
         blank=True,
         null=True,
+        related_name="netboxes",
     )
     sysname = VarcharField(unique=True, blank=False)
     category = models.ForeignKey(
-        'Category', on_delete=models.CASCADE, db_column='catid'
+        'Category',
+        on_delete=models.CASCADE,
+        db_column='catid',
+        related_name="netboxes",
     )
-    groups = models.ManyToManyField('NetboxGroup', through='NetboxCategory', blank=True)
+    groups = models.ManyToManyField(
+        'NetboxGroup',
+        through='NetboxCategory',
+        blank=True,
+        related_name="netboxes",
+    )
     groups.help_text = ''
     organization = models.ForeignKey(
-        'Organization', on_delete=models.CASCADE, db_column='orgid'
+        'Organization',
+        on_delete=models.CASCADE,
+        db_column='orgid',
+        related_name="netboxes",
     )
 
     profiles = models.ManyToManyField(
-        'ManagementProfile', through='NetboxProfile', blank=True
+        'ManagementProfile',
+        through='NetboxProfile',
+        blank=True,
+        related_name="netboxes",
     )
 
     up = models.CharField(max_length=1, choices=UP_CHOICES, default=UP_UP)
