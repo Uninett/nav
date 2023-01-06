@@ -431,7 +431,7 @@ class Netbox(models.Model):
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(
-            netbox=self, gwportprefix__isnull=False
+            netbox=self, gwport_prefixes__isnull=False
         ).distinct()
 
     def get_gwports_sorted(self):
@@ -992,7 +992,7 @@ class Module(models.Model):
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(
-            module=self, gwportprefix__isnull=False
+            module=self, gwport_prefixes__isnull=False
         ).distinct()
 
     def get_gwports_sorted(self):
@@ -1472,7 +1472,7 @@ class Prefix(models.Model):
     def get_router_ports(self):
         """Returns a ordered list of GwPortPrefix objects on this prefix"""
         return (
-            self.gwportprefix_set.filter(
+            self.gwport_prefixes.filter(
                 interface__netbox__category__id__in=('GSW', 'GW')
             )
             .select_related('interface', 'interface__netbox')
@@ -2151,7 +2151,7 @@ class Interface(models.Model):
         other hosts.
 
         """
-        return self.gwportprefix_set.count() > 0
+        return self.gwport_prefixes.count() > 0
 
     def is_physical_port(self):
         """Returns true if this interface has a physical connector present"""
@@ -2320,7 +2320,7 @@ class GatewayPeerSession(models.Model):
         :rtype: Netbox
 
         """
-        expr = Q(ip=self.peer) | Q(interfaces__gwportprefix__gw_ip=self.peer)
+        expr = Q(ip=self.peer) | Q(interfaces__gwport_prefixes__gw_ip=self.peer)
         netboxes = Netbox.objects.filter(expr)
         if netboxes:
             return netboxes[0]

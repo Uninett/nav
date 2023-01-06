@@ -816,7 +816,7 @@ class RoutedPrefixList(NAVAPIMixin, ListAPIView):
 
     def get_queryset(self):
         prefixes = manage.Prefix.objects.filter(
-            gwportprefix__interface__netbox__category__in=self._router_categories
+            gwport_prefixes__interface__netbox__category__in=self._router_categories
         )
         if self.request.GET.get('family'):
             prefixes = prefixes.extra(

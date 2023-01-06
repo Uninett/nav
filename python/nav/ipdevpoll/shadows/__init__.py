@@ -567,7 +567,7 @@ class Vlan(Shadow):
 
         """
         address_filter = Q(
-            interfaces__gwportprefix__prefix__net_address=str(net_address)
+            interfaces__gwport_prefixes__prefix__net_address=str(net_address)
         )
         if include_netboxid:
             address_filter = address_filter | Q(id=include_netboxid)
