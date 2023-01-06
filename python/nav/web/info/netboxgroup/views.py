@@ -95,7 +95,7 @@ def group_detail(request, groupid):
 
     """
     group = get_object_or_404(NetboxGroup, pk=groupid)
-    netboxes = group.netbox_set.select_related('organization', 'category', 'type')
+    netboxes = group.netboxes.select_related('organization', 'category', 'type')
     availabilities = {}
     graphite_error = False
 
@@ -137,7 +137,7 @@ def group_edit(request, groupid):
         return handle_edit_request(request, group)
 
     netboxes = Netbox.objects.exclude(
-        pk__in=group.netbox_set.all().values_list('id', flat=True)
+        pk__in=group.netboxes.all().values_list('id', flat=True)
     )
 
     return render(

@@ -39,7 +39,7 @@
           <td>{{ netboxgroup.description }}</td>
           <td>
             <ul class="netboxgroup inside">
-              {% with netboxgroup.netbox_set.all as netboxes %}
+              {% with netboxgroup.netboxes.all as netboxes %}
                 {% if netboxes %}
                   {% for netbox in netboxes %}
                     <li>

@@ -340,7 +340,7 @@ class DeviceGroupForm(forms.ModelForm):
         # netboxes field with netboxes from the many to many relationship
         if 'instance' in kwargs and kwargs['instance'] is not None:
             initial = kwargs.setdefault('initial', {})
-            initial['netboxes'] = [n.pk for n in kwargs['instance'].netbox_set.all()]
+            initial['netboxes'] = [n.pk for n in kwargs['instance'].netboxes.all()]
         forms.ModelForm.__init__(self, *args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
@@ -362,7 +362,7 @@ def to_choice_format(objects, key, value):
 
 def get_netboxes_in_group(group):
     if group:
-        return group.netbox_set.all()
+        return group.netboxes.all()
     else:
         return Netbox.objects.none()
 
@@ -370,7 +370,7 @@ def get_netboxes_in_group(group):
 def get_netboxes_not_in_group(group):
     if group:
         return Netbox.objects.exclude(
-            pk__in=group.netbox_set.all().values_list('id', flat=True)
+            pk__in=group.netboxes.all().values_list('id', flat=True)
         )
     else:
         return Netbox.objects.all()

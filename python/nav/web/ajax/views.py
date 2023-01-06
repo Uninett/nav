@@ -69,7 +69,7 @@ def netbox_down_in(room):
     """
     Returns True if a netbox is down on the room, otherwise False
     """
-    return len(room.netbox_set.filter(up='n'))
+    return len(room.netboxes.filter(up='n'))
 
 
 def get_neighbors(_request, netboxid):
