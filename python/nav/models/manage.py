@@ -1380,9 +1380,17 @@ class GwPortPrefix(models.Model):
     """
 
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="gwport_prefixes",
     )
-    prefix = models.ForeignKey('Prefix', on_delete=models.CASCADE, db_column='prefixid')
+    prefix = models.ForeignKey(
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid',
+        related_name="gwport_prefixes",
+    )
     gw_ip = CIDRField(db_column='gwip', primary_key=True)
     virtual = models.BooleanField(default=False)
 
