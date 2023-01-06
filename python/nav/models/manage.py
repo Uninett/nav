@@ -1446,9 +1446,17 @@ class Prefix(models.Model):
 
     id = models.AutoField(db_column='prefixid', primary_key=True)
     net_address = CIDRField(db_column='netaddr', unique=True)
-    vlan = models.ForeignKey('Vlan', on_delete=models.CASCADE, db_column='vlanid')
+    vlan = models.ForeignKey(
+        'Vlan',
+        on_delete=models.CASCADE,
+        db_column='vlanid',
+        related_name="prefixes",
+    )
     usages = models.ManyToManyField(
-        'Usage', through='PrefixUsage', through_fields=('prefix', 'usage')
+        'Usage',
+        through='PrefixUsage',
+        through_fields=('prefix', 'usage'),
+        related_name="prefixes",
     )
 
     class Meta(object):
