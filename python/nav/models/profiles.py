@@ -995,7 +995,7 @@ class Filter(models.Model):
         exclude = {}
         extra = {'where': [], 'params': []}
 
-        for expression in self.expression_set.all():
+        for expression in self.expressions.all():
             # Handle IP datatypes:
             if expression.match_field.data_type == MatchField.IP:
                 # Trick the ORM into joining the tables we want

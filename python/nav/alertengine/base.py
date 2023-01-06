@@ -180,7 +180,7 @@ def handle_new_alerts(new_alerts):
             return subscription.type
 
     # Build datastructure that contains accounts and corresponding
-    # filtergroupcontent_set so that we don't redo db queries to much
+    # filter_group_contents so that we don't redo db queries to much
     for account in Account.objects.filter(
         alert_preference__active_profile__isnull=False
     ):
@@ -199,7 +199,7 @@ def handle_new_alerts(new_alerts):
             tmp.append(
                 (
                     alertsubscription,
-                    alertsubscription.filter_group.filtergroupcontent_set.all(),
+                    alertsubscription.filter_group.filter_group_contents.all(),
                 )
             )
 
@@ -208,7 +208,7 @@ def handle_new_alerts(new_alerts):
             for filtergroup in FilterGroup.objects.filter(
                 group_permissions__accounts__in=[account]
             ):
-                permissions.append(filtergroup.filtergroupcontent_set.all())
+                permissions.append(filtergroup.filter_group_contents.all())
 
             accounts.append((account, tmp, permissions))
             del permissions
