@@ -739,14 +739,17 @@ class NetboxEntity(models.Model):
         'Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
-        related_name='entity_set',
+        related_name='entities',
     )
     index = models.IntegerField()
     source = VarcharField(default='ENTITY-MIB')
     descr = VarcharField(null=True)
     vendor_type = VarcharField(null=True)
     contained_in = models.ForeignKey(
-        'NetboxEntity', on_delete=models.CASCADE, null=True
+        'NetboxEntity',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="contained_entities",
     )
     physical_class = models.IntegerField(choices=CLASS_CHOICES, null=True)
     parent_relpos = models.IntegerField(null=True)
@@ -755,7 +758,11 @@ class NetboxEntity(models.Model):
     firmware_revision = VarcharField(null=True)
     software_revision = VarcharField(null=True)
     device = models.ForeignKey(
-        'Device', on_delete=models.CASCADE, null=True, db_column='deviceid'
+        'Device',
+        on_delete=models.CASCADE,
+        null=True,
+        db_column='deviceid',
+        related_name="entities",
     )
     mfg_name = VarcharField(null=True)
     model_name = VarcharField(null=True)
@@ -945,8 +952,18 @@ class Module(models.Model):
     )
 
     id = models.AutoField(db_column='moduleid', primary_key=True)
-    device = models.ForeignKey('Device', on_delete=models.CASCADE, db_column='deviceid')
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    device = models.ForeignKey(
+        'Device',
+        on_delete=models.CASCADE,
+        db_column='deviceid',
+        related_name="modules",
+    )
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="modules",
+    )
     module_number = models.IntegerField(db_column='module')
     name = VarcharField()
     model = VarcharField()
@@ -1053,7 +1070,12 @@ class Memory(models.Model):
     (memory and nvram) of a netbox."""
 
     id = models.AutoField(db_column='memid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="memory_set",
+    )
     type = VarcharField(db_column='memtype')
     device = VarcharField()
     size = models.IntegerField()
@@ -1076,7 +1098,10 @@ class Room(models.Model):
 
     id = models.CharField(db_column='roomid', max_length=30, primary_key=True)
     location = models.ForeignKey(
-        'Location', on_delete=models.CASCADE, db_column='locationid'
+        'Location',
+        on_delete=models.CASCADE,
+        db_column='locationid',
+        related_name="rooms",
     )
     description = VarcharField(db_column='descr', blank=True)
     position = PointField(null=True, blank=True, default=None)
@@ -1139,7 +1164,12 @@ class Location(models.Model, TreeMixin):
 
     id = models.CharField(db_column='locationid', max_length=30, primary_key=True)
     parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, db_column='parent', blank=True, null=True
+        'self',
+        on_delete=models.CASCADE,
+        db_column='parent',
+        blank=True,
+        null=True,
+        related_name="child_locations",
     )
     description = VarcharField(db_column='descr', blank=True)
     data = HStoreField(default=dict)
@@ -1168,7 +1198,12 @@ class Organization(models.Model, TreeMixin):
 
     id = models.CharField(db_column='orgid', max_length=30, primary_key=True)
     parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, db_column='parent', blank=True, null=True
+        'self',
+        on_delete=models.CASCADE,
+        db_column='parent',
+        blank=True,
+        null=True,
+        related_name="child_organizations",
     )
     description = VarcharField(db_column='descr', blank=True)
     contact = VarcharField(db_column='contact', blank=True)
@@ -1283,7 +1318,12 @@ class NetboxType(models.Model):
     sysobjectid being the unique identifier."""
 
     id = models.AutoField(db_column='typeid', primary_key=True)
-    vendor = models.ForeignKey('Vendor', on_delete=models.CASCADE, db_column='vendorid')
+    vendor = models.ForeignKey(
+        'Vendor',
+        on_delete=models.CASCADE,
+        db_column='vendorid',
+        related_name="netbox_types",
+    )
     name = VarcharField(db_column='typename', verbose_name="type name")
     sysobjectid = VarcharField(unique=True)
     description = VarcharField(db_column='descr')
