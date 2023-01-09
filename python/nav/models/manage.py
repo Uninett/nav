@@ -465,7 +465,7 @@ class Netbox(models.Model):
         result = []
 
         for iface in self.connected_to_interface.all():
-            if iface.swportvlan_set.filter(direction=SwPortVlan.DIRECTION_DOWN).count():
+            if iface.swport_vlans.filter(direction=SwPortVlan.DIRECTION_DOWN).count():
                 result.append(
                     {
                         'other': iface,
@@ -1927,7 +1927,7 @@ class Interface(models.Model):
         # XXX: This causes a DB query per port
         vlans = [
             swpv.vlan.vlan
-            for swpv in self.swportvlan_set.select_related('vlan', 'interface')
+            for swpv in self.swport_vlans.select_related('vlan', 'interface')
         ]
         if self.vlan is not None and self.vlan not in vlans:
             vlans.append(self.vlan)
@@ -2104,7 +2104,7 @@ class Interface(models.Model):
 
     def get_sorted_vlans(self):
         """Returns a queryset of sorted swportvlans"""
-        return self.swportvlan_set.select_related('vlan').order_by('vlan__vlan')
+        return self.swport_vlans.select_related('vlan').order_by('vlan__vlan')
 
     def is_on_maintenace(self):
         """Returns True if the owning Netbox is on maintenance"""

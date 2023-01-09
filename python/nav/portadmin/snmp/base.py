@@ -399,7 +399,7 @@ class SNMPHandler(ManagementHandler):
     def get_netbox_vlans(self):
         numerical_vlans = self.get_netbox_vlan_tags()
         vlan_objects = Vlan.objects.filter(
-            swportvlan__interface__netbox=self.netbox
+            swport_vlans__interface__netbox=self.netbox
         ).distinct()
         vlans = []
         for numerical_vlan in numerical_vlans:

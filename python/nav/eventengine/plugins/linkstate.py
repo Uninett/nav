@@ -140,7 +140,7 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
 
         """
         ifc = self.get_target()
-        vlans = ifc.swportvlan_set.values('vlan__vlan')
+        vlans = ifc.swport_vlans.values('vlan__vlan')
         vlans = {row['vlan__vlan'] for row in vlans}
         return vlans
 
