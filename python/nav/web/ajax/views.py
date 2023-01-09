@@ -104,7 +104,7 @@ def get_neighbors(_request, netboxid):
     # Unrecognized neighbors
     unrecognized_nodes = []
     un_candidates = {}
-    for unrecognized in netbox.unrecognizedneighbor_set.filter(
+    for unrecognized in netbox.unrecognized_neighbors.filter(
         ignored_since__isnull=True
     ):
         if unrecognized.remote_id in un_candidates:

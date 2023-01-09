@@ -610,7 +610,7 @@ class Netbox(models.Model):
 
     def has_unignored_unrecognized_neighbors(self):
         """Returns true if this netbox has unignored unrecognized neighbors"""
-        return self.unrecognizedneighbor_set.filter(ignored_since=None).count() > 0
+        return self.unrecognized_neighbors.filter(ignored_since=None).count() > 0
 
     def get_chassis(self):
         """Returns a QuerySet of chassis devices seen on this netbox"""
@@ -2204,7 +2204,7 @@ class Interface(models.Model):
         not ignored
         """
         return (
-            self.unrecognizedneighbor_set.filter(ignored_since__isnull=True).count() > 0
+            self.unrecognized_neighbors.filter(ignored_since__isnull=True).count() > 0
         )
 
 

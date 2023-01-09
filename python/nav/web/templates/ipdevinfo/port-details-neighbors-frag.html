@@ -12,7 +12,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for neighbor in port.unrecognizedneighbor_set.all %}
+        {% for neighbor in port.unrecognized_neighbors.all %}
           {% if not neighbor.ignored_since %}
             <tr>
               <td>{{ neighbor.remote_id }}</td>
