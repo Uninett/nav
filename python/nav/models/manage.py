@@ -2887,12 +2887,24 @@ class POEPort(models.Model):
     """Model representing a PoE port"""
 
     id = models.AutoField(db_column='poeportid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="poe_ports",
+    )
     poegroup = models.ForeignKey(
-        'POEGroup', on_delete=models.CASCADE, db_column='poegroupid'
+        'POEGroup',
+        on_delete=models.CASCADE,
+        db_column='poegroupid',
+        related_name="poe_ports",
     )
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid', null=True
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        null=True,
+        related_name="poe_ports",
     )
     admin_enable = models.BooleanField(default=False)
     index = models.IntegerField()
