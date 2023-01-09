@@ -1930,9 +1930,18 @@ class Interface(models.Model):
     )
 
     id = models.AutoField(db_column='interfaceid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="interfaces",
+    )
     module = models.ForeignKey(
-        'Module', on_delete=models.CASCADE, db_column='moduleid', null=True
+        'Module',
+        on_delete=models.CASCADE,
+        db_column='moduleid',
+        null=True,
+        related_name="interfaces",
     )
     ifindex = models.IntegerField()
     ifname = VarcharField()
