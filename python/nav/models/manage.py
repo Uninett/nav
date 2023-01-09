@@ -576,12 +576,12 @@ class Netbox(models.Model):
         return self.alert_history_set.unresolved(kind)
 
     def get_powersupplies(self):
-        return self.powersupplyorfan_set.filter(physical_class='powerSupply').order_by(
-            'name'
-        )
+        return self.power_supplies_or_fans.filter(
+            physical_class='powerSupply'
+        ).order_by('name')
 
     def get_fans(self):
-        return self.powersupplyorfan_set.filter(physical_class='fan').order_by('name')
+        return self.power_supplies_or_fans.filter(physical_class='fan').order_by('name')
 
     def get_system_metrics(self):
         """Gets a list of available Graphite metrics related to this Netbox,
@@ -907,8 +907,8 @@ class Device(models.Model):
         entities of a device.
         """
         modules = self.modules.all()
-        power_supplies_or_fans = self.powersupplyorfan_set.all()
-        netbox_entities = self.entities.all()
+        power_supplies_or_fans = self.power_supplies_or_fans.all()
+        netbox_entities = self.entites.all()
         return modules or power_supplies_or_fans or netbox_entities
 
     def get_preferred_related_object(self):
