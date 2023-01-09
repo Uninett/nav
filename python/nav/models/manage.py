@@ -1717,22 +1717,30 @@ class AdjacencyCandidate(models.Model):
     """
 
     id = models.AutoField(db_column='adjacency_candidateid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="from_adjancency_candidates",
+    )
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="from_adjancency_candidates",
     )
     to_netbox = models.ForeignKey(
         'Netbox',
         on_delete=models.CASCADE,
         db_column='to_netboxid',
-        related_name='to_adjacencycandidate_set',
+        related_name='to_adjacency_candidates',
     )
     to_interface = models.ForeignKey(
         'Interface',
         on_delete=models.CASCADE,
         db_column='to_interfaceid',
         null=True,
-        related_name='to_adjacencycandidate_set',
+        related_name='to_adjacency_candidates',
     )
     source = VarcharField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
