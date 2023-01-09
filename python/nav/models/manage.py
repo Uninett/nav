@@ -1625,7 +1625,11 @@ class SwPortAllowedVlan(models.Model):
     """
 
     interface = models.OneToOneField(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid', primary_key=True
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        primary_key=True,
+        related_name="swport_allowed_vlan",
     )
     hex_string = VarcharField(db_column='hexstring')
     _cached_hex_string = ''
