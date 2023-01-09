@@ -73,7 +73,7 @@ class UpsManager(models.Manager):
         return (
             super(UpsManager, self)
             .get_queryset()
-            .filter(category='POWER', sensor__internal_name__startswith='ups')
+            .filter(category='POWER', sensors__internal_name__startswith='ups')
             .distinct()
         )
 
@@ -621,7 +621,7 @@ class Netbox(models.Model):
 
     def get_environment_sensors(self):
         """Returns the sensors to be displayed on the Environment Sensor tab"""
-        return self.sensor_set.filter(
+        return self.sensors.filter(
             Q(unit_of_measurement__icontains='celsius')
             | Q(unit_of_measurement__icontains='percent')
         )
