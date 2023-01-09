@@ -83,7 +83,7 @@ def get_neighbors(_request, netboxid):
 
     netbox = get_object_or_404(Netbox, pk=netboxid)
     nodes = [create_object_from(netbox)]
-    interfaces = netbox.interface_set.filter(to_netbox__isnull=False)
+    interfaces = netbox.interfaces.filter(to_netbox__isnull=False)
     for interface in interfaces:
         to_netbox = interface.to_netbox
         to_interfacename = (

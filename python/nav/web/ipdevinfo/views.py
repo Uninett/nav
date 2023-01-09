@@ -347,7 +347,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         if netbox in task.get_event_subjects():
             relevant_future_tasks.append(task)
 
-    interfaces = netbox.interface_set.order_by('ifindex') if netbox else []
+    interfaces = netbox.interfaces.order_by('ifindex') if netbox else []
     for interface in interfaces:
         interface.combined_data_urls = create_combined_urls(interface, COUNTER_TYPES)
 

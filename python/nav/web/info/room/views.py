@@ -222,8 +222,8 @@ def render_netboxes(request, roomid):
 
     # Filter interfaces on iftype and add fast last_cam lookup
     for netbox in netboxes:
-        netbox.interfaces = (
-            netbox.interface_set.filter(iftype__in=Interface.ETHERNET_INTERFACE_TYPES)
+        netbox.interfaces_list = (
+            netbox.interfaces.filter(iftype__in=Interface.ETHERNET_INTERFACE_TYPES)
             .order_by("ifindex")
             .extra(select=cam_query)
         )

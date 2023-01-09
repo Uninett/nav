@@ -2304,7 +2304,7 @@ class GatewayPeerSession(models.Model):
         :rtype: Netbox
 
         """
-        expr = Q(ip=self.peer) | Q(interface__gwportprefix__gw_ip=self.peer)
+        expr = Q(ip=self.peer) | Q(interfaces__gwportprefix__gw_ip=self.peer)
         netboxes = Netbox.objects.filter(expr)
         if netboxes:
             return netboxes[0]
