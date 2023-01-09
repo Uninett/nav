@@ -2651,8 +2651,18 @@ class PowerSupplyOrFan(models.Model):
     PHYSICAL_CLASS_PSU = "powerSupply"
 
     id = models.AutoField(db_column='powersupplyid', primary_key=True)
-    netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
-    device = models.ForeignKey(Device, on_delete=models.CASCADE, db_column='deviceid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="power_supplies_or_fans",
+    )
+    device = models.ForeignKey(
+        Device,
+        on_delete=models.CASCADE,
+        db_column='deviceid',
+        related_name="power_supplies_or_fans",
+    )
     name = VarcharField(db_column='name')
     model = VarcharField(db_column='model', null=True)
     descr = VarcharField(db_column='descr', null=True)
