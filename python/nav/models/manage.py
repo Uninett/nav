@@ -1769,7 +1769,12 @@ class NetboxVtpVlan(models.Model):
     information."""
 
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="netbox_vtp_vlans",
+    )
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
 
     class Meta(object):
