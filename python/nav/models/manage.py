@@ -1511,7 +1511,10 @@ class Vlan(models.Model):
     id = models.AutoField(db_column='vlanid', primary_key=True)
     vlan = models.IntegerField(null=True, blank=True)
     net_type = models.ForeignKey(
-        'NetType', on_delete=models.CASCADE, db_column='nettype'
+        'NetType',
+        on_delete=models.CASCADE,
+        db_column='nettype',
+        related_name="vlans",
     )
     organization = models.ForeignKey(
         'Organization',
@@ -1519,14 +1522,25 @@ class Vlan(models.Model):
         db_column='orgid',
         null=True,
         blank=True,
+        related_name="vlans",
     )
     usage = models.ForeignKey(
-        'Usage', on_delete=models.CASCADE, db_column='usageid', null=True, blank=True
+        'Usage',
+        on_delete=models.CASCADE,
+        db_column='usageid',
+        null=True,
+        blank=True,
+        related_name="vlans",
     )
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
     description = VarcharField(null=True, blank=True)
     netbox = models.ForeignKey(
-        'NetBox', on_delete=models.SET_NULL, db_column='netboxid', null=True, blank=True
+        'NetBox',
+        on_delete=models.SET_NULL,
+        db_column='netboxid',
+        null=True,
+        blank=True,
+        related_name="vlans",
     )
 
     class Meta(object):
