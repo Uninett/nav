@@ -2472,9 +2472,18 @@ class Sensor(models.Model):
     )
 
     id = models.AutoField(db_column='sensorid', primary_key=True)
-    netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="sensors",
+    )
     interface = models.ForeignKey(
-        Interface, on_delete=models.CASCADE, db_column='interfaceid', null=True
+        Interface,
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        null=True,
+        related_name="sensors",
     )
     oid = VarcharField(db_column="oid")
     unit_of_measurement = VarcharField(
