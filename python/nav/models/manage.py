@@ -2290,7 +2290,12 @@ class GatewayPeerSession(models.Model):
     )
 
     id = models.AutoField(primary_key=True, db_column='peersessionid')
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="gateway_peer_sessions",
+    )
     protocol = models.IntegerField(choices=PROTOCOL_CHOICES)
     peer = models.GenericIPAddressField()
     state = VarcharField()
