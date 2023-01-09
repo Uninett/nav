@@ -1791,7 +1791,11 @@ class Cam(models.Model):
 
     id = models.AutoField(db_column='camid', primary_key=True)
     netbox = models.ForeignKey(
-        'Netbox', on_delete=models.CASCADE, db_column='netboxid', null=True
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        null=True,
+        related_name="cam_set",
     )
     sysname = VarcharField()
     ifindex = models.IntegerField()
