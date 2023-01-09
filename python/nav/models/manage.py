@@ -2703,9 +2703,17 @@ class PowerSupplyOrFan(models.Model):
 
 class UnrecognizedNeighbor(models.Model):
     id = models.AutoField(primary_key=True)
-    netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="unrecognized_neighbors",
+    )
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="unrecognized_neighbors",
     )
     remote_id = VarcharField()
     remote_name = VarcharField()
