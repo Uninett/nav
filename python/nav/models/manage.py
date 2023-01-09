@@ -1692,7 +1692,10 @@ class SwPortBlocked(models.Model):
 
     id = models.AutoField(db_column='swportblockedid', primary_key=True)
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="blocked_swports",
     )
     vlan = models.IntegerField()
 
