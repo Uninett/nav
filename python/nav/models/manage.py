@@ -1932,7 +1932,7 @@ class Interface(models.Model):
         :rtype: nav.util.NumberRange
         """
         try:
-            allowed = self.swportallowedvlan.get_allowed_vlans()
+            allowed = self.swport_allowed_vlan.get_allowed_vlans()
         except SwPortAllowedVlan.DoesNotExist:
             pass
         else:
@@ -2028,7 +2028,7 @@ class Interface(models.Model):
             return ",".join(
                 as_range(y)
                 for x, y in groupby(
-                    sorted(self.swportallowedvlan.get_allowed_vlans()),
+                    sorted(self.swport_allowed_vlan.get_allowed_vlans()),
                     lambda n, c=count(): n - next(c),
                 )
             )
