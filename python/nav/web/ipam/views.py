@@ -35,7 +35,7 @@ def matrix(request):
 def generate_context():
     scopes = Prefix.objects.filter(vlan__net_type='scope')
     ctx = {
-        "net_types": NetType.objects.exclude(vlan__net_type__in=["scope", "reserved"]),
+        "net_types": NetType.objects.exclude(vlans__net_type__in=["scope", "reserved"]),
         "organizations": Organization.objects.all,
         "usages": Usage.objects.all,
         "has_registered_scopes": scopes.count() > 0,

@@ -1203,9 +1203,9 @@ class MatchField(models.Model):
         SERVICE: 'netbox__service',
         INTERFACE: 'netbox__connected_to_interface',
         TYPE: 'netbox__type',
-        USAGE: 'netbox__organization__vlan__usage',
+        USAGE: 'netbox__organization__vlans__usage',
         VENDOR: 'netbox__type__vendor',
-        VLAN: 'netbox__organization__vlan',
+        VLAN: 'netbox__organization__vlans',
         ALERT: '',  # Checks alert object itself
         ALERTTYPE: 'alert_type',
     }
