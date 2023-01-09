@@ -1652,10 +1652,18 @@ class Arp(models.Model):
 
     id = models.AutoField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey(
-        'Netbox', on_delete=models.CASCADE, db_column='netboxid', null=True
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        null=True,
+        related_name="arp_set",
     )
     prefix = models.ForeignKey(
-        'Prefix', on_delete=models.CASCADE, db_column='prefixid', null=True
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid',
+        null=True,
+        related_name="arp_set",
     )
     sysname = VarcharField()
     ip = models.GenericIPAddressField()
