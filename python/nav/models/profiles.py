@@ -1186,7 +1186,7 @@ class MatchField(models.Model):
     # formating is not PEP8, but it wouldn't be very readable otherwise)
     # Since we need to know how things are connected this has been done manualy
     FOREIGN_MAP = {
-        ARP: 'netbox__arp',
+        ARP: 'netbox__arp_set',
         CAM: 'netbox__cam_set',
         CATEGORY: 'netbox__category',
         NETBOXGROUP: 'netbox__netboxcategory__category',
