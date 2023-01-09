@@ -2264,7 +2264,10 @@ class RoutingProtocolAttribute(models.Model):
 
     id = models.IntegerField(primary_key=True)
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="routing_protocol_attributes",
     )
     name = VarcharField(db_column='protoname')
     metric = models.IntegerField()
