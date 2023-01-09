@@ -2866,7 +2866,7 @@ class POEGroup(models.Model):
         return get_simple_graph_url([metric], time_frame=time_frame)
 
     def get_active_ports(self):
-        return self.poeport_set.filter(
+        return self.poe_ports.filter(
             admin_enable=True, detection_status=POEPort.STATUS_DELIVERING_POWER
         )
 
