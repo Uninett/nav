@@ -54,7 +54,7 @@ class Identity(models.Model):
         Interface,
         on_delete=models.CASCADE,
         db_column='swportid',
-        related_name="identities",
+        related_name="arnold_identities",
     )
     ip = models.GenericIPAddressField(null=True, default='0.0.0.0')
     dns = VarcharField(blank=True)
@@ -69,7 +69,7 @@ class Identity(models.Model):
         on_delete=models.CASCADE,
         db_column='orgid',
         null=True,
-        related_name="identities",
+        related_name="arnold_identities",
     )
     keep_closed = models.CharField(
         db_column='determined', default='n', choices=KEEP_CLOSED_CHOICES, max_length=1
