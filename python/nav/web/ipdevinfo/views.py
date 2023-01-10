@@ -616,7 +616,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None, port_nam
     # If interface is detained in Arnold, this should be visible on the
     # port details view
     try:
-        detention = port.identities.get(status__in=['quarantined', 'disabled'])
+        detention = port.arnold_identities.get(status__in=['quarantined', 'disabled'])
     except Identity.DoesNotExist:
         detention = None
 
