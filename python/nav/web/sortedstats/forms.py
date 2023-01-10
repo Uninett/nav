@@ -47,10 +47,12 @@ class ViewForm(forms.Form):
     choices = [(tf, TIMEFRAMES[tf]['descr']) for tf in TIMEFRAMES]
     timeframe = forms.ChoiceField(choices=choices, initial=choices[1][0])
     rows = NumberField(initial=5)
+
     use_cache = forms.BooleanField(
         initial=True,
         help_text=(
-            "Ticking this box will make it so results are fetched from a cache if possible. "
+            "Ticking this box will make it so results "
+            "are fetched from a cache if possible. "
             "If the cache is empty, live data is fetched instead."
         ),
         required=False,
