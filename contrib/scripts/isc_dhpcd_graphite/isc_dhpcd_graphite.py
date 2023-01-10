@@ -18,11 +18,14 @@ import subprocess
 import sys
 from time import time
 
+from nav.metrics.names import escape_metric_name
+
+
 DEFAULT_PREFIX = "nav.dhcp"
 DEFAULT_CONFIG_FILE = "/etc/dhcpd/dhcpd.conf"
 DEFAULT_CMD_PATH = pathlib.Path("/usr/bin/dhcpd-pools")
 DEFAULT_PORT = "2004"
-DEFAULT_PROTOCOL = 'text'  # MB doesn't trust pickle so we go with text
+DEFAULT_PROTOCOL = "text"  # MB doesn't trust pickle so we go with text
 
 # graphite likes pickle protocol 2. Python 3: 3, Python 3.8+: 4
 PICKLE_PROTOCOL = range(0, pickle.HIGHEST_PROTOCOL + 1)
@@ -33,6 +36,7 @@ METRIC_MAPPER = {
     "touched": "touch",
     "free": "free",
 }
+VERSION="0.2"
 
 
 Metric = namedtuple("Metric", ["path", "value", "timestamp"])
@@ -77,10 +81,26 @@ def parse_args():
         "--location",
         help=(
             "Location, if any, to append to the metric prefix to build the path."
-            ' If the vlan is named "vlan1" and the location is "building1.cellar"'
+            ' If the location is named "vlan1" and the location is "building1.cellar"'
             " the resulting metric path would be PREFIX.building1.cellar.vlan1"
         ),
         type=str,
+    )
+    parser.add_argument(
+        "--extract-vlan",
+        help=(
+            "Try to extract the name of a vlan from the location."
+            ' If the vlan is named "vlan1_baluba" '
+            " the resulting metric path would be PREFIX.vlan1"
+        ),
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--version",
+        help="Show version of script and exit",
+        action="store_true",
+        default=False,
     )
     protocol_choices = ("text",) + tuple(str(p) for p in PICKLE_PROTOCOL)
     parser.add_argument(
@@ -115,6 +135,16 @@ def parse_args():
     return args
 
 
+def get_config_from_args(args):
+    config = None
+    if getattr(args, "extract_vlan", False):
+        class Config:
+            pass
+        config = Config()
+        config.extract_vlan = True
+    return config
+
+
 # run command and store json output
 def exec_dhcpd_pools(config_file, cmd_path=DEFAULT_CMD_PATH):
     flags = f"-c {config_file} {FLAGS}".split()
@@ -126,15 +156,15 @@ def exec_dhcpd_pools(config_file, cmd_path=DEFAULT_CMD_PATH):
 
 
 # reformat the data
-def render(jsonblob, prefix, protocol=DEFAULT_PROTOCOL):
+def render(jsonblob, prefix, protocol=DEFAULT_PROTOCOL, config=None):
     if isinstance(protocol, int):
-        return _render_pickle(jsonblob, prefix, protocol)
-    return _render_text(jsonblob, prefix)
+        return _render_pickle(jsonblob, prefix, protocol, config)
+    return _render_text(jsonblob, prefix, config)
 
 
-def _render_text(jsonblob, prefix):
+def _render_text(jsonblob, prefix, config=None):
     template = "{metric.path} {metric.value} {metric.timestamp}\n"
-    input = _tuplify(jsonblob, prefix)
+    input = _tuplify(jsonblob, prefix, config)
     output = []
     for metric in input:
         line = template.format(metric=metric)
@@ -142,8 +172,8 @@ def _render_text(jsonblob, prefix):
     return "".join(output).encode("ascii")
 
 
-def _render_pickle(jsonblob, prefix, protocol):
-    input = _tuplify(jsonblob, prefix)
+def _render_pickle(jsonblob, prefix, protocol,config=None):
+    input = _tuplify(jsonblob, prefix, config)
     output = []
     for metric in input:
         output.append((metric.path, (metric.timestamp, metric.value)))
@@ -153,12 +183,14 @@ def _render_pickle(jsonblob, prefix, protocol):
     return message
 
 
-def _tuplify(jsonblob, prefix):
+def _tuplify(jsonblob, prefix, config=None):
     timestamp = trunc(time())
     data = jsonblob["shared-networks"]
     output = list()
     for vlan_stat in data:
-        vlan = _clean_vlan(vlan_stat["location"])
+        vlan = escape_metric_name(vlan_stat["location"])
+        if config:
+            vlan = _extract_vlan(vlan)
         if not vlan:
             continue
         for key, metric in METRIC_MAPPER.items():
@@ -168,7 +200,7 @@ def _tuplify(jsonblob, prefix):
     return output
 
 
-def _clean_vlan(location):
+def _extract_vlan(location):
     regex = re.search("vlan\d+", location)
     if regex:
         return regex.group()
@@ -193,13 +225,17 @@ def send_to_graphite(metrics_blob, server, port):
 
 def main():
     args = parse_args()
+    if args.version:
+        print(f"version: {VERSION}")
+        sys.exit(0)
+    config = get_config_from_args(args)
     jsonblob = exec_dhcpd_pools(args.config_file, args.command)
-    output = render(jsonblob, args.actual_prefix, args.protocol)
+    output = render(jsonblob, args.actual_prefix, args.protocol, config)
     if args.noop:
         if args.protocol == "text":
-            print(output.decode('ascii'))
+            print(output.decode("ascii"))
         else:
-            print(hexlify(output).decode('ascii'))
+            print(hexlify(output).decode("ascii"))
     else:
         send_to_graphite(output, args.server, args.port)
 
