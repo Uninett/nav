@@ -154,6 +154,7 @@ def get_endpoints(request=None, version=1):
         ),
         'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
         'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
+        'module': reverse_lazy('{}module-list'.format(prefix), **kwargs),
     }
 
 
@@ -1081,3 +1082,23 @@ def get_nav_version(request):
     :type request: django.http.HttpRequest
     """
     return JsonResponse({"version": VERSION})
+
+
+class ModuleViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Lists all modules.
+
+    Filters
+    -------
+    - netbox
+    - device__serial
+
+    Example: `/api/1/module/?netbox=91&device__serial=AB12345`
+    """
+
+    queryset = manage.Module.objects.all()
+    filter_backends = NAVAPIMixin.filter_backends
+    filterset_fields = (
+        'netbox',
+        'device__serial',
+    )
+    serializer_class = serializers.ModuleSerializer
