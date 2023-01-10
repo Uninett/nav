@@ -32,7 +32,7 @@ class Cabling(models.Model):
         Room,
         on_delete=models.CASCADE,
         db_column='roomid',
-        related_name="cablings",
+        related_name="cabling_set",
     )
     jack = VarcharField()
     building = VarcharField(blank=True)
