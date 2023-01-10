@@ -104,7 +104,7 @@ def active(request):
             state__in=(MaintenanceTask.STATE_SCHEDULED, MaintenanceTask.STATE_ACTIVE),
         )
         .order_by('-start_time', '-end_time')
-        .annotate(component_count=Count('maintenancecomponent'))
+        .annotate(component_count=Count('maintenance_components'))
     )
     for task in tasks:
         # Tasks that have only one component should show a link
@@ -147,7 +147,7 @@ def planned(request):
             state__in=(MaintenanceTask.STATE_SCHEDULED, MaintenanceTask.STATE_ACTIVE),
         )
         .order_by('-start_time', '-end_time')
-        .annotate(component_count=Count('maintenancecomponent'))
+        .annotate(component_count=Count('maintenance_components'))
     )
     return render(
         request,
@@ -172,7 +172,7 @@ def historic(request):
             )
         )
         .order_by('-start_time', '-end_time')
-        .annotate(component_count=Count('maintenancecomponent'))
+        .annotate(component_count=Count('maintenance_components'))
     )
     return render(
         request,
@@ -270,7 +270,7 @@ def edit(request, task_id=None, start_time=None, **_):
             'location': [],
             'netboxgroup': [],
         }
-        for key, value in task.maintenancecomponent_set.values_list('key', 'value'):
+        for key, value in task.maintenance_components.values_list('key', 'value'):
             if key in PRIMARY_KEY_INTEGER:
                 value = int(value)
             component_keys[key].append(value)

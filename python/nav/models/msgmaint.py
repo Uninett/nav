@@ -52,7 +52,10 @@ class Message(models.Model):
         null=True,
     )
     maintenance_tasks = models.ManyToManyField(
-        'MaintenanceTask', through='MessageToMaintenanceTask', blank=True
+        'MaintenanceTask',
+        through='MessageToMaintenanceTask',
+        blank=True,
+        related_name="messages",
     )
 
     class Meta(object):
@@ -137,7 +140,7 @@ class MaintenanceTask(models.Model):
         """
         Returns the list of model objects involved in this task
         """
-        return [c.component for c in self.maintenancecomponent_set.all()]
+        return [c.component for c in self.maintenance_components.all()]
 
     def get_event_subjects(self):
         """
@@ -171,7 +174,10 @@ class MaintenanceComponent(models.Model):
 
     id = models.AutoField(primary_key=True)  # Serial for faking primary key
     maintenance_task = models.ForeignKey(
-        MaintenanceTask, on_delete=models.CASCADE, db_column='maint_taskid'
+        MaintenanceTask,
+        on_delete=models.CASCADE,
+        db_column='maint_taskid',
+        related_name="maintenance_components",
     )
     key = VarcharField()
     value = VarcharField()
