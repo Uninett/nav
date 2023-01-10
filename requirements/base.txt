@@ -36,4 +36,4 @@ libsass==0.15.1
 
 napalm==3.4.1
 
-backports.zoneinfo
+backports.zoneinfo ; python_version < '3.9'
