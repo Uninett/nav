@@ -21,9 +21,10 @@ class JWTConf(NAVConfigParser):
                 aud = self._validate_key(get('aud'))
                 key_type = self._validate_key(get('keytype'))
                 if key_type == 'PEM':
-                    with open(key, "r") as f:
-                        key = f.read()
-                claims_options = {'aud': {'values': [aud], 'essential': True}}
+                    key = self._read_file(key)
+                claims_options = {
+                    'aud': {'values': [aud], 'essential': True},
+                }
                 issuers_settings[section] = {
                     'key': key,
                     'type': key_type,
@@ -32,6 +33,10 @@ class JWTConf(NAVConfigParser):
             except (configparser.Error, ConfigurationError) as error:
                 _logger.error('Error collecting stats for %s: %s', section, error)
         return issuers_settings
+
+    def _read_file(self, file):
+        with open(file, "r") as f:
+            return f.read()
 
     def _validate_key(self, key):
         if not key:
