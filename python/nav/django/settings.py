@@ -268,4 +268,5 @@ _issuers_setting = JWTConf().get_issuers_setting()
 
 OIDC_AUTH = {
     'JWT_ISSUERS': _issuers_setting,
+    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
