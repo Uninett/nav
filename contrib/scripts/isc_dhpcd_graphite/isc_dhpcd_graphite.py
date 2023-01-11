@@ -36,7 +36,7 @@ METRIC_MAPPER = {
     "touched": "touch",
     "free": "free",
 }
-VERSION="0.2"
+VERSION = "0.2"
 
 
 Metric = namedtuple("Metric", ["path", "value", "timestamp"])
@@ -138,8 +138,10 @@ def parse_args():
 def get_config_from_args(args):
     config = None
     if getattr(args, "extract_vlan", False):
+
         class Config:
             pass
+
         config = Config()
         config.extract_vlan = True
     return config
@@ -172,7 +174,7 @@ def _render_text(jsonblob, prefix, config=None):
     return "".join(output).encode("ascii")
 
 
-def _render_pickle(jsonblob, prefix, protocol,config=None):
+def _render_pickle(jsonblob, prefix, protocol, config=None):
     input = _tuplify(jsonblob, prefix, config)
     output = []
     for metric in input:
