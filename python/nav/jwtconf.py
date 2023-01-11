@@ -23,10 +23,11 @@ class JWTConf(NAVConfigParser):
                 if key_type == 'PEM':
                     with open(key, "r") as f:
                         key = f.read()
+                claims_options = {'aud': {'values': [aud], 'essential': True}}
                 issuers_settings[section] = {
                     'key': key,
                     'type': key_type,
-                    'aud': aud,
+                    'claims_options': claims_options,
                 }
             except (configparser.Error, ConfigurationError) as error:
                 _logger.error('Error collecting stats for %s: %s', section, error)

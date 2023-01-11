@@ -267,5 +267,5 @@ except NameError:
 _issuers_setting = JWTConf().get_issuers_setting()
 
 OIDC_AUTH = {
-    'ISSUERS': _issuers_setting,
+    'JWT_ISSUERS': _issuers_setting,
 }
