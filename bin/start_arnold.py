@@ -191,7 +191,7 @@ def find_duration(candidate, profile):
         except Identity.DoesNotExist:
             pass
         else:
-            event = identity.event_set.filter(
+            event = identity.events.filter(
                 justification=profile.justification, autoenablestep__isnull=False
             ).order_by('-event_time')
 

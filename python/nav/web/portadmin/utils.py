@@ -213,10 +213,10 @@ def mark_detained_interfaces(interfaces):
         # If interface is administratively down, check if Arnold is the source
         if (
             interface.ifadminstatus == 2
-            and interface.identity_set.filter(status='disabled').count() > 0
+            and interface.arnold_identities.filter(status='disabled').count() > 0
         ):
             interface.detained = True
-        if interface.identity_set.filter(status='quarantined').count() > 0:
+        if interface.arnold_identities.filter(status='quarantined').count() > 0:
             interface.detained = True
 
 
