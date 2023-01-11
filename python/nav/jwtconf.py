@@ -18,8 +18,8 @@ class JWTConf(NAVConfigParser):
             try:
                 get = partial(self.get, section)
                 key = self._validate_key(get('key'))
-                aud = self._validate_key(get('aud'))
-                key_type = self._validate_key(get('keytype'))
+                aud = self._validate_audience(get('aud'))
+                key_type = self._validate_type(get('keytype'))
                 if key_type == 'PEM':
                     key = self._read_file(key)
                 claims_options = {
