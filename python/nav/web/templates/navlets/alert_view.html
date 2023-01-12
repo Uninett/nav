@@ -40,7 +40,7 @@
          }
 
          function update() {
-             var request = $.get('{{ data_url }}');
+             var request = $.get('{{ data_url|safe }}');
 
              request.done(function(data) {
                  if (data.length === 0) {
