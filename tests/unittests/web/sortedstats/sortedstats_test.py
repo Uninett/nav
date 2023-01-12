@@ -1,6 +1,5 @@
 import datetime
-from mock import patch
-import mock
+from mock import patch, MagicMock
 from unittest import TestCase
 
 import nav.web.sortedstats.views as views
@@ -20,9 +19,62 @@ class TestSortedStats(TestCase):
         self.assertEqual(end_dt - start_dt, datetime.timedelta(hours=1))
 
     def test_cache_key_is_correct(self):
-        view = "view1"
+        view = "uptime"
         timeframe = "hour"
         rows = 5
-        expected_cache_key = "view1_hour_5"
+        expected_cache_key = "uptime_hour_5"
         cache_key = views.get_cache_key(view, timeframe, rows)
         self.assertEqual(cache_key, expected_cache_key)
+
+    @patch('nav.web.sortedstats.views.cache')
+    def test_process_form_returns_cache_value_if_cache_exists(self, cache_mock):
+        data = "cached"
+        cache_mock.get.return_value.data = data
+        fake_form = MagicMock()
+        fake_form.cleaned_data = {
+            'view': 'uptime',
+            'timeframe': 'hour',
+            'rows': 5,
+            'use_cache': True,
+        }
+        result, from_cache = views.process_form(fake_form)
+        self.assertTrue(from_cache)
+        self.assertEqual(result.data, data)
+
+    @patch('nav.web.sortedstats.views.collect_result')
+    @patch('nav.web.sortedstats.views.cache')
+    def test_cache_not_used_if_empty_and_use_cache_is_on(
+        self, cache_mock, collect_mock
+    ):
+        data = "new"
+        cache_mock.get.return_value.data = ""
+        collect_mock.return_value.data = data
+        fake_form = MagicMock()
+        fake_form.cleaned_data = {
+            'view': 'uptime',
+            'timeframe': 'hour',
+            'rows': 5,
+            'use_cache': True,
+        }
+        result, from_cache = views.process_form(fake_form)
+        self.assertFalse(from_cache)
+        self.assertEqual(result.data, data)
+
+    @patch('nav.web.sortedstats.views.collect_result')
+    @patch('nav.web.sortedstats.views.cache')
+    def test_cache_not_used_if_empty_and_use_cache_is_off(
+        self, cache_mock, collect_mock
+    ):
+        data = "new"
+        cache_mock.get.return_value.data = ""
+        collect_mock.return_value.data = data
+        fake_form = MagicMock()
+        fake_form.cleaned_data = {
+            'view': 'uptime',
+            'timeframe': 'hour',
+            'rows': 5,
+            'use_cache': False,
+        }
+        result, from_cache = views.process_form(fake_form)
+        self.assertFalse(from_cache)
+        self.assertEqual(result.data, data)
