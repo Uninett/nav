@@ -39,6 +39,18 @@ class TestSortedStatsConfif(TestCase):
             reports = conf.get_reports('hour')
         self.assertEqual(reports, dict())
 
+    def test_invalid_config_returns_no_report(self):
+        config = u"""
+            [myreport]
+            view=cpu_routers_highestmax
+            timeframe=invalid
+            rows=5
+            """
+        with patch.object(SortedStatsConfig, 'DEFAULT_CONFIG', config):
+            conf = SortedStatsConfig()
+            reports = conf.get_reports('hour')
+        self.assertEqual(reports, dict())
+
     def test_invalid_timeframe_should_raise_exception(self):
         conf = SortedStatsConfig()
         with self.assertRaises(ValueError):
