@@ -8,7 +8,7 @@ class TestJWTConf(TestCase):
     def setUp(self):
         pass
 
-    def test_correct_jwks_config_should_pass(self):
+    def test_valid_jwks_config_should_pass(self):
         config = u"""
             [jwks-issuer]
             keytype=JWKS
@@ -29,7 +29,7 @@ class TestJWTConf(TestCase):
             settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings, expected_settings)
 
-    def test_correct_pem_config_should_pass(self):
+    def test_valid_pem_config_should_pass(self):
         config = u"""
             [pem-issuer]
             keytype=PEM
@@ -56,7 +56,7 @@ class TestJWTConf(TestCase):
                 settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings, expected_settings)
 
-    def test_incorrect_ketype_should_fail(self):
+    def test_invalid_ketype_should_fail(self):
         config = u"""
             [pem-issuer]
             keytype=Fake
@@ -68,7 +68,7 @@ class TestJWTConf(TestCase):
             settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings, dict())
 
-    def test_incorrect_key_should_fail(self):
+    def test_empty_key_should_fail(self):
         config = u"""
             [pem-issuer]
             keytype=JWKS
@@ -80,7 +80,7 @@ class TestJWTConf(TestCase):
             settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings, dict())
 
-    def test_incorrect_aud_should_fail(self):
+    def test_empty_aud_should_fail(self):
         config = u"""
             [pem-issuer]
             keytype=JWKS
