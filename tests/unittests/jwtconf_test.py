@@ -2,6 +2,7 @@ from mock import patch
 import mock
 from unittest import TestCase
 from nav.jwtconf import JWTConf
+from nav.config import ConfigurationError
 
 
 class TestJWTConf(TestCase):
@@ -91,3 +92,42 @@ class TestJWTConf(TestCase):
             jwtconf = JWTConf()
             settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings, dict())
+
+    def test_validate_key_should_raise_error_if_key_is_empty(self):
+        jwtconf = JWTConf()
+        with self.assertRaises(ConfigurationError):
+            jwtconf._validate_key("")
+
+    def test_validate_key_should_allow_non_empty_string(self):
+        key = "key"
+        jwtconf = JWTConf()
+        validated_key = jwtconf._validate_key(key)
+        self.assertEqual(validated_key, key)
+
+    def test_validate_audience_should_raise_error_if_audience_is_empty(self):
+        jwtconf = JWTConf()
+        with self.assertRaises(ConfigurationError):
+            jwtconf._validate_audience("")
+
+    def test_validate_audience_should_allow_non_empty_string(self):
+        aud = "key"
+        jwtconf = JWTConf()
+        validated_aud = jwtconf._validate_key(aud)
+        self.assertEqual(validated_aud, aud)
+
+    def test_validate_type_should_raise_error_if_type_is_invalid(self):
+        jwtconf = JWTConf()
+        with self.assertRaises(ConfigurationError):
+            jwtconf._validate_type("invalid")
+
+    def test_JWKS_should_be_a_valid_type(self):
+        type = "JWKS"
+        jwtconf = JWTConf()
+        validated_type = jwtconf._validate_type(type)
+        self.assertEqual(validated_type, type)
+
+    def test_PEM_should_be_a_valid_type(self):
+        type = "PEM"
+        jwtconf = JWTConf()
+        validated_type = jwtconf._validate_type(type)
+        self.assertEqual(validated_type, type)
