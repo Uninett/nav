@@ -1,5 +1,4 @@
 from mock import patch
-import mock
 from unittest import TestCase
 from nav.jwtconf import JWTConf
 from nav.config import ConfigurationError
