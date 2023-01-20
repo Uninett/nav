@@ -107,6 +107,7 @@ class NapalmForm(ProtocolSpecificMixIn, forms.ModelForm):
             "private_key",
             "use_keys",
             "alternate_port",
+            "timeout",
         ]
         fields = []
 
@@ -134,6 +135,12 @@ class NapalmForm(ProtocolSpecificMixIn, forms.ModelForm):
         help_text="Alternate port (default port value varies with vendor)",
         min_value=1,
         max_value=65535,
+    )
+    timeout = forms.IntegerField(
+        required=False,
+        help_text="Timeout value in seconds",
+        min_value=1,
+        max_value=600,
     )
 
 
