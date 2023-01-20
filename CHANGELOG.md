@@ -32,7 +32,7 @@ found in the [HISTORY](HISTORY) file.
 
 - Empty alert messages are no longer sent when device software upgrades are detected ([#2533](https://github.com/Uninett/nav/issues/2533))
 - Merged two fixes from the 5.4.x stable series that never actually made it into the 5.5 series:
-  - Metric values of *0.0* are evaluated correctly by threshold rules [#2447](https://github.com/Uninett/nav/issues/2447)
+  - Metric values of *0.0* are evaluated correctly by threshold rules ([#2447](https://github.com/Uninett/nav/issues/2447))
   - Validate maintenance calendar input form to avoid e-mail spam from bots scanning for vulnerabilities ([#2420](https://github.com/Uninett/nav/issues/2420), [#2431](https://github.com/Uninett/nav/pull/2431))
 - Properly log (for posterity) old and new revision numbers with every software/hardware/firmware upgrade event NAV posts ([#2515](https://github.com/Uninett/nav/pull/2515), [#2545](https://github.com/Uninett/nav/pull/2545), [#2560](https://github.com/Uninett/nav/pull/2560))
 - snmpwalk routine for synchronous NAV code now correctly handles end-of-mib-view errors ([#1925](https://github.com/Uninett/nav/issues/1925), [#2489](https://github.com/Uninett/nav/pull/2489))
