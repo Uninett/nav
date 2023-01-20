@@ -305,8 +305,8 @@ class Device(Shadow):
                 netbox=containers.get(None, Netbox).get_existing_model(),
                 alert_type=ALERT_TYPE_MAPPING[alert_type],
                 varmap={
-                    "old_version": old_version,
-                    "new_version": new_version,
+                    "old_version": old_version if old_version else "N/A",
+                    "new_version": new_version if new_version else "N/A",
                 },
             ).save()
 
