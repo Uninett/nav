@@ -26,7 +26,7 @@ def netbox_mock():
     """Create netbox model mock object"""
     netbox = Mock()
     netbox.ip = '10.0.0.1'
-    yield netbox
+    return netbox
 
 
 @pytest.fixture()
@@ -36,7 +36,7 @@ def profile_mock():
     profile.protocol = manage.ManagementProfile.PROTOCOL_NAPALM
     profile.PROTOCOL_NAPALM = manage.ManagementProfile.PROTOCOL_NAPALM
     profile.configuration = {"driver": "mock"}
-    yield profile
+    return profile
 
 
 class TestNapalm:
