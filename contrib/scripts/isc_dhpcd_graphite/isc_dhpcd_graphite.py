@@ -56,7 +56,16 @@ def escape_metric_name(name):
 
 # parse comand line flags
 def parse_args():
-    parser = argparse.ArgumentParser(description="Send dhcp stats to graphite")
+    description = '''\
+        Send dhcp stats to graphite
+
+        The metric-name is taken from the location-field in the shared_networks
+        part of the output.
+    '''
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=description,
+    )
     parser.add_argument(
         "server",
         help="Graphite server to send data to",
@@ -89,12 +98,12 @@ def parse_args():
         default=DEFAULT_PREFIX,
     )
     parser.add_argument(
-        "-l",
-        "--location",
+        "-N",
+        "--namespace",
         help=(
-            "Location, if any, to append to the metric prefix to build the path."
-            ' If the location is named "vlan1" and the location is "building1.cellar"'
-            " the resulting metric path would be PREFIX.building1.cellar.vlan1"
+            "Namespace, if any, to append to the metric prefix to build the path."
+            ' If the location is "vlan1" and the namespace is "building1.cellar"'
+            ' the resulting metric path would be "PREFIX.building1.cellar.vlan1"'
         ),
         type=str,
     )
@@ -102,7 +111,7 @@ def parse_args():
         "--extract-vlan",
         help=(
             "Try to extract the name of a vlan from the location."
-            ' If the vlan is named "vlan1_baluba" '
+            ' If the location is "vlan1_baluba" '
             " the resulting metric path would be PREFIX.vlan1"
         ),
         action="store_true",

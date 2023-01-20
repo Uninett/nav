@@ -15,12 +15,14 @@ Building the prefix
 ===================
 
 The dotted-path that graphite uses to store data is controlled by the prefix
-argument to the script (-p), the optional location argument (-l) and what
-``dhcpd_pool`` returns as its ``location`` key.
+argument to the script (-p), the optional namespace argument (-N) and what
+``dhcpd_pool`` returns as its ``location`` per entry of the ``shared_networks``
+list. (What ``dhcpd_pool`` calls "location" is elsewhere known as "DHCP network
+name".)
 
 The default prefix is "nav.dhcp".
 
-If ``-p`` is "nav.bloviate", ``-l`` is not set and the ``location`` in the json
+If ``-p`` is "nav.bloviate", ``-N`` is not set and the ``location`` in the json
 is "vlan1" the resulting graphite path is ``nav.bloviate.vlan1``.
 
 
