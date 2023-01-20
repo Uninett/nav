@@ -8,6 +8,21 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.6
+=======
+
+Dependency changes
+------------------
+
+New dependencies
+~~~~~~~~~~~~~~~~
+
+Dependencies to these Python modules have been added:
+
+* :mod:`backports.zoneinfo` (only necessary when running on Python versions older than 3.9)
+* Our own fork of :mod:`drf-oidc-auth`, as found at ``git+https://github.com/Uninett/drf-oidc-auth@v4.0#egg=drf-oidc-auth``
+
+
 NAV 5.5
 =======
 
