@@ -45,10 +45,16 @@ class Identity(models.Model):
     mac = models.CharField(db_column='mac', max_length=17)
     status = VarcharField(db_column='blocked_status', choices=STATUSES)
     justification = models.ForeignKey(
-        'Justification', on_delete=models.CASCADE, db_column='blocked_reasonid'
+        'Justification',
+        on_delete=models.CASCADE,
+        db_column='blocked_reasonid',
+        related_name="identities",
     )
     interface = models.ForeignKey(
-        Interface, on_delete=models.CASCADE, db_column='swportid'
+        Interface,
+        on_delete=models.CASCADE,
+        db_column='swportid',
+        related_name="arnold_identities",
     )
     ip = models.GenericIPAddressField(null=True, default='0.0.0.0')
     dns = VarcharField(blank=True)
@@ -59,7 +65,11 @@ class Identity(models.Model):
     autoenablestep = models.IntegerField(null=True, default=2)
     mail = VarcharField(blank=True)
     organization = models.ForeignKey(
-        'Organization', on_delete=models.CASCADE, db_column='orgid', null=True
+        'Organization',
+        on_delete=models.CASCADE,
+        db_column='orgid',
+        null=True,
+        related_name="arnold_identities",
     )
     keep_closed = models.CharField(
         db_column='determined', default='n', choices=KEEP_CLOSED_CHOICES, max_length=1
@@ -72,6 +82,7 @@ class Identity(models.Model):
         to_field='vlan',
         null=True,
         default=None,
+        related_name="identities",
     )
     # If the interface does not exist any longer in the database, the user
     # needs a hint of what interface was blocked as information as ifname
@@ -101,12 +112,18 @@ class Event(models.Model):
 
     id = models.AutoField(db_column='eventid', primary_key=True)
     identity = models.ForeignKey(
-        'Identity', on_delete=models.CASCADE, db_column='identityid'
+        'Identity',
+        on_delete=models.CASCADE,
+        db_column='identityid',
+        related_name="events",
     )
     comment = VarcharField(db_column='event_comment', blank=True)
     action = VarcharField(db_column='blocked_status', choices=STATUSES)
     justification = models.ForeignKey(
-        'Justification', on_delete=models.CASCADE, db_column='blocked_reasonid'
+        'Justification',
+        on_delete=models.CASCADE,
+        db_column='blocked_reasonid',
+        related_name="events",
     )
     event_time = models.DateTimeField(db_column='eventtime', auto_now_add=True)
     autoenablestep = models.IntegerField(null=True)
@@ -158,7 +175,10 @@ class DetentionProfile(models.Model):
     description = VarcharField(db_column='blockdesc', blank=True)
     mailfile = VarcharField(blank=True)
     justification = models.ForeignKey(
-        'Justification', on_delete=models.CASCADE, db_column='reasonid'
+        'Justification',
+        on_delete=models.CASCADE,
+        db_column='reasonid',
+        related_name="detention_profiles",
     )
     keep_closed = models.CharField(
         db_column='determined', default='n', choices=KEEP_CLOSED_CHOICES, max_length=1
@@ -174,7 +194,11 @@ class DetentionProfile(models.Model):
         db_column='detainmenttype', choices=DETENTION_TYPE_CHOICES
     )
     quarantine_vlan = models.ForeignKey(
-        'QuarantineVlan', on_delete=models.CASCADE, db_column='quarantineid', null=True
+        'QuarantineVlan',
+        on_delete=models.CASCADE,
+        db_column='quarantineid',
+        null=True,
+        related_name="detention_profiles",
     )
 
     def __str__(self):

@@ -40,6 +40,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView, get_object_or_404
+from oidc_auth.authentication import JSONWebTokenAuthentication
 
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
@@ -50,7 +51,11 @@ from nav.buildconf import VERSION
 from nav.web.api.v1 import serializers, alert_serializers
 from nav.web.status2 import STATELESS_THRESHOLD
 from nav.macaddress import MacPrefix
-from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
+from .auth import (
+    APIPermission,
+    APIAuthentication,
+    NavBaseAuthentication,
+)
 from .helpers import prefix_collector
 from .filter_backends import (
     AlertHistoryFilterBackend,
@@ -200,7 +205,11 @@ class RelatedOrderingFilter(filters.OrderingFilter):
 class NAVAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
 
-    authentication_classes = (NavBaseAuthentication, APIAuthentication)
+    authentication_classes = (
+        NavBaseAuthentication,
+        APIAuthentication,
+        JSONWebTokenAuthentication,
+    )
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     filter_backends = (filters.SearchFilter, DjangoFilterBackend, RelatedOrderingFilter)

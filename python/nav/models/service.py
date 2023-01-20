@@ -44,7 +44,12 @@ class Service(models.Model):
     TIME_FRAMES = ('day', 'week', 'month')
 
     id = models.AutoField(db_column='serviceid', primary_key=True)
-    netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        Netbox,
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="services",
+    )
     active = models.BooleanField(default=True)
     handler = VarcharField(verbose_name='service')
     version = VarcharField()
@@ -106,7 +111,7 @@ class Service(models.Model):
                   otherwise None
         """
         try:
-            lastdown = self.netbox.alerthistory_set.filter(
+            lastdown = self.netbox.alert_history_set.filter(
                 event_type__id='serviceState', end_time__isnull=False
             ).order_by("-end_time")[0]
         except IndexError:
@@ -134,7 +139,10 @@ class ServiceProperty(models.Model):
 
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
     service = models.ForeignKey(
-        Service, on_delete=models.CASCADE, db_column='serviceid'
+        Service,
+        on_delete=models.CASCADE,
+        db_column='serviceid',
+        related_name="properties",
     )
     property = models.CharField(max_length=64)
     value = VarcharField()

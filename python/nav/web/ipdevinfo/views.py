@@ -194,7 +194,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
         filter_stateful = Q(end_time__gt=lowest_end_time)
         filter_stateless = Q(end_time__isnull=True) & Q(start_time__gt=lowest_end_time)
-        queryset = netbox.alerthistory_set.filter(
+        queryset = netbox.alert_history_set.filter(
             filter_stateful | filter_stateless
         ).order_by('-start_time')
         count = queryset.count()
@@ -353,7 +353,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     # Only display services tab for certain instances
     display_services_tab = netbox and (
-        netbox.category.is_srv() or netbox.service_set.count()
+        netbox.category.is_srv() or netbox.services.count()
     )
 
     return render(
@@ -616,7 +616,7 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None, port_nam
     # If interface is detained in Arnold, this should be visible on the
     # port details view
     try:
-        detention = port.identity_set.get(status__in=['quarantined', 'disabled'])
+        detention = port.arnold_identities.get(status__in=['quarantined', 'disabled'])
     except Identity.DoesNotExist:
         detention = None
 
