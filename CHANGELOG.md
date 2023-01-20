@@ -18,6 +18,7 @@ found in the [HISTORY](HISTORY) file.
 - Accept JSON Web Tokens signed by third-parties as valid API authentication/authorization tokens ([#2483](https://github.com/Uninett/nav/issues/2483), [#2511](https://github.com/Uninett/nav/pull/2511))
 - Collect "chassis" serial numbers from Aruba wireless controllers ([#2514](https://github.com/Uninett/nav/pull/2514))
 - Added an API endpoint for module information ([#2517](https://github.com/Uninett/nav/issues/2517), [#2520](https://github.com/Uninett/nav/pull/2520))
+- Result caching added to ranked statistics - including the ability to populate the cache regularly behind-the-scenes in a cronjob (([#1504](https://github.com/Uninett/nav/issues/1504), [#2398](https://github.com/Uninett/nav/pull/2398))
 
 ### Developer-centric features
 
