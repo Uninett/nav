@@ -24,3 +24,5 @@ if [[ ! -f "/etc/nav/nav.conf" ]]; then
 
     cp /source/tools/docker/graphite.conf /etc/nav/graphite.conf
 fi
+
+chown -R nav:nav /tmp/nav_cache

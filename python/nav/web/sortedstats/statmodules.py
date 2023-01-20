@@ -40,8 +40,9 @@ class Stat(object):
     data_filter = ''
     graph_filter = None
 
-    def __init__(self, timeframe='-1d', rows=5):
-        self.timeframe = timeframe
+    def __init__(self, start='-1d', end='now', rows=5):
+        self.start = start
+        self.end = end
         self.rows = rows
         self.graph_args = {'width': 1046, 'height': 448, 'template': 'nav'}
         self.scale = None
@@ -65,7 +66,7 @@ class Stat(object):
     def get_data(self):
         """Gets the relevant data for this statistics"""
         target = self.data_filter.format(serieslist=self.serieslist, rows=self.rows)
-        data = get_metric_average(target, start=self.timeframe)
+        data = get_metric_average(target, start=self.start, end=self.end)
         if self.scale:
             data = self.upscale(data)
         return data
@@ -99,7 +100,8 @@ class Stat(object):
             ]
 
         self.graph_args['target'] = targets
-        self.graph_args['from'] = self.timeframe
+        self.graph_args['from'] = self.start
+        self.graph_args['until'] = self.end
         return self.create_graph_url()
 
     def create_graph_url(self):
@@ -177,14 +179,15 @@ class StatMinFreeAddresses(Stat):
             ",".join(targets),
             self.rows,
         )
-        data = get_metric_average(target, start=self.timeframe)
+        data = get_metric_average(target, start=self.start, end=self.end)
         return data
 
     def get_targets(self):
         """Queries for prefixes that has a ip-range > than netsize_to_skip"""
         results = get_metric_data(
             'maximumAbove(nav.prefixes.*.ip_range, %s)' % self.netsize_to_skip,
-            self.timeframe,
+            start=self.start,
+            end=self.end,
         )
         targets = []
         for result in results:
@@ -206,7 +209,8 @@ class StatMinFreeAddresses(Stat):
             )
 
         self.graph_args['target'] = targets
-        self.graph_args['from'] = self.timeframe
+        self.graph_args['from'] = self.start
+        self.graph_args['until'] = self.end
         return self.create_graph_url()
 
     def get_metric_name(self, metric):
@@ -252,7 +256,7 @@ class StatUptime(Stat):
 
     def get_data(self):
         target = self.data_filter.format(serieslist=self.serieslist, rows=self.rows)
-        data = get_metric_max(target, start=self.timeframe)
+        data = get_metric_max(target, start=self.start, end=self.end)
         data = self.upscale(data)
         return data
 
@@ -332,7 +336,7 @@ class StatIfErrors(StatIf):
 
     def get_data(self):
         target = self.data_filter.format(serieslist=self.serieslist, rows=self.rows)
-        data = get_metric_average(target, start=self.timeframe)
+        data = get_metric_average(target, start=self.start, end=self.end)
         return data
 
 

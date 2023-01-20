@@ -44,8 +44,19 @@ class ViewForm(forms.Form):
     """Form the choosing which view to see on the statistics page"""
 
     view = forms.ChoiceField(choices=get_sections_list())
-    timeframe = forms.ChoiceField(choices=TIMEFRAMES, initial=TIMEFRAMES[1][0])
+    choices = [(tf, TIMEFRAMES[tf]['descr']) for tf in TIMEFRAMES]
+    timeframe = forms.ChoiceField(choices=choices, initial=choices[1][0])
     rows = NumberField(initial=5)
+
+    use_cache = forms.BooleanField(
+        initial=True,
+        help_text=(
+            "Ticking this box will make it so results "
+            "are fetched from a cache if possible. "
+            "If the cache is empty, live data is fetched instead."
+        ),
+        required=False,
+    )
 
     def __init__(self, *args, **kwargs):
         super(ViewForm, self).__init__(*args, **kwargs)
@@ -53,6 +64,7 @@ class ViewForm(forms.Form):
         self.helper.form_class = 'custom'
         self.helper.form_action = ''
         self.helper.form_method = 'GET'
+        self.helper.help_text_inline = True
         self.helper.layout = Layout(
             Fieldset(
                 'Choose statistic',
@@ -64,6 +76,7 @@ class ViewForm(forms.Form):
                         LabelSubmit('submit', 'Show statistics', css_class='postfix'),
                         css_class='medium-3',
                     ),
+                    Column('use_cache'),
                 ),
             )
         )
