@@ -23,6 +23,7 @@ from napalm.base import NetworkDriver
 
 from nav.models import manage
 
+DEFAULT_TIMEOUT_SECONDS = 60
 
 Host = TypeVar("Host", str, manage.Netbox)
 _logger = logging.getLogger(__name__)
@@ -36,7 +37,6 @@ def connect(host: Host, profile: manage.ManagementProfile) -> NetworkDriver:
     optional_args = {
         "config_lock": True,
         "lock_disable": True,
-        "auto_probe": config.get("timeout", 60),
     }
     key_file = _write_key_to_temporary_file(config, optional_args)
 
@@ -45,6 +45,7 @@ def connect(host: Host, profile: manage.ManagementProfile) -> NetworkDriver:
             hostname=hostname,
             username=config.get("username"),
             password=config.get("password"),
+            timeout=config.get("timeout", DEFAULT_TIMEOUT_SECONDS),
             optional_args=optional_args,
         )
         # Let temporary file live as long as the device connection exists
