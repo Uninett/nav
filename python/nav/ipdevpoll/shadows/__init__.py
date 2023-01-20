@@ -54,6 +54,7 @@ ALERT_TYPE_MAPPING = {
     "software_version": "deviceSwUpgrade",
     "firmware_version": "deviceFwUpgrade",
 }
+device_event = EventFactory('ipdevpoll', 'eventEngine', 'deviceState')
 
 
 class NetboxType(Shadow):
@@ -113,6 +114,10 @@ class Module(Shadow):
     __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
     event = EventFactory('ipdevpoll', 'eventEngine', 'moduleState')
 
+    def __init__(self, *args, **kwargs):
+        super(Module, self).__init__(*args, **kwargs)
+        self.is_new = None
+
     @classmethod
     def prepare_for_save(cls, containers):
         cls._resolve_actual_duplicate_names(containers)
@@ -148,6 +153,7 @@ class Module(Shadow):
         self._fix_binary_garbage()
         self._fix_missing_name()
         self._resolve_duplicate_names()
+        self.is_new = not self.get_existing_model()
 
     def _fix_binary_garbage(self):
         """Fixes string attributes that appear as binary garbage."""
@@ -238,9 +244,28 @@ class Module(Shadow):
             for module in reappeared_modules:
                 cls.event.end(module.device, module.netbox, module.id).save()
 
+    def cleanup(self, containers):
+        self._handle_new_module()
+
+    def _handle_new_module(self):
+        if not self.is_new:
+            return
+        module = self.get_existing_model()
+        # If a module is also registered as a chassis, then avoid duplicate
+        # events and let NetboxEntity handle it. This should not really happen,
+        # but its possible if the standard MIBs detects something as a module
+        # and proprietary MIBs detect the same thing as a chassis.
+        if not module.get_entity().is_chassis() and module.device.serial:
+            device_event.notify(
+                device=module.device,
+                netbox=module.netbox,
+                alert_type='deviceNewModule',
+            ).save()
+
     @classmethod
     def cleanup_after_save(cls, containers):
         cls._handle_missing_modules(containers)
+        super(Module, cls).cleanup_after_save(containers)
 
 
 class Device(Shadow):
@@ -754,15 +779,38 @@ class PowerSupplyOrFan(Shadow):
     __shadowclass__ = manage.PowerSupplyOrFan
     __lookups__ = [('netbox', 'name')]
 
+    def __init__(self, *args, **kwargs):
+        super(PowerSupplyOrFan, self).__init__(*args, **kwargs)
+        self.is_new = None
+
     def prepare(self, containers):
-        existing = self.get_existing_model(containers)
+        self.is_new = not self.get_existing_model()
         # Set a default value of UNKNOWN if this is a new object
-        if not existing and self.up is None:
+        if self.is_new and self.up is None:
             self.up = manage.PowerSupplyOrFan.STATE_UNKNOWN
+
+    def cleanup(self, containers):
+        self._handle_new_psu_or_fan()
+
+    def _handle_new_psu_or_fan(self):
+        if not self.is_new:
+            return
+        psufan = self.get_existing_model()
+        # Device not existing seems to be an issue exclusive to PowerSupplyOrFan objects
+        try:
+            if psufan.device.serial:
+                device_event.notify(
+                    device=psufan.device,
+                    netbox=psufan.netbox,
+                    alert_type="deviceNewPsu" if psufan.is_psu() else "deviceNewFan",
+                ).save()
+        except manage.Device.DoesNotExist:
+            return
 
     @classmethod
     def cleanup_after_save(cls, containers):
         cls._delete_missing_psus_and_fans(containers)
+        super(PowerSupplyOrFan, cls).cleanup_after_save(containers)
 
     @classmethod
     def _delete_missing_psus_and_fans(cls, containers):

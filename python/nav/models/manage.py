@@ -2529,6 +2529,9 @@ class PowerSupplyOrFan(models.Model):
         (STATE_WARNING, "Warning"),
     )
 
+    PHYSICAL_CLASS_FAN = "fan"
+    PHYSICAL_CLASS_PSU = "powerSupply"
+
     id = models.AutoField(db_column='powersupplyid', primary_key=True)
     netbox = models.ForeignKey(Netbox, on_delete=models.CASCADE, db_column='netboxid')
     device = models.ForeignKey(Device, on_delete=models.CASCADE, db_column='deviceid')
@@ -2562,6 +2565,12 @@ class PowerSupplyOrFan(models.Model):
         """Returns a canonical URL to view fan/psu status"""
         base = self.netbox.get_absolute_url()
         return base + "#!sensors"
+
+    def is_psu(self):
+        return self.physical_class == self.PHYSICAL_CLASS_PSU
+
+    def is_fan(self):
+        return self.physical_class == self.PHYSICAL_CLASS_FAN
 
 
 class UnrecognizedNeighbor(models.Model):

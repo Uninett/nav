@@ -1,0 +1,2 @@
+Subject: Device has been found as a power supply
+Device {{ device.get_extended_description }} has been found on {{netbox}} as a power supply
