@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
-## [Unreleased]
+## [5.6.0] - 2023-01-20
 
-## Added
+### Added
 
-### User-visible features
+#### User-visible features
 
 - NAPALM/NETCONF management profiles can now be configured with custom timeout values ([#2460](https://github.com/Uninett/nav/pull/2460), [#2390](https://github.com/Uninett/nav/issues/2390))
 - Post lifecycle events the first time new chassis/module/PSU/fan devices are seen ([#2391](https://github.com/Uninett/nav/issues/2391), [#2414](https://github.com/Uninett/nav/pull/2414))
@@ -20,16 +20,16 @@ found in the [HISTORY](HISTORY) file.
 - Added an API endpoint for module information ([#2517](https://github.com/Uninett/nav/issues/2517), [#2520](https://github.com/Uninett/nav/pull/2520))
 - Result caching added to ranked statistics - including the ability to populate the cache regularly behind-the-scenes in a cronjob (([#1504](https://github.com/Uninett/nav/issues/1504), [#2398](https://github.com/Uninett/nav/pull/2398))
 
-### Developer-centric features
+#### Developer-centric features
 
 - Added `buglog.py` option to fetch issue numbers from git reflog ([#2474](https://github.com/Uninett/nav/pull/2474))
 - Added tests for  `get_memory_usage` for all memory MIBs ([#2376](https://github.com/Uninett/nav/issues/2376), [#2441](https://github.com/Uninett/nav/pull/2441))
 - Added tests to discover invalid MIB dumps from smidump ([#2501](https://github.com/Uninett/nav/issues/2501), ([#2521](https://github.com/Uninett/nav/pull/2521))
 - Updated/added explicit relation names to various ORM models ([#2539](https://github.com/Uninett/nav/pull/2539), [#2540](https://github.com/Uninett/nav/pull/2540), [#2541](https://github.com/Uninett/nav/pull/2541), [#2542](https://github.com/Uninett/nav/pull/2542))
 
-## Fixed
+### Fixed
 
-### User-visible fixes
+#### User-visible fixes
 
 - Empty alert messages are no longer sent when device software upgrades are detected ([#2533](https://github.com/Uninett/nav/issues/2533))
 - Merged two fixes from the 5.4.x stable series that never actually made it into the 5.5 series:
@@ -39,7 +39,7 @@ found in the [HISTORY](HISTORY) file.
 - snmpwalk routine for synchronous NAV code now correctly handles end-of-mib-view errors ([#1925](https://github.com/Uninett/nav/issues/1925), [#2489](https://github.com/Uninett/nav/pull/2489))
 - Removed deprecation warnings from command line programs `navsnmp`, `naventity` and `navoidverify` ([#2389](https://github.com/Uninett/nav/issues/2389), [#2429](https://github.com/Uninett/nav/pull/2429))
 
-### Developer-centric fixes
+#### Developer-centric fixes
 
 - Use pip-compile's backtracking dependency resolver to fix failing CI pipelines ([#2509](https://github.com/Uninett/nav/pull/2509))
 - Updated libsnmp dependency for newer Ubuntu runners in GitHub pipelines ([#2532](https://github.com/Uninett/nav/pull/2532))
