@@ -13,13 +13,11 @@ import pathlib
 import pickle
 import re
 import socket
+import string
 import struct
 import subprocess
 import sys
 from time import time
-
-from nav.metrics.names import escape_metric_name
-
 
 DEFAULT_PREFIX = "nav.dhcp"
 DEFAULT_CONFIG_FILE = "/etc/dhcpd/dhcpd.conf"
@@ -29,6 +27,7 @@ DEFAULT_PROTOCOL = "text"  # MB doesn't trust pickle so we go with text
 
 # graphite likes pickle protocol 2. Python 3: 3, Python 3.8+: 4
 PICKLE_PROTOCOL = range(0, pickle.HIGHEST_PROTOCOL + 1)
+LEGAL_METRIC_CHARACTERS = string.ascii_letters + string.digits + "-_"
 FLAGS = "-f j"
 METRIC_MAPPER = {
     "defined": "max",
@@ -40,6 +39,19 @@ VERSION = "0.2"
 
 
 Metric = namedtuple("Metric", ["path", "value", "timestamp"])
+
+
+# vendored from nav.metrics.names.escape_metric_name
+def escape_metric_name(name):
+    """
+    Escapes any character of `name` that may not be used in graphite metric
+    names.
+    """
+    if name is None:
+        return name
+    name = name.replace('\x00', '')  # some devices have crazy responses!
+    name = ''.join([c if c in LEGAL_METRIC_CHARACTERS else "_" for c in name])
+    return name
 
 
 # parse comand line flags
