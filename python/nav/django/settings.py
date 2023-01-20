@@ -28,6 +28,7 @@ from django.utils.log import DEFAULT_LOGGING
 from nav.config import NAV_CONFIG, getconfig, find_config_dir
 from nav.db import get_connection_parameters
 import nav.buildconf
+from nav.jwtconf import JWTConf
 
 ALLOWED_HOSTS = ['*']
 
@@ -262,3 +263,10 @@ except NameError:
         from local_settings import *
     except ImportError:
         pass
+
+_issuers_setting = JWTConf().get_issuers_setting()
+
+OIDC_AUTH = {
+    'JWT_ISSUERS': _issuers_setting,
+    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
+}
