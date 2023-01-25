@@ -1,0 +1,106 @@
+{% extends "useradmin/base.html" %}
+{% load info %}
+
+
+{% block base_header_additional_head %}
+  <style>
+    #token-list-table .label { cursor: help; margin-bottom: 1px; }
+  </style>
+  <script>
+    require(['libs/jquery.tablesorter.min'], function() {
+      $(function() {
+        var $table = $('#token-list-table');
+        if ($table.length && $table.find('tbody tr').length > 0) {
+          $table.tablesorter({
+            sortList: [[2, 0]],
+            headers: {
+              5: {sorter: false},
+              6: {sorter: false},
+              7: {sorter: false}
+            }
+          });
+        }
+      });
+    });
+  </script>
+{% endblock %}
+
+
+{% block content %}
+
+  <div class="tabs">
+    {% include 'useradmin/tabs.html' %}
+
+    <div class="tabcontent">
+      <a href="{% url 'useradmin-jwt_create' %}" class="button small">
+        Create new token
+      </a>
+
+      {# Show table with tokens if there are any #}
+      {% if object_list %}
+
+        <table id="token-list-table" class="listtable hover tablesorter">
+          <caption>
+            List of issued API tokens
+          </caption>
+
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Active from</th>
+              <th>Expires</th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for token in object_list %}
+              <tr>
+                {# Name #}
+                <td>
+                  <a href="{% url 'useradmin-jwt_detail' token.pk %}" title="Details">{{ token.name }}</a>
+                </td>
+
+                {# Active from #}
+                <td>
+                  {{ token.active_from }}
+                </td>
+
+                {# Expires #}
+                <td>
+                    {% if token.is_expired %}
+                      <span class="label warning"
+                            title="Token expired {{ token.expires}}">
+                        Expired
+                      </span>
+                    {% else %}
+                      {{ token.expires }}
+                    {% endif %}
+                </td>
+
+                {# Link to token edit #}
+                <td>
+                  <a href="{% url 'useradmin-jwt_edit' token.pk %}" title="Edit this token">Edit</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      {% else %}
+
+        {# If there are no tokens, show information about creating one #}
+        <div class="alert-box info">No tokens are issued. Do you want to
+          <a href="{% url 'useradmin-jwt_create' %}">create one</a>?
+        </div>
+
+      {% endif %}
+
+      <div>
+        <a href="{% url 'useradmin-token_list' %}"> Normal Tokens</a>
+      </div>
+
+    </div>  {# .tabcontent #}
+  </div>  {# .tabs #}
+
+{% endblock %}

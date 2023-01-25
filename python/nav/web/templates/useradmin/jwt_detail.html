@@ -1,0 +1,66 @@
+{% extends "useradmin/base.html" %}
+{% load info %}
+
+{#  Display information about a single token #}
+
+
+{% block base_header_additional_head %}
+  <style>
+    .token-card { max-width: 470px; overflow-wrap: break-word;}
+    .token-card .label { cursor: help; margin-bottom: 1px; }
+    .token-card code { display: inline-block; width: 100%;}
+  </style>
+{% endblock %}
+
+
+{% block content %}
+
+  <a href="{% url 'useradmin-jwt_list' %}">Back to token list</a>
+
+  <div class="row">
+    <div class="column small-12">
+
+      <div class="token-card panel white">
+        <a href="{% url 'useradmin-jwt_edit' object.pk %}" class="right">Edit token</a>
+
+        <h3>Token details</h3>
+
+        <p>
+          <code>{{ object.token }}</code>
+        </p>
+
+        {% if object.description %}
+          <h4>Description</h4>
+          <div class="panel">
+            <p>
+              {{ object.description }}
+            </p>
+          </div>
+        {% endif %}
+
+
+        <p>
+          Permission:
+          {{ object.permission }}
+          <i class="fa fa-info-circle"
+             title="{{ object.permission_help_text }}"
+             style="cursor: pointer"
+          ></i>
+        </p>
+
+        <div class="alert-box {% if object.is_expired %}warning with-icon{% endif %}">
+          {% if object.is_expired %}
+            Expired
+          {% else %}
+            Expires
+          {% endif %}
+          {{ object.expires }}
+        </div>
+
+      </div> {# end panel #}
+
+
+    </div> {# end column #}
+  </div> {# end row #}
+
+{% endblock %}
