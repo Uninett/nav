@@ -673,7 +673,7 @@ class JWTList(NavPathMixin, generic.ListView):
 
     def get_context_data(self, **kwargs):
         context = super(JWTList, self).get_context_data(**kwargs)
-        context['active'] = {'token_list': True}
+        context['active'] = {'jwt_list': True}
         return context
 
 
