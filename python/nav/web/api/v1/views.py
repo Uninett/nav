@@ -43,6 +43,7 @@ from rest_framework.generics import ListAPIView, get_object_or_404
 from oidc_auth.authentication import JSONWebTokenAuthentication
 
 from nav.models import manage, event, cabling, rack, profiles
+from nav.models.api import JWTRefreshToken
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 from nav.util import auth_token
@@ -1062,6 +1063,33 @@ class RackViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.RackSerializer
     filterset_fields = ['room', 'rackname']
     search_fields = ['rackname']
+
+
+class JWTRefreshViewSet(APIView):
+    """
+    Accepts a valid refresh token.
+    Returns a new refresh token and an access token.
+    """
+
+    def post(self, request):
+        try:
+            db_token = JWTRefreshToken.objects.get(
+                token=request.data.get('refresh_token')
+            )
+        except JWTRefreshToken.DoesNotExist:
+            return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
+        if not db_token.is_active():
+            return Response("Inactive token", status=status.HTTP_403_FORBIDDEN)
+        token_data = db_token.data()
+        access_token = JWTRefreshToken.generate_access_token(token_data)
+        refresh_token = JWTRefreshToken.generate_refresh_token(token_data)
+        db_token.token = refresh_token
+        db_token.save()
+        response_data = {
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        }
+        return Response(response_data)
 
 
 def get_or_create_token(request):
