@@ -15,7 +15,10 @@
 #
 """Models for the NAV API"""
 
-from datetime import datetime
+import os
+from datetime import datetime, timedelta
+
+import jwt
 
 from django.db import models
 from django.urls import reverse
@@ -23,6 +26,7 @@ from django.urls import reverse
 from nav.adapters import HStoreField
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
+from nav.jwtconf import JWTConf
 
 
 class APIToken(models.Model):
@@ -66,3 +70,77 @@ class APIToken(models.Model):
 
     class Meta(object):
         db_table = 'apitoken'
+
+
+class JWTRefreshToken(models.Model):
+    """RefreshTokens are used for generating new access tokens"""
+
+    token = VarcharField()
+    name = VarcharField(unique=True)
+    description = models.TextField(null=True, blank=True)
+
+    ACCESS_EXPIRE_DELTA = timedelta(hours=1)
+    REFRESH_EXPIRE_DELTA = timedelta(days=1)
+
+    def __str__(self):
+        return self.token
+
+    def data(self):
+        """Body of token as a dict"""
+        return jwt.decode(self.token, options={'verify_signature': False})
+
+    def active_from(self):
+        data = self.data()
+        return datetime.fromtimestamp(data['nbf'])
+
+    def is_active(self):
+        now = datetime.now()
+        return now >= self.active_from() and not self.is_expired()
+
+    def expires(self):
+        data = self.data()
+        return datetime.fromtimestamp(data['exp'])
+
+    def is_expired(self):
+        return datetime.now() >= self.expires()
+
+    def expire(self):
+        data = self.data()
+        data['exp'] = datetime.now().timestamp()
+        self.token = self._encode_token(data)
+        self.save()
+
+    @classmethod
+    def _encode_token(cls, token_data):
+        return jwt.encode(
+            token_data, JWTConf().get_nav_private_key(), algorithm="RS256"
+        )
+
+    @classmethod
+    def _generate_token(cls, token_data, expiry_delta, token_type):
+        new_token = dict(token_data)
+        now = datetime.now()
+        name = JWTConf().get_nav_name()
+        updated_claims = {
+            'exp': (now + expiry_delta).timestamp(),
+            'nbf': now.timestamp(),
+            'iat': now.timestamp(),
+            'aud': name,
+            'iss': name,
+            'token_type': token_type,
+        }
+        new_token.update(updated_claims)
+        return cls._encode_token(new_token)
+
+    @classmethod
+    def generate_access_token(cls, token_data={}):
+        return cls._generate_token(token_data, cls.ACCESS_EXPIRE_DELTA, "access_token")
+
+    @classmethod
+    def generate_refresh_token(cls, token_data={}):
+        return cls._generate_token(
+            token_data, cls.REFRESH_EXPIRE_DELTA, "refresh_token"
+        )
+
+    class Meta(object):
+        db_table = 'jwtrefreshtoken'
