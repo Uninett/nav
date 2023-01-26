@@ -40,6 +40,15 @@ def get_cache():
     return caches['sortedstats']
 
 
+def cache_is_misconfigured():
+    try:
+        get_cache()
+    except InvalidCacheBackendError:
+        return True
+    else:
+        return False
+
+
 def index(request):
     """Sorted stats search & result view"""
     result = None
@@ -68,6 +77,7 @@ def index(request):
         'graphite_unreachable': graphite_unreachable,
         'from_cache': from_cache,
         'duration': duration,
+        'cache_misconfigured': cache_is_misconfigured(),
     }
 
     return render(request, 'sortedstats/sortedstats.html', context)
