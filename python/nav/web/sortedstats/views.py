@@ -26,6 +26,7 @@ except ImportError:
 from django.shortcuts import render
 from django.core.cache import caches
 from django.conf import settings
+from django.core.cache.backends.base import InvalidCacheBackendError
 
 from .forms import ViewForm
 from . import CLASSMAP, TIMEFRAMES
@@ -109,7 +110,11 @@ def collect_result(view, timeframe, rows):
     cache_key = get_cache_key(view, timeframe, rows)
     result = get_result(view, start, end, rows)
     result.collect()
-    get_cache().set(cache_key, result, timeout=timeout)
+    try:
+        cache = get_cache()
+        cache.set(cache_key, result, timeout=timeout)
+    except InvalidCacheBackendError as e:
+        _logger.error("Error accessing cache for ranked statistics: %s".format(e))
     return result
 
 
