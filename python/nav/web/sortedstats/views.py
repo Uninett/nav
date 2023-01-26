@@ -33,7 +33,10 @@ from nav.metrics.errors import GraphiteUnreachableError
 
 GRAPHITE_TIME_FORMAT = "%H:%M_%Y%m%d"
 _logger = logging.getLogger(__name__)
-cache = caches['sortedstats']
+
+
+def get_cache():
+    return caches['sortedstats']
 
 
 def index(request):
@@ -78,7 +81,7 @@ def process_form(form):
     rows = form.cleaned_data['rows']
     cache_key = get_cache_key(view, timeframe, rows)
     if form.cleaned_data['use_cache']:
-        result = cache.get(cache_key)
+        result = get_cache().get(cache_key)
         if result and not result.data:
             result = None
     if not result:
@@ -106,7 +109,7 @@ def collect_result(view, timeframe, rows):
     cache_key = get_cache_key(view, timeframe, rows)
     result = get_result(view, start, end, rows)
     result.collect()
-    cache.set(cache_key, result, timeout=timeout)
+    get_cache().set(cache_key, result, timeout=timeout)
     return result
 
 
