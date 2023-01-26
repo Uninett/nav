@@ -82,8 +82,13 @@ def process_form(form):
     rows = form.cleaned_data['rows']
     cache_key = get_cache_key(view, timeframe, rows)
     if form.cleaned_data['use_cache']:
-        result = get_cache().get(cache_key)
-        if result and not result.data:
+        try:
+            cache = get_cache()
+            result = cache.get(cache_key)
+            if result and not result.data:
+                result = None
+        except InvalidCacheBackendError as e:
+            _logger.error("Error accessing cache for ranked statistics: %s".format(e))
             result = None
     if not result:
         result = collect_result(view, timeframe, rows)
