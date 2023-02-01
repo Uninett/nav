@@ -1,0 +1,2 @@
+Subject: No yellow alarms on {{ netbox }}
+All yellow alarms on {{ netbox }} were resolved.
