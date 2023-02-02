@@ -12,6 +12,12 @@ class JWTConf(NAVConfigParser):
 
     DEFAULT_CONFIG_FILES = ('jwt.conf',)
     NAV_SECTION = "nav-config"
+    DEFAULT_CONFIG = u"""
+[nav-config]
+private_key=
+public_key=
+name=
+"""
 
     def get_issuers_setting(self):
         issuers_settings = self._get_settings_for_nav_issued_tokens()
