@@ -63,12 +63,19 @@ name=NAV
     def _validate_issuer(self, section):
         if not section:
             raise ConfigurationError("Invalid 'issuer': 'issuer' must not be empty")
-        if section == self.get_nav_name():
-            raise ConfigurationError(
-                "Invalid 'issuer': {} collides with NAVs internal issuer name".format(
-                    section
+        try:
+            if section == self.get_nav_name():
+                raise ConfigurationError(
+                    "Invalid 'issuer': {} collides with NAVs internal issuer name".format(
+                        section
+                    )
                 )
-            )
+        except (
+            configparser.NoSectionError,
+            configparser.NoOptionError,
+            ConfigurationError,
+        ):
+            pass
         return section
 
     def _validate_audience(self, audience):
