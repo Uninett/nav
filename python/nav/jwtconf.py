@@ -115,6 +115,7 @@ name=
             FileNotFoundError,
             ConfigurationError,
             configparser.NoSectionError,
+            configparser.NoOptionError,
         ) as error:
             _logger.error('Error reading config for NAV issued tokem: %s', error)
             return {}
