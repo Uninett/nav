@@ -105,6 +105,10 @@ class JWTConf(NAVConfigParser):
                 }
             }
             return settings
-        except (FileNotFoundError, ConfigurationError) as error:
+        except (
+            FileNotFoundError,
+            ConfigurationError,
+            configparser.NoSectionError,
+        ) as error:
             _logger.error('Error reading config for NAV issued tokem: %s', error)
             return {}
