@@ -25,6 +25,7 @@ from django.urls import reverse
 from nav.adapters import HStoreField
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
+from nav.jwtconf import JWTConf
 
 
 class APIToken(models.Model):
@@ -101,6 +102,38 @@ class JWTRefreshToken(models.Model):
         """True if token is active"""
         now = datetime.now()
         return now >= self.activates() and now < self.expires()
+
+    @classmethod
+    def _encode_token(cls, token_data):
+        return jwt.encode(
+            token_data, JWTConf().get_nav_private_key(), algorithm="RS256"
+        )
+
+    @classmethod
+    def _generate_token(cls, token_data, expiry_delta, token_type):
+        new_token = dict(token_data)
+        now = datetime.now()
+        name = JWTConf().get_nav_name()
+        updated_claims = {
+            'exp': (now + expiry_delta).timestamp(),
+            'nbf': now.timestamp(),
+            'iat': now.timestamp(),
+            'aud': name,
+            'iss': name,
+            'token_type': token_type,
+        }
+        new_token.update(updated_claims)
+        return cls._encode_token(new_token)
+
+    @classmethod
+    def generate_access_token(cls, token_data={}):
+        return cls._generate_token(token_data, cls.ACCESS_EXPIRE_DELTA, "access_token")
+
+    @classmethod
+    def generate_refresh_token(cls, token_data={}):
+        return cls._generate_token(
+            token_data, cls.REFRESH_EXPIRE_DELTA, "refresh_token"
+        )
 
     class Meta(object):
         db_table = 'jwtrefreshtoken'
