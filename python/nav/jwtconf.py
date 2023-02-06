@@ -66,7 +66,7 @@ name=NAV
         try:
             if section == self.get_nav_name():
                 raise ConfigurationError(
-                    "Invalid 'issuer': {} collides with NAVs internal issuer name".format(
+                    "Invalid 'issuer': {} collides with internal issuer name".format(
                         section
                     )
                 )
