@@ -21,26 +21,10 @@ name=
 
     def get_issuers_setting(self):
         try:
-            issuers_settings = self._get_settings_for_nav_issued_tokens()
-            for section in self.sections():
-                if section == self.NAV_SECTION:
-                    continue
-                get = partial(self.get, section)
-                issuer = self._validate_issuer(section)
-                key = self._validate_key(get('key'))
-                aud = self._validate_audience(get('aud'))
-                key_type = self._validate_type(get('keytype'))
-                if key_type == 'PEM':
-                    key = self._read_file(key)
-                claims_options = {
-                    'aud': {'values': [aud], 'essential': True},
-                }
-                issuers_settings[issuer] = {
-                    'key': key,
-                    'type': key_type,
-                    'claims_options': claims_options,
-                }
-                return issuers_settings
+            external_settings = self._get_settings_for_external_tokens()
+            local_settings = self._get_settings_for_nav_issued_tokens()
+            external_settings.update(local_settings)
+            return external_settings
         except (
             FileNotFoundError,
             configparser.Error,
@@ -50,6 +34,28 @@ name=
         ) as error:
             _logger.error('Error reading jwtconfig %s', error)
             return dict()
+
+    def _get_settings_for_external_tokens(self):
+        settings = dict()
+        for section in self.sections():
+            if section == self.NAV_SECTION:
+                continue
+            get = partial(self.get, section)
+            issuer = self._validate_issuer(section)
+            key = self._validate_key(get('key'))
+            aud = self._validate_audience(get('aud'))
+            key_type = self._validate_type(get('keytype'))
+            if key_type == 'PEM':
+                key = self._read_file(key)
+            claims_options = {
+                'aud': {'values': [aud], 'essential': True},
+            }
+            settings[issuer] = {
+                'key': key,
+                'type': key_type,
+                'claims_options': claims_options,
+            }
+        return settings
 
     def _read_file(self, file):
         with open(file, "r") as f:
