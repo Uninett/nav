@@ -16,7 +16,7 @@ class JWTConf(NAVConfigParser):
 [nav-config]
 private_key=
 public_key=
-name=NAV
+name=
 """
 
     def get_issuers_setting(self):
