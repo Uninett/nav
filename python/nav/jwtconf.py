@@ -11,10 +11,13 @@ class JWTConf(NAVConfigParser):
     """jwt.conf config parser"""
 
     DEFAULT_CONFIG_FILES = ('jwt.conf',)
+    NAV_SECTION = "nav-config"
 
     def get_issuers_setting(self):
-        issuers_settings = dict()
+        issuers_settings = self._get_settings_for_nav_issued_tokens()
         for section in self.sections():
+            if section == self.NAV_SECTION:
+                continue
             try:
                 get = partial(self.get, section)
                 key = self._validate_key(get('key'))
@@ -54,3 +57,47 @@ class JWTConf(NAVConfigParser):
         if not audience:
             raise ConfigurationError("Invalid 'aud': 'aud' must not be empty")
         return audience
+
+    def _get_nav_issued_token_settings(self):
+        return partial(self.get, self.NAV_SECTION)
+
+    def get_nav_private_key(self):
+        get = self._get_nav_issued_token_settings()
+        path = get('private_key')
+        return self._read_file(path)
+
+    def get_nav_public_key(self):
+        get = self._get_nav_issued_token_settings()
+        path = get('public_key')
+        return self._read_file(path)
+
+    def get_nav_name(self):
+        get = self._get_nav_issued_token_settings()
+        name = get('name')
+        if not name:
+            raise ConfigurationError("Invalid 'name': 'name' must not be empty")
+        return name
+
+    def _get_settings_for_nav_issued_tokens(self):
+        try:
+            name = self.get_nav_name()
+            claims_options = {
+                'aud': {'values': [name], 'essential': True},
+                'token_type': {'values': ['access_token'], 'essential': True},
+            }
+            settings = {
+                name: {
+                    'type': "PEM",
+                    'key': self.get_nav_public_key(),
+                    'claims_options': claims_options,
+                }
+            }
+            return settings
+        except (
+            FileNotFoundError,
+            ConfigurationError,
+            configparser.NoSectionError,
+            configparser.NoOptionError,
+        ) as error:
+            _logger.error('Error reading config for NAV issued token: %s', error)
+            return {}
