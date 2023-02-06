@@ -103,3 +103,87 @@ class TestJWTConf(TestCase):
         jwtconf = JWTConf()
         validated_type = jwtconf._validate_type(type)
         self.assertEqual(validated_type, type)
+
+    def test_validate_issuer_should_fail_if_external_name_matches_local_name(self):
+        config = u"""
+        [nav-config]
+        private_key=key
+        public_key=key
+        name=issuer-name
+        [issuer-name]
+        keytype=PEM
+        aud=aud
+        key=key
+        """
+        key = "key_value"
+
+        def read_file_patch(self, file):
+            return key
+
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            with patch.object(JWTConf, '_read_file', read_file_patch):
+                jwtconf = JWTConf()
+                with self.assertRaises(ConfigurationError):
+                    jwtconf._validate_issuer('issuer-name')
+
+    def test_validate_issuer_should_raise_error_if_issuer_is_empty(self):
+        jwtconf = JWTConf()
+        with self.assertRaises(ConfigurationError):
+            jwtconf._validate_issuer("")
+
+    def test_get_nav_private_key_returns_correct_private_key(self):
+        config = u"""
+        [nav-config]
+        private_key=key
+        public_key=key
+        name=issuer-name
+        """
+        key = "private-key"
+
+        def read_file_patch(self, file):
+            return key
+
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            with patch.object(JWTConf, '_read_file', read_file_patch):
+                jwtconf = JWTConf()
+                self.assertEqual(jwtconf.get_nav_private_key(), key)
+
+    def test_get_nav_public_key_returns_correct_public_key(self):
+        config = u"""
+        [nav-config]
+        private_key=key
+        public_key=key
+        name=issuer-name
+        """
+        key = "private-key"
+
+        def read_file_patch(self, file):
+            return key
+
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            with patch.object(JWTConf, '_read_file', read_file_patch):
+                jwtconf = JWTConf()
+                self.assertEqual(jwtconf.get_nav_public_key(), key)
+
+    def test_get_nav_name_should_raise_error_if_name_empty(self):
+        config = u"""
+        [nav-config]
+        private_key=key
+        public_key=key
+        name=
+        """
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            with self.assertRaises(ConfigurationError):
+                jwtconf.get_nav_name()
+
+    def test_get_nav_name_returns_configured_name(self):
+        config = u"""
+        [nav-config]
+        private_key=key
+        public_key=key
+        name=nav
+        """
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            self.assertEqual(jwtconf.get_nav_name(), "nav")
