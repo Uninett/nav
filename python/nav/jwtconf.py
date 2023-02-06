@@ -83,21 +83,21 @@ name=NAV
             raise ConfigurationError("Invalid 'aud': 'aud' must not be empty")
         return audience
 
-    def _get_nav_issued_token_settings(self):
+    def _get_nav_token_config(self):
         return partial(self.get, self.NAV_SECTION)
 
     def get_nav_private_key(self):
-        get = self._get_nav_issued_token_settings()
+        get = self._get_nav_token_config()
         path = get('private_key')
         return self._read_file(path)
 
     def get_nav_public_key(self):
-        get = self._get_nav_issued_token_settings()
+        get = self._get_nav_token_config()
         path = get('public_key')
         return self._read_file(path)
 
     def get_nav_name(self):
-        get = self._get_nav_issued_token_settings()
+        get = self._get_nav_token_config()
         name = get('name')
         if not name:
             raise ConfigurationError("Invalid 'name': 'name' must not be empty")
