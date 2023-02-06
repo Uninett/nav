@@ -32,7 +32,7 @@ name=
             configparser.NoOptionError,
             ConfigurationError,
         ) as error:
-            _logger.error('Error reading jwtconfig %s', error)
+            _logger.error('Error reading jwtconfig {}'.format(error))
             return dict()
 
     def _get_settings_for_external_tokens(self):
