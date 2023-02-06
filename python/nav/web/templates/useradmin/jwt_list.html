@@ -47,8 +47,7 @@
           <thead>
             <tr>
               <th>Name</th>
-              <th>Active from</th>
-              <th>Expires</th>
+              <th>Status</th>
               <th>&nbsp;</th>
             </tr>
           </thead>
@@ -61,20 +60,16 @@
                   <a href="{% url 'useradmin-jwt_detail' token.pk %}" title="Details">{{ token.name }}</a>
                 </td>
 
-                {# Active from #}
+                {# Status #}
                 <td>
-                  {{ token.active_from }}
-                </td>
-
-                {# Expires #}
-                <td>
-                    {% if token.is_expired %}
-                      <span class="label warning"
-                            title="Token expired {{ token.expires}}">
-                        Expired
+                    {% if not token.is_active%}
+                      <span class="label warning" title="Token Inactive">
+                        Inactive
                       </span>
                     {% else %}
-                      {{ token.expires }}
+                      <span class="label success" title="Token Active">
+                        Active
+                      </span>
                     {% endif %}
                 </td>
 

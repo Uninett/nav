@@ -15,7 +15,6 @@
 #
 """Models for the NAV API"""
 
-import os
 from datetime import datetime, timedelta
 
 import jwt
@@ -89,22 +88,23 @@ class JWTRefreshToken(models.Model):
         """Body of token as a dict"""
         return jwt.decode(self.token, options={'verify_signature': False})
 
-    def active_from(self):
+    def activates(self):
+        """Datetime when token activates"""
         data = self.data()
         return datetime.fromtimestamp(data['nbf'])
 
-    def is_active(self):
-        now = datetime.now()
-        return now >= self.active_from() and not self.is_expired()
-
     def expires(self):
+        """Datetime when token expires"""
         data = self.data()
         return datetime.fromtimestamp(data['exp'])
 
-    def is_expired(self):
-        return datetime.now() >= self.expires()
+    def is_active(self):
+        """True if token is active"""
+        now = datetime.now()
+        return now >= self.activates() and now < self.expires()
 
     def expire(self):
+        """Expires the token"""
         data = self.data()
         data['exp'] = datetime.now().timestamp()
         data['nbf'] = datetime.now().timestamp()

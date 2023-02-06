@@ -38,23 +38,8 @@
           </div>
         {% endif %}
 
-
-        <p>
-          Permission:
-          {{ object.permission }}
-          <i class="fa fa-info-circle"
-             title="{{ object.permission_help_text }}"
-             style="cursor: pointer"
-          ></i>
-        </p>
-
-        <div class="alert-box {% if object.is_expired %}warning with-icon{% endif %}">
-          {% if object.is_expired %}
-            Expired
-          {% else %}
-            Expires
-          {% endif %}
-          {{ object.expires }}
+        <div class="alert-box {% if not object.is_active %}warning with-icon{% endif %}">
+          Active from {{ object.activates }} to {{ object.expires }}
         </div>
 
       </div> {# end panel #}
