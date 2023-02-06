@@ -35,7 +35,7 @@ class JWTConf(NAVConfigParser):
                     'claims_options': claims_options,
                 }
             except (configparser.Error, ConfigurationError) as error:
-                _logger.error('Error collecting stats for %s: %s', section, error)
+                _logger.error('Error reading config for %s: %s', section, error)
         return issuers_settings
 
     def _read_file(self, file):
