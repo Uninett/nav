@@ -48,6 +48,8 @@
             <tr>
               <th>Name</th>
               <th>Status</th>
+              <th>Activates at</th>
+              <th>Expires at</th>
               <th>&nbsp;</th>
             </tr>
           </thead>
@@ -71,6 +73,16 @@
                         Active
                       </span>
                     {% endif %}
+                </td>
+
+                {# Activates at #}
+                <td>
+                  {{ token.activates }}
+                </td>
+
+                {# Expires at #}
+                <td>
+                  {{ token.expires }}
                 </td>
 
                 {# Link to token edit #}
