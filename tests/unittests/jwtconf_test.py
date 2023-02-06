@@ -10,27 +10,38 @@ class TestJWTConf(TestCase):
 
     def test_valid_jwks_config_should_pass(self):
         config = u"""
+            [nav-config]
+            private_key=key
+            public_key=key
+            name=issuer-name
             [jwks-issuer]
             keytype=JWKS
             aud=nav
             key=www.example.com
             """
         expected_settings = {
-            'jwks-issuer': {
-                'key': 'www.example.com',
-                'type': 'JWKS',
-                'claims_options': {
-                    'aud': {'values': ['nav'], 'essential': True},
-                },
-            }
+            'key': 'www.example.com',
+            'type': 'JWKS',
+            'claims_options': {
+                'aud': {'values': ['nav'], 'essential': True},
+            },
         }
+
+        def read_file_patch(self, file):
+            return "key"
+
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
-            jwtconf = JWTConf()
-            settings = jwtconf.get_issuers_setting()
-        self.assertEqual(settings, expected_settings)
+            with patch.object(JWTConf, '_read_file', read_file_patch):
+                jwtconf = JWTConf()
+                settings = jwtconf.get_issuers_setting()
+        self.assertEqual(settings['jwks-issuer'], expected_settings)
 
     def test_valid_pem_config_should_pass(self):
         config = u"""
+            [nav-config]
+            private_key=key
+            public_key=key
+            name=nav-issuer
             [pem-issuer]
             keytype=PEM
             aud=nav
@@ -38,13 +49,11 @@ class TestJWTConf(TestCase):
             """
         pem_key = "PEM KEY"
         expected_settings = {
-            'pem-issuer': {
-                'key': pem_key,
-                'type': 'PEM',
-                'claims_options': {
-                    'aud': {'values': ['nav'], 'essential': True},
-                },
-            }
+            'key': pem_key,
+            'type': 'PEM',
+            'claims_options': {
+                'aud': {'values': ['nav'], 'essential': True},
+            },
         }
 
         def read_file_patch(self, file):
@@ -54,10 +63,14 @@ class TestJWTConf(TestCase):
             with patch.object(JWTConf, '_read_file', read_file_patch):
                 jwtconf = JWTConf()
                 settings = jwtconf.get_issuers_setting()
-        self.assertEqual(settings, expected_settings)
+        self.assertEqual(settings['pem-issuer'], expected_settings)
 
     def test_invalid_ketype_should_fail(self):
         config = u"""
+            [nav-config]
+            private_key=key
+            public_key=key
+            name=issuer-name
             [pem-issuer]
             keytype=Fake
             aud=nav
@@ -70,6 +83,10 @@ class TestJWTConf(TestCase):
 
     def test_empty_key_should_fail(self):
         config = u"""
+            [nav-config]
+            private_key=key
+            public_key=key
+            name=issuer-name
             [pem-issuer]
             keytype=JWKS
             aud=nav
@@ -82,6 +99,10 @@ class TestJWTConf(TestCase):
 
     def test_empty_aud_should_fail(self):
         config = u"""
+            [nav-config]
+            private_key=key
+            public_key=key
+            name=issuer-name
             [pem-issuer]
             keytype=JWKS
             aud=

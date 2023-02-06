@@ -20,11 +20,11 @@ name=NAV
 """
 
     def get_issuers_setting(self):
-        issuers_settings = self._get_settings_for_nav_issued_tokens()
-        for section in self.sections():
-            if section == self.NAV_SECTION:
-                continue
-            try:
+        try:
+            issuers_settings = self._get_settings_for_nav_issued_tokens()
+            for section in self.sections():
+                if section == self.NAV_SECTION:
+                    continue
                 get = partial(self.get, section)
                 issuer = self._validate_issuer(section)
                 key = self._validate_key(get('key'))
@@ -40,9 +40,16 @@ name=NAV
                     'type': key_type,
                     'claims_options': claims_options,
                 }
-            except (configparser.Error, ConfigurationError) as error:
-                _logger.error('Error reading config for %s: %s', section, error)
-        return issuers_settings
+                return issuers_settings
+        except (
+            FileNotFoundError,
+            configparser.Error,
+            configparser.NoSectionError,
+            configparser.NoOptionError,
+            ConfigurationError,
+        ) as error:
+            _logger.error('Error reading jwtconfig %s', error)
+            return dict()
 
     def _read_file(self, file):
         with open(file, "r") as f:
@@ -63,19 +70,12 @@ name=NAV
     def _validate_issuer(self, section):
         if not section:
             raise ConfigurationError("Invalid 'issuer': 'issuer' must not be empty")
-        try:
-            if section == self.get_nav_name():
-                raise ConfigurationError(
-                    "Invalid 'issuer': {} collides with internal issuer name".format(
-                        section
-                    )
+        if section == self.get_nav_name():
+            raise ConfigurationError(
+                "Invalid 'issuer': {} collides with internal issuer name".format(
+                    section
                 )
-        except (
-            configparser.NoSectionError,
-            configparser.NoOptionError,
-            ConfigurationError,
-        ):
-            pass
+            )
         return section
 
     def _validate_audience(self, audience):
@@ -104,25 +104,16 @@ name=NAV
         return name
 
     def _get_settings_for_nav_issued_tokens(self):
-        try:
-            name = self.get_nav_name()
-            claims_options = {
-                'aud': {'values': [name], 'essential': True},
-                'token_type': {'values': ['access_token'], 'essential': True},
+        name = self.get_nav_name()
+        claims_options = {
+            'aud': {'values': [name], 'essential': True},
+            'token_type': {'values': ['access_token'], 'essential': True},
+        }
+        settings = {
+            name: {
+                'type': "PEM",
+                'key': self.get_nav_public_key(),
+                'claims_options': claims_options,
             }
-            settings = {
-                name: {
-                    'type': "PEM",
-                    'key': self.get_nav_public_key(),
-                    'claims_options': claims_options,
-                }
-            }
-            return settings
-        except (
-            FileNotFoundError,
-            ConfigurationError,
-            configparser.NoSectionError,
-            configparser.NoOptionError,
-        ) as error:
-            _logger.error('Error reading config for NAV issued token: %s', error)
-            return {}
+        }
+        return settings
