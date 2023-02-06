@@ -15,7 +15,9 @@
 #
 """Models for the NAV API"""
 
-from datetime import datetime
+from datetime import datetime, timedelta
+
+import jwt
 
 from django.db import models
 from django.urls import reverse
@@ -66,3 +68,39 @@ class APIToken(models.Model):
 
     class Meta(object):
         db_table = 'apitoken'
+
+
+class JWTRefreshToken(models.Model):
+    """RefreshTokens are used for generating new access tokens"""
+
+    token = VarcharField()
+    name = VarcharField(unique=True)
+    description = models.TextField(null=True, blank=True)
+
+    ACCESS_EXPIRE_DELTA = timedelta(hours=1)
+    REFRESH_EXPIRE_DELTA = timedelta(days=1)
+
+    def __str__(self):
+        return self.token
+
+    def data(self):
+        """Body of token as a dict"""
+        return jwt.decode(self.token, options={'verify_signature': False})
+
+    def activates(self):
+        """Datetime when token activates"""
+        data = self.data()
+        return datetime.fromtimestamp(data['nbf'])
+
+    def expires(self):
+        """Datetime when token expires"""
+        data = self.data()
+        return datetime.fromtimestamp(data['exp'])
+
+    def is_active(self):
+        """True if token is active"""
+        now = datetime.now()
+        return now >= self.activates() and now < self.expires()
+
+    class Meta(object):
+        db_table = 'jwtrefreshtoken'
