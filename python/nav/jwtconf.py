@@ -20,6 +20,7 @@ class JWTConf(NAVConfigParser):
                 continue
             try:
                 get = partial(self.get, section)
+                issuer = self._validate_issuer(section)
                 key = self._validate_key(get('key'))
                 aud = self._validate_audience(get('aud'))
                 key_type = self._validate_type(get('keytype'))
@@ -28,7 +29,7 @@ class JWTConf(NAVConfigParser):
                 claims_options = {
                     'aud': {'values': [aud], 'essential': True},
                 }
-                issuers_settings[section] = {
+                issuers_settings[issuer] = {
                     'key': key,
                     'type': key_type,
                     'claims_options': claims_options,
@@ -52,6 +53,24 @@ class JWTConf(NAVConfigParser):
                 "Invalid 'keytype': 'keytype' must be either 'JWKS' or 'PEM'"
             )
         return key_type
+
+    def _validate_issuer(self, section):
+        if not section:
+            raise ConfigurationError("Invalid 'issuer': 'issuer' must not be empty")
+        try:
+            if section == self.get_nav_name():
+                raise ConfigurationError(
+                    "Invalid 'issuer': {} collides with NAVs internal issuer name".format(
+                        section
+                    )
+                )
+        except (
+            configparser.NoSectionError,
+            configparser.NoOptionError,
+            ConfigurationError,
+        ):
+            pass
+        return section
 
     def _validate_audience(self, audience):
         if not audience:
