@@ -103,6 +103,14 @@ class JWTRefreshToken(models.Model):
         now = datetime.now()
         return now >= self.activates() and now < self.expires()
 
+    def expire(self):
+        """Expires the token"""
+        data = self.data()
+        data['exp'] = datetime.now().timestamp()
+        data['nbf'] = datetime.now().timestamp()
+        self.token = self._encode_token(data)
+        self.save()
+
     @classmethod
     def _encode_token(cls, token_data):
         return jwt.encode(
