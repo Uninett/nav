@@ -31,7 +31,7 @@ class TestJWTConf(TestCase):
             return "key"
 
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
-            with patch.object(JWTConf, '_read_file', read_file_patch):
+            with patch.object(JWTConf, '_read_key_from_path', read_file_patch):
                 jwtconf = JWTConf()
                 settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings['jwks-issuer'], expected_settings)
@@ -60,7 +60,7 @@ class TestJWTConf(TestCase):
             return pem_key
 
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
-            with patch.object(JWTConf, '_read_file', read_file_patch):
+            with patch.object(JWTConf, '_read_key_from_path', read_file_patch):
                 jwtconf = JWTConf()
                 settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings['pem-issuer'], expected_settings)
@@ -121,7 +121,7 @@ class TestJWTConf(TestCase):
             return key
 
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
-            with patch.object(JWTConf, '_read_file', read_file_patch):
+            with patch.object(JWTConf, '_read_key_from_path', read_file_patch):
                 jwtconf = JWTConf()
                 with self.assertRaises(ConfigurationError):
                     jwtconf._validate_issuer('issuer-name')
@@ -144,7 +144,7 @@ class TestJWTConf(TestCase):
             return key
 
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
-            with patch.object(JWTConf, '_read_file', read_file_patch):
+            with patch.object(JWTConf, '_read_key_from_path', read_file_patch):
                 jwtconf = JWTConf()
                 self.assertEqual(jwtconf.get_nav_private_key(), key)
 
@@ -161,7 +161,7 @@ class TestJWTConf(TestCase):
             return key
 
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
-            with patch.object(JWTConf, '_read_file', read_file_patch):
+            with patch.object(JWTConf, '_read_key_from_path', read_file_patch):
                 jwtconf = JWTConf()
                 self.assertEqual(jwtconf.get_nav_public_key(), key)
 

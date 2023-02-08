@@ -25,41 +25,45 @@ name=
             local_settings = self._get_settings_for_nav_issued_tokens()
             external_settings.update(local_settings)
             return external_settings
-        except (
-            FileNotFoundError,
-            configparser.Error,
-            configparser.NoSectionError,
-            configparser.NoOptionError,
-            ConfigurationError,
-        ) as error:
+        except ConfigurationError as error:
             _logger.error('Error reading jwtconfig {}'.format(error))
             return dict()
 
     def _get_settings_for_external_tokens(self):
         settings = dict()
-        for section in self.sections():
-            if section == self.NAV_SECTION:
-                continue
-            get = partial(self.get, section)
-            issuer = self._validate_issuer(section)
-            key = self._validate_key(get('key'))
-            aud = self._validate_audience(get('aud'))
-            key_type = self._validate_type(get('keytype'))
-            if key_type == 'PEM':
-                key = self._read_file(key)
-            claims_options = {
-                'aud': {'values': [aud], 'essential': True},
-            }
-            settings[issuer] = {
-                'key': key,
-                'type': key_type,
-                'claims_options': claims_options,
-            }
+        try:
+            for section in self.sections():
+                if section == self.NAV_SECTION:
+                    continue
+                get = partial(self.get, section)
+                issuer = self._validate_issuer(section)
+                key = self._validate_key(get('key'))
+                aud = self._validate_audience(get('aud'))
+                key_type = self._validate_type(get('keytype'))
+                if key_type == 'PEM':
+                    key = self._read_key_from_path(key)
+                claims_options = {
+                    'aud': {'values': [aud], 'essential': True},
+                }
+                settings[issuer] = {
+                    'key': key,
+                    'type': key_type,
+                    'claims_options': claims_options,
+                }
+        except (
+            configparser.Error,
+            configparser.NoSectionError,
+            configparser.NoOptionError,
+        ) as error:
+            raise ConfigurationError(error)
         return settings
 
-    def _read_file(self, file):
-        with open(file, "r") as f:
-            return f.read()
+    def _read_key_from_path(self, path):
+        try:
+            with open(path, "r") as f:
+                return f.read()
+        except FileNotFoundError:
+            raise ConfigurationError("Could not read PEM key from file {}".format(path))
 
     def _validate_key(self, key):
         if not key:
@@ -89,22 +93,27 @@ name=
             raise ConfigurationError("Invalid 'aud': 'aud' must not be empty")
         return audience
 
-    def _get_nav_token_config(self):
-        return partial(self.get, self.NAV_SECTION)
+    def _get_nav_token_config_option(self, option):
+        try:
+            get = partial(self.get, self.NAV_SECTION)
+            return get(option)
+        except (
+            configparser.Error,
+            configparser.NoSectionError,
+            configparser.NoOptionError,
+        ) as error:
+            raise ConfigurationError(error)
 
     def get_nav_private_key(self):
-        get = self._get_nav_token_config()
-        path = get('private_key')
-        return self._read_file(path)
+        path = self._get_nav_token_config_option('private_key')
+        return self._read_key_from_path(path)
 
     def get_nav_public_key(self):
-        get = self._get_nav_token_config()
-        path = get('public_key')
-        return self._read_file(path)
+        path = self._get_nav_token_config_option('public_key')
+        return self._read_key_from_path(path)
 
     def get_nav_name(self):
-        get = self._get_nav_token_config()
-        name = get('name')
+        name = self._get_nav_token_config_option('name')
         if not name:
             raise ConfigurationError("Invalid 'name': 'name' must not be empty")
         return name
