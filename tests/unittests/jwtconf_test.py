@@ -65,6 +65,27 @@ class TestJWTConf(TestCase):
                 settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings['pem-issuer'], expected_settings)
 
+    def test_invalid_config_should_return_empty_dict(self):
+        config = u"""
+            [wrong-section-name]
+            private_key=key
+            public_key=key
+            name=nav-issuer
+            [pem-issuer]
+            keytype=INVALID
+            aud=nav
+            key=key_path
+            """
+
+        def read_file_patch(self, file):
+            return "key"
+
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            with patch.object(JWTConf, '_read_key_from_path', read_file_patch):
+                jwtconf = JWTConf()
+                settings = jwtconf.get_issuers_setting()
+        self.assertEqual(settings, dict())
+
     def test_validate_key_should_raise_error_if_key_is_empty(self):
         jwtconf = JWTConf()
         with self.assertRaises(ConfigurationError):
