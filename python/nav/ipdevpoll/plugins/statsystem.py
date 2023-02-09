@@ -181,6 +181,7 @@ class StatSystem(Plugin):
     def _mibs_for_me(self, mib_class_dict):
         vendor = self.netbox.type.get_enterprise_id() if self.netbox.type else None
         mib_classes = mib_class_dict.get(vendor, None) or mib_class_dict.get(None, [])
+        self._logger.debug("mibs for me (vendor=%s): %r", vendor, mib_classes)
         for mib_class in mib_classes:
             yield mib_class(self.agent)
 
