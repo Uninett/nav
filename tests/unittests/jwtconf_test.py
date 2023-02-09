@@ -229,3 +229,38 @@ class TestJWTConf(TestCase):
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
             jwtconf = JWTConf()
             self.assertEqual(jwtconf.get_nav_name(), "nav")
+
+    def test_missing_option_should_raise_error(self):
+        config_with_missing_keytype = u"""
+            [nav-config]
+            private_key=key
+            public_key=key
+            name=nav-issuer
+            [pem-issuer]
+            aud=nav
+            key=key_path
+            """
+
+        def read_file_patch(self, file):
+            return "key"
+
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config_with_missing_keytype):
+            with patch.object(JWTConf, '_read_key_from_path', read_file_patch):
+                jwtconf = JWTConf()
+                with self.assertRaises(ConfigurationError):
+                    jwtconf._get_settings_for_external_tokens()
+
+    def test_non_existing_file_should_raise_error(self):
+        config = u"""
+            [nav-config]
+            private_key=key
+            public_key=key
+            name=nav-issuer
+            [pem-issuer]
+            aud=nav
+            key=key_path
+            """
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            with self.assertRaises(ConfigurationError):
+                jwtconf._read_key_from_path("fakepath")
