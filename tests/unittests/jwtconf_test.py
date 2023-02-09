@@ -1,4 +1,4 @@
-from mock import patch
+from mock import patch, mock_open
 from unittest import TestCase
 from nav.jwtconf import JWTConf
 from nav.config import ConfigurationError
@@ -264,3 +264,9 @@ class TestJWTConf(TestCase):
             jwtconf = JWTConf()
             with self.assertRaises(ConfigurationError):
                 jwtconf._read_key_from_path("fakepath")
+
+    def test_return_correct_key_if_file_exists(self):
+        jwtconf = JWTConf()
+        mock_key = "key"
+        with patch("builtins.open", mock_open(read_data=mock_key)):
+            self.assertEqual(jwtconf._read_key_from_path("path"), mock_key)
