@@ -42,7 +42,14 @@ CONFIG_LOCATIONS = [
     '/etc/nav',
     os.path.join(buildconf.datadir, 'conf'),
 ]
-_venv = os.getenv('VIRTUAL_ENV')
+# If running inside a virtualenv, add that virtualenv to the search path as well:
+_base_prefix = (
+    # Detect the base prefix in a manner compatible with both old and new virtualenv
+    getattr(sys, "base_prefix", None)
+    or getattr(sys, "real_prefix", None)
+    or sys.prefix
+)
+_venv = sys.prefix if sys.prefix != _base_prefix else None
 if _venv:
     CONFIG_LOCATIONS = [
         os.path.join(_venv, 'etc'),
