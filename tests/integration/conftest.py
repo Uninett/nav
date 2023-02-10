@@ -22,15 +22,7 @@ from django.test import Client
 #                                                                      #
 ########################################################################
 
-if os.environ.get('WORKSPACE'):
-    SCRIPT_PATH = os.path.join(os.environ['WORKSPACE'], 'tests/docker/scripts')
-else:
-    SCRIPT_PATH = '/'
-SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
 
-
-def pytest_configure(config):
-    subprocess.check_call([SCRIPT_CREATE_DB])
 
 
 ########################################################################
