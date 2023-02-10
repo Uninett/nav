@@ -10,7 +10,6 @@ import time
 import pytest
 from django.test import Client
 
-gunicorn = None
 
 ########################################################################
 #                                                                      #
@@ -31,7 +30,6 @@ SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
 def pytest_configure(config):
     subprocess.check_call([SCRIPT_CREATE_DB])
     os.environ['TARGETURL'] = "http://localhost:8000/"
-    start_gunicorn()
 
     # Bootstrap Django config
     from nav.bootstrap import bootstrap_django
@@ -49,12 +47,8 @@ def pytest_configure(config):
     setup_test_environment()
 
 
-def pytest_unconfigure(config):
-    stop_gunicorn()
-
-
-def start_gunicorn():
-    global gunicorn
+@pytest.fixture(scope='session')
+def gunicorn():
     workspace = os.path.join(os.environ.get('WORKSPACE', ''), 'reports')
     errorlog = os.path.join(workspace, 'gunicorn-error.log')
     accesslog = os.path.join(workspace, 'gunicorn-access.log')
@@ -68,11 +62,8 @@ def start_gunicorn():
             'navtest_wsgi:application',
         ]
     )
-
-
-def stop_gunicorn():
-    if gunicorn:
-        gunicorn.terminate()
+    yield gunicorn
+    gunicorn.terminate()
 
 
 ########################################################################
