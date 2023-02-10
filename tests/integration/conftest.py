@@ -138,7 +138,7 @@ def _scan_testargs(filename):
 
 
 @pytest.fixture()
-def management_profile():
+def management_profile(postgresql):
     from nav.models.manage import ManagementProfile
 
     profile = ManagementProfile(
@@ -174,7 +174,7 @@ def localhost(management_profile):
 
 
 @pytest.fixture()
-def localhost_using_legacy_db():
+def localhost_using_legacy_db(postgresql):
     """Alternative to the Django-based localhost fixture, for tests that operate on
     code that uses legacy database connections.
     """
@@ -217,7 +217,7 @@ def client():
 
 
 @pytest.fixture(scope='function')
-def db(request):
+def db(request, postgresql):
     """Ensures db modifications are rolled back after the test ends.
 
     This is done by disabling transaction management, running everything
