@@ -82,3 +82,22 @@ def _populate_test_database(database_name):
     # Add generic test data set
     test_data_path = './tests/docker/scripts/test-data.sql'
     subprocess.check_call(["psql", "-f", test_data_path, database_name], env=env)
+
+
+@pytest.fixture(scope='session')
+def gunicorn():
+    workspace = os.path.join(os.environ.get('WORKSPACE', ''), 'reports')
+    errorlog = os.path.join(workspace, 'gunicorn-error.log')
+    accesslog = os.path.join(workspace, 'gunicorn-access.log')
+    gunicorn = subprocess.Popen(
+        [
+            'gunicorn',
+            '--error-logfile',
+            errorlog,
+            '--access-logfile',
+            accesslog,
+            'navtest_wsgi:application',
+        ]
+    )
+    yield gunicorn
+    gunicorn.terminate()

@@ -42,25 +42,6 @@ def pytest_configure(config):
     setup_test_environment()
 
 
-@pytest.fixture(scope='session')
-def gunicorn():
-    workspace = os.path.join(os.environ.get('WORKSPACE', ''), 'reports')
-    errorlog = os.path.join(workspace, 'gunicorn-error.log')
-    accesslog = os.path.join(workspace, 'gunicorn-access.log')
-    gunicorn = subprocess.Popen(
-        [
-            'gunicorn',
-            '--error-logfile',
-            errorlog,
-            '--access-logfile',
-            accesslog,
-            'navtest_wsgi:application',
-        ]
-    )
-    yield gunicorn
-    gunicorn.terminate()
-
-
 ########################################################################
 #                                                                      #
 # All to do with discovering all NAV binaries and building fixtures to #
