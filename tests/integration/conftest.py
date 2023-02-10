@@ -1,5 +1,6 @@
 import os
 import io
+import platform
 import re
 import shlex
 from itertools import cycle
@@ -36,10 +37,11 @@ def pytest_configure(config):
 
     bootstrap_django('pytest')
 
-    # Install custom reactor for Twisted tests
-    from nav.ipdevpoll.epollreactor2 import install
+    if platform.system() == 'Linux':
+        # Install custom reactor for Twisted tests
+        from nav.ipdevpoll.epollreactor2 import install
 
-    install()
+        install()
 
     # Setup test environment for Django
     from django.test.utils import setup_test_environment
