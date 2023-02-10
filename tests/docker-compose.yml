@@ -1,0 +1,18 @@
+# This defines external services that the integration tests depend on. Under
+# various CI systems, such as GitHub Actions, these services may be provided
+# externally. If the test suite deems that they aren't available externally,
+# they may be run locally using these definitions instead.
+---
+version: '3.5'
+
+services:
+  postgres:
+    image: docker.io/postgres:11
+    environment:
+      - POSTGRES_USER=nav
+      - POSTGRES_PASSWORD=nav
+      - POSTGRES_DB=nav
+    ports:
+      - 5432:5432
+    tmpfs:
+      /var/lib/postgresql/data
