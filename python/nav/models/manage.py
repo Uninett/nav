@@ -2500,6 +2500,12 @@ class Sensor(models.Model):
             }
         return {}
 
+    @property
+    def threshold_for(self):
+        self.objects.filter(
+            netbox=self.netbox, oid=self.threshold_for_oid, mib=self.mib
+        )
+
 
 class PowerSupplyOrFan(models.Model):
     STATE_UP = u'y'
