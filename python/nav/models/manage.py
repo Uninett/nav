@@ -2739,6 +2739,21 @@ class Sensor(models.Model):
             }
         return {}
 
+    @property
+    def threshold_for(self):
+        """Returns the sensor this is a threshold for.
+        Returns None if no such sensor exists.
+        """
+        if not self.threshold_for_oid:
+            return None
+        try:
+            return self.__class__.objects.get(
+                netbox=self.netbox, oid=self.threshold_for_oid, mib=self.mib
+            )
+        except self.DoesNotExist:
+            _logger.error("Could not find sensor with oid %s", self.threshold_for_oid)
+            return None
+
 
 class PowerSupplyOrFan(models.Model):
     STATE_UP = 'y'
