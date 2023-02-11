@@ -53,28 +53,92 @@ SENSOR_COLUMNS = {
 
 THRESHOLD_COLUMNS = {
     "jnxDomCurrentRxLaserPower": {
-        "high_alarm_threshold": "jnxDomCurrentRxLaserPowerHighAlarmThreshold",
-        "low_alarm_threshold": "jnxDomCurrentRxLaserPowerLowAlarmThreshold",
-        "high_warning_threshold": "jnxDomCurrentRxLaserPowerHighWarningThreshold",
-        "low_warning_threshold": "jnxDomCurrentRxLaserPowerLowWarningThreshold",
+        "jnxDomCurrentRxLaserPowerHighAlarmThreshold": {
+            "name": "{ifc} RX Laser Power High Alarm Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+        },
+        "jnxDomCurrentRxLaserPowerLowAlarmThreshold": {
+            "name": "{ifc} RX Laser Power Low Alarm Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+        },
+        "jnxDomCurrentRxLaserPowerHighWarningThreshold": {
+            "name": "{ifc} RX Laser Power High Warning Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+        },
+        "jnxDomCurrentRxLaserPowerLowWarningThreshold": {
+            "name": "{ifc} RX Laser Power Low Warning Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+        },
     },
     "jnxDomCurrentTxLaserBiasCurrent": {
-        "high_alarm_threshold": "jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold",
-        "low_alarm_threshold": "jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold",
-        "high_warning_threshold": "jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold",
-        "low_warning_threshold": "jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold",
+        "jnxDomCurrentTxLaserBiasCurrentHighAlarmThreshold": {
+            "name": "{ifc} TX Laser Bias Current High Alarm Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+        },
+        "jnxDomCurrentTxLaserBiasCurrentLowAlarmThreshold": {
+            "name": "{ifc} TX Laser Bias Current Low Alarm Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+        },
+        "jnxDomCurrentTxLaserBiasCurrentHighWarningThreshold": {
+            "name": "{ifc} TX Laser Bias Current High Warning Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+        },
+        "jnxDomCurrentTxLaserBiasCurrentLowWarningThreshold": {
+            "name": "{ifc} TX Laser Bias Current Low Warning Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+        },
     },
     "jnxDomCurrentTxLaserOutputPower": {
-        "high_alarm_threshold": "jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold",
-        "low_alarm_threshold": "jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold",
-        "high_warning_threshold": "jnxDomCurrentTxLaserOutputPowerHighWarningThreshold",
-        "low_warning_threshold": "jnxDomCurrentTxLaserOutputPowerLowWarningThreshold",
+        "jnxDomCurrentTxLaserOutputPowerHighAlarmThreshold": {
+            "name": "{ifc} TX Laser Output Power High Alarm Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+        },
+        "jnxDomCurrentTxLaserOutputPowerLowAlarmThreshold": {
+            "name": "{ifc} TX Laser Output Power Low Alarm Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+        },
+        "jnxDomCurrentTxLaserOutputPowerHighWarningThreshold": {
+            "name": "{ifc} TX Laser Output Power High Warning Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+        },
+        "jnxDomCurrentTxLaserOutputPowerLowWarningThreshold": {
+            "name": "{ifc} TX Laser Output Power Low Warning Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+        },
     },
     "jnxDomCurrentModuleTemperature": {
-        "high_alarm_threshold": "jnxDomCurrentModuleTemperatureHighAlarmThreshold",
-        "low_alarm_threshold": "jnxDomCurrentModuleTemperatureLowAlarmThreshold",
-        "high_warning_threshold": "jnxDomCurrentModuleTemperatureHighWarningThreshold",
-        "low_warning_threshold": "jnxDomCurrentModuleTemperatureLowWarningThreshold",
+        "jnxDomCurrentModuleTemperatureHighAlarmThreshold": {
+            "name": "{ifc} Module Temperature High Alarm Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+        },
+        "jnxDomCurrentModuleTemperatureLowAlarmThreshold": {
+            "name": "{ifc} Module Temperature Low Alarm Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+            "threshold_alert_type": Sensor.ALERT_TYPE_ALERT,
+        },
+        "jnxDomCurrentModuleTemperatureHighWarningThreshold": {
+            "name": "{ifc} Module Temperature High Warning Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_HIGH,
+            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+        },
+        "jnxDomCurrentModuleTemperatureLowWarningThreshold": {
+            "name": "{ifc} Module Temperature Low Warning Threshold",
+            "threshold_type": Sensor.THRESHOLD_TYPE_LOW,
+            "threshold_alert_type": Sensor.ALERT_TYPE_WARNING,
+        },
     },
 }
 
@@ -90,8 +154,15 @@ class JuniperDomMib(MibRetriever):
         device.
         """
         sensors = []
-        for column, config in SENSOR_COLUMNS.items():
-            sensors += yield self.handle_sensor_column(column, config)
+        for sensor_column, sensor_config in SENSOR_COLUMNS.items():
+            sensors += yield self.handle_sensor_column(sensor_column, sensor_config)
+            for threshold_column, threshold_config in THRESHOLD_COLUMNS[sensor_column]:
+                sensors += yield self.handle_threshold_column(
+                    threshold_column,
+                    threshold_config,
+                    sensor_column,
+                    sensor_config,
+                )
         returnValue(sensors)
 
     @defer.inlineCallbacks
@@ -113,29 +184,26 @@ class JuniperDomMib(MibRetriever):
         returnValue(result)
 
     @defer.inlineCallbacks
-    def get_all_thresholds(self):
-        thresholds = []
-        for sensor_column, thresholds in THRESHOLD_COLUMNS.items():
-            sensor_oid = self.nodes[sensor_column].oid
-            for threshold_name, threshold_column in thresholds.items():
-                thresholds += yield self.handle_threshold_column(
-                    threshold_column, threshold_name, sensor_oid
-                )
-        returnValue(thresholds)
-
-    @defer.inlineCallbacks
-    def handle_threshold_column(self, column, name, sensor_oid):
+    def handle_threshold_column(
+        self, column, config, related_sensor_column, related_sensor_config
+    ):
         """Returns the sensor thresholds of the given type"""
         result = []
         value_oid = self.nodes[column].oid
+        related_sensor_oid = self.nodes[related_sensor_column].oid
         rows = yield self.retrieve_column(column)
         for row, value in rows.items():
-            threshold = dict(
+            threshold_sensor = dict(
                 oid=str(value_oid + row),
+                scale=None,
                 mib=self.get_module_name(),
-                name=name,
-                value=value,
-                sensor_oid=str(sensor_oid + row),
+                description=config['name'],
+                internal_name="{ifc}." + column,
+                ifindex=row[-1],
+                unit_of_measurement=related_sensor_config['unit_of_measurement'],
+                precision=related_sensor_config['precision'],
+                threshold_for_oid=str(related_sensor_oid + row),
             )
-            result.append(threshold)
+            threshold_sensor.update(config)
+            result.append(threshold_sensor)
         returnValue(result)

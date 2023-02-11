@@ -126,6 +126,9 @@ class Sensors(Plugin):
                 sensor.on_message_sys = row.get('on_message')
                 sensor.off_message_sys = row.get('off_message')
                 sensor.on_state_sys = row.get('on_state')
+                sensor.threshold_type = row.get('threshold_type')
+                sensor.threshold_alert_type = row.get('threshold_alert_type')
+                sensor.threshold_for_oid = row.get('threshold_for_oid')
                 if ifindex:
                     iface = self.containers.factory(ifindex, shadows.Interface)
                     iface.netbox = self.netbox
