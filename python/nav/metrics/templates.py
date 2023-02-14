@@ -100,20 +100,6 @@ def metric_path_for_sensor(sysname, sensor):
     )
 
 
-def metric_prefix_for_thresholds(sysname):
-    tmpl = "{prefix}.thresholds"
-    return tmpl.format(prefix=metric_prefix_for_sensors(sysname))
-
-
-def metric_path_for_threshold(sysname, sensor, threshold):
-    tmpl = "{prefix}.{sensor}.{threshold}"
-    return tmpl.format(
-        prefix=metric_prefix_for_thresholds(sysname),
-        sensor=escape_metric_name(sensor),
-        threshold=escape_metric_name(threshold),
-    )
-
-
 def metric_path_for_service_availability(sysname, handler, service_id):
     tmpl = "{service}.availability"
     return tmpl.format(service=metric_prefix_for_service(sysname, handler, service_id))
