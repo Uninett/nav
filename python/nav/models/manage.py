@@ -2378,9 +2378,7 @@ class Sensor(models.Model):
     threshold_alert_type = models.IntegerField(
         db_column='threshold_alert_type', choices=ALERT_TYPE_CHOICES, null=True
     )
-    threshold_for_oid = models.ForeignKey(
-        'self', on_delete=models.CASCADE, db_column='threshold_for_oid_id'
-    )
+    threshold_for_oid = VarcharField(db_column='threshold_for_oid')
 
     class Meta(object):
         db_table = 'sensor'
