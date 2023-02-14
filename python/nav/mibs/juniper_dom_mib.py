@@ -194,7 +194,7 @@ class JuniperDomMib(MibRetriever):
         value_oid = self.nodes[column].oid
         related_sensor_oid = self.nodes[related_sensor_column].oid
         rows = yield self.retrieve_column(column)
-        for row, value in rows.items():
+        for row in rows:
             threshold_sensor = dict(
                 oid=str(value_oid + row),
                 scale=None,
