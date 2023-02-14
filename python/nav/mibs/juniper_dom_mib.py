@@ -156,7 +156,9 @@ class JuniperDomMib(MibRetriever):
         sensors = []
         for sensor_column, sensor_config in SENSOR_COLUMNS.items():
             sensors += yield self.handle_sensor_column(sensor_column, sensor_config)
-            for threshold_column, threshold_config in THRESHOLD_COLUMNS[sensor_column]:
+            for threshold_column, threshold_config in THRESHOLD_COLUMNS[
+                sensor_column
+            ].items():
                 sensors += yield self.handle_threshold_column(
                     threshold_column,
                     threshold_config,
