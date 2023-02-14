@@ -2513,6 +2513,14 @@ class Sensor(models.Model):
             _logger.error("Could not find sensor with oid %s", self.threshold_for_oid)
             return None
 
+    @property
+    def thresholds(self):
+        """Returns list of all threshold-sensors for this sensor"""
+        thresholds = self.__class__.objects.filter(
+            netbox=self.netbox, threshold_for_oid=self.oid, mib=self.mib
+        )
+        return list(thresholds)
+
 
 class PowerSupplyOrFan(models.Model):
     STATE_UP = u'y'
