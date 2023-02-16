@@ -10,7 +10,7 @@ twisted>=20.0.0,<21
 
 
 networkx==2.6.3
-Pillow>3.3.2,<8.1
+Pillow>3.3.2
 pyrad==2.1
 sphinx==4.4.0
 sphinxcontrib-programoutput==0.17
