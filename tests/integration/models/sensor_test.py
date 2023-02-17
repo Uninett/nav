@@ -7,14 +7,12 @@ class TestSensor:
         self, db, sensor, threshold_sensor1
     ):
         threshold_for_sensor = threshold_sensor1.threshold_for
-        assert True == False
         assert threshold_for_sensor == sensor
 
     def test_thresholds_property_returns_all_sensors_that_are_thresholds_for_current_sensor(
         self, db, sensor, threshold_sensor1, threshold_sensor2
     ):
         threshold_sensors = sensor.thresholds
-        assert True == False
         assert set(threshold_sensors) == set([threshold_sensor1, threshold_sensor2])
 
 
