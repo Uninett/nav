@@ -27,7 +27,7 @@ from django.core.exceptions import FieldDoesNotExist
 import iso8601
 
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
-from django_filters.filters import ModelMultipleChoiceFilter
+from django_filters.filters import ModelMultipleChoiceFilter, CharFilter
 from rest_framework import status, filters, viewsets, exceptions
 from rest_framework.decorators import api_view, renderer_classes, action
 from rest_framework.reverse import reverse_lazy
@@ -40,12 +40,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView, get_object_or_404
+from rest_framework.serializers import ValidationError
+
 from oidc_auth.authentication import JSONWebTokenAuthentication
 
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
-from nav.util import auth_token
+from nav.util import auth_token, is_valid_cidr
 
 from nav.buildconf import VERSION
 from nav.web.api.v1 import serializers, alert_serializers
@@ -771,6 +773,28 @@ class VlanViewSet(NAVAPIMixin, viewsets.ModelViewSet):
         'usage',
     ]
     search_fields = ['net_ident', 'description']
+
+
+class PrefixFilterClass(FilterSet):
+    contains_address = CharFilter(method="contains_address_filter")
+
+    def contains_address_filter(self, queryset, field_name, value):
+        if not value:
+            return queryset
+        if not is_valid_cidr(value):
+            raise ValidationError(
+                {"contains_address": ["Value must be a valid CIDR address"]}
+            )
+        where_string = "inet '{}' <<= netaddr".format(value)
+        return queryset.extra(where=[where_string], order_by=['net_address'])
+
+    class Meta(object):
+        model = manage.Prefix
+        fields = (
+            'vlan',
+            'net_address',
+            'vlan__vlan',
+        )
 
 
 class PrefixViewSet(NAVAPIMixin, viewsets.ModelViewSet):
