@@ -450,6 +450,7 @@ class PrefixSerializer(serializers.ModelSerializer):
     usages = serializers.PrimaryKeyRelatedField(
         many=True, read_only=False, required=False, queryset=manage.Usage.objects.all()
     )
+    vlan_data = VlanSerializer(read_only=True, source='vlan')
 
     class Meta(object):
         model = manage.Prefix
