@@ -48,6 +48,14 @@ def test_contains_address_filter_returns_prefix_identical_to_given_address(
     assert prefix.id in prefix_ids
 
 
+def test_vlan_filter_returns_prefix_with_matching_vlan(client, prefix):
+    response = client.get(prefix_url, {"vlan": prefix.vlan.id})
+    assert response.status_code == 200
+    content = json.loads(response.content.decode('utf-8'))
+    prefix_ids = [prefix['id'] for prefix in content['results']]
+    assert prefix.id in prefix_ids
+
+
 ###
 #
 # Fixtures
