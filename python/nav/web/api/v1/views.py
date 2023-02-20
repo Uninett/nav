@@ -810,7 +810,7 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ModelViewSet):
 
     queryset = manage.Prefix.objects.all()
     serializer_class = serializers.PrefixSerializer
-    filterset_fields = ('vlan', 'net_address', 'vlan__vlan')
+    filterset_class = PrefixFilterClass
 
     @action(detail=False)
     def search(self, request):
