@@ -13,7 +13,10 @@ class TestSensor:
         self, db, sensor, threshold_sensor1, threshold_sensor2
     ):
         threshold_sensors = sensor.thresholds
-        assert set(threshold_sensors) == set([threshold_sensor1, threshold_sensor2])
+        expected_threshold_sensors = Sensor.objects.filter(
+            threshold_for_oid="1.2.3"
+        ).all()
+        assert set(threshold_sensors) == set(expected_threshold_sensors)
 
 
 @pytest.fixture
