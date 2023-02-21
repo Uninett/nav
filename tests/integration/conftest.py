@@ -6,12 +6,14 @@ import shlex
 from itertools import cycle
 from shutil import which
 import subprocess
-import time
 
 import toml
 import pytest
+from retry import retry
 from django.test import Client
 
+
+SNMP_TEST_PORT = 1024
 
 ########################################################################
 #                                                                      #
@@ -261,21 +263,26 @@ def snmpsim():
     """
     snmpsimd = which('snmpsim-command-responder')
     assert snmpsimd, "Could not find snmpsimd.py"
-    workspace = os.getenv('WORKSPACE', os.getenv('HOME', '/source'))
+    workspace = os.getenv('WORKSPACE', os.getcwd())
     proc = subprocess.Popen(
         [
             snmpsimd,
             '--data-dir={}/tests/integration/snmp_fixtures'.format(workspace),
             '--log-level=error',
-            '--agent-udpv4-endpoint=127.0.0.1:1024',
+            '--agent-udpv4-endpoint=127.0.0.1:{}'.format(SNMP_TEST_PORT),
         ],
         env={'HOME': workspace},
     )
 
-    while not _lookfor('0100007F:0400', '/proc/net/udp'):
-        print("Still waiting for snmpsimd to listen for queries")
-        proc.poll()
-        time.sleep(0.1)
+    @retry(Exception, tries=3, delay=0.5, backoff=2)
+    def _wait_for_snmpsimd():
+        if _verify_localhost_snmp_response():
+            return True
+        else:
+            proc.poll()
+            raise TimeoutError("Still waiting for snmpsimd to listen for queries")
+
+    _wait_for_snmpsimd()
 
     yield
     proc.kill()
@@ -292,7 +299,7 @@ def snmp_agent_proxy(snmpsim, snmp_ports):
     port = next(snmp_ports)
     agent = AgentProxy(
         '127.0.0.1',
-        1024,
+        SNMP_TEST_PORT,
         community='placeholder',
         snmpVersion='v2c',
         protocol=port.protocol,
@@ -316,14 +323,19 @@ def snmp_ports():
     return _ports
 
 
-def _lookfor(string, filename):
-    """Very simple grep-like function"""
-    data = io.open(filename, 'r', encoding='utf-8').read()
-    return string in data
-
-
 @pytest.fixture
 def admin_account(db):
     from nav.models.profiles import Account
 
     yield Account.objects.get(id=Account.ADMIN_ACCOUNT)
+
+
+def _verify_localhost_snmp_response(port=SNMP_TEST_PORT):
+    """Verifies that the snmpsimd fixture process is responding, by using NAV's own
+    SNMP framework to query it.
+    """
+    from nav.Snmp import Snmp
+
+    session = Snmp(host="127.0.0.1", community="public", version="2c", port=port)
+    resp = session.jog("1.3.6.1.2.1.47.1.1.1.1.2")
+    return resp
