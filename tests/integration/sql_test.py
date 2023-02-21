@@ -2,7 +2,7 @@
 from nav.db import getConnection
 
 
-def test_public_namespace_should_be_empty():
+def test_public_namespace_should_be_empty(postgresql):
     cursor = getConnection('default').cursor()
     cursor.execute(
         """SELECT relname
