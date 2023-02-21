@@ -1,7 +1,6 @@
 import datetime as dt
 
-from django.test import TestCase
-
+from nav.tests.cases import DjangoTransactionTestCase
 from nav.models.event import AlertHistory
 from nav.models.event import AlertHistoryVariable
 from nav.models.event import EventType
@@ -13,7 +12,7 @@ from nav.models.manage import Room
 from nav.models.manage import Organization
 
 
-class NetboxQuerysetTest(TestCase):
+class NetboxQuerysetTest(DjangoTransactionTestCase):
     def setUp(self):
         # Some rows have already been created
         _netbox_data = {
