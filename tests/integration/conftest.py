@@ -174,7 +174,7 @@ def localhost_using_legacy_db(postgresql):
 
 
 @pytest.fixture(scope='function')
-def client(admin_username, admin_password):
+def client(postgresql, admin_username, admin_password):
     """Provides a Django test Client object already logged in to the web UI as
     an admin"""
     from django.urls import reverse
