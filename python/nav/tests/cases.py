@@ -16,7 +16,13 @@
 """NAV test cases"""
 
 import django.test
+import pytest
 
 
 class DjangoTransactionTestCase(django.test.TestCase):
     serialized_rollback = True
+
+    @pytest.fixture(autouse=True)
+    def requirements(self, postgresql):
+        """Ensures the required pytest fixtures are loaded implicitly for all these tests"""
+        pass
