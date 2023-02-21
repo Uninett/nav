@@ -14,8 +14,14 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """NAV test cases"""
+import pytest
 import django.test
 
 
 class DjangoTransactionTestCase(django.test.TestCase):
     serialized_rollback = True
+
+    @pytest.fixture(autouse=True)
+    def requirements(self, postgresql):
+        """Ensures the required pytest fixtures are loaded implicitly for all these tests"""
+        pass
