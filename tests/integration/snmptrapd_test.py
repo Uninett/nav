@@ -28,7 +28,7 @@ def test_plugin_loader_raises_no_exception_if_plugin_has_no_initialize_method():
     assert not hasattr(loader[0], 'initialize')
 
 
-def test_plugin_loader_reading_in_modules_from_config_file():
+def test_plugin_loader_reading_in_modules_from_config_file(postgresql):
     configfile = find_config_file("snmptrapd.conf")
     config = configparser.ConfigParser()
     config.read(configfile)
