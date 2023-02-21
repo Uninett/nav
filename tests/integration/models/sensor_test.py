@@ -14,7 +14,7 @@ class TestSensor:
     ):
         threshold_sensors = sensor.thresholds
         expected_threshold_sensors = Sensor.objects.filter(
-            threshold_for_oid="1.2.3"
+            threshold_for_oid=sensor.oid
         ).all()
         assert set(threshold_sensors) == set(expected_threshold_sensors)
 
