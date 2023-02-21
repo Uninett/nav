@@ -2,16 +2,12 @@ from datetime import datetime, timedelta
 
 from django.urls import reverse
 
-from nav.web.navlets.roomstatus import RoomStatus
-from nav.web.navlets.feedreader import FeedReaderNavlet
-from nav.models.event import AlertHistory, AlertHistoryMessage
-from nav.models.profiles import AccountDashboard, AccountNavlet
-from nav.models.fields import INFINITY
-
 import pytest
 
 
 def test_roomstatus_should_not_fail_on_multiple_messages(alerthist_with_two_messages):
+    from nav.web.navlets.roomstatus import RoomStatus
+
     widget = RoomStatus()
     result = widget.get_context_data_view({})
     print(result)
@@ -23,6 +19,8 @@ def test_roomstatus_should_not_fail_on_multiple_messages(alerthist_with_two_mess
 
 
 def test_feedreader_widget_should_get_nav_blog_posts():
+    from nav.web.navlets.feedreader import FeedReaderNavlet
+
     widget = FeedReaderNavlet()
     feed = widget._get_feed('http://blog.nav.uninett.no/rss', maxposts=0)
     print(repr(feed))
@@ -41,6 +39,8 @@ def test_get_navlet_should_return_200(client, admin_navlet):
 
 def test_get_pdu_navlet_in_edit_mode_should_return_200(client, admin_account):
     """Tests a GET request against the pdu navlet in edit mode"""
+    from nav.models.profiles import AccountNavlet
+
     dashboard = AccountDashboard.objects.create(
         account=admin_account, name="Test Dashboard"
     )
@@ -137,6 +137,9 @@ def test_given_navlet_id_when_navlet_type_is_invalid_then_return_error_widget(
 
 @pytest.fixture()
 def alerthist_with_two_messages(localhost):
+    from nav.models.event import AlertHistory, AlertHistoryMessage
+    from nav.models.fields import INFINITY
+
     alert = AlertHistory(
         source_id='ipdevpoll',
         netbox=localhost,
