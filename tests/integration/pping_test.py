@@ -13,6 +13,8 @@ from nav.models.manage import Netbox, NetboxProfile
 from nav.models.event import EventQueue
 from nav.config import find_config_file
 
+TIMEOUT_COMMAND_LINE = "/usr/bin/timeout"
+
 
 BINDIR = './python/nav/bin'
 
@@ -25,7 +27,15 @@ def can_be_root():
         return False
 
 
+def timeout_command_line_program_exists():
+    return os.access(TIMEOUT_COMMAND_LINE, os.X_OK)
+
+
 @pytest.mark.timeout(20)
+@pytest.mark.skipif(
+    not timeout_command_line_program_exists(),
+    reason="{} is not available".format(TIMEOUT_COMMAND_LINE),
+)
 @pytest.mark.skipif(
     can_be_root(), reason="pping can only be tested with root privileges"
 )
@@ -35,6 +45,10 @@ def test_pping_localhost_should_work(localhost, pping_test_config):
 
 
 @pytest.mark.timeout(20)
+@pytest.mark.skipif(
+    not timeout_command_line_program_exists(),
+    reason="{} is not available".format(TIMEOUT_COMMAND_LINE),
+)
 @pytest.mark.skipif(
     can_be_root(), reason="pping can only be tested with root privileges"
 )
@@ -49,6 +63,10 @@ def test_pping_nonavailable_host_should_fail(
 
 
 @pytest.mark.timeout(20)
+@pytest.mark.skipif(
+    not timeout_command_line_program_exists(),
+    reason="{} is not available".format(TIMEOUT_COMMAND_LINE),
+)
 @pytest.mark.skipif(
     can_be_root(), reason="pping can only be tested with root privileges"
 )
@@ -88,7 +106,7 @@ def get_pping_output(timeout=5):
     """
     pping = which("pping")
     assert pping, "Cannot find pping in PATH"
-    cmd = get_root_method() + ["/usr/bin/timeout", str(timeout), pping, "-f"]
+    cmd = get_root_method() + [TIMEOUT_COMMAND_LINE, str(timeout), pping, "-f"]
     try:
         output = check_output(cmd, stderr=STDOUT)
     except CalledProcessError as error:
