@@ -34,7 +34,11 @@ class MacWatch(models.Model):
     # TODO: Create MACAddressField in Django
     mac = models.CharField(db_column='mac', max_length=17, unique=True)
     userid = models.ForeignKey(
-        Account, on_delete=models.CASCADE, db_column='userid', null=False
+        Account,
+        on_delete=models.CASCADE,
+        db_column='userid',
+        null=False,
+        related_name="mac_watches",
     )
     description = VarcharField(db_column='description', null=True)
     created = models.DateTimeField(db_column='created', auto_now_add=True)
@@ -75,9 +79,19 @@ class MacWatchMatch(models.Model):
 
     id = models.AutoField(db_column='id', primary_key=True)
     macwatch = models.ForeignKey(
-        MacWatch, on_delete=models.CASCADE, db_column='macwatch', null=False
+        MacWatch,
+        on_delete=models.CASCADE,
+        db_column='macwatch',
+        null=False,
+        related_name="mac_watch_matches",
     )
-    cam = models.ForeignKey(Cam, on_delete=models.CASCADE, db_column='cam', null=False)
+    cam = models.ForeignKey(
+        Cam,
+        on_delete=models.CASCADE,
+        db_column='cam',
+        null=False,
+        related_name="mac_watch_matches",
+    )
     posted = models.DateTimeField(db_column='posted', auto_now_add=True)
 
     class Meta(object):
