@@ -9,49 +9,44 @@ ENDPOINTS = {name: force_str(url) for name, url in get_endpoints().items()}
 prefix_url = ENDPOINTS['prefix']
 
 
-def test_contains_address_filter_returns_prefix_containing_given_address(
-    client, prefix
-):
-    response = client.get(prefix_url, {"contains_address": "10.1.1.0/24"})
-    assert response.status_code == 200
-    content = json.loads(response.content.decode('utf-8'))
-    prefix_ids = [prefix['id'] for prefix in content['results']]
-    assert prefix.id in prefix_ids
+class TestContainsAddressFilter:
+    def test_prefix_containing_given_address_is_returned(self, client, prefix):
+        response = client.get(prefix_url, {"contains_address": "10.1.1.0/24"})
+        assert response.status_code == 200
+        content = json.loads(response.content.decode('utf-8'))
+        prefix_ids = [prefix['id'] for prefix in content['results']]
+        assert prefix.id in prefix_ids
+
+    def test_prefix_that_does_not_contain_given_address_is_not_returned(
+        self, client, prefix
+    ):
+        response = client.get(prefix_url, {"contains_address": "20.4.111.0/24"})
+        assert response.status_code == 200
+        content = json.loads(response.content.decode('utf-8'))
+        prefix_ids = [prefix['id'] for prefix in content['results']]
+        assert prefix.id not in prefix_ids
+
+    def test_error_is_returned_if_given_address_is_not_valid_cidr_address(
+        self, client, prefix
+    ):
+        response = client.get(prefix_url, {"contains_address": "invalid_address"})
+        assert response.status_code == 400
+
+    def test_prefix_identical_to_given_address_is_returned(self, client, prefix):
+        response = client.get(prefix_url, {"contains_address": prefix.net_address})
+        assert response.status_code == 200
+        content = json.loads(response.content.decode('utf-8'))
+        prefix_ids = [prefix['id'] for prefix in content['results']]
+        assert prefix.id in prefix_ids
 
 
-def test_contains_address_filter_does_not_return_prefix_that_does_not_contain_given_address(
-    client, prefix
-):
-    response = client.get(prefix_url, {"contains_address": "20.4.111.0/24"})
-    assert response.status_code == 200
-    content = json.loads(response.content.decode('utf-8'))
-    prefix_ids = [prefix['id'] for prefix in content['results']]
-    assert prefix.id not in prefix_ids
-
-
-def test_contains_address_filter_fails_if_given_address_is_not_valid_cidr_address(
-    client, prefix
-):
-    response = client.get(prefix_url, {"contains_address": "invalid_address"})
-    assert response.status_code == 400
-
-
-def test_contains_address_filter_returns_prefix_identical_to_given_address(
-    client, prefix
-):
-    response = client.get(prefix_url, {"contains_address": prefix.net_address})
-    assert response.status_code == 200
-    content = json.loads(response.content.decode('utf-8'))
-    prefix_ids = [prefix['id'] for prefix in content['results']]
-    assert prefix.id in prefix_ids
-
-
-def test_vlan_filter_returns_prefix_with_matching_vlan(client, prefix):
-    response = client.get(prefix_url, {"vlan": prefix.vlan.id})
-    assert response.status_code == 200
-    content = json.loads(response.content.decode('utf-8'))
-    prefix_ids = [prefix['id'] for prefix in content['results']]
-    assert prefix.id in prefix_ids
+class TestVlanFilter:
+    def test_prefix_with_matching_vlan_id_is_returned(self, client, prefix):
+        response = client.get(prefix_url, {"vlan": prefix.vlan.id})
+        assert response.status_code == 200
+        content = json.loads(response.content.decode('utf-8'))
+        prefix_ids = [prefix['id'] for prefix in content['results']]
+        assert prefix.id in prefix_ids
 
 
 ###
