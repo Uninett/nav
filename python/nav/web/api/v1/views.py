@@ -805,6 +805,7 @@ class PrefixViewSet(NAVAPIMixin, viewsets.ModelViewSet):
     - net_address
     - vlan
     - vlan__vlan: *Filters on the vlan number of the vlan*
+    - contains_address
 
     """
 
