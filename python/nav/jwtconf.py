@@ -26,7 +26,7 @@ name=
             external_settings.update(local_settings)
             return external_settings
         except ConfigurationError as error:
-            _logger.error('Error reading jwtconfig {}'.format(error))
+            _logger.error('Error reading jwtconfig %s', error)
             return dict()
 
     def _get_settings_for_external_tokens(self):
@@ -63,7 +63,7 @@ name=
             with open(path, "r") as f:
                 return f.read()
         except FileNotFoundError:
-            raise ConfigurationError("Could not read PEM key from file {}".format(path))
+            raise ConfigurationError("Could not read PEM key from file %s", path)
 
     def _validate_key(self, key):
         if not key:
@@ -82,9 +82,7 @@ name=
             raise ConfigurationError("Invalid 'issuer': 'issuer' must not be empty")
         if section == self.get_nav_name():
             raise ConfigurationError(
-                "Invalid 'issuer': {} collides with internal issuer name".format(
-                    section
-                )
+                "Invalid 'issuer': {} collides with internal issuer name %s", section
             )
         return section
 
