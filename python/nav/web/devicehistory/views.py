@@ -176,8 +176,8 @@ def confirm_error_form(request):
         'module': request.POST.getlist('module'),
     }
 
-    netbox = Netbox.objects.select_related('netbox').filter(id__in=selection['netbox'])
-    module = Module.objects.filter(id__in=selection['module'])
+    netbox = Netbox.objects.filter(id__in=selection['netbox'])
+    module = Module.objects.select_related('netbox').filter(id__in=selection['module'])
 
     return render(
         request,
