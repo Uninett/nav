@@ -82,7 +82,7 @@ name=
             raise ConfigurationError("Invalid 'issuer': 'issuer' must not be empty")
         if section == self.get_nav_name():
             raise ConfigurationError(
-                "Invalid 'issuer': {} collides with internal issuer name %s", section
+                "Invalid 'issuer': %s collides with internal issuer name %s", section
             )
         return section
 
