@@ -270,3 +270,20 @@ class TestJWTConf(TestCase):
         mock_key = "key"
         with patch("builtins.open", mock_open(read_data=mock_key)):
             self.assertEqual(jwtconf._read_key_from_path("path"), mock_key)
+
+    def test_file_with_permission_problems_should_raise_error(self):
+        config = u"""
+            [nav]
+            private_key=key
+            public_key=key
+            name=nav-issuer
+            [pem-issuer]
+            aud=nav
+            key=key_path
+            """
+        with patch("builtins.open", mock_open(read_data="key")) as mocked_open:
+            mocked_open.side_effect = PermissionError
+            with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+                jwtconf = JWTConf()
+                with self.assertRaises(ConfigurationError):
+                    jwtconf._read_key_from_path("fakepath")
