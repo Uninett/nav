@@ -11,9 +11,9 @@ class JWTConf(NAVConfigParser):
     """jwt.conf config parser"""
 
     DEFAULT_CONFIG_FILES = ('jwt.conf',)
-    NAV_SECTION = "nav-config"
+    NAV_SECTION = "nav"
     DEFAULT_CONFIG = u"""
-[nav-config]
+[nav]
 private_key=
 public_key=
 name=

@@ -10,7 +10,7 @@ class TestJWTConf(TestCase):
 
     def test_valid_jwks_config_should_pass(self):
         config = u"""
-            [nav-config]
+            [nav]
             private_key=key
             public_key=key
             name=issuer-name
@@ -38,7 +38,7 @@ class TestJWTConf(TestCase):
 
     def test_valid_pem_config_should_pass(self):
         config = u"""
-            [nav-config]
+            [nav]
             private_key=key
             public_key=key
             name=nav-issuer
@@ -88,7 +88,7 @@ class TestJWTConf(TestCase):
 
     def test_invalid_config_for_external_tokens_should_return_empty_dict(self):
         config = u"""
-            [nav-config]
+            [nav]
             private_key=key
             public_key=key
             name=nav-issuer
@@ -148,7 +148,7 @@ class TestJWTConf(TestCase):
 
     def test_validate_issuer_should_fail_if_external_name_matches_local_name(self):
         config = u"""
-        [nav-config]
+        [nav]
         private_key=key
         public_key=key
         name=issuer-name
@@ -175,7 +175,7 @@ class TestJWTConf(TestCase):
 
     def test_get_nav_private_key_returns_correct_private_key(self):
         config = u"""
-        [nav-config]
+        [nav]
         private_key=key
         public_key=key
         name=issuer-name
@@ -192,7 +192,7 @@ class TestJWTConf(TestCase):
 
     def test_get_nav_public_key_returns_correct_public_key(self):
         config = u"""
-        [nav-config]
+        [nav]
         private_key=key
         public_key=key
         name=issuer-name
@@ -209,7 +209,7 @@ class TestJWTConf(TestCase):
 
     def test_get_nav_name_should_raise_error_if_name_empty(self):
         config = u"""
-        [nav-config]
+        [nav]
         private_key=key
         public_key=key
         name=
@@ -221,7 +221,7 @@ class TestJWTConf(TestCase):
 
     def test_get_nav_name_returns_configured_name(self):
         config = u"""
-        [nav-config]
+        [nav]
         private_key=key
         public_key=key
         name=nav
@@ -232,7 +232,7 @@ class TestJWTConf(TestCase):
 
     def test_missing_option_should_raise_error(self):
         config_with_missing_keytype = u"""
-            [nav-config]
+            [nav]
             private_key=key
             public_key=key
             name=nav-issuer
@@ -252,7 +252,7 @@ class TestJWTConf(TestCase):
 
     def test_non_existing_file_should_raise_error(self):
         config = u"""
-            [nav-config]
+            [nav]
             private_key=key
             public_key=key
             name=nav-issuer
