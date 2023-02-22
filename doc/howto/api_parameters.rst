@@ -114,7 +114,7 @@ Provides access to NAVs prefix data
 
 :Search: None
 
-:Filters: vlan, net_address, vlan__vlan
+:Filters: vlan, net_address, vlan__vlan, contains_address
 
     .. NOTE:: The vlan__vlan is used to filter on vlan number as the vlan field
               references the primary key only.
