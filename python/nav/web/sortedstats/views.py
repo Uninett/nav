@@ -98,7 +98,7 @@ def process_form(form):
             if result and not result.data:
                 result = None
         except InvalidCacheBackendError as e:
-            _logger.error("Error accessing cache for ranked statistics: %s".format(e))
+            _logger.error("Error accessing cache for ranked statistics: %s", e)
             result = None
     if not result:
         result = collect_result(view, timeframe, rows)
@@ -129,7 +129,7 @@ def collect_result(view, timeframe, rows):
         cache = get_cache()
         cache.set(cache_key, result, timeout=timeout)
     except InvalidCacheBackendError as e:
-        _logger.error("Error accessing cache for ranked statistics: %s".format(e))
+        _logger.error("Error accessing cache for ranked statistics: %s", e)
     return result
 
 
