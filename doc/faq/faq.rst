@@ -63,8 +63,8 @@ situation. :file:`pping.log` should indicate whether pping has failed to get a
 ping response from the device. :file:`eventengine.log` should indicate whether
 the *event engine* has detected *pping*'s notice of this.
 
-A device is down, I see it on the status page, my profile should cover th event, but I am not alerted. Why?
------------------------------------------------------------------------------------------------------------
+A device is down, I see it on the status page, my profile should cover the event, but I am not alerted. Why?
+--------------------------------------------------------------------------------------------------------------
 
 First, verify that the alert engine (:kbd:`nav status alertengine`) is
 running. Use :file:`alertengine.log` to verify that alert engine processed
