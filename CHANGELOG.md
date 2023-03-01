@@ -13,6 +13,7 @@ found in the [HISTORY](HISTORY) file.
 
 #### User-visible fixes
 - Show help text when running nav command without arguments instead of error ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
+- Validate and clean sysobjectid input in SeedDB's NetboxTypeForm ([#2584](https://github.com/Uninett/nav/pull/2584), [#2566](https://github.com/Uninett/nav/issues/2566))
 
 ## [5.6.1] - 2023-03-23
 
