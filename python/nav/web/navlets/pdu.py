@@ -54,7 +54,7 @@ class PduWidget(Navlet):
             return context
 
         pdus = (
-            room.netbox_set.filter(category='POWER')
+            room.netboxes.filter(category='POWER')
             .filter(sensor__internal_name__startswith='rPDULoadStatusLoad')
             .prefetch_related('sensor_set')
             .distinct()

@@ -430,7 +430,7 @@ def get_port_view(request, netbox_sysname, perspective):
         port_view['activity_complete_data'] = False
 
     # Add the modules
-    for module in netbox.module_set.select_related():
+    for module in netbox.modules.select_related():
         port_view['modules'].append(
             utils.get_module_view(module, perspective, activity_interval)
         )

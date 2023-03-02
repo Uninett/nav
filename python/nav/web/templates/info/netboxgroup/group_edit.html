@@ -29,7 +29,7 @@
               <div class="column medium-6">
                 <label for="in_group">Devices in group</label>
                 <select id="in_group" multiple="multiple" name="netboxes" class="multiple-select multiple-select-initial">
-                  {% for netbox in netboxgroup.netbox_set.all %}
+                  {% for netbox in netboxgroup.netboxes.all %}
                     <option value="{{ netbox.pk }}">{{ netbox.sysname }}</option>
                   {% endfor %}
                 </select>
