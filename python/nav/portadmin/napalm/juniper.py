@@ -205,7 +205,7 @@ class Juniper(ManagementHandler):
 
     def get_netbox_vlans(self) -> List[FantasyVlan]:
         vlan_objects = manage.Vlan.objects.filter(
-            swportvlan__interface__netbox=self.netbox
+            swport_vlans__interface__netbox=self.netbox
         ).distinct()
 
         def _make_vlan(vlan):
@@ -289,7 +289,7 @@ class Juniper(ManagementHandler):
         interface.trunk = False
         interface.vlan = access_vlan
         try:
-            allowedvlans = interface.swportallowedvlan
+            allowedvlans = interface.swport_allowed_vlan
             allowedvlans.save()
         except manage.SwPortAllowedVlan.DoesNotExist:
             pass

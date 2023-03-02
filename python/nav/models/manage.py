@@ -465,7 +465,7 @@ class Netbox(models.Model):
         result = []
 
         for iface in self.connected_to_interface.all():
-            if iface.swportvlan_set.filter(direction=SwPortVlan.DIRECTION_DOWN).count():
+            if iface.swport_vlans.filter(direction=SwPortVlan.DIRECTION_DOWN).count():
                 result.append(
                     {
                         'other': iface,
@@ -1603,9 +1603,17 @@ class SwPortVlan(models.Model):
 
     id = models.AutoField(db_column='swportvlanid', primary_key=True)
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="swport_vlans",
     )
-    vlan = models.ForeignKey('Vlan', on_delete=models.CASCADE, db_column='vlanid')
+    vlan = models.ForeignKey(
+        'Vlan',
+        on_delete=models.CASCADE,
+        db_column='vlanid',
+        related_name="swport_vlans",
+    )
     direction = models.CharField(
         max_length=1, choices=DIRECTION_CHOICES, default=DIRECTION_UNDEFINED
     )
@@ -1625,7 +1633,11 @@ class SwPortAllowedVlan(models.Model):
     """
 
     interface = models.OneToOneField(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid', primary_key=True
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        primary_key=True,
+        related_name="swport_allowed_vlan",
     )
     hex_string = VarcharField(db_column='hexstring')
     _cached_hex_string = ''
@@ -1680,7 +1692,10 @@ class SwPortBlocked(models.Model):
 
     id = models.AutoField(db_column='swportblockedid', primary_key=True)
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="blocked_swports",
     )
     vlan = models.IntegerField()
 
@@ -1702,22 +1717,30 @@ class AdjacencyCandidate(models.Model):
     """
 
     id = models.AutoField(db_column='adjacency_candidateid', primary_key=True)
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="from_adjancency_candidates",
+    )
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="from_adjancency_candidates",
     )
     to_netbox = models.ForeignKey(
         'Netbox',
         on_delete=models.CASCADE,
         db_column='to_netboxid',
-        related_name='to_adjacencycandidate_set',
+        related_name='to_adjacency_candidates',
     )
     to_interface = models.ForeignKey(
         'Interface',
         on_delete=models.CASCADE,
         db_column='to_interfaceid',
         null=True,
-        related_name='to_adjacencycandidate_set',
+        related_name='to_adjacency_candidates',
     )
     source = VarcharField()
     miss_count = models.IntegerField(db_column='misscnt', default=0)
@@ -1746,7 +1769,12 @@ class NetboxVtpVlan(models.Model):
     information."""
 
     id = models.AutoField(primary_key=True)  # Serial for faking a primary key
-    netbox = models.ForeignKey('Netbox', on_delete=models.CASCADE, db_column='netboxid')
+    netbox = models.ForeignKey(
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        related_name="netbox_vtp_vlans",
+    )
     vtp_vlan = models.IntegerField(db_column='vtpvlan')
 
     class Meta(object):
@@ -1763,7 +1791,11 @@ class Cam(models.Model):
 
     id = models.AutoField(db_column='camid', primary_key=True)
     netbox = models.ForeignKey(
-        'Netbox', on_delete=models.CASCADE, db_column='netboxid', null=True
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        null=True,
+        related_name="cam_set",
     )
     sysname = VarcharField()
     ifindex = models.IntegerField()
@@ -1915,7 +1947,7 @@ class Interface(models.Model):
         # XXX: This causes a DB query per port
         vlans = [
             swpv.vlan.vlan
-            for swpv in self.swportvlan_set.select_related('vlan', 'interface')
+            for swpv in self.swport_vlans.select_related('vlan', 'interface')
         ]
         if self.vlan is not None and self.vlan not in vlans:
             vlans.append(self.vlan)
@@ -1928,7 +1960,7 @@ class Interface(models.Model):
         :rtype: nav.util.NumberRange
         """
         try:
-            allowed = self.swportallowedvlan.get_allowed_vlans()
+            allowed = self.swport_allowed_vlan.get_allowed_vlans()
         except SwPortAllowedVlan.DoesNotExist:
             pass
         else:
@@ -2024,7 +2056,7 @@ class Interface(models.Model):
             return ",".join(
                 as_range(y)
                 for x, y in groupby(
-                    sorted(self.swportallowedvlan.get_allowed_vlans()),
+                    sorted(self.swport_allowed_vlan.get_allowed_vlans()),
                     lambda n, c=count(): n - next(c),
                 )
             )
@@ -2092,7 +2124,7 @@ class Interface(models.Model):
 
     def get_sorted_vlans(self):
         """Returns a queryset of sorted swportvlans"""
-        return self.swportvlan_set.select_related('vlan').order_by('vlan__vlan')
+        return self.swport_vlans.select_related('vlan').order_by('vlan__vlan')
 
     def is_on_maintenace(self):
         """Returns True if the owning Netbox is on maintenance"""

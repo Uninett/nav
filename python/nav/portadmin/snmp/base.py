@@ -399,7 +399,7 @@ class SNMPHandler(ManagementHandler):
     def get_netbox_vlans(self):
         numerical_vlans = self.get_netbox_vlan_tags()
         vlan_objects = Vlan.objects.filter(
-            swportvlan__interface__netbox=self.netbox
+            swport_vlans__interface__netbox=self.netbox
         ).distinct()
         vlans = []
         for numerical_vlan in numerical_vlans:
@@ -548,7 +548,7 @@ class SNMPHandler(ManagementHandler):
     @staticmethod
     def _set_interface_hex(interface, trunk_vlans):
         try:
-            allowedvlan = interface.swportallowedvlan
+            allowedvlan = interface.swport_allowed_vlan
         except SwPortAllowedVlan.DoesNotExist:
             allowedvlan = SwPortAllowedVlan(interface=interface)
 

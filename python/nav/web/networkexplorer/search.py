@@ -87,7 +87,7 @@ def search_expand_swport(swportid=None, swport=None, scanned=[]):
     found_gwports = []
 
     # Find gwport that has the same vlan
-    for swportvlan in swport.swportvlan_set.exclude(
+    for swportvlan in swport.swport_vlans.exclude(
         vlan__net_type='static'
     ).select_related():
         for prefix in swportvlan.vlan.prefix_set.all():

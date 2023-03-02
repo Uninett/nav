@@ -288,8 +288,8 @@ class RoutedVlanTopologyAnalyzer(object):
     def _vlan_allowed_on_trunk(self, ifc):
         return (
             ifc.trunk
-            and getattr(ifc, 'swportallowedvlan', None)
-            and self.vlan.vlan in ifc.swportallowedvlan
+            and getattr(ifc, 'swport_allowed_vlan', None)
+            and self.vlan.vlan in ifc.swport_allowed_vlan
         )
 
     def _is_blocked_on_any_end(self, edge):

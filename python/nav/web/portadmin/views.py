@@ -292,7 +292,7 @@ def set_voice_vlan_attribute(voice_vlan, interfaces):
         for interface in interfaces:
             if not interface.trunk:
                 continue
-            allowed_vlans = interface.swportallowedvlan.get_allowed_vlans()
+            allowed_vlans = interface.swport_allowed_vlan.get_allowed_vlans()
             interface.voice_activated = (
                 len(allowed_vlans) == 1 and voice_vlan in allowed_vlans
             )

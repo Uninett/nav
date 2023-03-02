@@ -125,11 +125,11 @@ class ExpandRouterContextMixin(object):
             }
             gwport_prefixes.append(p)
 
-            vlans = prefix.prefix.vlan.swportvlan_set.exclude(
+            vlans = prefix.prefix.vlan.swport_vlans.exclude(
                 vlan__net_type='static'
             ).filter(interface__netbox=gwport.netbox)
             for vlan in vlans:
-                if not vlan.interface.swportblocked_set.filter(
+                if not vlan.interface.blocked_swports.filter(
                     vlan=vlan.vlan.vlan
                 ).count():
                     has_children = True
@@ -158,7 +158,7 @@ class ExpandGWPortMixin(object):
         vlans_found = set()
         for prefix in prefixes:
             for vlan in (
-                prefix.prefix.vlan.swportvlan_set.select_related(
+                prefix.prefix.vlan.swport_vlans.select_related(
                     'interface__to_interface__netbox',
                     'interface__netbox',
                     'vlan',
@@ -168,7 +168,7 @@ class ExpandGWPortMixin(object):
             ):
 
                 # Check if port is spanningtreeblocked
-                if vlan.interface.swportblocked_set.filter(
+                if vlan.interface.blocked_swports.filter(
                     vlan=vlan.vlan.vlan  # really!
                 ).count():
                     continue
