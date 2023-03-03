@@ -122,8 +122,8 @@ class Netbox(Shadow):
 
         # Delete interfaces and stored hardware information
         netbox.modules.all().delete()
-        netbox.interface_set.all().delete()
+        netbox.interfaces.all().delete()
         netbox.entities.all().delete()
-        netbox.sensor_set.all().delete()
-        netbox.powersupplyorfan_set.all().delete()
+        netbox.sensors.all().delete()
+        netbox.power_supplies_or_fans.all().delete()
         netbox.info_set.filter(key='poll_times').delete()

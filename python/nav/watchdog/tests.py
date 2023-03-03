@@ -245,8 +245,8 @@ class TestAbnormalInterfaceCount(Test):
     def _get_errors(self):
         """Fetches netboxes with an abnormal amount of interfaces"""
         results = []
-        for netbox in Netbox.objects.annotate(Count('interface')):
-            count = netbox.interface__count
+        for netbox in Netbox.objects.annotate(Count('interfaces')):
+            count = netbox.interfaces__count
             if count > self.abnormal_amount:
                 descr = "{} has {} interfaces".format(netbox.sysname, count)
                 results.append(TestResult(descr, netbox))
