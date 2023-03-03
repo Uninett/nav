@@ -83,7 +83,7 @@ def vlan_list(request):
     query = (
         Vlan.objects.extra(
             select={
-                'prefixes': (
+                'prefixes_list': (
                     "array_to_string("
                     "ARRAY(SELECT netaddr FROM prefix "
                     "WHERE vlanid=vlan.vlanid), ', ')"
@@ -101,7 +101,7 @@ def vlan_list(request):
         'usage',
         'net_ident',
         'description',
-        'prefixes',
+        'prefixes_list',
     )
     return render_list(
         request,

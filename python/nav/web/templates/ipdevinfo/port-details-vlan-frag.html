@@ -116,7 +116,7 @@
     </tr>
   {% endif %}
 
-  {% if port.gwportprefix_set.all %}
+  {% if port.gwport_prefixes.all %}
     <tr>
       <th colspan="2">Addresses</th>
     </tr>
@@ -128,7 +128,7 @@
             <th>IP</th>
             <th>Prefix</th>
           </tr>
-          {% for gwprefix in port.gwportprefix_set.all %}
+          {% for gwprefix in port.gwport_prefixes.all %}
             <tr>
               <td>{{ gwprefix.gw_ip }}</td>
               <td>

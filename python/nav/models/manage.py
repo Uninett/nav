@@ -431,7 +431,7 @@ class Netbox(models.Model):
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(
-            netbox=self, gwportprefix__isnull=False
+            netbox=self, gwport_prefixes__isnull=False
         ).distinct()
 
     def get_gwports_sorted(self):
@@ -992,7 +992,7 @@ class Module(models.Model):
     def get_gwports(self):
         """Returns all interfaces that have IP addresses."""
         return Interface.objects.filter(
-            module=self, gwportprefix__isnull=False
+            module=self, gwport_prefixes__isnull=False
         ).distinct()
 
     def get_gwports_sorted(self):
@@ -1380,9 +1380,17 @@ class GwPortPrefix(models.Model):
     """
 
     interface = models.ForeignKey(
-        'Interface', on_delete=models.CASCADE, db_column='interfaceid'
+        'Interface',
+        on_delete=models.CASCADE,
+        db_column='interfaceid',
+        related_name="gwport_prefixes",
     )
-    prefix = models.ForeignKey('Prefix', on_delete=models.CASCADE, db_column='prefixid')
+    prefix = models.ForeignKey(
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid',
+        related_name="gwport_prefixes",
+    )
     gw_ip = CIDRField(db_column='gwip', primary_key=True)
     virtual = models.BooleanField(default=False)
 
@@ -1438,9 +1446,17 @@ class Prefix(models.Model):
 
     id = models.AutoField(db_column='prefixid', primary_key=True)
     net_address = CIDRField(db_column='netaddr', unique=True)
-    vlan = models.ForeignKey('Vlan', on_delete=models.CASCADE, db_column='vlanid')
+    vlan = models.ForeignKey(
+        'Vlan',
+        on_delete=models.CASCADE,
+        db_column='vlanid',
+        related_name="prefixes",
+    )
     usages = models.ManyToManyField(
-        'Usage', through='PrefixUsage', through_fields=('prefix', 'usage')
+        'Usage',
+        through='PrefixUsage',
+        through_fields=('prefix', 'usage'),
+        related_name="prefixes",
     )
 
     class Meta(object):
@@ -1464,7 +1480,7 @@ class Prefix(models.Model):
     def get_router_ports(self):
         """Returns a ordered list of GwPortPrefix objects on this prefix"""
         return (
-            self.gwportprefix_set.filter(
+            self.gwport_prefixes.filter(
                 interface__netbox__category__id__in=('GSW', 'GW')
             )
             .select_related('interface', 'interface__netbox')
@@ -1495,7 +1511,10 @@ class Vlan(models.Model):
     id = models.AutoField(db_column='vlanid', primary_key=True)
     vlan = models.IntegerField(null=True, blank=True)
     net_type = models.ForeignKey(
-        'NetType', on_delete=models.CASCADE, db_column='nettype'
+        'NetType',
+        on_delete=models.CASCADE,
+        db_column='nettype',
+        related_name="vlans",
     )
     organization = models.ForeignKey(
         'Organization',
@@ -1503,14 +1522,25 @@ class Vlan(models.Model):
         db_column='orgid',
         null=True,
         blank=True,
+        related_name="vlans",
     )
     usage = models.ForeignKey(
-        'Usage', on_delete=models.CASCADE, db_column='usageid', null=True, blank=True
+        'Usage',
+        on_delete=models.CASCADE,
+        db_column='usageid',
+        null=True,
+        blank=True,
+        related_name="vlans",
     )
     net_ident = VarcharField(db_column='netident', null=True, blank=True)
     description = VarcharField(null=True, blank=True)
     netbox = models.ForeignKey(
-        'NetBox', on_delete=models.SET_NULL, db_column='netboxid', null=True, blank=True
+        'NetBox',
+        on_delete=models.SET_NULL,
+        db_column='netboxid',
+        null=True,
+        blank=True,
+        related_name="vlans",
     )
 
     class Meta(object):
@@ -1540,7 +1570,7 @@ class Vlan(models.Model):
     def get_graph_url(self, family=4):
         """Creates a graph url for the given family with all prefixes stacked"""
         assert family in [4, 6]
-        prefixes = self.prefix_set.extra(where=["family(netaddr)=%s" % family])
+        prefixes = self.prefixes.extra(where=["family(netaddr)=%s" % family])
         # Put metainformation in the alias so that Rickshaw can pick it up and
         # know how to draw the series.
         series = [
@@ -1622,10 +1652,18 @@ class Arp(models.Model):
 
     id = models.AutoField(db_column='arpid', primary_key=True)
     netbox = models.ForeignKey(
-        'Netbox', on_delete=models.CASCADE, db_column='netboxid', null=True
+        'Netbox',
+        on_delete=models.CASCADE,
+        db_column='netboxid',
+        null=True,
+        related_name="arp_set",
     )
     prefix = models.ForeignKey(
-        'Prefix', on_delete=models.CASCADE, db_column='prefixid', null=True
+        'Prefix',
+        on_delete=models.CASCADE,
+        db_column='prefixid',
+        null=True,
+        related_name="arp_set",
     )
     sysname = VarcharField()
     ip = models.GenericIPAddressField()
@@ -2143,7 +2181,7 @@ class Interface(models.Model):
         other hosts.
 
         """
-        return self.gwportprefix_set.count() > 0
+        return self.gwport_prefixes.count() > 0
 
     def is_physical_port(self):
         """Returns true if this interface has a physical connector present"""
@@ -2312,7 +2350,7 @@ class GatewayPeerSession(models.Model):
         :rtype: Netbox
 
         """
-        expr = Q(ip=self.peer) | Q(interfaces__gwportprefix__gw_ip=self.peer)
+        expr = Q(ip=self.peer) | Q(interfaces__gwport_prefixes__gw_ip=self.peer)
         netboxes = Netbox.objects.filter(expr)
         if netboxes:
             return netboxes[0]

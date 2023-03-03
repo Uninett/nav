@@ -1186,7 +1186,7 @@ class MatchField(models.Model):
     # formating is not PEP8, but it wouldn't be very readable otherwise)
     # Since we need to know how things are connected this has been done manualy
     FOREIGN_MAP = {
-        ARP: 'netbox__arp',
+        ARP: 'netbox__arp_set',
         CAM: 'netbox__cam_set',
         CATEGORY: 'netbox__category',
         NETBOXGROUP: 'netbox__netboxcategory__category',
@@ -1203,9 +1203,9 @@ class MatchField(models.Model):
         SERVICE: 'netbox__service',
         INTERFACE: 'netbox__connected_to_interface',
         TYPE: 'netbox__type',
-        USAGE: 'netbox__organization__vlan__usage',
+        USAGE: 'netbox__organization__vlans__usage',
         VENDOR: 'netbox__type__vendor',
-        VLAN: 'netbox__organization__vlan',
+        VLAN: 'netbox__organization__vlans',
         ALERT: '',  # Checks alert object itself
         ALERTTYPE: 'alert_type',
     }

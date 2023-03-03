@@ -48,7 +48,7 @@ class IfClassFilter(filters.BaseFilterBackend):
         """
         filters = {
             'swport': Q(baseport__isnull=False),
-            'gwport': Q(gwportprefix__isnull=False),
+            'gwport': Q(gwport_prefixes__isnull=False),
             'physicalport': Q(ifconnectorpresent=True),
             'trunk': Q(trunk=True),
         }

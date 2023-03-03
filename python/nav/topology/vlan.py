@@ -73,7 +73,7 @@ class VlanGraphAnalyzer(object):
         return {
             x
             for x in Vlan.objects.filter(
-                prefix__isnull=True, netbox__isnull=False
+                prefixes__isnull=True, netbox__isnull=False
             ).iterator()
         }
 
