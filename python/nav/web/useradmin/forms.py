@@ -199,7 +199,7 @@ class GroupAddForm(forms.Form):
     def __init__(self, account, *args, **kwargs):
         super(GroupAddForm, self).__init__(*args, **kwargs)
         if account:
-            query = AccountGroup.objects.exclude(id__in=account.accountgroup_set.all())
+            query = AccountGroup.objects.exclude(id__in=account.groups.all())
         else:
             query = AccountGroup.objects.all()
 
