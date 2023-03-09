@@ -62,8 +62,14 @@ name=
         try:
             with open(path, "r") as f:
                 return f.read()
-        except (FileNotFoundError, PermissionError) as error:
-            raise ConfigurationError(error)
+        except FileNotFoundError:
+            raise ConfigurationError(
+                "Could not find file %s to read PEM key from", path
+            )
+        except PermissionError:
+            raise ConfigurationError(
+                "Could not access file %s to read PEM key from", path
+            )
 
     def _validate_key(self, key):
         if not key:
