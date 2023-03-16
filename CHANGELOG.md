@@ -9,14 +9,11 @@ found in the [HISTORY](HISTORY) file.
 
 ## [Unreleased]
 
-
-
-## bugfix/atomic-save-of-alerts-and-events 
-
 ### Fixed
 
 #### User-visible fixes
 - Make save function in AlertHistory, EventHistory and AlertQueue atomic  ([#2594](https://github.com/Uninett/nav/pull/2594))
+- Link to correct room in room report if room has a space in its name ([#2593](https://github.com/Uninett/nav/pull/2593), [#2592](https://github.com/Uninett/nav/issues/2592))
 
 
 

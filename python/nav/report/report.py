@@ -17,7 +17,7 @@
 """Representing a report object."""
 
 import re
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 
 class Field(object):
@@ -297,7 +297,7 @@ class Report(object):
                         for column_ref in links:
                             value = str(line[self.field_name_map[column_ref]]) or ""
                             pattern = '$' + column_ref
-                            uri = uri.replace(pattern, quote_plus(value))
+                            uri = uri.replace(pattern, quote(value))
                     newfield.set_hyperlink(uri)
 
                 newline.append(newfield)
