@@ -13,6 +13,7 @@ found in the [HISTORY](HISTORY) file.
 
 #### Developer-centric features
 - Document a recipe for establishing SNMP tunnels using socat/SSH ([#2426](https://github.com/Uninett/nav/issues/2426), [#2435](https://github.com/Uninett/nav/pulls/2435))
+- Updated/added explicit relation names to various ORM models ([#2544](https://github.com/Uninett/nav/pull/2544), [#2546](https://github.com/Uninett/nav/pull/2546), [#2547](https://github.com/Uninett/nav/pull/2547), [#2549](https://github.com/Uninett/nav/pull/2549), [#2550](https://github.com/Uninett/nav/pull/2550), [#2551](https://github.com/Uninett/nav/pull/2551), [#2595](https://github.com/Uninett/nav/pull/2595), [#2596](https://github.com/Uninett/nav/pull/2596))
 
 ### Fixed
 
