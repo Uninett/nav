@@ -46,7 +46,10 @@ class Origin(models.Model):
     origin = models.AutoField(db_column='origin', primary_key=True)
     name = VarcharField(db_column='name')
     category = models.ForeignKey(
-        LoggerCategory, on_delete=models.CASCADE, db_column='category'
+        LoggerCategory,
+        on_delete=models.CASCADE,
+        db_column='category',
+        related_name="origins",
     )
 
     def __str__(self):
@@ -79,7 +82,10 @@ class LogMessageType(models.Model):
 
     type = models.AutoField(db_column='type', primary_key=True)
     priority = models.ForeignKey(
-        Priority, on_delete=models.CASCADE, db_column='priority'
+        Priority,
+        on_delete=models.CASCADE,
+        db_column='priority',
+        related_name="log_message_types",
     )
     facility = VarcharField(db_column='facility')
     mnemonic = VarcharField(db_column='mnemonic')
@@ -101,11 +107,24 @@ class LogMessage(models.Model):
 
     id = models.AutoField(db_column='id', primary_key=True)
     time = models.DateTimeField(db_column='time', auto_now=True)
-    origin = models.ForeignKey(Origin, on_delete=models.CASCADE, db_column='origin')
-    newpriority = models.ForeignKey(
-        Priority, on_delete=models.CASCADE, db_column='newpriority'
+    origin = models.ForeignKey(
+        Origin,
+        on_delete=models.CASCADE,
+        db_column='origin',
+        related_name="log_messages",
     )
-    type = models.ForeignKey(LogMessageType, on_delete=models.CASCADE, db_column='type')
+    newpriority = models.ForeignKey(
+        Priority,
+        on_delete=models.CASCADE,
+        db_column='newpriority',
+        related_name="log_messages",
+    )
+    type = models.ForeignKey(
+        LogMessageType,
+        on_delete=models.CASCADE,
+        db_column='type',
+        related_name="log_messages",
+    )
     message = VarcharField(db_column='message')
 
     class Meta(object):
@@ -133,14 +152,29 @@ class MessageView(models.Model):
     """
 
     origin = models.ForeignKey(
-        Origin, on_delete=models.CASCADE, db_column='origin', primary_key=True
+        Origin,
+        on_delete=models.CASCADE,
+        db_column='origin',
+        primary_key=True,
+        related_name="message_views",
     )
-    type = models.ForeignKey(LogMessageType, on_delete=models.CASCADE, db_column='type')
+    type = models.ForeignKey(
+        LogMessageType,
+        on_delete=models.CASCADE,
+        db_column='type',
+        related_name="message_views",
+    )
     newpriority = models.ForeignKey(
-        Priority, on_delete=models.CASCADE, db_column='newpriority'
+        Priority,
+        on_delete=models.CASCADE,
+        db_column='newpriority',
+        related_name="message_views",
     )
     category = models.ForeignKey(
-        LoggerCategory, on_delete=models.CASCADE, db_column='category'
+        LoggerCategory,
+        on_delete=models.CASCADE,
+        db_column='category',
+        related_name="message_views",
     )
     time = models.DateTimeField(db_column='time')
 

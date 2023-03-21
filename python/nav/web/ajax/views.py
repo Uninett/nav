@@ -69,7 +69,7 @@ def netbox_down_in(room):
     """
     Returns True if a netbox is down on the room, otherwise False
     """
-    return len(room.netbox_set.filter(up='n'))
+    return len(room.netboxes.filter(up='n'))
 
 
 def get_neighbors(_request, netboxid):
@@ -83,7 +83,7 @@ def get_neighbors(_request, netboxid):
 
     netbox = get_object_or_404(Netbox, pk=netboxid)
     nodes = [create_object_from(netbox)]
-    interfaces = netbox.interface_set.filter(to_netbox__isnull=False)
+    interfaces = netbox.interfaces.filter(to_netbox__isnull=False)
     for interface in interfaces:
         to_netbox = interface.to_netbox
         to_interfacename = (
@@ -104,7 +104,7 @@ def get_neighbors(_request, netboxid):
     # Unrecognized neighbors
     unrecognized_nodes = []
     un_candidates = {}
-    for unrecognized in netbox.unrecognizedneighbor_set.filter(
+    for unrecognized in netbox.unrecognized_neighbors.filter(
         ignored_since__isnull=True
     ):
         if unrecognized.remote_id in un_candidates:

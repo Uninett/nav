@@ -27,6 +27,7 @@ services:
     volumes:
       - .:/source
       - nav_config:/etc/nav
+      - nav_cache:/tmp/nav_cache
     depends_on:
       - postgres
     restart: on-failure:5
@@ -109,6 +110,9 @@ services:
 volumes:
   nav_config:
     driver: local
+  nav_cache:
+    driver: local
+
 # Uncomment if you want a second container for group restricted backend services
 #  slave_nav_config:
 #    driver: local

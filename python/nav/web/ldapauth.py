@@ -100,6 +100,7 @@ def open_ldap():
     uri = '%s://%s:%s' % (scheme, server, port)
     lconn = ldap.initialize(uri, bytes_mode=False)
     lconn.timeout = timeout
+    lconn.set_option(ldap.OPT_REFERRALS, 0)
 
     # Use STARTTLS if enabled, then fail miserably if the server
     # does not support it

@@ -28,6 +28,7 @@ from django.utils.log import DEFAULT_LOGGING
 from nav.config import NAV_CONFIG, getconfig, find_config_dir
 from nav.db import get_connection_parameters
 import nav.buildconf
+from nav.jwtconf import JWTConf
 
 ALLOWED_HOSTS = ['*']
 
@@ -164,16 +165,20 @@ SHORT_DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, SHORT_TIME_FORMAT)
 TIME_ZONE = NAV_CONFIG.get('TIME_ZONE', 'Europe/Oslo')
 DOMAIN_SUFFIX = NAV_CONFIG.get('DOMAIN_SUFFIX', None)
 
-# Cache backend. Used only for report subsystem in NAV 3.5.
+# Cache backend. Used for report subsystem in NAV 3.5 and sorted statistics.
 # FIXME: Make this configurable in nav.conf (or possibly webfront.conf)
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/tmp/nav_cache',
         'TIMEOUT': '60',
-    }
+    },
+    'sortedstats': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/nav_cache',
+        'TIMEOUT': '900',
+    },
 }
-
 
 SECRET_KEY = NAV_CONFIG.get('SECRET_KEY', 'Very bad default value!')
 
@@ -262,3 +267,10 @@ except NameError:
         from local_settings import *
     except ImportError:
         pass
+
+_issuers_setting = JWTConf().get_issuers_setting()
+
+OIDC_AUTH = {
+    'JWT_ISSUERS': _issuers_setting,
+    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
+}

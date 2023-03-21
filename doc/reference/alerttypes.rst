@@ -196,12 +196,19 @@ Registers the state of a device
    * - Alert type name
      - Description
    * - ``deviceInIPOperation``
-     - The device is now in operation with an active IP address
+     - The device is now in operation with an active IP address.
    * - ``deviceInStack``
-     - The device is now in operation as a chassis module
+     - The device is now in operation as a chassis module.
    * - ``deviceRMA``
      - RMA event for device.
-
+   * - ``deviceNewModule``
+     -  The device has been found as a module.
+   * - ``deviceNewChassis``
+     - The device has been found as a chassis.
+   * - ``deviceNewPsu``
+     - The device has been found as a power supply.
+   * - ``deviceNewFan``
+     - The device has been found as a fan.
 
 
 

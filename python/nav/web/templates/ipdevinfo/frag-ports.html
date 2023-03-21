@@ -1,6 +1,6 @@
 <div id="ports">
   {% if netbox %}
-    {% if netbox.module_set.count or netbox.interface_set.count %}
+    {% if netbox.modules.count or netbox.interfaces.count %}
 
       <form action="{% url 'ipdevinfo-save-port-layout' %}">
         <input type="hidden" name="netboxid" value="{{ netbox.pk }}">

@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import os
+
 import pytest
 from django.test import RequestFactory
 from django.urls import reverse
 from mock import MagicMock
 
 from nav.models.profiles import Account
+from nav.web.info.images.utils import save_thumbnail
 from nav.web.info.room.views import create_csv
 from nav.web.info.searchproviders import SearchProvider
 
@@ -45,6 +48,17 @@ def test_room_csv_download_should_not_produce_bytestring_representations():
 
     response = create_csv(request)  # type: django.http.response.HttpResponse
     assert not response.content.startswith(b"b'")
+
+
+def test_save_thumbnail_should_produce_a_file(tmpdir):
+    """This is more or less a regression test for the third party library Pillow"""
+    image = "closet.jpg"
+    save_thumbnail(
+        imagename=image,
+        imagedirectory="tests/functional",
+        thumb_dir=tmpdir,
+    )
+    assert os.path.exists(os.path.join(tmpdir, image))
 
 
 ############

@@ -114,7 +114,7 @@ class NetmapViewSerializer(serializers.Serializer):
         del_categories = old_categories - new_categories
 
         # Delete removed categories
-        instance.categories_set.filter(category__in=del_categories).delete()
+        instance.netmap_view_categories.filter(category__in=del_categories).delete()
 
         # Create added categories
         profiles.NetmapViewCategories.objects.bulk_create(

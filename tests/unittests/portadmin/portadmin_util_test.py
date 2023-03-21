@@ -28,14 +28,14 @@ class TestPortAdminUtil(unittest.TestCase):
         self.org2 = Mock()
         self.org3 = Mock()
 
-        self.org1.vlan_set.all.return_value = [self.vlan1]
-        self.org1.organization_set.all.return_value = [self.org2]
+        self.org1.vlans.all.return_value = [self.vlan1]
+        self.org1.child_organizations.all.return_value = [self.org2]
 
-        self.org2.vlan_set.all.return_value = [self.vlan2]
-        self.org2.organization_set.all.return_value = [self.org3]
+        self.org2.vlans.all.return_value = [self.vlan2]
+        self.org2.child_organizations.all.return_value = [self.org3]
 
-        self.org3.vlan_set.all.return_value = [self.vlan3]
-        self.org3.organization_set.all.return_value = []
+        self.org3.vlans.all.return_value = [self.vlan3]
+        self.org3.child_organizations.all.return_value = []
 
     def test_find_vlans_in_org_no_children(self):
         """Should return all vlans in this org"""
@@ -63,7 +63,7 @@ class TestPortAdminUtil(unittest.TestCase):
 
     def test_find_vlans_in_org_no_duplicates(self):
         """Should filter duplicates"""
-        self.org3.vlan_set.all.return_value = [self.vlan3, self.vlan2]
+        self.org3.vlans.all.return_value = [self.vlan3, self.vlan2]
         self.assertEqual(
             sorted(find_vlans_in_org(self.org1)),
             sorted(

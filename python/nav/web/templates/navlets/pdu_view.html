@@ -23,7 +23,7 @@
             <td>
               <a href="{{ pdu.get_absolute_url }}">{{ pdu }}</a>
             </td>
-            {% for sensor in pdu.sensor_set.all %}
+            {% for sensor in pdu.sensors.all %}
               <td data-metric="{{ sensor.get_metric_name }}"></td>
             {% endfor %}
           </tr>

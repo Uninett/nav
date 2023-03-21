@@ -2,7 +2,7 @@
  Network Administration Visualized
 ===================================
 
-.. image:: https://img.shields.io/github/workflow/status/Uninett/nav/Build%20NAV%20and%20run%20full%20test%20suite
+.. image:: https://img.shields.io/github/actions/workflow/status/Uninett/nav/build-and-test.yml?branch=master
    :alt: GitHub Workflow Status
    :target: https://github.com/Uninett/nav/actions
 .. image:: https://codecov.io/gh/Uninett/nav/branch/master/graph/badge.svg?token=0o6wdrEwne
@@ -32,7 +32,7 @@ NAV is licensed under the *GNU GPL version 3*.  NAV includes software from third
 parties, which are either licensed under the GPL or compatible licenses.
 
 * Copyright 2002-2021 Uninett AS
-* Copyright 2022 Sikt
+* Copyright 2022-2023 Sikt
 
 See individual source files for more detailed copyright notices.
 

@@ -38,7 +38,12 @@ class APIToken(models.Model):
     token = VarcharField()
     expires = models.DateTimeField()
     created = models.DateTimeField(auto_now_add=True)
-    client = models.ForeignKey(Account, on_delete=models.CASCADE, db_column='client')
+    client = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        db_column='client',
+        related_name="api_tokens",
+    )
     scope = models.IntegerField(null=True, default=0)
     comment = models.TextField(null=True, blank=True)
     revoked = models.BooleanField(default=False)

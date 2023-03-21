@@ -214,8 +214,10 @@ def populate_infodict(request, netbox, interfaces):
             "%s did not respond within the set timeouts. Values displayed are from database"
             % netbox.sysname,
         )
-        if isinstance(handler, SNMPHandler) and not netbox.read_only:
-            messages.error(request, "Read only community not set")
+        if isinstance(
+            handler, SNMPHandler
+        ) and not netbox.get_preferred_snmp_management_profile(writeable=False):
+            messages.error(request, "Read only management profile not set")
     except ProtocolError:
         readonly = True
         messages.error(
@@ -290,7 +292,7 @@ def set_voice_vlan_attribute(voice_vlan, interfaces):
         for interface in interfaces:
             if not interface.trunk:
                 continue
-            allowed_vlans = interface.swportallowedvlan.get_allowed_vlans()
+            allowed_vlans = interface.swport_allowed_vlan.get_allowed_vlans()
             interface.voice_activated = (
                 len(allowed_vlans) == 1 and voice_vlan in allowed_vlans
             )

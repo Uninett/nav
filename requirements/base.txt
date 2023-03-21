@@ -10,7 +10,7 @@ twisted>=20.0.0,<21
 
 
 networkx==2.6.3
-Pillow>3.3.2,<8.1
+Pillow>3.3.2
 pyrad==2.1
 sphinx==4.4.0
 sphinxcontrib-programoutput==0.17
@@ -35,3 +35,6 @@ pynetsnmp-2>=0.1.8,<0.2.0
 libsass==0.15.1
 
 napalm==3.4.1
+
+backports.zoneinfo ; python_version < '3.9'
+git+https://github.com/Uninett/drf-oidc-auth@v4.0#egg=drf-oidc-auth

@@ -15,6 +15,8 @@
 #
 """Useful crap"""
 
+from datetime import timedelta
+
 from .statmodules import (
     StatCpuAverage,
     StatUptime,
@@ -35,9 +37,25 @@ CLASSMAP = {
     'leastfreeaddresses': StatMinFreeAddresses,
 }
 
-TIMEFRAMES = (
-    ('-1h', 'Last Hour'),
-    ('-1d', 'Last Day'),
-    ('-1w', 'Last Week'),
-    ('-1month', 'Last Month'),
-)
+TIMEFRAMES = {
+    'hour': {
+        'cache_timeout': 3600,
+        'descr': 'Last Hour',
+        'timedelta': timedelta(hours=1),
+    },
+    'day': {
+        'cache_timeout': 7200,
+        'descr': 'Last Day',
+        'timedelta': timedelta(days=1),
+    },
+    'week': {
+        'cache_timeout': 43200,
+        'descr': 'Last Week',
+        'timedelta': timedelta(weeks=1),
+    },
+    'month': {
+        'cache_timeout': 129600,
+        'descr': 'Last Month',
+        'timedelta': timedelta(days=30),
+    },
+}

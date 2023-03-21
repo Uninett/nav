@@ -70,7 +70,7 @@ def check_alerts(debug=False):
     now = datetime.now()
 
     # Get all alerts that aren't in alert queue due to subscription
-    new_alerts = AlertQueue.objects.filter(accountalertqueue__isnull=True)
+    new_alerts = AlertQueue.objects.filter(queued_alerts__isnull=True)
     num_new_alerts = len(new_alerts)
 
     initial_alerts = AlertQueue.objects.values_list('id', flat=True)
@@ -180,9 +180,9 @@ def handle_new_alerts(new_alerts):
             return subscription.type
 
     # Build datastructure that contains accounts and corresponding
-    # filtergroupcontent_set so that we don't redo db queries to much
+    # filter_group_contents so that we don't redo db queries to much
     for account in Account.objects.filter(
-        alertpreference__active_profile__isnull=False
+        alert_preference__active_profile__isnull=False
     ):
         profile = account.get_active_profile()
         time_period = profile.get_active_timeperiod() if profile else None
@@ -191,7 +191,7 @@ def handle_new_alerts(new_alerts):
             continue
 
         current_alertsubscriptions = sorted(
-            time_period.alertsubscription_set.all(), key=subscription_sort_key
+            time_period.alert_subscriptions.all(), key=subscription_sort_key
         )
 
         tmp = []
@@ -199,7 +199,7 @@ def handle_new_alerts(new_alerts):
             tmp.append(
                 (
                     alertsubscription,
-                    alertsubscription.filter_group.filtergroupcontent_set.all(),
+                    alertsubscription.filter_group.filter_group_contents.all(),
                 )
             )
 
@@ -208,7 +208,7 @@ def handle_new_alerts(new_alerts):
             for filtergroup in FilterGroup.objects.filter(
                 group_permissions__accounts__in=[account]
             ):
-                permissions.append(filtergroup.filtergroupcontent_set.all())
+                permissions.append(filtergroup.filter_group_contents.all())
 
             accounts.append((account, tmp, permissions))
             del permissions
@@ -415,7 +415,7 @@ def process_single_queued_notification(queued_alert, now):
     )
 
     try:
-        subscription.time_period.profile.alertpreference
+        subscription.time_period.profile.alert_preference
     except AlertPreference.DoesNotExist:
         subscription = None
 
@@ -474,7 +474,7 @@ def _verify_daily_dispatch(queued_alert, now, _logger=_logger):
     subscription = queued_alert.subscription
     daily_time = subscription.time_period.profile.daily_dispatch_time
     last_sent = (
-        subscription.time_period.profile.alertpreference.last_sent_day or datetime.min
+        subscription.time_period.profile.alert_preference.last_sent_day or datetime.min
     )
     # If the last sent date is less than the current date, and we are
     # past the daily time and the alert was added to the queue before
@@ -498,7 +498,7 @@ def _verify_weekly_dispatch(queued_alert, now, _logger=_logger):
     weekly_time = subscription.time_period.profile.weekly_dispatch_time
     weekly_day = subscription.time_period.profile.weekly_dispatch_day
     last_sent = (
-        subscription.time_period.profile.alertpreference.last_sent_week or datetime.min
+        subscription.time_period.profile.alert_preference.last_sent_week or datetime.min
     )
 
     # Check that we are at the correct weekday, and that the last sent
@@ -562,7 +562,7 @@ def _get_number_of_timeperiods_today(alertprofile, now):
         valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKENDS]
     else:
         valid_during = [TimePeriod.ALL_WEEK, TimePeriod.WEEKDAYS]
-    return alertprofile.timeperiod_set.filter(valid_during__in=valid_during).count()
+    return alertprofile.time_periods.filter(valid_during__in=valid_during).count()
 
 
 def _calculate_timeperiod_start(timeperiod, now=None):

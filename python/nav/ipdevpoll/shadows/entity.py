@@ -32,6 +32,8 @@ from nav.models import manage
 from nav.event2 import EventFactory
 from .netbox import Netbox
 
+device_event = EventFactory('ipdevpoll', 'eventEngine', 'deviceState')
+
 chassis_event = EventFactory(
     'ipdevpoll', 'eventEngine', 'chassisState', 'chassisDown', 'chassisUp'
 )
@@ -70,6 +72,7 @@ class EntityManager(DefaultManager):
 
         self.existing = index.entities
         self.missing = self.existing.difference(self.matched)
+        super(EntityManager, self).prepare()
 
     def _delete_missing(self):
         if self.missing:
@@ -207,6 +210,7 @@ class NetboxEntity(Shadow):
 
     def __init__(self, *args, **kwargs):
         super(NetboxEntity, self).__init__(*args, **kwargs)
+        self.is_new = None
         if 'gone_since' not in kwargs:
             # make sure to reset the gone_since timestamp on created records
             self.gone_since = None
@@ -229,6 +233,23 @@ class NetboxEntity(Shadow):
         if entity and entity.gone_since is not None and self.gone_since is None:
             self._logger.info("%s is back up", entity)
             chassis_event.end(entity.device, entity.netbox, entity.id).save()
+
+    def prepare(self, containers):
+        self.is_new = not self.get_existing_model()
+
+    def cleanup(self, containers):
+        self._handle_new_entity()
+
+    def _handle_new_entity(self):
+        if not self.is_new:
+            return
+        entity = self.get_existing_model()
+        if entity.is_chassis() and entity.device.serial:
+            device_event.notify(
+                device=entity.device,
+                netbox=entity.netbox,
+                alert_type='deviceNewChassis',
+            ).save()
 
     @classmethod
     def get_chassis_entities(cls, containers):

@@ -1,4 +1,5 @@
 #
+# Copyright (C) 2022 Sikt
 # Copyright (C) 2013 Uninett AS
 #
 # This file is part of Network Administration Visualized (NAV).
@@ -24,10 +25,13 @@ from nav.models import manage
 from nav.mibs.hp_httpmanageable_mib import HPHTTPManageableMib
 from nav.mibs.juniper_mib import JuniperMib
 from nav.mibs.powernet_mib import PowerNetMib
+from nav.mibs.wlsx_systemext_mib import WLSXSystemextMib
+
 from nav.enterprise.ids import (
     VENDOR_ID_HEWLETT_PACKARD,
     VENDOR_ID_AMERICAN_POWER_CONVERSION_CORP,
     VENDOR_ID_JUNIPER_NETWORKS_INC,
+    VENDOR_ID_ARUBA_NETWORKS_INC,
 )
 
 
@@ -35,6 +39,7 @@ VENDOR_MIBS = {
     VENDOR_ID_HEWLETT_PACKARD: HPHTTPManageableMib,
     VENDOR_ID_AMERICAN_POWER_CONVERSION_CORP: PowerNetMib,
     VENDOR_ID_JUNIPER_NETWORKS_INC: JuniperMib,
+    VENDOR_ID_ARUBA_NETWORKS_INC: WLSXSystemextMib,
 }
 
 

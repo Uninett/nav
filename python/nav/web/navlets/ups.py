@@ -86,17 +86,17 @@ class UpsWidget(Navlet):
         # internal names selected from ups-mib and powernet-mib.
 
         # Input
-        context['input_voltages'] = netbox.sensor_set.filter(
+        context['input_voltages'] = netbox.sensors.filter(
             Q(internal_name__contains="InputVoltage")
             | Q(internal_name__contains="InputLineVoltage")
         ).filter(precision__isnull=True)
 
         # Output
-        output_voltages = netbox.sensor_set.filter(
+        output_voltages = netbox.sensors.filter(
             Q(internal_name__contains="OutputVoltage")
             | Q(internal_name__contains="OutputLineVoltage")
         ).filter(precision__isnull=True)
-        output_power = netbox.sensor_set.filter(internal_name__contains="OutputPower")
+        output_power = netbox.sensors.filter(internal_name__contains="OutputPower")
 
         if len(output_voltages) != len(output_power):
             output_power = [None] * len(output_voltages)
@@ -105,7 +105,7 @@ class UpsWidget(Navlet):
         # Battery
         context['battery_times'] = (
             BatteryTimesProxy(sensor)
-            for sensor in netbox.sensor_set.filter(
+            for sensor in netbox.sensors.filter(
                 internal_name__in=[
                     'upsEstimatedMinutesRemaining',
                     'upsAdvBatteryRunTimeRemaining',
@@ -113,14 +113,14 @@ class UpsWidget(Navlet):
             )
         )
 
-        context['battery_capacity'] = netbox.sensor_set.filter(
+        context['battery_capacity'] = netbox.sensors.filter(
             internal_name__in=[
                 'upsHighPrecBatteryCapacity',
                 'upsEstimatedChargeRemaining',
             ]
         )
 
-        context['temperatures'] = netbox.sensor_set.filter(
+        context['temperatures'] = netbox.sensors.filter(
             internal_name__in=['upsHighPrecBatteryTemperature', 'upsBatteryTemperature']
         )
 

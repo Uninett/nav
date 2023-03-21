@@ -1,1 +1,1 @@
-Device {{ device.get_extended_description }} had a hardware upgrade from {{ old_version }} to version {{ device.hardware_version }}.
+Device {{ device.get_extended_description }} had a hardware upgrade from {{ old_version }} to version {{ new_version }}.

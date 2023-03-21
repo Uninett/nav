@@ -118,15 +118,20 @@ _ports = cycle([snmpprotocol.port() for _ in range(50)])
 
 
 def _create_agentproxy(netbox):
-    if not netbox.read_only:
+    profile = netbox.get_preferred_snmp_management_profile(writeable=False)
+    if (
+        not profile
+        or not hasattr(profile, "snmp_community")
+        or not hasattr(profile, "snmp_version")
+    ):
         return
 
     port = next(_ports)
     agent = AgentProxy(
         netbox.ip,
         161,
-        community=netbox.read_only,
-        snmpVersion='v%s' % netbox.snmp_version,
+        community=profile.snmp_community,
+        snmpVersion='v%s' % profile.snmp_version,
         protocol=port.protocol,
         snmp_parameters=snmp_parameter_factory(netbox),
     )

@@ -12,6 +12,10 @@ from nav.portadmin.vlan import FantasyVlan
 
 class PortadminResponseTest(unittest.TestCase):
     def setUp(self):
+        self.profile = Mock()
+        self.profile.snmp_version = 2
+        self.profile.snmp_community = "public"
+
         self.hpVendor = Mock()
         self.hpVendor.id = u'hp'
 
@@ -29,12 +33,14 @@ class PortadminResponseTest(unittest.TestCase):
         self.netboxHP = Mock()
         self.netboxHP.type = self.hpType
         self.netboxHP.ip = '10.240.160.39'
-        self.netboxHP.snmp_version = "2c"
+        self.netboxHP.get_preferred_snmp_management_profile.return_value = self.profile
 
         self.netboxCisco = Mock()
         self.netboxCisco.type = self.ciscoType
         self.netboxCisco.ip = '10.240.160.38'
-        self.netboxCisco.snmp_version = "2c"
+        self.netboxCisco.get_preferred_snmp_management_profile.return_value = (
+            self.profile
+        )
 
         self.snmpReadOnlyHandler = None
         self.handler = None

@@ -65,10 +65,10 @@
               <td><a href="{% report 'gwport' netboxid=module.netbox.id module=module.name %}">
                 {{ module.get_gwports.count }}</a></td>
             </tr>
-            {% if module.poegroup_set.all|length == 1 %}
+            {% if module.poe_groups.all|length == 1 %}
               <tr>
                 <th>Active PoE ports</th>
-                {% with module.poegroup_set.first as poegroup %}
+                {% with module.poe_groups.first as poegroup %}
                   <td>
                     <a href="{% url 'ipdevinfo-poegroup-details' module.netbox.sysname poegroup.index %}">
                       {{poegroup.get_active_ports|length}}

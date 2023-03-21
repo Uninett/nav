@@ -28,7 +28,12 @@ class Cabling(models.Model):
     closet's jack number to the end user's room number."""
 
     id = models.AutoField(db_column='cablingid', primary_key=True)
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, db_column='roomid')
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        db_column='roomid',
+        related_name="cabling_set",
+    )
     jack = VarcharField()
     building = VarcharField(blank=True)
     target_room = VarcharField(db_column='targetroom', blank=True)
@@ -72,7 +77,10 @@ class Patch(models.Model):
         related_name='patches',
     )
     cabling = models.ForeignKey(
-        Cabling, on_delete=models.CASCADE, db_column='cablingid'
+        Cabling,
+        on_delete=models.CASCADE,
+        db_column='cablingid',
+        related_name='patches',
     )
     split = VarcharField(default='no')
 

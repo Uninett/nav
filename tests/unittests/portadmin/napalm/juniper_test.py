@@ -13,14 +13,36 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-from unittest.mock import Mock, patch
 
+import napalm
 import pytest
+from unittest.mock import Mock, patch
 
 from jnpr.junos.exception import RpcError
 
-from nav.portadmin.handlers import ProtocolError
+from nav.enterprise.ids import VENDOR_ID_RESERVED, VENDOR_ID_JUNIPER_NETWORKS_INC
+from nav.models import manage
+from nav.portadmin.handlers import DeviceNotConfigurableError, ProtocolError
 from nav.portadmin.napalm.juniper import wrap_unhandled_rpc_errors, Juniper
+
+
+@pytest.fixture()
+def netbox_mock():
+    """Create netbox model mock object"""
+    netbox = Mock()
+    netbox.ip = '10.0.0.1'
+    netbox.type.get_enterprise_id.return_value = VENDOR_ID_JUNIPER_NETWORKS_INC
+    yield netbox
+
+
+@pytest.fixture()
+def profile_mock():
+    """Create management profile model mock object"""
+    profile = Mock()
+    profile.protocol = manage.ManagementProfile.PROTOCOL_NAPALM
+    profile.PROTOCOL_NAPALM = manage.ManagementProfile.PROTOCOL_NAPALM
+    profile.configuration = {"driver": "mock"}
+    yield profile
 
 
 class TestWrapUnhandledRpcErrors:
@@ -42,6 +64,37 @@ class TestWrapUnhandledRpcErrors:
 
 
 class TestJuniper:
+    def test_juniper_device_returns_device_connection(self, netbox_mock, profile_mock):
+        driver = napalm.get_network_driver('mock')
+        device = driver(
+            hostname='foo',
+            username='user',
+            password='pass',
+            optional_args={},
+        )
+        device.open()
+        juniper = Juniper(netbox=netbox_mock)
+        juniper._profile = profile_mock
+
+        assert juniper.device
+
+    def test_juniper_device_raises_error_if_vendor_not_juniper(
+        self, netbox_mock, profile_mock
+    ):
+        netbox_mock.type.get_enterprise_id.return_value = VENDOR_ID_RESERVED
+        juniper = Juniper(netbox=netbox_mock)
+        juniper._profile = profile_mock
+
+        with pytest.raises(DeviceNotConfigurableError):
+            juniper.device
+
+    def test_juniper_device_raises_error_if_no_connected_profile(self, netbox_mock):
+        juniper = Juniper(netbox=netbox_mock)
+        netbox_mock.profiles.filter.return_value.first.return_value = None
+
+        with pytest.raises(DeviceNotConfigurableError):
+            juniper.device
+
     @patch('nav.models.manage.Vlan.objects', Mock(return_value=[]))
     def test_get_netbox_vlans_should_ignore_vlans_with_non_integer_tags(self):
         """Regression test for #2452"""

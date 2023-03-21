@@ -82,7 +82,7 @@ def overview(request):
     account = get_account(request)
 
     # Get information about user
-    groups = account.accountgroup_set.all()
+    groups = account.groups.all()
     try:
         active_profile = account.get_active_profile()
     except ObjectDoesNotExist:
@@ -131,7 +131,7 @@ def show_profile(request):
         order_by = 'name'
 
     try:
-        active_profile = account.alertpreference.active_profile
+        active_profile = account.alert_preference.active_profile
     except Exception:
         active_profile = None
 
@@ -1475,7 +1475,9 @@ def filter_remove(request):
                     }
                 )
 
-            filter_groups = FilterGroup.objects.filter(filtergroupcontent__filter=filtr)
+            filter_groups = FilterGroup.objects.filter(
+                filter_group_contents__filter=filtr
+            )
             for fgroup in filter_groups:
                 warnings.append(
                     {
@@ -1783,7 +1785,7 @@ def filter_group_show_form(request, filter_group_id=None, filter_group_form=None
         page_name = filter_group.name
 
         profiles = AlertProfile.objects.filter(
-            timeperiod__alertsubscription__filter_group=filter_group
+            time_periods__alert_subscriptions__filter_group=filter_group
         ).distinct()
         if profiles:
             names = ', '.join([p.name for p in profiles])
@@ -1928,7 +1930,7 @@ def filter_group_remove(request):
         for fgroup in filter_groups:
             subscriptions = AlertSubscription.objects.filter(filter_group=fgroup)
             time_periods = TimePeriod.objects.filter(
-                alertsubscription__in=subscriptions
+                alert_subscriptions__in=subscriptions
             )
             profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
             warnings = []
@@ -2308,13 +2310,13 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
         if not matchfield_form:
             matchfield_form = MatchFieldForm(instance=matchfield)
         matchfield_operators_id = [
-            m_operator.type for m_operator in matchfield.operator_set.all()
+            m_operator.type for m_operator in matchfield.operators.all()
         ]
 
         page_name = matchfield.name
 
         expressions = Expression.objects.filter(match_field=matchfield)
-        filters = Filter.objects.filter(expression__in=expressions)
+        filters = Filter.objects.filter(expressions__in=expressions)
 
         if filters:
             names = ', '.join([f.name for f in filters])
@@ -2398,8 +2400,8 @@ def matchfield_save(request):
     operators = []
     for oper in request.POST.getlist('operator'):
         operators.append(Operator(type=int(oper), match_field=matchfield))
-    matchfield.operator_set.all().delete()
-    matchfield.operator_set.add(*operators)
+    matchfield.operators.all().delete()
+    matchfield.operators.add(*operators)
 
     new_message(
         request,
@@ -2431,7 +2433,7 @@ def matchfield_remove(request):
         )
         return HttpResponseRedirect(reverse('alertprofiles-matchfields'))
     else:
-        matchfields = MatchField.objects.prefetch_related('expression_set').filter(
+        matchfields = MatchField.objects.prefetch_related('expressions').filter(
             pk__in=request.POST.getlist('matchfield')
         )
 
@@ -2441,7 +2443,7 @@ def matchfield_remove(request):
 
         elements = []
         for match_field in matchfields:
-            expressions = match_field.expression_set.all()
+            expressions = match_field.expressions.all()
             warnings = []
             for expr in expressions:
                 warnings.append(
@@ -2512,7 +2514,7 @@ def permission_list(request, group_id=None):
                 request, _('Requested account group does not exist.')
             )
 
-        permissions = AccountGroup.objects.get(pk=group_id).filtergroup_set.all()
+        permissions = AccountGroup.objects.get(pk=group_id).filter_groups.all()
 
     active = {'permissions': True}
     info_dict = {
@@ -2551,7 +2553,7 @@ def permissions_save(request):
         pk__in=request.POST.getlist('filter_group')
     )
 
-    group.filtergroup_set.set(filter_groups)
+    group.filter_groups.set(filter_groups)
 
     new_message(
         request,

@@ -92,7 +92,7 @@ def management_profile_list(request):
     info = ManagementProfileInfo()
     value_list = ('name', 'description', 'get_protocol_display', 'related')
     netbox_link = reverse('seeddb-netbox')
-    queryset = ManagementProfile.objects.annotate(related=Count('netbox'))
+    queryset = ManagementProfile.objects.annotate(related=Count('netboxes'))
     filter_form = ManagementProfileFilterForm(request.GET)
     return render_list(
         request,
@@ -134,7 +134,7 @@ def management_profile_edit(request, management_profile_id=None):
     """
     try:
         profile = ManagementProfile.objects.get(id=management_profile_id)
-        num_netboxes = profile.netbox_set.distinct().count()
+        num_netboxes = profile.netboxes.distinct().count()
     except ManagementProfile.DoesNotExist:
         profile = None
         num_netboxes = 0

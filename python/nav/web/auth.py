@@ -161,9 +161,9 @@ def _handle_ldap_admin_status(ldap_user, nav_account):
     if is_admin is not None:
         admin_group = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
         if is_admin:
-            nav_account.accountgroup_set.add(admin_group)
+            nav_account.groups.add(admin_group)
         else:
-            nav_account.accountgroup_set.remove(admin_group)
+            nav_account.groups.remove(admin_group)
 
 
 def authenticate_remote_user(request):

@@ -116,7 +116,7 @@
 
 
   {% comment %}Display list of events regarding this identity{% endcomment %}
-  {% with identity.event_set.all as events %}
+  {% with identity.events.all as events %}
 
     <table class="listtable left">
       <caption>History</caption>

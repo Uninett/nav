@@ -29,7 +29,7 @@
         <th>Source</th>
         <th>Since</th>
       </tr>
-      {% for neighbor in netbox.unrecognizedneighbor_set.all %}
+      {% for neighbor in netbox.unrecognized_neighbors.all %}
         {% if not neighbor.ignored_since %}
           <tr>
 

@@ -17,10 +17,11 @@
 
 import logging
 from datetime import datetime
+from urllib.parse import urlparse
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import TokenAuthentication, BaseAuthentication
-from urllib.parse import urlparse
+from oidc_auth.authentication import JWTToken
 
 from nav.models.api import APIToken
 
@@ -74,7 +75,7 @@ class TokenPermission(BasePermission):
 
     def has_permission(self, request, _view):
         token = request.auth  # type: APIToken
-        if not token:
+        if not token or not isinstance(token, APIToken):
             return False
 
         endpoints_ok = self._check_endpoints(request)
@@ -143,6 +144,19 @@ class TokenPermission(BasePermission):
         return path if path.endswith('/') else path + '/'
 
 
+class JWTPermission(BasePermission):
+    """Checks if the token has correct permissions"""
+
+    url_prefix = '/api'
+    version = 1
+
+    def has_permission(self, request, _view):
+        token = request.auth  # type: JWTToken
+        if not token or not isinstance(token, JWTToken):
+            return False
+        return True
+
+
 class APIPermission(BasePermission):
     """Checks for correct permissions when accessing the API"""
 
@@ -150,6 +164,7 @@ class APIPermission(BasePermission):
         """Checks if request is permissable
         :type request: rest_framework.request.Request
         """
-        return LoggedInPermission().has_permission(
-            request, view
-        ) or TokenPermission().has_permission(request, view)
+        return any(
+            permission().has_permission(request, view)
+            for permission in (LoggedInPermission, TokenPermission, JWTPermission)
+        )

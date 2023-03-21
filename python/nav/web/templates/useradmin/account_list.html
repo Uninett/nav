@@ -50,7 +50,7 @@
                       <i class="fa fa-warning warning" title="This account has a password hashed with an older, deprecated method. Its password has probably not been changed in a long time - or, in the case of an LDAP user, they might not have logged in in a long time."></i>
                   {% endif %}
               </td>
-              <td>{{ account.accountgroup_set.all|length }}</td>
+              <td>{{ account.groups.all|length }}</td>
             </tr>
           {% endfor %}
         </tbody>

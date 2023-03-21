@@ -136,8 +136,8 @@ class StatPorts(Plugin):
         def _get_master_and_instance_list():
             netbox = manage.Netbox.objects.get(id=self.netbox.id)
 
-            my_ifcs = netbox.interface_set.values_list('ifname', flat=True)
-            masters_ifcs = netbox.master.interface_set.values_list('ifname', flat=True)
+            my_ifcs = netbox.interfaces.values_list('ifname', flat=True)
+            masters_ifcs = netbox.master.interfaces.values_list('ifname', flat=True)
             local_ifcs = set(masters_ifcs) - set(my_ifcs)
             return netbox.master.sysname, local_ifcs
 

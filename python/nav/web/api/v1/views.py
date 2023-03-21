@@ -40,6 +40,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework.generics import ListAPIView, get_object_or_404
+from oidc_auth.authentication import JSONWebTokenAuthentication
 
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
@@ -50,7 +51,11 @@ from nav.buildconf import VERSION
 from nav.web.api.v1 import serializers, alert_serializers
 from nav.web.status2 import STATELESS_THRESHOLD
 from nav.macaddress import MacPrefix
-from .auth import APIPermission, APIAuthentication, NavBaseAuthentication
+from .auth import (
+    APIPermission,
+    APIAuthentication,
+    NavBaseAuthentication,
+)
 from .helpers import prefix_collector
 from .filter_backends import (
     AlertHistoryFilterBackend,
@@ -154,6 +159,7 @@ def get_endpoints(request=None, version=1):
         ),
         'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
         'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
+        'module': reverse_lazy('{}module-list'.format(prefix), **kwargs),
     }
 
 
@@ -199,7 +205,11 @@ class RelatedOrderingFilter(filters.OrderingFilter):
 class NAVAPIMixin(APIView):
     """Mixin for providing permissions and renderers"""
 
-    authentication_classes = (NavBaseAuthentication, APIAuthentication)
+    authentication_classes = (
+        NavBaseAuthentication,
+        APIAuthentication,
+        JSONWebTokenAuthentication,
+    )
     permission_classes = (APIPermission,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     filter_backends = (filters.SearchFilter, DjangoFilterBackend, RelatedOrderingFilter)
@@ -806,7 +816,7 @@ class RoutedPrefixList(NAVAPIMixin, ListAPIView):
 
     def get_queryset(self):
         prefixes = manage.Prefix.objects.filter(
-            gwportprefix__interface__netbox__category__in=self._router_categories
+            gwport_prefixes__interface__netbox__category__in=self._router_categories
         )
         if self.request.GET.get('family'):
             prefixes = prefixes.extra(
@@ -1081,3 +1091,23 @@ def get_nav_version(request):
     :type request: django.http.HttpRequest
     """
     return JsonResponse({"version": VERSION})
+
+
+class ModuleViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """Lists all modules.
+
+    Filters
+    -------
+    - netbox
+    - device__serial
+
+    Example: `/api/1/module/?netbox=91&device__serial=AB12345`
+    """
+
+    queryset = manage.Module.objects.all()
+    filter_backends = NAVAPIMixin.filter_backends
+    filterset_fields = (
+        'netbox',
+        'device__serial',
+    )
+    serializer_class = serializers.ModuleSerializer

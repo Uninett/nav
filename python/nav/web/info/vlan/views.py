@@ -102,7 +102,7 @@ def process_searchform(form):
 def vlan_details(request, vlanid):
     """Render details for a vlan"""
     vlan = get_object_or_404(Vlan, pk=vlanid)
-    prefixes = sorted(vlan.prefix_set.all(), key=methodcaller('get_prefix_size'))
+    prefixes = sorted(vlan.prefixes.all(), key=methodcaller('get_prefix_size'))
 
     has_v6 = False
     has_v4 = False
@@ -184,7 +184,7 @@ def get_vlan_graph_url(vlanid, family=4, timeframe="day"):
 
     extra = {'where': ['family(netaddr) = %s' % family]}
     prefixes = sorted(
-        vlan.prefix_set.all().extra(**extra),
+        vlan.prefixes.all().extra(**extra),
         key=methodcaller('get_prefix_size'),
         reverse=True,
     )
@@ -235,9 +235,9 @@ def _vlan_metrics_from_prefixes(prefixes, ip_version):
 def find_gwportprefixes(vlan):
     """Find routers that defines this vlan"""
     gwportprefixes = []
-    for prefix in vlan.prefix_set.all():
+    for prefix in vlan.prefixes.all():
         gwportprefixes.extend(
-            prefix.gwportprefix_set.filter(
+            prefix.gwport_prefixes.filter(
                 interface__netbox__category__id__in=['GSW', 'GW']
             )
         )

@@ -111,19 +111,19 @@ def process_searchform(form):
         return Room.objects.filter(
             Q(id__icontains=query)
             | Q(description__icontains=query)
-            | Q(location__id__icontains=query)
+            | Q(child_locations__id__icontains=query)
         ).order_by("id")
 
 
 def filter_netboxes(room):
     """Filter netboxes based on interesting categories"""
-    return room.netbox_set.filter(category__in=CATEGORIES)
+    return room.netboxes.filter(category__in=CATEGORIES)
 
 
 def roominfo(request, roomid):
     """Controller for displaying roominfo"""
     room = get_object_or_404(Room, id=roomid)
-    images = room.image_set.all()
+    images = room.images.all()
     navpath = get_path() + [(room.id,)]
     room.sorted_data = sorted(room.data.items())
     room.meta_data = get_room_meta(room)
@@ -143,7 +143,7 @@ def get_room_meta(room):
     """Find meta data for the room"""
     room_interfaces = Interface.objects.filter(netbox__room=room)
     return {
-        'devices': room.netbox_set.count(),
+        'devices': room.netboxes.count(),
         'interfaces': room_interfaces.count(),
         'interfaces_with_link': room_interfaces.filter(
             ifoperstatus=Interface.OPER_UP
@@ -155,7 +155,7 @@ def get_room_meta(room):
 def render_deviceinfo(request, roomid):
     """Controller for rendering device info"""
     room = get_object_or_404(Room, id=roomid)
-    all_netboxes = room.netbox_set.select_related(
+    all_netboxes = room.netboxes.select_related(
         "type", "category", "organization"
     ).order_by("sysname")
     availabilities = {}
@@ -222,8 +222,8 @@ def render_netboxes(request, roomid):
 
     # Filter interfaces on iftype and add fast last_cam lookup
     for netbox in netboxes:
-        netbox.interfaces = (
-            netbox.interface_set.filter(iftype__in=Interface.ETHERNET_INTERFACE_TYPES)
+        netbox.interfaces_list = (
+            netbox.interfaces.filter(iftype__in=Interface.ETHERNET_INTERFACE_TYPES)
             .order_by("ifindex")
             .extra(select=cam_query)
         )
@@ -254,10 +254,10 @@ def create_csv(request):
 def render_sensors(request, roomid):
     """Gets the environment devices for a room"""
     room = get_object_or_404(Room, pk=roomid)
-    netboxes = room.netbox_set.filter(category='ENV')
+    netboxes = room.netboxes.filter(category='ENV')
 
     for netbox in netboxes:
-        netbox.env_sensors = netbox.sensor_set.filter(
+        netbox.env_sensors = netbox.sensors.filter(
             Q(unit_of_measurement__icontains='celsius')
             | Q(unit_of_measurement__icontains='percent')
             | Q(unit_of_measurement__icontains='degrees')
@@ -320,7 +320,7 @@ def render_racks(request, roomid):
 
     context = {
         'room': room,
-        'racks': room.rack_set.all().order_by('ordering'),
+        'racks': room.racks.all().order_by('ordering'),
         'color_classes': background_color_classes,
     }
     return render(request, 'info/room/roominfo_racks.html', context)

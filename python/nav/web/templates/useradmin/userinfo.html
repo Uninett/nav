@@ -21,9 +21,9 @@
                 <tr>
                     <th>Groups:</th>
                     <td>
-                        {% if account.accountgroup_set.all %}
+                        {% if account.groups.all %}
                             <ul class="inside">
-                                {% for g in account.accountgroup_set.all %}
+                                {% for g in account.groups.all %}
                                     <li>{{ g }}</li>
                                 {% endfor %}
                             </ul>

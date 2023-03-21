@@ -86,7 +86,7 @@ def process_searchform(form):
         return Location.objects.filter(
             Q(id__icontains=query)
             | Q(description__icontains=query)
-            | Q(location__id__icontains=query)
+            | Q(child_locations__id__icontains=query)
         ).order_by("id")
 
 
@@ -102,7 +102,7 @@ def locationinfo(request, locationid):
         {
             "location": location,
             "navpath": navpath,
-            "images": location.image_set.all(),
+            "images": location.images.all(),
             "title": create_title(navpath),
         },
     )

@@ -87,11 +87,11 @@ def search_expand_swport(swportid=None, swport=None, scanned=[]):
     found_gwports = []
 
     # Find gwport that has the same vlan
-    for swportvlan in swport.swportvlan_set.exclude(
+    for swportvlan in swport.swport_vlans.exclude(
         vlan__net_type='static'
     ).select_related():
-        for prefix in swportvlan.vlan.prefix_set.all():
-            for gwportprefix in prefix.gwportprefix_set.all():
+        for prefix in swportvlan.vlan.prefixes.all():
+            for gwportprefix in prefix.gwport_prefixes.all():
                 found_gwports.append(gwportprefix.interface)
 
     for port in (
@@ -108,17 +108,17 @@ def search_expand_swport(swportid=None, swport=None, scanned=[]):
         found_swports.extend(recurs_found[1])
 
     for port in Interface.objects.filter(
-        to_interface__in=found_swports, gwportprefix__isnull=False
+        to_interface__in=found_swports, gwport_prefixes__isnull=False
     ):
         found_gwports.append(port)
 
     for port in Interface.objects.filter(
-        to_netbox=swport.netbox, gwportprefix__isnull=False
+        to_netbox=swport.netbox, gwport_prefixes__isnull=False
     ):
         found_gwports.append(port)
 
     for port in Interface.objects.filter(
-        to_interface=swport, gwportprefix__isnull=False
+        to_interface=swport, gwport_prefixes__isnull=False
     ):
         found_gwports.append(port)
 
@@ -142,14 +142,14 @@ def search_expand_netbox(netboxid=None, netbox=None):
     for result in netbox.get_uplinks():
         if (
             result['other'].__class__ == Interface
-            and result['other'].gwportprefix_set.count()
+            and result['other'].gwport_prefixes.count()
         ):
             found_gwports.append(result['other'])
         else:
             found_swports.append(result['other'])
 
     ports = Interface.objects.filter(to_netbox=netbox)
-    gwports = ports.filter(gwportprefix__isnull=False)
+    gwports = ports.filter(gwport_prefixes__isnull=False)
     swports = ports.filter(baseport__isnull=False)
 
     found_gwports.extend(gwports)
@@ -230,7 +230,7 @@ def sysname_search(sysname, exact=False):
 
     interfaces = Interface.objects.filter(module__netbox__in=netboxes)
 
-    for gwport in interfaces.filter(gwportprefix__isnull=False):
+    for gwport in interfaces.filter(gwport_prefixes__isnull=False):
         gwport_matches.add(gwport)
 
     for swport in interfaces.filter(baseport__isnull=False):

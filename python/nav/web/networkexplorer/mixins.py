@@ -125,11 +125,11 @@ class ExpandRouterContextMixin(object):
             }
             gwport_prefixes.append(p)
 
-            vlans = prefix.prefix.vlan.swportvlan_set.exclude(
+            vlans = prefix.prefix.vlan.swport_vlans.exclude(
                 vlan__net_type='static'
             ).filter(interface__netbox=gwport.netbox)
             for vlan in vlans:
-                if not vlan.interface.swportblocked_set.filter(
+                if not vlan.interface.blocked_swports.filter(
                     vlan=vlan.vlan.vlan
                 ).count():
                     has_children = True
@@ -150,7 +150,7 @@ class ExpandGWPortMixin(object):
 
     def get_context_data(self, **kwargs):
         gwport = kwargs.pop('object')
-        prefixes = gwport.gwportprefix_set.select_related(
+        prefixes = gwport.gwport_prefixes.select_related(
             'prefix__vlan',
         ).exclude(prefix__vlan__net_type='static')
 
@@ -158,7 +158,7 @@ class ExpandGWPortMixin(object):
         vlans_found = set()
         for prefix in prefixes:
             for vlan in (
-                prefix.prefix.vlan.swportvlan_set.select_related(
+                prefix.prefix.vlan.swport_vlans.select_related(
                     'interface__to_interface__netbox',
                     'interface__netbox',
                     'vlan',
@@ -168,7 +168,7 @@ class ExpandGWPortMixin(object):
             ):
 
                 # Check if port is spanningtreeblocked
-                if vlan.interface.swportblocked_set.filter(
+                if vlan.interface.blocked_swports.filter(
                     vlan=vlan.vlan.vlan  # really!
                 ).count():
                     continue
@@ -206,7 +206,7 @@ class ExpandGWPortMixin(object):
         connected_interface = interface.to_interface
         c = {}
 
-        if interface.to_netbox and interface.to_netbox.service_set.count():
+        if interface.to_netbox and interface.to_netbox.services.count():
             has_children = True
             has_services = True
 
@@ -221,7 +221,7 @@ class ExpandGWPortMixin(object):
 
         if not has_children:
 
-            if connected_interface and connected_interface.netbox.service_set.count():
+            if connected_interface and connected_interface.netbox.services.count():
                 has_children = True
 
             elif Cam.objects.filter(
@@ -259,7 +259,7 @@ class ExpandSwitchContextMixin(object):
         swport_vlans = SwPortVlan.objects.filter(
             interface__in=swports, vlan__id=vlan_id
         )
-        switch_has_services = switch.service_set.all().count()
+        switch_has_services = switch.services.all().count()
 
         context = []
 
@@ -293,7 +293,7 @@ class ExpandSWPortContextMixin(object):
     def get_context_data(self, **kwargs):
         swport = kwargs.pop('object')
         to_netbox = swport.to_netbox or swport.to_interface.netbox or None
-        services = to_netbox.service_set.all() if to_netbox else []
+        services = to_netbox.services.all() if to_netbox else []
 
         active_macs = Cam.objects.filter(
             netboc=swport.netbox, ifindex=swport.ifindex, end_time__gt=dt.max

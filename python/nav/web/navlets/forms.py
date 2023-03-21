@@ -81,6 +81,6 @@ class PduWidgetForm(forms.Form):
             (r.pk, str(r))
             for r in Room.objects.filter(
                 netbox__category='POWER',
-                netbox__sensor__internal_name__startswith='rPDULoadStatusLoad',
+                netbox__sensors__internal_name__startswith='rPDULoadStatusLoad',
             ).distinct('id')
         ]

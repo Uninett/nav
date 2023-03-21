@@ -73,7 +73,7 @@ class VlanGraphAnalyzer(object):
         return {
             x
             for x in Vlan.objects.filter(
-                prefix__isnull=True, netbox__isnull=False
+                prefixes__isnull=True, netbox__isnull=False
             ).iterator()
         }
 
@@ -152,7 +152,7 @@ class VlanGraphAnalyzer(object):
         active_vlans = dict((vlan.vlan, vlan) for vlan in vlans)
 
         access_ifcs = (
-            netbox.interface_set.filter(vlan__isnull=False)
+            netbox.interfaces.filter(vlan__isnull=False)
             .filter(NO_TRUNK)
             .exclude(id__in=(ifc.id for ifc in ifcs))
         )
@@ -267,7 +267,7 @@ class RoutedVlanTopologyAnalyzer(object):
         if not ifc.trunk:
             return self._ifc_has_vlan(ifc)
         else:
-            non_trunks_on_vlan = dest.interface_set.filter(vlan=self.vlan.vlan).filter(
+            non_trunks_on_vlan = dest.interfaces.filter(vlan=self.vlan.vlan).filter(
                 NO_TRUNK
             )
             if ifc.to_interface:
@@ -288,8 +288,8 @@ class RoutedVlanTopologyAnalyzer(object):
     def _vlan_allowed_on_trunk(self, ifc):
         return (
             ifc.trunk
-            and getattr(ifc, 'swportallowedvlan', None)
-            and self.vlan.vlan in ifc.swportallowedvlan
+            and getattr(ifc, 'swport_allowed_vlan', None)
+            and self.vlan.vlan in ifc.swport_allowed_vlan
         )
 
     def _is_blocked_on_any_end(self, edge):

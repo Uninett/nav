@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block base_content %}
-    
+
     <div class="row">
         <div class="medium-12 columns">
             {% include 'nav_header.html' %}
@@ -34,9 +34,9 @@
                 <tr>
                     <th>Groups</th>
                     <td>
-                        {% if account.accountgroup_set.all %}
+                        {% if account.groups.all %}
                             <ul class="inside">
-                                {% for g in account.accountgroup_set.all %}
+                                {% for g in account.groups.all %}
                                     <li>{{ g }}</li>
                                 {% endfor %}
                             </ul>
@@ -65,7 +65,7 @@
         <div class="column medium-6 large-7">
           {% crispy columns_form %}
         </div>
-        
+
     </div>
     <div class="row">
         <div class="column medium-6 large-5">

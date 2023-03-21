@@ -55,20 +55,20 @@ def parse_args():
         "-f",
         "--config-file",
         type=pathlib.Path,
-        help="Complete path to dhcpd-pools config-file. Usually located in /etc/dhcpd/",
+        help="Complete path to dhcpd-pools config-file. Usually located in /etc/dhcpd/. Default: %(default)s",
         default=DEFAULT_CONFIG_FILE,
     )
     parser.add_argument(
         "-C",
         "--command",
-        help="Path to dhcpd-pools command",
+        help="Path to dhcpd-pools command. Default: %(default)s",
         type=pathlib.Path,
         default=DEFAULT_CMD_PATH,
     )
     parser.add_argument(
         "-p",
         "--prefix",
-        help="Path prefix to use for the metric, overriding the default",
+        help="Path prefix to use for the metric, overriding the default. Default: %(default)s",
         type=str,
         default=DEFAULT_PREFIX,
     )
@@ -86,7 +86,7 @@ def parse_args():
     parser.add_argument(
         "-P",
         "--protocol",
-        help="Protocol to use to send to graphite server",
+        help="Protocol to use to send to graphite server. Default: %(default)s",
         choices=protocol_choices,
         default=str(DEFAULT_PROTOCOL),
         type=str,
@@ -159,6 +159,8 @@ def _tuplify(jsonblob, prefix):
     output = list()
     for vlan_stat in data:
         vlan = _clean_vlan(vlan_stat["location"])
+        if not vlan:
+            continue
         for key, metric in METRIC_MAPPER.items():
             path = f"{prefix}.{vlan}.{metric}"
             value = vlan_stat[key]
@@ -168,7 +170,10 @@ def _tuplify(jsonblob, prefix):
 
 def _clean_vlan(location):
     regex = re.search("vlan\d+", location)
-    return regex.group()
+    if regex:
+        return regex.group()
+    sys.stderr.write(f"No vlan found in location {location}: invalid\n")
+    return None
 
 
 # send the data

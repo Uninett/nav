@@ -187,13 +187,13 @@
             <tr>
               <th>Modules</th>
               <td><a href="{% report 'modules' netboxid=netbox.id %}">
-                {{ netbox.module_set.count }}</a></td>
+                {{ netbox.modules.count }}</a></td>
             </tr>
 
             <tr>
               <th>Interfaces</th>
               <td><a href="{% report 'interfaces' netboxid=netbox.id %}">
-                {{ netbox.interface_set.count }}</a></td>
+                {{ netbox.interfaces.count }}</a></td>
             </tr>
 
             <tr>

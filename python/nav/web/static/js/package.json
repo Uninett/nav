@@ -1,7 +1,7 @@
 {
     "name": "NAV",
     "description": "Network Administration Visualized",
-    "version": "5.2.1",
+    "version": "5.5-dev",
     "private": true,
     "devDependencies": {
         "chai": "~4.3.4",

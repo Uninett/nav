@@ -1,5 +1,5 @@
 <div class="nav-metrics-container">
-  {% with port.sensor_set.all as sensors %}
+  {% with port.sensors.all as sensors %}
     {% if sensors|length %}
       <a href="javascript:void(0);" class="all-graph-opener button secondary small">Show all graphs</a>
       <a href="javascript:void(0);" class="all-graph-closer button secondary small">Hide all graphs</a>

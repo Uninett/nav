@@ -162,7 +162,7 @@ class Neighbor(object):
         if ip in self._invalid_neighbor_ips:
             return
         return self._netbox_query(Q(ip=ip)) or self._netbox_query(
-            Q(interface__gwportprefix__gw_ip=ip)
+            Q(interfaces__gwport_prefixes__gw_ip=ip)
         )
 
     ID_PATTERN = re.compile(r'(.*\()?(?P<sysname>[^\)]+)\)?')

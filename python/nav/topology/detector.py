@@ -143,7 +143,7 @@ def do_vlan_detection(vlans):
 @with_exception_logging
 def delete_unused_vlans():
     """Deletes vlans unassociated with prefixes or switch ports"""
-    unused = Vlan.objects.filter(prefix__isnull=True, swportvlan__isnull=True)
+    unused = Vlan.objects.filter(prefixes__isnull=True, swport_vlans__isnull=True)
     if unused:
         _logger.info("deleting unused vlans: %r", unused)
         unused.delete()
@@ -156,7 +156,7 @@ def delete_unused_prefixes():
     manually entered into NAV.
     """
     holy_vlans = Q(vlan__net_type__in=('scope', 'reserved', 'static'))
-    unused_prefixes = Prefix.objects.filter(gwportprefix__isnull=True).exclude(
+    unused_prefixes = Prefix.objects.filter(gwport_prefixes__isnull=True).exclude(
         holy_vlans
     )
 

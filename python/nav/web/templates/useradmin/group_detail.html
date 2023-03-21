@@ -90,7 +90,7 @@
           <fieldset>
             <legend>Group privileges</legend>
 
-            {% if group.privilege_set.all %}
+            {% if group.privileges.all %}
               <div class="long-listing">
                 <table class="listtable expand hover">
                   <thead>
@@ -101,7 +101,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {% for privilege in group.privilege_set.all %}
+                    {% for privilege in group.privileges.all %}
                       <tr>
                         <td>{{ privilege.type }}</td>
                         <td class="break-word">{{ privilege.target }}</td>
@@ -121,7 +121,7 @@
             {% endif %}
 
             {% if privilege_form %}
-              
+
               <h6>
                 Grant privileges
                 <i class="fa fa-info-circle has-tip"

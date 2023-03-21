@@ -1,4 +1,4 @@
-{% for subscription in request.account.reportsubscription_set.all  %}
+{% for subscription in request.account.report_subscriptions.all  %}
   <li>
     {{ subscription }}
     <button class="table-button secondary"
