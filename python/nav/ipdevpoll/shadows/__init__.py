@@ -842,13 +842,17 @@ class PowerSupplyOrFan(Shadow):
     @classmethod
     def _alert_missing_devices_are_deleted(cls, deleted_psus_and_fans):
         for psufan in deleted_psus_and_fans:
-            device_event.notify(
-                device=psufan.device,
-                netbox=psufan.netbox,
-                alert_type="deviceDeletedPsu"
-                if psufan.is_psu()
-                else "deviceDeletedFan",
-            ).save()
+            try:
+                if psufan.device.serial:
+                    device_event.notify(
+                        device=psufan.device,
+                        netbox=psufan.netbox,
+                        alert_type="deviceDeletedPsu"
+                        if psufan.is_psu()
+                        else "deviceDeletedFan",
+                    ).save()
+            except manage.Device.DoesNotExist:
+                pass
 
 
 class POEPort(Shadow):
