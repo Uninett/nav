@@ -15,7 +15,7 @@ found in the [HISTORY](HISTORY) file.
 
 ### Fixed
 
-#### User-visible features
+#### User-visible fixes
 - Make save function in AlertHistory, EventHistory and AlertQueue atomic  ([#2594](https://github.com/Uninett/nav/pull/2594))
 
 
