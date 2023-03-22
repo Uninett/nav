@@ -14,6 +14,7 @@ found in the [HISTORY](HISTORY) file.
 #### User-visible fixes
 - Make save function in AlertHistory, EventHistory and AlertQueue atomic  ([#2594](https://github.com/Uninett/nav/pull/2594))
 - Link to correct room in room report if room has a space in its name ([#2593](https://github.com/Uninett/nav/pull/2593), [#2592](https://github.com/Uninett/nav/issues/2592))
+- Set device sw/hw/fw version by netbox entity with lowest index ([#2583](https://github.com/Uninett/nav/pull/2583), [#2493](https://github.com/Uninett/nav/issues/2493))
 
 
 
