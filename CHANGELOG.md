@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## [Unreleased]
+
+
+
+## bugfix/atomic-save-of-alerts-and-events 
+
+### Fixed
+
+#### User-visible fixes
+- Make save function in AlertHistory, EventHistory and AlertQueue atomic  ([#2594](https://github.com/Uninett/nav/pull/2594))
+
+
+
 ## [5.6.0] - 2023-01-20
 
 ### Added
