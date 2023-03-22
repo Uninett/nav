@@ -15,7 +15,7 @@ found in the [HISTORY](HISTORY) file.
 
 ### Fixed
 
-#### User-visible features
+#### User-visible fixes
 - Show error message on invalid ip address in ipdevinfo ([#2590](https://github.com/Uninett/nav/pull/2590), [#2589](https://github.com/Uninett/nav/issues/2589))
 
 
