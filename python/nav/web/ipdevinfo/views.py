@@ -266,9 +266,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         return cam_info[0] if cam_info else None
 
     # Get data needed by the template
-    addr = is_valid_ip(addr)
+    addr_valid = is_valid_ip(addr)
     host_info = None
-    netbox = get_netbox(name=name, addr=addr)
 
     # Assign default values to variables
     no_netbox = {
@@ -282,12 +281,30 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     job_descriptions = None
     system_metrics = netbox_availability = []
     sensor_metrics = []
-
     graphite_error = False
+
+    # Invalid IP address
+    if not name and not addr_valid:
+        navpath = NAVPATH + [(addr, '')]
+        return render(
+            request,
+            'ipdevinfo/ipdev-details.html',
+            {
+                'heading': navpath[-1][0],
+                'navpath': navpath,
+                'title': create_title(navpath),
+                'display_services_tab': False,
+                'invalid_ip': True,
+                'no_netbox': no_netbox,
+            },
+        )
+
+    netbox = get_netbox(name=name, addr=addr)
+
     # If addr or host not a netbox it is not monitored by NAV
     if netbox is None:
         host_info = get_host_info(name or addr)
-        if not addr and host_info['addresses']:
+        if not addr_valid and host_info['addresses']:
             # Picks the first address in array if addr not specified
             addr = host_info['addresses'][0]['addr']
 
