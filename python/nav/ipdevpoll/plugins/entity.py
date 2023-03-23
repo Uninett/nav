@@ -72,7 +72,8 @@ class Entity(Plugin):
         # be able to look up all entities using entPhysicalIndex
         entities = EntityTable(result)
         containers = [
-            self._container_from_entity(entity) for entity in entities.values()
+            self._container_from_entity(entity)
+            for _, entity in sorted(entities.items())
         ]
         self._fix_hierarchy(containers)
 
@@ -149,7 +150,9 @@ class Entity(Plugin):
             for key in ('hardware', 'firmware', 'software'):
                 val = getattr(container, key + '_revision')
                 if val:
-                    setattr(device, key + '_version', val)
+                    version = getattr(device, key + '_version', None)
+                    if not version:
+                        setattr(device, key + '_version', val)
             device.active = True
             container.device = device
 

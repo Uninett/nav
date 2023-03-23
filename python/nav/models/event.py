@@ -23,7 +23,7 @@ from collections import defaultdict
 import logging
 import datetime as dt
 
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -417,6 +417,7 @@ class EventQueue(models.Model, EventMixIn):
         )
         return string.format(self=self, state=dict(self.STATE_CHOICES)[self.state])
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         new_object = self.pk is None
         super(EventQueue, self).save(*args, **kwargs)
@@ -550,6 +551,7 @@ class AlertQueue(models.Model, EventMixIn):
             self.severity,
         )
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         new_object = self.pk is None
         super(AlertQueue, self).save(*args, **kwargs)
@@ -756,6 +758,7 @@ class AlertHistory(models.Model, EventMixIn):
 
         ack.save()
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         new_object = self.pk is None
         super(AlertHistory, self).save(*args, **kwargs)

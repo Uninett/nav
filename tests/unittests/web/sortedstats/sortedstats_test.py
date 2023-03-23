@@ -26,10 +26,10 @@ class TestSortedStats(TestCase):
         cache_key = views.get_cache_key(view, timeframe, rows)
         self.assertEqual(cache_key, expected_cache_key)
 
-    @patch('nav.web.sortedstats.views.cache')
+    @patch('nav.web.sortedstats.views.get_cache')
     def test_process_form_returns_cache_value_if_cache_exists(self, cache_mock):
         data = "cached"
-        cache_mock.get.return_value.data = data
+        cache_mock.return_value.get.return_value.data = data
         fake_form = MagicMock()
         fake_form.cleaned_data = {
             'view': 'uptime',
@@ -42,12 +42,12 @@ class TestSortedStats(TestCase):
         self.assertEqual(result.data, data)
 
     @patch('nav.web.sortedstats.views.collect_result')
-    @patch('nav.web.sortedstats.views.cache')
+    @patch('nav.web.sortedstats.views.get_cache')
     def test_cache_not_used_if_empty_and_use_cache_is_on(
         self, cache_mock, collect_mock
     ):
         data = "new"
-        cache_mock.get.return_value.data = ""
+        cache_mock.return_value.get.return_value.data = ""
         collect_mock.return_value.data = data
         fake_form = MagicMock()
         fake_form.cleaned_data = {
@@ -61,12 +61,12 @@ class TestSortedStats(TestCase):
         self.assertEqual(result.data, data)
 
     @patch('nav.web.sortedstats.views.collect_result')
-    @patch('nav.web.sortedstats.views.cache')
+    @patch('nav.web.sortedstats.views.get_cache')
     def test_cache_not_used_if_empty_and_use_cache_is_off(
         self, cache_mock, collect_mock
     ):
         data = "new"
-        cache_mock.get.return_value.data = ""
+        cache_mock.return_value.get.return_value.data = ""
         collect_mock.return_value.data = data
         fake_form = MagicMock()
         fake_form.cleaned_data = {
