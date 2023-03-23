@@ -17,6 +17,11 @@
     {% include 'nav_header.html' %}
   {% endwith %}
 
+  {% if cache_misconfigured %}
+    <div class="alert-box error">
+      The cache for Ranked Statistics is not configured correctly.
+    </div>
+  {% endif %}
 
   {% crispy form %}
 

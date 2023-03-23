@@ -26,6 +26,7 @@ except ImportError:
 from django.shortcuts import render
 from django.core.cache import caches
 from django.conf import settings
+from django.core.cache.backends.base import InvalidCacheBackendError
 
 from .forms import ViewForm
 from . import CLASSMAP, TIMEFRAMES
@@ -33,7 +34,19 @@ from nav.metrics.errors import GraphiteUnreachableError
 
 GRAPHITE_TIME_FORMAT = "%H:%M_%Y%m%d"
 _logger = logging.getLogger(__name__)
-cache = caches['sortedstats']
+
+
+def get_cache():
+    return caches['sortedstats']
+
+
+def cache_is_misconfigured():
+    try:
+        get_cache()
+    except InvalidCacheBackendError:
+        return True
+    else:
+        return False
 
 
 def index(request):
@@ -64,6 +77,7 @@ def index(request):
         'graphite_unreachable': graphite_unreachable,
         'from_cache': from_cache,
         'duration': duration,
+        'cache_misconfigured': cache_is_misconfigured(),
     }
 
     return render(request, 'sortedstats/sortedstats.html', context)
@@ -78,8 +92,13 @@ def process_form(form):
     rows = form.cleaned_data['rows']
     cache_key = get_cache_key(view, timeframe, rows)
     if form.cleaned_data['use_cache']:
-        result = cache.get(cache_key)
-        if result and not result.data:
+        try:
+            cache = get_cache()
+            result = cache.get(cache_key)
+            if result and not result.data:
+                result = None
+        except InvalidCacheBackendError as e:
+            _logger.error("Error accessing cache for ranked statistics: %s", e)
             result = None
     if not result:
         result = collect_result(view, timeframe, rows)
@@ -106,7 +125,11 @@ def collect_result(view, timeframe, rows):
     cache_key = get_cache_key(view, timeframe, rows)
     result = get_result(view, start, end, rows)
     result.collect()
-    cache.set(cache_key, result, timeout=timeout)
+    try:
+        cache = get_cache()
+        cache.set(cache_key, result, timeout=timeout)
+    except InvalidCacheBackendError as e:
+        _logger.error("Error accessing cache for ranked statistics: %s", e)
     return result
 
 

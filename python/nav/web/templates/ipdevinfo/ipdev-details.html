@@ -47,6 +47,9 @@
       {% try_to_include 'ipdevinfo/custom-header-button-extras.html' %}
 
     </ul>
+
+  {% elif invalid_ip %}
+    <div class="alert-box error">Invalid IP address</div>
   {% endif %}
 
   <div id="ipdevinfotabs" class="ui-helper-hidden">
