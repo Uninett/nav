@@ -1,6 +1,7 @@
-# This sets up a live NAV development environment in Docker containers.
-#
-# Defaults NAV to a container with Python 3.
+# This sets up a live NAV development environment in Docker containers.  This
+# is NOT SUITABLE for production use of NAV.  For more production-oriented
+# containerization, have a look at the separate project
+# https://github.com/Uninett/nav-container
 #
 version: '3'
 

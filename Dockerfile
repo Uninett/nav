@@ -1,4 +1,6 @@
-# NAV development container
+# NAV development container. This is NOT SUITABLE for production use of NAV.
+# For more production-oriented containerization, have a look at the separate
+# project https://github.com/Uninett/nav-container
 #
 # This container aims at providing all the build- and runtime dependencies of
 # NAV itself in a single container, and allowing for running them all directly
