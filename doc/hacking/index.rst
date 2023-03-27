@@ -16,3 +16,4 @@
    extending-nav-locally
    web-interface-customization
    /api/searchproviders
+   snmp-tunnels

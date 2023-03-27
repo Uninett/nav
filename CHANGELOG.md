@@ -9,6 +9,11 @@ found in the [HISTORY](HISTORY) file.
 
 ## [Unreleased]
 
+### Added
+
+#### Developer-centric features
+- Document a recipe for establishing SNMP tunnels using socat/SSH ([#2426](https://github.com/Uninett/nav/issues/2426), [#2435](https://github.com/Uninett/nav/pulls/2435))
+
 ### Fixed
 
 #### User-visible fixes
