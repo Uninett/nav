@@ -5,18 +5,6 @@
 #
 version: '3'
 
-# x-forwarder:
-#   &forwarder
-#   build:
-#     context: tools/forward
-#     args:
-#       - USER
-#   volumes:
-#     - /run/user/1000/keyring/ssh:/auth_sock
-#     - /etc/ssh/ssh_known_hosts:/etc/ssh/ssh_known_hosts
-#   environment:
-#     - SSH_AUTH_SOCK=/auth_sock
-
 services:
   nav:
     build: .
@@ -103,10 +91,6 @@ services:
       - nav
     command: /source/tools/docker/doc-watch.sh
     restart: on-failure:5
-
-  # mydevice.mydomain:
-  #   << : *forwarder
-  #   command: /snmp_forward.sh mydevice.mydomain myvk
 
 volumes:
   nav_config:
