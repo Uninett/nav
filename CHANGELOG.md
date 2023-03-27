@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## Unreleased
+
+### Fixed
+
+#### User-visible fixes
+- Show help text when running nav command without arguments instead of error ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
+
 ## [5.6.1] - 2023-03-23
 
 ### Fixed
