@@ -36,3 +36,25 @@ def test_naventity_runs_without_error_with_arguments(localhost, snmpsim):
         print(fail.decode('utf-8'))
 
     assert retcode == 0
+
+
+def test_nav_runs_without_error_without_arguments():
+    """
+    Verifies that nav runs with a zero exit code when given no arguments
+
+    Added in regards to: https://github.com/Uninett/nav/issues/2601
+    """
+    proc = subprocess.Popen(
+        ["./bin/nav"],
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.PIPE,
+    )
+    (done, fail) = proc.communicate()
+    retcode = proc.wait()
+
+    if done:
+        print(done.decode('utf-8'))
+    if fail:
+        print(fail.decode('utf-8'))
+
+    assert retcode == 0
