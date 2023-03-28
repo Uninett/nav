@@ -80,8 +80,6 @@ class AlertGenerator(dict):
         """
         return True
 
-    __nonzero__ = __bool__  # For PY2 compatibility
-
     def make_alert(self):
         """Generates an alert object based on the current attributes"""
         attrs = {}
