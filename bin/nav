@@ -47,8 +47,13 @@ except (OSError, CrontabError) as _error:
 
 def main(args):
     """Main execution point"""
-    args = make_argparser().parse_args()
-    args.func(args)
+    parser = make_argparser()
+    args = parser.parse_args()
+    try:
+        args.func(args)
+    except AttributeError:
+        parser.print_help(sys.stderr)
+        sys.exit(0)
 
 
 def make_argparser():
