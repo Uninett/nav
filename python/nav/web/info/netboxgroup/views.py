@@ -65,7 +65,7 @@ def index(request):
         if form.is_valid():
             query = request.GET['query']
             id_filter = Q(pk__icontains=query)
-            netbox_filter = Q(netbox__sysname__icontains=query)
+            netbox_filter = Q(netboxes__sysname__icontains=query)
             groups = (
                 NetboxGroup.objects.filter(id_filter | netbox_filter)
                 .distinct()
