@@ -10,6 +10,13 @@ prefix_url = ENDPOINTS['prefix']
 
 
 class TestContainsAddressFilter:
+    def test_prefix_is_returned_when_no_given_containing_address(self, client, prefix):
+        response = client.get(prefix_url, {"contains_address": ""})
+        assert response.status_code == 200
+        content = json.loads(response.content.decode('utf-8'))
+        prefix_ids = [prefix['id'] for prefix in content['results']]
+        assert prefix.id in prefix_ids
+
     def test_prefix_containing_given_address_is_returned(self, client, prefix):
         response = client.get(prefix_url, {"contains_address": "10.1.1.0/24"})
         assert response.status_code == 200
@@ -50,6 +57,13 @@ class TestVlanFilter:
 
 
 class TestIsNetAddressFilter:
+    def test_prefix_is_returned_when_no_given_address(self, client, prefix):
+        response = client.get(prefix_url, {"net_address": ""})
+        assert response.status_code == 200
+        content = json.loads(response.content.decode('utf-8'))
+        prefix_ids = [prefix['id'] for prefix in content['results']]
+        assert prefix.id in prefix_ids
+
     def test_prefix_with_given_address_is_returned(self, client, prefix):
         response = client.get(prefix_url, {"net_address": prefix.net_address})
         assert response.status_code == 200
