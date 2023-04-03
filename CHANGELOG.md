@@ -27,7 +27,8 @@ found in the [HISTORY](HISTORY) file.
 - Include the `new_version` variable in alert message templates for device hw/fw/sw upgrades ([#2565](https://github.com/Uninett/nav/pull/2565))
 - Update NAV blog widget to use the new blog URL ([#2585](https://github.com/Uninett/nav/pull/2585))
 - Handle invalid IP address input in ipdevinfo device searches gracefully, rather then crashing with a 500 error ([#2589](https://github.com/Uninett/nav/issues/2589), [#2590](https://github.com/Uninett/nav/pull/2590))
-- Fix broken links to room details from room report for rooms with spaces in their names ([#2592](https://github.com/Uninett/nav/issues/2592), [#2593](https://github.com/Uninett/nav/pull/2593)))
+- Fix broken links to room details from room report for rooms with spaces in their names ([#2592](https://github.com/Uninett/nav/issues/2592), [#2593](https://github.com/Uninett/nav/pull/2593))
+- Catch Validation error in filtering of prefixes in API ([#2606](https://github.com/Uninett/nav/issues/2606), [#2608](https://github.com/Uninett/nav/pull/2608))
 
 
 ## [5.6.0] - 2023-01-20

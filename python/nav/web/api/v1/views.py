@@ -777,6 +777,7 @@ class VlanViewSet(NAVAPIMixin, viewsets.ModelViewSet):
 
 class PrefixFilterClass(FilterSet):
     contains_address = CharFilter(method="contains_address_filter")
+    net_address = CharFilter(method="is_net_address")
 
     def contains_address_filter(self, queryset, field_name, value):
         if not value:
@@ -787,6 +788,15 @@ class PrefixFilterClass(FilterSet):
             )
         where_string = "inet '{}' <<= netaddr".format(value)
         return queryset.extra(where=[where_string], order_by=['net_address'])
+
+    def is_net_address(self, queryset, field_name, value):
+        if not value:
+            return queryset
+        if not is_valid_cidr(value):
+            raise ValidationError(
+                {"net_address": ["Value must be a valid CIDR address"]}
+            )
+        return queryset.filter(net_address=value)
 
     class Meta(object):
         model = manage.Prefix
