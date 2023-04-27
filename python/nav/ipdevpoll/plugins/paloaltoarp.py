@@ -64,7 +64,6 @@ class PaloaltoArp(Arp):
         self.paloalto_devices = []
 
         ipdevpoll_config = getconfig('ipdevpoll.conf')
-        self._logger.debug("ipdevpoll_config: %s", ipdevpoll_config)
 
         if 'paloaltoarp' in ipdevpoll_config:
             self._logger.debug("PaloaltoArp config section found")
