@@ -50,8 +50,6 @@ def parse_arp(arp):
         status = entry[0].text
         ip = entry[1].text
         mac = entry[2].text
-        ttl = entry[3].text
-        interface = entry[4].text
         if status != " i ":
             if mac != "(incomplete)":
                 arps.append(('ifindex', IP(ip), mac))
