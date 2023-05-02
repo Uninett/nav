@@ -39,8 +39,11 @@ from IPy import IP
 
 
 def parse_arp(arp):
-    """Create mappings from arp table"""
-    """XML PARSER IS SHIT AND FULL OF SECURITY VULNERABILITIES"""
+    """
+    Create mappings from arp table
+    xml.etree.ElementTree is considered insecure: https://docs.python.org/3/library/xml.html#xml-vulnerabilities
+    However, since we are not parsing untrusted data, this should not be a problem.
+    """
 
     arps = []
 
@@ -67,9 +70,9 @@ class PaloaltoArp(Arp):
         if 'paloaltoarp' in ipdevpoll_config:
             self._logger.debug("PaloaltoArp config section found")
             for key in ipdevpoll_config['paloaltoarp']:
-
                 self.paloalto_devices.append(
-                    {'key': ipdevpoll_config['paloaltoarp'][key], 'hostname': key})
+                    {'key': ipdevpoll_config['paloaltoarp'][key], 'hostname': key}
+                )
         else:
             self._logger.debug("PaloaltoArp config section NOT found")
 
@@ -79,7 +82,7 @@ class PaloaltoArp(Arp):
     def can_handle(cls, netbox):
         """Return True if this plugin can handle the given netbox."""
         PaloaltoArp_Instance = cls(None, None, None)
-        
+
         for device in PaloaltoArp_Instance.paloalto_devices:
             if device['hostname'] == netbox.sysname or device['hostname'] == netbox.ip:
                 return True
@@ -89,15 +92,22 @@ class PaloaltoArp(Arp):
         """Handle plugin business, return a deferred."""
 
         for device in self.paloalto_devices:
-            if self.netbox.ip == device['hostname'] or self.netbox.sysname == device['hostname']:
-
+            if (
+                self.netbox.ip == device['hostname']
+                or self.netbox.sysname == device['hostname']
+            ):
                 self._logger.debug(
-                    "Collecting IP/MAC mappings for Paloalto device: %s", device['hostname'])
-                    
-                mappings = yield self._get_paloalto_arp_mappings(self.netbox.ip, device['key'])
+                    "Collecting IP/MAC mappings for Paloalto device: %s",
+                    device['hostname'],
+                )
+
+                mappings = yield self._get_paloalto_arp_mappings(
+                    self.netbox.ip, device['key']
+                )
                 if mappings is None:
                     self._logger.info(
-                        "No mappings found for Paloalto device: %s", device['hostname'])
+                        "No mappings found for Paloalto device: %s", device['hostname']
+                    )
                     returnValue(None)
 
                 yield self._process_data(mappings)
@@ -125,7 +135,8 @@ class PaloaltoArp(Arp):
                 return ssl.CertificateOptions(verify=False)
 
         url = "https://{}/api/?type=op&cmd=<show><arp><entry+name+=+'all'/></arp></show>&key={}".format(
-            ip, key)
+            ip, key
+        )
         self._logger.debug("making request: %s", url)
 
         agent = Agent(reactor, contextFactory=sslPolicy())
@@ -135,10 +146,12 @@ class PaloaltoArp(Arp):
                 b'GET',
                 url.encode('utf-8'),
                 Headers({'User-Agent': ['PaloaltoArp']}),
-                None)
+                None,
+            )
         except:
             self._logger.info(
-                "make sure the device is reachable and the key is correct")
+                "make sure the device is reachable and the key is correct"
+            )
             returnValue(None)
 
         response = yield client.readBody(response)
