@@ -62,7 +62,6 @@ class PaloaltoArp(Arp):
         self._logger.debug("PaloaltoArp initialized")
 
         self.paloalto_devices = []
-
         ipdevpoll_config = getconfig('ipdevpoll.conf')
 
         if 'paloaltoarp' in ipdevpoll_config:
@@ -78,7 +77,12 @@ class PaloaltoArp(Arp):
 
     @classmethod
     def can_handle(cls, netbox):
-        return True
+        """Return True if this plugin can handle the given netbox."""
+        PaloaltoArp_Instance = cls(None, None, None)
+        
+        for device in PaloaltoArp_Instance.paloalto_devices:
+            if device['hostname'] == netbox.sysname or device['hostname'] == netbox.ip:
+                return True
 
     @defer.inlineCallbacks
     def handle(self):
