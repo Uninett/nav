@@ -34,6 +34,8 @@ from twisted.web.http_headers import Headers
 from nav.ipdevpoll.plugins.arp import Arp
 from nav.config import getconfig
 
+from nav import buildconf
+
 import xml.etree.ElementTree as ET
 from IPy import IP
 
@@ -145,7 +147,7 @@ class PaloaltoArp(Arp):
             response = yield agent.request(
                 b'GET',
                 url.encode('utf-8'),
-                Headers({'User-Agent': ['PaloaltoArp']}),
+                Headers({'User-Agent': [f'NAV/PaloaltoArp; version {buildconf.VERSION}']}),
                 None,
             )
         except:
