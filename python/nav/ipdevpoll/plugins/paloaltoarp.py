@@ -145,7 +145,9 @@ class PaloaltoArp(Arp):
             response = yield agent.request(
                 b'GET',
                 url.encode('utf-8'),
-                Headers({'User-Agent': [f'NAV/PaloaltoArp; version {buildconf.VERSION}']}),
+                Headers(
+                    {'User-Agent': [f'NAV/PaloaltoArp; version {buildconf.VERSION}']}
+                ),
                 None,
             )
         except:
