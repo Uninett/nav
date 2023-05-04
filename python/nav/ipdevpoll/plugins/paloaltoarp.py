@@ -136,9 +136,7 @@ class PaloaltoArp(Arp):
             def creatorForNetloc(self, hostname, port):
                 return ssl.CertificateOptions(verify=False)
 
-        url = "https://{}/api/?type=op&cmd=<show><arp><entry+name+=+'all'/></arp></show>&key={}".format(
-            ip, key
-        )
+        url = f'https://{ip}/api/?type=op&cmd=<show><arp><entry+name+=+\'all\'/></arp></show>&key={key}'
         self._logger.debug("making request: %s", url)
 
         agent = Agent(reactor, contextFactory=sslPolicy())
