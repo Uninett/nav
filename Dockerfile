@@ -95,6 +95,8 @@ RUN pip install ${CUSTOM_PIP}
 
 COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
+# Set up for mounting live source code from git repo at /source
+RUN    git config --global --add safe.directory /source
 VOLUME ["/source"]
 ENV    DJANGO_SETTINGS_MODULE nav.django.settings
 EXPOSE 80
