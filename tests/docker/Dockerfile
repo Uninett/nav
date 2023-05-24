@@ -65,7 +65,7 @@ RUN cd /tmp && \
     mv chromedriver /usr/local/bin/
 
 # Install our primary test runner
-RUN python3.7 -m pip install 'tox<4' snmpsim virtualenv
+RUN python3.7 -m pip install 'tox<4' snmpsim 'pyasn1<0.5.0' virtualenv
 
 # Add a build user
 ENV USER build
