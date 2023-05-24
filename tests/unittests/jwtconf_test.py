@@ -8,7 +8,7 @@ class TestJWTConf(TestCase):
     def setUp(self):
         pass
 
-    def test_valid_jwks_config_should_pass(self):
+    def test_issuer_settings_include_valid_jwks_issuer(self):
         config = u"""
             [jwks-issuer]
             keytype=JWKS
@@ -32,7 +32,7 @@ class TestJWTConf(TestCase):
                 settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings['jwks-issuer'], expected_settings)
 
-    def test_valid_pem_config_should_pass(self):
+    def test_issuer_settings_include_valid_pem_issuer(self):
         config = u"""
             [pem-issuer]
             keytype=PEM
@@ -57,7 +57,7 @@ class TestJWTConf(TestCase):
                 settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings['pem-issuer'], expected_settings)
 
-    def test_valid_local_config_should_pass(self):
+    def test_issuer_settings_include_valid_local_issuer(self):
         config = u"""
             [nav]
             private_key=key
@@ -83,7 +83,7 @@ class TestJWTConf(TestCase):
                 settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings['nav'], expected_settings)
 
-    def test_invalid_config_for_interal_tokens_should_return_empty_dict(self):
+    def test_invalid_config_for_internal_tokens_should_return_empty_dict(self):
         config = u"""
             [wrong-section-name]
             private_key=key
