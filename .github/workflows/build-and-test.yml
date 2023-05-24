@@ -51,7 +51,7 @@ jobs:
       - name: "Install test runner dependencies"
         run: |
           set -xe
-          python -m pip install --upgrade pip setuptools wheel 'tox<4' tox-gh-actions coverage virtualenv snmpsim
+          python -m pip install --upgrade pip setuptools wheel 'tox<4' tox-gh-actions coverage virtualenv snmpsim 'pyasn1<0.5.0'
           sudo apt-get install -y nbtscan
 
       # virtualenv seems to currently be embedding a broken version of
