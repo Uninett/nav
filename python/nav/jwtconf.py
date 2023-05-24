@@ -80,10 +80,16 @@ class JWTConf(NAVConfigParser):
     def _validate_issuer(self, section):
         if not section:
             raise ConfigurationError("Invalid 'issuer': 'issuer' must not be empty")
-        if section == self.get_nav_name():
-            raise ConfigurationError(
-                "Invalid 'issuer': %s collides with internal issuer name %s", section
-            )
+        try:
+            nav_name = self.get_nav_name()
+        except ConfigurationError:
+            pass
+        else:
+            if section == nav_name:
+                raise ConfigurationError(
+                    "Invalid 'issuer': %s collides with internal issuer name %s",
+                    section,
+                )
         return section
 
     def _validate_audience(self, audience):
