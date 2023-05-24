@@ -597,7 +597,7 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         queryset = cabling.Cabling.objects.all()
         not_patched = self.request.query_params.get('available', None)
         if not_patched:
-            queryset = queryset.filter(patch=None)
+            queryset = queryset.filter(patches=None)
 
         return queryset
 
