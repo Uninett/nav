@@ -10,10 +10,6 @@ class TestJWTConf(TestCase):
 
     def test_valid_jwks_config_should_pass(self):
         config = u"""
-            [nav]
-            private_key=key
-            public_key=key
-            name=issuer-name
             [jwks-issuer]
             keytype=JWKS
             aud=nav
@@ -38,10 +34,6 @@ class TestJWTConf(TestCase):
 
     def test_valid_pem_config_should_pass(self):
         config = u"""
-            [nav]
-            private_key=key
-            public_key=key
-            name=nav-issuer
             [pem-issuer]
             keytype=PEM
             aud=nav
@@ -65,16 +57,38 @@ class TestJWTConf(TestCase):
                 settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings['pem-issuer'], expected_settings)
 
+    def test_valid_local_config_should_pass(self):
+        config = u"""
+            [nav]
+            private_key=key
+            public_key=key
+            name=nav
+            """
+        key = "PEM KEY"
+        expected_settings = {
+            'key': key,
+            'type': 'PEM',
+            'claims_options': {
+                'aud': {'values': ['nav'], 'essential': True},
+                'token_type': {'values': ['access_token'], 'essential': True},
+            },
+        }
+
+        def read_file_patch(self, file):
+            return key
+
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            with patch.object(JWTConf, '_read_key_from_path', read_file_patch):
+                jwtconf = JWTConf()
+                settings = jwtconf.get_issuers_setting()
+        self.assertEqual(settings['nav'], expected_settings)
+
     def test_invalid_config_for_interal_tokens_should_return_empty_dict(self):
         config = u"""
             [wrong-section-name]
             private_key=key
             public_key=key
             name=nav-issuer
-            [pem-issuer]
-            keytype=PEM
-            aud=nav
-            key=key_path
             """
 
         def read_file_patch(self, file):
@@ -88,10 +102,6 @@ class TestJWTConf(TestCase):
 
     def test_invalid_config_for_external_tokens_should_return_empty_dict(self):
         config = u"""
-            [nav]
-            private_key=key
-            public_key=key
-            name=nav-issuer
             [pem-issuer]
             keytype=INVALID
             aud=nav
@@ -232,10 +242,6 @@ class TestJWTConf(TestCase):
 
     def test_missing_option_should_raise_error(self):
         config_with_missing_keytype = u"""
-            [nav]
-            private_key=key
-            public_key=key
-            name=nav-issuer
             [pem-issuer]
             aud=nav
             key=key_path
@@ -252,10 +258,6 @@ class TestJWTConf(TestCase):
 
     def test_non_existing_file_should_raise_error(self):
         config = u"""
-            [nav]
-            private_key=key
-            public_key=key
-            name=nav-issuer
             [pem-issuer]
             aud=nav
             key=key_path
@@ -273,10 +275,6 @@ class TestJWTConf(TestCase):
 
     def test_file_with_permission_problems_should_raise_error(self):
         config = u"""
-            [nav]
-            private_key=key
-            public_key=key
-            name=nav-issuer
             [pem-issuer]
             aud=nav
             key=key_path
@@ -288,7 +286,7 @@ class TestJWTConf(TestCase):
                 with self.assertRaises(ConfigurationError):
                     jwtconf._read_key_from_path("fakepath")
 
-    def test_empty_config_should_produce_empty_settings(self):
+    def test_empty_config_should_give_empty_issuer_settings(self):
         config = u"""
             """
         expected_settings = {}
@@ -296,3 +294,48 @@ class TestJWTConf(TestCase):
             jwtconf = JWTConf()
             settings = jwtconf.get_issuers_setting()
         self.assertEqual(settings, expected_settings)
+
+    def test_empty_config_should_give_empty_external_settings(self):
+        config = u"""
+            """
+        expected_settings = {}
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            settings = jwtconf._get_settings_for_external_tokens()
+        self.assertEqual(settings, expected_settings)
+
+    def test_empty_config_should_give_empty_local_settings(self):
+        config = u"""
+            """
+        expected_settings = {}
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            settings = jwtconf._get_settings_for_nav_issued_tokens()
+        self.assertEqual(settings, expected_settings)
+
+    def test_settings_should_include_local_and_external_settings(self):
+        config = u"""
+            [nav]
+            private_key=key
+            public_key=key
+            name=local-issuer
+            [jwks-issuer]
+            keytype=JWKS
+            aud=nav
+            key=www.example.com
+            [pem-issuer]
+            keytype=PEM
+            aud=aud
+            key=key
+            """
+
+        def read_file_patch(self, file):
+            return "key"
+
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            with patch.object(JWTConf, '_read_key_from_path', read_file_patch):
+                jwtconf = JWTConf()
+                settings = jwtconf.get_issuers_setting()
+        assert 'jwks-issuer' in settings
+        assert 'pem-issuer' in settings
+        assert 'local-issuer' in settings
