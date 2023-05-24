@@ -287,3 +287,12 @@ class TestJWTConf(TestCase):
                 jwtconf = JWTConf()
                 with self.assertRaises(ConfigurationError):
                     jwtconf._read_key_from_path("fakepath")
+
+    def test_empty_config_should_produce_empty_settings(self):
+        config = u"""
+            """
+        expected_settings = {}
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            settings = jwtconf.get_issuers_setting()
+        self.assertEqual(settings, expected_settings)
