@@ -12,12 +12,6 @@ class JWTConf(NAVConfigParser):
 
     DEFAULT_CONFIG_FILES = ('jwt.conf',)
     NAV_SECTION = "nav"
-    DEFAULT_CONFIG = u"""
-[nav]
-private_key=
-public_key=
-name=
-"""
 
     def get_issuers_setting(self):
         try:
@@ -123,6 +117,8 @@ name=
         return name
 
     def _get_settings_for_nav_issued_tokens(self):
+        if not self.has_section(self.NAV_SECTION):
+            return {}
         name = self.get_nav_name()
         claims_options = {
             'aud': {'values': [name], 'essential': True},
