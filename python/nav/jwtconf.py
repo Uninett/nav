@@ -45,7 +45,6 @@ class JWTConf(NAVConfigParser):
                     'claims_options': claims_options,
                 }
         except (
-            configparser.Error,
             configparser.NoSectionError,
             configparser.NoOptionError,
         ) as error:
@@ -102,7 +101,6 @@ class JWTConf(NAVConfigParser):
             get = partial(self.get, self.NAV_SECTION)
             return get(option)
         except (
-            configparser.Error,
             configparser.NoSectionError,
             configparser.NoOptionError,
         ) as error:
