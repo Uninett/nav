@@ -113,6 +113,16 @@ class WebCrawler(object):
             if page:
                 yield page
 
+    def crawl_only_html(self):
+        """Only yields crawled pages that have a content-type of html and is not
+        blacklisted.
+        """
+        for page in self.crawl():
+            if not page.content_type or 'html' not in page.content_type.lower():
+                continue
+            if should_validate(page.url):
+                yield page
+
     def _visit_with_error_handling(self, url):
         try:
             page = self._visit(url)
@@ -256,7 +266,7 @@ def _content_as_string(content):
     "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
     "tests!",
 )
-@pytest.mark.parametrize("page", crawler.crawl(), ids=page_id)
+@pytest.mark.parametrize("page", crawler.crawl_only_html(), ids=page_id)
 def test_page_should_be_valid_html(page):
     if page.response != 200:
         pytest.skip("not validating non-reachable page")
