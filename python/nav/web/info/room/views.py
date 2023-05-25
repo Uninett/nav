@@ -86,7 +86,7 @@ def search(request):
             titles.append(("Search for %s" % request.GET['query'],))
             rooms = process_searchform(searchform)
             for room in rooms:
-                room.netboxes = filter_netboxes(room)
+                room.filtered_netboxes = filter_netboxes(room)
     else:
         searchform = RoomSearchForm()
 
@@ -111,7 +111,7 @@ def process_searchform(form):
         return Room.objects.filter(
             Q(id__icontains=query)
             | Q(description__icontains=query)
-            | Q(child_locations__id__icontains=query)
+            | Q(location__id__icontains=query)
         ).order_by("id")
 
 
