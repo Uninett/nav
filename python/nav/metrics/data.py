@@ -33,6 +33,7 @@ from nav.util import chunks
 _logger = logging.getLogger(__name__)
 
 MAX_TARGETS_PER_REQUEST = 100
+GRAPHITE_TIME_FORMAT = "%H:%M_%Y%m%d"
 
 
 def get_metric_average(target, start="-5min", end="now", ignore_unknown=True):
@@ -109,9 +110,9 @@ def get_metric_data(target, start="-5min", end="now"):
     # What does Graphite accept of formats? Lets check if the parameters are
     # datetime objects and try to force a format then
     if isinstance(start, datetime):
-        start = start.strftime('%H:%M%Y%m%d')
+        start = start.strftime(GRAPHITE_TIME_FORMAT)
     if isinstance(end, datetime):
-        end = end.strftime('%H:%M%Y%m%d')
+        end = end.strftime(GRAPHITE_TIME_FORMAT)
 
     query = {
         'target': target,
