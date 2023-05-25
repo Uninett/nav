@@ -41,7 +41,9 @@ from nav.ipdevpoll.utils import log_unhandled_failure
 
 from . import shadows, config, signals
 from .dataloader import NetboxLoader
+from .db import run_in_thread
 from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
+from ..models.event import EventQueue
 
 _logger = logging.getLogger(__name__)
 
@@ -544,3 +546,14 @@ class CounterFlusher(defaultdict):
 
 
 _COUNTERS = CounterFlusher()
+
+
+def log_received_events():
+    """Checks the event queue for events addressed to ipdevpoll and logs them"""
+    return run_in_thread(_log_received_events)
+
+
+def _log_received_events():
+    events = EventQueue.objects.filter(target='ipdevpoll')
+    for event in events:
+        _logger.debug("Event on queue: %r", event)
