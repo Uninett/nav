@@ -34,7 +34,7 @@ def custom_500(request):
             context={
                 'type': type.__name__,
                 'value': value,
-                'traceback': traceback.format_exception(type, value, tb),
+                'traceback': traceback.format_exc(),
             },
             request=request,
         )
