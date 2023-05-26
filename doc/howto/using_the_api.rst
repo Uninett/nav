@@ -43,7 +43,7 @@ everyone access to the data.
 
 JSON Web Tokens
 ------------------
-JSON Web Tokens (JWTs) must be :doc:`configured <jwt>` before they can be used.
+JSON Web Tokens (JWTs) must be :doc:`configured <../reference/jwt>` before they can be used.
 
 Once configured, you can use tokens issued by your configured issuers in almost the same way
 as "normal" tokens::
