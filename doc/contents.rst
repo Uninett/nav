@@ -25,7 +25,6 @@ NAV documentation contents
     reference/index
     ../release-notes
     glossary
-    howto/jwt
 
 For developers
 ==============
