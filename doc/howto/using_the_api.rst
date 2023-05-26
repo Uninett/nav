@@ -41,6 +41,17 @@ on NAV installations that do not have SSL enabled, you are potentially giving
 everyone access to the data.
 
 
+JSON Web Tokens
+------------------
+JSON Web Tokens (JWTs) must be :doc:`configured <jwt>` before they can be used.
+
+Once configured, you can use tokens issued by your configured issuers in almost the same way
+as "normal" tokens::
+
+  curl -H 'Authorization: Bearer <token>' https://<host>/api/netboxes/
+
+Note how JWTs require the prefix `Bearer` and not `Token`.
+
 Browsing the API
 ================
 
