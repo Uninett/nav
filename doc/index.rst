@@ -51,6 +51,7 @@ See also :doc:`the release notes <release-notes>` for this version (|version|).
   :doc:`Using the REST API <howto/using_the_api>` |
   :doc:`howto/migrate-rrd-to-graphite` |
   :doc:`Robustifying e-mail <howto/email>`
+  :doc:`Configuring JSON Web Tokens <howto/jwt>`
 
 
 * **For developers:**
