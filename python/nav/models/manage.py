@@ -908,7 +908,7 @@ class Device(models.Model):
         """
         modules = self.modules.all()
         power_supplies_or_fans = self.power_supplies_or_fans.all()
-        netbox_entities = self.entites.all()
+        netbox_entities = self.entities.all()
         return modules or power_supplies_or_fans or netbox_entities
 
     def get_preferred_related_object(self):
