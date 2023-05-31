@@ -288,6 +288,10 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
+    def get_poe_state(self, interface: manage.Interface) -> int:
+        """Returns current poe state"""
+        raise NotImplementedError
+
 
 class ManagementError(Exception):
     """Base exception class for device management errors"""
