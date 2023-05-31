@@ -282,6 +282,12 @@ class ManagementHandler:
         """Returns the available options for enabling/disabling PoE on this netbox"""
         raise NotImplementedError
 
+    def set_poe_state(self, interface: manage.Interface, state: int):
+        """Set state for enabling/disabling PoE on this netbox.
+        Available options should be retrieved using `get_poe_state_options`
+        """
+        raise NotImplementedError
+
 
 class ManagementError(Exception):
     """Base exception class for device management errors"""
