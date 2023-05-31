@@ -18,10 +18,10 @@ tunnel_port=${3:-10000}
 
 remote_tunnel ()
 {
-    ssh -f -L${tunnel_port}:127.0.0.1:${tunnel_port} $hop_host socat -T10 TCP4-LISTEN:${tunnel_port},fork UDP4:${snmp_agent}:161
+    ssh -tt -L${tunnel_port}:127.0.0.1:${tunnel_port} $hop_host socat -T10 TCP4-LISTEN:${tunnel_port},fork UDP4:${snmp_agent}:161
 }
 
-remote_tunnel
+remote_tunnel &
 
 echo "local tunnel..."
 sudo socat UDP4-LISTEN:161,fork TCP4:localhost:${tunnel_port}
