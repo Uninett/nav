@@ -278,6 +278,10 @@ class ManagementHandler:
             return False
         return True
 
+    def get_poe_state_options(self) -> Tuple[Tuple[int, str]]:
+        """Returns the available options for enabling/disabling PoE on this netbox"""
+        raise NotImplementedError
+
 
 class ManagementError(Exception):
     """Base exception class for device management errors"""
