@@ -21,7 +21,14 @@ remote_tunnel ()
     ssh -tt -L${tunnel_port}:127.0.0.1:${tunnel_port} $hop_host socat -T10 TCP4-LISTEN:${tunnel_port},fork UDP4:${snmp_agent}:161
 }
 
-remote_tunnel &
+local_tunnel ()
+{
+    echo "Setting up local socat tunnel to SSH tunnel..."
+    sudo socat UDP4-LISTEN:161,fork TCP4:localhost:${tunnel_port}
+}
 
-echo "local tunnel..."
-sudo socat UDP4-LISTEN:161,fork TCP4:localhost:${tunnel_port}
+
+remote_tunnel &
+local_tunnel &
+wait  # Just wait for all background processes to die
+
