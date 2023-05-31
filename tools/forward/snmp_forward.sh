@@ -11,6 +11,7 @@
 # -----------------------------------------------------------------------
 
 PROGNAME=$0
+PGID=$$
 
 snmp_agent=${1:-158.38.12.155}
 hop_host=${2:-teknobyen-vk.uninett.no}
@@ -27,6 +28,9 @@ local_tunnel ()
     sudo socat UDP4-LISTEN:161,fork TCP4:localhost:${tunnel_port}
 }
 
+
+# Ensure everything in process group is stopped if either tunnel process dies
+trap "echo A tunnel subprocess died, stopping all forwarding; kill -HUP -$PGID" CHLD
 
 remote_tunnel &
 local_tunnel &
