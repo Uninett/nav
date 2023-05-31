@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # -----------------------------------------------------------------------
 # Shell script snmp_forward.sh
 # Create an SNMP tunnel to remote Agent through a hop host
@@ -20,7 +20,13 @@ tunnel_port=${3:-10000}
 remote_tunnel ()
 {
     echo "Setting up SSH tunnel to $snmp_agent via $hop_host ..."
-    ssh -tt -o ConnectTimeout=4 -L${tunnel_port}:127.0.0.1:${tunnel_port} $hop_host socat -T10 TCP4-LISTEN:${tunnel_port},fork UDP4:${snmp_agent}:161
+    if [[ "$snmp_agent" == *":"* ]]; then
+        echo "$snmp_agent looks like an IPv6 address, using an IPv6 tunnel"
+        remote_addr=UDP6:\\[${snmp_agent}\]:161
+    else
+        remote_addr=UDP4:${snmp_agent}:161
+    fi
+    ssh -tt -o ConnectTimeout=4 -L${tunnel_port}:127.0.0.1:${tunnel_port} $hop_host socat -T10 TCP4-LISTEN:${tunnel_port},fork ${remote_addr}
 }
 
 local_tunnel ()
