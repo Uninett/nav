@@ -20,7 +20,7 @@ tunnel_port=${3:-10000}
 remote_tunnel ()
 {
     echo "Setting up SSH tunnel to $snmp_agent via $hop_host ..."
-    ssh -tt -L${tunnel_port}:127.0.0.1:${tunnel_port} $hop_host socat -T10 TCP4-LISTEN:${tunnel_port},fork UDP4:${snmp_agent}:161
+    ssh -tt -o ConnectTimeout=4 -L${tunnel_port}:127.0.0.1:${tunnel_port} $hop_host socat -T10 TCP4-LISTEN:${tunnel_port},fork UDP4:${snmp_agent}:161
 }
 
 local_tunnel ()
