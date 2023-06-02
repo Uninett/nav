@@ -289,7 +289,7 @@ class ManagementHandler:
         raise NotImplementedError
 
     def get_poe_state(self, interface: manage.Interface) -> str:
-        """Returns current poe state of this interface"""
+        """Returns current PoE state of this interface"""
         raise NotImplementedError
 
 
