@@ -278,8 +278,8 @@ class ManagementHandler:
             return False
         return True
 
-    def get_poe_state_options(self, interface: manage.Interface) -> Tuple[str, ...]:
-        """Returns the available options for enabling/disabling PoE on this interface"""
+    def get_poe_state_options(self) -> Tuple[str, ...]:
+        """Returns the available options for enabling/disabling PoE on this netbox"""
         raise NotImplementedError
 
     def set_poe_state(self, interface: manage.Interface, state: str):
@@ -290,6 +290,10 @@ class ManagementHandler:
 
     def get_poe_state(self, interface: manage.Interface) -> str:
         """Returns current PoE state of this interface"""
+        raise NotImplementedError
+
+    def interface_supports_poe(self, interface: manage.Interface) -> bool:
+        """Returns True if this interface supports PoE"""
         raise NotImplementedError
 
 
