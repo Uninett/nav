@@ -127,7 +127,7 @@ class IPDevPollProcess(object):
             self.options.onlyjob,
         )
         reactor.callWhenRunning(
-            db.subscribe_to_event_notifications, schedule.log_received_events
+            db.subscribe_to_event_notifications, schedule.handle_incoming_events
         )
 
         def log_scheduler_jobs():
@@ -199,7 +199,7 @@ class IPDevPollProcess(object):
             self.options.onlyjob,
         )
         reactor.callWhenRunning(
-            db.subscribe_to_event_notifications, schedule.log_received_events
+            db.subscribe_to_event_notifications, schedule.handle_incoming_events
         )
 
         def log_scheduler_jobs():
