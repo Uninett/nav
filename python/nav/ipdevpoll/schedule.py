@@ -355,6 +355,14 @@ class JobScheduler(object):
 
         self.active_schedulers.add(self)
 
+    def __repr__(self):
+        return "<{} job={}>".format(self.__class__.__name__, self.job.name)
+
+    @classmethod
+    def get_job_schedulers_by_name(cls) -> dict[str, 'JobScheduler']:
+        """Returns the names of actively scheduled jobs in this process"""
+        return {scheduler.job.name: scheduler for scheduler in cls.active_schedulers}
+
     @classmethod
     def initialize_from_config_and_run(cls, pool, onlyjob=None):
         descriptors = config.get_jobs()
