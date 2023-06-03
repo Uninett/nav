@@ -24,6 +24,7 @@ from collections import defaultdict
 from random import randint
 from math import ceil
 
+from django.db.transaction import atomic
 from twisted.python.failure import Failure
 from twisted.internet import task, reactor
 from twisted.internet.defer import Deferred
@@ -555,12 +556,68 @@ class CounterFlusher(defaultdict):
 _COUNTERS = CounterFlusher()
 
 
-def log_received_events():
-    """Checks the event queue for events addressed to ipdevpoll and logs them"""
-    return run_in_thread(_log_received_events)
+def handle_incoming_events():
+    """Checks the event queue for events addressed to ipdevpoll and handles them"""
+    # Since this extensively accesses the database, it needs to run in a thread:
+    return run_in_thread(_handle_incoming_events)
 
 
-def _log_received_events():
+@atomic
+def _handle_incoming_events():
     events = EventQueue.objects.filter(target='ipdevpoll')
+    # Filter out (and potentially delete) events not worthy of our attention
+    events = [event for event in events if _event_pre_filter(event)]
+
+    boxes_to_reschedule = defaultdict(list)
+    # There may be multiple notifications queued for the same request, so group them
+    # by netbox+jobname
     for event in events:
-        _logger.debug("Event on queue: %r", event)
+        boxes_to_reschedule[(event.netbox_id, event.subid)].append(event)
+    _logger.debug("boxes_to_reschedule: %r", boxes_to_reschedule)
+
+
+def _event_pre_filter(event: EventQueue):
+    """Returns True if this event is worthy of this process' attention. If the event
+    isn't worthy of *any* ipdevpoll process' attention, we delete it from the database
+    too.
+    """
+    _logger.debug("Found event on queue: %r", event)
+    if not _is_valid_refresh_event(event):
+        event.delete()
+        return False
+    if not _is_refresh_event_for_me(event):
+        return False
+    # TODO: Should also delete events that seem to be stale.  If the requested job is
+    #  logged as having run after the event's timestamp, the event is stale.
+    return True
+
+
+def _is_valid_refresh_event(event: EventQueue):
+    if event.event_type_id != 'notification':
+        _logger.info("Ignoring non-notification event from %s", event.source)
+        return False
+
+    if not event.subid:
+        _logger.info(
+            "Ignoring notification event from %s with blank job name", event.source
+        )
+        return False
+
+    return True
+
+
+def _is_refresh_event_for_me(event: EventQueue):
+    schedulers = JobScheduler.get_job_schedulers_by_name()
+    if event.subid not in schedulers:
+        _logger.debug(
+            "This process does not schedule %s, %r is not for us", event.subid, event
+        )
+        return False
+
+    if event.netbox_id not in schedulers[event.subid].netboxes:
+        _logger.debug(
+            "This process does not poll from %s, %r is not for us", event.netbox, event
+        )
+        return False
+
+    return True
