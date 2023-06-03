@@ -351,7 +351,7 @@ class JobScheduler(object):
         self.job = job
         self.pool = pool
         self.netboxes = NetboxLoader()
-        self.active_netboxes = {}
+        self.active_netboxes: dict[int, NetboxJobScheduler] = {}
 
         self.active_schedulers.add(self)
 
