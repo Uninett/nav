@@ -48,7 +48,14 @@ def postgresql(request):
     """Fixture for all tests that depend on a running PostgreSQL server. This fixture
     will try to detect and use an existing PostgreSQL instance (like if running in a
     GitHub action), otherwise it will set up a temporary PostgreSQL server for the test
-    session."""
+    session.
+
+    If your test needs to write to the database, it should ask for the `db` fixture
+    instead, as this ensures changes are rolled back when the test is done.  However,
+    if your test makes db changes that need to be visible from another process, you
+    must make your own data fixture to ensure the data is removed when the test is
+    done.
+    """
     if not is_running_in_github_actions():
         request.getfixturevalue("docker_services")
 
