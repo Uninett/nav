@@ -233,6 +233,7 @@ def webcrawler(gunicorn, web_target_url, web_admin_username, web_admin_password)
 #
 
 
+@pytest.mark.slow
 def test_all_links_should_be_reachable(webcrawler):
     for page in webcrawler.crawl():
         if page.response != 200:
@@ -248,6 +249,7 @@ def _content_as_string(content):
         return content.decode('utf-8')
 
 
+@pytest.mark.slow
 def test_page_should_be_valid_html(webcrawler):
     try:
         tidy_document("")
