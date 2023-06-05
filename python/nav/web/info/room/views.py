@@ -256,7 +256,7 @@ def render_about_the_search_modal(request):
 
 
 @require_http_methods(['POST'])
-def create_csv(request):
+def create_csv(request) -> HttpResponse:
     """Create csv-file from form data"""
     roomname = request.POST.get('roomid', 'room').encode('utf-8')
     filename = "{}.csv".format(roomname)

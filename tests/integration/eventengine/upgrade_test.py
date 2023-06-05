@@ -77,7 +77,7 @@ def test_upgrade_handler_should_not_fail_if_old_and_new_version_do_not_exist(
 
 
 @pytest.fixture()
-def netbox_having_sw_upgrade():
+def netbox_having_sw_upgrade(postgresql):
     box = Netbox(
         ip="10.254.254.254",
         sysname="upgradehost.example.org",

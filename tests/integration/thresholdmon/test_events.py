@@ -23,7 +23,7 @@ def test_events(rule):
 
 
 @pytest.fixture
-def rule():
+def rule(postgresql):
     rule = ThresholdRule(target='foo.bar>1', alert='high foobar')
     rule.save()
     yield rule

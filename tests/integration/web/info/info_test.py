@@ -38,7 +38,7 @@ def test_failures_should_be_mentioned_in_search_page(client, failing_searchprovi
     assert failing_searchprovider in response.content.decode('utf-8')
 
 
-def test_room_csv_download_should_not_produce_bytestring_representations(admin_account):
+def test_room_csv_download_should_not_produce_bytestring_representations(postgresql, admin_account):
     factory = RequestFactory()
     request = factory.post(
         reverse("room-csv"), data={"roomid": "myroom", "rows": "one;two;three\n"}
@@ -46,7 +46,7 @@ def test_room_csv_download_should_not_produce_bytestring_representations(admin_a
     request.session = MagicMock()
     set_account(request, admin_account, cycle_session_id=False)
 
-    response = create_csv(request)  # type: django.http.response.HttpResponse
+    response = create_csv(request)
     assert not response.content.startswith(b"b'")
 
 

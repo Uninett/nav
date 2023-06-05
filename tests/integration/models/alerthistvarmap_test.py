@@ -68,7 +68,7 @@ def test_alerthist_varmap_single_key_can_be_updated_after_reload(simple_alerthis
 
 
 @pytest.fixture
-def simple_alerthist():
+def simple_alerthist(postgresql):
     hist = AlertHistory(
         source_id='ipdevpoll',
         event_type_id='info',
