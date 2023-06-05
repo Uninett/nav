@@ -113,6 +113,12 @@ class WebCrawler(object):
             if page:
                 yield page
 
+    def crawl_only_html(self):
+        """Only yields crawled pages that have a content-type of html and is not
+        blacklisted.
+        """
+        yield from filter(should_validate, self.crawl())
+
     def _visit_with_error_handling(self, url):
         try:
             page = self._visit(url)
@@ -256,14 +262,10 @@ def _content_as_string(content):
     "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
     "tests!",
 )
-@pytest.mark.parametrize("page", crawler.crawl(), ids=page_id)
+@pytest.mark.parametrize("page", crawler.crawl_only_html(), ids=page_id)
 def test_page_should_be_valid_html(page):
     if page.response != 200:
         pytest.skip("not validating non-reachable page")
-    if not page.content_type or 'html' not in page.content_type.lower():
-        pytest.skip("not attempting to validate non-html page")
-    if not should_validate(page.url):
-        pytest.skip("skip validation of blacklisted page")
     if not page.content:
         pytest.skip("page has no content")
 
@@ -273,8 +275,11 @@ def test_page_should_be_valid_html(page):
     assert not errors, "Found following validation errors:\n" + errors
 
 
-def should_validate(url):
-    path = normalize_path(url)
+def should_validate(page: Page):
+    """Returns True if page is eligible for HTML validation, False if not"""
+    if not page.content_type or 'html' not in page.content_type.lower():
+        return False
+    path = normalize_path(page.url)
     for blacklisted_path in TIDY_BLACKLIST:
         if path.startswith(blacklisted_path):
             return False
