@@ -4,6 +4,7 @@ import subprocess
 
 import pytest
 from retry import retry
+import requests
 
 
 def is_running_in_github_actions():
@@ -99,6 +100,9 @@ def gunicorn(postgresql):
             'navtest_wsgi:application',
         ]
     )
+    # Fire off an initial request to ensure the webserver is actually running
+    response = requests.get("http://localhost:8000/")
+    assert response.status_code == 200, response.content
     yield gunicorn
     gunicorn.terminate()
 
