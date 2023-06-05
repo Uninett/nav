@@ -45,9 +45,6 @@ from urllib.parse import (
 from mock import Mock
 
 
-HOST_URL = os.environ.get('TARGETURL', None)
-USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
-PASSWORD = os.environ.get('ADMINPASSWORD', 'admin')
 TIMEOUT = 90  # seconds?
 
 TIDY_OPTIONS = {
@@ -226,8 +223,8 @@ def _quote_url(url):
 
 
 @pytest.fixture(scope="session")
-def webcrawler(gunicorn):
-    crawler = WebCrawler(HOST_URL, USERNAME, PASSWORD)
+def webcrawler(gunicorn, web_target_url, web_admin_username, web_admin_password):
+    crawler = WebCrawler(web_target_url, web_admin_username, web_admin_password)
     yield crawler
 
 

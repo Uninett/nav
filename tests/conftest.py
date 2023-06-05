@@ -101,3 +101,18 @@ def gunicorn(postgresql):
     )
     yield gunicorn
     gunicorn.terminate()
+
+
+@pytest.fixture(scope='session')
+def web_target_url():
+    yield "http://localhost:8000/"
+
+
+@pytest.fixture(scope='session')
+def web_admin_username():
+    yield "admin"
+
+
+@pytest.fixture(scope='session')
+def web_admin_password():
+    yield "admin"
