@@ -45,12 +45,6 @@ def pytest_generate_tests(metafunc):
         scripts = _nav_script_tests()
         ids = [s[0] for s in scripts]
         metafunc.parametrize("script", _nav_script_tests(), ids=ids)
-    elif 'admin_navlet' in metafunc.fixturenames:
-        # TODO This needs to be reworked due to the new postgresql fixture
-        from nav.models.profiles import AccountNavlet
-
-        navlets = AccountNavlet.objects.filter(account__login='admin')
-        metafunc.parametrize("admin_navlet", navlets)
 
 
 def _nav_script_tests():

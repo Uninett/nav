@@ -29,14 +29,22 @@ def test_feedreader_widget_should_get_nav_blog_posts():
     assert len(feed) > 0
 
 
-def test_get_navlet_should_return_200(client, admin_navlet):
+def test_get_navlets_should_return_200(client):
     """Tests a GET request against each of the admin user's navlets"""
-    url = reverse('get-user-navlet', kwargs={'navlet_id': admin_navlet.id})
-    print(
-        "Testing admin navlet instance of {!r} at {!r}".format(admin_navlet.navlet, url)
-    )
-    response = client.get(url)
-    assert response.status_code == 200
+    from nav.models.profiles import AccountNavlet
+
+    navlets = AccountNavlet.objects.filter(account__login='admin')
+    for admin_navlet in navlets:
+        url = reverse('get-user-navlet', kwargs={'navlet_id': admin_navlet.id})
+        print(
+            "Testing admin navlet instance of {!r} at {!r}".format(
+                admin_navlet.navlet, url
+            )
+        )
+        response = client.get(url)
+        assert response.status_code == 200, "navlet {} did not respond with 200".format(
+            admin_navlet.navlet
+        )
 
 
 def test_get_pdu_navlet_in_edit_mode_should_return_200(client, admin_account):
