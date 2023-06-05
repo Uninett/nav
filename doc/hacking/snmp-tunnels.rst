@@ -26,7 +26,8 @@ Course of action - with docker
 
 2. Change the line ``command: 192.168.0.1 user@my-hop-host 10000`` to the ip
    address or name of the device you want to reach, the relevant hop host and
-   whatever port you want to tunnel through.
+   whatever port you want to tunnel through.  This port should be free to use
+   on the hop-host.
 
 3. Make sure that ssh key to the hop host is saved (you can test this by doing
    ``ssh user@my-hop-host``, it is saved if you're not prompted for a password).
@@ -54,7 +55,8 @@ When starting docker:
 - if the error message
   ``mydevice.mydomain_1  | 2023/02/21 13:36:11 socat[1744] E bind(5,
   {AF=2 0.0.0.0:10000}, 16): Address already in use``
-  appears: change the port in the docker file
+  appears: change the port in the docker file. Some other process on the hop-host is
+  using this port.
 
 When adding IP device in SeedDB:
 
@@ -111,14 +113,14 @@ Troubleshooting - without docker
 
       sudo netstat -aupn
 
-  (these flags are Linux specific, use 
-  
+  (these flags are Linux specific, use
+
   .. code-block:: sh
-   
+
       man netstat
 
   to figure out which flags might be helpful on other operating systems).
-  
+
   Then kill the process by running
 
   .. code-block:: sh
