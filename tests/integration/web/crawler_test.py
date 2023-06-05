@@ -221,32 +221,27 @@ def _quote_url(url):
 
 
 #
+# fixtures
+#
+
+
+@pytest.fixture(scope="session")
+def webcrawler(gunicorn):
+    crawler = WebCrawler(HOST_URL, USERNAME, PASSWORD)
+    yield crawler
+
+
+#
 # test functions
 #
 
-# just one big, global crawler instance to ensure it's results are cached
-# throughout all the tests in a single session
-if HOST_URL:
-    crawler = WebCrawler(HOST_URL, USERNAME, PASSWORD)
-else:
-    crawler = Mock()
-    crawler.crawl.return_value = []
 
-
-def page_id(page):
-    """Extracts a URL as a test id from a page"""
-    return normalize_path(page.url)
-
-
-@pytest.mark.skipif(
-    not HOST_URL,
-    reason="Missing environment variable TARGETURL "
-    "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
-    "tests!",
-)
-@pytest.mark.parametrize("page", crawler.crawl(), ids=page_id)
-def test_link_should_be_reachable(page):
-    assert page.response == 200, _content_as_string(page.content)
+def test_all_links_should_be_reachable(webcrawler):
+    for page in webcrawler.crawl():
+        if page.response != 200:
+            # No need to fill up the test report files with contents of OK pages
+            print(_content_as_string(page.content))
+        assert page.response == 200, "{} is not reachable".format(page.url)
 
 
 def _content_as_string(content):
@@ -256,23 +251,17 @@ def _content_as_string(content):
         return content.decode('utf-8')
 
 
-@pytest.mark.skipif(
-    not HOST_URL,
-    reason="Missing environment variable TARGETURL "
-    "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
-    "tests!",
-)
-@pytest.mark.parametrize("page", crawler.crawl_only_html(), ids=page_id)
-def test_page_should_be_valid_html(page):
-    if page.response != 200:
-        pytest.skip("not validating non-reachable page")
-    if not page.content:
-        pytest.skip("page has no content")
+def test_page_should_be_valid_html(webcrawler):
+    for page in webcrawler.crawl_only_html():
+        if page.response != 200 or not page.content:
+            continue
 
-    document, errors = tidy_document(page.content, TIDY_OPTIONS)
-    errors = filter_errors(errors)
+        document, errors = tidy_document(page.content, TIDY_OPTIONS)
+        errors = filter_errors(errors)
+        if errors:
+            print(errors)
 
-    assert not errors, "Found following validation errors:\n" + errors
+        assert not errors, "{} did not validate as HTML".format(page.url)
 
 
 def should_validate(page: Page):
