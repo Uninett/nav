@@ -85,7 +85,7 @@ def _populate_test_database(database_name):
 
 
 @pytest.fixture(scope='session')
-def gunicorn():
+def gunicorn(postgresql):
     workspace = os.path.join(os.environ.get('WORKSPACE', ''), 'reports')
     errorlog = os.path.join(workspace, 'gunicorn-error.log')
     accesslog = os.path.join(workspace, 'gunicorn-access.log')
