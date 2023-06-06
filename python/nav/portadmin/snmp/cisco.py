@@ -324,5 +324,12 @@ class Cisco(SNMPHandler):
     def get_poe_state(self, interface):
         return self._query_netbox(self.POEENABLE, interface.ifindex)
 
+    @translate_protocol_errors
+    def interface_supports_poe(self, interface):
+        state = self.get_poe_state(interface)
+        if state:
+            return True
+        return False
+
 
 CHARS_IN_1024_BITS = 128
