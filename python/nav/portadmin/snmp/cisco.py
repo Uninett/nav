@@ -331,7 +331,7 @@ class Cisco(SNMPHandler):
     @translate_protocol_errors
     def get_poe_state(self, interface):
         state_value = self._query_netbox(self.POEENABLE, interface.ifindex)
-        for state in self.get_poe_state_options:
+        for state in self.get_poe_state_options():
             if state.state == state_value:
                 return state
         raise ManagementError(
