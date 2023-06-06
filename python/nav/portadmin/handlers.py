@@ -15,14 +15,26 @@
 #
 """Interface definition for PortAdmin management handlers"""
 import time
-from typing import List, Tuple, Dict, Any, Sequence
+from typing import List, Tuple, Dict, Any, Sequence, Union
 import logging
+from dataclasses import dataclass
 
 from nav.models import manage
 from nav.portadmin.vlan import FantasyVlan
 
 
 _logger = logging.getLogger(__name__)
+
+
+@dataclass
+class PoeState:
+    """Class for defining PoE states.
+    `state` is the value used on the device itself.
+    `name` is a human readable name for the state
+    """
+
+    state: Union[str, int]
+    name: str
 
 
 class ManagementHandler:
@@ -278,17 +290,17 @@ class ManagementHandler:
             return False
         return True
 
-    def get_poe_state_options(self) -> Tuple[str, ...]:
+    def get_poe_state_options(self) -> Tuple[PoeState, ...]:
         """Returns the available options for enabling/disabling PoE on this netbox"""
         raise NotImplementedError
 
-    def set_poe_state(self, interface: manage.Interface, state: str):
+    def set_poe_state(self, interface: manage.Interface, state: PoeState):
         """Set state for enabling/disabling PoE on this interface.
         Available options should be retrieved using `get_poe_state_options`
         """
         raise NotImplementedError
 
-    def get_poe_state(self, interface: manage.Interface) -> str:
+    def get_poe_state(self, interface: manage.Interface) -> PoeState:
         """Returns current PoE state of this interface"""
         raise NotImplementedError
 
