@@ -71,7 +71,7 @@ def test_pping_should_post_event_when_host_is_unreachable(
 def get_root_method():
     if os.geteuid() == 0:
         return []
-    elif os.system("sudo true") == 0:
+    elif os.system("sudo -nv") == 0:
         return ["sudo", "-E"]
     elif os.system("gosu root true") == 0:
         return ["gosu", "root"]
