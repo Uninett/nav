@@ -305,5 +305,24 @@ class Cisco(SNMPHandler):
             for oid, state in self._bulkwalk(self.dot1xPortAuth)
         }
 
+    def get_poe_state_options(self):
+        """Returns the available options for enabling/disabling PoE on this netbox"""
+        return tuple(self.POE_AUTO, self.POE_DISABLE)
+
+    @translate_protocol_errors
+    def set_poe_state(self, interface, state):
+        try:
+            self._set_netbox_value(self.POEENABLE, interface.ifindex, 'i', state.state)
+        except SnmpError as error:
+            _logger.error('Error setting poe state: %s', error)
+            raise
+        except ValueError as error:
+            _logger.error('%s is not a valid option for poe state', state)
+            raise
+
+    @translate_protocol_errors
+    def get_poe_state(self, interface):
+        return self._query_netbox(self.POEENABLE, interface.ifindex)
+
 
 CHARS_IN_1024_BITS = 128
