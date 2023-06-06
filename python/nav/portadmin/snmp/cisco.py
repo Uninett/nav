@@ -334,10 +334,11 @@ class Cisco(SNMPHandler):
 
     @translate_protocol_errors
     def interface_supports_poe(self, interface):
-        state = self.get_poe_state(interface)
-        if state:
+        try:
+            self.get_poe_state(interface)
             return True
-        return False
+        except ManagementError:
+            return False
 
 
 CHARS_IN_1024_BITS = 128
