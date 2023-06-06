@@ -309,7 +309,13 @@ class Cisco(SNMPHandler):
 
     def get_poe_state_options(self):
         """Returns the available options for enabling/disabling PoE on this netbox"""
-        return tuple(self.POE_AUTO, self.POE_STATIC, self.POE_LIMIT, self.POE_DISABLE)
+        options_list = [
+            self.POE_AUTO,
+            self.POE_STATIC,
+            self.POE_LIMIT,
+            self.POE_DISABLE,
+        ]
+        return tuple(options_list)
 
     @translate_protocol_errors
     def set_poe_state(self, interface, state):
