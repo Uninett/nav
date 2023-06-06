@@ -23,7 +23,7 @@ from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.smidumps import get_mib
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
-from nav.portadmin.handlers import PoeState
+from nav.portadmin.handlers import PoeState, ManagementError
 
 _logger = logging.getLogger(__name__)
 
@@ -60,6 +60,8 @@ class Cisco(SNMPHandler):
 
     POEENABLE = POENODES['cpeExtPsePortEnable']['oid']
     POE_AUTO = PoeState(state=1, name="AUTO")
+    POE_STATIC = PoeState(state=2, name="STATIC")
+    POE_LIMIT = PoeState(state=3, name="LIMIT")
     POE_DISABLE = PoeState(state=4, name="DISABLE")
 
     def __init__(self, netbox, **kwargs):
@@ -307,7 +309,7 @@ class Cisco(SNMPHandler):
 
     def get_poe_state_options(self):
         """Returns the available options for enabling/disabling PoE on this netbox"""
-        return tuple(self.POE_AUTO, self.POE_DISABLE)
+        return tuple(self.POE_AUTO, self.POE_STATIC, self.POE_LIMIT, self.POE_DISABLE)
 
     @translate_protocol_errors
     def set_poe_state(self, interface, state):
@@ -322,7 +324,13 @@ class Cisco(SNMPHandler):
 
     @translate_protocol_errors
     def get_poe_state(self, interface):
-        return self._query_netbox(self.POEENABLE, interface.ifindex)
+        state_value = self._query_netbox(self.POEENABLE, interface.ifindex)
+        for state in self.get_poe_state_options:
+            if state.state == state_value:
+                return state
+        raise ManagementError(
+            f"Unknown PoE state {state_value} for interface {interface} on netbox {self.netbox}"
+        )
 
     @translate_protocol_errors
     def interface_supports_poe(self, interface):
