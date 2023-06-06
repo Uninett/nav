@@ -37,7 +37,7 @@ def timeout_command_line_program_exists():
     reason="{} is not available".format(TIMEOUT_COMMAND_LINE),
 )
 @pytest.mark.skipif(
-    can_be_root(), reason="pping can only be tested with root privileges"
+    not can_be_root(), reason="pping can only be tested with root privileges"
 )
 def test_pping_localhost_should_work(localhost, pping_test_config):
     output = get_pping_output()
@@ -50,7 +50,7 @@ def test_pping_localhost_should_work(localhost, pping_test_config):
     reason="{} is not available".format(TIMEOUT_COMMAND_LINE),
 )
 @pytest.mark.skipif(
-    can_be_root(), reason="pping can only be tested with root privileges"
+    not can_be_root(), reason="pping can only be tested with root privileges"
 )
 def test_pping_nonavailable_host_should_fail(
     host_expected_to_be_down, pping_test_config
@@ -68,7 +68,7 @@ def test_pping_nonavailable_host_should_fail(
     reason="{} is not available".format(TIMEOUT_COMMAND_LINE),
 )
 @pytest.mark.skipif(
-    can_be_root(), reason="pping can only be tested with root privileges"
+    not can_be_root(), reason="pping can only be tested with root privileges"
 )
 def test_pping_should_post_event_when_host_is_unreachable(
     host_expected_to_be_down, pping_test_config
