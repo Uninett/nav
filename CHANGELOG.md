@@ -9,18 +9,38 @@ found in the [HISTORY](HISTORY) file.
 
 ## Unreleased
 
+### Added
+- Added support for polling and alerting on Juniper chassis and system alerts ([#2358](https://github.com/Uninett/nav/issues/2358), [#2388](https://github.com/Uninett/nav/pull/2388))
+  - Juniper only provides alert counters via SNMP, no alert details, unfortunately.
+- Added a new `contains_address` filter to the `prefix` API endpoint, to enable lookup of matching prefix/vlan details from a single IP or subnet address ([#2577](https://github.com/Uninett/nav/issues/2577), [#2578](https://github.com/Uninett/nav/pull/2578))
+
 ### Fixed
 
 #### User-visible fixes
-- Fix cabling API, which broke due to internal refactorings ([#2621](https://github.com/Uninett/nav/pull/2621))
-- Show help text when running nav command without arguments instead of error ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
-- Validate and clean sysobjectid input in SeedDB's NetboxTypeForm ([#2584](https://github.com/Uninett/nav/pull/2584), [#2566](https://github.com/Uninett/nav/issues/2566))
+- Fixed crash when attempting to log device errors with an empty comment in the Device History tool ([#2579](https://github.com/Uninett/nav/issues/2579), [#2580](https://github.com/Uninett/nav/pull/2580))
+- Fixed bad styling and missing linebreaks in traceback section of the 500 error page ([#2607](https://github.com/Uninett/nav/issues/2607), [#2628](https://github.com/Uninett/nav/pull/2628))
+- Fixed cabling API, which broke due to internal refactorings ([#2621](https://github.com/Uninett/nav/pull/2621))
+- Show help text instead of error when running `nav` command without arguments ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
+- Prevent users from entering invalid `sysObjectID` values when editing Netbox types in SeedDB ([#2584](https://github.com/Uninett/nav/pull/2584), [#2566](https://github.com/Uninett/nav/issues/2566))
+- Removed upper version bound for *Pillow* image manipulation library, to fix security warnings ([#2567](https://github.com/Uninett/nav/pull/2567))
 - Only install NAV's custom `epollreactor2` in ipdevpoll if running on Linux ([#2503](https://github.com/Uninett/nav/issues/2503), [#2604](https://github.com/Uninett/nav/pull/2604))
+  - Stops ipdevpoll from crashing on BSDs.
 
 #### Developer-centric fixes
 
+- Stop making skipped validation tests for non HTML content ([#2623](https://github.com/Uninett/nav/pull/2623))
+- Version-locked indirect dependencies of test suites ([#2622](https://github.com/Uninett/nav/pull/2622), [#2617](https://github.com/Uninett/nav/issues/2617))
+- Improve SNMP forwarding/proxying container setup, including adding IPv6 support ([#2637](https://github.com/Uninett/nav/pull/2637), [#2516](https://github.com/Uninett/nav/pull/2516))
+- Documented a recipe for establishing SNMP tunnels when testing devices on otherwise unreachable networks ([#2426](https://github.com/Uninett/nav/issues/2426), [#2435](https://github.com/Uninett/nav/pull/2435))
 - Run Django development web server in "insecure" mode to improve simulation of a production environment when debug flag is turned off ([#2625](https://github.com/Uninett/nav/pull/2625))
-
+- Added a proper docstring to `bootstrap_django()` function ([#2619](https://github.com/Uninett/nav/pull/2619), [#2168](https://github.com/Uninett/nav/issues/2168))
+- Stop restoring stale tox environment caches in GitHub workflows ([#2605](https://github.com/Uninett/nav/pull/2605))
+- Added tests for ipdevpoll worker euthanization ([#2599](https://github.com/Uninett/nav/pull/2599), [#2548](https://github.com/Uninett/nav/issues/2548))
+- Added tests to ensure snmptrapd can properly look up a NAV router that sends traps from one of its non-management IP addresses ([#2500](https://github.com/Uninett/nav/issues/2500), [#2510](https://github.com/Uninett/nav/pull/2510))
+- Avoid redundant graphite time formatting strings by re-using constant ([#2588](https://github.com/Uninett/nav/pull/2588), [#2543](https://github.com/Uninett/nav/issues/2543))
+- Make detection of running in a virtualenv more compatible with modern toolchain ([#2573](https://github.com/Uninett/nav/pull/2573))
+- Revert to having tox run its own dependency installer ([#2572](https://github.com/Uninett/nav/pull/2572))
+- Added explicit back-relation names for several Django ORM models ([#2544](https://github.com/Uninett/nav/pull/2544), [#2546](https://github.com/Uninett/nav/pull/2546), [#2547](https://github.com/Uninett/nav/pull/2547), [#2549](https://github.com/Uninett/nav/pull/2549), [#2550](https://github.com/Uninett/nav/pull/2550), [#2551](https://github.com/Uninett/nav/pull/2551))
 
 ## [5.6.1] - 2023-03-23
 
