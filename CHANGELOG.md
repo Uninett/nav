@@ -12,9 +12,15 @@ found in the [HISTORY](HISTORY) file.
 ### Fixed
 
 #### User-visible fixes
+- Fix cabling API, which broke due to internal refactorings ([#2621](https://github.com/Uninett/nav/pull/2621))
 - Show help text when running nav command without arguments instead of error ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
 - Validate and clean sysobjectid input in SeedDB's NetboxTypeForm ([#2584](https://github.com/Uninett/nav/pull/2584), [#2566](https://github.com/Uninett/nav/issues/2566))
 - Only install NAV's custom `epollreactor2` in ipdevpoll if running on Linux ([#2503](https://github.com/Uninett/nav/issues/2503), [#2604](https://github.com/Uninett/nav/pull/2604))
+
+#### Developer-centric fixes
+
+- Run Django development web server in "insecure" mode to improve simulation of a production environment when debug flag is turned off ([#2625](https://github.com/Uninett/nav/pull/2625))
+
 
 ## [5.6.1] - 2023-03-23
 
