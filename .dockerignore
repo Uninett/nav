@@ -7,4 +7,5 @@
 !tools/**/*
 !requirements.txt
 !tests/requirements.txt
+!doc/requirements.txt
 !requirements/**/*
