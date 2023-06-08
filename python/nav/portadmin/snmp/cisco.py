@@ -16,6 +16,7 @@
 #
 """Cisco specific PortAdmin SNMP handling"""
 import logging
+import re
 
 from nav.Snmp.errors import SnmpError
 from nav.bitvector import BitVector
@@ -330,7 +331,14 @@ class Cisco(SNMPHandler):
 
     @translate_protocol_errors
     def get_poe_state(self, interface):
-        state_value = self._query_netbox(self.POEENABLE, interface.ifindex)
+        try:
+            unit_number, interface_number = self._get_poe_indexes_for_interface(
+                interface
+            )
+        except ValueError:
+            raise ManagementError("Could not find PoE state for this interface")
+        oid_with_unit_number = self.POEENABLE + f".{unit_number}"
+        state_value = self._query_netbox(oid_with_unit_number, interface_number)
         if state_value == None:
             raise ManagementError("This interface does not support PoE")
         for state in self.get_poe_state_options():
@@ -347,6 +355,18 @@ class Cisco(SNMPHandler):
             return True
         except ManagementError:
             return False
+
+    @translate_protocol_errors
+    def _get_poe_indexes_for_interface(self, interface):
+        """Tries to find unit number and interface number for the given interface.
+        This requires the interface to be named in the format UnitNumber/SlotNumber/InterfaceNumber
+        """
+        name = interface.ifname
+        name = re.sub('[^0-9/]', '', name)
+        name = name.split('/')
+        if len(name) != 3:
+            raise ValueError(f"Interface name {interface.ifname} has invalid format")
+        return name[0], name[2]
 
 
 CHARS_IN_1024_BITS = 128
