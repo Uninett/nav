@@ -359,7 +359,8 @@ class Cisco(SNMPHandler):
     @translate_protocol_errors
     def _get_poe_indexes_for_interface(self, interface):
         """Tries to find unit number and interface number for the given interface.
-        This requires the interface to be named in the format UnitNumber/SlotNumber/InterfaceNumber
+        This requires the interface to be named in the format UnitNumber/SlotNumber/InterfaceNumber,
+        ex Gi1/0/12. Any letters are stripped so the Gi is ignored in this case.
         """
         name = interface.ifname
         name = re.sub('[^0-9/]', '', name)
