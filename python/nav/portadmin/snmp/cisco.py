@@ -367,7 +367,7 @@ class Cisco(SNMPHandler):
         name = name.split('/')
         if len(name) != 3:
             raise ValueError(f"Interface name {interface.ifname} has invalid format")
-        return name[0], name[2]
+        return int(name[0]), int(name[2])
 
 
 CHARS_IN_1024_BITS = 128
