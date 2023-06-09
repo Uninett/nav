@@ -5,6 +5,7 @@ import unittest
 from nav.oids import OID
 from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD, VENDOR_ID_CISCOSYSTEMS
 from nav.portadmin.management import *
+from nav.portadmin.snmp.cisco import Cisco
 
 ###############################################################################
 from nav.portadmin.vlan import FantasyVlan
@@ -145,6 +146,53 @@ class PortadminResponseTest(unittest.TestCase):
         self.snmpReadOnlyHandler.bulkwalk = Mock(return_value=walkdata)
         self.assertEqual(
             self.handler._get_all_ifaliases(), expected, "getAllIfAlias failed."
+        )
+
+    def test_returns_correct_poe_state_options_cisco(self):
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
+        state_options = self.handler.get_poe_state_options()
+        assert Cisco.POE_AUTO in state_options
+        assert Cisco.POE_STATIC in state_options
+        assert Cisco.POE_LIMIT in state_options
+        assert Cisco.POE_DISABLE in state_options
+
+    def test_returns_correct_poe_state_cisco(self):
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
+        expected_state = Cisco.POE_AUTO
+        self.handler._query_netbox = Mock(return_value=expected_state.state)
+        interface = Mock()
+        interface.ifname = "Gi1/0/1"
+        state = self.handler.get_poe_state(interface)
+        assert state == expected_state
+
+    def test_returns_true_for_interface_that_supports_poe_cisco(self):
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
+        self.handler._query_netbox = Mock(return_value=Cisco.POE_AUTO.state)
+        interface = Mock()
+        interface.ifname = "Gi1/0/1"
+        assert self.handler.interface_supports_poe(interface)
+
+    def test_returns_false_for_interface_that_does_not_support_poe_cisco(self):
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
+        self.handler._query_netbox = Mock(return_value=None)
+        interface = Mock()
+        interface.ifname = "Vlan1"
+        assert not self.handler.interface_supports_poe(interface)
+
+    def test_returns_correct_indexes_for_interface_with_valid_format_cisco(self):
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
+        interface = Mock()
+        interface.ifname = "Gi1/0/5"
+        unit_no, interface_no = self.handler._get_poe_indexes_for_interface(interface)
+        assert unit_no == 1
+        assert interface_no == 5
+
+    def test_raise_exception_for_interface_with_invalid_format_cisco(self):
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
+        interface = Mock()
+        interface.ifname = "Vlan2"
+        self.assertRaises(
+            ValueError, self.handler._get_poe_indexes_for_interface, interface
         )
 
 
