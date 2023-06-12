@@ -321,8 +321,12 @@ class Cisco(SNMPHandler):
 
     @translate_protocol_errors
     def set_poe_state(self, interface, state):
+        unit_number, interface_number = self._get_poe_indexes_for_interface(interface)
+        oid_with_unit_number = self.POEENABLE + f".{unit_number}"
         try:
-            self._set_netbox_value(self.POEENABLE, interface.ifindex, 'i', state.state)
+            self._set_netbox_value(
+                oid_with_unit_number, interface_number, 'i', state.state
+            )
         except SnmpError as error:
             _logger.error('Error setting poe state: %s', error)
             raise
