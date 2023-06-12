@@ -8,6 +8,54 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.7
+=======
+
+Dependency changes
+------------------
+
+New dependencies
+~~~~~~~~~~~~~~~~
+
+Dependencies to these Python modules have been added:
+
+* :mod:`backports.zoneinfo` (only necessary when running on Python versions older than 3.9)
+* Our own fork of :mod:`drf-oidc-auth`, as found at ``git+https://github.com/Uninett/drf-oidc-auth@v4.0#egg=drf-oidc-auth``
+
+Detection and alerting of Juniper chassis/system alarms
+-------------------------------------------------------
+
+Juniper devices have a concept of chassis and system alarms (e.g. a failing PSU
+might trigger such an alert). Alarms are categorized as either *yellow* or
+*red* alarms, depending on the running hardware and operating system.
+
+Juniper provides SNMP MIBs to poll information about the current number of
+alarms of each category, but does not provide for fetching information about
+individual active alerts.  To get details about ongoing alarms, one usually
+needs to access the device CLI to get the current status.
+
+NAV 5.7 adds support to poll the number of *yellow* and *red* alerts from a
+Juniper device, and produces its own alerts when any of these counts are
+non-zero.
+
+Two new event types are introduced, which can be used for subscriptions in
+Alert Profiles:
+
+* ``juniperYellowAlarmState``
+* ``juniperRedAlarmState``
+
+
+``contains_address`` filter on ``prefix`` API endpoint
+-------------------------------------------------------
+
+The ``prefix`` API endpoint has been updated to include a new
+``contains_address`` filter.  This can be used to filter prefixes based on
+whether they contain specific addresses.  To search for prefixes that match
+single IP addresses, a host mask can be used.  E.g., to get all prefixes that
+match a single host ``10.0.0.42``, query for ``10.0.0.42/32``, like
+``/api/1/prefix/?contains_address=10.0.0.42%2F32``.
+
+
 NAV 5.6
 =======
 
