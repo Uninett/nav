@@ -25,6 +25,7 @@ from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.smidumps import get_mib
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from nav.portadmin.handlers import PoeState, ManagementError
+from nav.models.manage import POEPort
 
 _logger = logging.getLogger(__name__)
 
@@ -331,12 +332,7 @@ class Cisco(SNMPHandler):
 
     @translate_protocol_errors
     def get_poe_state(self, interface):
-        try:
-            unit_number, interface_number = self._get_poe_indexes_for_interface(
-                interface
-            )
-        except ValueError:
-            raise ManagementError("Could not find PoE state for this interface")
+        unit_number, interface_number = self._get_poe_indexes_for_interface(interface)
         oid_with_unit_number = self.POEENABLE + f".{unit_number}"
         state_value = self._query_netbox(oid_with_unit_number, interface_number)
         if state_value == None:
@@ -358,16 +354,13 @@ class Cisco(SNMPHandler):
 
     @translate_protocol_errors
     def _get_poe_indexes_for_interface(self, interface):
-        """Tries to find unit number and interface number for the given interface.
-        This requires the interface to be named in the format UnitNumber/SlotNumber/InterfaceNumber,
-        ex Gi1/0/12. Any letters are stripped so the Gi is ignored in this case.
-        """
-        name = interface.ifname
-        name = re.sub('[^0-9/]', '', name)
-        name = name.split('/')
-        if len(name) != 3:
-            raise ValueError(f"Interface name {interface.ifname} has invalid format")
-        return int(name[0]), int(name[2])
+        try:
+            poeport = POEPort.objects.get(interface=interface)
+        except POEPort.DoesNotExist:
+            raise ManagementError("This interface does not have PoE indexes defined")
+        unit_number = poeport.poegroup.index
+        interface_number = poeport.index
+        return unit_number, interface_number
 
 
 CHARS_IN_1024_BITS = 128
