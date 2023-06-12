@@ -340,9 +340,7 @@ class Cisco(SNMPHandler):
         for state in self.get_poe_state_options():
             if state.state == state_value:
                 return state
-        raise ManagementError(
-            f"Unknown PoE state {state_value} for interface {interface} on netbox {self.netbox}"
-        )
+        raise ManagementError(f"Unknown PoE state {state_value}")
 
     @translate_protocol_errors
     def interface_supports_poe(self, interface):
