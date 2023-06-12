@@ -354,7 +354,6 @@ class Cisco(SNMPHandler):
         except ManagementError:
             return False
 
-    @translate_protocol_errors
     def _get_poe_indexes_for_interface(self, interface):
         try:
             poeport = POEPort.objects.get(interface=interface)
