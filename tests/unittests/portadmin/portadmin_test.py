@@ -157,15 +157,22 @@ class PortadminResponseTest(unittest.TestCase):
         assert Cisco.POE_LIMIT in state_options
         assert Cisco.POE_DISABLE in state_options
 
-    def test_returns_correct_poe_state_cisco(self):
-        self.handler = ManagementFactory.get_instance(self.netboxCisco)
-        expected_state = Cisco.POE_AUTO
-        self.handler._get_poe_indexes_for_interface = Mock(return_value=(1, 1))
-        self.handler._query_netbox = Mock(return_value=expected_state.state)
-        interface = Mock()
-        state = self.handler.get_poe_state(interface)
-        assert state == expected_state
 
+class InterfaceSupportsPoeCiscoTest(PortadminResponseTest):
+    def test_returns_true_for_interface_that_supports_poe_cisco(self):
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
+        self.handler.get_poe_state = Mock(return_value=Cisco.POE_AUTO)
+        interface = Mock()
+        assert self.handler.interface_supports_poe(interface)
+
+    def test_returns_false_for_interface_that_does_not_support_poe_cisco(self):
+        self.handler = ManagementFactory.get_instance(self.netboxCisco)
+        self.handler.get_poe_state = Mock(side_effect=ManagementError("Fail"))
+        interface = Mock()
+        assert not self.handler.interface_supports_poe(interface)
+
+
+class GetPoeStateCiscoTest(PortadminResponseTest):
     def test_should_raise_exception_if_unknown_poe_state_cisco(self):
         self.handler = ManagementFactory.get_instance(self.netboxCisco)
         self.handler._get_poe_indexes_for_interface = Mock(return_value=(1, 1))
@@ -188,17 +195,14 @@ class PortadminResponseTest(unittest.TestCase):
         interface = Mock()
         self.assertRaises(ManagementError, self.handler.get_poe_state, interface)
 
-    def test_returns_true_for_interface_that_supports_poe_cisco(self):
+    def test_returns_correct_poe_state_cisco(self):
         self.handler = ManagementFactory.get_instance(self.netboxCisco)
-        self.handler.get_poe_state = Mock(return_value=Cisco.POE_AUTO)
+        expected_state = Cisco.POE_AUTO
+        self.handler._get_poe_indexes_for_interface = Mock(return_value=(1, 1))
+        self.handler._query_netbox = Mock(return_value=expected_state.state)
         interface = Mock()
-        assert self.handler.interface_supports_poe(interface)
-
-    def test_returns_false_for_interface_that_does_not_support_poe_cisco(self):
-        self.handler = ManagementFactory.get_instance(self.netboxCisco)
-        self.handler.get_poe_state = Mock(side_effect=ManagementError("Fail"))
-        interface = Mock()
-        assert not self.handler.interface_supports_poe(interface)
+        state = self.handler.get_poe_state(interface)
+        assert state == expected_state
 
 
 if __name__ == '__main__':
