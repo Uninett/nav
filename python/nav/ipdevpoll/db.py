@@ -29,6 +29,7 @@ from django.db.utils import InterfaceError as DjangoInterfaceError
 from psycopg2 import InterfaceError, OperationalError
 
 _logger = logging.getLogger(__name__)
+_query_logger = logging.getLogger(".".join((__name__, "query")))
 
 
 class ResetDBConnectionError(Exception):
@@ -51,7 +52,7 @@ def django_debug_cleanup():
     if query_count:
         runtime = sum_django_queries_runtime()
         thread = threading.current_thread()
-        _logger.debug(
+        _query_logger.debug(
             "Thread %s/%s: Removing %d logged Django queries "
             "(total time %.03f):\n%s",
             thread.ident,
@@ -117,8 +118,9 @@ def reset_connection_on_interface_error(func):
                 "dropped, resetting it now - you may see further "
                 "errors about this until the situation is fully "
                 "resolved for all threads "
-                "(this thread is '%s', error was '%s')",
+                "(this thread is '%s', function was: %r, error was '%s')",
                 thread.name,
+                func,
                 error,
             )
             django.db.connection.connection = None
