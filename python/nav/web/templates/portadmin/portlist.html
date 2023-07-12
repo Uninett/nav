@@ -25,6 +25,9 @@
     <div class="hide-for-small medium-1 column">
       Linked
     </div>
+    <div class="hide-for-small medium-1 column">
+      PoE Enabled
+    </div>
     <div class="hide-for-small medium-4 column">
       Port description
     </div>
@@ -72,6 +75,14 @@
         <span class="left hide-for-medium-up">Linked&nbsp;</span>
         <img title="OperStatus - If red there is no link on the interface"
              src="{{ STATIC_URL }}images/lys/{{ interface.ifoperstatus|drawLight }}"
+        />
+      </div>
+
+      {# PoE #}
+      <div class="medium-1 small-6 column portadmin-status">
+        <span class="left hide-for-medium-up">Supports PoE&nbsp;</span>
+        <img title="PoE - green means port supports PoE {{interface.supports_poe}}"
+             src="{{ STATIC_URL }}images/lys/{{ interface.supports_poe|drawLight }}"
         />
       </div>
 
