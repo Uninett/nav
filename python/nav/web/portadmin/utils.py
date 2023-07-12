@@ -238,6 +238,15 @@ def add_dot1x_info(interfaces, handler):
             )
 
 
+def add_poe_info(interfaces, handler):
+    """Add information about PoE state for interfaces"""
+    try:
+        for interface in interfaces:
+            interface.supports_poe = handler.interface_supports_poe(interface)
+    except NotImplementedError:
+        return
+
+
 def is_cisco(netbox):
     """Returns true if netbox is of vendor cisco
     :type netbox: manage.Netbox

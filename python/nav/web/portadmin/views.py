@@ -46,6 +46,7 @@ from nav.web.portadmin.utils import (
     mark_detained_interfaces,
     is_cisco,
     add_dot1x_info,
+    add_poe_info,
 )
 from nav.portadmin.config import CONFIG
 from nav.portadmin.snmp.base import SNMPHandler
@@ -207,6 +208,7 @@ def populate_infodict(request, netbox, interfaces):
         mark_detained_interfaces(interfaces)
         if CONFIG.is_dot1x_enabled():
             add_dot1x_info(interfaces, handler)
+        add_poe_info(interfaces, handler)
     except NoResponseError:
         readonly = True
         messages.error(
