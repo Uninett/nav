@@ -44,6 +44,7 @@ from nav.portadmin.handlers import (
     AuthenticationError,
     NoResponseError,
     ProtocolError,
+    PoeState,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -102,6 +103,8 @@ class Juniper(ManagementHandler):
 
     VENDOR = VENDOR_ID_JUNIPER_NETWORKS_INC
     PROTOCOL = manage.ManagementProfile.PROTOCOL_NAPALM
+    POE_ENABLE = PoeState(state=1, name="ENABLE")
+    POE_DISABLE = PoeState(state=2, name="DISABLE")
 
     def __init__(self, netbox: manage.Netbox, **kwargs):
         super().__init__(netbox, **kwargs)
@@ -440,6 +443,38 @@ class Juniper(ManagementHandler):
             raise DeviceNotConfigurableError("Can only configure JunOS devices")
         if not self.profile:
             raise DeviceNotConfigurableError("Device has no NAPALM profile")
+
+    def get_poe_state_options(self):
+        options_list = [self.POE_ENABLE, self.POE_DISABLE]
+        return tuple(options_list)
+
+    @wrap_unhandled_rpc_errors
+    def set_poe_state(self, interface, state):
+        if not isinstance(state, PoeState):
+            raise TypeError("state must be a PoeState object")
+        if state == self.POE_ENABLE:
+            template = get_template("portadmin/junos-enable-poe.djt")
+        elif state == self.POE_DISABLE:
+            template = get_template("portadmin/junos-disable-poe.djt")
+        else:
+            raise ValueError("state {state} is not a valid state")
+        master, _ = split_master_unit(interface.ifname)
+        context = {
+            "ifname": master,
+        }
+        template = get_template("portadmin/junos-enable-poe.djt")
+        config = template.render(context)
+        self.device.load_merge_candidate(config=config)
+
+    def get_poe_state(self, interface):
+        tree = self.device.device.rpc.get_poe_interface_information(
+            terse=True,
+            interface_name=interface.ifname,
+        )
+        return tree
+
+    def interface_supports_poe(self, interface):
+        pass
 
     # FIXME Implement dot1x fetcher methods
     # dot1x authentication configuration fetchers aren't implemented yet, for lack
