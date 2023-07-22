@@ -26,7 +26,7 @@ from nav.models import manage, profiles
 from nav.django.utils import is_admin
 from nav.portadmin.config import CONFIG
 from nav.portadmin.management import ManagementFactory
-from nav.portadmin.handlers import ManagementHandler
+from nav.portadmin.handlers import ManagementHandler, ManagementError
 from nav.portadmin.vlan import FantasyVlan
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 
@@ -242,10 +242,10 @@ def add_poe_info(interfaces, handler):
     """Add information about PoE state for interfaces"""
     try:
         for interface in interfaces:
-            interface.supports_poe = handler.interface_supports_poe(interface)
-            interface.poe_state = (
-                handler.get_poe_state(interface) if interface.supports_poe else None
-            )
+            try:
+                interface.poe_state = handler.get_poe_state(interface)
+            except (ManagementError):
+                interface.poe_state = None
     except NotImplementedError:
         return
 

@@ -45,7 +45,7 @@ from nav.portadmin.handlers import (
     NoResponseError,
     ProtocolError,
     PoeState,
-    POENotSupportedError,
+    ManagementError,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -473,12 +473,10 @@ class Juniper(ManagementHandler):
         )
         # Interfaces that do not support PoE will not have this element
         if not matching_elements:
-            raise POENotSupportedError(
-                f"Interface {interface.ifname} does not support PoE"
-            )
+            raise ManagementError(f"Interface {interface.ifname} does not support PoE")
         if len(matching_elements) != 1:
-            raise ValueError(
-                f"Expected 1 matching element, {len(matching_elements)} found"
+            raise ManagementError(
+                f"Expected 1 matching element in xml response, {len(matching_elements)} found"
             )
         poe_state = matching_elements[0].text.lower()
         if poe_state == "enabled":
@@ -486,7 +484,7 @@ class Juniper(ManagementHandler):
         elif poe_state == "disabled":
             return self.POE_DISABLED
         else:
-            raise ValueError(f"Invalid state {poe_state}")
+            raise ManagementError(f"Unknown PoE state {poe_state}")
 
     def get_poe_state_all_interfaces(self):
         tree = self.device.device.rpc.get_poe_interface_information()
@@ -497,7 +495,7 @@ class Juniper(ManagementHandler):
     def interface_supports_poe(self, interface):
         try:
             self.get_poe_state(interface)
-        except POENotSupportedError:
+        except ManagementError:
             return False
         else:
             return True
