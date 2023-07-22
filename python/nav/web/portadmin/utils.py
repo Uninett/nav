@@ -243,6 +243,9 @@ def add_poe_info(interfaces, handler):
     try:
         for interface in interfaces:
             interface.supports_poe = handler.interface_supports_poe(interface)
+            interface.poe_state = (
+                handler.get_poe_state(interface) if interface.supports_poe else None
+            )
     except NotImplementedError:
         return
 
