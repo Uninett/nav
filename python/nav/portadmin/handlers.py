@@ -329,3 +329,7 @@ class ProtocolError(ManagementError):
     """Raised when some non-categorized error in the underlying protocol occurred
     during communication
     """
+
+
+class POENotSupportedError(ManagementError):
+    """Raised when an interface that does not support PoE is used in a context where PoE support is expected"""
