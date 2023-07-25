@@ -131,6 +131,22 @@ def test_update_group_on_org(db, api_client, token):
 # Netbox specific tests
 
 
+def test_filter_netbox_by_invalid_ip(db, api_client, token):
+    create_token_endpoint(token, 'netbox')
+    response = api_client.get('{}?ip=10'.format(ENDPOINTS['netbox']))
+    print(response)
+    assert response.status_code == 200
+
+
+def test_filter_netbox_by_invalid_ip_that_cannot_be_converted_throws_error(
+    db, api_client, token
+):
+    create_token_endpoint(token, 'netbox')
+    response = api_client.get('{}?ip=x'.format(ENDPOINTS['netbox']))
+    print(response)
+    assert response.status_code == 400
+
+
 def test_update_netbox(db, api_client, token):
     endpoint = 'netbox'
     create_token_endpoint(token, endpoint)
