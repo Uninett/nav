@@ -24,11 +24,12 @@
 # TODO Filter/filter_groups have owners, check that the account that performs
 # the operation is the owner
 
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, QueryDict
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse
+from IPy import IP
 
 from nav.web.utils import SubListView
 
@@ -50,6 +51,7 @@ from nav.models.profiles import (
     AccountAlertQueue,
 )
 from nav.django.utils import get_account, is_admin
+from nav.oidparsers import TypedInetAddress
 from nav.web.message import Messages, new_message
 
 from nav.web.alertprofiles.forms import TimePeriodForm, LanguageForm
@@ -1575,6 +1577,25 @@ def filter_saveexpression(request):
             request, _('You do not own this filter.')
         )
 
+    if match_field.data_type == MatchField.IP:
+        if operator.type == Operator.IN:
+            value_list = request.POST.get('value').split()
+        else:
+            value_list = [request.POST.get('value')]
+        for value in value_list:
+            try:
+                IP(value)
+            except ValueError:
+                new_message(
+                    request,
+                    f"Invalid IP address: {value}",
+                    Messages.ERROR,
+                )
+                request.POST = QueryDict(
+                    f"id={request.POST.get('filter')}&matchfield={request.POST.get('match_field')}"
+                )
+                return filter_addexpression(request=request)
+
     # Get the value
     if operator.type == Operator.IN:
         # If input was a multiple choice list we have to join each option
@@ -1582,8 +1603,6 @@ def filter_saveexpression(request):
         # If input was a IP adress we should replace space with | (pipe).
         # FIXME We might want some data checks here
         if match_field.data_type == MatchField.IP:
-            # FIXME We might want to check that it is a valid IP adress.
-            # If we do so, we need to remember both IPv4 and IPv6
             value = request.POST.get('value').replace(' ', '|')
         else:
             value = "|".join([value for value in request.POST.getlist('value')])
