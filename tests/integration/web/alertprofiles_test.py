@@ -9,7 +9,15 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 from nav.compatibility import smart_str
 
-from nav.models.profiles import AlertProfile, Account, AlertPreference
+from nav.models.profiles import (
+    AlertProfile,
+    Account,
+    AlertPreference,
+    Expression,
+    Filter,
+    MatchField,
+    Operator,
+)
 from nav.web.alertprofiles.views import set_active_profile
 
 
@@ -157,6 +165,75 @@ def test_alertprofiles_add_public_filter_should_succeed(client):
     assert response.status_code == 200
 
 
+def test_alertprofiles_add_expression_with_valid_ipv4_address_should_succeed(
+    client, dummy_filter
+):
+    """Tests that an expression with a valid IPv4 address can be added"""
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.EQUALS,
+        "value": "172.0.0.1",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.EQUALS,
+        value=data["value"],
+    ).exists()
+    assert f"Added expression to filter {dummy_filter}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_valid_ipv6_address_should_succeed(
+    client, dummy_filter
+):
+    """Tests that an expression with a valid IPv6 address can be added"""
+    url = reverse("alertprofiles-filters-saveexpression")
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.EQUALS,
+        "value": "2001:db8:3333:4444:5555:6666:7777:8888",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.EQUALS,
+        value=data["value"],
+    ).exists()
+    assert f"Added expression to filter {dummy_filter}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_non_valid_ip_address_should_fail(
+    client, dummy_filter
+):
+    """Tests that an expression with a not valid IP address cannot be added"""
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.EQUALS,
+        "value": "wrong",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert not Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.EQUALS,
+        value=data["value"],
+    ).exists()
+    assert f"Invalid IP address: {data['value']}" in smart_str(response.content)
+
+
 def test_set_accountgroup_permissions_should_not_crash(db, client):
     """Regression test for #2281"""
     url = reverse('alertprofiles-permissions-save')
@@ -191,3 +268,10 @@ def activated_dummy_profile(dummy_profile):
     )
     preference.save()
     return dummy_profile
+
+
+@pytest.fixture(scope="function")
+def dummy_filter():
+    filtr = Filter(name="dummy", owner=Account.objects.get(id=Account.ADMIN_ACCOUNT))
+    filtr.save()
+    return filtr
