@@ -71,7 +71,7 @@ class Resolver(object):
 
     def __init__(self):
         self._resolvers = cycle(
-            [client.Resolver('/etc/resolv.conf') for _i in range(3)]
+            [client.Resolver("/etc/resolv.conf") for _i in range(3)]
         )
         self.results = defaultdict(list)
         self._finished = False
@@ -136,7 +136,7 @@ class ForwardResolver(Resolver):
         """Returns a deferred object with all records related to hostname"""
 
         if isinstance(name, str):
-            name = name.encode('idna')
+            name = name.encode("idna")
 
         resolver = next(self._resolvers)
         return [resolver.lookupAddress(name), resolver.lookupIPV6Address(name)]
@@ -148,7 +148,7 @@ class ForwardResolver(Resolver):
 
         for record_list in result:
             for record in record_list:
-                if str(record.name) == name:
+                if str(record.name).lower() == name.lower():
                     if record.type == dns.A:
                         address_list.append(
                             socket.inet_ntop(socket.AF_INET, record.payload.address)
