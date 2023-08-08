@@ -1,7 +1,7 @@
 import os
 from glob import glob
 from setuptools import setup, find_packages
-from distutils.command.build import build
+from setuptools.command.build import build
 
 
 def etc_files():
