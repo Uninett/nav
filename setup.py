@@ -24,5 +24,4 @@ setup(
             'strip_extension': True,
         },
     },
-    zip_safe=False,
 )
