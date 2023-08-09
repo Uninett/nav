@@ -17,7 +17,6 @@ build.sub_commands = [('build_sass', None)] + build.sub_commands
 setup(
     setup_requires=['libsass', 'setuptools_scm'],
     scripts=list(find_scripts()),
-    package_data={'': ['static', 'sql', 'templates', 'etc']},
     sass_manifests={
         'nav.web': {
             'sass_path': 'sass',
