@@ -32,6 +32,10 @@ platforms = ["any"]
 
 [tool.setuptools_scm]
 
+[tool.setuptools.packages.find]
+where = ["python"]
+
+
 [tool.black]
 skip-string-normalization=true
 line-length = 88

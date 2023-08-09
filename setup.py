@@ -1,5 +1,5 @@
 from glob import glob
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.command.build import build
 
 
@@ -17,8 +17,6 @@ build.sub_commands = [('build_sass', None)] + build.sub_commands
 setup(
     setup_requires=['libsass', 'setuptools_scm'],
     scripts=list(find_scripts()),
-    package_dir={'': 'python'},
-    packages=find_packages('python'),
     package_data={'': ['static', 'sql', 'templates', 'etc']},
     sass_manifests={
         'nav.web': {
