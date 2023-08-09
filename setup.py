@@ -1,13 +1,6 @@
-import os
 from glob import glob
 from setuptools import setup, find_packages
 from setuptools.command.build import build
-
-
-def etc_files():
-    return [
-        (d, [os.path.join(d, f) for f in files]) for d, folders, files in os.walk('etc')
-    ]
 
 
 def find_scripts():
@@ -27,7 +20,6 @@ setup(
     package_dir={'': 'python'},
     packages=find_packages('python'),
     package_data={'': ['static', 'sql', 'templates', 'etc']},
-    data_files=etc_files(),
     sass_manifests={
         'nav.web': {
             'sass_path': 'sass',
