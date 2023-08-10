@@ -8,8 +8,13 @@ import pytest
 from django.test.client import RequestFactory
 from django.urls import reverse
 from nav.compatibility import smart_str
-
-from nav.models.profiles import AlertProfile, Account, AlertPreference
+from nav.models.profiles import (
+    Account,
+    AlertAddress,
+    AlertPreference,
+    AlertProfile,
+    AlertSender,
+)
 from nav.web.alertprofiles.views import set_active_profile
 
 
@@ -169,6 +174,62 @@ def test_set_accountgroup_permissions_should_not_crash(db, client):
         },
     )
     assert response.status_code == 200
+
+
+def test_alertprofiles_add_slack_address_with_valid_url_should_succeed(client):
+    """Tests that a slack address with a valid absolute url can be added"""
+    valid_url = "https://example.com"
+    slack = AlertSender.objects.get(name=AlertSender.SLACK)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": valid_url,
+        "type": slack.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert AlertAddress.objects.filter(
+        type=slack,
+        address=valid_url,
+    ).exists()
+    assert f"Saved address {valid_url}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_slack_address_with_a_valid_but_not_absolute_url_should_fail(
+    client,
+):
+    """Tests that a slack address with a not valid url cannot be added"""
+    non_absolute_url = "www.example.com"
+    slack = AlertSender.objects.get(name=AlertSender.SLACK)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": non_absolute_url,
+        "type": slack.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert not AlertAddress.objects.filter(
+        type=slack,
+        address=non_absolute_url,
+    ).exists()
+    assert "Not a valid absolute url." in smart_str(response.content)
+
+
+def test_alertprofiles_add_slack_address_with_non_valid_url_should_fail(client):
+    """Tests that a slack address with a not valid url cannot be added"""
+    invalid_url = "abc"
+    slack = AlertSender.objects.get(name=AlertSender.SLACK)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": invalid_url,
+        "type": slack.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert not AlertAddress.objects.filter(
+        type=slack,
+        address=invalid_url,
+    ).exists()
+    assert "Not a valid absolute url." in smart_str(response.content)
 
 
 #
