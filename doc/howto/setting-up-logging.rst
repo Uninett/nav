@@ -121,3 +121,73 @@ file.
 If installing NAV from the Debian packages provided by Sikt, log rotation
 through :program:`logrotate` is already provided for you (but you can change
 the rotation rules as you see fit).
+
+
+Advanced logging configuration
+==============================
+
+While a few simple use-cases for logging configuration are supported by
+:file:`logging.conf`, much more advanced things can be achieved using the
+alternative logging configuration file :file:`logging.yml`.  Doing this on your
+own, however, usually requires that you know your way around Python and have
+extensive knowledge of how the standard Python logging framework works.
+
+:file:`logging.yml` is read and parsed as a Python dictionary, using
+:func:`logging.config.dictConfig()`, right after :file:`logging.conf` is read
+and parsed.  This means that :file:`logging.yml` must adhere to the
+configuration dictionary schema laid out in the Python docs.
+
+This can allow you to do such things as sending all NAV log records to a Falcon
+LogScale (previously known as Humio) ingestor using something like the
+`humiologging <https://pypi.org/project/humiologging/>`_ library.  Instead of
+shipping the file-based logs to LogScale and having them parsed there, each log
+record can be shipped with structured attributes/tags.
+
+To achieve something like this, you need to first install the
+:mod:`humiologging` library into your NAV installation's Python environment
+(e.g. :code:`pip install humiologging`), and then create a :file:`logging.yml`
+similar to this:
+
+
+.. code-block:: yaml
+
+   version: 1
+   loggers:
+     nav:
+       level: DEBUG
+     root:
+       handlers: [humio, console]
+
+   handlers:
+     humio:
+       class: humiologging.handlers.HumioJSONHandler
+       level: DEBUG
+       humio_host: https://your-humio-ingest-addr-here
+       ingest_token: SECRET_TOKEN_THINGY
+     console:
+       class: logging.StreamHandler
+       formatter: default
+
+
+   formatters:
+     default:
+       format: '%(asctime)s [%(levelname)s] [%(name)s] %(message)s'
+
+This configuration attaches a :class:`HumioJSONHandler` to the ``root`` logger
+and sets the global NAV log level to **DEBUG**.  Unfortunately, as this
+configuration manipulates the ``root`` logger, it removes the handler(s) that
+NAV has by default installed on it, so if you want NAV to also keep logging to
+files in addition to Humio, you need to add an extra handler that logs to a
+stream (``stderr`` by default), and you need to specify a format for it.  This
+example just redefines the log line format NAV uses by default.
+
+As long as you add a :class:`logging.StreamHandler` to ``root``, you shouldn't
+need to redefine which files the logs go to, as most NAV daemons achieve this
+by redirecting their ``stderr`` to a file as they fork off a background
+process.  Leaving out the :class:`logging.StreamHandler` will still cause the
+log files to be created, but they will be empty (save for any outpout to
+``stderr`` that did not come from the :mod:`logging` library).
+
+.. tip:: As with :file:`logging.conf`, processes can be directed to read a
+         bespoke :file:`logging.yml` file, but by setting the
+         :envvar:`NAV_LOGGING_YML` environment variable instead.
