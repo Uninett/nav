@@ -76,6 +76,39 @@ log output from the PortAdmin web tool into the :file:`portadmin.log` file, in
 the directory configured by the :file:`nav.conf` ``LOG_DIR`` option.
 
 
+Using different logging config for individual programs
+======================================================
+
+While all NAV programs will look for :file:`logging.conf` in NAV's default
+configuration file directories, you can run individual NAV programs with an
+explicit logging configuration file that is separate from the standard one.
+
+A typical usage scenario might be that you want to run a single
+:program:`ipdevpoll` job with more debug logging, without having the logging
+configuration changes affect the :program:`ipdevpolld` daemon running all your
+jobs in the background.  This can be achieved by setting the
+:envvar:`NAV_LOGGING_CONF` environment variable to point to a different logging
+config file before running :program:`ipdevpolld` from the command line.
+
+.. code-block:: console
+
+  $ cat > /tmp/logging.conf <<EOF
+  [levels]
+  nav = INFO
+  nav.ipdevpoll.plugins.system = DEBUG
+  EOF
+  $ export NAV_LOGGING_CONF=/tmp/logging.conf
+  $ ipdevpolld -J inventory -n example-sw
+  2023-08-11 13:41:32,124 [INFO nav.ipdevpoll] --- Starting ipdevpolld inventory ---
+  2023-08-11 13:41:35,130 [INFO plugins] Imported 31 plugin classes, 31 classes in plugin registry
+  2023-08-11 13:41:35,130 [INFO nav.ipdevpoll] Running single 'inventory' job for example-sw.example.org
+  2023-08-11 13:41:35,888 [WARNING nav.mibs.hpicf_powersupply_mib.hpicfpowersupplymib] [inventory example-sw.example.org] Number of power supplies in ENTITY-MIB (1) and POWERSUPPLY-MIB (0) do not match
+  2023-08-11 13:41:35,892 [WARNING nav.mibs.hpicf_fan_mib.hpicffanmib] [inventory example-sw.example.org] Number of fans in ENTITY-MIB (2) and FAN-MIB (0) do not match
+  2023-08-11 13:41:35,894 [DEBUG plugins.system.system] [inventory example-sw.example.org] sysDescr: 'ProCurve J4900B Switch 2626, revision H.08.98, ROM H.08.02 (/sw/code/build/fish(ts_08_5))'
+  2023-08-11 13:41:35,894 [DEBUG plugins.system.system] [inventory example-sw.example.org] Parsed version: H.08.98
+  2023-08-11 13:41:35,894 [DEBUG plugins.system.system] [inventory example-sw.example.org] found a pre-existing chassis: Chassis/ENTITY-MIB (CN650SE0GJ)
+  $
+
 Rotating logs
 =============
 
