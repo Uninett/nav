@@ -35,8 +35,11 @@ from nav.adapters import HStoreField
 import nav.buildconf
 import nav.pwhash
 from nav.config import getconfig as get_alertengine_config
-from nav.alertengine.dispatchers import DispatcherException
-from nav.alertengine.dispatchers import FatalDispatcherException
+from nav.alertengine.dispatchers import (
+    DispatcherException,
+    FatalDispatcherException,
+    InvalidAlertAddressError,
+)
 
 from nav.models.event import AlertQueue, AlertType, EventType
 from nav.models.manage import Arp, Cam, Category, Device, Location
@@ -423,10 +426,10 @@ class AlertAddress(models.Model):
         # Determine the right language for the user.
         lang = self.account.preferences.get(Account.PREFERENCE_KEY_LANGUAGE, 'en')
 
-        if not (self.address or '').strip():
+        if not self.has_valid_address():
             _logger.error(
-                'Ignoring alert %d (%s: %s)! Account %s does not have an '
-                'address set for the alertaddress with id %d, this needs '
+                'Ignoring alert %d (%s: %s)! Account %s does not have a '
+                'valid address for the alertaddress with id %d, this needs '
                 'to be fixed before the user will recieve any alerts.',
                 alert.id,
                 alert,
@@ -435,7 +438,7 @@ class AlertAddress(models.Model):
                 self.id,
             )
 
-            return True
+            raise InvalidAlertAddressError
 
         if self.type.is_blacklisted():
             _logger.debug(
@@ -1364,7 +1367,7 @@ class AccountAlertQueue(models.Model):
 
             super(AccountAlertQueue, self).delete()
             return False
-        except FatalDispatcherException:
+        except (FatalDispatcherException, InvalidAlertAddressError):
             self.delete()
             return False
 
