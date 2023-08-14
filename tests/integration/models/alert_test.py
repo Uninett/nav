@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from nav.alertengine.dispatchers import InvalidAlertAddressError
 from nav.models.profiles import (
     Account,
     AccountAlertQueue,
@@ -10,14 +12,27 @@ from nav.models.profiles import (
     TimePeriod,
 )
 from nav.models.event import AlertQueue, Subsystem
+
 import pytest
 
 
-def test_delete_alert_subscription(db, alert, alertsub):
-    account_queue = AccountAlertQueue(alert=alert, subscription=alertsub)
-    account_queue.save()
+def test_delete_alert_subscription(db, alert, alertsub, account_alert_queue):
     alertsub.delete()
-    assert not AccountAlertQueue.objects.filter(pk=account_queue.pk).exists()
+    assert not AccountAlertQueue.objects.filter(pk=account_alert_queue.pk).exists()
+    assert not AlertQueue.objects.filter(pk=alert.pk).exists()
+
+
+def test_sending_alert_to_alert_address_with_invalid_address_will_raise_error(
+    db, alert_address, alert, alertsub
+):
+    with pytest.raises(InvalidAlertAddressError):
+        alert_address.send(alert, alertsub)
+
+
+def test_sending_alert_to_alert_address_with_invalid_address_will_delete_alert_and_fail(
+    db, alert, account_alert_queue
+):
+    assert not account_alert_queue.send()
     assert not AlertQueue.objects.filter(pk=alert.pk).exists()
 
 
@@ -78,3 +93,12 @@ def alert():
     yield alert
     if alert.pk:
         alert.delete()
+
+
+@pytest.fixture
+def account_alert_queue(alert, alertsub):
+    account_queue = AccountAlertQueue(alert=alert, subscription=alertsub)
+    account_queue.save()
+    yield account_queue
+    if account_queue.pk:
+        account_queue.delete()
