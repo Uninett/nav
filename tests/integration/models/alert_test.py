@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from nav.alertengine.dispatchers import InvalidAlertAddressError
 from nav.models.profiles import (
     Account,
     AccountAlertQueue,
@@ -10,24 +12,46 @@ from nav.models.profiles import (
     TimePeriod,
 )
 from nav.models.event import AlertQueue, Subsystem
+
 import pytest
 
 
-def test_delete_alert_subscription(db, alert, alertsub):
-    account_queue = AccountAlertQueue(alert=alert, subscription=alertsub)
-    account_queue.save()
+def test_delete_alert_subscription(db, alert, alertsub, account_alert_queue):
     alertsub.delete()
-    assert not AccountAlertQueue.objects.filter(pk=account_queue.pk).exists()
+    assert not AccountAlertQueue.objects.filter(pk=account_alert_queue.pk).exists()
+    assert not AlertQueue.objects.filter(pk=alert.pk).exists()
+
+
+def test_sending_alert_to_alert_address_with_empty_address_will_raise_error(
+    db, alert_address, alert, alertsub
+):
+    with pytest.raises(InvalidAlertAddressError):
+        alert_address.send(alert, alertsub)
+
+
+def test_sending_alert_to_alert_address_with_invalid_address_will_raise_error(
+    db, alert_address, alert, alertsub
+):
+    alert_address.address = "abc"
+    alert_address.save()
+    with pytest.raises(InvalidAlertAddressError):
+        alert_address.send(alert, alertsub)
+
+
+def test_sending_alert_to_alert_address_with_invalid_address_will_delete_alert_and_fail(
+    db, alert, account_alert_queue
+):
+    assert not account_alert_queue.send()
     assert not AlertQueue.objects.filter(pk=alert.pk).exists()
 
 
 @pytest.fixture
-def account():
+def account(db):
     return Account.objects.get(pk=Account.ADMIN_ACCOUNT)
 
 
 @pytest.fixture
-def alert_address(account):
+def alert_address(db, account):
     addr = AlertAddress(
         account=account,
         type=AlertSender.objects.get(name=AlertSender.SMS),
@@ -39,7 +63,7 @@ def alert_address(account):
 
 
 @pytest.fixture
-def alert_profile(account):
+def alert_profile(db, account):
     profile = AlertProfile(account=account)
     profile.save()
     yield profile
@@ -48,7 +72,7 @@ def alert_profile(account):
 
 
 @pytest.fixture
-def time_period(alert_profile):
+def time_period(db, alert_profile):
     time_period = TimePeriod(profile=alert_profile)
     time_period.save()
     yield time_period
@@ -57,7 +81,7 @@ def time_period(alert_profile):
 
 
 @pytest.fixture
-def alertsub(alert_address, time_period):
+def alertsub(db, alert_address, time_period):
     alertsub = AlertSubscription(
         alert_address=alert_address,
         time_period=time_period,
@@ -70,7 +94,7 @@ def alertsub(alert_address, time_period):
 
 
 @pytest.fixture
-def alert():
+def alert(db):
     alert = AlertQueue(
         source=Subsystem.objects.first(), time=datetime.now(), value=1, severity=3
     )
@@ -78,3 +102,12 @@ def alert():
     yield alert
     if alert.pk:
         alert.delete()
+
+
+@pytest.fixture
+def account_alert_queue(db, alert, alertsub):
+    account_queue = AccountAlertQueue(alert=alert, subscription=alertsub)
+    account_queue.save()
+    yield account_queue
+    if account_queue.pk:
+        account_queue.delete()
