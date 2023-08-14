@@ -429,6 +429,24 @@ class AlertAddress(models.Model):
     def __str__(self):
         return self.type.scheme() + self.address
 
+    def has_valid_address(self):
+        from nav.alertengine.dispatchers.email_dispatcher import Email
+        from nav.alertengine.dispatchers.slack_dispatcher import Slack
+        from nav.alertengine.dispatchers.sms_dispatcher import Sms
+
+        if not self.type.supported:
+            return False
+        elif self.type.handler == 'sms':
+            if not Sms.is_valid_address(self.address):
+                return False
+        elif self.type.handler == 'email':
+            if not Email.is_valid_address(self.address):
+                return False
+        elif self.type.handler == 'slack':
+            if not Slack.is_valid_address(self.address):
+                return False
+        return True
+
     @transaction.atomic
     def send(self, alert, subscription):
         """Handles sending of alerts to with defined alert notification types
