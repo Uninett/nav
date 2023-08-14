@@ -406,6 +406,12 @@ class AlertAddress(models.Model):
     def __str__(self):
         return self.type.scheme() + self.address
 
+    def has_valid_address(self):
+        if not self.type.supported or not self.address:
+            return False
+        dispatcher = self.type.load_dispatcher_class()
+        return dispatcher.is_valid_address(self.address)
+
     @transaction.atomic
     def send(self, alert, subscription):
         """Handles sending of alerts to with defined alert notification types
