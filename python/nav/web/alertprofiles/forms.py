@@ -555,7 +555,7 @@ class ExpressionForm(forms.ModelForm):
                 # Values are selected from a multiple choice list.
                 # Populate that list with possible choices.
 
-                # MatcField stores which table and column alert engine should
+                # MatchField stores which table and column alert engine should
                 # watch, as well as a table and column for "friendly" names in
                 # the GUI and how we should sort the fields in the GUI (if we
                 # are displaying a list)
@@ -601,8 +601,8 @@ class ExpressionForm(forms.ModelForm):
 
                 choices = []
                 for obj in model_objects:
-                    # ID is what is acctually used in the expression that will
-                    # be evaluted by alert engine
+                    # ID is what is actually used in the expression that will
+                    # be evaluated by alert engine
                     ident = getattr(obj, attname)
 
                     if model == name_model:
