@@ -25,6 +25,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit, HTML
 
 from nav.alertengine.dispatchers.email_dispatcher import Email
+from nav.alertengine.dispatchers.slack_dispatcher import Slack
 from nav.alertengine.dispatchers.sms_dispatcher import Sms
 
 from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
@@ -118,6 +119,9 @@ class AlertAddressForm(forms.ModelForm):
             elif type_.handler == 'email':
                 if not Email.is_valid_address(address):
                     error = 'Not a valid email address.'
+            elif type_.handler == 'slack':
+                if not Slack.is_valid_address(address):
+                    error = 'Not a valid absolute url.'
 
             if error:
                 self._errors['address'] = self.error_class([error])
