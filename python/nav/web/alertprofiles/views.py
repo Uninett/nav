@@ -1513,7 +1513,7 @@ def filter_remove(request):
 
 @requires_post('alertprofiles-filters', ('id', 'matchfield'))
 def filter_addexpression(request):
-    """Shows the form to add en expression to a filter"""
+    """Shows the form to add an expression to a filter"""
     try:
         filtr = Filter.objects.get(pk=request.POST.get('id'))
     except Filter.DoesNotExist:
