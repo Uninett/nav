@@ -18,16 +18,20 @@
 
 # pylint: disable=R0903
 
+from typing import Any, Dict
+
 from django import forms
 from django.db.models import Q
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit, HTML
 
+from IPy import IP
+
 from nav.alertengine.dispatchers.email_dispatcher import Email
 from nav.alertengine.dispatchers.sms_dispatcher import Sms
 
-from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
+from nav.models.profiles import Expression, Filter, FilterGroup, MatchField, Operator
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress, AlertSender
 from nav.web.crispyforms import HelpField
@@ -532,8 +536,12 @@ class ExpressionForm(forms.ModelForm):
     create expressions that can be used in a filter.
     """
 
-    filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
-    match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
+    filter = forms.ModelChoiceField(
+        queryset=Filter.objects.all(), widget=forms.widgets.HiddenInput
+    )
+    match_field = forms.ModelChoiceField(
+        queryset=MatchField.objects.all(), widget=forms.widgets.HiddenInput
+    )
     value = forms.CharField(required=True)
 
     class Meta(object):
@@ -621,3 +629,40 @@ class ExpressionForm(forms.ModelForm):
 
                 # At last we acctually add the multiple choice field.
                 self.fields['value'] = forms.MultipleChoiceField(choices=choices)
+
+    def clean(self) -> Dict[str, Any]:
+        validated_data = super().clean()
+
+        match_field = validated_data["match_field"]
+        operator_type = validated_data["operator"]
+        value = validated_data["value"]
+
+        if match_field.data_type == MatchField.IP:
+            if operator_type == Operator.IN:
+                ip_list = value.split()
+            else:
+                ip_list = [value]
+            validated_ip_addresses = []
+            for ip in ip_list:
+                try:
+                    IP(ip)
+                except ValueError:
+                    self.add_error(
+                        field="value",
+                        error=forms.ValidationError(("Invalid IP address: %s" % ip)),
+                    )
+                else:
+                    validated_ip_addresses.append(str(ip))
+            # Bring ip address back into original format to be processed below
+            value = " ".join(validated_ip_addresses)
+
+        if operator_type == Operator.IN:
+            """If input was a multiple choice list we have to join each option in one
+            string, where each option is separated by a | (pipe).
+            If input was a IP adress we should replace space with | (pipe)."""
+            if match_field.data_type == MatchField.IP:
+                validated_data["value"] = value.replace(' ', '|')
+            else:
+                validated_data["value"] = "|".join(value)
+
+        return validated_data

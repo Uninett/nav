@@ -29,7 +29,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse
-from IPy import IP
 
 from nav.web.utils import SubListView
 
@@ -51,7 +50,6 @@ from nav.models.profiles import (
     AccountAlertQueue,
 )
 from nav.django.utils import get_account, is_admin
-from nav.oidparsers import TypedInetAddress
 from nav.web.message import Messages, new_message
 
 from nav.web.alertprofiles.forms import TimePeriodForm, LanguageForm
@@ -1565,57 +1563,37 @@ def filter_addexpression(request):
 @requires_post('alertprofiles-filters')
 def filter_saveexpression(request):
     """Saves an expression to a filter"""
-    # Get the MatchField, Filter and Operator objects associated with the
-    # input POST-data
-    filtr = Filter.objects.get(pk=request.POST.get('filter'))
-    type_ = request.POST.get('operator')
-    match_field = MatchField.objects.get(pk=request.POST.get('match_field'))
-    operator = Operator.objects.get(type=type_, match_field=match_field.pk)
+    if request.POST.get('id'):
+        existing_expression = Expression.objects.get(pk=request.POST.get('id'))
+        form = ExpressionForm(request.POST, instance=existing_expression)
+    else:
+        form = ExpressionForm(request.POST)
+
+    if not form.is_valid():
+        dictionary = {
+            'id': str(form.cleaned_data["filter"].pk),
+            'matchfield': str(form.cleaned_data["match_field"].pk),
+        }
+        qdict = QueryDict("", mutable=True)
+        qdict.update(dictionary)
+        request.POST = qdict
+        new_message(
+            request,
+            form.errors,
+            Messages.ERROR,
+        )
+
+        return filter_addexpression(request=request)
+
+    filtr = form.cleaned_data['filter']
 
     if not account_owns_filters(get_account(request), filtr):
         return alertprofiles_response_forbidden(
             request, _('You do not own this filter.')
         )
 
-    if match_field.data_type == MatchField.IP:
-        if operator.type == Operator.IN:
-            value_list = request.POST.get('value').split()
-        else:
-            value_list = [request.POST.get('value')]
-        for value in value_list:
-            try:
-                IP(value)
-            except ValueError:
-                new_message(
-                    request,
-                    f"Invalid IP address: {value}",
-                    Messages.ERROR,
-                )
-                request.POST = QueryDict(
-                    f"id={request.POST.get('filter')}&matchfield={request.POST.get('match_field')}"
-                )
-                return filter_addexpression(request=request)
+    form.save()
 
-    # Get the value
-    if operator.type == Operator.IN:
-        # If input was a multiple choice list we have to join each option
-        # in one string, where each option is separated by a | (pipe).
-        # If input was a IP adress we should replace space with | (pipe).
-        # FIXME We might want some data checks here
-        if match_field.data_type == MatchField.IP:
-            value = request.POST.get('value').replace(' ', '|')
-        else:
-            value = "|".join([value for value in request.POST.getlist('value')])
-    else:
-        value = request.POST.get('value')
-
-    expression = Expression(
-        filter=filtr,
-        match_field=match_field,
-        operator=operator.type,
-        value=value,
-    )
-    expression.save()
     new_message(
         request,
         _('Added expression to filter %(name)s') % {'name': filtr.name},
