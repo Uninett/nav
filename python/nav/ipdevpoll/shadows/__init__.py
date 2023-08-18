@@ -32,6 +32,7 @@ from nav.event2 import EventFactory
 from nav.ipdevpoll.storage import MetaShadow, Shadow, shadowify
 from nav.ipdevpoll import descrparsers
 from nav.ipdevpoll import utils
+from nav.oids import get_enterprise_id
 
 from .netbox import Netbox
 from .interface import Interface, InterfaceStack, InterfaceAggregate
@@ -73,11 +74,10 @@ class NetboxType(Shadow):
                   otherwise.
 
         """
-        prefix = u"1.3.6.1.4.1."
-        if self.sysobjectid.startswith(prefix):
-            specific = self.sysobjectid[len(prefix) :]
-            enterprise = specific.split('.')[0]
-            return int(enterprise)
+        try:
+            return get_enterprise_id(self.sysobjectid)
+        except ValueError:
+            return None
 
 
 class NetboxInfo(Shadow):

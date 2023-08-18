@@ -57,6 +57,7 @@ import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 import nav.models.event
+from nav.oids import get_enterprise_id
 
 
 _logger = logging.getLogger(__name__)
@@ -1284,11 +1285,10 @@ class NetboxType(models.Model):
         specific to the vendor.
 
         """
-        prefix = u"1.3.6.1.4.1."
-        if self.sysobjectid.startswith(prefix):
-            specific = self.sysobjectid[len(prefix) :]
-            enterprise = specific.split('.')[0]
-            return int(enterprise)
+        try:
+            return get_enterprise_id(self.sysobjectid)
+        except ValueError:
+            return None
 
 
 #######################################################################
