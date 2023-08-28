@@ -236,6 +236,54 @@ def test_alertprofiles_add_expression_with_non_valid_ip_address_should_fail(
     assert f"Invalid IP address: {data['value']}" in smart_str(response.content)
 
 
+def test_alertprofiles_add_expression_with_multiple_valid_ip_addresses_should_succeed(
+    client, dummy_filter
+):
+    """Tests that an expression with multiple valid IP addresses can be added"""
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.IN,
+        "value": "172.0.0.1 2001:db8:3333:4444:5555:6666:7777:8888",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.IN,
+        value=data["value"].replace(' ', '|'),
+    ).exists()
+    assert f"Added expression to filter {dummy_filter}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_multiple_non_valid_ip_addresses_should_fail(
+    client, dummy_filter
+):
+    """Tests that an expression with a not valid IP address cannot be added"""
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    valid_ip = "172.0.0.1"
+    invalid_ip = "wrong"
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.IN,
+        "value": f"{valid_ip} {invalid_ip}",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert not Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.IN,
+        value=data["value"],
+    ).exists()
+    assert f"Invalid IP address: {invalid_ip}" in smart_str(response.content)
+
+
 def test_set_accountgroup_permissions_should_not_crash(db, client):
     """Regression test for #2281"""
     url = reverse('alertprofiles-permissions-save')
