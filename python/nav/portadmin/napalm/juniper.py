@@ -466,6 +466,7 @@ class Juniper(ManagementHandler):
         config = template.render({"ifname": master})
         self.device.load_merge_candidate(config=config)
 
+    @wrap_unhandled_rpc_errors
     def get_poe_state(self, interface):
         tree = self.device.device.rpc.get_poe_interface_information(
             ifname=interface.ifname
