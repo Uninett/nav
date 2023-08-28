@@ -10,6 +10,7 @@ found in the [HISTORY](HISTORY) file.
 ## Unreleased
 
 ### Added
+- Added howto guide for log configuration ([#2660](https://github.com/Uninett/nav/pull/2660))
 - Added support for polling and alerting on Juniper chassis and system alerts ([#2358](https://github.com/Uninett/nav/issues/2358), [#2388](https://github.com/Uninett/nav/pull/2388))
   - Juniper only provides alert counters via SNMP, no alert details, unfortunately.
 - Added a new `contains_address` filter to the `prefix` API endpoint, to enable lookup of matching prefix/vlan details from a single IP or subnet address ([#2577](https://github.com/Uninett/nav/issues/2577), [#2578](https://github.com/Uninett/nav/pull/2578))
@@ -28,6 +29,8 @@ found in the [HISTORY](HISTORY) file.
 
 #### Developer-centric fixes
 
+- Pin pip to version 23.1.0 for CI pipelines to continue working ([#2647](https://github.com/Uninett/nav/pull/2647))
+- Improve ipdevpoll logging of SQL queries and from Twisted library ([#2640](https://github.com/Uninett/nav/pull/2640))
 - Stop making skipped validation tests for non HTML content ([#2623](https://github.com/Uninett/nav/pull/2623))
 - Version-locked indirect dependencies of test suites ([#2622](https://github.com/Uninett/nav/pull/2622), [#2617](https://github.com/Uninett/nav/issues/2617))
 - Improve SNMP forwarding/proxying container setup, including adding IPv6 support ([#2637](https://github.com/Uninett/nav/pull/2637), [#2516](https://github.com/Uninett/nav/pull/2516))
