@@ -46,6 +46,9 @@ from nav.portadmin.handlers import (
     ProtocolError,
     PoeState,
     ManagementError,
+    POENotSupportedError,
+    POEStateNotSupportedError,
+    XMLParseError,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -459,7 +462,7 @@ class Juniper(ManagementHandler):
         elif state == self.POE_DISABLE:
             template = get_template("portadmin/junos-disable-poe.djt")
         else:
-            raise ValueError(f"state {state} is not a valid state")
+            raise POEStateNotSupportedError(f"state {state} is not a valid state")
         master, _ = split_master_unit(interface.ifname)
         config = template.render({"ifname": master})
         self.device.load_merge_candidate(config=config)
@@ -473,9 +476,11 @@ class Juniper(ManagementHandler):
         )
         # Interfaces that do not support PoE will not have this element
         if not matching_elements:
-            raise ManagementError(f"Interface {interface.ifname} does not support PoE")
+            raise POENotSupportedError(
+                f"Interface {interface.ifname} does not support PoE"
+            )
         if len(matching_elements) != 1:
-            raise ManagementError(
+            raise XMLParseError(
                 f"Expected 1 matching element in xml response, {len(matching_elements)} found"
             )
         poe_state = matching_elements[0].text.lower()
@@ -484,7 +489,7 @@ class Juniper(ManagementHandler):
         elif poe_state == "disabled":
             return self.POE_DISABLED
         else:
-            raise ManagementError(f"Unknown PoE state {poe_state}")
+            raise POEStateNotSupportedError(f"Unknown PoE state {poe_state}")
 
     def get_poe_state_all_interfaces(self):
         tree = self.device.device.rpc.get_poe_interface_information()
@@ -495,7 +500,7 @@ class Juniper(ManagementHandler):
     def interface_supports_poe(self, interface):
         try:
             self.get_poe_state(interface)
-        except ManagementError:
+        except POENotSupportedError:
             return False
         else:
             return True
