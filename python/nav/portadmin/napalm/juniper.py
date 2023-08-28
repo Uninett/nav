@@ -505,12 +505,6 @@ class Juniper(ManagementHandler):
         else:
             return True
 
-    def get_poe_state_for_all_interfaces(self):
-        tree = self.device.device.rpc.get_poe_interface_information()
-        import lxml.etree as etree
-
-        return etree.tostring(tree, pretty_print=True).decode()
-
     # FIXME Implement dot1x fetcher methods
     # dot1x authentication configuration fetchers aren't implemented yet, for lack
     # of configured devices to test on
