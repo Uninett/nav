@@ -15,6 +15,7 @@ from nav.models.profiles import (
     AlertPreference,
     AlertProfile,
     AlertSender,
+    AlertType,
     Expression,
     Filter,
     MatchField,
@@ -282,6 +283,29 @@ def test_alertprofiles_add_expression_with_multiple_non_valid_ip_addresses_shoul
         value=data["value"],
     ).exists()
     assert f"Invalid IP address: {invalid_ip}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_multiple_alert_types_should_succeed(
+    client, dummy_filter
+):
+    """Tests that an expression with multiple alert types can be added"""
+    string_match_field = MatchField.objects.get(name="Alert type")
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": string_match_field.pk,
+        "operator": Operator.IN,
+        "value": ["apDown", "apUp"],
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=string_match_field,
+        operator=Operator.IN,
+        value="|".join(data["value"]),
+    ).exists()
+    assert f"Added expression to filter {dummy_filter}" in smart_str(response.content)
 
 
 def test_set_accountgroup_permissions_should_not_crash(db, client):
