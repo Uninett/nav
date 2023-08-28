@@ -491,12 +491,6 @@ class Juniper(ManagementHandler):
         else:
             raise POEStateNotSupportedError(f"Unknown PoE state {poe_state}")
 
-    def get_poe_state_all_interfaces(self):
-        tree = self.device.device.rpc.get_poe_interface_information()
-        import lxml.etree as etree
-
-        return etree.tostring(tree, pretty_print=True).decode()
-
     def interface_supports_poe(self, interface):
         try:
             self.get_poe_state(interface)
