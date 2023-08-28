@@ -45,7 +45,6 @@ from nav.portadmin.handlers import (
     NoResponseError,
     ProtocolError,
     PoeState,
-    ManagementError,
     POENotSupportedError,
     POEStateNotSupportedError,
     XMLParseError,
