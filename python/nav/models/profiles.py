@@ -509,6 +509,7 @@ class AlertSender(models.Model):
     name = models.CharField(max_length=100)
     handler = models.CharField(max_length=100)
     supported = models.BooleanField(default=True)
+    blacklisted_reason = models.CharField(max_length=100, blank=True)
 
     _blacklist = {}
     _handlers = {}
