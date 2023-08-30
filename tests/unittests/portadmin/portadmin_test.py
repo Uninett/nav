@@ -6,9 +6,6 @@ from nav.oids import OID
 from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD, VENDOR_ID_CISCOSYSTEMS
 from nav.portadmin.management import *
 
-###############################################################################
-from nav.portadmin.vlan import FantasyVlan
-
 
 class TestPortadminResponse:
     ####################################################################
