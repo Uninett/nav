@@ -53,7 +53,7 @@ class TestPortadminResponseHP:
         interface = Mock()
         interface.ifindex = 1
         assert (
-            handler_hp.set_interface_description(interface, "punkt1") == None
+            handler_hp.set_interface_description(interface, "punkt1") is None
         ), "setIfAlias failed"
 
 
