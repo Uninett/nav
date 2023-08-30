@@ -7,11 +7,19 @@ from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD, VENDOR_ID_CISCOSYSTEMS
 from nav.portadmin.management import ManagementFactory, HP, Cisco
 
 
-class TestPortadminResponseHP:
-    def test_management_factory_get_hp(self, handler_hp):
-        assert handler_hp != None, "Could not get handler-object"
-        assert isinstance(handler_hp, HP), "Wrong handler-type"
+class TestPortadminManagementFactory:
+    def test_get_hp(self, netbox_hp):
+        handler = ManagementFactory.get_instance(netbox_hp)
+        assert handler != None, "Could not get handler-object"
+        assert isinstance(handler, HP), "Wrong handler-type"
 
+    def test_get_cisco(self, netbox_cisco):
+        handler = ManagementFactory.get_instance(netbox_cisco)
+        assert handler != None, "Could not get handler-object"
+        assert isinstance(handler, Cisco), "Wrong handler-type"
+
+
+class TestPortadminResponseHP:
     def test_get_vlan_hp(self, handler_hp):
         # get hold of the read-only Snmp-object
         snmpReadOnlyHandler = handler_hp._get_read_only_handle()
@@ -46,10 +54,6 @@ class TestPortadminResponseHP:
 
 
 class TestPortadminResponseCisco:
-    def test_management_factory_get_cisco(self, handler_cisco):
-        assert handler_cisco != None, "Could not get handler-object"
-        assert isinstance(handler_cisco, Cisco), "Wrong handler-type"
-
     def test_get_vlan_cisco(self, handler_cisco):
         # get hold of the read-only Snmp-object
         snmpReadOnlyHandler = handler_cisco._get_read_only_handle()
