@@ -7,9 +7,7 @@ from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD, VENDOR_ID_CISCOSYSTEMS
 from nav.portadmin.management import ManagementFactory, HP, Cisco
 
 
-class TestPortadminResponse:
-    ####################################################################
-    #  HP-netbox
+class TestPortadminResponseHP:
     def test_management_factory_get_hp(self, handler_hp):
         assert handler_hp != None, "Could not get handler-object"
         assert isinstance(handler_hp, HP), "Wrong handler-type"
@@ -46,12 +44,9 @@ class TestPortadminResponse:
             handler_hp.set_interface_description(interface, "punkt1") == None
         ), "setIfAlias failed"
 
-    ####################################################################
-    #  CISCO-netbox
 
+class TestPortadminResponseCisco:
     def test_management_factory_get_cisco(self, handler_cisco):
-        ####################################################################
-        #  cisco-netbox
         assert handler_cisco != None, "Could not get handler-object"
         assert isinstance(handler_cisco, Cisco), "Wrong handler-type"
 
