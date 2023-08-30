@@ -51,7 +51,6 @@ class TestPortadminResponseCisco:
         assert isinstance(handler_cisco, Cisco), "Wrong handler-type"
 
     def test_get_vlan_cisco(self, handler_cisco):
-        assert type(handler_cisco) == Cisco
         # get hold of the read-only Snmp-object
         snmpReadOnlyHandler = handler_cisco._get_read_only_handle()
         # replace get-method on Snmp-object with a mock-method
