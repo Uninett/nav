@@ -475,13 +475,13 @@ class AlertAddress(models.Model):
 
             raise InvalidAlertAddressError
 
-        if self.type.is_blacklisted():
+        if self.type.blacklisted_reason:
             _logger.debug(
                 'Not sending alert %s to %s as handler %s is blacklisted: %s',
                 alert.id,
                 self.address,
                 self.type,
-                self.type.blacklist_reason(),
+                self.type.blacklisted_reason,
             )
             return False
 
@@ -518,7 +518,7 @@ class AlertAddress(models.Model):
             _logger.exception(
                 'Unhandled error from %s (the handler has been blacklisted)', self.type
             )
-            self.type.blacklist(error)
+            self.type.blacklist(str(error))
             return False
 
         return True
@@ -532,7 +532,6 @@ class AlertSender(models.Model):
     supported = models.BooleanField(default=True)
     blacklisted_reason = models.CharField(max_length=100, blank=True)
 
-    _blacklist = {}
     _handlers = {}
 
     EMAIL = u'Email'
@@ -580,15 +579,8 @@ class AlertSender(models.Model):
 
     def blacklist(self, reason=None):
         """Blacklists this sender/medium from further alert dispatch."""
-        self.__class__._blacklist[self.handler] = reason
-
-    def is_blacklisted(self):
-        """Gets the blacklist status of this sender/medium."""
-        return self.handler in self.__class__._blacklist
-
-    def blacklist_reason(self):
-        """Gets the reason for a blacklist for this sender/medium"""
-        return self.__class__._blacklist.get(self.handler, 'Unknown reason')
+        self.blacklisted_reason = reason
+        self.save()
 
     def scheme(self):
         return self.SCHEMES.get(self.name, u'')
