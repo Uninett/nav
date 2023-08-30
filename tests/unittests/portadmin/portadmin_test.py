@@ -12,12 +12,12 @@ from nav.portadmin.snmp.cisco import Cisco
 class TestPortadminManagementFactory:
     def test_get_hp(self, netbox_hp):
         handler = ManagementFactory.get_instance(netbox_hp)
-        assert handler != None, "Could not get handler-object"
+        assert handler is not None, "Could not get handler-object"
         assert isinstance(handler, HP), "Wrong handler-type"
 
     def test_get_cisco(self, netbox_cisco):
         handler = ManagementFactory.get_instance(netbox_cisco)
-        assert handler != None, "Could not get handler-object"
+        assert handler is not None, "Could not get handler-object"
         assert isinstance(handler, Cisco), "Wrong handler-type"
 
 
