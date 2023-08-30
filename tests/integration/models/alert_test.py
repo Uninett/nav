@@ -1,4 +1,6 @@
 from datetime import datetime
+import logging
+from mock import patch
 
 from nav.alertengine.dispatchers import InvalidAlertAddressError
 from nav.models.profiles import (
@@ -34,6 +36,47 @@ def test_sending_alert_to_alert_address_with_invalid_address_will_delete_alert_a
 ):
     assert not account_alert_queue.send()
     assert not AlertQueue.objects.filter(pk=alert.pk).exists()
+
+
+def test_sending_alert_via_blacklisted_sender_will_fail_but_not_delete_alert(
+    alert, alert_address, account_alert_queue, caplog
+):
+    alert_address.address = "47474747"
+    alert_address.save()
+    alert_address.type.blacklisted_reason = "This has been blacklisted because of x."
+    alert_address.type.save()
+    with caplog.at_level(logging.DEBUG):
+        sent = account_alert_queue.send()
+    assert not sent
+    assert (
+        f"Not sending alert {alert.pk} to {alert_address.address} as handler "
+        f"{alert_address.type} is blacklisted: {alert_address.type.blacklisted_reason}"
+        in caplog.text
+    )
+    assert AlertQueue.objects.filter(pk=alert.pk).exists()
+
+    alert_address.type.blacklisted_reason = None
+    alert_address.type.save()
+
+
+@patch("nav.alertengine.dispatchers.sms_dispatcher.Sms.send")
+def test_error_when_sending_alert_will_blacklist_sender(
+    mocked_send_function, alert_address, account_alert_queue, caplog
+):
+    exception_reason = "Exception reason"
+    mocked_send_function.side_effect = ValueError(exception_reason)
+    alert_address.address = "47474747"
+    alert_address.save()
+
+    with caplog.at_level(logging.DEBUG):
+        sent = account_alert_queue.send()
+
+    assert not sent
+    assert (
+        f"Unhandled error from {alert_address.type} (the handler has been blacklisted)"
+        in caplog.text
+    )
+    assert alert_address.type.blacklisted_reason == exception_reason
 
 
 @pytest.fixture
