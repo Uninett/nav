@@ -4,7 +4,9 @@ import pytest
 
 from nav.oids import OID
 from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD, VENDOR_ID_CISCOSYSTEMS
-from nav.portadmin.management import ManagementFactory, HP, Cisco
+from nav.portadmin.management import ManagementFactory
+from nav.portadmin.snmp.hp import HP
+from nav.portadmin.snmp.cisco import Cisco
 
 
 class TestPortadminManagementFactory:
