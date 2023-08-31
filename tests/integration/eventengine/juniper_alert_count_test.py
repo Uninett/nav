@@ -1,17 +1,13 @@
 """Integration tests for the proper processing of juniperYellowAlarmState and
 juniperRedAlarmState events
 """
-try:
-    from subprocess32 import STDOUT, check_output, TimeoutExpired, CalledProcessError
-except ImportError:
-    from subprocess import STDOUT, check_output, TimeoutExpired, CalledProcessError
 
 import datetime
 import logging
 import pytest
 
 
-from nav.eventengine import unresolved
+from nav.eventengine import unresolved, get_eventengine_output
 from nav.eventengine.engine import EventEngine
 from nav.eventengine.plugins.juniperalertcount import JuniperAlertCountHandler
 from nav.models.fields import INFINITY
@@ -385,27 +381,6 @@ def post_fake_stateless_event(netbox):
     event.save()
 
     return event
-
-
-def get_eventengine_output(timeout=10):
-    """
-    Runs eventengine in foreground mode, kills it after timeout seconds and
-    returns the combined stdout+stderr output from the process.
-    Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
-    """
-    cmd = ["eventengine", "-f"]
-    try:
-        output = check_output(cmd, stderr=STDOUT, timeout=timeout)
-    except TimeoutExpired as error:
-        # this is the normal case, since we need to kill eventengine after the timeout
-        print(error.output.decode("utf-8"))
-        return error.output.decode("utf-8")
-    except CalledProcessError as error:
-        print(error.output.decode("utf-8"))
-        raise
-    else:
-        print(output)
-        assert False, "eventengine exited with non-zero status"
 
 
 @pytest.fixture()
