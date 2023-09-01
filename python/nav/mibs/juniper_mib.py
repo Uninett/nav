@@ -30,8 +30,8 @@ MEGABYTE = 1024**2
 OPERATING_DESCR = "jnxOperatingDescr"
 OPERATING_CPU = "jnxOperatingCPU"
 LOAD_AVG_1MIN = "jnxOperating1MinLoadAvg"
-LOAD_AVG_5MIN = "jnxOperating1MinLoadAvg"
-LOAD_AVG_15MIN = "jnxOperating1MinLoadAvg"
+LOAD_AVG_5MIN = "jnxOperating5MinLoadAvg"
+LOAD_AVG_15MIN = "jnxOperating15MinLoadAvg"
 OPERATING_MEM = "jnxOperatingMemory"
 OPERATING_BUF = "jnxOperatingBuffer"
 
