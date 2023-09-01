@@ -12,6 +12,10 @@ found in the [HISTORY](HISTORY) file.
 ### Fixed
 
 #### User-visible fixes
+- Alerts that cannot be sent due to blacklisted media plugins will no longer fill up `alertengine.log` every 30 seconds, unless DEBUG level logging is enabled ([#1787](https://github.com/Uninett/nav/issues/1787), [#2652](https://github.com/Uninett/nav/pull/2652))
+- DNS lookups in ipdevinfo are now properly case insensitive ([#2615](https://github.com/Uninett/nav/issues/2615), [#2650](https://github.com/Uninett/nav/pull/2650))
+- Alert Profiles will now properly require Slack alert addresses to be valid URLs ([#2657](https://github.com/Uninett/nav/pull/2657))
+- 5 minute and 15 minute load average values will now be collected correctly for Juniper devices ([#2671](https://github.com/Uninett/nav/issues/2671), [#2672](https://github.com/Uninett/nav/pull/2672))
 - Fix cabling API, which broke due to internal refactorings ([#2621](https://github.com/Uninett/nav/pull/2621))
 - Show help text when running nav command without arguments instead of error ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
 - Validate and clean sysobjectid input in SeedDB's NetboxTypeForm ([#2584](https://github.com/Uninett/nav/pull/2584), [#2566](https://github.com/Uninett/nav/issues/2566))
@@ -19,6 +23,7 @@ found in the [HISTORY](HISTORY) file.
 
 #### Developer-centric fixes
 
+- Pin pip to version 23.1.0 for CI pipelines to continue working ([#2647](https://github.com/Uninett/nav/pull/2647))
 - Run Django development web server in "insecure" mode to improve simulation of a production environment when debug flag is turned off ([#2625](https://github.com/Uninett/nav/pull/2625))
 
 
