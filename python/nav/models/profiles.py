@@ -455,7 +455,7 @@ class AlertAddress(models.Model):
             return True
 
         if self.type.is_blacklisted():
-            _logger.warning(
+            _logger.debug(
                 'Not sending alert %s to %s as handler %s is blacklisted: %s',
                 alert.id,
                 self.address,

@@ -404,7 +404,6 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     queryset = manage.Netbox.objects.all().prefetch_related("info_set")
     serializer_class = serializers.NetboxSerializer
     filterset_fields = (
-        'ip',
         'sysname',
         'room',
         'organization',
@@ -442,6 +441,15 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
                 qs = qs.filter(type__name__istartswith=value[1:])
             else:
                 qs = qs.filter(type__name=value)
+        ip = params.get('ip', None)
+        if ip:
+            try:
+                addr = IP(ip)
+            except ValueError:
+                raise IPParseError
+            oper = '=' if addr.len() == 1 else '<<'
+            expr = "netbox.ip {} '{}'".format(oper, addr)
+            qs = qs.extra(where=[expr])
 
         return qs
 
