@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 from mock import patch
 
+from nav.alertengine.base import clear_blacklisted_status_of_alert_senders
 from nav.alertengine.dispatchers import InvalidAlertAddressError
 from nav.models.profiles import (
     Account,
@@ -77,6 +78,14 @@ def test_error_when_sending_alert_will_blacklist_sender(
         in caplog.text
     )
     assert alert_address.type.blacklisted_reason == exception_reason
+
+
+def test_clearing_blacklisted_status_of_alert_senders_will_succeed():
+    sms_sender = AlertSender.objects.get(name=AlertSender.SMS)
+    sms_sender.blacklisted_reason = "This has been blacklisted because of x."
+    clear_blacklisted_status_of_alert_senders()
+
+    assert not AlertSender.objects.filter(blacklisted_reason__isnull=False).exists()
 
 
 @pytest.fixture
