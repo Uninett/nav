@@ -16,8 +16,10 @@ class JWTConf(NAVConfigParser):
     NAV_SECTION = "nav"
 
     def get_issuers_setting(self) -> Dict[str, Any]:
-        """Parses the webfront/jwt.conf config file and produces a dictionary that can
-        be used as settings for the `drf-oidc-auth` django extension"""
+        """Parses the webfront/jwt.conf config file and returns a dictionary that can
+        be used as settings for the `drf-oidc-auth` django extension.
+        If the parsing fails, an empty dict is returned.
+        """
         try:
             external_settings = self._get_settings_for_external_tokens()
             local_settings = self._get_settings_for_nav_issued_tokens()
