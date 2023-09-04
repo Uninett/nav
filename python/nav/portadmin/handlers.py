@@ -300,10 +300,6 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def get_poe_state(self, interface: manage.Interface) -> PoeState:
-        """Returns current PoE state of this interface"""
-        raise NotImplementedError
-
     def get_poe_states(
         self, interfaces: Sequence[manage.Interface] = None
     ) -> Dict[int, PoeState]:
