@@ -304,6 +304,21 @@ class ManagementHandler:
         """Returns current PoE state of this interface"""
         raise NotImplementedError
 
+    def get_poe_states(
+        self, interfaces: Sequence[manage.Interface] = None
+    ) -> Dict[int, PoeState]:
+        """Retrieves current PoE state for interfaces on this device.
+
+        :param interfaces: Optional sequence of interfaces to filter for, as fetching
+                           data for all interfaces may be a waste of time if only a
+                           single interface is needed. If this parameter is omitted,
+                           the default behavior is to filter on all Interface objects
+                           registered for this device.
+        :returns: A dict mapping interfaces to their discovered PoE state.
+                  The key matches the `ifindex` attribute for the related Interface object
+        """
+        raise NotImplementedError
+
     def interface_supports_poe(self, interface: manage.Interface) -> bool:
         """Returns True if this interface supports PoE"""
         raise NotImplementedError
