@@ -34,7 +34,7 @@ from crispy_forms_foundation.layout import (
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
-from nav.models.api import APIToken
+from nav.models.api import APIToken, JWTRefreshToken
 from nav.web.api.v1.views import get_endpoints as get_api_endpoints
 from nav.util import auth_token
 
@@ -306,3 +306,27 @@ class TokenForm(forms.ModelForm):
     class Meta(object):
         model = APIToken
         fields = ['token', 'permission', 'expires', 'comment', 'endpoints']
+
+
+class JWTRefreshTokenForm(forms.ModelForm):
+    """Form for creating a new refresh token"""
+
+    name = forms.CharField(label='Token name')
+    description = forms.CharField(label="Description", required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(JWTRefreshTokenForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Row(
+                Column(
+                    Fieldset('Token details', 'name', 'description'),
+                    css_class='large-4 small-12',
+                ),
+            )
+        )
+
+    class Meta(object):
+        model = JWTRefreshToken
+        fields = ['name', 'description']
