@@ -290,7 +290,7 @@ class ManagementHandler:
             return False
         return True
 
-    def get_poe_state_options(self) -> Sequence[PoeState, ...]:
+    def get_poe_state_options(self) -> Sequence[PoeState]:
         """Returns the available options for enabling/disabling PoE on this netbox"""
         raise NotImplementedError
 
