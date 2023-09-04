@@ -9,12 +9,14 @@ _logger = logging.getLogger('nav.jwtconf')
 
 
 class JWTConf(NAVConfigParser):
-    """jwt.conf config parser"""
+    """webfront/jwt.conf config parser"""
 
     DEFAULT_CONFIG_FILES = [join('webfront', 'jwt.conf')]
     NAV_SECTION = "nav"
 
     def get_issuers_setting(self):
+        """Parses the webfront/jwt.conf config file and produces a dictionary that can
+        be used as settings for the `drf-oidc-auth` django extension"""
         try:
             external_settings = self._get_settings_for_external_tokens()
             local_settings = self._get_settings_for_nav_issued_tokens()
