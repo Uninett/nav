@@ -15,7 +15,7 @@
 #
 """Interface definition for PortAdmin management handlers"""
 import time
-from typing import List, Tuple, Dict, Any, Sequence, Union
+from typing import List, Tuple, Dict, Any, Sequence, Union, Optional
 import logging
 from dataclasses import dataclass
 
@@ -302,7 +302,7 @@ class ManagementHandler:
 
     def get_poe_states(
         self, interfaces: Sequence[manage.Interface] = None
-    ) -> Dict[int, PoeState]:
+    ) -> Dict[int, Optional[PoeState]]:
         """Retrieves current PoE state for interfaces on this device.
 
         :param interfaces: Optional sequence of interfaces to filter for, as fetching
@@ -313,11 +313,8 @@ class ManagementHandler:
         :returns: A dict mapping interfaces to their discovered PoE state.
                   The key matches the `ifindex` attribute for the related
                   Interface object.
+                  The value will be None if the interface does not support PoE.
         """
-        raise NotImplementedError
-
-    def interface_supports_poe(self, interface: manage.Interface) -> bool:
-        """Returns True if this interface supports PoE"""
         raise NotImplementedError
 
 
