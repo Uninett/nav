@@ -311,7 +311,8 @@ class ManagementHandler:
                            the default behavior is to filter on all Interface objects
                            registered for this device.
         :returns: A dict mapping interfaces to their discovered PoE state.
-                  The key matches the `ifindex` attribute for the related Interface object
+                  The key matches the `ifindex` attribute for the related
+                  Interface object.
         """
         raise NotImplementedError
 
