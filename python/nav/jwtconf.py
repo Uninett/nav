@@ -1,4 +1,5 @@
 import logging
+from os.path import join
 from functools import partial
 import configparser
 
@@ -10,7 +11,7 @@ _logger = logging.getLogger('nav.jwtconf')
 class JWTConf(NAVConfigParser):
     """jwt.conf config parser"""
 
-    DEFAULT_CONFIG_FILES = ('jwt.conf',)
+    DEFAULT_CONFIG_FILES = [join('webfront', 'jwt.conf')]
     NAV_SECTION = "nav"
 
     def get_issuers_setting(self):
