@@ -56,9 +56,6 @@ def test_sending_alert_via_blacklisted_sender_will_fail_but_not_delete_alert(
     )
     assert AlertQueue.objects.filter(pk=alert.pk).exists()
 
-    alert_address.type.blacklisted_reason = None
-    alert_address.type.save()
-
 
 @patch("nav.alertengine.dispatchers.sms_dispatcher.Sms.send")
 def test_error_when_sending_alert_will_blacklist_sender(
@@ -80,12 +77,12 @@ def test_error_when_sending_alert_will_blacklist_sender(
     assert alert_address.type.blacklisted_reason == exception_reason
 
 
-def test_clearing_blacklisted_status_of_alert_senders_will_succeed():
-    sms_sender = AlertSender.objects.get(name=AlertSender.SMS)
-    sms_sender.blacklisted_reason = "This has been blacklisted because of x."
+def test_clearing_blacklisted_status_of_alert_senders_will_succeed(alert_sender):
+    alert_sender.blacklisted_reason = "This has been blacklisted because of x."
     clear_blacklisted_status_of_alert_senders()
+    alert_sender.refresh_from_db()
 
-    assert not AlertSender.objects.filter(blacklisted_reason__isnull=False).exists()
+    assert not alert_sender.blacklisted_reason
 
 
 @pytest.fixture
@@ -94,10 +91,10 @@ def account():
 
 
 @pytest.fixture
-def alert_address(account):
+def alert_address(account, alert_sender):
     addr = AlertAddress(
         account=account,
-        type=AlertSender.objects.get(name=AlertSender.SMS),
+        type=alert_sender,
     )
     addr.save()
     yield addr
@@ -154,3 +151,12 @@ def account_alert_queue(alert, alertsub):
     yield account_queue
     if account_queue.pk:
         account_queue.delete()
+
+
+@pytest.fixture
+def alert_sender():
+    alert_sender = AlertSender.objects.get(name=AlertSender.SMS)
+    yield alert_sender
+    if alert_sender.pk:
+        alert_sender.blacklisted_reason = None
+        alert_sender.save()
