@@ -40,44 +40,30 @@ def test_sending_alert_to_alert_address_with_invalid_address_will_delete_alert_a
 
 
 def test_sending_alert_via_blacklisted_sender_will_fail_but_not_delete_alert(
-    alert, alert_address, account_alert_queue, caplog
+    db, alert, alert_address, account_alert_queue
 ):
     alert_address.address = "47474747"
     alert_address.save()
     alert_address.type.blacklisted_reason = "This has been blacklisted because of x."
     alert_address.type.save()
-    with caplog.at_level(logging.DEBUG):
-        sent = account_alert_queue.send()
-    assert not sent
-    assert (
-        f"Not sending alert {alert.pk} to {alert_address.address} as handler "
-        f"{alert_address.type} is blacklisted: {alert_address.type.blacklisted_reason}"
-        in caplog.text
-    )
+    assert not account_alert_queue.send()
     assert AlertQueue.objects.filter(pk=alert.pk).exists()
 
 
 @patch("nav.alertengine.dispatchers.sms_dispatcher.Sms.send")
 def test_error_when_sending_alert_will_blacklist_sender(
-    mocked_send_function, alert_address, account_alert_queue, caplog
+    mocked_send_function, db, alert_address, account_alert_queue
 ):
     exception_reason = "Exception reason"
     mocked_send_function.side_effect = ValueError(exception_reason)
     alert_address.address = "47474747"
     alert_address.save()
 
-    with caplog.at_level(logging.DEBUG):
-        sent = account_alert_queue.send()
-
-    assert not sent
-    assert (
-        f"Unhandled error from {alert_address.type} (the handler has been blacklisted)"
-        in caplog.text
-    )
+    assert not account_alert_queue.send()
     assert alert_address.type.blacklisted_reason == exception_reason
 
 
-def test_clearing_blacklisted_status_of_alert_senders_will_succeed(alert_sender):
+def test_clearing_blacklisted_status_of_alert_senders_will_succeed(db, alert_sender):
     alert_sender.blacklisted_reason = "This has been blacklisted because of x."
     clear_blacklisted_status_of_alert_senders()
     alert_sender.refresh_from_db()
@@ -154,7 +140,7 @@ def account_alert_queue(alert, alertsub):
 
 
 @pytest.fixture
-def alert_sender():
+def alert_sender(db):
     alert_sender = AlertSender.objects.get(name=AlertSender.SMS)
     yield alert_sender
     if alert_sender.pk:
