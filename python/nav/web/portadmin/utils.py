@@ -242,10 +242,12 @@ def add_poe_info(interfaces, handler):
     """Add information about PoE state for interfaces"""
     try:
         options = handler.get_poe_state_options()
+        states = handler.get_poe_states(interfaces)
         for interface in interfaces:
             try:
-                interface.poe_state = handler.get_poe_state(interface)
-                interface.poe_options = options
+                # interface.poe_state = handler.get_poe_state(interface)
+                interface.poe_state = states.get(interface.ifindex)
+                interface.poe_options = options if interface.poe_state else None
             except (ManagementError):
                 interface.poe_state = None
                 interface.poe_options = None
