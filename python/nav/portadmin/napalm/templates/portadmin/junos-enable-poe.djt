@@ -1,1 +1,1 @@
-set poe interface {{ ifname }}
+delete poe interface {{ ifname }} disable
