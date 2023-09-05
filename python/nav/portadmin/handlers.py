@@ -338,3 +338,15 @@ class ProtocolError(ManagementError):
     """Raised when some non-categorized error in the underlying protocol occurred
     during communication
     """
+
+
+class POENotSupportedError(ManagementError):
+    """Raised when an interface that does not support PoE is used in a context where PoE support is expected"""
+
+
+class POEStateNotSupportedError(ManagementError):
+    """Raised when a PoE state is detected in a context where it is not supported"""
+
+
+class XMLParseError(ManagementError):
+    """Raised when failing to parse XML"""
