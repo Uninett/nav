@@ -10,14 +10,19 @@ found in the [HISTORY](HISTORY) file.
 ## Unreleased
 
 ### Added
+
 - Added howto guide for log configuration ([#2660](https://github.com/Uninett/nav/pull/2660))
 - Added support for polling and alerting on Juniper chassis and system alerts ([#2358](https://github.com/Uninett/nav/issues/2358), [#2388](https://github.com/Uninett/nav/pull/2388))
   - Juniper only provides alert counters via SNMP, no alert details, unfortunately.
+  - Since NAV doesn't support alert state updates, a new eventengine plugin handles alert count transitions by resolving old alerts and creating new ones ([#2432](https://github.com/Uninett/nav/issues/2432), [#2519](https://github.com/Uninett/nav/pull/2519))
 - Added a new `contains_address` filter to the `prefix` API endpoint, to enable lookup of matching prefix/vlan details from a single IP or subnet address ([#2577](https://github.com/Uninett/nav/issues/2577), [#2578](https://github.com/Uninett/nav/pull/2578))
+- Defined and added abstract methods for Power-over-Ethernet configuration to PortAdmin management handler classes ([#2636](https://github.com/Uninett/nav/pull/2636))
+  - These are needed for the upcoming vendor specific implementations of PoE config in PortAdmin.
 
 ### Fixed
 
 #### User-visible fixes
+
 - Fixed crash when attempting to log device errors with an empty comment in the Device History tool ([#2579](https://github.com/Uninett/nav/issues/2579), [#2580](https://github.com/Uninett/nav/pull/2580))
 - Fixed bad styling and missing linebreaks in traceback section of the 500 error page ([#2607](https://github.com/Uninett/nav/issues/2607), [#2628](https://github.com/Uninett/nav/pull/2628))
 - Fixed cabling API, which broke due to internal refactorings ([#2621](https://github.com/Uninett/nav/pull/2621))
