@@ -456,9 +456,9 @@ class Juniper(ManagementHandler):
     def set_poe_state(self, interface, state):
         if not isinstance(state, PoeState):
             raise TypeError("state must be a PoeState object")
-        if state == self.POE_ENABLE:
+        if state == self.POE_ENABLED:
             template = get_template("portadmin/junos-enable-poe.djt")
-        elif state == self.POE_DISABLE:
+        elif state == self.POE_DISABLED:
             template = get_template("portadmin/junos-disable-poe.djt")
         else:
             raise POEStateNotSupportedError(f"state {state} is not a valid state")
