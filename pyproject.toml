@@ -5,8 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nav"
 description = "Network Administration Visualized - A comprehensive, free Network Management System"
-authors = [{name="Uninett AS", email="nav-support@uninett.no"}]
-maintainers = [{name="Uninett Opensource", email="opensource@uninett.no"}]
+authors = [{name="Sikt - Norwegian agency for shared services in education and research", email="nav-support@uninett.no"}]
 readme = "README.rst"
 requires-python = ">=3.7"
 license = {text = "GPLv3"}
