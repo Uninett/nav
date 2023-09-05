@@ -364,9 +364,22 @@ def set_interface_values(account, interface, request):
         set_ifalias(account, handler, interface, request)
         set_vlan(account, handler, interface, request)
         set_admin_status(handler, interface, request)
+        set_poe_state(handler, interface, request)
         save_to_database([interface])
     else:
         messages.info(request, 'Could not connect to netbox')
+
+
+def set_poe_state(handler, interface, request):
+    if 'poe_state' in request.POST:
+        poe_state = request.POST.get('poe_state')
+        if poe_state == "ENABLED":
+            state = handler.POE_ENABLED
+        elif poe_state == "DISABLED":
+            state = handler.POE_DISABLED
+        else:
+            raise ValueError(f"must be ENABLED or DISABLED, not {poe_state}")
+        handler.set_poe_state(interface, state)
 
 
 def build_ajax_messages(request):

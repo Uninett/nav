@@ -241,11 +241,14 @@ def add_dot1x_info(interfaces, handler):
 def add_poe_info(interfaces, handler):
     """Add information about PoE state for interfaces"""
     try:
+        options = handler.get_poe_state_options()
         for interface in interfaces:
             try:
                 interface.poe_state = handler.get_poe_state(interface)
+                interface.poe_options = options
             except (ManagementError):
                 interface.poe_state = None
+                interface.poe_options = None
     except NotImplementedError:
         return
 
