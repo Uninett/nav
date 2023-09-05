@@ -505,7 +505,7 @@ class AlertSender(models.Model):
         if not self.supported:
             raise FatalDispatcherException("{} is not supported".format(self.name))
         if self.handler not in self._handlers:
-            dispatcher_class = self._load_dispatcher_class()
+            dispatcher_class = self.load_dispatcher_class()
             dispatcher = dispatcher_class(
                 config=AlertSender.config.get(self.handler, {})
             )
@@ -516,7 +516,7 @@ class AlertSender(models.Model):
         # Delegate sending of message
         return dispatcher.send(*args, **kwargs)
 
-    def _load_dispatcher_class(self):
+    def load_dispatcher_class(self):
         # Get config
         if not hasattr(AlertSender, 'config'):
             AlertSender.config = get_alertengine_config('alertengine.conf')
