@@ -1,14 +1,10 @@
 """Black-box integration tests for the apparent proper processing of boxState events"""
 import os
 
-try:
-    from subprocess32 import STDOUT, check_output, TimeoutExpired, CalledProcessError
-except ImportError:
-    from subprocess import STDOUT, check_output, TimeoutExpired, CalledProcessError
-
 import pytest
 
 from nav.config import find_config_file
+from nav.eventengine import get_eventengine_output
 from nav.models.manage import Netbox
 from nav.models.event import EventQueue as Event
 
@@ -34,28 +30,6 @@ def post_fake_boxdown(netbox):
         state=Event.STATE_START,
     )
     event.save()
-
-
-def get_eventengine_output(timeout=10):
-    """
-    Runs eventengine in foreground mode, kills it after timeout seconds and
-    returns the combined stdout+stderr output from the process.
-
-    Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
-    """
-    cmd = ["eventengine", "-f"]
-    try:
-        output = check_output(cmd, stderr=STDOUT, timeout=timeout)
-    except TimeoutExpired as error:
-        # this is the normal case, since we need to kill eventengine after the timeout
-        print(error.output.decode("utf-8"))
-        return error.output.decode("utf-8")
-    except CalledProcessError as error:
-        print(error.output.decode("utf-8"))
-        raise
-    else:
-        print(output)
-        assert False, "eventengine exited with non-zero status"
 
 
 @pytest.fixture()
