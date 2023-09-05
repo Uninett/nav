@@ -232,6 +232,78 @@ def test_alertprofiles_add_slack_address_with_non_valid_url_should_fail(client):
     assert "Not a valid absolute url." in smart_str(response.content)
 
 
+def test_alertprofiles_add_valid_email_address_should_succeed(client):
+    """Tests that a valid email address can be added"""
+    valid_email_address = "hello@example.com"
+    email = AlertSender.objects.get(name=AlertSender.EMAIL)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": valid_email_address,
+        "type": email.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert AlertAddress.objects.filter(
+        type=email,
+        address=valid_email_address,
+    ).exists()
+    assert f"Saved address {valid_email_address}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_invalid_email_address_should_fail(client):
+    """Tests that an invalid email address cannot be added"""
+    invalid_email_address = "abc"
+    email = AlertSender.objects.get(name=AlertSender.EMAIL)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": invalid_email_address,
+        "type": email.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert not AlertAddress.objects.filter(
+        type=email,
+        address=invalid_email_address,
+    ).exists()
+    assert "Not a valid email address." in smart_str(response.content)
+
+
+def test_alertprofiles_add_valid_phone_number_should_succeed(client):
+    """Tests that a valid phone number can be added"""
+    valid_phone_number = "47474747"
+    sms = AlertSender.objects.get(name=AlertSender.SMS)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": valid_phone_number,
+        "type": sms.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert AlertAddress.objects.filter(
+        type=sms,
+        address=valid_phone_number,
+    ).exists()
+    assert f"Saved address {valid_phone_number}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_invalid_phone_number_should_fail(client):
+    """Tests that an invalid phone number cannot be added"""
+    invalid_phone_number = "abc"
+    sms = AlertSender.objects.get(name=AlertSender.SMS)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": invalid_phone_number,
+        "type": sms.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert not AlertAddress.objects.filter(
+        type=sms,
+        address=invalid_phone_number,
+    ).exists()
+    assert "Not a valid phone number." in smart_str(response.content)
+
+
 #
 # fixtures and helpers
 #
