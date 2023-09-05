@@ -372,14 +372,12 @@ def set_interface_values(account, interface, request):
 
 def set_poe_state(handler, interface, request):
     if 'poe_state' in request.POST:
-        poe_state = request.POST.get('poe_state')
-        if poe_state == "ENABLED":
-            state = handler.POE_ENABLED
-        elif poe_state == "DISABLED":
-            state = handler.POE_DISABLED
-        else:
-            raise ValueError(f"must be ENABLED or DISABLED, not {poe_state}")
-        handler.set_poe_state(interface, state)
+        poe_state_name = request.POST.get('poe_state')
+        for option in handler.get_poe_state_options():
+            if option.name == poe_state_name:
+                handler.set_poe_state(interface, option)
+                return
+        raise ValueError(f"Invalid PoE state name: {poe_state_name}")
 
 
 def build_ajax_messages(request):
