@@ -1,4 +1,4 @@
-.PHONY: dummy clean bigclean doc .FORCE
+.PHONY: dummy clean distclean testclean doc .FORCE
 
 dummy:
 	@echo "'make' is no longer used for deployment. See 'doc/intro/install.rst'"
@@ -8,6 +8,10 @@ clean:
 	-find . -name "*.pyc" -print0 | xargs -0 rm -rf
 	-find . -name "*.egg-info" -print0 | xargs -0 rm -rf
 	-find . -name ".*.sw?" -print0 | xargs -0 rm -rf
+
+distclean:
+	-rm -rf build
+	-rm -rf dist
 
 testclean: clean
 	-rm core

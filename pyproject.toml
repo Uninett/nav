@@ -1,3 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "setuptools_scm[toml]>=6.2", "libsass"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nav"
+description = "Network Administration Visualized - A comprehensive, free Network Management System"
+authors = [{name="Sikt - Norwegian agency for shared services in education and research", email="nav-support@uninett.no"}]
+readme = "README.rst"
+requires-python = ">=3.7"
+license = {text = "GPLv3"}
+keywords = ["nms", "snmp"]
+classifiers = [
+    "Development Status :: 6 - Mature",
+    "Topic :: System :: Networking :: Monitoring",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+dynamic = ["version"]
+dependencies = [
+    "pydantic >= 2.0",
+]
+
+
+[project.urls]
+Homepage = "https://nav.uninett.no/"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+platforms = ["any"]
+
+[tool.setuptools_scm]
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+
 [tool.black]
 skip-string-normalization=true
 line-length = 88
