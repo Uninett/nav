@@ -35,8 +35,11 @@ from nav.adapters import HStoreField
 import nav.buildconf
 import nav.pwhash
 from nav.config import getconfig as get_alertengine_config
-from nav.alertengine.dispatchers import DispatcherException
-from nav.alertengine.dispatchers import FatalDispatcherException
+from nav.alertengine.dispatchers import (
+    DispatcherException,
+    FatalDispatcherException,
+    InvalidAlertAddressError,
+)
 
 from nav.models.event import AlertQueue, AlertType, EventType
 from nav.models.manage import Arp, Cam, Category, Device, Location
@@ -406,6 +409,12 @@ class AlertAddress(models.Model):
     def __str__(self):
         return self.type.scheme() + self.address
 
+    def has_valid_address(self):
+        if not self.type.supported or not self.address:
+            return False
+        dispatcher = self.type.load_dispatcher_class()
+        return dispatcher.is_valid_address(self.address)
+
     @transaction.atomic
     def send(self, alert, subscription):
         """Handles sending of alerts to with defined alert notification types
@@ -417,10 +426,10 @@ class AlertAddress(models.Model):
         # Determine the right language for the user.
         lang = self.account.preferences.get(Account.PREFERENCE_KEY_LANGUAGE, 'en')
 
-        if not (self.address or '').strip():
+        if not self.has_valid_address():
             _logger.error(
-                'Ignoring alert %d (%s: %s)! Account %s does not have an '
-                'address set for the alertaddress with id %d, this needs '
+                'Ignoring alert %d (%s: %s)! Account %s does not have a '
+                'valid address for the alertaddress with id %d, this needs '
                 'to be fixed before the user will recieve any alerts.',
                 alert.id,
                 alert,
@@ -429,7 +438,7 @@ class AlertAddress(models.Model):
                 self.id,
             )
 
-            return True
+            raise InvalidAlertAddressError
 
         if self.type.is_blacklisted():
             _logger.debug(
@@ -505,7 +514,7 @@ class AlertSender(models.Model):
         if not self.supported:
             raise FatalDispatcherException("{} is not supported".format(self.name))
         if self.handler not in self._handlers:
-            dispatcher_class = self._load_dispatcher_class()
+            dispatcher_class = self.load_dispatcher_class()
             dispatcher = dispatcher_class(
                 config=AlertSender.config.get(self.handler, {})
             )
@@ -516,7 +525,7 @@ class AlertSender(models.Model):
         # Delegate sending of message
         return dispatcher.send(*args, **kwargs)
 
-    def _load_dispatcher_class(self):
+    def load_dispatcher_class(self):
         # Get config
         if not hasattr(AlertSender, 'config'):
             AlertSender.config = get_alertengine_config('alertengine.conf')
@@ -1358,7 +1367,7 @@ class AccountAlertQueue(models.Model):
 
             super(AccountAlertQueue, self).delete()
             return False
-        except FatalDispatcherException:
+        except (FatalDispatcherException, InvalidAlertAddressError):
             self.delete()
             return False
 
