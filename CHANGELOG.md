@@ -25,7 +25,6 @@ found in the [HISTORY](HISTORY) file.
 
 - Fixed crash when attempting to log device errors with an empty comment in the Device History tool ([#2579](https://github.com/Uninett/nav/issues/2579), [#2580](https://github.com/Uninett/nav/pull/2580))
 - Fixed bad styling and missing linebreaks in traceback section of the 500 error page ([#2607](https://github.com/Uninett/nav/issues/2607), [#2628](https://github.com/Uninett/nav/pull/2628))
-- Fixed cabling API, which broke due to internal refactorings ([#2621](https://github.com/Uninett/nav/pull/2621))
 - Show help text instead of error when running `nav` command without arguments ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
 - Prevent users from entering invalid `sysObjectID` values when editing Netbox types in SeedDB ([#2584](https://github.com/Uninett/nav/pull/2584), [#2566](https://github.com/Uninett/nav/issues/2566))
 - Removed upper version bound for *Pillow* image manipulation library, to fix security warnings ([#2567](https://github.com/Uninett/nav/pull/2567))
