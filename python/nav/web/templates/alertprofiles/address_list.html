@@ -62,6 +62,8 @@
             <td>
                 {% if not a.type.supported %}
                     <div class="alert-box error with-icon inside-table">{{ a.type.name }}: No longer supported</div>
+                {% elif a.type.blacklisted_reason %}
+                    <div class="alert-box warning inside-table">{{ a.type.name }} is currently non-functional: {{ a.type.blacklisted_reason }}</div>
                 {% else %}
                     {{ a.type.name }}
                 {% endif %}
