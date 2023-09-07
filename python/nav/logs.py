@@ -21,7 +21,10 @@ from __future__ import unicode_literals
 import sys
 import os
 import logging
+import logging.config
 from itertools import chain
+from typing import Optional
+import yaml
 
 import configparser
 from nav.config import find_config_file, NAV_CONFIG
@@ -31,6 +34,8 @@ DEFAULT_LOG_FORMATTER = logging.Formatter(
 )
 LOGGING_CONF_VAR = 'NAV_LOGGING_CONF'
 LOGGING_CONF_FILE_DEFAULT = find_config_file('logging.conf') or ''
+LOGGING_YAML_VAR = 'NAV_LOGGING_YAML'
+LOGGING_YAML_FILE_DEFAULT = find_config_file('logging.yml') or ''
 
 _logger = logging.getLogger(__name__)
 
@@ -39,6 +44,7 @@ def set_log_config():
     """Set log levels and custom log files"""
     set_log_levels()
     _set_custom_log_file()
+    _read_dictconfig_from_yaml_file()
 
 
 def set_log_levels():
@@ -96,6 +102,18 @@ def _set_custom_log_file():
         _logger.addHandler(filehandler)
 
 
+def _read_dictconfig_from_yaml_file():
+    """Reads legacy logging dictconfig from alternative yaml-based config file, if
+    possible.
+
+    This allows for much more flexible logging configuration than NAV's standard logging
+    parameters.
+    """
+    config = _get_logging_yaml()
+    if config:
+        logging.config.dictConfig(config)
+
+
 def _get_logging_conf():
     """
     Returns a ConfigParser with the logging configuration to use.
@@ -116,6 +134,19 @@ def _get_logging_conf():
             LOGGING_CONF_FILE_DEFAULT,
         )
         config.read(LOGGING_CONF_FILE_DEFAULT)
+    return config
+
+
+def _get_logging_yaml() -> Optional[dict]:
+    """Returns a logging config dict from logging.yaml, if readable"""
+    filename = os.environ.get(LOGGING_YAML_VAR, LOGGING_YAML_FILE_DEFAULT)
+    try:
+        with open(filename, "rb") as yamlconf:
+            config = yaml.safe_load(yamlconf)
+            _logger.debug("Loaded logging config from %r", filename)
+    except OSError as error:
+        _logger.debug("Could not load yaml logging config: %r", error)
+        return None
     return config
 
 
