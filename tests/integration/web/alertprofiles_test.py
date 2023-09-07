@@ -14,6 +14,10 @@ from nav.models.profiles import (
     AlertPreference,
     AlertProfile,
     AlertSender,
+    Expression,
+    Filter,
+    MatchField,
+    Operator,
 )
 from nav.web.alertprofiles.views import set_active_profile
 
@@ -160,6 +164,192 @@ def test_alertprofiles_add_public_filter_should_succeed(client):
     }
     response = client.post(url, data=data, follow=True)
     assert response.status_code == 200
+
+
+def test_alertprofiles_add_expression_with_valid_ipv4_address_should_succeed(
+    client, dummy_filter
+):
+    """Tests that an expression with a valid IPv4 address can be added"""
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.EQUALS,
+        "value": "172.0.0.1",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.EQUALS,
+        value=data["value"],
+    ).exists()
+    assert f"Added expression to filter {dummy_filter}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_valid_ipv6_address_should_succeed(
+    client, dummy_filter
+):
+    """Tests that an expression with a valid IPv6 address can be added"""
+    url = reverse("alertprofiles-filters-saveexpression")
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.EQUALS,
+        "value": "2001:db8:3333:4444:5555:6666:7777:8888",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.EQUALS,
+        value=data["value"],
+    ).exists()
+    assert f"Added expression to filter {dummy_filter}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_valid_cidr_address_should_succeed(
+    client, dummy_filter
+):
+    """Tests that an expression with a valid CIDR address can be added"""
+    url = reverse("alertprofiles-filters-saveexpression")
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.EQUALS,
+        "value": "129.241.190.0/24",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.EQUALS,
+        value=data["value"],
+    ).exists()
+    assert f"Added expression to filter {dummy_filter}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_non_valid_ip_address_should_fail(
+    client, dummy_filter
+):
+    """Tests that an expression with a not valid IP address cannot be added"""
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.EQUALS,
+        "value": "wrong",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert not Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.EQUALS,
+        value=data["value"],
+    ).exists()
+    assert f"Invalid IP address: {data['value']}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_non_valid_cidr_address_should_fail(
+    client, dummy_filter
+):
+    """Tests that an expression with a not valid CIDR address cannot be added"""
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.EQUALS,
+        "value": "10.0.2.1/28",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert not Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.EQUALS,
+        value=data["value"],
+    ).exists()
+    assert f"Invalid IP address: {data['value']}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_multiple_valid_ip_addresses_should_succeed(
+    client, dummy_filter
+):
+    """Tests that an expression with multiple valid IP addresses can be added"""
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.IN,
+        "value": "172.0.0.1 2001:db8:3333:4444:5555:6666:7777:8888 129.241.190.0/24",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.IN,
+        value=data["value"].replace(' ', '|'),
+    ).exists()
+    assert f"Added expression to filter {dummy_filter}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_multiple_non_valid_ip_addresses_should_fail(
+    client, dummy_filter
+):
+    """Tests that an expression with a not valid IP address cannot be added"""
+    ip_match_field = MatchField.objects.get(data_type=MatchField.IP)
+    valid_ip = "172.0.0.1"
+    invalid_ip = "wrong"
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": ip_match_field.pk,
+        "operator": Operator.IN,
+        "value": f"{valid_ip} {invalid_ip}",
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert not Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=ip_match_field,
+        operator=Operator.IN,
+        value=data["value"],
+    ).exists()
+    assert f"Invalid IP address: {invalid_ip}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_expression_with_multiple_alert_types_should_succeed(
+    client, dummy_filter
+):
+    """Tests that an expression with multiple alert types can be added"""
+    string_match_field = MatchField.objects.get(name="Alert type")
+    url = reverse("alertprofiles-filters-saveexpression")
+    data = {
+        "filter": dummy_filter.pk,
+        "match_field": string_match_field.pk,
+        "operator": Operator.IN,
+        "value": ["apDown", "apUp"],
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert Expression.objects.filter(
+        filter=dummy_filter,
+        match_field=string_match_field,
+        operator=Operator.IN,
+        value="|".join(data["value"]),
+    ).exists()
+    assert f"Added expression to filter {dummy_filter}" in smart_str(response.content)
 
 
 def test_set_accountgroup_permissions_should_not_crash(db, client):
@@ -324,3 +514,10 @@ def activated_dummy_profile(dummy_profile):
     )
     preference.save()
     return dummy_profile
+
+
+@pytest.fixture(scope="function")
+def dummy_filter():
+    filtr = Filter(name="dummy", owner=Account.objects.get(id=Account.ADMIN_ACCOUNT))
+    filtr.save()
+    return filtr

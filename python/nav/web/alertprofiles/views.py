@@ -24,7 +24,7 @@
 # TODO Filter/filter_groups have owners, check that the account that performs
 # the operation is the owner
 
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, QueryDict
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render
@@ -1515,7 +1515,7 @@ def filter_remove(request):
 
 @requires_post('alertprofiles-filters', ('id', 'matchfield'))
 def filter_addexpression(request):
-    """Shows the form to add en expression to a filter"""
+    """Shows the form to add an expression to a filter"""
     try:
         filtr = Filter.objects.get(pk=request.POST.get('id'))
     except Filter.DoesNotExist:
@@ -1565,40 +1565,37 @@ def filter_addexpression(request):
 @requires_post('alertprofiles-filters')
 def filter_saveexpression(request):
     """Saves an expression to a filter"""
-    # Get the MatchField, Filter and Operator objects associated with the
-    # input POST-data
-    filtr = Filter.objects.get(pk=request.POST.get('filter'))
-    type_ = request.POST.get('operator')
-    match_field = MatchField.objects.get(pk=request.POST.get('match_field'))
-    operator = Operator.objects.get(type=type_, match_field=match_field.pk)
+    if request.POST.get('id'):
+        existing_expression = Expression.objects.get(pk=request.POST.get('id'))
+        form = ExpressionForm(request.POST, instance=existing_expression)
+    else:
+        form = ExpressionForm(request.POST)
+
+    if not form.is_valid():
+        dictionary = {
+            'id': str(form.cleaned_data["filter"].pk),
+            'matchfield': str(form.cleaned_data["match_field"].pk),
+        }
+        qdict = QueryDict("", mutable=True)
+        qdict.update(dictionary)
+        request.POST = qdict
+        new_message(
+            request,
+            form.errors,
+            Messages.ERROR,
+        )
+
+        return filter_addexpression(request=request)
+
+    filtr = form.cleaned_data['filter']
 
     if not account_owns_filters(get_account(request), filtr):
         return alertprofiles_response_forbidden(
             request, _('You do not own this filter.')
         )
 
-    # Get the value
-    if operator.type == Operator.IN:
-        # If input was a multiple choice list we have to join each option
-        # in one string, where each option is separated by a | (pipe).
-        # If input was a IP adress we should replace space with | (pipe).
-        # FIXME We might want some data checks here
-        if match_field.data_type == MatchField.IP:
-            # FIXME We might want to check that it is a valid IP adress.
-            # If we do so, we need to remember both IPv4 and IPv6
-            value = request.POST.get('value').replace(' ', '|')
-        else:
-            value = "|".join([value for value in request.POST.getlist('value')])
-    else:
-        value = request.POST.get('value')
+    form.save()
 
-    expression = Expression(
-        filter=filtr,
-        match_field=match_field,
-        operator=operator.type,
-        value=value,
-    )
-    expression.save()
     new_message(
         request,
         _('Added expression to filter %(name)s') % {'name': filtr.name},

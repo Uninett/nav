@@ -433,22 +433,10 @@ class AlertAddress(models.Model):
         return self.type.scheme() + self.address
 
     def has_valid_address(self):
-        from nav.alertengine.dispatchers.email_dispatcher import Email
-        from nav.alertengine.dispatchers.slack_dispatcher import Slack
-        from nav.alertengine.dispatchers.sms_dispatcher import Sms
-
-        if not self.type.supported:
+        if not self.type.supported or not self.address:
             return False
-        elif self.type.handler == 'sms':
-            if not Sms.is_valid_address(self.address):
-                return False
-        elif self.type.handler == 'email':
-            if not Email.is_valid_address(self.address):
-                return False
-        elif self.type.handler == 'slack':
-            if not Slack.is_valid_address(self.address):
-                return False
-        return True
+        dispatcher = self.type.load_dispatcher_class()
+        return dispatcher.is_valid_address(self.address)
 
     @transaction.atomic
     def send(self, alert, subscription):
@@ -549,7 +537,7 @@ class AlertSender(models.Model):
         if not self.supported:
             raise FatalDispatcherException("{} is not supported".format(self.name))
         if self.handler not in self._handlers:
-            dispatcher_class = self._load_dispatcher_class()
+            dispatcher_class = self.load_dispatcher_class()
             dispatcher = dispatcher_class(
                 config=AlertSender.config.get(self.handler, {})
             )
@@ -560,7 +548,7 @@ class AlertSender(models.Model):
         # Delegate sending of message
         return dispatcher.send(*args, **kwargs)
 
-    def _load_dispatcher_class(self):
+    def load_dispatcher_class(self):
         # Get config
         if not hasattr(AlertSender, 'config'):
             AlertSender.config = get_alertengine_config('alertengine.conf')
