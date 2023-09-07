@@ -35,8 +35,11 @@ from nav.adapters import HStoreField
 import nav.buildconf
 import nav.pwhash
 from nav.config import getconfig as get_alertengine_config
-from nav.alertengine.dispatchers import DispatcherException
-from nav.alertengine.dispatchers import FatalDispatcherException
+from nav.alertengine.dispatchers import (
+    DispatcherException,
+    FatalDispatcherException,
+    InvalidAlertAddressError,
+)
 
 from nav.models.event import AlertQueue, AlertType, EventType
 from nav.models.manage import Arp, Cam, Category, Device, Location
@@ -429,6 +432,24 @@ class AlertAddress(models.Model):
     def __str__(self):
         return self.type.scheme() + self.address
 
+    def has_valid_address(self):
+        from nav.alertengine.dispatchers.email_dispatcher import Email
+        from nav.alertengine.dispatchers.slack_dispatcher import Slack
+        from nav.alertengine.dispatchers.sms_dispatcher import Sms
+
+        if not self.type.supported:
+            return False
+        elif self.type.handler == 'sms':
+            if not Sms.is_valid_address(self.address):
+                return False
+        elif self.type.handler == 'email':
+            if not Email.is_valid_address(self.address):
+                return False
+        elif self.type.handler == 'slack':
+            if not Slack.is_valid_address(self.address):
+                return False
+        return True
+
     @transaction.atomic
     def send(self, alert, subscription):
         """Handles sending of alerts to with defined alert notification types
@@ -440,10 +461,10 @@ class AlertAddress(models.Model):
         # Determine the right language for the user.
         lang = self.account.preferences.get(Account.PREFERENCE_KEY_LANGUAGE, 'en')
 
-        if not (self.address or '').strip():
+        if not self.has_valid_address():
             _logger.error(
-                'Ignoring alert %d (%s: %s)! Account %s does not have an '
-                'address set for the alertaddress with id %d, this needs '
+                'Ignoring alert %d (%s: %s)! Account %s does not have a '
+                'valid address for the alertaddress with id %d, this needs '
                 'to be fixed before the user will recieve any alerts.',
                 alert.id,
                 alert,
@@ -452,15 +473,15 @@ class AlertAddress(models.Model):
                 self.id,
             )
 
-            return True
+            raise InvalidAlertAddressError
 
-        if self.type.is_blacklisted():
+        if self.type.blacklisted_reason:
             _logger.debug(
                 'Not sending alert %s to %s as handler %s is blacklisted: %s',
                 alert.id,
                 self.address,
                 self.type,
-                self.type.blacklist_reason(),
+                self.type.blacklisted_reason,
             )
             return False
 
@@ -497,7 +518,7 @@ class AlertAddress(models.Model):
             _logger.exception(
                 'Unhandled error from %s (the handler has been blacklisted)', self.type
             )
-            self.type.blacklist(error)
+            self.type.blacklist(str(error))
             return False
 
         return True
@@ -509,8 +530,8 @@ class AlertSender(models.Model):
     name = models.CharField(max_length=100)
     handler = models.CharField(max_length=100)
     supported = models.BooleanField(default=True)
+    blacklisted_reason = models.CharField(max_length=100, blank=True)
 
-    _blacklist = {}
     _handlers = {}
 
     EMAIL = u'Email'
@@ -558,15 +579,8 @@ class AlertSender(models.Model):
 
     def blacklist(self, reason=None):
         """Blacklists this sender/medium from further alert dispatch."""
-        self.__class__._blacklist[self.handler] = reason
-
-    def is_blacklisted(self):
-        """Gets the blacklist status of this sender/medium."""
-        return self.handler in self.__class__._blacklist
-
-    def blacklist_reason(self):
-        """Gets the reason for a blacklist for this sender/medium"""
-        return self.__class__._blacklist.get(self.handler, 'Unknown reason')
+        self.blacklisted_reason = reason
+        self.save()
 
     def scheme(self):
         return self.SCHEMES.get(self.name, u'')
@@ -1432,7 +1446,7 @@ class AccountAlertQueue(models.Model):
 
             super(AccountAlertQueue, self).delete()
             return False
-        except FatalDispatcherException:
+        except (FatalDispatcherException, InvalidAlertAddressError):
             self.delete()
             return False
 
