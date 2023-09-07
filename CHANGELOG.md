@@ -26,6 +26,7 @@ found in the [HISTORY](HISTORY) file.
 
 #### User-visible fixes
 
+- Properly dispose of outgoing alert notifications to invalid alert addresses ([#2661](https://github.com/Uninett/nav/pull/2661))
 - Fixed crash when attempting to log device errors with an empty comment in the Device History tool ([#2579](https://github.com/Uninett/nav/issues/2579), [#2580](https://github.com/Uninett/nav/pull/2580))
 - Fixed bad styling and missing linebreaks in traceback section of the 500 error page ([#2607](https://github.com/Uninett/nav/issues/2607), [#2628](https://github.com/Uninett/nav/pull/2628))
 - Show help text instead of error when running `nav` command without arguments ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
