@@ -14,13 +14,7 @@ NAV 5.7
 Dependency changes
 ------------------
 
-New dependencies
-~~~~~~~~~~~~~~~~
-
-Dependencies to these Python modules have been added:
-
-* :mod:`backports.zoneinfo` (only necessary when running on Python versions older than 3.9)
-* Our own fork of :mod:`drf-oidc-auth`, as found at ``git+https://github.com/Uninett/drf-oidc-auth@v4.0#egg=drf-oidc-auth``
+We have removed the upper version bound requirement for the :mod:`Pillow` library.
 
 Detection and alerting of Juniper chassis/system alarms
 -------------------------------------------------------
@@ -55,6 +49,13 @@ single IP addresses, a host mask can be used.  E.g., to get all prefixes that
 match a single host ``10.0.0.42``, query for ``10.0.0.42/32``, like
 ``/api/1/prefix/?contains_address=10.0.0.42%2F32``.
 
+
+Even more flexible configuration of logging
+-------------------------------------------
+
+Advanced users will find that we have added more options for configuring NAV's
+logging output.  The available configuration options are explored in depth
+:doc:`in our new logging howto guide </howto/setting-up-logging>`.
 
 NAV 5.6
 =======
