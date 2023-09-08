@@ -22,10 +22,10 @@ import os
 import os.path
 import argparse
 import textwrap
-from nav import colors
 
+from .. import colors
 try:
-    from nav.startstop import ServiceRegistry, CommandFailedError, CrontabError
+    from ..startstop import ServiceRegistry, CommandFailedError, CrontabError
 except ImportError:
     print(
         "Fatal error: Could not find the nav.startstop module.\nIs your "
@@ -45,10 +45,11 @@ except (OSError, CrontabError) as _error:
     sys.exit(1)
 
 
-def main(args):
+def main(args=None):
     """Main execution point"""
-    parser = make_argparser()
-    args = parser.parse_args()
+    if args == None:
+        parser = make_argparser()
+        args = parser.parse_args()
     try:
         args.func(args)
     except AttributeError:
@@ -330,4 +331,4 @@ def command_config_install(args):
 # begin here #
 ##############
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
