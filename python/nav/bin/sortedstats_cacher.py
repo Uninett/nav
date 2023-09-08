@@ -18,7 +18,7 @@ LOGFILE = "sortedstats_cacher.log"
 _logger = logging.getLogger('nav.sortedstats_cacher')
 
 
-def main(timeframe, config):
+def run(timeframe, config):
     _logger.info("Running for timeframe %s", timeframe)
     reports = config.get_reports(timeframe)
     for report_name, report in reports.items():
@@ -48,11 +48,15 @@ def exit_if_running(pidfile):
         exit(1)
 
 
-if __name__ == '__main__':
+def main():
     init_generic_logging(logfile=LOGFILE, stderr=False, read_config=True)
     timeframe = get_parser().parse_args().timeframe
     pidfile = f"sortedstats_cacher_{timeframe}.pid"
     exit_if_running(pidfile)
     writepidfile(pidfile)
     config = SortedStatsConfig()
-    main(timeframe, config)
+    run(timeframe, config)
+
+
+if __name__ == '__main__':
+    main()
