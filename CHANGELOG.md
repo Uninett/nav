@@ -10,17 +10,25 @@ found in the [HISTORY](HISTORY) file.
 ## Unreleased
 
 ### Added
+
+- Even more complex and flexible configuration of NAV logging is now supported through `logging.yml` ([#2659](https://github.com/Uninett/nav/pull/2659))
 - Added howto guide for log configuration ([#2660](https://github.com/Uninett/nav/pull/2660))
+- Currently non-functional (aka. "blacklisted") alert sender mechanisms are now flagged in the Alert Profiles tool wherever an affected alert address is displayed ([#2653](https://github.com/Uninett/nav/issues/2653), [#2664](https://github.com/Uninett/nav/issues/2664), [#2677](https://github.com/Uninett/nav/pull/2677), [#2678](https://github.com/Uninett/nav/pull/2678))
 - Added support for polling and alerting on Juniper chassis and system alerts ([#2358](https://github.com/Uninett/nav/issues/2358), [#2388](https://github.com/Uninett/nav/pull/2388))
   - Juniper only provides alert counters via SNMP, no alert details, unfortunately.
+  - Since NAV doesn't support alert state updates, a new eventengine plugin handles alert count transitions by resolving old alerts and creating new ones ([#2432](https://github.com/Uninett/nav/issues/2432), [#2519](https://github.com/Uninett/nav/pull/2519))
 - Added a new `contains_address` filter to the `prefix` API endpoint, to enable lookup of matching prefix/vlan details from a single IP or subnet address ([#2577](https://github.com/Uninett/nav/issues/2577), [#2578](https://github.com/Uninett/nav/pull/2578))
+- Defined and added abstract methods for Power-over-Ethernet configuration to PortAdmin management handler classes ([#2636](https://github.com/Uninett/nav/pull/2636))
+  - These are needed for the upcoming vendor specific implementations of PoE config in PortAdmin.
+- Implemented configuration file parsing for upcoming local JWT token feature ([#2568](https://github.com/Uninett/nav/pull/2568))
 
 ### Fixed
 
 #### User-visible fixes
+
+- Properly dispose of outgoing alert notifications to invalid alert addresses ([#2661](https://github.com/Uninett/nav/pull/2661))
 - Fixed crash when attempting to log device errors with an empty comment in the Device History tool ([#2579](https://github.com/Uninett/nav/issues/2579), [#2580](https://github.com/Uninett/nav/pull/2580))
 - Fixed bad styling and missing linebreaks in traceback section of the 500 error page ([#2607](https://github.com/Uninett/nav/issues/2607), [#2628](https://github.com/Uninett/nav/pull/2628))
-- Fixed cabling API, which broke due to internal refactorings ([#2621](https://github.com/Uninett/nav/pull/2621))
 - Show help text instead of error when running `nav` command without arguments ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
 - Prevent users from entering invalid `sysObjectID` values when editing Netbox types in SeedDB ([#2584](https://github.com/Uninett/nav/pull/2584), [#2566](https://github.com/Uninett/nav/issues/2566))
 - Removed upper version bound for *Pillow* image manipulation library, to fix security warnings ([#2567](https://github.com/Uninett/nav/pull/2567))
@@ -34,6 +42,7 @@ found in the [HISTORY](HISTORY) file.
 
 #### Developer-centric fixes
 
+- Moved more of NAV's packaging definition to `pyproject.toml` ([#2655](https://github.com/Uninett/nav/pull/2655))
 - Pin pip to version 23.1.0 for CI pipelines to continue working ([#2647](https://github.com/Uninett/nav/pull/2647))
 - Improve ipdevpoll logging of SQL queries and from Twisted library ([#2640](https://github.com/Uninett/nav/pull/2640))
 - Stop making skipped validation tests for non HTML content ([#2623](https://github.com/Uninett/nav/pull/2623))

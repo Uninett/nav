@@ -51,7 +51,7 @@ import nav.db
 
 # These have to be imported after the envrionment is setup
 from django.db import DatabaseError, connection
-from nav.alertengine.base import check_alerts
+from nav.alertengine.base import check_alerts, clear_blacklisted_status_of_alert_senders
 from nav.config import NAV_CONFIG
 
 #
@@ -139,6 +139,8 @@ def main():
     # Log reception of SIGTERM/SIGINT before quitting
     signal.signal(signal.SIGTERM, signalhandler)
     signal.signal(signal.SIGINT, signalhandler)
+
+    clear_blacklisted_status_of_alert_senders()
 
     # Loop forever
     _logger.info('Starting alertengine loop.')
