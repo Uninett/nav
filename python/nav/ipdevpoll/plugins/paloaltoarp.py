@@ -67,13 +67,12 @@ class PaloaltoArp(Arp):
         self._logger.debug("PaloaltoArp initialized")
 
         self.paloalto_devices = []
-        ipdevpoll_config = getconfig('ipdevpoll.conf')
 
-        if 'paloaltoarp' in ipdevpoll_config:
+        if 'paloaltoarp' in self.config:
             self._logger.debug("PaloaltoArp config section found")
-            for key in ipdevpoll_config['paloaltoarp']:
+            for key in self.config['paloaltoarp']:
                 self.paloalto_devices.append(
-                    {'key': ipdevpoll_config['paloaltoarp'][key], 'hostname': key}
+                    {'key': self.config['paloaltoarp'][key], 'hostname': key}
                 )
         else:
             self._logger.debug("PaloaltoArp config section NOT found")
