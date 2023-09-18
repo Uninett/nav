@@ -7,11 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
-## Unreleased
+## [5.7.1] - 2023-09-18
 
 ### Fixed
 
-- Netmap views can be loaded again ([#2681](https://github.com/Uninett/nav/issues/2681), [#2683](https://github.com/Uninett/nav/pull/2683))
+- Fixed regression that caused Netmap to be unusable in 5.7.0 ([#2681](https://github.com/Uninett/nav/issues/2681), [#2683](https://github.com/Uninett/nav/pull/2683))
 
 ## [5.7.0] - 2023-09-07
 
