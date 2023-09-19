@@ -46,14 +46,9 @@ def test_sending_alert_to_alert_address_with_invalid_address_will_delete_alert_a
 
 
 @pytest.fixture
-def account(db):
-    return Account.objects.get(pk=Account.ADMIN_ACCOUNT)
-
-
-@pytest.fixture
-def alert_address(db, account):
+def alert_address(db, admin_account):
     addr = AlertAddress(
-        account=account,
+        account=admin_account,
         type=AlertSender.objects.get(name=AlertSender.SMS),
     )
     addr.save()
@@ -63,8 +58,8 @@ def alert_address(db, account):
 
 
 @pytest.fixture
-def alert_profile(db, account):
-    profile = AlertProfile(account=account)
+def alert_profile(db, admin_account):
+    profile = AlertProfile(account=admin_account)
     profile.save()
     yield profile
     if profile.pk:
