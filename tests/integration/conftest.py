@@ -366,3 +366,10 @@ def _lookfor(string, filename):
     """Very simple grep-like function"""
     data = io.open(filename, 'r', encoding='utf-8').read()
     return string in data
+
+
+@pytest.fixture
+def admin_account(db):
+    from nav.models.profiles import Account
+
+    yield Account.objects.get(id=Account.ADMIN_ACCOUNT)

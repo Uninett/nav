@@ -403,19 +403,19 @@ def set_account_preference(request):
 def set_default_dashboard(request, did):
     """Set the default dashboard for the user"""
     dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
-    try:
-        old_default = AccountDashboard.objects.get(
-            account=request.account, is_default=True
-        )
-    except AccountDashboard.DoesNotExist:
-        # No previous default
-        old_default = None
+
+    old_defaults = list(
+        AccountDashboard.objects.filter(account=request.account, is_default=True)
+    )
+    for old_default in old_defaults:
+        old_default.is_default = False
 
     dash.is_default = True
-    dash.save()
-    if old_default:
-        old_default.is_default = False
-        old_default.save()
+
+    AccountDashboard.objects.bulk_update(
+        objs=old_defaults + [dash], fields=["is_default"]
+    )
+
     return HttpResponse(u'Default dashboard set to «{}»'.format(dash.name))
 
 
