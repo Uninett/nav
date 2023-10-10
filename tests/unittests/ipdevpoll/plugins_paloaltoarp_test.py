@@ -64,19 +64,18 @@ def test_get_mappings():
     # Mocking the __init__ method
     with patch.object(PaloaltoArp, "__init__", lambda x: None):
         instance = PaloaltoArp()
-        instance.config = {
-            'paloaltoarp': {
-                'abcdefghijklmnop': '0.0.0.0'
-            }
-        }
+        instance.config = {'paloaltoarp': {'abcdefghijklmnop': '0.0.0.0'}}
 
         # Mocking _do_request to return the mock_data when called
-        with patch.object(PaloaltoArp, "_do_request", return_value=defer.succeed(mock_data)):
-            mappings = yield instance._get_paloalto_arp_mappings("0.0.0.0", "abcdefghijklmnop")
+        with patch.object(
+            PaloaltoArp, "_do_request", return_value=defer.succeed(mock_data)
+        ):
+            mappings = yield instance._get_paloalto_arp_mappings(
+                "0.0.0.0", "abcdefghijklmnop"
+            )
 
             assert mappings == [
                 ('ifindex', IP('192.168.0.1'), '00:00:00:00:00:01'),
                 ('ifindex', IP('192.168.0.2'), '00:00:00:00:00:02'),
                 ('ifindex', IP('192.168.0.3'), '00:00:00:00:00:03'),
             ]
-
