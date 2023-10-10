@@ -1,12 +1,11 @@
-from nav.ipdevpoll.plugins import paloaltoarp
-from nav.ipdevpoll.plugins.paloaltoarp import parse_arp
+from nav.ipdevpoll.plugins.paloaltoarp import PaloaltoArp, parse_arp
+from twisted.internet.defer import inlineCallbacks
 from IPy import IP
+from twisted.internet import defer
+from mock import patch, Mock
 
 
-def test_parse_mappings():
-    assert (
-        parse_arp(
-            '''
+mock_data = b'''
     <response status="success">
     <result>  
             <max>132000</max>  
@@ -50,10 +49,34 @@ def test_parse_mappings():
         </result> 
     </response> 
     '''
-        )
-        == [
-            ('ifindex', IP('192.168.0.1'), '00:00:00:00:00:01'),
-            ('ifindex', IP('192.168.0.2'), '00:00:00:00:00:02'),
-            ('ifindex', IP('192.168.0.3'), '00:00:00:00:00:03')
-        ]
-    )
+
+
+def test_parse_mappings():
+    assert parse_arp(mock_data) == [
+        ('ifindex', IP('192.168.0.1'), '00:00:00:00:00:01'),
+        ('ifindex', IP('192.168.0.2'), '00:00:00:00:00:02'),
+        ('ifindex', IP('192.168.0.3'), '00:00:00:00:00:03'),
+    ]
+
+
+@inlineCallbacks
+def test_get_mappings():
+    # Mocking the __init__ method
+    with patch.object(PaloaltoArp, "__init__", lambda x: None):
+        instance = PaloaltoArp()
+        instance.config = {
+            'paloaltoarp': {
+                'abcdefghijklmnop': '0.0.0.0'
+            }
+        }
+
+        # Mocking _do_request to return the mock_data when called
+        with patch.object(PaloaltoArp, "_do_request", return_value=defer.succeed(mock_data)):
+            mappings = yield instance._get_paloalto_arp_mappings("0.0.0.0", "abcdefghijklmnop")
+
+            assert mappings == [
+                ('ifindex', IP('192.168.0.1'), '00:00:00:00:00:01'),
+                ('ifindex', IP('192.168.0.2'), '00:00:00:00:00:02'),
+                ('ifindex', IP('192.168.0.3'), '00:00:00:00:00:03'),
+            ]
+
