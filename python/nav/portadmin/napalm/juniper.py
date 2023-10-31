@@ -444,6 +444,10 @@ class Juniper(ManagementHandler):
         if not self.profile:
             raise DeviceNotConfigurableError("Device has no NAPALM profile")
 
+    def get_poe_state_options(self) -> Sequence[PoeState]:
+        """Returns the available options for enabling/disabling PoE on this netbox"""
+        return [self.POE_ENABLED, self.POE_DISABLED]
+
     # FIXME Implement dot1x fetcher methods
     # dot1x authentication configuration fetchers aren't implemented yet, for lack
     # of configured devices to test on
