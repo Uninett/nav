@@ -352,3 +352,7 @@ class POEStateNotSupportedError(ManagementError):
 
 class XMLParseError(ManagementError):
     """Raised when failing to parse XML"""
+
+
+class POEIndexNotFoundError(ManagementError):
+    """Raised when a PoE index could not be found for an interface"""
