@@ -45,6 +45,7 @@ from nav.portadmin.handlers import (
     NoResponseError,
     ProtocolError,
     PoeState,
+    POEStateNotSupportedError,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -447,6 +448,23 @@ class Juniper(ManagementHandler):
     def get_poe_state_options(self) -> Sequence[PoeState]:
         """Returns the available options for enabling/disabling PoE on this netbox"""
         return [self.POE_ENABLED, self.POE_DISABLED]
+
+    @wrap_unhandled_rpc_errors
+    def set_poe_state(self, interface: manage.Interface, state: PoeState):
+        """Set state for enabling/disabling PoE on this interface.
+        Available options should be retrieved using `get_poe_state_options`
+        """
+        if not isinstance(state, PoeState):
+            raise TypeError("state must be a PoeState object")
+        if state == self.POE_ENABLED:
+            template = get_template("portadmin/junos-enable-poe.djt")
+        elif state == self.POE_DISABLED:
+            template = get_template("portadmin/junos-disable-poe.djt")
+        else:
+            raise POEStateNotSupportedError(f"state {state} is not a valid state")
+        master, _ = split_master_unit(interface.ifname)
+        config = template.render({"ifname": master})
+        self.device.load_merge_candidate(config=config)
 
     # FIXME Implement dot1x fetcher methods
     # dot1x authentication configuration fetchers aren't implemented yet, for lack
