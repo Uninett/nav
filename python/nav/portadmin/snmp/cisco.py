@@ -24,7 +24,8 @@ from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.smidumps import get_mib
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
-from nav.portadmin.handlers import PoeState
+from nav.portadmin.handlers import PoeState, POEIndexNotFoundError
+from nav.models import manage
 
 
 _logger = logging.getLogger(__name__)
@@ -318,6 +319,38 @@ class Cisco(SNMPHandler):
             self.POE_DISABLE,
         ]
         return options_list
+
+    @translate_protocol_errors
+    def set_poe_state(self, interface: manage.Interface, state: PoeState):
+        """Set state for enabling/disabling PoE on this interface.
+        Available options should be retrieved using `get_poe_state_options`
+        """
+        unit_number, interface_number = self._get_poe_indexes_for_interface(interface)
+        oid_with_unit_number = self.POEENABLE + f".{unit_number}"
+        try:
+            self._set_netbox_value(
+                oid_with_unit_number, interface_number, 'i', state.state
+            )
+        except SnmpError as error:
+            _logger.error('Error setting poe state: %s', error)
+            raise
+        except ValueError as error:
+            _logger.error('%s is not a valid option for poe state', state)
+            raise
+
+    def _get_poe_indexes_for_interface(
+        self, interface: manage.Interface
+    ) -> tuple[int, int]:
+        """Returns the unit number and interface number for the given interface"""
+        try:
+            poeport = manage.POEPort.objects.get(interface=interface)
+        except manage.POEPort.DoesNotExist:
+            raise POEIndexNotFoundError(
+                "This interface does not have PoE indexes defined"
+            )
+        unit_number = poeport.poegroup.index
+        interface_number = poeport.index
+        return unit_number, interface_number
 
 
 CHARS_IN_1024_BITS = 128
