@@ -24,7 +24,12 @@ from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.smidumps import get_mib
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
-from nav.portadmin.handlers import PoeState, POEIndexNotFoundError
+from nav.portadmin.handlers import (
+    PoeState,
+    POEStateNotSupportedError,
+    POENotSupportedError,
+    POEIndexNotFoundError,
+)
 from nav.models import manage
 
 
@@ -351,6 +356,21 @@ class Cisco(SNMPHandler):
         unit_number = poeport.poegroup.index
         interface_number = poeport.index
         return unit_number, interface_number
+
+    @translate_protocol_errors
+    def _get_poe_state_for_single_interface(
+        self, interface: manage.Interface
+    ) -> PoeState:
+        """Retrieves current PoE state for given the given interface"""
+        unit_number, interface_number = self._get_poe_indexes_for_interface(interface)
+        oid_with_unit_number = self.POEENABLE + f".{unit_number}"
+        state_value = self._query_netbox(oid_with_unit_number, interface_number)
+        if state_value == None:
+            raise POENotSupportedError("This interface does not support PoE")
+        for state in self.get_poe_state_options():
+            if state.state == state_value:
+                return state
+        raise POEStateNotSupportedError(f"Unknown PoE state {state_value}")
 
 
 CHARS_IN_1024_BITS = 128
