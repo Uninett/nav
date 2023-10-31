@@ -44,6 +44,7 @@ from nav.portadmin.handlers import (
     AuthenticationError,
     NoResponseError,
     ProtocolError,
+    PoeState,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -102,6 +103,8 @@ class Juniper(ManagementHandler):
 
     VENDOR = VENDOR_ID_JUNIPER_NETWORKS_INC
     PROTOCOL = manage.ManagementProfile.PROTOCOL_NAPALM
+    POE_ENABLED = PoeState(state=1, name="ENABLED")
+    POE_DISABLED = PoeState(state=2, name="DISABLED")
 
     def __init__(self, netbox: manage.Netbox, **kwargs):
         super().__init__(netbox, **kwargs)
