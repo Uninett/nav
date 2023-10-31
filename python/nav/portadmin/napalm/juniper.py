@@ -28,7 +28,7 @@ so the underlying Juniper PyEZ library is utilized directly in most cases.
 """
 from __future__ import annotations
 from operator import attrgetter
-from typing import List, Any, Dict, Tuple, Sequence
+from typing import List, Any, Dict, Tuple, Sequence, Optional
 
 from django.template.loader import get_template
 from napalm.base.exceptions import ConnectAuthError, ConnectionException
@@ -487,6 +487,22 @@ class Juniper(ManagementHandler):
             )
         ifenabled = matching_elements[0].text.lower()
         return self._poe_string_to_state(ifenabled)
+
+    def _get_poe_state_for_multiple_interfaces(
+        self, interfaces: Sequence[manage.Interface]
+    ) -> Dict[int, Optional[PoeState]]:
+        tree = self._get_all_poe_interface_information()
+        interface_information_elements = tree.findall(".//interface-information")
+        ifname_to_state_dict = {}
+        for element in interface_information_elements:
+            ifname = element.findall(".//interface-name")[0].text.strip().lower()
+            ifenabled = element.findall(".//interface-enabled")[0].text.strip().lower()
+            ifname_to_state_dict[ifname] = self._poe_string_to_state(ifenabled)
+        ifindex_to_state_dict = {
+            interface.ifindex: ifname_to_state_dict.get(interface.ifname.lower())
+            for interface in interfaces
+        }
+        return ifindex_to_state_dict
 
     @wrap_unhandled_rpc_errors
     def _get_all_poe_interface_information(self) -> ElementTree:
