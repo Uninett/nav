@@ -19,6 +19,7 @@ import pytest
 from unittest.mock import Mock, patch
 
 from jnpr.junos.exception import RpcError
+from lxml import etree
 
 from nav.enterprise.ids import VENDOR_ID_RESERVED, VENDOR_ID_JUNIPER_NETWORKS_INC
 from nav.models import manage
@@ -43,6 +44,62 @@ def profile_mock():
     profile.PROTOCOL_NAPALM = manage.ManagementProfile.PROTOCOL_NAPALM
     profile.configuration = {"driver": "mock"}
     yield profile
+
+
+@pytest.fixture()
+def handler_mock(netbox_mock, profile_mock):
+    """Create management handler mock object"""
+    juniper = Juniper(netbox=netbox_mock)
+    juniper._profile = profile_mock
+    yield juniper
+
+
+@pytest.fixture()
+def xml(interface1_mock):
+    """Creates a ElementTree containing poe information for one interface"""
+    tree_string = f"""
+        <poe>
+            <interface-information-detail>
+                <interface-name-detail>{interface1_mock.ifname}</interface-name-detail>
+                <interface-enabled-detail>Enabled</interface-enabled-detail>
+            </interface-information-detail>
+        </poe>"""
+    tree = etree.fromstring(tree_string)
+    yield tree
+
+
+@pytest.fixture()
+def xml_bulk(interface1_mock, interface2_mock):
+    """Creates a ElementTree containing poe information for two interfaces"""
+    tree_string = f"""
+        <poe>
+            <interface-information>
+                <interface-name>{interface1_mock.ifname}</interface-name>
+                <interface-enabled>Enabled</interface-enabled>
+            </interface-information>
+            <interface-information>
+                <interface-name>{interface2_mock.ifname}</interface-name>
+                <interface-enabled>Disabled</interface-enabled>
+            </interface-information>
+        </poe>"""
+    tree = etree.fromstring(tree_string)
+    yield tree
+
+
+@pytest.fixture()
+def interface1_mock():
+    interface = Mock()
+    interface.ifname = "ge-0/0/1"
+    interface.ifindex = 1
+    yield interface
+
+
+@pytest.fixture()
+def interface2_mock():
+    interface = Mock()
+    interface.ifname = "ge-0/0/2"
+    interface.ifindex = 2
+    yield interface
 
 
 class TestWrapUnhandledRpcErrors:
