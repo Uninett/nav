@@ -47,6 +47,8 @@ from nav.portadmin.handlers import (
     ProtocolError,
     PoeState,
     POEStateNotSupportedError,
+    POENotSupportedError,
+    XMLParseError,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -466,6 +468,25 @@ class Juniper(ManagementHandler):
         master, _ = split_master_unit(interface.ifname)
         config = template.render({"ifname": master})
         self.device.load_merge_candidate(config=config)
+
+    def _get_poe_state_for_single_interface(
+        self, interface: manage.Interface
+    ) -> PoeState:
+        tree = self._get_poe_interface_information(ifname=interface.ifname)
+        matching_elements = tree.xpath(
+            "//poe/interface-information-detail/interface-enabled-detail"
+        )
+        # Interfaces that do not support PoE will not have this element
+        if not matching_elements:
+            raise POENotSupportedError(
+                f"Interface {interface.ifname} does not support PoE"
+            )
+        if len(matching_elements) != 1:
+            raise XMLParseError(
+                f"Expected 1 matching element in xml response, {len(matching_elements)} found"
+            )
+        ifenabled = matching_elements[0].text.lower()
+        return self._poe_string_to_state(ifenabled)
 
     @wrap_unhandled_rpc_errors
     def _get_all_poe_interface_information(self) -> ElementTree:
