@@ -23,7 +23,11 @@ from lxml import etree
 
 from nav.enterprise.ids import VENDOR_ID_RESERVED, VENDOR_ID_JUNIPER_NETWORKS_INC
 from nav.models import manage
-from nav.portadmin.handlers import DeviceNotConfigurableError, ProtocolError
+from nav.portadmin.handlers import (
+    DeviceNotConfigurableError,
+    ProtocolError,
+    POEStateNotSupportedError,
+)
 from nav.portadmin.napalm.juniper import wrap_unhandled_rpc_errors, Juniper
 
 
@@ -161,3 +165,45 @@ class TestJuniper:
 
         m = MockedJuniperHandler(Mock())
         assert len(m.get_netbox_vlans()) == 1
+
+
+class TestJuniperPoe:
+    def test_returns_correct_state_options(self, handler_mock):
+        state_options = handler_mock.get_poe_state_options()
+        assert Juniper.POE_ENABLED in state_options
+        assert Juniper.POE_DISABLED in state_options
+
+    def test_state_converter_returns_correct_states(self, handler_mock):
+        assert handler_mock._poe_string_to_state("enabled") == Juniper.POE_ENABLED
+        assert handler_mock._poe_string_to_state("disabled") == Juniper.POE_DISABLED
+
+    def test_state_converter_raises_error_for_invalid_states(self, handler_mock):
+        with pytest.raises(POEStateNotSupportedError):
+            handler_mock._poe_string_to_state("invalid_state")
+
+    def test_get_poe_state_for_single_interface_returns_correct_state(
+        self, handler_mock, xml, interface1_mock
+    ):
+        handler_mock._get_poe_interface_information = Mock(return_value=xml)
+        state = handler_mock._get_poe_state_for_single_interface(interface1_mock)
+        assert state == Juniper.POE_ENABLED
+
+    def test_get_poe_state_for_multiple_interfaces_returns_correct_states(
+        self, handler_mock, xml_bulk, interface1_mock, interface2_mock
+    ):
+        handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
+        states = handler_mock._get_poe_state_for_multiple_interfaces(
+            [interface1_mock, interface2_mock]
+        )
+        assert states[interface1_mock.ifindex] == Juniper.POE_ENABLED
+        assert states[interface2_mock.ifindex] == Juniper.POE_DISABLED
+
+    def test_get_poe_states_for_multiple_interfaces_maps_interface_to_none_if_poe_not_supported(
+        self, handler_mock, xml_bulk
+    ):
+        handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
+        if_mock = Mock()
+        if_mock.ifname == "random_if"
+        if_mock.ifindex = 0
+        states = handler_mock._get_poe_state_for_multiple_interfaces([if_mock])
+        assert states[if_mock.ifindex] is None
