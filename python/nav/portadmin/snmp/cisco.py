@@ -35,6 +35,7 @@ class Cisco(SNMPHandler):
 
     VTPNODES = get_mib('CISCO-VTP-MIB')['nodes']
     PAENODES = get_mib('CISCO-PAE-MIB')['nodes']
+    POENODES = get_mib('CISCO-POWER-ETHERNET-EXT-MIB')['nodes']
 
     VTPVLANSTATE = VTPNODES['vtpVlanState']['oid']
     VTPVLANTYPE = VTPNODES['vtpVlanType']['oid']
@@ -56,6 +57,8 @@ class Cisco(SNMPHandler):
     dot1xPortAuth = PAENODES['cpaePortCapabilitiesEnabled']['oid']
     DOT1X_AUTHENTICATOR = 0b10000000
     DOT1X_SUPPLICANT = 0b01000000
+
+    POEENABLE = POENODES['cpeExtPsePortEnable']['oid']
 
     def __init__(self, netbox, **kwargs):
         super(Cisco, self).__init__(netbox, **kwargs)
