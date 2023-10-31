@@ -1,5 +1,5 @@
 # This compose file shows an example of how you can add SNMP proxying
-# services to the Docker Compose development environment.
+# or test services to the Docker Compose development environment.
 
 # To set up a full dev environment with proxying, either copy the examples
 # from this file to docker-compose.override.yml, or tell docker compose to also
@@ -42,3 +42,10 @@ services:
   mydevice.mydomain:
     << : *forwarder
     command: 192.168.0.1 user@my-hop-host 10000
+
+  # This creates an SNMPv3 test server, see tools/snmpdv3 for details
+  snmpdv3:
+    build: tools/snmpdv3
+    ports:
+      - 161:161/udp
+
