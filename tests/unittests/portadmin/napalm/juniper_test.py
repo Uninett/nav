@@ -121,7 +121,7 @@ class TestWrapUnhandledRpcErrors:
 
 
 class TestJuniper:
-    def test_juniper_device_returns_device_connection(self, netbox_mock, profile_mock):
+    def test_juniper_device_returns_device_connection(self, handler_mock):
         driver = napalm.get_network_driver('mock')
         device = driver(
             hostname='foo',
@@ -130,10 +130,7 @@ class TestJuniper:
             optional_args={},
         )
         device.open()
-        juniper = Juniper(netbox=netbox_mock)
-        juniper._profile = profile_mock
-
-        assert juniper.device
+        assert handler_mock.device
 
     def test_juniper_device_raises_error_if_vendor_not_juniper(
         self, netbox_mock, profile_mock
