@@ -23,6 +23,7 @@ from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.smidumps import get_mib
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
+from nav.portadmin.handlers import PoeState
 
 
 _logger = logging.getLogger(__name__)
@@ -59,6 +60,10 @@ class Cisco(SNMPHandler):
     DOT1X_SUPPLICANT = 0b01000000
 
     POEENABLE = POENODES['cpeExtPsePortEnable']['oid']
+    POE_AUTO = PoeState(state=1, name="AUTO")
+    POE_STATIC = PoeState(state=2, name="STATIC")
+    POE_LIMIT = PoeState(state=3, name="LIMIT")
+    POE_DISABLE = PoeState(state=4, name="DISABLE")
 
     def __init__(self, netbox, **kwargs):
         super(Cisco, self).__init__(netbox, **kwargs)
