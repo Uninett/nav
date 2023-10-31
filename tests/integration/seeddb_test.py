@@ -17,12 +17,12 @@ def test_usage_edit_url_should_allow_slashes():
     assert reverse('seeddb-usage-edit', args=('TEST/SLASH',))
 
 
-def test_editing_deleted_netboxes_should_raise_404():
+def test_editing_deleted_netboxes_should_raise_404(admin_account):
     netboxid = 666  # Assuming no such netbox exists in test data set!
     factory = RequestFactory()
     url = reverse('seeddb-netbox-edit', args=(netboxid,))
     request = factory.get(url)
-    request.account = Account.objects.get(pk=Account.ADMIN_ACCOUNT)
+    request.account = admin_account
     request.session = MagicMock()
 
     with pytest.raises(Http404):
