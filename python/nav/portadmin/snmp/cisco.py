@@ -16,7 +16,7 @@
 #
 """Cisco specific PortAdmin SNMP handling"""
 import logging
-from typing import Sequence, Dict, Optional
+from typing import Sequence, Dict, Optional, Tuple
 
 from nav.Snmp.errors import SnmpError
 from nav.bitvector import BitVector
@@ -345,7 +345,7 @@ class Cisco(SNMPHandler):
 
     def _get_poe_indexes_for_interface(
         self, interface: manage.Interface
-    ) -> tuple[int, int]:
+    ) -> Tuple[int, int]:
         """Returns the unit number and interface number for the given interface"""
         try:
             poeport = manage.POEPort.objects.get(interface=interface)
