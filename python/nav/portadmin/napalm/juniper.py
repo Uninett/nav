@@ -469,6 +469,36 @@ class Juniper(ManagementHandler):
         config = template.render({"ifname": master})
         self.device.load_merge_candidate(config=config)
 
+    def get_poe_states(
+        self, interfaces: Sequence[manage.Interface] = None
+    ) -> Dict[int, Optional[PoeState]]:
+        """Retrieves current PoE state for interfaces on this device.
+
+        :param interfaces: Optional sequence of interfaces to filter for, as fetching
+                           data for all interfaces may be a waste of time if only a
+                           single interface is needed. If this parameter is omitted,
+                           the default behavior is to filter on all Interface objects
+                           registered for this device.
+        :returns: A dict mapping interfaces to their discovered PoE state.
+                  The key matches the `ifindex` attribute for the related
+                  Interface object.
+                  The value will be None if the interface does not support PoE.
+        """
+        if not interfaces:
+            if self.netbox.interfaces:
+                interfaces = self.netbox.interfaces
+            else:
+                return {}
+        if len(interfaces) == 1:
+            interface = interfaces[0]
+            try:
+                state = self._get_poe_state_for_single_interface(interface)
+            except POENotSupportedError:
+                state = None
+            return {interface.ifindex: state}
+        else:
+            return self._get_poe_state_for_multiple_interfaces(interfaces)
+
     def _get_poe_state_for_single_interface(
         self, interface: manage.Interface
     ) -> PoeState:
