@@ -16,6 +16,7 @@
 #
 """Cisco specific PortAdmin SNMP handling"""
 import logging
+from typing import Sequence
 
 from nav.Snmp.errors import SnmpError
 from nav.bitvector import BitVector
@@ -307,6 +308,16 @@ class Cisco(SNMPHandler):
             names.get(OID(oid)[-1]): state[0] & self.DOT1X_AUTHENTICATOR
             for oid, state in self._bulkwalk(self.dot1xPortAuth)
         }
+
+    def get_poe_state_options(self) -> Sequence[PoeState]:
+        """Returns the available options for enabling/disabling PoE on this netbox"""
+        options_list = [
+            self.POE_AUTO,
+            self.POE_STATIC,
+            self.POE_LIMIT,
+            self.POE_DISABLE,
+        ]
+        return options_list
 
 
 CHARS_IN_1024_BITS = 128
