@@ -458,9 +458,71 @@ def test_alertprofiles_add_invalid_email_address_should_fail(client):
     assert "Not a valid email address." in smart_str(response.content)
 
 
-def test_alertprofiles_add_valid_phone_number_should_succeed(client):
-    """Tests that a valid phone number can be added"""
+def test_alertprofiles_add_valid_phone_number_without_country_code_should_succeed(
+    client,
+):
+    """Tests that a valid phone number without a country code can be added"""
     valid_phone_number = "47474747"
+    sms = AlertSender.objects.get(name=AlertSender.SMS)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": valid_phone_number,
+        "type": sms.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert AlertAddress.objects.filter(
+        type=sms,
+        address=valid_phone_number,
+    ).exists()
+    assert f"Saved address {valid_phone_number}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_valid_non_norwegian_phone_number_without_country_code_should_succeed(
+    client,
+):
+    """Tests that a valid phone number without a country code can be added"""
+    valid_phone_number = "02227661193"
+    sms = AlertSender.objects.get(name=AlertSender.SMS)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": valid_phone_number,
+        "type": sms.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert AlertAddress.objects.filter(
+        type=sms,
+        address=valid_phone_number,
+    ).exists()
+    assert f"Saved address {valid_phone_number}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_valid_phone_number_with_country_code_should_succeed(client):
+    """Tests that a valid phone number with a country code (+xx) can be added"""
+    valid_phone_number = "+4747474747"
+    sms = AlertSender.objects.get(name=AlertSender.SMS)
+    url = reverse("alertprofiles-address-save")
+    data = {
+        "address": valid_phone_number,
+        "type": sms.pk,
+    }
+    response = client.post(url, data=data, follow=True)
+    assert response.status_code == 200
+    assert AlertAddress.objects.filter(
+        type=sms,
+        address=valid_phone_number,
+    ).exists()
+    assert f"Saved address {valid_phone_number}" in smart_str(response.content)
+
+
+def test_alertprofiles_add_valid_phone_number_with_double_zero_country_code_should_succeed(
+    client,
+):
+    """
+    Tests that a valid phone number with a country code with double zero (00xx) can be
+    added"""
+    valid_phone_number = "004747474747"
     sms = AlertSender.objects.get(name=AlertSender.SMS)
     url = reverse("alertprofiles-address-save")
     data = {

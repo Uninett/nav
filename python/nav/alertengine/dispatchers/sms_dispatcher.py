@@ -73,7 +73,6 @@ class Sms(Dispatcher):
 
     @staticmethod
     def is_valid_address(address):
-        if address.isdigit():
-            return True
-        else:
-            return False
+        if address.startswith("+"):
+            return address[1:].isdigit()
+        return address.isdigit()
