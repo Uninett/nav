@@ -31,6 +31,7 @@ from ctypes import (
     c_ulong,
     c_uint64,
 )
+from typing import Union
 
 from IPy import IP
 from pynetsnmp import netsnmp
@@ -85,7 +86,13 @@ class Snmp(object):
     """
 
     def __init__(
-        self, host, community="public", version="1", port=161, retries=3, timeout=1
+        self,
+        host: str,
+        community: str = "public",
+        version: Union[str, int] = "1",
+        port: Union[str, int] = 161,
+        retries: int = 3,
+        timeout: int = 1,
     ):
         """Makes a new Snmp-object.
 
