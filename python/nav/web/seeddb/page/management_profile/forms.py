@@ -97,6 +97,7 @@ class SnmpForm(ProtocolSpecificMixIn, forms.ModelForm):
 class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
     PROTOCOL = ManagementProfile.PROTOCOL_SNMPV3
     PROTOCOL_NAME = PROTOCOL_CHOICES.get(PROTOCOL)
+    NOTABENE = "SNMPv3 is not yet fully supported in NAV"
 
     class Meta(object):
         model = ManagementProfile
