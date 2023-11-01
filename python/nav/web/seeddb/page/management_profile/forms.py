@@ -132,6 +132,7 @@ class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
         help_text="Authentication protocol to use",
     )
     sec_name = forms.CharField(
+        widget=forms.TextInput(attrs={"autocomplete": "off"}),
         label="Security name",
         help_text=(
             "The username to authenticate as.  This is required even if noAuthPriv "
@@ -139,7 +140,7 @@ class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
         ),
     )
     auth_password = forms.CharField(
-        widget=forms.PasswordInput(),
+        widget=forms.PasswordInput(render_value=True, attrs={"autocomplete": "off"}),
         label="Authentication password",
         help_text=(
             "The password to authenticate the user. Required for authNoPriv or "
@@ -157,7 +158,7 @@ class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
         required=False,
     )
     priv_password = forms.CharField(
-        widget=forms.PasswordInput(),
+        widget=forms.PasswordInput(render_value=True, attrs={"autocomplete": "off"}),
         label="Privacy password",
         help_text=(
             "The password to use for DES or AES encryption.  Required for authPriv "
