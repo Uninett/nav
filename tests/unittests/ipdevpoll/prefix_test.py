@@ -95,7 +95,12 @@ class VlanPatternTest(TestCase):
 
     def test_juniper_irb_names_should_match(self):
         match = prefix.VLAN_PATTERN.match("irb." + self.vlan)
+        self.assertEqual(match.group('vlan'), self.vlan)
 
     def test_juniper_reth_names_should_match(self):
         match = prefix.VLAN_PATTERN.match("reth0." + self.vlan)
+        self.assertEqual(match.group('vlan'), self.vlan)
+
+    def test_checkpoint_vlan_names_should_match(self):
+        match = prefix.VLAN_PATTERN.match("bond0." + self.vlan)
         self.assertEqual(match.group('vlan'), self.vlan)
