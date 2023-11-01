@@ -167,6 +167,24 @@ class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
         required=False,
     )
 
+    def clean_auth_password(self):
+        level = self.cleaned_data.get("sec_level")
+        password = self.cleaned_data.get("auth_password").strip()
+        if level.startswith("auth") and not password:
+            raise forms.ValidationError(
+                f"Authentication password must be set for security level {level}"
+            )
+        return password
+
+    def clean_priv_password(self):
+        level = self.cleaned_data.get("sec_level")
+        password = self.cleaned_data.get("priv_password").strip()
+        if level == "authPriv" and not password:
+            raise forms.ValidationError(
+                f"Privacy password must be set for security level {level}"
+            )
+        return password
+
 
 class NapalmForm(ProtocolSpecificMixIn, forms.ModelForm):
     PROTOCOL = ManagementProfile.PROTOCOL_NAPALM
