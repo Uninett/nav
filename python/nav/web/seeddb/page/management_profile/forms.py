@@ -94,6 +94,79 @@ class SnmpForm(ProtocolSpecificMixIn, forms.ModelForm):
     )
 
 
+class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
+    PROTOCOL = ManagementProfile.PROTOCOL_SNMPV3
+    PROTOCOL_NAME = PROTOCOL_CHOICES.get(PROTOCOL)
+
+    class Meta(object):
+        model = ManagementProfile
+        configuration_fields = [
+            "sec_level",
+            "auth_protocol",
+            "sec_name",
+            "auth_password",
+            "priv_protocol",
+            "priv_password",
+        ]
+        fields = []
+
+    sec_level = forms.ChoiceField(
+        label="Security level",
+        choices=(
+            ("noAuthNoPriv", "noAuthNoPriv"),
+            ("authNoPriv", "authNoPriv"),
+            ("authPriv", "authPriv"),
+        ),
+        help_text="The required SNMPv3 security level",
+    )
+    auth_protocol = forms.ChoiceField(
+        label="Authentication protocol",
+        choices=(
+            ("MD5", "MD5"),
+            ("SHA", "SHA"),
+            ("SHA-512", "SHA-512"),
+            ("SHA-384", "SHA-384"),
+            ("SHA-256", "SHA-256"),
+            ("SHA-224", "SHA-224"),
+        ),
+        help_text="Authentication protocol to use",
+    )
+    sec_name = forms.CharField(
+        label="Security name",
+        help_text=(
+            "The username to authenticate as.  This is required even if noAuthPriv "
+            "security mode is selected."
+        ),
+    )
+    auth_password = forms.CharField(
+        widget=forms.PasswordInput(),
+        label="Authentication password",
+        help_text=(
+            "The password to authenticate the user. Required for authNoPriv or "
+            "authPriv security levels."
+        ),
+        required=False,
+    )
+    priv_protocol = forms.ChoiceField(
+        label="Privacy protocol",
+        choices=(
+            ("DES", "DES"),
+            ("AES", "AES"),
+        ),
+        help_text="Privacy protocol to use.  Required for authPriv security level.",
+        required=False,
+    )
+    priv_password = forms.CharField(
+        widget=forms.PasswordInput(),
+        label="Privacy password",
+        help_text=(
+            "The password to use for DES or AES encryption.  Required for authPriv "
+            "security level."
+        ),
+        required=False,
+    )
+
+
 class NapalmForm(ProtocolSpecificMixIn, forms.ModelForm):
     PROTOCOL = ManagementProfile.PROTOCOL_NAPALM
     PROTOCOL_NAME = PROTOCOL_CHOICES.get(PROTOCOL)
