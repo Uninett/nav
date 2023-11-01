@@ -31,7 +31,7 @@ from ctypes import (
     c_ulong,
     c_uint64,
 )
-from typing import Union
+from typing import Union, Optional
 
 from IPy import IP
 from pynetsnmp import netsnmp
@@ -49,12 +49,14 @@ from pynetsnmp.netsnmp import (
 )
 
 from nav.oids import OID
+from .defines import SecurityLevel, AuthenticationProtocol, PrivacyProtocol
 from .errors import (
     EndOfMibViewError,
     NoSuchObjectError,
     SnmpError,
     TimeOutException,
     UnsupportedSnmpVersionError,
+    SNMPv3ConfigurationError,
 )
 
 PDUVarbind = namedtuple("PDUVarbind", ['oid', 'type', 'value'])
@@ -93,12 +95,25 @@ class Snmp(object):
         port: Union[str, int] = 161,
         retries: int = 3,
         timeout: int = 1,
+        # SNMPv3-only options
+        sec_level: Optional[SecurityLevel] = None,
+        auth_protocol: Optional[AuthenticationProtocol] = None,
+        sec_name: Optional[str] = None,
+        auth_password: Optional[str] = None,
+        priv_protocol: Optional[PrivacyProtocol] = None,
+        priv_password: Optional[str] = None,
     ):
         """Makes a new Snmp-object.
 
         :param host: hostname or IP address
         :param community: community (password), defaults to "public"
         :param port: udp port number, defaults to "161"
+        :param sec_level: SNMPv3 security level
+        :param auth_protocol: SNMPv3 authentication protocol
+        :param sec_name: SNMPv3 securityName
+        :param auth_password: SNMPv3 authentication password
+        :param priv_protocol: SNMPv3 privacy protocol
+        :param priv_password: SNMPv3 privacy password
 
         """
 
@@ -107,14 +122,51 @@ class Snmp(object):
         self.version = str(version)
         if self.version == '2':
             self.version = '2c'
-        if self.version not in ('1', '2c'):
+        if self.version not in ('1', '2c', '3'):
             raise UnsupportedSnmpVersionError(self.version)
         self.port = int(port)
         self.retries = retries
         self.timeout = timeout
 
+        self.sec_level = SecurityLevel(sec_level) if sec_level else None
+        self.auth_protocol = (
+            AuthenticationProtocol(auth_protocol) if auth_protocol else None
+        )
+        self.sec_name = sec_name
+        self.auth_password = auth_password
+        self.priv_protocol = PrivacyProtocol(priv_protocol) if priv_protocol else None
+        self.priv_password = priv_password
+        if self.version == "3":
+            self._verify_snmpv3_params()
+
         self.handle = _MySnmpSession(self._build_cmdline())
         self.handle.open()
+
+    def _verify_snmpv3_params(self):
+        if not self.sec_level:
+            raise SNMPv3ConfigurationError("sec_level is required to be set")
+        if not self.sec_name:
+            raise SNMPv3ConfigurationError(
+                "sec_name is required regardless of security level"
+            )
+        if self.sec_level in (SecurityLevel.AUTH_NO_PRIV, SecurityLevel.AUTH_PRIV):
+            if not self.auth_protocol:
+                raise SNMPv3ConfigurationError(
+                    f"{self.sec_level.value} requires auth_protocol to be set"
+                )
+            if not self.auth_password:
+                raise SNMPv3ConfigurationError(
+                    f"{self.sec_level.value} requires auth_password to be set"
+                )
+        if self.sec_level == SecurityLevel.AUTH_PRIV:
+            if not self.priv_protocol:
+                raise SNMPv3ConfigurationError(
+                    f"{self.sec_level.value} requires priv_protocol to be set"
+                )
+            if not self.priv_password:
+                raise SNMPv3ConfigurationError(
+                    f"{self.sec_level.value} requires priv_password to be set"
+                )
 
     def _build_cmdline(self):
         try:
