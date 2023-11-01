@@ -176,16 +176,25 @@ class Snmp(object):
         else:
             host = 'udp6:[%s]' % self.host if address.version() == 6 else self.host
 
-        return (
-            '-v' + self.version,
-            '-c',
-            self.community,
-            '-r',
-            str(self.retries),
-            '-t',
-            str(self.timeout),
-            '%s:%s' % (host, self.port),
+        params = [f"-v{self.version}"]
+
+        if self.version in ("1", "2c"):
+            params.extend(["-c", self.community])
+        elif self.version == "3":
+            params.extend(["-l", self.sec_level.value, "-u", self.sec_name])
+            if self.auth_protocol:
+                params.extend(["-a", self.auth_protocol.value])
+            if self.auth_password:
+                params.extend(["-A", self.auth_password])
+            if self.priv_protocol:
+                params.extend(["-x", self.priv_protocol.value])
+            if self.priv_password:
+                params.extend(["-X", self.priv_password])
+
+        params.extend(
+            ["-r", str(self.retries), "-t", str(self.timeout), f"{host}:{self.port}"]
         )
+        return tuple(params)
 
     def __del__(self):
         self.handle.close()
