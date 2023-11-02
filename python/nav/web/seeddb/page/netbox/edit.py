@@ -34,6 +34,7 @@ from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
 from nav.models.manage import NetboxInfo, ManagementProfile
 from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
+from nav.Snmp.profile import get_snmp_session_for_profile
 from nav import napalm
 from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
@@ -223,11 +224,7 @@ def check_snmp_version(ip, profile):
     """Check if version of snmp is supported by device"""
     sysobjectid = '1.3.6.1.2.1.1.2.0'
     try:
-        snmp = Snmp(
-            ip,
-            profile.configuration.get("community"),
-            profile.configuration.get("version"),
-        )
+        snmp = get_snmp_session_for_profile(profile)(ip)
         snmp.get(sysobjectid)
     except Exception:  # pylint: disable=W0703
         return False
@@ -256,16 +253,14 @@ def get_sysname(ip_address):
 
 def get_type_id(ip_addr, profile):
     """Gets the id of the type of the ip_addr"""
-    netbox_type = snmp_type(
-        ip_addr, profile.configuration.get("community"), profile.snmp_version
-    )
+    netbox_type = snmp_type(ip_addr, profile)
     if netbox_type:
         return netbox_type.id
 
 
-def snmp_type(ip_addr, snmp_ro, snmp_version):
+def snmp_type(ip_addr, profile: ManagementProfile):
     """Query ip for sysobjectid using form data"""
-    snmp = Snmp(ip_addr, snmp_ro, snmp_version)
+    snmp = get_snmp_session_for_profile(profile)(ip_addr)
     try:
         sysobjectid = snmp.get('.1.3.6.1.2.1.1.2.0')
     except SnmpError:
