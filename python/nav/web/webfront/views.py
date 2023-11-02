@@ -39,7 +39,8 @@ from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web.auth import ACCOUNT_ID_VAR
 from nav.web.auth import logout as auth_logout
-from nav.web import ldapauth, auth
+from nav.web import auth
+from nav.web.auth import ldap
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (
@@ -222,7 +223,7 @@ def do_login(request):
 
         try:
             account = auth.authenticate(username, password)
-        except ldapauth.Error as error:
+        except ldap.Error as error:
             errors.append('Error while talking to LDAP:\n%s' % error)
         else:
             if account:
@@ -233,7 +234,7 @@ def do_login(request):
                 try:
                     request.session[ACCOUNT_ID_VAR] = account.id
                     request.account = account
-                except ldapauth.Error as error:
+                except ldap.Error as error:
                     errors.append('Error while talking to LDAP:\n%s' % error)
                 else:
                     _logger.info("%s successfully logged in", account.login)

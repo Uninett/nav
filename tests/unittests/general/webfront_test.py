@@ -4,7 +4,7 @@ from django.test import RequestFactory
 
 import pytest
 
-import nav.web.ldapauth
+import nav.web.auth.ldap
 from nav.web import auth
 
 LDAP_ACCOUNT = auth.Account(login='knight', ext_sync='ldap', password='shrubbery')
@@ -28,23 +28,23 @@ class TestLdapAuthenticate(object):
     def test_authenticate_should_return_account_when_ldap_says_yes(self):
         ldap_user = Mock()
         ldap_user.is_admin.return_value = None  # mock to avoid database access
-        with patch("nav.web.ldapauth.available", new=True):
-            with patch("nav.web.ldapauth.authenticate", return_value=ldap_user):
+        with patch("nav.web.auth.ldap.available", new=True):
+            with patch("nav.web.auth.ldap.authenticate", return_value=ldap_user):
                 assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
 
     def test_authenticate_should_return_false_when_ldap_says_no(self):
-        with patch("nav.web.ldapauth.available", new=True):
-            with patch("nav.web.ldapauth.authenticate", return_value=False):
+        with patch("nav.web.auth.ldap.available", new=True):
+            with patch("nav.web.auth.ldap.authenticate", return_value=False):
                 assert not auth.authenticate('knight', 'shrubbery')
 
     def test_authenticate_should_fallback_when_ldap_is_disabled(self):
-        with patch("nav.web.ldapauth.available", new=False):
+        with patch("nav.web.auth.ldap.available", new=False):
             assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
 
 
 @patch("nav.web.auth.Account.save", new=MagicMock(return_value=True))
 @patch("nav.web.auth.Account.objects.get", new=MagicMock(return_value=PLAIN_ACCOUNT))
-@patch("nav.web.ldapauth.available", new=False)
+@patch("nav.web.auth.ldap.available", new=False)
 class TestNormalAuthenticate(object):
     def test_authenticate_should_return_account_when_password_is_ok(self):
         with patch("nav.web.auth.Account.check_password", return_value=True):
@@ -179,7 +179,7 @@ class TestLoginRemoteUser(object):
 
 class TestLdapUser(object):
     @patch.dict(
-        "nav.web.ldapauth._config._sections",
+        "nav.web.auth.ldap._config._sections",
         {
             'ldap': {
                 '__name__': 'ldap',
@@ -201,12 +201,12 @@ class TestLdapUser(object):
                 ]
             }
         )
-        u = nav.web.ldapauth.LDAPUser("zaphod", conn)
-        with pytest.raises(nav.web.ldapauth.UserNotFound):
+        u = nav.web.auth.ldap.LDAPUser("zaphod", conn)
+        with pytest.raises(nav.web.auth.ldap.UserNotFound):
             u.search_dn()
 
     @patch.dict(
-        "nav.web.ldapauth._config._sections",
+        "nav.web.auth.ldap._config._sections",
         {
             'ldap': {
                 '__name__': 'ldap',
@@ -228,11 +228,11 @@ class TestLdapUser(object):
                 ),
             }
         )
-        u = nav.web.ldapauth.LDAPUser(u"zaphod", conn)
+        u = nav.web.auth.ldap.LDAPUser(u"zaphod", conn)
         u.bind(u"æøå")
 
     @patch.dict(
-        "nav.web.ldapauth._config._sections",
+        "nav.web.auth.ldap._config._sections",
         {
             'ldap': {
                 '__name__': 'ldap',
@@ -257,12 +257,12 @@ class TestLdapUser(object):
                 'search_s.side_effect': fake_search,
             }
         )
-        u = nav.web.ldapauth.LDAPUser(u"Ægir", conn)
+        u = nav.web.auth.ldap.LDAPUser(u"Ægir", conn)
         u.is_group_member('cn=noc-operators,cn=groups,dc=example,dc=com')
 
 
 @patch.dict(
-    "nav.web.ldapauth._config._sections",
+    "nav.web.auth.ldap._config._sections",
     {
         'ldap': {
             '__name__': 'ldap',
@@ -278,24 +278,24 @@ class TestLdapUser(object):
 )
 class TestLdapEntitlements(object):
     def test_required_entitlement_should_be_verified(self, user_zaphod):
-        u = nav.web.ldapauth.LDAPUser("zaphod", user_zaphod)
+        u = nav.web.auth.ldap.LDAPUser("zaphod", user_zaphod)
         assert u.has_entitlement('president')
 
     def test_missing_entitlement_should_not_be_verified(self, user_marvin):
-        u = nav.web.ldapauth.LDAPUser("marvin", user_marvin)
+        u = nav.web.auth.ldap.LDAPUser("marvin", user_marvin)
         assert not u.has_entitlement('president')
 
     def test_admin_entitlement_should_be_verified(self, user_zaphod):
-        u = nav.web.ldapauth.LDAPUser("zaphod", user_zaphod)
+        u = nav.web.auth.ldap.LDAPUser("zaphod", user_zaphod)
         assert u.is_admin()
 
     def test_missing_admin_entitlement_should_be_verified(self, user_marvin):
-        u = nav.web.ldapauth.LDAPUser("marvin", user_marvin)
+        u = nav.web.auth.ldap.LDAPUser("marvin", user_marvin)
         assert not u.is_admin()
 
 
 @patch.dict(
-    "nav.web.ldapauth._config._sections",
+    "nav.web.auth.ldap._config._sections",
     {
         'ldap': {
             '__name__': 'ldap',
@@ -310,7 +310,7 @@ class TestLdapEntitlements(object):
     },
 )
 def test_no_admin_entitlement_option_should_make_no_admin_decision(user_zaphod):
-    u = nav.web.ldapauth.LDAPUser("zaphod", user_zaphod)
+    u = nav.web.auth.ldap.LDAPUser("zaphod", user_zaphod)
     assert u.is_admin() is None
 
 
