@@ -52,6 +52,7 @@ login-url=
 logout-url=
 varname=REMOTE_USER
 workaround=none
+autocreate=off
 """
 
 
@@ -78,16 +79,11 @@ def authenticate(request):
     try:
         account = Account.objects.get(login=username)
     except Account.DoesNotExist:
-        # Store the remote user in the database and return the new account
-        account = Account(login=username, name=username, ext_sync='REMOTE_USER')
-        account.set_password(fake_password(32))
-        account.save()
-        _logger.info("Created user %s from header REMOTE_USER", account.login)
-        template = 'Account "{actor}" created due to REMOTE_USER HTTP header'
-        LogEntry.add_log_entry(
-            account, 'create-account', template=template, subsystem='auth'
-        )
-        return account
+        if _config.getboolean('remote-user', 'autocreate', fallback=False):
+            return autocreate_remote_user(username)
+        # Bail out!
+        _logger.info('User creation turned off, did not create "%s"', username)
+        return False
 
     # Bail out! Potentially evil user
     if account.locked:
@@ -98,6 +94,19 @@ def authenticate(request):
         )
         return False
 
+    return account
+
+
+def autocreate_remote_user(username):
+    # Store the remote user in the database and return the new account
+    account = Account(login=username, name=username, ext_sync='REMOTE_USER')
+    account.set_password(fake_password(32))
+    account.save()
+    _logger.info("Created user %s from header REMOTE_USER", account.login)
+    template = 'Account "{actor}" created due to REMOTE_USER HTTP header'
+    LogEntry.add_log_entry(
+        account, 'create-account', template=template, subsystem='auth'
+    )
     return account
 
 
