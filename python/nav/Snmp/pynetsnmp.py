@@ -116,7 +116,7 @@ class Snmp(object):
         :param priv_password: SNMPv3 privacy password
 
         """
-
+        self.handle = None
         self.host = host
         self.community = str(community)
         self.version = str(version)
@@ -197,7 +197,8 @@ class Snmp(object):
         return tuple(params)
 
     def __del__(self):
-        self.handle.close()
+        if self.handle:
+            self.handle.close()
 
     def get(self, query="1.3.6.1.2.1.1.1.0"):
         """Performs an SNMP GET query.
