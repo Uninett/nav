@@ -31,81 +31,6 @@ from nav.portadmin.handlers import (
 from nav.portadmin.napalm.juniper import wrap_unhandled_rpc_errors, Juniper
 
 
-@pytest.fixture()
-def netbox_mock():
-    """Create netbox model mock object"""
-    netbox = Mock()
-    netbox.ip = '10.0.0.1'
-    netbox.type.get_enterprise_id.return_value = VENDOR_ID_JUNIPER_NETWORKS_INC
-    yield netbox
-
-
-@pytest.fixture()
-def profile_mock():
-    """Create management profile model mock object"""
-    profile = Mock()
-    profile.protocol = manage.ManagementProfile.PROTOCOL_NAPALM
-    profile.PROTOCOL_NAPALM = manage.ManagementProfile.PROTOCOL_NAPALM
-    profile.configuration = {"driver": "mock"}
-    yield profile
-
-
-@pytest.fixture()
-def handler_mock(netbox_mock, profile_mock):
-    """Create management handler mock object"""
-    juniper = Juniper(netbox=netbox_mock)
-    juniper._profile = profile_mock
-    yield juniper
-
-
-@pytest.fixture()
-def xml(interface1_mock):
-    """Creates a ElementTree containing poe information for one interface"""
-    tree_string = f"""
-        <poe>
-            <interface-information-detail>
-                <interface-name-detail>{interface1_mock.ifname}</interface-name-detail>
-                <interface-enabled-detail>Enabled</interface-enabled-detail>
-            </interface-information-detail>
-        </poe>"""
-    tree = etree.fromstring(tree_string)
-    yield tree
-
-
-@pytest.fixture()
-def xml_bulk(interface1_mock, interface2_mock):
-    """Creates a ElementTree containing poe information for two interfaces"""
-    tree_string = f"""
-        <poe>
-            <interface-information>
-                <interface-name>{interface1_mock.ifname}</interface-name>
-                <interface-enabled>Enabled</interface-enabled>
-            </interface-information>
-            <interface-information>
-                <interface-name>{interface2_mock.ifname}</interface-name>
-                <interface-enabled>Disabled</interface-enabled>
-            </interface-information>
-        </poe>"""
-    tree = etree.fromstring(tree_string)
-    yield tree
-
-
-@pytest.fixture()
-def interface1_mock():
-    interface = Mock()
-    interface.ifname = "ge-0/0/1"
-    interface.ifindex = 1
-    yield interface
-
-
-@pytest.fixture()
-def interface2_mock():
-    interface = Mock()
-    interface.ifname = "ge-0/0/2"
-    interface.ifindex = 2
-    yield interface
-
-
 class TestWrapUnhandledRpcErrors:
     def test_rpcerrors_should_become_protocolerrors(self):
         @wrap_unhandled_rpc_errors
@@ -207,3 +132,93 @@ class TestJuniperPoe:
         if_mock.ifindex = 0
         states = handler_mock._get_poe_state_for_multiple_interfaces([if_mock])
         assert states[if_mock.ifindex] is None
+
+    def test_get_poe_state_uses_interfaces_from_db_if_input_is_none(self):
+        pass
+
+    def test_get_poe_state_uses_interfaces_from_db_if_input_is_empty(self):
+        pass
+
+    def test_get_poe_state_raises_exception_if_no_interfaces_in_xml(self):
+        pass
+
+    def test_get_poe_state_raises_exception_if_multiple_interfaces_in_xml(self):
+        pass
+
+    def test_get_poe_states_bulk_returns_empty_dict_if_no_interfaces_in_xml(self):
+        pass
+
+
+@pytest.fixture()
+def netbox_mock():
+    """Create netbox model mock object"""
+    netbox = Mock()
+    netbox.ip = '10.0.0.1'
+    netbox.type.get_enterprise_id.return_value = VENDOR_ID_JUNIPER_NETWORKS_INC
+    yield netbox
+
+
+@pytest.fixture()
+def profile_mock():
+    """Create management profile model mock object"""
+    profile = Mock()
+    profile.protocol = manage.ManagementProfile.PROTOCOL_NAPALM
+    profile.PROTOCOL_NAPALM = manage.ManagementProfile.PROTOCOL_NAPALM
+    profile.configuration = {"driver": "mock"}
+    yield profile
+
+
+@pytest.fixture()
+def handler_mock(netbox_mock, profile_mock):
+    """Create management handler mock object"""
+    juniper = Juniper(netbox=netbox_mock)
+    juniper._profile = profile_mock
+    yield juniper
+
+
+@pytest.fixture()
+def xml(interface1_mock):
+    """Creates a ElementTree containing poe information for one interface"""
+    tree_string = f"""
+        <poe>
+            <interface-information-detail>
+                <interface-name-detail>{interface1_mock.ifname}</interface-name-detail>
+                <interface-enabled-detail>Enabled</interface-enabled-detail>
+            </interface-information-detail>
+        </poe>"""
+    tree = etree.fromstring(tree_string)
+    yield tree
+
+
+@pytest.fixture()
+def xml_bulk(interface1_mock, interface2_mock):
+    """Creates a ElementTree containing poe information for two interfaces"""
+    tree_string = f"""
+        <poe>
+            <interface-information>
+                <interface-name>{interface1_mock.ifname}</interface-name>
+                <interface-enabled>Enabled</interface-enabled>
+            </interface-information>
+            <interface-information>
+                <interface-name>{interface2_mock.ifname}</interface-name>
+                <interface-enabled>Disabled</interface-enabled>
+            </interface-information>
+        </poe>"""
+    tree = etree.fromstring(tree_string)
+    yield tree
+
+
+@pytest.fixture()
+def interface1_mock():
+    interface = Mock()
+    interface.ifname = "ge-0/0/1"
+    interface.ifindex = 1
+    yield interface
+
+
+@pytest.fixture()
+def interface2_mock():
+    interface = Mock()
+    interface.ifname = "ge-0/0/2"
+    interface.ifindex = 2
+    yield interface
