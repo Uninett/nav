@@ -38,13 +38,7 @@ except ImportError:  # Django <= 1.9
 from nav.auditlog.models import LogEntry
 from nav.django.utils import is_admin, get_account
 from nav.models.profiles import Account, AccountGroup
-from nav.web.auth import ldap
-from nav.web.auth.remote_user import (
-    authenticate_remote_user,
-    get_remote_loginurl,
-    get_remote_logouturl,
-    get_remote_username,
-)
+from nav.web.auth import ldap, remote_user
 
 
 _logger = logging.getLogger(__name__)
@@ -146,13 +140,13 @@ def get_login_url(request):
         default_new_url = LOGIN_URL
     else:
         default_new_url = '{0}?origin={1}&noaccess'.format(LOGIN_URL, path)
-    remote_loginurl = get_remote_loginurl(request)
+    remote_loginurl = remote_user.get_loginurl(request)
     return remote_loginurl if remote_loginurl else default_new_url
 
 
 def get_logout_url(request):
     """Calculate which logout_url to use"""
-    remote_logouturl = get_remote_logouturl(request)
+    remote_logouturl = remote_user.get_logouturl(request)
     if remote_logouturl and remote_logouturl.endswith('='):
         remote_logouturl += request.build_absolute_uri(LOGOUT_URL)
     return remote_logouturl if remote_logouturl else LOGOUT_URL
@@ -181,7 +175,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
             request.get_full_path(),
         )
 
-        remote_username = get_remote_username(request)
+        remote_username = remote_user.get_username(request)
         if remote_username:
             _logger.debug(
                 ('AuthenticationMiddleware: ' '(REMOTE_USER: "%s") from "%s"'),
@@ -232,10 +226,10 @@ def login_remote_user(request):
     :return: Account for remote user, or None
     :rtype: Account, None
     """
-    remote_username = get_remote_username(request)
+    remote_username = remote_user.get_username(request)
     if remote_username:
         # Get or create an account from the REMOTE_USER http header
-        account = authenticate_remote_user(request)
+        account = remote_user.authenticate(request)
         if account:
             request.session[ACCOUNT_ID_VAR] = account.id
             request.account = account

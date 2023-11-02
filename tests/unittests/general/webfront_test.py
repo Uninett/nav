@@ -6,6 +6,8 @@ import pytest
 
 import nav.web.auth.ldap
 from nav.web import auth
+from nav.web.auth import remote_user
+from nav.web.auth.utils import ACCOUNT_ID_VAR
 
 LDAP_ACCOUNT = auth.Account(login='knight', ext_sync='ldap', password='shrubbery')
 PLAIN_ACCOUNT = auth.Account(login='knight', password='shrubbery')
@@ -60,30 +62,30 @@ class TestRemoteUserAuthenticate(object):
         r = RequestFactory()
         request = r.get('/')
         request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth._config.getboolean", return_value=True):
+        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
             with patch(
                 "nav.web.auth.Account.objects.get",
                 new=MagicMock(return_value=REMOTE_USER_ACCOUNT),
             ):
-                assert auth.authenticate_remote_user(request) == REMOTE_USER_ACCOUNT
+                assert remote_user.authenticate(request) == REMOTE_USER_ACCOUNT
 
     def test_authenticate_remote_user_should_return_none_if_header_not_set(self):
         r = RequestFactory()
         request = r.get('/')
-        with patch("nav.web.auth._config.getboolean", return_value=True):
-            assert auth.authenticate_remote_user(request) == None
+        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
+            assert remote_user.authenticate(request) == None
 
     def test_authenticate_remote_user_should_return_false_if_account_locked(self):
         r = RequestFactory()
         request = r.get('/')
         request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth._config.getboolean", return_value=True):
+        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
             with patch(
                 "nav.web.auth.Account.objects.get", return_value=REMOTE_USER_ACCOUNT
             ):
                 with patch("nav.web.auth.LogEntry.add_log_entry"):
                     with patch("nav.web.auth.Account.locked", return_value=True):
-                        assert auth.authenticate_remote_user(request) == False
+                        assert remote_user.authenticate(request) == False
 
 
 class TestGetStandardUrls(object):
@@ -94,12 +96,12 @@ class TestGetStandardUrls(object):
         result = auth.get_login_url(request)
         assert result.startswith(raw_login_url)
 
-    def test_get_login_url_remote_login_url(self):
+    def test_get_remote_login_url(self):
         r = RequestFactory()
         request = r.get('/')
         request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth._config.getboolean", return_value=True):
-            with patch("nav.web.auth._config.get", return_value='foo'):
+        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
+            with patch("nav.web.auth.remote_user._config.get", return_value='foo'):
                 result = auth.get_login_url(request)
                 assert result == 'foo'
 
@@ -109,42 +111,42 @@ class TestGetStandardUrls(object):
         result = auth.get_logout_url(request)
         assert result == auth.LOGOUT_URL
 
-    def test_get_logout_url_remote_logout_url(self):
+    def test_get_remote_logout_url(self):
         r = RequestFactory()
         request = r.get('/')
         request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth._config.getboolean", return_value=True):
-            with patch("nav.web.auth._config.get", return_value='foo'):
+        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
+            with patch("nav.web.auth.remote_user._config.get", return_value='foo'):
                 result = auth.get_logout_url(request)
                 assert result == 'foo'
 
 
 class TestGetRemoteUsername(object):
     def test_no_request(self):
-        with patch("nav.web.auth._config.getboolean", return_value=False):
-            result = auth.get_remote_username(None)
+        with patch("nav.web.auth.remote_user._config.getboolean", return_value=False):
+            result = remote_user.get_username(None)
             assert result is None
 
     def test_not_enabled(self):
         r = RequestFactory()
         request = r.get('/')
-        with patch("nav.web.auth._config.getboolean", return_value=False):
-            result = auth.get_remote_username(request)
+        with patch("nav.web.auth.remote_user._config.getboolean", return_value=False):
+            result = remote_user.get_username(request)
             assert result is None
 
     def test_enabled_but_remote_user_unset(self):
         r = RequestFactory()
         request = r.get('/')
-        with patch("nav.web.auth._config.getboolean", return_value=True):
-            result = auth.get_remote_username(request)
+        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
+            result = remote_user.get_username(request)
             assert result is None
 
     def test_enabled_and_remote_user_set(self):
         r = RequestFactory()
         request = r.get('/')
         request.META['REMOTE_USER'] = 'knight'
-        with patch("nav.web.auth._config.getboolean", return_value=True):
-            result = auth.get_remote_username(request)
+        with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
+            result = remote_user.get_username(request)
             assert result == 'knight'
 
 
@@ -153,8 +155,8 @@ class TestLoginRemoteUser(object):
         r = RequestFactory()
         request = r.get('/')
         request.session = FakeSession()
-        with patch("nav.web.auth.get_remote_username", return_value=False):
-            auth.login_remote_user(request)
+        with patch("nav.web.auth.remote_user.get_username", return_value=False):
+            remote_user.login(request)
             assert not getattr(request, 'account', False)
             assert auth.ACCOUNT_ID_VAR not in request.session
 
@@ -162,12 +164,12 @@ class TestLoginRemoteUser(object):
         r = RequestFactory()
         request = r.get('/')
         request.session = FakeSession()
-        with patch("nav.web.auth.get_remote_username", return_value=True):
+        with patch("nav.web.auth.remote_user.get_username", return_value=True):
             with patch(
-                "nav.web.auth.authenticate_remote_user",
+                "nav.web.auth.remote_user.authenticate",
                 return_value=REMOTE_USER_ACCOUNT,
             ):
-                auth.login_remote_user(request)
+                remote_user.login(request)
                 assert hasattr(request, 'account')
                 assert request.account == REMOTE_USER_ACCOUNT
                 assert auth.ACCOUNT_ID_VAR in request.session
