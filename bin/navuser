@@ -77,6 +77,11 @@ def adduser(args):
     print(msg % args.login, file=sys.stderr)
 
 
+def removeuser(args):
+    args.login.delete()
+    print("User %s has been removed" % args.login.login, file=sys.stderr)
+
+
 def adminify(args):
     action = args.action
     try:
@@ -215,6 +220,12 @@ def parse_args():
         '--admin', action='store_true', help="Give the user full admin access"
     )
     addparser.set_defaults(func=adduser)
+
+    removeparser = subparsers.add_parser('remove', help='Removes a user')
+    removeparser.set_defaults(func=removeuser)
+    removeparser.add_argument(
+        'login', type=usergetter, help="The login name of the user"
+    )
 
     adminifyparser = subparsers.add_parser(
         'admin', help='Sets whether an existing user belongs to the admin group'
