@@ -38,7 +38,7 @@ except ImportError:  # Django <= 1.9
 from nav.auditlog.models import LogEntry
 from nav.django.utils import is_admin, get_account
 from nav.models.profiles import Account, AccountGroup
-from nav.web import ldapauth
+from nav.web.auth import ldap
 from nav.web.auth.remote_user import (
     authenticate_remote_user,
     get_remote_loginurl,
@@ -83,8 +83,8 @@ def authenticate(username, password):
     try:
         account = Account.objects.get(login__iexact=username)
     except Account.DoesNotExist:
-        if ldapauth.available:
-            user = ldapauth.authenticate(username, password)
+        if ldap.available:
+            user = ldap.authenticate(username, password)
             # If we authenticated, store the user in database.
             if user:
                 account = Account(
@@ -102,13 +102,13 @@ def authenticate(username, password):
     if (
         account
         and account.ext_sync == 'ldap'
-        and ldapauth.available
+        and ldap.available
         and not auth
         and not account.locked
     ):
         try:
-            auth = ldapauth.authenticate(username, password)
-        except ldapauth.NoAnswerError:
+            auth = ldap.authenticate(username, password)
+        except ldap.NoAnswerError:
             # Fallback to stored password if ldap is unavailable
             auth = False
         else:

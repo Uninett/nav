@@ -25,7 +25,7 @@ from os.path import join
 import nav.errors
 from nav.config import NAVConfigParser
 
-_logger = logging.getLogger("nav.web.ldapauth")
+_logger = logging.getLogger(__name__)
 
 
 # Set default config params and read rest from file
