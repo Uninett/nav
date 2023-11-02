@@ -37,7 +37,7 @@ from django.utils.http import urlquote
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
-from nav.web.auth import ACCOUNT_ID_VAR
+from nav.web.auth.utils import ACCOUNT_ID_VAR
 from nav.web.auth import logout as auth_logout
 from nav.web import auth
 from nav.web.auth import ldap

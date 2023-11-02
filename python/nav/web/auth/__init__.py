@@ -36,16 +36,14 @@ except ImportError:  # Django <= 1.9
 
 
 from nav.auditlog.models import LogEntry
-from nav.django.utils import is_admin, get_account
 from nav.models.profiles import Account, AccountGroup
 from nav.web.auth import ldap, remote_user
+from nav.web.auth.sudo import desudo, get_sudoer
+from nav.web.auth.utils import _set_account, ACCOUNT_ID_VAR
 
 
 _logger = logging.getLogger(__name__)
 
-
-ACCOUNT_ID_VAR = 'account_id'
-SUDOER_ID_VAR = 'sudoer'
 
 # This may seem like redundant information, but it seems django's reverse
 # will hang under some usages of these middleware classes - so until we figure
@@ -55,13 +53,6 @@ LOGIN_URL = '/index/login/'
 # If the entire site is protected via remote_user, this link must be outside
 # that protection!
 LOGOUT_URL = '/index/logout/'
-
-
-def _set_account(request, account):
-    request.session[ACCOUNT_ID_VAR] = account.id
-    request.account = account
-    _logger.debug('Set active account to "%s"', account.login)
-    request.session.save()
 
 
 def authenticate(username, password):
@@ -184,7 +175,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
             )
             if logged_in.id == Account.DEFAULT_ACCOUNT:
                 # Switch from anonymous to REMOTE_USER
-                login_remote_user(request)
+                remote_user.login(request)
             elif remote_username != logged_in.login:
                 # REMOTE_USER has changed, logout
                 logout(request, sudo=bool(sudo_operator))
@@ -218,23 +209,6 @@ def ensure_account(request):
         account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
 
     _set_account(request, account)
-
-
-def login_remote_user(request):
-    """Log in the user in REMOTE_USER, if any and enabled
-
-    :return: Account for remote user, or None
-    :rtype: Account, None
-    """
-    remote_username = remote_user.get_username(request)
-    if remote_username:
-        # Get or create an account from the REMOTE_USER http header
-        account = remote_user.authenticate(request)
-        if account:
-            request.session[ACCOUNT_ID_VAR] = account.id
-            request.account = account
-            return account
-    return None
 
 
 class AuthorizationMiddleware(MiddlewareMixin):
@@ -308,89 +282,6 @@ def logout(request, sudo=False):
         LogEntry.add_log_entry(account, 'log-out', '{actor} logged out', before=account)
     _logger.debug('logout: redirect to "/" after logout')
     return u'/'
-
-
-#
-# sudo-related functionality
-#
-
-
-def sudo(request, other_user):
-    """Switches the current session to become other_user"""
-    if SUDOER_ID_VAR in request.session:
-        # Already logged in as another user.
-        raise SudoRecursionError()
-    if not is_admin(get_account(request)):
-        # Check if sudoer is acctually admin
-        raise SudoNotAdminError()
-    original_user = request.account
-    request.session[SUDOER_ID_VAR] = original_user.id
-    _set_account(request, other_user)
-    _logger.info('Sudo: "%s" acting as "%s"', original_user, other_user)
-    _logger.debug(
-        'Sudo: (session: %s, account: %s)', dict(request.session), request.account
-    )
-    LogEntry.add_log_entry(
-        original_user,
-        'sudo',
-        '{actor} sudoed to {target}',
-        subsystem='auth',
-        target=other_user,
-    )
-
-
-def desudo(request):
-    """Switches the current session to become the original user from before a
-    call to sudo().
-
-    """
-    if SUDOER_ID_VAR not in request.session:
-        # We are not sudoing
-        return
-
-    other_user = request.account
-    original_user_id = request.session[SUDOER_ID_VAR]
-    original_user = Account.objects.get(id=original_user_id)
-
-    del request.session[ACCOUNT_ID_VAR]
-    del request.session[SUDOER_ID_VAR]
-    _set_account(request, original_user)
-    _logger.info(
-        'DeSudo: "%s" no longer acting as "%s"', original_user, request.account
-    )
-    _logger.debug(
-        'DeSudo: (session: %s, account: %s)', dict(request.session), request.account
-    )
-    LogEntry.add_log_entry(
-        original_user,
-        'desudo',
-        '{actor} no longer sudoed as {target}',
-        subsystem='auth',
-        target=other_user,
-    )
-
-
-def get_sudoer(request):
-    """Returns a sudoer's Account, if current session is in sudo-mode"""
-    if SUDOER_ID_VAR in request.session:
-        return Account.objects.get(id=request.session[SUDOER_ID_VAR])
-
-
-class SudoRecursionError(Exception):
-    msg = u"Already posing as another user"
-
-    def __str__(self):
-        return self.msg
-
-
-class SudoNotAdminError(Exception):
-    msg = u"Not admin"
-
-    def __str__(self):
-        return self.msg
-
-
-# For testing
 
 
 def create_session_cookie(username):

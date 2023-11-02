@@ -158,7 +158,7 @@ class TestLoginRemoteUser(object):
         with patch("nav.web.auth.remote_user.get_username", return_value=False):
             remote_user.login(request)
             assert not getattr(request, 'account', False)
-            assert auth.ACCOUNT_ID_VAR not in request.session
+            assert ACCOUNT_ID_VAR not in request.session
 
     def test_remote_user_set(self):
         r = RequestFactory()
@@ -172,10 +172,9 @@ class TestLoginRemoteUser(object):
                 remote_user.login(request)
                 assert hasattr(request, 'account')
                 assert request.account == REMOTE_USER_ACCOUNT
-                assert auth.ACCOUNT_ID_VAR in request.session
+                assert ACCOUNT_ID_VAR in request.session
                 assert (
-                    request.session.get(auth.ACCOUNT_ID_VAR, None)
-                    == REMOTE_USER_ACCOUNT.id
+                    request.session.get(ACCOUNT_ID_VAR, None) == REMOTE_USER_ACCOUNT.id
                 )
 
 

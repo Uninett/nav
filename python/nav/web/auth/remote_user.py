@@ -20,6 +20,7 @@ from os.path import join
 from nav.auditlog.models import LogEntry
 from nav.config import NAVConfigParser
 from nav.models.profiles import Account
+from nav.web.auth.utils import ACCOUNT_ID_VAR
 
 try:
     # Python 3.6+
@@ -96,6 +97,23 @@ def authenticate(request):
         return False
 
     return account
+
+
+def login(request):
+    """Log in the user in REMOTE_USER, if any and enabled
+
+    :return: Account for remote user, or None
+    :rtype: Account, None
+    """
+    remote_username = get_username(request)
+    if remote_username:
+        # Get or create an account from the REMOTE_USER http header
+        account = authenticate(request)
+        if account:
+            request.session[ACCOUNT_ID_VAR] = account.id
+            request.account = account
+            return account
+    return None
 
 
 def get_loginurl(request):
