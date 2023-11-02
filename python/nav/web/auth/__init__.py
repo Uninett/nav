@@ -24,8 +24,6 @@ import logging
 
 from urllib import parse
 
-from django.conf import settings
-from django.contrib.sessions.backends.db import SessionStore
 from django.urls import reverse
 
 from nav.auditlog.models import LogEntry
@@ -157,24 +155,3 @@ def logout(request, sudo=False):
         LogEntry.add_log_entry(account, 'log-out', '{actor} logged out', before=account)
     _logger.debug('logout: redirect to "/" after logout')
     return u'/'
-
-
-def create_session_cookie(username):
-    """Creates an active session for username and returns the resulting
-    session cookie.
-
-    This is useful to fake login sessions during testing.
-
-    """
-    user = Account.objects.get(login=username)
-    session = SessionStore()
-    session[ACCOUNT_ID_VAR] = user.id
-    session.save()
-
-    cookie = {
-        'name': settings.SESSION_COOKIE_NAME,
-        'value': session.session_key,
-        'secure': False,
-        'path': '/',
-    }
-    return cookie
