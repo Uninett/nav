@@ -1,1 +1,1 @@
-{{ metric }} exceeded at {{ measured_value }} {{ alert|safe }} on {{ time }}.
+{{ metric }} exceeded at {{ measured_value }} {{ alert|safe }} on {{ time }}{% if description %} ({{ description }}){% endif %}.
