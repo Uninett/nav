@@ -26,20 +26,13 @@ from urllib import parse
 
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
-from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
-
-try:
-    from django.utils.deprecation import MiddlewareMixin
-except ImportError:  # Django <= 1.9
-    MiddlewareMixin = object
-
 
 from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account, AccountGroup
 from nav.web.auth import ldap, remote_user
-from nav.web.auth.sudo import desudo, get_sudoer
-from nav.web.auth.utils import _set_account, ACCOUNT_ID_VAR
+from nav.web.auth.sudo import desudo
+from nav.web.auth.utils import ACCOUNT_ID_VAR
 
 
 _logger = logging.getLogger(__name__)
@@ -141,124 +134,6 @@ def get_logout_url(request):
     if remote_logouturl and remote_logouturl.endswith('='):
         remote_logouturl += request.build_absolute_uri(LOGOUT_URL)
     return remote_logouturl if remote_logouturl else LOGOUT_URL
-
-
-# Middleware
-
-
-class AuthenticationMiddleware(MiddlewareMixin):
-    def process_request(self, request):
-        _logger.debug(
-            'AuthenticationMiddleware ENTER (session: %s, account: %s) from "%s"',
-            dict(request.session),
-            getattr(request, 'account', 'NOT SET'),
-            request.get_full_path(),
-        )
-        ensure_account(request)
-
-        account = request.account
-        sudo_operator = get_sudoer(request)  # Account or None
-        logged_in = sudo_operator or account
-        _logger.debug(
-            ('AuthenticationMiddleware ' '(logged_in: "%s" acting as "%s") from "%s"'),
-            logged_in.login,
-            account.login,
-            request.get_full_path(),
-        )
-
-        remote_username = remote_user.get_username(request)
-        if remote_username:
-            _logger.debug(
-                ('AuthenticationMiddleware: ' '(REMOTE_USER: "%s") from "%s"'),
-                remote_username,
-                request.get_full_path(),
-            )
-            if logged_in.id == Account.DEFAULT_ACCOUNT:
-                # Switch from anonymous to REMOTE_USER
-                remote_user.login(request)
-            elif remote_username != logged_in.login:
-                # REMOTE_USER has changed, logout
-                logout(request, sudo=bool(sudo_operator))
-                sudo_operator = None
-                # Activate anonymous account for AuthorizationMiddleware's sake
-                ensure_account(request)
-
-        if sudo_operator is not None:
-            request.account.sudo_operator = sudo_operator
-
-        _logger.debug(
-            'AuthenticationMiddleware EXIT (session: %s, account: %s) from "%s"',
-            dict(request.session),
-            getattr(request, 'account', 'NOT SET'),
-            request.get_full_path(),
-        )
-
-
-def ensure_account(request):
-    """Guarantee that valid request.account is set"""
-    session = request.session
-
-    if not ACCOUNT_ID_VAR in session:
-        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
-
-    account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
-
-    if account.locked:
-        # Switch back to fallback, the anonymous user
-        # Assumes nobody has locked it..
-        account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
-
-    _set_account(request, account)
-
-
-class AuthorizationMiddleware(MiddlewareMixin):
-    def process_request(self, request):
-        account = request.account
-
-        authorized = authorization_not_required(
-            request.get_full_path()
-        ) or account.has_perm('web_access', request.get_full_path())
-        if not authorized:
-            _logger.warning(
-                "User %s denied access to %s", account.login, request.get_full_path()
-            )
-            return self.redirect_to_login(request)
-        else:
-            if not account.is_default_account():
-                os.environ['REMOTE_USER'] = account.login
-            elif 'REMOTE_USER' in os.environ:
-                del os.environ['REMOTE_USER']
-
-    def redirect_to_login(self, request):
-        """Redirects a request to the NAV login page, unless it was detected
-        to be an AJAX request, in which case return a 401 Not Authorized
-        response.
-
-        """
-        if request.is_ajax():
-            return HttpResponse(status=401)
-
-        new_url = get_login_url(request)
-        return HttpResponseRedirect(new_url)
-
-
-def authorization_not_required(fullpath):
-    """Checks is authorization is required for the requested url
-
-    Should the user be able to decide this? Currently not.
-
-    """
-    auth_not_required = [
-        '/api/',
-        '/doc/',  # No auth/different auth system
-        '/about/',
-        '/index/login/',
-        '/refresh_session',
-    ]
-    for url in auth_not_required:
-        if fullpath.startswith(url):
-            _logger.debug('authorization_not_required: %s', url)
-            return True
 
 
 def logout(request, sudo=False):
