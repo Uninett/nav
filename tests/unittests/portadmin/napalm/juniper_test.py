@@ -27,6 +27,8 @@ from nav.portadmin.handlers import (
     DeviceNotConfigurableError,
     ProtocolError,
     POEStateNotSupportedError,
+    POENotSupportedError,
+    XMLParseError,
 )
 from nav.portadmin.napalm.juniper import wrap_unhandled_rpc_errors, Juniper
 
@@ -106,55 +108,85 @@ class TestJuniperPoe:
         with pytest.raises(POEStateNotSupportedError):
             handler_mock._poe_string_to_state("invalid_state")
 
-    def test_get_poe_state_for_single_interface_returns_correct_state(
+    def test_get_poe_states_uses_interfaces_from_db_if_input_is_none(
+        self, handler_mock, xml_bulk
+    ):
+        expected_interfaces = handler_mock.netbox.interfaces
+        handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
+        return_dict = handler_mock.get_poe_states()
+        for interface in expected_interfaces:
+            assert interface.ifindex in return_dict
+
+    def test_get_poe_states_uses_interfaces_from_db_if_input_is_empty(
+        self, handler_mock, xml_bulk
+    ):
+        expected_interfaces = handler_mock.netbox.interfaces
+        handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
+        return_dict = handler_mock.get_poe_states([])
+        for interface in expected_interfaces:
+            assert interface.ifindex in return_dict
+
+
+class TestGetSinglePoeState:
+    def test_returns_correct_state_for_interface_that_exists_in_xml_response(
         self, handler_mock, xml, interface1_mock
     ):
         handler_mock._get_poe_interface_information = Mock(return_value=xml)
-        state = handler_mock._get_poe_state_for_single_interface(interface1_mock)
+        state = handler_mock._get_single_poe_state(interface1_mock)
         assert state == Juniper.POE_ENABLED
 
-    def test_get_poe_state_for_multiple_interfaces_returns_correct_states(
+    def test_raises_exception_if_no_interfaces_in_xml(
+        self, handler_mock, interface1_mock, xml_empty
+    ):
+        handler_mock._get_poe_interface_information = Mock(return_value=xml_empty)
+        with pytest.raises(POENotSupportedError):
+            handler_mock._get_single_poe_state(interface1_mock)
+
+    def test_raises_exception_if_multiple_interfaces_in_xml(
+        self, handler_mock, interface1_mock, xml_bulk_wrong_format
+    ):
+        handler_mock._get_poe_interface_information = Mock(
+            return_value=xml_bulk_wrong_format
+        )
+        with pytest.raises(XMLParseError):
+            handler_mock._get_single_poe_state(interface1_mock)
+
+
+class TestGetPoeStatesBulk:
+    def test_returns_correct_states(
         self, handler_mock, xml_bulk, interface1_mock, interface2_mock
     ):
         handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
-        states = handler_mock._get_poe_state_for_multiple_interfaces(
-            [interface1_mock, interface2_mock]
-        )
+        states = handler_mock._get_poe_states_bulk([interface1_mock, interface2_mock])
         assert states[interface1_mock.ifindex] == Juniper.POE_ENABLED
         assert states[interface2_mock.ifindex] == Juniper.POE_DISABLED
 
-    def test_get_poe_states_for_multiple_interfaces_maps_interface_to_none_if_poe_not_supported(
-        self, handler_mock, xml_bulk
-    ):
+    def test_maps_interface_to_none_if_poe_not_supported(self, handler_mock, xml_bulk):
         handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
         if_mock = Mock()
         if_mock.ifname == "random_if"
         if_mock.ifindex = 0
-        states = handler_mock._get_poe_state_for_multiple_interfaces([if_mock])
+        states = handler_mock._get_poe_states_bulk([if_mock])
         assert states[if_mock.ifindex] is None
 
-    def test_get_poe_state_uses_interfaces_from_db_if_input_is_none(self):
-        pass
-
-    def test_get_poe_state_uses_interfaces_from_db_if_input_is_empty(self):
-        pass
-
-    def test_get_poe_state_raises_exception_if_no_interfaces_in_xml(self):
-        pass
-
-    def test_get_poe_state_raises_exception_if_multiple_interfaces_in_xml(self):
-        pass
-
-    def test_get_poe_states_bulk_returns_empty_dict_if_no_interfaces_in_xml(self):
-        pass
+    def test_returns_none_values_if_no_interfaces_in_xml(
+        self, handler_mock, interface1_mock, interface2_mock, xml_empty
+    ):
+        handler_mock._get_all_poe_interface_information = Mock(return_value=xml_empty)
+        return_dict = handler_mock._get_poe_states_bulk(
+            [interface1_mock, interface2_mock]
+        )
+        assert return_dict[interface1_mock.ifindex] is None
+        assert return_dict[interface2_mock.ifindex] is None
 
 
 @pytest.fixture()
-def netbox_mock():
+def netbox_mock(interface1_mock, interface2_mock):
     """Create netbox model mock object"""
     netbox = Mock()
     netbox.ip = '10.0.0.1'
     netbox.type.get_enterprise_id.return_value = VENDOR_ID_JUNIPER_NETWORKS_INC
+    netbox.interfaces = [interface1_mock, interface2_mock]
     yield netbox
 
 
@@ -191,6 +223,26 @@ def xml(interface1_mock):
 
 
 @pytest.fixture()
+def xml_bulk_wrong_format(interface1_mock, interface2_mock):
+    """Creates a ElementTree with the format meant for a single interface in the response,
+    but it contains poe information for two interfaces
+    """
+    tree_string = f"""
+        <poe>
+            <interface-information-detail>
+                <interface-name-detail>{interface1_mock.ifname}</interface-name-detail>
+                <interface-enabled-detail>Enabled</interface-enabled-detail>
+            </interface-information-detail>
+            <interface-information-detail>
+                <interface-name-detail>{interface2_mock.ifname}</interface-name-detail>
+                <interface-enabled-detail>Enabled</interface-enabled-detail>
+            </interface-information-detail>
+        </poe>"""
+    tree = etree.fromstring(tree_string)
+    yield tree
+
+
+@pytest.fixture()
 def xml_bulk(interface1_mock, interface2_mock):
     """Creates a ElementTree containing poe information for two interfaces"""
     tree_string = f"""
@@ -203,6 +255,16 @@ def xml_bulk(interface1_mock, interface2_mock):
                 <interface-name>{interface2_mock.ifname}</interface-name>
                 <interface-enabled>Disabled</interface-enabled>
             </interface-information>
+        </poe>"""
+    tree = etree.fromstring(tree_string)
+    yield tree
+
+
+@pytest.fixture()
+def xml_empty():
+    """Creates a ElementTree containing no poe state for any interface"""
+    tree_string = f"""
+        <poe>
         </poe>"""
     tree = etree.fromstring(tree_string)
     yield tree
