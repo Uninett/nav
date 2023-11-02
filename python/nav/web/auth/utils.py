@@ -16,6 +16,9 @@
 
 import logging
 
+from django.conf import settings
+from django.contrib.sessions.backends.db import SessionStore
+
 from nav.models.profiles import Account
 
 
@@ -66,3 +69,24 @@ def authorization_not_required(fullpath):
         if fullpath.startswith(url):
             _logger.debug('authorization_not_required: %s', url)
             return True
+
+
+def create_session_cookie(username):
+    """Creates an active session for username and returns the resulting
+    session cookie.
+
+    This is useful to fake login sessions during testing.
+
+    """
+    user = Account.objects.get(login=username)
+    session = SessionStore()
+    session[ACCOUNT_ID_VAR] = user.id
+    session.save()
+
+    cookie = {
+        'name': settings.SESSION_COOKIE_NAME,
+        'value': session.session_key,
+        'secure': False,
+        'path': '/',
+    }
+    return cookie
