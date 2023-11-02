@@ -341,7 +341,9 @@ class ProtocolError(ManagementError):
 
 
 class POENotSupportedError(ManagementError):
-    """Raised when an interface that does not support PoE is used in a context where PoE support is expected"""
+    """Raised when an interface that does not support PoE is used in a context
+    where PoE support is expected
+    """
 
 
 class POEStateNotSupportedError(ManagementError):
