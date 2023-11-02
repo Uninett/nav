@@ -37,6 +37,9 @@ except ImportError:
         return u"".join(choice(symbols) for i in range(length))
 
 
+__all__ = []
+
+
 class RemoteUserConfigParser(NAVConfigParser):
     DEFAULT_CONFIG_FILES = [join('webfront', 'webfront.conf')]
     DEFAULT_CONFIG = u"""
@@ -53,7 +56,7 @@ _logger = logging.getLogger(__name__)
 _config = RemoteUserConfigParser()
 
 
-def authenticate_remote_user(request):
+def authenticate(request):
     """Authenticate username from http header REMOTE_USER
 
     Returns:
@@ -63,7 +66,7 @@ def authenticate_remote_user(request):
              Otherwise, None.
     :rtype: Account, False, None
     """
-    username = get_remote_username(request)
+    username = get_username(request)
     if not username:
         return None
 
@@ -95,7 +98,7 @@ def authenticate_remote_user(request):
     return account
 
 
-def get_remote_loginurl(request):
+def get_loginurl(request):
     """Return a url (if set) to log in to/via a remote service
 
     :return: Either a string with an url, or None.
@@ -104,7 +107,7 @@ def get_remote_loginurl(request):
     return get_remote_url(request, 'login-url')
 
 
-def get_remote_logouturl(request):
+def get_logouturl(request):
     """Return a url (if set) to log out to/via a remote service
 
     :return: Either a string with an url, or None.
@@ -132,7 +135,7 @@ def get_remote_url(request, urltype):
     return remote_url
 
 
-def get_remote_username(request):
+def get_username(request):
     """Return the username in REMOTE_USER if set and enabled
 
     :return: The username in REMOTE_USER if any, or None.
