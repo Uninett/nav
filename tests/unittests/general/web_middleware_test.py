@@ -3,8 +3,8 @@ import os
 
 from django.test import RequestFactory
 
-from nav.web.auth import ACCOUNT_ID_VAR
-from nav.web.auth import SUDOER_ID_VAR
+from nav.web.auth.utils import ACCOUNT_ID_VAR
+from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth import AuthenticationMiddleware
 from nav.web.auth import AuthorizationMiddleware
 from nav.web.auth import logout
@@ -159,7 +159,9 @@ class TestAuthenticationMiddleware(object):
                     side_effect=auth._set_account(fake_request, ANOTHER_PLAIN_ACCOUNT),
                 ):
                     with patch('nav.web.auth.logout'):
-                        AuthenticationMiddleware(lambda x: x).process_request(fake_request)
+                        AuthenticationMiddleware(lambda x: x).process_request(
+                            fake_request
+                        )
                         assert fake_request.account == ANOTHER_PLAIN_ACCOUNT
                         assert (
                             ACCOUNT_ID_VAR in fake_request.session
@@ -199,7 +201,9 @@ class TestAuthorizationMiddleware(object):
                     'nav.web.auth.AuthorizationMiddleware.redirect_to_login',
                     return_value='here',
                 ):
-                    result = AuthorizationMiddleware(lambda x: x).process_request(fake_request)
+                    result = AuthorizationMiddleware(lambda x: x).process_request(
+                        fake_request
+                    )
                     assert result == 'here'
                     assert os.environ.get('REMOTE_USER', None) != PLAIN_ACCOUNT.login
 

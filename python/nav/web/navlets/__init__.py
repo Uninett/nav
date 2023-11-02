@@ -58,7 +58,7 @@ from django.views.generic.base import TemplateView
 
 from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
-from nav.web.auth import get_sudoer
+from nav.web.auth.sudo import get_sudoer
 from nav.django.utils import get_account
 from nav.web.utils import require_param
 from nav.web.webfront import find_dashboard
