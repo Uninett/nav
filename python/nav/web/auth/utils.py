@@ -16,6 +16,8 @@
 
 import logging
 
+from nav.models.profiles import Account
+
 
 _logger = logging.getLogger(__name__)
 
@@ -28,3 +30,39 @@ def _set_account(request, account):
     request.account = account
     _logger.debug('Set active account to "%s"', account.login)
     request.session.save()
+
+
+def ensure_account(request):
+    """Guarantee that valid request.account is set"""
+    session = request.session
+
+    if not ACCOUNT_ID_VAR in session:
+        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
+
+    account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+
+    if account.locked:
+        # Switch back to fallback, the anonymous user
+        # Assumes nobody has locked it..
+        account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
+
+    _set_account(request, account)
+
+
+def authorization_not_required(fullpath):
+    """Checks is authorization is required for the requested url
+
+    Should the user be able to decide this? Currently not.
+
+    """
+    auth_not_required = [
+        '/api/',
+        '/doc/',  # No auth/different auth system
+        '/about/',
+        '/index/login/',
+        '/refresh_session',
+    ]
+    for url in auth_not_required:
+        if fullpath.startswith(url):
+            _logger.debug('authorization_not_required: %s', url)
+            return True
