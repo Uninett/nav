@@ -154,16 +154,18 @@ class ManagementProfile(models.Model):
 
     @property
     def is_snmp(self):
-        return self.protocol == self.PROTOCOL_SNMP
+        return self.protocol in (self.PROTOCOL_SNMP, self.PROTOCOL_SNMPV3)
 
     @property
     def snmp_version(self):
         """Returns the configured SNMP version as an integer"""
-        if self.is_snmp:
+        if self.protocol == self.PROTOCOL_SNMP:
             value = self.configuration['version']
             if value == "2c":
                 return 2
             return int(value)
+        elif self.protocol == self.PROTOCOL_SNMPV3:
+            return 3
 
         raise ValueError(
             "Getting snmp protocol version for non-snmp management profile"
