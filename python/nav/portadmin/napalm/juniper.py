@@ -492,16 +492,14 @@ class Juniper(ManagementHandler):
         if len(interfaces) == 1:
             interface = interfaces[0]
             try:
-                state = self._get_poe_state_for_single_interface(interface)
+                state = self._get_single_poe_state(interface)
             except POENotSupportedError:
                 state = None
             return {interface.ifindex: state}
         else:
-            return self._get_poe_state_for_multiple_interfaces(interfaces)
+            return self._get_poe_states_bulk(interfaces)
 
-    def _get_poe_state_for_single_interface(
-        self, interface: manage.Interface
-    ) -> PoeState:
+    def _get_single_poe_state(self, interface: manage.Interface) -> PoeState:
         tree = self._get_poe_interface_information(ifname=interface.ifname)
         matching_elements = tree.xpath(
             "//poe/interface-information-detail/interface-enabled-detail"
@@ -518,7 +516,7 @@ class Juniper(ManagementHandler):
         ifenabled = matching_elements[0].text.lower()
         return self._poe_string_to_state(ifenabled)
 
-    def _get_poe_state_for_multiple_interfaces(
+    def _get_poe_states_bulk(
         self, interfaces: Sequence[manage.Interface]
     ) -> Dict[int, Optional[PoeState]]:
         tree = self._get_all_poe_interface_information()
