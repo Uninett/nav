@@ -78,16 +78,8 @@ def adduser(args):
 
 
 def removeuser(args):
-    try:
-        args.login.delete()
-    except args.login.DoesNotExist:
-        print(
-            "User %s is not registered, cannot remove" % args.login.login,
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    else:
-        print("User %s has been removed" % args.login.login, file=sys.stderr)
+    args.login.delete()
+    print("User %s has been removed" % args.login.login, file=sys.stderr)
 
 
 def adminify(args):
