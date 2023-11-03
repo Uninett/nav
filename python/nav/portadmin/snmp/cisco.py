@@ -72,6 +72,13 @@ class Cisco(SNMPHandler):
     POE_LIMIT = PoeState(state=3, name="LIMIT")
     POE_DISABLE = PoeState(state=4, name="DISABLE")
 
+    POE_OPTIONS = [
+        POE_AUTO,
+        POE_STATIC,
+        POE_LIMIT,
+        POE_DISABLE,
+    ]
+
     def __init__(self, netbox, **kwargs):
         super(Cisco, self).__init__(netbox, **kwargs)
         self.vlan_oid = '1.3.6.1.4.1.9.9.68.1.2.2.1.2'
@@ -317,13 +324,7 @@ class Cisco(SNMPHandler):
 
     def get_poe_state_options(self) -> Sequence[PoeState]:
         """Returns the available options for enabling/disabling PoE on this netbox"""
-        options_list = [
-            self.POE_AUTO,
-            self.POE_STATIC,
-            self.POE_LIMIT,
-            self.POE_DISABLE,
-        ]
-        return options_list
+        return self.POE_OPTIONS
 
     @translate_protocol_errors
     def set_poe_state(self, interface: manage.Interface, state: PoeState):
