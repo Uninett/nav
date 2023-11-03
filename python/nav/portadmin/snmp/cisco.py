@@ -349,7 +349,7 @@ class Cisco(SNMPHandler):
     ) -> Tuple[int, int]:
         """Returns the unit number and interface number for the given interface"""
         try:
-            poeport = manage.POEPort.objects.get(interface=interface)
+            poeport = self._get_poeport(interface)
         except manage.POEPort.DoesNotExist:
             raise POEIndexNotFoundError(
                 "This interface does not have PoE indexes defined"
@@ -357,6 +357,9 @@ class Cisco(SNMPHandler):
         unit_number = poeport.poegroup.index
         interface_number = poeport.index
         return unit_number, interface_number
+
+    def _get_poeport(interface: manage.Interface):
+        return manage.POEPort.objects.get(interface=interface)
 
     def get_poe_states(
         self, interfaces: Optional[Sequence[manage.Interface]] = None

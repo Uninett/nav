@@ -49,3 +49,12 @@ class TestGetPoeState:
         interface = Mock(ifname="interface")
         state = handler_cisco.get_poe_states([interface])
         assert state[interface.ifname] == expected_state
+
+    def test_use_interfaces_from_db_if_empty_interfaces_arg(self, handler_cisco):
+        expected_state = Cisco.POE_AUTO
+        handler_cisco._get_poe_indexes_for_interface = Mock(return_value=(1, 1))
+        handler_cisco._query_netbox = Mock(return_value=expected_state.state)
+        interface = Mock(ifname="interface")
+        handler_cisco.netbox.interfaces = [interface]
+        state = handler_cisco.get_poe_states()
+        assert interface.ifname in state
