@@ -332,7 +332,7 @@ class Cisco(SNMPHandler):
         Available options should be retrieved using `get_poe_state_options`
         """
         unit_number, interface_number = self._get_poe_indexes_for_interface(interface)
-        oid_with_unit_number = self.POEENABLE + f".{unit_number}"
+        oid_with_unit_number = self.POEENABLE + OID((unit_number,))
         try:
             self._set_netbox_value(
                 oid_with_unit_number, interface_number, 'i', state.state
@@ -390,7 +390,7 @@ class Cisco(SNMPHandler):
     ) -> PoeState:
         """Retrieves current PoE state for given the given interface"""
         unit_number, interface_number = self._get_poe_indexes_for_interface(interface)
-        oid_with_unit_number = self.POEENABLE + f".{unit_number}"
+        oid_with_unit_number = self.POEENABLE + OID((unit_number,))
         state_value = self._query_netbox(oid_with_unit_number, interface_number)
         if state_value == None:
             raise POENotSupportedError("This interface does not support PoE")
