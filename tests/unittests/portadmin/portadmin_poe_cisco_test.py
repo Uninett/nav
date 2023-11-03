@@ -38,14 +38,14 @@ class TestGetPoeState:
     ):
         handler_cisco._get_poe_indexes_for_interface = Mock(return_value=(1, 1))
         handler_cisco._query_netbox = Mock(return_value=None)
-        interface = Mock(ifindex=1)
+        interface = Mock(interface="interface")
         states = handler_cisco.get_poe_states([interface])
-        assert states[interface.ifindex] is None
+        assert states[interface.ifname] is None
 
     def test_returns_correct_poe_state_cisco(self, handler_cisco):
         expected_state = Cisco.POE_AUTO
         handler_cisco._get_poe_indexes_for_interface = Mock(return_value=(1, 1))
         handler_cisco._query_netbox = Mock(return_value=expected_state.state)
-        interface = Mock(ifindex=1)
+        interface = Mock(ifname="interface")
         state = handler_cisco.get_poe_states([interface])
-        assert state[interface.ifindex] == expected_state
+        assert state[interface.ifname] == expected_state
