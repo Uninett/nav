@@ -109,6 +109,7 @@ class Juniper(ManagementHandler):
     PROTOCOL = manage.ManagementProfile.PROTOCOL_NAPALM
     POE_ENABLED = PoeState(state=1, name="ENABLED")
     POE_DISABLED = PoeState(state=2, name="DISABLED")
+    POE_OPTIONS = [POE_ENABLED, POE_DISABLED]
 
     def __init__(self, netbox: manage.Netbox, **kwargs):
         super().__init__(netbox, **kwargs)
@@ -450,7 +451,7 @@ class Juniper(ManagementHandler):
 
     def get_poe_state_options(self) -> Sequence[PoeState]:
         """Returns the available options for enabling/disabling PoE on this netbox"""
-        return [self.POE_ENABLED, self.POE_DISABLED]
+        return self.POE_OPTIONS
 
     @wrap_unhandled_rpc_errors
     def set_poe_state(self, interface: manage.Interface, state: PoeState):
