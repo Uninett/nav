@@ -64,6 +64,22 @@ class TestGetPoeStates:
         assert return_dict[interface1_mock.ifname] == Juniper.POE_ENABLED
         assert return_dict[interface2_mock.ifname] == Juniper.POE_DISABLED
 
+    def test_returns_none_for_single_interface_that_does_not_support_poe(
+        self, handler_mock, interface1_mock
+    ):
+        handler_mock._get_single_poe_state = Mock(side_effect=POENotSupportedError)
+        return_dict = handler_mock.get_poe_states([interface1_mock])
+        assert return_dict[interface1_mock.ifname] is None
+
+    def test_returns_none_for_multiple_interfaces_that_does_not_support_poe(
+        self, handler_mock, interface1_mock, interface2_mock
+    ):
+        bulk_return_dict = {interface1_mock.ifname: None, interface2_mock.ifname: None}
+        handler_mock._get_poe_states_bulk = Mock(return_value=bulk_return_dict)
+        return_dict = handler_mock.get_poe_states([interface1_mock, interface2_mock])
+        assert return_dict[interface1_mock.ifname] is None
+        assert return_dict[interface2_mock.ifname] is None
+
 
 class TestGetSinglePoeState:
     def test_returns_correct_state_for_interface_that_exists_in_xml_response(
