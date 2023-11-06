@@ -13,7 +13,10 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""
+Utilities for authentication/authorization in NAV that is independent of
+login method.
+"""
 import logging
 
 from django.conf import settings

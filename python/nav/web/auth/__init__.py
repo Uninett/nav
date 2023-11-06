@@ -15,8 +15,6 @@
 #
 """
 Contains web authentication and login functionality for NAV.
-
-The "*Middleware" is Django-specific.
 """
 
 from datetime import datetime

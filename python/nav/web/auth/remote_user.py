@@ -13,7 +13,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""
+Support logging in by having the web server set the REMOTE_USER header.
+"""
 import logging
 from os.path import join
 

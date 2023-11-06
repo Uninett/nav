@@ -14,9 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """
-Contains web authentication and login functionality for NAV.
-
-The "*Middleware" is Django-specific.
+Sudo functionality for web authentication in NAV.
 """
 
 import logging
