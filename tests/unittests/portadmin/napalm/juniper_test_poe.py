@@ -33,14 +33,14 @@ class TestGetPoeStates:
         handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
         return_dict = handler_mock.get_poe_states()
         for interface in expected_interfaces:
-            assert interface.ifindex in return_dict
+            assert interface.ifname in return_dict
 
     def test_interfaces_from_db_is_used_if_input_is_empty(self, handler_mock, xml_bulk):
         expected_interfaces = handler_mock.netbox.interfaces
         handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
         return_dict = handler_mock.get_poe_states([])
         for interface in expected_interfaces:
-            assert interface.ifindex in return_dict
+            assert interface.ifname in return_dict
 
 
 class TestGetSinglePoeState:
@@ -74,8 +74,8 @@ class TestGetPoeStatesBulk:
     ):
         handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
         states = handler_mock._get_poe_states_bulk([interface1_mock, interface2_mock])
-        assert states[interface1_mock.ifindex] == Juniper.POE_ENABLED
-        assert states[interface2_mock.ifindex] == Juniper.POE_DISABLED
+        assert states[interface1_mock.ifname] == Juniper.POE_ENABLED
+        assert states[interface2_mock.ifname] == Juniper.POE_DISABLED
 
     def test_maps_interface_to_none_if_poe_not_supported(self, handler_mock, xml_bulk):
         handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
@@ -83,7 +83,7 @@ class TestGetPoeStatesBulk:
         if_mock.ifname == "random_if"
         if_mock.ifindex = 0
         states = handler_mock._get_poe_states_bulk([if_mock])
-        assert states[if_mock.ifindex] is None
+        assert states[if_mock.ifname] is None
 
     def test_returns_none_values_if_no_interfaces_in_xml(
         self, handler_mock, interface1_mock, interface2_mock, xml_empty
@@ -92,8 +92,8 @@ class TestGetPoeStatesBulk:
         return_dict = handler_mock._get_poe_states_bulk(
             [interface1_mock, interface2_mock]
         )
-        assert return_dict[interface1_mock.ifindex] is None
-        assert return_dict[interface2_mock.ifindex] is None
+        assert return_dict[interface1_mock.ifname] is None
+        assert return_dict[interface2_mock.ifname] is None
 
 
 @pytest.fixture()

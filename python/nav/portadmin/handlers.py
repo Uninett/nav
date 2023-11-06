@@ -302,7 +302,7 @@ class ManagementHandler:
 
     def get_poe_states(
         self, interfaces: Optional[Sequence[manage.Interface]] = None
-    ) -> Dict[int, Optional[PoeState]]:
+    ) -> Dict[str, Optional[PoeState]]:
         """Retrieves current PoE state for interfaces on this device.
 
         :param interfaces: Optional sequence of interfaces to filter for, as fetching
@@ -311,7 +311,7 @@ class ManagementHandler:
                            the default behavior is to filter on all Interface objects
                            registered for this device.
         :returns: A dict mapping interfaces to their discovered PoE state.
-                  The key matches the `ifindex` attribute for the related
+                  The key matches the `ifname` attribute for the related
                   Interface object.
                   The value will be None if the interface does not support PoE.
         """

@@ -472,7 +472,7 @@ class Juniper(ManagementHandler):
 
     def get_poe_states(
         self, interfaces: Optional[Sequence[manage.Interface]] = None
-    ) -> Dict[int, Optional[PoeState]]:
+    ) -> Dict[str, Optional[PoeState]]:
         """Retrieves current PoE state for interfaces on this device.
 
         :param interfaces: Optional sequence of interfaces to filter for, as fetching
@@ -481,7 +481,7 @@ class Juniper(ManagementHandler):
                            the default behavior is to filter on all Interface objects
                            registered for this device.
         :returns: A dict mapping interfaces to their discovered PoE state.
-                  The key matches the `ifindex` attribute for the related
+                  The key matches the `ifname` attribute for the related
                   Interface object.
                   The value will be None if the interface does not support PoE.
         """
@@ -496,7 +496,7 @@ class Juniper(ManagementHandler):
                 state = self._get_single_poe_state(interface)
             except POENotSupportedError:
                 state = None
-            return {interface.ifindex: state}
+            return {interface.ifname: state}
         else:
             return self._get_poe_states_bulk(interfaces)
 
@@ -519,7 +519,7 @@ class Juniper(ManagementHandler):
 
     def _get_poe_states_bulk(
         self, interfaces: Sequence[manage.Interface]
-    ) -> Dict[int, Optional[PoeState]]:
+    ) -> Dict[str, Optional[PoeState]]:
         tree = self._get_all_poe_interface_information()
         interface_information_elements = tree.findall(".//interface-information")
         ifname_to_state_dict = {}
@@ -528,7 +528,7 @@ class Juniper(ManagementHandler):
             ifenabled = element.findall(".//interface-enabled")[0].text.strip().lower()
             ifname_to_state_dict[ifname] = self._poe_string_to_state(ifenabled)
         ifindex_to_state_dict = {
-            interface.ifindex: ifname_to_state_dict.get(interface.ifname.lower())
+            interface.ifname: ifname_to_state_dict.get(interface.ifname.lower())
             for interface in interfaces
         }
         return ifindex_to_state_dict
