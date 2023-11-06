@@ -512,7 +512,8 @@ class Juniper(ManagementHandler):
             )
         if len(matching_elements) != 1:
             raise XMLParseError(
-                f"Expected 1 matching element in xml response, {len(matching_elements)} found"
+                f"Expected 1 matching element in xml response, "
+                f"{len(matching_elements)} found"
             )
         ifenabled = matching_elements[0].text.lower()
         return self._poe_string_to_state(ifenabled)
