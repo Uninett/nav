@@ -42,6 +42,28 @@ class TestGetPoeStates:
         for interface in expected_interfaces:
             assert interface.ifname in return_dict
 
+    def test_returns_empty_dict_if_no_input_and_no_interfaces_in_db(
+        self, handler_mock, xml_bulk
+    ):
+        handler_mock.netbox.interfaces = []
+        return_dict = handler_mock.get_poe_states()
+        assert return_dict == {}
+
+    def test_returns_correct_state_if_input_has_one_interface(
+        self, handler_mock, xml, interface1_mock
+    ):
+        handler_mock._get_poe_interface_information = Mock(return_value=xml)
+        return_dict = handler_mock.get_poe_states([interface1_mock])
+        assert return_dict[interface1_mock.ifname] == handler_mock.POE_ENABLED
+
+    def test_returns_correct_states_if_input_has_multiple_interfaces(
+        self, handler_mock, xml_bulk, interface1_mock, interface2_mock
+    ):
+        handler_mock._get_all_poe_interface_information = Mock(return_value=xml_bulk)
+        return_dict = handler_mock.get_poe_states([interface1_mock, interface2_mock])
+        assert return_dict[interface1_mock.ifname] == Juniper.POE_ENABLED
+        assert return_dict[interface2_mock.ifname] == Juniper.POE_DISABLED
+
 
 class TestGetSinglePoeState:
     def test_returns_correct_state_for_interface_that_exists_in_xml_response(
