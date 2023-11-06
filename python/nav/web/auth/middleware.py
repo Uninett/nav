@@ -13,6 +13,9 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""
+Django middleware for handling login, authentication and authorization for NAV.
+"""
 
 import logging
 import os
