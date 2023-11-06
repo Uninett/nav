@@ -301,7 +301,7 @@ class ManagementHandler:
         raise NotImplementedError
 
     def get_poe_states(
-        self, interfaces: Sequence[manage.Interface] = None
+        self, interfaces: Optional[Sequence[manage.Interface]] = None
     ) -> Dict[int, Optional[PoeState]]:
         """Retrieves current PoE state for interfaces on this device.
 

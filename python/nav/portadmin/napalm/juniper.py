@@ -471,7 +471,7 @@ class Juniper(ManagementHandler):
         self.device.load_merge_candidate(config=config)
 
     def get_poe_states(
-        self, interfaces: Sequence[manage.Interface] = None
+        self, interfaces: Optional[Sequence[manage.Interface]] = None
     ) -> Dict[int, Optional[PoeState]]:
         """Retrieves current PoE state for interfaces on this device.
 
