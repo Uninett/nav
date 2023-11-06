@@ -182,7 +182,7 @@ just doing everything under a new name.
 In the coming year, references to Uninett, both in the NAV documentation, code
 and related web sites will slowly change into Sikt, but for some time going
 forward, there will be references to both names.  For more information about
-the new organization, we refer you to https://sikt.no/about-sikt
+the new organization, we refer you to https://sikt.no/en/about-sikt
 
 
 Dependency changes
