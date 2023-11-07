@@ -87,7 +87,7 @@ class JWTRefreshToken(models.Model):
     @property
     def data(self):
         """Body of token as a dict"""
-        return jwt.decode(self.token, options={'verify_signature': False})
+        return self.decode_token(self.token)
 
     @property
     def nbf(self):
@@ -151,6 +151,10 @@ class JWTRefreshToken(models.Model):
         return cls._generate_token(
             token_data, cls.REFRESH_EXPIRE_DELTA, "refresh_token"
         )
+
+    @classmethod
+    def decode_token(cls, token):
+        return jwt.decode(token, options={'verify_signature': False})
 
     class Meta(object):
         db_table = 'jwtrefreshtoken'
