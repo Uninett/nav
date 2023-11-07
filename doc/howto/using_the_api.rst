@@ -24,7 +24,7 @@ How to get a token
 Tokens are administrated from the `User and API Administration
 </useradmin/tokens/>`_ page in NAV.
 
-
+.. _classic-token:
 How to use the token
 --------------------
 
@@ -46,7 +46,7 @@ JSON Web Tokens
 JSON Web Tokens (JWTs) must be :doc:`configured <../reference/jwt>` before they can be used.
 
 Once configured, you can use tokens issued by your configured issuers in almost the same way
-as classic tokens::
+as :ref:`classic tokens <classic-token>`::
 
   curl -H 'Authorization: Bearer <token>' https://<host>/api/netboxes/
 
