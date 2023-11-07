@@ -84,31 +84,32 @@ class JWTRefreshToken(models.Model):
     def __str__(self):
         return self.token
 
+    @property
     def data(self):
         """Body of token as a dict"""
         return jwt.decode(self.token, options={'verify_signature': False})
 
+    @property
     def activates(self):
         """Datetime when token activates"""
-        data = self.data()
-        return datetime.fromtimestamp(data['nbf'])
+        return datetime.fromtimestamp(self.data['nbf'])
 
+    @property
     def expires(self):
         """Datetime when token expires"""
-        data = self.data()
-        return datetime.fromtimestamp(data['exp'])
+        return datetime.fromtimestamp(self.data['exp'])
 
+    @property
     def is_active(self):
         """True if token is active"""
         now = datetime.now()
-        return now >= self.activates() and now < self.expires()
+        return now >= self.activates and now < self.expires
 
     def expire(self):
         """Expires the token"""
-        data = self.data()
-        data['exp'] = datetime.now().timestamp()
-        data['nbf'] = datetime.now().timestamp()
-        self.token = self._encode_token(data)
+        self.data['exp'] = datetime.now().timestamp()
+        self.data['nbf'] = datetime.now().timestamp()
+        self.token = self._encode_token(self.data)
         self.save()
 
     @classmethod
