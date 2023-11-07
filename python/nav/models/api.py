@@ -90,12 +90,12 @@ class JWTRefreshToken(models.Model):
         return jwt.decode(self.token, options={'verify_signature': False})
 
     @property
-    def activates(self):
+    def nbf(self):
         """Datetime when token activates"""
         return datetime.fromtimestamp(self.data['nbf'])
 
     @property
-    def expires(self):
+    def exp(self):
         """Datetime when token expires"""
         return datetime.fromtimestamp(self.data['exp'])
 
@@ -103,7 +103,7 @@ class JWTRefreshToken(models.Model):
     def is_active(self):
         """True if token is active"""
         now = datetime.now()
-        return now >= self.activates and now < self.expires
+        return now >= self.nbf and now < self.exp
 
     def expire(self):
         """Expires the token"""
