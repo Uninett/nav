@@ -113,16 +113,22 @@ class JWTRefreshToken(models.Model):
         self.save()
 
     @classmethod
+    def _get_private_key(self):
+        return JWTConf().get_nav_private_key()
+
+    @classmethod
+    def _get_nav_name(self):
+        return JWTConf().get_nav_name()
+
+    @classmethod
     def _encode_token(cls, token_data):
-        return jwt.encode(
-            token_data, JWTConf().get_nav_private_key(), algorithm="RS256"
-        )
+        return jwt.encode(token_data, cls._get_private_key(), algorithm="RS256")
 
     @classmethod
     def _generate_token(cls, token_data, expiry_delta, token_type):
         new_token = dict(token_data)
         now = datetime.now()
-        name = JWTConf().get_nav_name()
+        name = cls._get_nav_name()
         updated_claims = {
             'exp': (now + expiry_delta).timestamp(),
             'nbf': now.timestamp(),
