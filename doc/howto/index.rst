@@ -15,6 +15,7 @@ Howtos
    email
    migrate-data
    mod_auth_openidc_feide
+   mod_auth_mellon_feide
    setting-up-logging
    using_the_api
    api_parameters

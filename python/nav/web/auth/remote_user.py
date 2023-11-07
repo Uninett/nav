@@ -53,6 +53,7 @@ logout-url=
 varname=REMOTE_USER
 workaround=none
 autocreate=off
+post-logout-redirect-url=/
 """
 
 
@@ -143,6 +144,15 @@ def get_logouturl(request):
     :rtype: str, None
     """
     return get_remote_url(request, 'logout-url')
+
+
+def get_post_logout_redirect_url(request):
+    """Return a url (if set) to log out to/via a remote service
+
+    :return: Either a string with an url, or None.
+    :rtype: str, None
+    """
+    return get_remote_url(request, "post-logout-redirect-url")
 
 
 def get_remote_url(request, urltype):
