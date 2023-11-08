@@ -5,16 +5,16 @@ Howtos
 .. toctree::
    :maxdepth: 1
 
-   api_parameters
    commandline-utilities
-   debugging-topology
-   email
    generic-install-from-source
+   manual-install-on-debian
    installing-graphite-on-debian
    integrating-graphite-with-nav
-   manual-install-on-debian
-   migrate-data
    migrate-rrd-to-graphite
+   debugging-topology
+   email
+   migrate-data
    mod_auth_openidc_feide
    setting-up-logging
    using_the_api
+   api_parameters
