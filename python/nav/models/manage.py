@@ -363,7 +363,12 @@ class Netbox(models.Model):
         Returns the snmp management profile with the highest available
         SNMP version.
         """
-        query = Q(protocol=ManagementProfile.PROTOCOL_SNMP)
+        query = Q(
+            protocol__in=(
+                ManagementProfile.PROTOCOL_SNMP,
+                ManagementProfile.PROTOCOL_SNMPV3,
+            )
+        )
         if writeable:
             query = query & Q(configuration__write=True)
         elif writeable is not None:
@@ -372,7 +377,7 @@ class Netbox(models.Model):
             )
         profiles = sorted(
             self.profiles.filter(query),
-            key=lambda p: str(p.configuration.get('version') or 0),
+            key=lambda p: p.snmp_version or 0,
             reverse=True,
         )
         if profiles:
