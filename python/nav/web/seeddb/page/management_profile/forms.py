@@ -108,6 +108,7 @@ class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
             "auth_password",
             "priv_protocol",
             "priv_password",
+            "write",
         ]
         fields = []
 
@@ -166,6 +167,12 @@ class SnmpV3Form(ProtocolSpecificMixIn, forms.ModelForm):
             "security level."
         ),
         required=False,
+    )
+    write = forms.BooleanField(
+        initial=False,
+        required=False,
+        label="Enables write access",
+        help_text="Check this if this profile enables write access",
     )
 
     def clean_auth_password(self):
