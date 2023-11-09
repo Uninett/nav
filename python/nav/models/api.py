@@ -16,6 +16,7 @@
 """Models for the NAV API"""
 
 from datetime import datetime, timedelta
+from typing import Dict, Any
 
 import jwt
 
@@ -85,22 +86,22 @@ class JWTRefreshToken(models.Model):
         return self.token
 
     @property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
         """Body of token as a dict"""
         return self.decode_token(self.token)
 
     @property
-    def nbf(self):
+    def nbf(self) -> datetime:
         """Datetime when token activates"""
         return datetime.fromtimestamp(self.data['nbf'])
 
     @property
-    def exp(self):
+    def exp(self) -> datetime:
         """Datetime when token expires"""
         return datetime.fromtimestamp(self.data['exp'])
 
     @property
-    def is_active(self):
+    def is_active(self) -> bool:
         """True if token is active. A token is considered active when
         the nbf claim is in the past and the exp claim is in the future
         """
@@ -117,19 +118,27 @@ class JWTRefreshToken(models.Model):
         self.save()
 
     @classmethod
-    def _get_private_key(self):
+    def _get_private_key(self) -> str:
+        """Returns private key in PEM format"""
         return JWTConf().get_nav_private_key()
 
     @classmethod
-    def _get_nav_name(self):
+    def _get_nav_name(self) -> str:
+        """Returns the name of this NAV instance. This is used for the iss and aud claim"""
         return JWTConf().get_nav_name()
 
     @classmethod
-    def _encode_token(cls, token_data):
+    def _encode_token(cls, token_data: Dict[str, Any]) -> str:
+        """Returns an encoded token in JWT format"""
         return jwt.encode(token_data, cls._get_private_key(), algorithm="RS256")
 
     @classmethod
-    def _generate_token(cls, token_data, expiry_delta, token_type):
+    def _generate_token(
+        cls, token_data: Dict[str, Any], expiry_delta: timedelta, token_type: str
+    ) -> str:
+        """Generates and returns a token in JWT format. Will use `token_data` as a basis
+        for the new token, but certain claims will be overridden
+        """
         new_token = dict(token_data)
         now = datetime.now()
         name = cls._get_nav_name()
@@ -145,17 +154,24 @@ class JWTRefreshToken(models.Model):
         return cls._encode_token(new_token)
 
     @classmethod
-    def generate_access_token(cls, token_data={}):
+    def generate_access_token(cls, token_data: Dict[str, Any] = {}) -> str:
+        """Generates and returns an access token in JWT format. Will use `token_data` as a basis
+        for the new token, but certain claims will be overridden
+        """
         return cls._generate_token(token_data, cls.ACCESS_EXPIRE_DELTA, "access_token")
 
     @classmethod
-    def generate_refresh_token(cls, token_data={}):
+    def generate_refresh_token(cls, token_data: Dict[str, Any] = {}) -> str:
+        """Generates and returns a refresh token in JWT format. Will use `token_data` as a basis
+        for the new token, but certain claims will be overridden
+        """
         return cls._generate_token(
             token_data, cls.REFRESH_EXPIRE_DELTA, "refresh_token"
         )
 
     @classmethod
-    def decode_token(cls, token):
+    def decode_token(cls, token: str) -> Dict[str, Any]:
+        """Decodes a token in JWT format and returns the body of the decoded token"""
         return jwt.decode(token, options={'verify_signature': False})
 
     class Meta(object):
