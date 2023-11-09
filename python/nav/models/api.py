@@ -101,7 +101,9 @@ class JWTRefreshToken(models.Model):
 
     @property
     def is_active(self):
-        """True if token is active"""
+        """True if token is active. A token is considered active when
+        the nbf claim is in the past and the exp claim is in the future
+        """
         now = datetime.now()
         return now >= self.nbf and now < self.exp
 
