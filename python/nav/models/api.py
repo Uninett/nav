@@ -88,7 +88,7 @@ class JWTRefreshToken(models.Model):
     @property
     def data(self) -> Dict[str, Any]:
         """Body of token as a dict"""
-        return self.decode_token(self.token)
+        return self._decode_token(self.token)
 
     @property
     def nbf(self) -> datetime:
@@ -162,7 +162,7 @@ class JWTRefreshToken(models.Model):
         )
 
     @classmethod
-    def decode_token(cls, token: str) -> Dict[str, Any]:
+    def _decode_token(cls, token: str) -> Dict[str, Any]:
         """Decodes a token in JWT format and returns the body of the decoded token"""
         return jwt.decode(token, options={'verify_signature': False})
 
