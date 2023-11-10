@@ -55,20 +55,9 @@ def authenticate(username, password):
     try:
         account = Account.objects.get(login__iexact=username)
     except Account.DoesNotExist:
-        if ldap.available:
-            ldap_user = ldap.authenticate(username, password)
-            # If we authenticated, store the user in database.
-            if ldap_user:
-                account = Account(
-                    login=ldap_user.username,
-                    name=ldap_user.get_real_name(),
-                    ext_sync='ldap',
-                )
-                account = update_ldap_user(ldap_user, account, password)
-                # We're authenticated now
-                return account
-        # No account, bail out
-        return None
+        # account autocreated if username is authenticated
+        account = ldap.authenticate(username, password)
+        return account
 
     if account.locked:
         _logger.info("Locked user %s tried to log in", account.login)
@@ -76,12 +65,12 @@ def authenticate(username, password):
 
     if account.ext_sync == 'ldap' and ldap.available:
         try:
-            ldap_user = ldap.authenticate(username, password)
+            ldap_user = ldap.get_ldap_user(username, password)
         except ldap.NoAnswerError:
             pass
         else:
             if ldap_user:
-                account = update_ldap_user(ldap_user, account, password)
+                account = ldap.update_ldap_user(ldap_user, account, password)
                 return account
             return None
         # Fallback to stored password if ldap is unavailable
@@ -89,24 +78,6 @@ def authenticate(username, password):
     if account.check_password(password):
         return account
     return None
-
-
-def update_ldap_user(ldap_user, account, password):
-    account.set_password(password)
-    account.save()
-    _handle_ldap_admin_status(ldap_user, account)
-    return account
-
-
-def _handle_ldap_admin_status(ldap_user, nav_account):
-    is_admin = ldap_user.is_admin()
-    # Only modify admin status if an entitlement is configured in webfront.conf
-    if is_admin is not None:
-        admin_group = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
-        if is_admin:
-            nav_account.groups.add(admin_group)
-        else:
-            nav_account.groups.remove(admin_group)
 
 
 def get_login_url(request):

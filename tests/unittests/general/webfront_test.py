@@ -23,12 +23,12 @@ class TestLdapAuthenticate(object):
         ldap_user = Mock()
         ldap_user.is_admin.return_value = None  # mock to avoid database access
         with patch("nav.web.auth.ldap.available", new=True):
-            with patch("nav.web.auth.ldap.authenticate", return_value=ldap_user):
+            with patch("nav.web.auth.ldap.get_ldap_user", return_value=ldap_user):
                 assert auth.authenticate('knight', 'shrubbery') == LDAP_ACCOUNT
 
     def test_authenticate_should_return_false_when_ldap_says_no(self):
         with patch("nav.web.auth.ldap.available", new=True):
-            with patch("nav.web.auth.ldap.authenticate", return_value=False):
+            with patch("nav.web.auth.ldap.get_ldap_user", return_value=False):
                 assert not auth.authenticate('knight', 'shrubbery')
 
     def test_authenticate_should_fallback_when_ldap_is_disabled(self):

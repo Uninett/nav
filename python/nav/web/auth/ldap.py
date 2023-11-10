@@ -24,6 +24,7 @@ from os.path import join
 
 import nav.errors
 from nav.config import NAVConfigParser
+from nav.models.profiles import Account, AccountGroup
 
 _logger = logging.getLogger(__name__)
 
@@ -121,11 +122,66 @@ def open_ldap():
     return lconn
 
 
-def authenticate(login, password):
+def authenticate(username, password):
     """
-    Attempt to authenticate the login name with password against the
-    configured LDAP server.  If the user is authenticated, required
-    group memberships are also verified.
+    Authenticate the username and password against the configured LDAP server.
+
+    Required group memberships are also verified.
+
+    Returns an authenticated Account with updated groups, or None.
+    """
+    if not available:
+        return None
+    ldap_user = get_ldap_user(username, password)
+    try:
+        account = Account.objects.get(login__iexact=username, ext_sync='ldap')
+    except Account.DoesNotExist:
+        if ldap_user:
+            account = autocreate_ldap_user(ldap_user, password)
+            return account
+    if account.locked:
+        _logger.info("Locked user %s tried to log in", account.login)
+        return None
+    if account.check_password(password):
+        account = update_ldap_user(ldap_user, account, password)
+        return account
+    return None
+
+
+def autocreate_ldap_user(ldap_user, password):
+    account = Account(
+        login=ldap_user.username,
+        name=ldap_user.get_real_name(),
+        ext_sync='ldap',
+    )
+    account = update_ldap_user(ldap_user, account, password)
+    return account
+
+
+def update_ldap_user(ldap_user, account, password):
+    account.set_password(password)
+    account.save()
+    _handle_ldap_admin_status(ldap_user, account)
+    return account
+
+
+def _handle_ldap_admin_status(ldap_user, nav_account):
+    is_admin = ldap_user.is_admin()
+    # Only modify admin status if an entitlement is configured in webfront.conf
+    if is_admin is not None:
+        admin_group = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
+        if is_admin:
+            nav_account.groups.add(admin_group)
+        else:
+            nav_account.groups.remove(admin_group)
+
+
+def get_ldap_user(login, password):
+    """
+    Fetch an LDAPUser from an ldap server if login and password matches.
+
+    Returns an autenticated LDAPUser of a specific group or with specific
+    entitlements, or False.
     """
     lconn = open_ldap()
     server = _config.get('ldap', 'server')
