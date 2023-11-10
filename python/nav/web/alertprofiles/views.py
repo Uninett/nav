@@ -1929,7 +1929,7 @@ def filter_group_remove(request):
             time_periods = TimePeriod.objects.filter(
                 alert_subscriptions__in=subscriptions
             )
-            profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
+            profiles = AlertProfile.objects.filter(time_periods__in=time_periods)
             warnings = []
 
             try:
