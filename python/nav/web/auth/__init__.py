@@ -49,8 +49,6 @@ def authenticate(username, password):
     Returns account object if user was authenticated, else None.
     """
     # FIXME Log stuff?
-    auth = False
-    account = None
 
     # Try to find the account in the database. If it's not found we can try
     # LDAP.
@@ -58,48 +56,46 @@ def authenticate(username, password):
         account = Account.objects.get(login__iexact=username)
     except Account.DoesNotExist:
         if ldap.available:
-            user = ldap.authenticate(username, password)
+            ldap_user = ldap.authenticate(username, password)
             # If we authenticated, store the user in database.
-            if user:
+            if ldap_user:
                 account = Account(
-                    login=user.username, name=user.get_real_name(), ext_sync='ldap'
+                    login=ldap_user.username,
+                    name=ldap_user.get_real_name(),
+                    ext_sync='ldap',
                 )
-                account.set_password(password)
-                account.save()
-                _handle_ldap_admin_status(user, account)
+                account = update_ldap_user(ldap_user, account, password)
                 # We're authenticated now
-                auth = True
-
-    if account and account.locked:
-        _logger.info("Locked user %s tried to log in", account.login)
-
-    if (
-        account
-        and account.ext_sync == 'ldap'
-        and ldap.available
-        and not auth
-        and not account.locked
-    ):
-        try:
-            auth = ldap.authenticate(username, password)
-        except ldap.NoAnswerError:
-            # Fallback to stored password if ldap is unavailable
-            auth = False
-        else:
-            if auth:
-                account.set_password(password)
-                account.save()
-                _handle_ldap_admin_status(auth, account)
-            else:
-                return
-
-    if account and not auth:
-        auth = account.check_password(password)
-
-    if auth and account:
-        return account
-    else:
+                return account
+        # No account, bail out
         return None
+
+    if account.locked:
+        _logger.info("Locked user %s tried to log in", account.login)
+        return None
+
+    if account.ext_sync == 'ldap' and ldap.available:
+        try:
+            ldap_user = ldap.authenticate(username, password)
+        except ldap.NoAnswerError:
+            pass
+        else:
+            if ldap_user:
+                account = update_ldap_user(ldap_user, account, password)
+                return account
+            return None
+        # Fallback to stored password if ldap is unavailable
+
+    if account.check_password(password):
+        return account
+    return None
+
+
+def update_ldap_user(ldap_user, account, password):
+    account.set_password(password)
+    account.save()
+    _handle_ldap_admin_status(ldap_user, account)
+    return account
 
 
 def _handle_ldap_admin_status(ldap_user, nav_account):
