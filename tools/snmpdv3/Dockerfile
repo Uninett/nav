@@ -1,4 +1,4 @@
 FROM polinux/snmpd
-COPY snmpd.conf /etc/snmpd/snmpd.conf
+COPY snmpd.conf /etc/snmp/snmpd.conf
 EXPOSE 161:161/udp
-CMD ["-c", "/etc/snmpd/snmpd.conf"]
+CMD ["-c", "/etc/snmp/snmpd.conf"]
