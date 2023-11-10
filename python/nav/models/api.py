@@ -91,22 +91,14 @@ class JWTRefreshToken(models.Model):
         return self._decode_token(self.token)
 
     @property
-    def nbf(self) -> datetime:
-        """Datetime when token activates"""
-        return datetime.fromtimestamp(self.data['nbf'])
-
-    @property
-    def exp(self) -> datetime:
-        """Datetime when token expires"""
-        return datetime.fromtimestamp(self.data['exp'])
-
-    @property
     def is_active(self) -> bool:
         """True if token is active. A token is considered active when
         the nbf claim is in the past and the exp claim is in the future
         """
         now = datetime.now()
-        return now >= self.nbf and now < self.exp
+        nbf = datetime.fromtimestamp(self.data['nbf'])
+        exp = datetime.fromtimestamp(self.data['exp'])
+        return now >= nbf and now < exp
 
     def expire(self):
         """Expires the token"""
