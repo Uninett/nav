@@ -463,8 +463,6 @@ def change_port_status(action, identity):
 
     if not profile:
         raise NoReadWriteManagementProfileError
-    if not hasattr(profile, "snmp_community") or not hasattr(profile, "snmp_version"):
-        raise InvalidManagementProfileError
 
     agent = nav.Snmp.Snmp(
         host=netbox.ip,
