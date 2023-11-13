@@ -9,45 +9,45 @@ from nav.models.api import JWTRefreshToken
 class TestGenerateAccessToken:
     def test_nbf_should_be_in_the_past(self):
         encoded_token = JWTRefreshToken.generate_access_token()
-        body = JWTRefreshToken._decode_token(encoded_token)
-        assert body['nbf'] < datetime.now().timestamp()
+        data = JWTRefreshToken._decode_token(encoded_token)
+        assert data['nbf'] < datetime.now().timestamp()
 
     def test_exp_should_be_in_the_future(self):
         encoded_token = JWTRefreshToken.generate_access_token()
-        body = JWTRefreshToken._decode_token(encoded_token)
-        assert body['exp'] > datetime.now().timestamp()
+        data = JWTRefreshToken._decode_token(encoded_token)
+        assert data['exp'] > datetime.now().timestamp()
 
     def test_iat_should_be_in_the_past(self):
         encoded_token = JWTRefreshToken.generate_access_token()
-        body = JWTRefreshToken._decode_token(encoded_token)
-        assert body['iat'] < datetime.now().timestamp()
+        data = JWTRefreshToken._decode_token(encoded_token)
+        assert data['iat'] < datetime.now().timestamp()
 
     def test_token_type_should_be_access_token(self):
         encoded_token = JWTRefreshToken.generate_access_token()
-        body = JWTRefreshToken._decode_token(encoded_token)
-        assert body['token_type'] == "access_token"
+        data = JWTRefreshToken._decode_token(encoded_token)
+        assert data['token_type'] == "access_token"
 
 
 class TestGenerateRefreshToken:
     def test_nbf_should_be_in_the_past(self):
         encoded_token = JWTRefreshToken.generate_refresh_token()
-        body = JWTRefreshToken._decode_token(encoded_token)
-        assert body['nbf'] < datetime.now().timestamp()
+        data = JWTRefreshToken._decode_token(encoded_token)
+        assert data['nbf'] < datetime.now().timestamp()
 
     def test_exp_should_be_in_the_future(self):
         encoded_token = JWTRefreshToken.generate_refresh_token()
-        body = JWTRefreshToken._decode_token(encoded_token)
-        assert body['exp'] > datetime.now().timestamp()
+        data = JWTRefreshToken._decode_token(encoded_token)
+        assert data['exp'] > datetime.now().timestamp()
 
     def test_iat_should_be_in_the_past(self):
         encoded_token = JWTRefreshToken.generate_refresh_token()
-        body = JWTRefreshToken._decode_token(encoded_token)
-        assert body['iat'] < datetime.now().timestamp()
+        data = JWTRefreshToken._decode_token(encoded_token)
+        assert data['iat'] < datetime.now().timestamp()
 
     def test_token_type_should_be_refresh_token(self):
         encoded_token = JWTRefreshToken.generate_refresh_token()
-        body = JWTRefreshToken._decode_token(encoded_token)
-        assert body['token_type'] == "refresh_token"
+        data = JWTRefreshToken._decode_token(encoded_token)
+        assert data['token_type'] == "refresh_token"
 
 
 class TestIsActive:
@@ -90,16 +90,16 @@ class TestExpire:
         assert not token.is_active()
 
 
-class TestGetBody:
-    def test_should_return_accurate_representation_of_token_body(
+class TestData:
+    def test_should_return_accurate_representation_of_token_data(
         self, refresh_token, refresh_token_data
     ):
         token = JWTRefreshToken(token=refresh_token)
-        assert token.get_body() == refresh_token_data
+        assert token.data() == refresh_token_data
 
 
 class TestDecodeToken:
-    def test_should_return_same_body_as_when_token_was_encoded(
+    def test_should_return_same_data_as_when_token_was_encoded(
         self, refresh_token, refresh_token_data
     ):
         decoded_data = JWTRefreshToken._decode_token(refresh_token)
@@ -107,7 +107,7 @@ class TestDecodeToken:
 
 
 class TestEncodeToken:
-    def test_should_generate_a_known_token_using_the_same_body(
+    def test_should_generate_a_known_token_using_the_same_data(
         self, refresh_token, refresh_token_data
     ):
         encoded_token = JWTRefreshToken._encode_token(refresh_token_data)
@@ -116,8 +116,8 @@ class TestEncodeToken:
 
 @pytest.fixture()
 def refresh_token_data() -> Dict[Any, str]:
-    """Yields the body of the token in the refresh_token fixture"""
-    body = {
+    """Yields the data of the token in the refresh_token fixture"""
+    data = {
         "exp": 1516339022,
         "nbf": 1516239022,
         "iat": 1516239022,
@@ -125,12 +125,12 @@ def refresh_token_data() -> Dict[Any, str]:
         "iss": "nav",
         "token_type": "refresh_token",
     }
-    yield body
+    yield data
 
 
 @pytest.fixture()
 def refresh_token() -> str:
-    """Yields a refresh token with a body matching the refresh_token_data fixture"""
+    """Yields a refresh token with data matching the refresh_token_data fixture"""
     token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1\
 MTYzMzkwMjIsIm5iZiI6MTUxNjIzOTAyMiwiaWF0IjoxNTE2MjM5MDIyLCJh\
 dWQiOiJuYXYiLCJpc3MiOiJuYXYiLCJ0b2tlbl90eXBlIjoicmVmcmVzaF90\

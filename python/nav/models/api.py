@@ -85,8 +85,8 @@ class JWTRefreshToken(models.Model):
     def __str__(self):
         return self.token
 
-    def get_body(self) -> Dict[str, Any]:
-        """Body of token as a dict"""
+    def data(self) -> Dict[str, Any]:
+        """Data of token as a dict"""
         return self._decode_token(self.token)
 
     def is_active(self) -> bool:
@@ -94,15 +94,15 @@ class JWTRefreshToken(models.Model):
         the nbf claim is in the past and the exp claim is in the future
         """
         now = datetime.now()
-        body = self.get_body()
-        nbf = datetime.fromtimestamp(body['nbf'])
-        exp = datetime.fromtimestamp(body['exp'])
+        data = self.data()
+        nbf = datetime.fromtimestamp(data['nbf'])
+        exp = datetime.fromtimestamp(data['exp'])
         return now >= nbf and now < exp
 
     def expire(self):
         """Expires the token"""
         # Base claims for expired token on existing claims
-        expired_data = self.get_body()
+        expired_data = self.data()
         expired_data['exp'] = (datetime.now() - timedelta(hours=1)).timestamp()
         self.token = self._encode_token(expired_data)
         self.save()
@@ -155,7 +155,7 @@ class JWTRefreshToken(models.Model):
 
     @classmethod
     def _decode_token(cls, token: str) -> Dict[str, Any]:
-        """Decodes a token in JWT format and returns the body of the decoded token"""
+        """Decodes a token in JWT format and returns the data of the decoded token"""
         return jwt.decode(token, options={'verify_signature': False})
 
     class Meta(object):
