@@ -109,15 +109,17 @@ class JWTRefreshToken(models.Model):
 
     @classmethod
     def generate_access_token(cls, token_data: Dict[str, Any] = {}) -> str:
-        """Generates and returns an access token in JWT format. Will use `token_data` as a basis
-        for the new token, but certain claims will be overridden
+        """Generates and returns an access token in JWT format.
+        Will use `token_data` as a basis for the new token,
+        but certain claims will be overridden.
         """
         return cls._generate_token(token_data, cls.ACCESS_EXPIRE_DELTA, "access_token")
 
     @classmethod
     def generate_refresh_token(cls, token_data: Dict[str, Any] = {}) -> str:
-        """Generates and returns a refresh token in JWT format. Will use `token_data` as a basis
-        for the new token, but certain claims will be overridden
+        """Generates and returns a refresh token in JWT format.
+        Will use `token_data` as a basis for the new token,
+        but certain claims will be overridden.
         """
         return cls._generate_token(
             token_data, cls.REFRESH_EXPIRE_DELTA, "refresh_token"
