@@ -102,7 +102,7 @@ class JWTRefreshToken(models.Model):
     def expire(self):
         """Expires the token"""
         # Base claims for expired token on existing claims
-        expired_data = self.body
+        expired_data = self.get_body()
         expired_data['exp'] = (datetime.now() - timedelta(hours=1)).timestamp()
         self.token = self._encode_token(expired_data)
         self.save()
