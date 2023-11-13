@@ -108,10 +108,19 @@ class JWTRefreshToken(models.Model):
         self.save()
 
     @classmethod
-    def _encode_token(cls, token_data: Dict[str, Any]) -> str:
-        """Returns an encoded token in JWT format"""
-        return jwt.encode(
-            token_data, JWTConf().get_nav_private_key(), algorithm="RS256"
+    def generate_access_token(cls, token_data: Dict[str, Any] = {}) -> str:
+        """Generates and returns an access token in JWT format. Will use `token_data` as a basis
+        for the new token, but certain claims will be overridden
+        """
+        return cls._generate_token(token_data, cls.ACCESS_EXPIRE_DELTA, "access_token")
+
+    @classmethod
+    def generate_refresh_token(cls, token_data: Dict[str, Any] = {}) -> str:
+        """Generates and returns a refresh token in JWT format. Will use `token_data` as a basis
+        for the new token, but certain claims will be overridden
+        """
+        return cls._generate_token(
+            token_data, cls.REFRESH_EXPIRE_DELTA, "refresh_token"
         )
 
     @classmethod
@@ -136,19 +145,10 @@ class JWTRefreshToken(models.Model):
         return cls._encode_token(new_token)
 
     @classmethod
-    def generate_access_token(cls, token_data: Dict[str, Any] = {}) -> str:
-        """Generates and returns an access token in JWT format. Will use `token_data` as a basis
-        for the new token, but certain claims will be overridden
-        """
-        return cls._generate_token(token_data, cls.ACCESS_EXPIRE_DELTA, "access_token")
-
-    @classmethod
-    def generate_refresh_token(cls, token_data: Dict[str, Any] = {}) -> str:
-        """Generates and returns a refresh token in JWT format. Will use `token_data` as a basis
-        for the new token, but certain claims will be overridden
-        """
-        return cls._generate_token(
-            token_data, cls.REFRESH_EXPIRE_DELTA, "refresh_token"
+    def _encode_token(cls, token_data: Dict[str, Any]) -> str:
+        """Returns an encoded token in JWT format"""
+        return jwt.encode(
+            token_data, JWTConf().get_nav_private_key(), algorithm="RS256"
         )
 
     @classmethod
