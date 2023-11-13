@@ -265,8 +265,8 @@ def get_type_id(ip_addr, profile):
 
 def snmp_type(ip_addr, snmp_ro, snmp_version):
     """Query ip for sysobjectid using form data"""
-    snmp = Snmp(ip_addr, snmp_ro, snmp_version)
     try:
+        snmp = Snmp(ip_addr, snmp_ro, snmp_version)
         sysobjectid = snmp.get('.1.3.6.1.2.1.1.2.0')
     except SnmpError:
         return None

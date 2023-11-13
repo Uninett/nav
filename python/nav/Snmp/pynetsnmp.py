@@ -36,6 +36,7 @@ from IPy import IP
 from pynetsnmp import netsnmp
 from pynetsnmp.netsnmp import (
     Session,
+    SnmpError as PynetSnmpError,
     SNMP_MSG_GETNEXT,
     mkoid,
     lib,
@@ -107,7 +108,10 @@ class Snmp(object):
         self.timeout = timeout
 
         self.handle = _MySnmpSession(self._build_cmdline())
-        self.handle.open()
+        try:
+            self.handle.open()
+        except PynetSnmpError:
+            raise SnmpError
 
     def _build_cmdline(self):
         try:
