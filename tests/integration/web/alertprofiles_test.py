@@ -125,6 +125,23 @@ def test_alertprofiles_activate_profile(db, client, dummy_profile):
     assert preference.active_profile == dummy_profile
 
 
+def test_alertprofiles_activate_profile_with_info_in_key(db, client, dummy_profile):
+    # remarkably, activation/deactivation of profiles belong in the remove view!
+    url = reverse('alertprofiles-profile-remove')
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            f'activate={dummy_profile.id}': ["Activate"],
+        },
+    )
+    assert response.status_code == 200
+    assert "Active profile set" in smart_str(response.content)
+    assert dummy_profile.name in smart_str(response.content)
+    preference = AlertPreference.objects.get(account=dummy_profile.account)
+    assert preference.active_profile == dummy_profile
+
+
 def test_alertprofiles_deactivate_profile(db, client, activated_dummy_profile):
     # remarkably, activation/deactivation of profiles belong in the remove view!
     url = reverse('alertprofiles-profile-remove')
@@ -133,6 +150,26 @@ def test_alertprofiles_deactivate_profile(db, client, activated_dummy_profile):
         follow=True,
         data={
             'deactivate': activated_dummy_profile.id,
+        },
+    )
+    assert response.status_code == 200
+    print(type(response.content))
+    assert "was deactivated" in smart_str(response.content)
+    assert activated_dummy_profile.name in smart_str(response.content)
+    preference = AlertPreference.objects.get(account=activated_dummy_profile.account)
+    assert preference.active_profile is None
+
+
+def test_alertprofiles_deactivate_profile_with_info_in_key(
+    db, client, activated_dummy_profile
+):
+    # remarkably, activation/deactivation of profiles belong in the remove view!
+    url = reverse('alertprofiles-profile-remove')
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            f'deactivate={activated_dummy_profile.id}': ["Deactivate"],
         },
     )
     assert response.status_code == 200

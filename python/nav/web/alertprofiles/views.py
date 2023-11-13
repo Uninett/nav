@@ -313,7 +313,7 @@ def profile_save(request):
 def profile_remove(request):
     """Removes a profile"""
     post = request.POST.copy()
-    for data in post:
+    for data in request.POST:
         if data.find("=") != -1:
             attr, value = data.split("=")
             del post[data]
