@@ -176,10 +176,8 @@ class SNMPHandler(ManagementHandler):
             if not profile:
                 raise NoReadOnlyManagementProfileError
 
-            self.read_only_handle = Snmp.Snmp(
+            self.read_only_handle = get_snmp_session_for_profile(profile)(
                 host=self.netbox.ip,
-                community=profile.snmp_community,
-                version=profile.snmp_version,
                 retries=self.retries,
                 timeout=self.timeout,
             )
@@ -206,10 +204,8 @@ class SNMPHandler(ManagementHandler):
         """
         if self.read_write_handle is None:
             profile = self.netbox.get_preferred_snmp_management_profile(writeable=True)
-            self.read_write_handle = Snmp.Snmp(
+            self.read_write_handle = get_snmp_session_for_profile(profile)(
                 host=self.netbox.ip,
-                community=profile.snmp_community,
-                version=profile.snmp_version,
                 retries=self.retries,
                 timeout=self.timeout,
             )
