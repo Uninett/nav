@@ -131,9 +131,11 @@ class ManagementProfile(models.Model):
     PROTOCOL_DEBUG = 0
     PROTOCOL_SNMP = 1
     PROTOCOL_NAPALM = 2
+    PROTOCOL_SNMPV3 = 3
     PROTOCOL_CHOICES = [
         (PROTOCOL_SNMP, "SNMP"),
         (PROTOCOL_NAPALM, "NAPALM"),
+        (PROTOCOL_SNMPV3, "SNMPv3"),
     ]
     if settings.DEBUG:
         PROTOCOL_CHOICES.insert(0, (PROTOCOL_DEBUG, 'debug'))
@@ -152,16 +154,18 @@ class ManagementProfile(models.Model):
 
     @property
     def is_snmp(self):
-        return self.protocol == self.PROTOCOL_SNMP
+        return self.protocol in (self.PROTOCOL_SNMP, self.PROTOCOL_SNMPV3)
 
     @property
     def snmp_version(self):
         """Returns the configured SNMP version as an integer"""
-        if self.is_snmp:
+        if self.protocol == self.PROTOCOL_SNMP:
             value = self.configuration['version']
             if value == "2c":
                 return 2
             return int(value)
+        elif self.protocol == self.PROTOCOL_SNMPV3:
+            return 3
 
         raise ValueError(
             "Getting snmp protocol version for non-snmp management profile"
@@ -359,7 +363,12 @@ class Netbox(models.Model):
         Returns the snmp management profile with the highest available
         SNMP version.
         """
-        query = Q(protocol=ManagementProfile.PROTOCOL_SNMP)
+        query = Q(
+            protocol__in=(
+                ManagementProfile.PROTOCOL_SNMP,
+                ManagementProfile.PROTOCOL_SNMPV3,
+            )
+        )
         if writeable:
             query = query & Q(configuration__write=True)
         elif writeable is not None:
@@ -368,7 +377,7 @@ class Netbox(models.Model):
             )
         profiles = sorted(
             self.profiles.filter(query),
-            key=lambda p: str(p.configuration.get('version') or 0),
+            key=lambda p: p.snmp_version or 0,
             reverse=True,
         )
         if profiles:
