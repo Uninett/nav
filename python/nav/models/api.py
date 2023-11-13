@@ -85,26 +85,24 @@ class JWTRefreshToken(models.Model):
     def __str__(self):
         return self.token
 
-    @property
-    def data(self) -> Dict[str, Any]:
+    def get_body(self) -> Dict[str, Any]:
         """Body of token as a dict"""
         return self._decode_token(self.token)
 
-    @property
     def is_active(self) -> bool:
         """True if token is active. A token is considered active when
         the nbf claim is in the past and the exp claim is in the future
         """
         now = datetime.now()
-        data = self.data
-        nbf = datetime.fromtimestamp(data['nbf'])
-        exp = datetime.fromtimestamp(data['exp'])
+        body = self.get_body()
+        nbf = datetime.fromtimestamp(body['nbf'])
+        exp = datetime.fromtimestamp(body['exp'])
         return now >= nbf and now < exp
 
     def expire(self):
         """Expires the token"""
         # Base claims for expired token on existing claims
-        expired_data = self.data
+        expired_data = self.body
         expired_data['exp'] = (datetime.now() - timedelta(hours=1)).timestamp()
         self.token = self._encode_token(expired_data)
         self.save()
