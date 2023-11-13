@@ -21,6 +21,7 @@ import logging
 from typing import Dict, Sequence, List, Any
 
 from nav import Snmp
+from nav.Snmp.profile import get_snmp_session_for_profile
 from nav.Snmp import safestring, OID
 from nav.Snmp.errors import (
     UnsupportedSnmpVersionError,
@@ -174,10 +175,6 @@ class SNMPHandler(ManagementHandler):
 
             if not profile:
                 raise NoReadOnlyManagementProfileError
-            if not hasattr(profile, "snmp_community") or not hasattr(
-                profile, "snmp_version"
-            ):
-                raise InvalidManagementProfileError
 
             self.read_only_handle = Snmp.Snmp(
                 host=self.netbox.ip,
