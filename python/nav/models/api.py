@@ -96,8 +96,9 @@ class JWTRefreshToken(models.Model):
         the nbf claim is in the past and the exp claim is in the future
         """
         now = datetime.now()
-        nbf = datetime.fromtimestamp(self.data['nbf'])
-        exp = datetime.fromtimestamp(self.data['exp'])
+        data = self.data
+        nbf = datetime.fromtimestamp(data['nbf'])
+        exp = datetime.fromtimestamp(data['exp'])
         return now >= nbf and now < exp
 
     def expire(self):
