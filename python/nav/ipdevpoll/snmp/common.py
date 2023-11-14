@@ -16,8 +16,8 @@
 "common AgentProxy mixin"
 import time
 import logging
+from dataclasses import dataclass
 from functools import wraps
-from collections import namedtuple
 
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
@@ -89,7 +89,7 @@ class AgentProxyMixIn(object):
             self.snmp_parameters = kwargs['snmp_parameters']
             del kwargs['snmp_parameters']
         else:
-            self.snmp_parameters = SNMP_DEFAULTS
+            self.snmp_parameters = SNMPParameters()
         self._result_cache = {}
         self._last_request = 0
         self.throttle_delay = self.snmp_parameters.throttle_delay
@@ -134,10 +134,13 @@ class AgentProxyMixIn(object):
         return super(AgentProxyMixIn, self)._getbulk(*args, **kwargs)
 
 
-# pylint: disable=C0103
-SNMPParameters = namedtuple('SNMPParameters', 'timeout max_repetitions throttle_delay')
+@dataclass
+class SNMPParameters:
+    """SNMP session parameters and configuration"""
 
-SNMP_DEFAULTS = SNMPParameters(timeout=1.5, max_repetitions=50, throttle_delay=0)
+    timeout: int = 1.5
+    max_repetitions: int = 50
+    throttle_delay: int = 0
 
 
 # pylint: disable=W0212
@@ -152,7 +155,7 @@ def snmp_parameter_factory(host=None):
 
     from nav.ipdevpoll.config import ipdevpoll_conf as config
 
-    params = SNMP_DEFAULTS._asdict()
+    params = SNMPParameters()
 
     for var, getter in [
         ('max-repetitions', config.getint),
@@ -161,9 +164,9 @@ def snmp_parameter_factory(host=None):
     ]:
         if config.has_option(section, var):
             key = var.replace('-', '_')
-            params[key] = getter(section, var)
+            setattr(params, key, getter(section, var))
 
-    return SNMPParameters(**params)
+    return params
 
 
 class SnmpError(Exception):
