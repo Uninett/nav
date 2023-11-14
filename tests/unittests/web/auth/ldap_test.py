@@ -1,13 +1,25 @@
-from mock import Mock, patch
+from mock import Mock, MagicMock, patch
 
 import pytest
 
 from nav.config import NAVConfigParser
+from nav.models.profiles import Account
 from nav.web import auth
 from nav.web.auth import ldap
 
 
-LDAP_ACCOUNT = auth.Account(login='knight', ext_sync='ldap', password='shrubbery')
+LOCKED_ACCOUNT = auth.Account(
+    login='galahad',
+    ext_sync='ldap',
+    password='shrubbery',
+    locked=True,
+)
+ACTIVE_ACCOUNT = auth.Account(
+    login='arthur',
+    ext_sync='ldap',
+    password='shrubbery',
+    locked=False,
+)
 
 
 class LdapTestConfig(NAVConfigParser):
@@ -213,6 +225,51 @@ class TestLdapEntitlements(object):
 def test_no_admin_entitlement_option_should_make_no_admin_decision(user_zaphod):
     u = ldap.LDAPUser("zaphod", user_zaphod)
     assert u.is_admin() is None
+
+
+class TestLdapAuthenticate:
+    @patch("nav.web.auth.ldap.available", new=False)
+    def test_if_ldap_not_available_return_None(self, *_):
+        result = ldap.authenticate('foo', 'bar')
+        assert result is None
+
+    @patch("nav.web.auth.ldap.available", new=True)
+    @patch("nav.web.auth.ldap.get_ldap_user", return_value=False)
+    @patch(
+        "nav.web.auth.Account.objects.get", new=MagicMock(return_value=LOCKED_ACCOUNT)
+    )
+    def test_locked_accounts_return_None(self, *_):
+        result = ldap.authenticate('foo', 'bar')
+        assert result is None
+
+    @patch("nav.web.auth.ldap.available", new=True)
+    @patch("nav.web.auth.ldap.get_ldap_user", return_value=False)
+    @patch(
+        "nav.web.auth.Account.objects.get", new=MagicMock(return_value=ACTIVE_ACCOUNT)
+    )
+    @patch("nav.web.auth.Account.check_password", return_value=False)
+    def test_active_account_with_wrong_password_return_None(self, *_):
+        result = ldap.authenticate('foo', 'ni!')
+        assert result is None
+
+    @patch("nav.web.auth.ldap.available", new=True)
+    @patch("nav.web.auth.ldap.get_ldap_user", return_value=False)
+    @patch(
+        "nav.web.auth.Account.objects.get", new=MagicMock(return_value=ACTIVE_ACCOUNT)
+    )
+    @patch("nav.web.auth.Account.check_password", return_value=True)
+    @patch("nav.web.auth.ldap.update_ldap_user", return_value=ACTIVE_ACCOUNT)
+    def test_active_account_with_correct_password_return_account(self, *_):
+        result = ldap.authenticate('foo', 'ni!')
+        assert result == ACTIVE_ACCOUNT
+
+    @patch("nav.web.auth.ldap.available", new=True)
+    @patch("nav.web.auth.ldap.get_ldap_user", return_value=True)
+    @patch("nav.web.auth.Account.objects.get", side_effect=Account.DoesNotExist())
+    @patch("nav.web.auth.ldap.autocreate_ldap_user", return_value=ACTIVE_ACCOUNT)
+    def test_nonexisting_accounts_are_created(self, *_):
+        result = ldap.authenticate('foo', 'ni!')
+        assert result == ACTIVE_ACCOUNT
 
 
 #
