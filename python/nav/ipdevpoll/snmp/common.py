@@ -97,7 +97,9 @@ class AgentProxyMixIn(object):
         self._last_request = 0
         self.throttle_delay = self.snmp_parameters.throttle_delay
 
-        super(AgentProxyMixIn, self).__init__(*args, **kwargs)
+        kwargs_out = self.snmp_parameters.as_agentproxy_args()
+        kwargs_out.update(kwargs)
+        super(AgentProxyMixIn, self).__init__(*args, **kwargs_out)
         # If we're mixed in with a pure twistedsnmp AgentProxy, the timeout
         # parameter will have no effect, since it is an argument to individual
         # method calls.
