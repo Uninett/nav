@@ -147,10 +147,16 @@ NAV configuration
     varname = REMOTE_USER
     logout-url = /oidc/?logout=
     workaround = feide-oidc
+    autocreate = off
 
 "oidc" in the ``logout-url`` points to the same place as the
 ``<Location /oidc>``-block in the apache configuration and the redirect URI in
 the Feide dashboard.
+
+By toggling autocreate to "on", users are automatically created on first login
+via OIDC, This is probably not what you want, which is why the  default is
+"off". With it "off" it is necessary to pre-create the users in order to allow
+login.
 
 Gotchas
 =======
