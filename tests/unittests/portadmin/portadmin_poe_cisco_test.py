@@ -21,14 +21,16 @@ class TestGetPoeStateOptions:
 
 class TestGetPoeState:
     @pytest.mark.usefixtures('poeport_get_mock')
-    def test_should_raise_exception_if_unknown_poe_state_cisco(self, handler_cisco):
+    def test_should_raise_exception_if_unknown_poe_state(self, handler_cisco):
         handler_cisco._query_netbox = Mock(return_value=76)
         interface = Mock(interface="interface")
         with pytest.raises(POEStateNotSupportedError):
             handler_cisco.get_poe_states([interface])
 
     @pytest.mark.usefixtures('poeport_get_mock_error')
-    def test_should_raise_exception_if_no_poe_indexes_cisco(self, handler_cisco):
+    def test_should_raise_exception_if_interface_is_missing_poeport(
+        self, handler_cisco
+    ):
         interface = Mock(interface="interface")
         with pytest.raises(POEIndexNotFoundError):
             handler_cisco.get_poe_states([interface])
@@ -43,7 +45,7 @@ class TestGetPoeState:
         assert states[interface.ifname] is None
 
     @pytest.mark.usefixtures('poeport_get_mock')
-    def test_returns_correct_poe_state_cisco(self, handler_cisco):
+    def test_returns_correct_poe_state(self, handler_cisco):
         expected_state = Cisco.POE_AUTO
         handler_cisco._query_netbox = Mock(return_value=expected_state.state)
         interface = Mock(ifname="interface")
