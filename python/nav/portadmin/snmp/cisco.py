@@ -358,7 +358,7 @@ class Cisco(SNMPHandler):
         interface_number = poeport.index
         return unit_number, interface_number
 
-    def _get_poeport(interface: manage.Interface):
+    def _get_poeport(self, interface: manage.Interface):
         return manage.POEPort.objects.get(interface=interface)
 
     def get_poe_states(
