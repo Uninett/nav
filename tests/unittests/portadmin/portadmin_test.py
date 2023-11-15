@@ -1,9 +1,6 @@
 from mock import Mock
 
-import pytest
-
 from nav.oids import OID
-from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD, VENDOR_ID_CISCOSYSTEMS
 from nav.portadmin.management import ManagementFactory
 from nav.portadmin.snmp.hp import HP
 from nav.portadmin.snmp.cisco import Cisco
@@ -77,55 +74,3 @@ class TestPortadminResponseCisco:
         expected = {1: 'jomar', 2: 'knut', 3: 'hjallis'}
         snmp_read_only_handler.bulkwalk = Mock(return_value=walkdata)
         assert handler_cisco._get_all_ifaliases() == expected, "getAllIfAlias failed."
-
-
-@pytest.fixture
-def profile():
-    profile = Mock()
-    profile.snmp_version = 2
-    profile.snmp_community = "public"
-    return profile
-
-
-@pytest.fixture
-def netbox_hp(profile):
-    vendor = Mock()
-    vendor.id = u'hp'
-
-    netbox_type = Mock()
-    netbox_type.vendor = vendor
-    netbox_type.get_enterprise_id.return_value = VENDOR_ID_HEWLETT_PACKARD
-
-    netbox = Mock()
-    netbox.type = netbox_type
-    netbox.ip = '10.240.160.39'
-    netbox.get_preferred_snmp_management_profile.return_value = profile
-
-    return netbox
-
-
-@pytest.fixture
-def netbox_cisco(profile):
-    vendor = Mock()
-    vendor.id = u'cisco'
-
-    netbox_type = Mock()
-    netbox_type.vendor = vendor
-    netbox_type.get_enterprise_id.return_value = VENDOR_ID_CISCOSYSTEMS
-
-    netbox = Mock()
-    netbox.type = netbox_type
-    netbox.ip = '10.240.160.38'
-    netbox.get_preferred_snmp_management_profile.return_value = profile
-
-    return netbox
-
-
-@pytest.fixture
-def handler_hp(netbox_hp):
-    return ManagementFactory.get_instance(netbox_hp)
-
-
-@pytest.fixture
-def handler_cisco(netbox_cisco):
-    return ManagementFactory.get_instance(netbox_cisco)
