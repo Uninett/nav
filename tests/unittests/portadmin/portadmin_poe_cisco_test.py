@@ -1,4 +1,4 @@
-from mock import Mock
+from mock import Mock, patch
 
 import pytest
 
@@ -7,6 +7,7 @@ from nav.portadmin.handlers import (
     POEIndexNotFoundError,
     POEStateNotSupportedError,
 )
+from nav.models import manage
 
 
 class TestGetPoeStateOptions:
@@ -18,38 +19,40 @@ class TestGetPoeStateOptions:
         assert Cisco.POE_DISABLE in state_options
 
 
-@pytest.mark.usefixtures('get_poeport_mock')
 class TestGetPoeState:
-    def test_should_raise_exception_if_unknown_poe_state_cisco(self, handler_cisco):
+    def test_should_raise_exception_if_unknown_poe_state_cisco(
+        self, handler_cisco, poeport_get_mock
+    ):
         handler_cisco._query_netbox = Mock(return_value=76)
         interface = Mock(interface="interface")
         with pytest.raises(POEStateNotSupportedError):
             handler_cisco.get_poe_states([interface])
 
-    def test_should_raise_exception_if_no_poe_indexes_cisco(self, handler_cisco):
-        handler_cisco._get_poe_indexes_for_interface = Mock(
-            side_effect=POEIndexNotFoundError("Fail")
-        )
+    def test_should_raise_exception_if_no_poe_indexes_cisco(
+        self, handler_cisco, poeport_get_mock_error
+    ):
         interface = Mock(interface="interface")
         with pytest.raises(POEIndexNotFoundError):
             handler_cisco.get_poe_states([interface])
 
     def test_dict_should_give_none_if_interface_does_not_support_poe(
-        self, handler_cisco
+        self, handler_cisco, poeport_get_mock
     ):
         handler_cisco._query_netbox = Mock(return_value=None)
         interface = Mock(interface="interface")
         states = handler_cisco.get_poe_states([interface])
         assert states[interface.ifname] is None
 
-    def test_returns_correct_poe_state_cisco(self, handler_cisco):
+    def test_returns_correct_poe_state_cisco(self, handler_cisco, poeport_get_mock):
         expected_state = Cisco.POE_AUTO
         handler_cisco._query_netbox = Mock(return_value=expected_state.state)
         interface = Mock(ifname="interface")
         state = handler_cisco.get_poe_states([interface])
         assert state[interface.ifname] == expected_state
 
-    def test_use_interfaces_from_db_if_empty_interfaces_arg(self, handler_cisco):
+    def test_use_interfaces_from_db_if_empty_interfaces_arg(
+        self, handler_cisco, poeport_get_mock
+    ):
         expected_state = Cisco.POE_AUTO
         handler_cisco._query_netbox = Mock(return_value=expected_state.state)
         interface = Mock(ifname="interface")
@@ -59,7 +62,16 @@ class TestGetPoeState:
 
 
 @pytest.fixture()
-def get_poeport_mock(handler_cisco):
-    poegroup_mock = Mock(index=1)
-    poeport_mock = Mock(poegroup=poegroup_mock, index=1)
-    handler_cisco._get_poeport = Mock(return_value=poeport_mock)
+def poeport_get_mock():
+    with patch("nav.portadmin.snmp.cisco.manage.POEPort.objects.get") as get_mock:
+        poegroup_mock = Mock(index=1)
+        poeport_mock = Mock(poegroup=poegroup_mock, index=1)
+        get_mock.return_value = poeport_mock
+        yield get_mock
+
+
+@pytest.fixture()
+def poeport_get_mock_error():
+    with patch("nav.portadmin.snmp.cisco.manage.POEPort.objects.get") as get_mock:
+        get_mock.side_effect = manage.POEPort.DoesNotExist
+        yield get_mock
