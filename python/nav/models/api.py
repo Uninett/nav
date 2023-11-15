@@ -87,7 +87,7 @@ class JWTRefreshToken(models.Model):
 
     def data(self) -> Dict[str, Any]:
         """Data of token as a dict"""
-        return self._decode_token(self.token)
+        return self.decode_token(self.token)
 
     def is_active(self) -> bool:
         """True if token is active. A token is considered active when
@@ -104,7 +104,7 @@ class JWTRefreshToken(models.Model):
         # Base claims for expired token on existing claims
         expired_data = self.data()
         expired_data['exp'] = (datetime.now() - timedelta(hours=1)).timestamp()
-        self.token = self._encode_token(expired_data)
+        self.token = self.encode_token(expired_data)
         self.save()
 
     @classmethod
@@ -144,17 +144,17 @@ class JWTRefreshToken(models.Model):
             'token_type': token_type,
         }
         new_token.update(updated_claims)
-        return cls._encode_token(new_token)
+        return cls.encode_token(new_token)
 
     @classmethod
-    def _encode_token(cls, token_data: Dict[str, Any]) -> str:
+    def encode_token(cls, token_data: Dict[str, Any]) -> str:
         """Returns an encoded token in JWT format"""
         return jwt.encode(
             token_data, JWTConf().get_nav_private_key(), algorithm="RS256"
         )
 
     @classmethod
-    def _decode_token(cls, token: str) -> Dict[str, Any]:
+    def decode_token(cls, token: str) -> Dict[str, Any]:
         """Decodes a token in JWT format and returns the data of the decoded token"""
         return jwt.decode(token, options={'verify_signature': False})
 
