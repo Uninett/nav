@@ -22,7 +22,7 @@ class TestGetPoeStateOptions:
 class TestGetPoeState:
     def test_should_raise_exception_if_unknown_poe_state_cisco(self, handler_cisco):
         handler_cisco._query_netbox = Mock(return_value=76)
-        interface = Mock()
+        interface = Mock(interface="interface")
         with pytest.raises(POEStateNotSupportedError):
             handler_cisco.get_poe_states([interface])
 
@@ -30,7 +30,7 @@ class TestGetPoeState:
         handler_cisco._get_poe_indexes_for_interface = Mock(
             side_effect=POEIndexNotFoundError("Fail")
         )
-        interface = Mock()
+        interface = Mock(interface="interface")
         with pytest.raises(POEIndexNotFoundError):
             handler_cisco.get_poe_states([interface])
 
