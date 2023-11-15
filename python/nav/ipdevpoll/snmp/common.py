@@ -24,6 +24,8 @@ from twisted.internet import reactor
 from twisted.internet.defer import succeed
 from twisted.internet.task import deferLater
 
+from nav.models.manage import Netbox
+
 _logger = logging.getLogger(__name__)
 
 
@@ -168,6 +170,52 @@ class SNMPParameters:
         """Returns the SNMP protocol version as a command line compatible string"""
         return "2c" if self.version == 2 else str(self.version)
 
+    @classmethod
+    def factory(cls, netbox: Optional[Netbox] = None, **kwargs):
+        """Creates and returns a set of SNMP parameters based on three sources, in
+        reverse order of precedence:
+
+        1. Given a Netbox, adds the parameters from its preferred SNMP profile.
+        2. SNMP parameters from ipdevpoll.conf.
+        3. SNMP parameters given as keyword arguments to the factory method.
+
+        Beware that this method will synchronously fetch management profiles from the
+        database using the Django ORM, and should not be called from async code
+        unless deferred to a worker thread.
+        """
+        kwargs_out = {}
+        if netbox:
+            profile = netbox.get_preferred_snmp_management_profile(writeable=False)
+            if profile:
+                if profile.protocol == profile.PROTOCOL_SNMPV3:
+                    kwargs["version"] = 3
+                kwargs_out.update(
+                    {k: v for k, v in profile.configuration.items() if hasattr(cls, k)}
+                )
+
+        kwargs_out.update(cls.get_params_from_ipdevpoll_config())
+        kwargs_out.update(kwargs)
+        return cls(**kwargs_out)
+
+    @classmethod
+    def get_params_from_ipdevpoll_config(cls, section: str = "snmp") -> dict[str, Any]:
+        """Reads and returns global SNMP parameters from ipdevpoll configuration as a
+        simple dict.
+        """
+        from nav.ipdevpoll.config import ipdevpoll_conf as config
+
+        params = {}
+        for var, getter in [
+            ('max-repetitions', config.getint),
+            ('timeout', config.getfloat),
+            ('throttle-delay', config.getfloat),
+        ]:
+            if config.has_option(section, var):
+                key = var.replace('-', '_')
+                params[key] = getter(section, var)
+
+        return params
+
 
 # pylint: disable=W0212
 def snmp_parameter_factory(host=None):
@@ -177,22 +225,7 @@ def snmp_parameter_factory(host=None):
     :returns: An SNMPParameters namedtuple.
 
     """
-    section = 'snmp'
-
-    from nav.ipdevpoll.config import ipdevpoll_conf as config
-
-    params = SNMPParameters()
-
-    for var, getter in [
-        ('max-repetitions', config.getint),
-        ('timeout', config.getfloat),
-        ('throttle-delay', config.getfloat),
-    ]:
-        if config.has_option(section, var):
-            key = var.replace('-', '_')
-            setattr(params, key, getter(section, var))
-
-    return params
+    return SNMPParameters.factory(netbox=host)
 
 
 class SnmpError(Exception):
