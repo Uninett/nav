@@ -99,7 +99,7 @@ class TestData:
 
 
 class TestDecodeToken:
-    def test_should_return_same_data_as_when_token_was_encoded(
+    def test_should_return_same_data_as_token_was_encoded_with(
         self, refresh_token, refresh_token_data
     ):
         decoded_data = JWTRefreshToken._decode_token(refresh_token)
@@ -107,7 +107,7 @@ class TestDecodeToken:
 
 
 class TestEncodeToken:
-    def test_should_generate_a_known_token_using_the_same_data(
+    def test_should_generate_same_string_as_a_known_token_that_was_made_with_same_input(
         self, refresh_token, refresh_token_data
     ):
         encoded_token = JWTRefreshToken._encode_token(refresh_token_data)
