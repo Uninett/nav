@@ -18,6 +18,7 @@ import time
 import logging
 from dataclasses import dataclass
 from functools import wraps
+from typing import Union, Literal, Optional, Any
 
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
@@ -136,11 +137,36 @@ class AgentProxyMixIn(object):
 
 @dataclass
 class SNMPParameters:
-    """SNMP session parameters and configuration"""
+    """SNMP session parameters common to all SNMP protocol versions"""
 
-    timeout: int = 1.5
+    # Common for all SNMP sessions
+    version: Union[Literal[1], Literal[2], Literal[3]] = 1
+    timeout: float = 1.5
+    tries: int = 3
+
+    # Common for v1 and v2 only
+    community: str = "public"
+
+    # Common for v2c +
     max_repetitions: int = 50
+
+    # SNMPv3 only
+    sec_level: Optional[
+        Union[Literal["noAuthNoPriv"], Literal["authNoPriv"], Literal["authPriv"]]
+    ] = None
+    auth_protocol: str = None
+    sec_name: str = None
+    auth_password: Optional[str] = None
+    priv_protocol: Optional[str] = None
+    priv_password: Optional[str] = None
+
+    # Specific to ipdevpoll-derived implementations
     throttle_delay: int = 0
+
+    @property
+    def version_string(self):
+        """Returns the SNMP protocol version as a command line compatible string"""
+        return "2c" if self.version == 2 else str(self.version)
 
 
 # pylint: disable=W0212
