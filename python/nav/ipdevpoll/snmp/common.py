@@ -216,6 +216,33 @@ class SNMPParameters:
 
         return params
 
+    def as_agentproxy_args(self) -> dict[str, Any]:
+        """Returns the SNMP session parameters in a dict format compatible with
+        pynetsnmp.twistedsnmp.AgentProxy() keyword arguments.
+        """
+        kwargs = {"snmpVersion": self.version_string}
+        if self.version in (1, 2):
+            kwargs["community"] = self.community
+        if self.timeout:
+            kwargs["timeout"] = self.timeout
+        if self.tries:
+            kwargs["tries"] = self.tries
+
+        if self.version == 3:
+            params = []
+            params.extend(["-l", self.sec_level, "-u", self.sec_name])
+            if self.auth_protocol:
+                params.extend(["-a", self.auth_protocol])
+            if self.auth_password:
+                params.extend(["-A", self.auth_password])
+            if self.priv_protocol:
+                params.extend(["-x", self.priv_protocol])
+            if self.priv_password:
+                params.extend(["-X", self.priv_password])
+            kwargs["cmdLineArgs"] = tuple(params)
+
+        return kwargs
+
 
 # pylint: disable=W0212
 def snmp_parameter_factory(host=None):
