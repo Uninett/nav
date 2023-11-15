@@ -16,6 +16,7 @@ from nav.models.profiles import (
     AlertSender,
     Expression,
     Filter,
+    FilterGroup,
     MatchField,
     Operator,
 )
@@ -125,6 +126,23 @@ def test_alertprofiles_activate_profile(db, client, dummy_profile):
     assert preference.active_profile == dummy_profile
 
 
+def test_alertprofiles_activate_profile_with_info_in_key(db, client, dummy_profile):
+    # remarkably, activation/deactivation of profiles belong in the remove view!
+    url = reverse('alertprofiles-profile-remove')
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            f'activate={dummy_profile.id}': ["Activate"],
+        },
+    )
+    assert response.status_code == 200
+    assert "Active profile set" in smart_str(response.content)
+    assert dummy_profile.name in smart_str(response.content)
+    preference = AlertPreference.objects.get(account=dummy_profile.account)
+    assert preference.active_profile == dummy_profile
+
+
 def test_alertprofiles_deactivate_profile(db, client, activated_dummy_profile):
     # remarkably, activation/deactivation of profiles belong in the remove view!
     url = reverse('alertprofiles-profile-remove')
@@ -133,6 +151,26 @@ def test_alertprofiles_deactivate_profile(db, client, activated_dummy_profile):
         follow=True,
         data={
             'deactivate': activated_dummy_profile.id,
+        },
+    )
+    assert response.status_code == 200
+    print(type(response.content))
+    assert "was deactivated" in smart_str(response.content)
+    assert activated_dummy_profile.name in smart_str(response.content)
+    preference = AlertPreference.objects.get(account=activated_dummy_profile.account)
+    assert preference.active_profile is None
+
+
+def test_alertprofiles_deactivate_profile_with_info_in_key(
+    db, client, activated_dummy_profile
+):
+    # remarkably, activation/deactivation of profiles belong in the remove view!
+    url = reverse('alertprofiles-profile-remove')
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            f'deactivate={activated_dummy_profile.id}': ["Deactivate"],
         },
     )
     assert response.status_code == 200
@@ -556,6 +594,35 @@ def test_alertprofiles_add_invalid_phone_number_should_fail(client):
     assert "Not a valid phone number." in smart_str(response.content)
 
 
+def test_alertprofiles_confirm_remove_filter_group(db, client, dummy_filter_group):
+    url = reverse('alertprofiles-filter_groups-remove')
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            'confirm': '1',
+            'element': [dummy_filter_group.id],
+        },
+    )
+    assert response.status_code == 200
+    assert not FilterGroup.objects.filter(pk=dummy_filter_group.pk).exists()
+
+
+def test_alertprofiles_remove_filter_group(db, client, dummy_filter_group):
+    url = reverse('alertprofiles-filter_groups-remove')
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            'filter_group': [dummy_filter_group.id],
+        },
+    )
+    assert response.status_code == 200
+    assert "Confirm deletion" in smart_str(response.content)
+    assert dummy_filter_group.name in smart_str(response.content)
+    assert FilterGroup.objects.filter(pk=dummy_filter_group.pk).count() == 1
+
+
 #
 # fixtures and helpers
 #
@@ -583,3 +650,10 @@ def dummy_filter():
     filtr = Filter(name="dummy", owner=Account.objects.get(id=Account.ADMIN_ACCOUNT))
     filtr.save()
     return filtr
+
+
+@pytest.fixture(scope="function")
+def dummy_filter_group(admin_account):
+    filter_group = FilterGroup(name="dummy_group", owner=admin_account)
+    filter_group.save()
+    return filter_group
