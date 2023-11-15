@@ -28,12 +28,13 @@ so the underlying Juniper PyEZ library is utilized directly in most cases.
 """
 from __future__ import annotations
 from operator import attrgetter
-from typing import List, Any, Dict, Tuple, Sequence
+from typing import List, Any, Dict, Tuple, Sequence, Optional
 
 from django.template.loader import get_template
 from napalm.base.exceptions import ConnectAuthError, ConnectionException
 from jnpr.junos.op.vlan import VlanTable
 from jnpr.junos.exception import RpcError
+from lxml.etree import ElementTree
 
 from nav.napalm import connect as napalm_connect
 from nav.enterprise.ids import VENDOR_ID_JUNIPER_NETWORKS_INC
@@ -44,6 +45,10 @@ from nav.portadmin.handlers import (
     AuthenticationError,
     NoResponseError,
     ProtocolError,
+    PoeState,
+    POEStateNotSupportedError,
+    POENotSupportedError,
+    XMLParseError,
 )
 from nav.junos.nav_views import (
     EthernetSwitchingInterfaceTable,
@@ -102,6 +107,9 @@ class Juniper(ManagementHandler):
 
     VENDOR = VENDOR_ID_JUNIPER_NETWORKS_INC
     PROTOCOL = manage.ManagementProfile.PROTOCOL_NAPALM
+    POE_ENABLED = PoeState(state=1, name="ENABLED")
+    POE_DISABLED = PoeState(state=2, name="DISABLED")
+    POE_OPTIONS = [POE_ENABLED, POE_DISABLED]
 
     def __init__(self, netbox: manage.Netbox, **kwargs):
         super().__init__(netbox, **kwargs)
@@ -440,6 +448,111 @@ class Juniper(ManagementHandler):
             raise DeviceNotConfigurableError("Can only configure JunOS devices")
         if not self.profile:
             raise DeviceNotConfigurableError("Device has no NAPALM profile")
+
+    def get_poe_state_options(self) -> Sequence[PoeState]:
+        """Returns the available options for enabling/disabling PoE on this netbox"""
+        return self.POE_OPTIONS
+
+    @wrap_unhandled_rpc_errors
+    def set_poe_state(self, interface: manage.Interface, state: PoeState):
+        """Set state for enabling/disabling PoE on this interface.
+        Available options should be retrieved using `get_poe_state_options`
+        """
+        if not isinstance(state, PoeState):
+            raise TypeError("state must be a PoeState object")
+        if state == self.POE_ENABLED:
+            template = get_template("portadmin/junos-enable-poe.djt")
+        elif state == self.POE_DISABLED:
+            template = get_template("portadmin/junos-disable-poe.djt")
+        else:
+            raise POEStateNotSupportedError(f"state {state} is not a valid state")
+        master, _ = split_master_unit(interface.ifname)
+        config = template.render({"ifname": master})
+        self.device.load_merge_candidate(config=config)
+
+    def get_poe_states(
+        self, interfaces: Optional[Sequence[manage.Interface]] = None
+    ) -> Dict[str, Optional[PoeState]]:
+        """Retrieves current PoE state for interfaces on this device.
+
+        :param interfaces: Optional sequence of interfaces to filter for, as fetching
+                           data for all interfaces may be a waste of time if only a
+                           single interface is needed. If this parameter is omitted,
+                           the default behavior is to filter on all Interface objects
+                           registered for this device.
+        :returns: A dict mapping interfaces to their discovered PoE state.
+                  The key matches the `ifname` attribute for the related
+                  Interface object.
+                  The value will be None if the interface does not support PoE.
+        """
+        if not interfaces:
+            if self.netbox.interfaces:
+                interfaces = self.netbox.interfaces
+            else:
+                return {}
+        if len(interfaces) == 1:
+            interface = interfaces[0]
+            try:
+                state = self._get_single_poe_state(interface)
+            except POENotSupportedError:
+                state = None
+            return {interface.ifname: state}
+        else:
+            return self._get_poe_states_bulk(interfaces)
+
+    def _get_single_poe_state(self, interface: manage.Interface) -> PoeState:
+        tree = self._get_poe_interface_information(ifname=interface.ifname)
+        matching_elements = tree.xpath(
+            "//poe/interface-information-detail/interface-enabled-detail"
+        )
+        # Interfaces that do not support PoE will not have this element
+        if not matching_elements:
+            raise POENotSupportedError(
+                f"Interface {interface.ifname} does not support PoE"
+            )
+        if len(matching_elements) != 1:
+            raise XMLParseError(
+                f"Expected 1 matching element in xml response, "
+                f"{len(matching_elements)} found"
+            )
+        ifenabled = matching_elements[0].text.lower()
+        return self._poe_string_to_state(ifenabled)
+
+    def _get_poe_states_bulk(
+        self, interfaces: Sequence[manage.Interface]
+    ) -> Dict[str, Optional[PoeState]]:
+        tree = self._get_all_poe_interface_information()
+        interface_information_elements = tree.findall(".//interface-information")
+        ifname_to_state_dict = {}
+        for element in interface_information_elements:
+            ifname = element.findall(".//interface-name")[0].text.strip().lower()
+            ifenabled = element.findall(".//interface-enabled")[0].text.strip().lower()
+            ifname_to_state_dict[ifname] = self._poe_string_to_state(ifenabled)
+        ifindex_to_state_dict = {
+            interface.ifname: ifname_to_state_dict.get(interface.ifname.lower())
+            for interface in interfaces
+        }
+        return ifindex_to_state_dict
+
+    @wrap_unhandled_rpc_errors
+    def _get_all_poe_interface_information(self) -> ElementTree:
+        return self.device.device.rpc.get_poe_interface_information()
+
+    @wrap_unhandled_rpc_errors
+    def _get_poe_interface_information(self, ifname: str) -> ElementTree:
+        return self.device.device.rpc.get_poe_interface_information(ifname=ifname)
+
+    def _poe_string_to_state(self, state_str: str) -> PoeState:
+        """Converts from internal juniper state names to
+        corresponding PoeState objects
+        """
+        state_cleaned = state_str.strip().lower()
+        if state_cleaned == "enabled":
+            return self.POE_ENABLED
+        elif state_cleaned == "disabled":
+            return self.POE_DISABLED
+        else:
+            raise POEStateNotSupportedError(f"Unknown PoE state {state_str}")
 
     # FIXME Implement dot1x fetcher methods
     # dot1x authentication configuration fetchers aren't implemented yet, for lack
