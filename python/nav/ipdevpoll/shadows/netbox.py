@@ -37,7 +37,7 @@ class Netbox(Shadow):
             self.last_updated = getattr(
                 obj, 'last_updated', self._translate_last_jobs(obj)
             )
-            self.snmp_parameters = getattr(obj, "snmp_parameters", {})
+            self.snmp_parameters = getattr(obj, "snmp_parameters", None)
             if not self.snmp_parameters:
                 self.snmp_parameters = SNMPParameters.factory(obj)
 

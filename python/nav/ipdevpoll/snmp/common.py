@@ -173,7 +173,9 @@ class SNMPParameters:
         return "2c" if self.version == 2 else str(self.version)
 
     @classmethod
-    def factory(cls, netbox: Optional[Netbox] = None, **kwargs):
+    def factory(
+        cls, netbox: Optional[Netbox] = None, **kwargs
+    ) -> Optional["SNMPParameters"]:
         """Creates and returns a set of SNMP parameters based on three sources, in
         reverse order of precedence:
 
@@ -184,6 +186,9 @@ class SNMPParameters:
         Beware that this method will synchronously fetch management profiles from the
         database using the Django ORM, and should not be called from async code
         unless deferred to a worker thread.
+
+        If the netbox argument is a Netbox without a configured SNMP profile, None will
+        be returned.
         """
         kwargs_out = {}
         if netbox:
@@ -194,6 +199,9 @@ class SNMPParameters:
                 kwargs_out.update(
                     {k: v for k, v in profile.configuration.items() if hasattr(cls, k)}
                 )
+            else:
+                _logger.debug("%r has no snmp profile", netbox)
+                return None
 
         kwargs_out.update(cls.get_params_from_ipdevpoll_config())
         kwargs_out.update(kwargs)
