@@ -9,44 +9,44 @@ from nav.models.api import JWTRefreshToken
 class TestGenerateAccessToken:
     def test_nbf_should_be_in_the_past(self):
         encoded_token = JWTRefreshToken.generate_access_token()
-        data = JWTRefreshToken._decode_token(encoded_token)
+        data = JWTRefreshToken.decode_token(encoded_token)
         assert data['nbf'] < datetime.now().timestamp()
 
     def test_exp_should_be_in_the_future(self):
         encoded_token = JWTRefreshToken.generate_access_token()
-        data = JWTRefreshToken._decode_token(encoded_token)
+        data = JWTRefreshToken.decode_token(encoded_token)
         assert data['exp'] > datetime.now().timestamp()
 
     def test_iat_should_be_in_the_past(self):
         encoded_token = JWTRefreshToken.generate_access_token()
-        data = JWTRefreshToken._decode_token(encoded_token)
+        data = JWTRefreshToken.decode_token(encoded_token)
         assert data['iat'] < datetime.now().timestamp()
 
     def test_token_type_should_be_access_token(self):
         encoded_token = JWTRefreshToken.generate_access_token()
-        data = JWTRefreshToken._decode_token(encoded_token)
+        data = JWTRefreshToken.decode_token(encoded_token)
         assert data['token_type'] == "access_token"
 
 
 class TestGenerateRefreshToken:
     def test_nbf_should_be_in_the_past(self):
         encoded_token = JWTRefreshToken.generate_refresh_token()
-        data = JWTRefreshToken._decode_token(encoded_token)
+        data = JWTRefreshToken.decode_token(encoded_token)
         assert data['nbf'] < datetime.now().timestamp()
 
     def test_exp_should_be_in_the_future(self):
         encoded_token = JWTRefreshToken.generate_refresh_token()
-        data = JWTRefreshToken._decode_token(encoded_token)
+        data = JWTRefreshToken.decode_token(encoded_token)
         assert data['exp'] > datetime.now().timestamp()
 
     def test_iat_should_be_in_the_past(self):
         encoded_token = JWTRefreshToken.generate_refresh_token()
-        data = JWTRefreshToken._decode_token(encoded_token)
+        data = JWTRefreshToken.decode_token(encoded_token)
         assert data['iat'] < datetime.now().timestamp()
 
     def test_token_type_should_be_refresh_token(self):
         encoded_token = JWTRefreshToken.generate_refresh_token()
-        data = JWTRefreshToken._decode_token(encoded_token)
+        data = JWTRefreshToken.decode_token(encoded_token)
         assert data['token_type'] == "refresh_token"
 
 
@@ -54,14 +54,14 @@ class TestIsActive:
     def test_should_return_false_if_nbf_is_in_the_future(self, refresh_token_data):
         refresh_token_data['nbf'] = (datetime.now() + timedelta(hours=1)).timestamp()
         refresh_token_data['exp'] = (datetime.now() + timedelta(hours=1)).timestamp()
-        encoded_token = JWTRefreshToken._encode_token(refresh_token_data)
+        encoded_token = JWTRefreshToken.encode_token(refresh_token_data)
         token = JWTRefreshToken(token=encoded_token)
         assert not token.is_active()
 
     def test_should_return_false_if_exp_is_in_the_past(self, refresh_token_data):
         refresh_token_data['nbf'] = (datetime.now() - timedelta(hours=1)).timestamp()
         refresh_token_data['exp'] = (datetime.now() - timedelta(hours=1)).timestamp()
-        encoded_token = JWTRefreshToken._encode_token(refresh_token_data)
+        encoded_token = JWTRefreshToken.encode_token(refresh_token_data)
         token = JWTRefreshToken(token=encoded_token)
         assert not token.is_active()
 
@@ -71,7 +71,7 @@ class TestIsActive:
         now = datetime.now()
         refresh_token_data['nbf'] = (now - timedelta(hours=1)).timestamp()
         refresh_token_data['exp'] = (now + timedelta(hours=1)).timestamp()
-        encoded_token = JWTRefreshToken._encode_token(refresh_token_data)
+        encoded_token = JWTRefreshToken.encode_token(refresh_token_data)
         token = JWTRefreshToken(token=encoded_token)
         assert token.is_active()
 
@@ -82,7 +82,7 @@ class TestExpire:
         # set claims so the token starts as being active
         refresh_token_data['nbf'] = now - timedelta(hours=1)
         refresh_token_data['exp'] = now + timedelta(hours=1)
-        encoded_token = JWTRefreshToken._encode_token(refresh_token_data)
+        encoded_token = JWTRefreshToken.encode_token(refresh_token_data)
         token = JWTRefreshToken(token=encoded_token)
         token.save = Mock()
         assert token.is_active()
@@ -102,7 +102,7 @@ class TestDecodeToken:
     def test_should_return_same_data_as_token_was_encoded_with(
         self, refresh_token, refresh_token_data
     ):
-        decoded_data = JWTRefreshToken._decode_token(refresh_token)
+        decoded_data = JWTRefreshToken.decode_token(refresh_token)
         assert decoded_data == refresh_token_data
 
 
@@ -110,7 +110,7 @@ class TestEncodeToken:
     def test_should_generate_same_string_as_a_known_token_that_was_made_with_same_input(
         self, refresh_token, refresh_token_data
     ):
-        encoded_token = JWTRefreshToken._encode_token(refresh_token_data)
+        encoded_token = JWTRefreshToken.encode_token(refresh_token_data)
         assert encoded_token == refresh_token
 
 
