@@ -9,12 +9,13 @@ from nav.portadmin.handlers import (
 )
 
 
-def test_returns_correct_poe_state_options_cisco(handler_cisco):
-    state_options = handler_cisco.get_poe_state_options()
-    assert Cisco.POE_AUTO in state_options
-    assert Cisco.POE_STATIC in state_options
-    assert Cisco.POE_LIMIT in state_options
-    assert Cisco.POE_DISABLE in state_options
+class TestGetPoeStateOptions:
+    def test_returns_correct_options(self, handler_cisco):
+        state_options = handler_cisco.get_poe_state_options()
+        assert Cisco.POE_AUTO in state_options
+        assert Cisco.POE_STATIC in state_options
+        assert Cisco.POE_LIMIT in state_options
+        assert Cisco.POE_DISABLE in state_options
 
 
 @pytest.mark.usefixtures('get_poeport_mock')
