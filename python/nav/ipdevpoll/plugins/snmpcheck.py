@@ -66,11 +66,11 @@ class SnmpCheck(Plugin):
 
     @defer.inlineCallbacks
     def _do_check(self):
-        self._logger.debug("checking SNMP%s availability", self.agent.snmpVersion)
+        self._logger.debug("checking SNMP v%s availability", self.agent.snmpVersion)
         try:
             result = yield self.agent.walk(SYSTEM_OID)
         except (defer.TimeoutError, error.TimeoutError):
-            self._logger.debug("SNMP%s timed out", self.agent.snmpVersion)
+            self._logger.debug("SNMP v%s timed out", self.agent.snmpVersion)
             returnValue(False)
 
         self._logger.debug("SNMP response: %r", result)
