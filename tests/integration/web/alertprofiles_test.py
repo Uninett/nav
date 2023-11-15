@@ -82,6 +82,18 @@ class TestsAlertProfiles:
 
         assert set_active_profile(request, profile) is None
 
+    def test_show_non_existent_profile(self, db, client):
+        last_alert_profile_id = getattr(AlertProfile.objects.last(), "pk", 0)
+        response = client.get(
+            path=reverse(
+                'alertprofiles-profile-detail', args=(last_alert_profile_id + 1,)
+            ),
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        assert "The requested profile does not exist." in smart_str(response.content)
+
     def test_alertprofiles_save_profile(self, db, client):
         url = reverse('alertprofiles-profile-save')
         profile_name = 'Catch 22'
