@@ -9,16 +9,17 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 from nav.compatibility import smart_str
 from nav.models.profiles import (
-    Account,
     AlertAddress,
     AlertPreference,
     AlertProfile,
     AlertSender,
+    AlertSubscription,
     Expression,
     Filter,
     FilterGroup,
     MatchField,
     Operator,
+    TimePeriod,
 )
 from nav.web.alertprofiles.views import set_active_profile
 
@@ -46,6 +47,28 @@ def test_alertprofiles_view(client, view):
     url = reverse(view)
     response = client.get(url)
     assert "admin" in smart_str(response.content)
+
+
+class TestsOverview:
+    def test_show_active_profile(self, db, client, activated_dummy_profile):
+        response = client.get(reverse('alertprofiles-overview'))
+
+        assert response.status_code == 200
+        assert activated_dummy_profile.name in smart_str(response.content)
+
+    def test_show_subscriptions(
+        self,
+        db,
+        client,
+        dummy_alert_address,
+        dummy_filter_group,
+        dummy_alert_subscription,
+    ):
+        response = client.get(reverse('alertprofiles-overview'))
+
+        assert response.status_code == 200
+        assert dummy_alert_address.address in smart_str(response.content)
+        assert str(dummy_filter_group) in smart_str(response.content)
 
 
 class TestsAlertProfiles:
@@ -653,6 +676,37 @@ def activated_dummy_profile(dummy_profile):
     )
     preference.save()
     return dummy_profile
+
+
+@pytest.fixture(scope="function")
+def dummy_time_period(activated_dummy_profile):
+    time_period = TimePeriod(profile=activated_dummy_profile)
+    time_period.save()
+    return time_period
+
+
+@pytest.fixture(scope="function")
+def dummy_alert_address(admin_account):
+    alert_address = AlertAddress(
+        account=admin_account,
+        type=AlertSender.objects.get(name=AlertSender.SMS),
+        address="admin@example.com",
+    )
+    alert_address.save()
+    return alert_address
+
+
+@pytest.fixture(scope="function")
+def dummy_alert_subscription(
+    dummy_alert_address, dummy_time_period, dummy_filter_group
+):
+    alert_subscription = AlertSubscription(
+        alert_address=dummy_alert_address,
+        time_period=dummy_time_period,
+        filter_group=dummy_filter_group,
+    )
+    alert_subscription.save()
+    return alert_subscription
 
 
 @pytest.fixture(scope="function")
