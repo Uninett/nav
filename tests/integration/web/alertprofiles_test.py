@@ -23,10 +23,10 @@ from nav.models.profiles import (
 from nav.web.alertprofiles.views import set_active_profile
 
 
-def test_profile_with_nonascii_name_should_be_saved(db):
+def test_profile_with_nonascii_name_should_be_saved(db, admin_account):
     factory = RequestFactory()
     request = factory.get(reverse('alertprofiles-profile-save'))
-    request.account = Account.objects.get(pk=Account.ADMIN_ACCOUNT)
+    request.account = admin_account
     request.session = MagicMock()
     profile = AlertProfile(account=request.account, name=u'ÆØÅ')
     profile.save()
@@ -629,8 +629,8 @@ def test_alertprofiles_remove_filter_group(db, client, dummy_filter_group):
 
 
 @pytest.fixture(scope='function')
-def dummy_profile():
-    account = Account.objects.get(id=Account.ADMIN_ACCOUNT)
+def dummy_profile(admin_account):
+    account = admin_account
     profile = AlertProfile(account=account, name=u'ÆØÅ Profile %d' % randint(1, 1000))
     profile.save()
     return profile
@@ -646,8 +646,8 @@ def activated_dummy_profile(dummy_profile):
 
 
 @pytest.fixture(scope="function")
-def dummy_filter():
-    filtr = Filter(name="dummy", owner=Account.objects.get(id=Account.ADMIN_ACCOUNT))
+def dummy_filter(admin_account):
+    filtr = Filter(name="dummy", owner=admin_account)
     filtr.save()
     return filtr
 
