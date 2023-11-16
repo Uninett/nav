@@ -22,6 +22,7 @@ NAV-monitored devices.
 
 from __future__ import print_function
 
+import platform
 import sys
 from itertools import cycle
 from argparse import ArgumentParser
@@ -29,6 +30,11 @@ from argparse import ArgumentParser
 from nav.bootstrap import bootstrap_django
 
 bootstrap_django(__file__)
+
+if platform.system() == "Linux":
+    from nav.ipdevpoll.epollreactor2 import install
+
+    install()
 
 from nav.ipdevpoll.snmp.common import snmp_parameter_factory, SnmpError
 from nav.models.manage import Netbox, ManagementProfile
