@@ -187,7 +187,11 @@ def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
 
 
 def snmp_write_test(ip, profile):
-    """Test that snmp write works"""
+    """Tests that an SNMP profile really has write access.
+
+    Tests by fetching sysLocation.0 and setting the same value.  This will fail if
+    the device only allows writing to other parts of its mib view.
+    """
 
     testresult = {
         'error_message': '',
@@ -199,11 +203,7 @@ def snmp_write_test(ip, profile):
     syslocation = '1.3.6.1.2.1.1.6.0'
     value = ''
     try:
-        snmp = Snmp(
-            ip,
-            profile.configuration.get("community"),
-            profile.configuration.get("version"),
-        )
+        snmp = get_snmp_session_for_profile(profile)(ip)
         value = safestring(snmp.get(syslocation))
         snmp.set(syslocation, 's', value.encode('utf-8'))
     except SnmpError as error:

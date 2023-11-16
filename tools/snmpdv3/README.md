@@ -17,12 +17,12 @@ docker run --name snmpd -p 161:161/udp snmpd
 
 ## Authentication and privacy
 
-Using the SNMPv3 user security model (USM), this image sets up a read-only user
+Using the SNMPv3 user security model (USM), this image sets up a read&write user
 named `myv3user`, with an authentication password of `my_authpass`, using AES
 encryption for security with a privacy password of `my_privpass`.
 
 For SNMP v1 or v2c communication, it sets up a default read-only community of
-`notpublic`.
+`public` and a read-write community of `private`.
 
 ## Local testing
 
