@@ -154,7 +154,7 @@ NAV configuration
 the Feide dashboard.
 
 By toggling autocreate to "on", users are automatically created on first login
-via OIDC, This is probably not what you want, which is why the  default is
+via OIDC. This is probably not what you want, which is why the default is
 "off". With it "off" it is necessary to pre-create the users in order to allow
 login.
 
