@@ -1,7 +1,9 @@
 """Tests for Arnold using snmp objects"""
 from nav.arnold import change_port_status
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 import unittest
+
+from nav.models.manage import ManagementProfile
 
 
 @patch('nav.Snmp.Snmp', autospec=True)
@@ -28,9 +30,13 @@ class TestArnoldSnmp(unittest.TestCase):
 
     def create_management_profile_mock(self):
         """Create management profile model mock object"""
-        profile = Mock()
-        profile.snmp_version = 1
-        profile.snmp_community = "public"
+        profile = ManagementProfile(
+            protocol=ManagementProfile.PROTOCOL_SNMP,
+            configuration={
+                "version": 1,
+                "community": "public",
+            },
+        )
         return profile
 
     def create_netbox_mock(self):
@@ -46,11 +52,9 @@ class TestArnoldSnmp(unittest.TestCase):
         instance = snmp.return_value
         identity = Mock()
         identity.interface = self.interface
-        change_port_status('enable', identity)
+        change_port_status('enable', identity, agent_getter=lambda profile: snmp)
 
-        snmp.assert_called_once_with(
-            self.ip, self.profile.snmp_community, self.profile.snmp_version
-        )
+        snmp.assert_called_once_with(self.ip)
         instance.set.assert_called_once_with(
             self.port_status_oid + '.' + str(self.ifindex), 'i', 1
         )
@@ -60,11 +64,9 @@ class TestArnoldSnmp(unittest.TestCase):
         instance = snmp.return_value
         identity = Mock()
         identity.interface = self.interface
-        change_port_status('disable', identity)
+        change_port_status('disable', identity, agent_getter=lambda profile: snmp)
 
-        snmp.assert_called_once_with(
-            self.ip, self.profile.snmp_community, self.profile.snmp_version
-        )
+        snmp.assert_called_once_with(self.ip)
         instance.set.assert_called_once_with(
             self.port_status_oid + '.' + str(self.ifindex), 'i', 2
         )
