@@ -2,6 +2,13 @@
 Authenticating with the apache plugin `mod_auth_mellon <https://github.com/latchset/mod_auth_mellon>`_ and Feide
 ================================================================================================================
 
+Highly recommended: turn on debug logging while setting things up!
+
+In ``/etc/nav/logging.conf`` in the section ``[levels]``, set ``nav.web.auth``
+to ``DEBUG``. The relevant log to keep an eye on will depend on how apache2 is
+running NAV, if it's using ``uwsgi`` the file is probably
+``/var/log/uwsgi/nav/nav.log``.
+
 Enabling the plugin on Debian
 =============================
 
@@ -90,6 +97,7 @@ Apache virtual host configuration::
         MellonEnable "auth"
         MellonSecureCookie On
         MellonUser "eduPersonPrincipalName"
+        MellonMergeEnvVars On
         #MellonSessionIdleTimeout 28800  # auto logout after 8 hours
         MellonSPMetadataFile /etc/apache2/mellon/https_DOMAINNAME.xml
         MellonSPPrivateKeyFile /etc/apache2/mellon/https_DOMAINNAME.key
@@ -148,6 +156,21 @@ that will not use the NAV auth system you need to mark their urls similarly.
 
 Note that ``MellonSessionIdleTimeout`` has been commented out. Not all versions
 of mod-auth-mellon support this configuration flag.
+
+Restricting access by affiliation
+---------------------------------
+
+A Feide-user has one or more affiliations like "student", "employee" or "staff".
+If it is necessary to restrict access by affiliation it is necessary to amend
+the apache config file. Just below ``MellonMergeEnvVars`` add::
+
+    MellonRequire "eduPersonAffiliation" "staff" "other_affiliation"
+
+Provided debug-logging has been turned on you can see exactly which
+affiliations are available. Look for a line containing
+"MELLON_eduPersonAffiliation".
+
+There must be one or more quoted strings after "eduPersonAffiliation".
 
 NAV configuration
 =================
