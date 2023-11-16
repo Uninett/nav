@@ -14,13 +14,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-import time
 from functools import wraps
 from operator import attrgetter
 import logging
 from typing import Dict, Sequence, List, Any
 
-from nav import Snmp
+from nav.Snmp.profile import get_snmp_session_for_profile
 from nav.Snmp import safestring, OID
 from nav.Snmp.errors import (
     UnsupportedSnmpVersionError,
@@ -174,15 +173,9 @@ class SNMPHandler(ManagementHandler):
 
             if not profile:
                 raise NoReadOnlyManagementProfileError
-            if not hasattr(profile, "snmp_community") or not hasattr(
-                profile, "snmp_version"
-            ):
-                raise InvalidManagementProfileError
 
-            self.read_only_handle = Snmp.Snmp(
+            self.read_only_handle = get_snmp_session_for_profile(profile)(
                 host=self.netbox.ip,
-                community=profile.snmp_community,
-                version=profile.snmp_version,
                 retries=self.retries,
                 timeout=self.timeout,
             )
@@ -209,10 +202,8 @@ class SNMPHandler(ManagementHandler):
         """
         if self.read_write_handle is None:
             profile = self.netbox.get_preferred_snmp_management_profile(writeable=True)
-            self.read_write_handle = Snmp.Snmp(
+            self.read_write_handle = get_snmp_session_for_profile(profile)(
                 host=self.netbox.ip,
-                community=profile.snmp_community,
-                version=profile.snmp_version,
                 retries=self.retries,
                 timeout=self.timeout,
             )
