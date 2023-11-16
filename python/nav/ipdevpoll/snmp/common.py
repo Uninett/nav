@@ -18,12 +18,13 @@ import time
 import logging
 from dataclasses import dataclass
 from functools import wraps
-from typing import Union, Literal, Optional, Any
+from typing import Optional, Any, Dict
 
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
 from twisted.internet.task import deferLater
 
+from nav.Snmp.defines import SecurityLevel, AuthenticationProtocol, PrivacyProtocol
 from nav.models.manage import Netbox
 
 _logger = logging.getLogger(__name__)
@@ -144,7 +145,7 @@ class SNMPParameters:
     """SNMP session parameters common to all SNMP protocol versions"""
 
     # Common for all SNMP sessions
-    version: Union[Literal[1], Literal[2], Literal[3]] = 1
+    version: int = 1
     timeout: float = 1.5
     tries: int = 3
 
@@ -155,17 +156,26 @@ class SNMPParameters:
     max_repetitions: int = 50
 
     # SNMPv3 only
-    sec_level: Optional[
-        Union[Literal["noAuthNoPriv"], Literal["authNoPriv"], Literal["authPriv"]]
-    ] = None
-    auth_protocol: str = None
+    sec_level: Optional[SecurityLevel] = None
+    auth_protocol: Optional[AuthenticationProtocol] = None
     sec_name: str = None
     auth_password: Optional[str] = None
-    priv_protocol: Optional[str] = None
+    priv_protocol: Optional[PrivacyProtocol] = None
     priv_password: Optional[str] = None
 
     # Specific to ipdevpoll-derived implementations
     throttle_delay: int = 0
+
+    def __post_init__(self):
+        """Enforces Enum types on init"""
+        if self.sec_level and not isinstance(self.sec_level, SecurityLevel):
+            self.sec_level = SecurityLevel(self.sec_level)
+        if self.auth_protocol and not isinstance(
+            self.auth_protocol, AuthenticationProtocol
+        ):
+            self.auth_protocol = AuthenticationProtocol(self.auth_protocol)
+        if self.priv_protocol and not isinstance(self.priv_protocol, PrivacyProtocol):
+            self.priv_protocol = PrivacyProtocol(self.priv_protocol)
 
     @property
     def version_string(self):
@@ -208,7 +218,7 @@ class SNMPParameters:
         return cls(**kwargs_out)
 
     @classmethod
-    def get_params_from_ipdevpoll_config(cls, section: str = "snmp") -> dict[str, Any]:
+    def get_params_from_ipdevpoll_config(cls, section: str = "snmp") -> Dict[str, Any]:
         """Reads and returns global SNMP parameters from ipdevpoll configuration as a
         simple dict.
         """
@@ -226,7 +236,7 @@ class SNMPParameters:
 
         return params
 
-    def as_agentproxy_args(self) -> dict[str, Any]:
+    def as_agentproxy_args(self) -> Dict[str, Any]:
         """Returns the SNMP session parameters in a dict format compatible with
         pynetsnmp.twistedsnmp.AgentProxy() keyword arguments.
         """
@@ -240,13 +250,13 @@ class SNMPParameters:
 
         if self.version == 3:
             params = []
-            params.extend(["-l", self.sec_level, "-u", self.sec_name])
+            params.extend(["-l", self.sec_level.value, "-u", self.sec_name])
             if self.auth_protocol:
-                params.extend(["-a", self.auth_protocol])
+                params.extend(["-a", self.auth_protocol.value])
             if self.auth_password:
                 params.extend(["-A", self.auth_password])
             if self.priv_protocol:
-                params.extend(["-x", self.priv_protocol])
+                params.extend(["-x", self.priv_protocol.value])
             if self.priv_password:
                 params.extend(["-X", self.priv_password])
             kwargs["cmdLineArgs"] = tuple(params)
