@@ -14,13 +14,11 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-import time
 from functools import wraps
 from operator import attrgetter
 import logging
 from typing import Dict, Sequence, List, Any
 
-from nav import Snmp
 from nav.Snmp.profile import get_snmp_session_for_profile
 from nav.Snmp import safestring, OID
 from nav.Snmp.errors import (
