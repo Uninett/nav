@@ -3,14 +3,16 @@ from mock import Mock
 import pytest
 
 from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD, VENDOR_ID_CISCOSYSTEMS
+from nav.models.manage import ManagementProfile
 from nav.portadmin.management import ManagementFactory
 
 
 @pytest.fixture
 def profile():
-    profile = Mock()
-    profile.snmp_version = 2
-    profile.snmp_community = "public"
+    profile = ManagementProfile(
+        protocol=ManagementProfile.PROTOCOL_SNMP,
+        configuration={"version": 2, "community": "public"},
+    )
     return profile
 
 
