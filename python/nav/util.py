@@ -535,3 +535,20 @@ def resource_bytes(package, filename):
     """
     ref = resource_files(package) / filename
     return ref.read_bytes()
+
+
+def check_log_level(logger, loglevel):
+    """
+    Check that the level of the logger is equal to or below loglevel
+
+    Use before possibly expensive logging operations, like calling logging in
+    a loop or building an expensive object that will be logged and thrown away.
+
+    Avoid this classic mistake:
+
+        logger.info("%s", expensive_function())
+    """
+    level = logger.getEffectiveLevel()
+    if level <= loglevel:
+        return True
+    return False
