@@ -23,9 +23,10 @@ import os.path
 import argparse
 import textwrap
 
-from .. import colors
+from nav import colors
+
 try:
-    from ..startstop import ServiceRegistry, CommandFailedError, CrontabError
+    from nav.startstop import ServiceRegistry, CommandFailedError, CrontabError
 except ImportError:
     print(
         "Fatal error: Could not find the nav.startstop module.\nIs your "

@@ -48,7 +48,7 @@ def test_nav_runs_without_error_without_arguments():
     Added in regards to: https://github.com/Uninett/nav/issues/2601
     """
     proc = subprocess.Popen(
-        [BINDIR + "/nav.py"],
+        [BINDIR + "/navmain.py"],
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
     )
