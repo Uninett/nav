@@ -429,6 +429,30 @@ class TestsExpressions:
             response.content
         )
 
+    def test_alertprofiles_add_expression_with_valid_group_should_succeed(
+        self, client, dummy_filter
+    ):
+        """Tests that an expression with a valid group can be added"""
+        group_match_field = MatchField.objects.get(name="Group")
+        url = reverse("alertprofiles-filters-saveexpression")
+        data = {
+            "filter": dummy_filter.pk,
+            "match_field": group_match_field.pk,
+            "operator": Operator.EQUALS,
+            "value": "AD",
+        }
+        response = client.post(url, data=data, follow=True)
+        assert response.status_code == 200
+        assert Expression.objects.filter(
+            filter=dummy_filter,
+            match_field=group_match_field,
+            operator=Operator.EQUALS,
+            value=data["value"],
+        ).exists()
+        assert f"Added expression to filter {dummy_filter}" in smart_str(
+            response.content
+        )
+
 
 class TestsPermissions:
     def test_set_accountgroup_permissions_should_not_crash(self, db, client):
