@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """snmp check plugin"""
-
+from pynetsnmp.netsnmp import SnmpTimeoutError
 from twisted.internet import error, defer
 from twisted.internet.defer import returnValue
 
@@ -69,7 +69,7 @@ class SnmpCheck(Plugin):
         self._logger.debug("checking SNMP v%s availability", self.agent.snmpVersion)
         try:
             result = yield self.agent.walk(SYSTEM_OID)
-        except (defer.TimeoutError, error.TimeoutError):
+        except (defer.TimeoutError, error.TimeoutError, SnmpTimeoutError):
             self._logger.debug("SNMP v%s timed out", self.agent.snmpVersion)
             returnValue(False)
 
