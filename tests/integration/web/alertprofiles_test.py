@@ -405,10 +405,12 @@ class TestsExpressions:
         ).exists()
         assert f"Invalid IP address: {invalid_ip}" in smart_str(response.content)
 
-    def test_alertprofiles_add_expression_with_multiple_alert_types_should_succeed(
+    def test_alertprofiles_add_expression_with_in_condition_should_succeed(
         self, client, dummy_filter
     ):
-        """Tests that an expression with multiple alert types can be added"""
+        """Tests that an expression with an in condition can be added, alert type is
+        just an example
+        """
         string_match_field = MatchField.objects.get(name="Alert type")
         url = reverse("alertprofiles-filters-saveexpression")
         data = {
@@ -429,10 +431,12 @@ class TestsExpressions:
             response.content
         )
 
-    def test_alertprofiles_add_expression_with_valid_group_should_succeed(
+    def test_alertprofiles_add_expression_with_equals_condition_should_succeed(
         self, client, dummy_filter
     ):
-        """Tests that an expression with a valid group can be added"""
+        """Tests that an expression with an equals condition can be added, group is
+        just an example
+        """
         group_match_field = MatchField.objects.get(name="Group")
         url = reverse("alertprofiles-filters-saveexpression")
         data = {
