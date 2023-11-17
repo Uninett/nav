@@ -2,6 +2,7 @@
 # -*- testargs: .1.3.6.1.2.1.1.2 -*-
 #
 # Copyright (C) 2014 Uninett AS
+# Copyright (C) 2023 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -36,7 +37,7 @@ if platform.system() == "Linux":
 
     install()
 
-from nav.ipdevpoll.snmp.common import snmp_parameter_factory, SnmpError
+from nav.ipdevpoll.snmp.common import SNMPParameters, SnmpError
 from nav.models.manage import Netbox, ManagementProfile
 from nav.ipdevpoll.snmp import snmpprotocol, AgentProxy
 from nav.oids import OID
@@ -124,23 +125,12 @@ _ports = cycle([snmpprotocol.port() for _ in range(50)])
 
 
 def _create_agentproxy(netbox):
-    profile = netbox.get_preferred_snmp_management_profile(writeable=False)
-    if (
-        not profile
-        or not hasattr(profile, "snmp_community")
-        or not hasattr(profile, "snmp_version")
-    ):
+    params = SNMPParameters.factory(netbox)
+    if not params:
         return
 
     port = next(_ports)
-    agent = AgentProxy(
-        netbox.ip,
-        161,
-        community=profile.snmp_community,
-        snmpVersion='v%s' % profile.snmp_version,
-        protocol=port.protocol,
-        snmp_parameters=snmp_parameter_factory(netbox),
-    )
+    agent = AgentProxy(netbox.ip, 161, protocol=port.protocol, snmp_parameters=params)
     try:
         agent.open()
     except SnmpError:
