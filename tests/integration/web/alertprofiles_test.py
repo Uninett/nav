@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 from random import randint
 
-from mock import MagicMock
+from mock import MagicMock, patch
 import pytest
 
 from django.test.client import RequestFactory
@@ -100,6 +100,56 @@ class TestsAlertProfiles:
         assert response.status_code == 200
         assert "Saved profile" in smart_str(response.content)
         assert AlertProfile.objects.filter(name=profile_name).count() > 0
+
+    @patch("nav.web.alertprofiles.views.read_time_period_templates")
+    def test_alertprofiles_save_profile_with_time_period_template(
+        self, read_time_period_templates, db, client
+    ):
+        read_time_period_templates.return_value = {
+            'abc': {
+                'all_week': {'period_1': '22:00'},
+                'weekdays': {'period_1': '08:00', 'period_2': '16:00'},
+                'weekends': {'period_1': '08:00'},
+            }
+        }
+
+        url = reverse('alertprofiles-profile-save')
+        profile_name = 'Catch 22'
+
+        response = client.post(
+            url,
+            follow=True,
+            data={
+                'name': profile_name,
+                'daily_dispatch_time': '08:00',
+                'weekly_dispatch_time': '08:00',
+                'weekly_dispatch_day': AlertProfile.MONDAY,
+                'template': 'abc',
+            },
+        )
+
+        assert response.status_code == 200
+        assert "Saved profile" in smart_str(response.content)
+        assert TimePeriod.objects.filter(
+            profile__name=profile_name,
+            start="22:00",
+            valid_during=TimePeriod.ALL_WEEK,
+        ).exists()
+        assert TimePeriod.objects.filter(
+            profile__name=profile_name,
+            start="08:00",
+            valid_during=TimePeriod.WEEKDAYS,
+        ).exists()
+        assert TimePeriod.objects.filter(
+            profile__name=profile_name,
+            start="16:00",
+            valid_during=TimePeriod.WEEKDAYS,
+        ).exists()
+        assert TimePeriod.objects.filter(
+            profile__name=profile_name,
+            start="08:00",
+            valid_during=TimePeriod.WEEKENDS,
+        ).exists()
 
     def test_alertprofiles_confirm_remove_profile(self, db, client, dummy_profile):
         url = reverse('alertprofiles-profile-remove')
