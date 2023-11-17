@@ -304,11 +304,14 @@ class Netbox(models.Model):
             return chassis.device
 
     def get_preferred_snmp_management_profile(
-        self, writeable=None
+        self, require_write=False
     ) -> Optional[ManagementProfile]:
-        """
-        Returns the snmp management profile with the highest available
-        SNMP version.
+        """Returns the snmp management profile with the highest available SNMP version.
+
+        :param require_write: If True, only write-enabled profiles will be
+                              considered.  If false, read-only profiles will be
+                              preferred, unless a write-enabled profile is the only
+                              available alternative.
         """
         query = Q(
             protocol__in=(
@@ -316,17 +319,18 @@ class Netbox(models.Model):
                 ManagementProfile.PROTOCOL_SNMPV3,
             )
         )
-        if writeable:
+        if require_write:
             query = query & Q(configuration__write=True)
-        elif writeable is not None:
-            query = query & (
-                Q(configuration__write=False) | ~Q(configuration__has_key='write')
+
+        profiles = self.profiles.filter(query)
+
+        if not require_write:
+            # Sort read-only profiles first
+            profiles = sorted(
+                profiles, key=lambda p: p.configuration.get("write", False)
             )
-        profiles = sorted(
-            self.profiles.filter(query),
-            key=lambda p: p.snmp_version or 0,
-            reverse=True,
-        )
+
+        profiles = sorted(profiles, key=lambda p: p.snmp_version or 0, reverse=True)
         if profiles:
             return profiles[0]
 

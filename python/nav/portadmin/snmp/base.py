@@ -169,7 +169,7 @@ class SNMPHandler(ManagementHandler):
     def _get_read_only_handle(self):
         """Get a read only SNMP-handle."""
         if self.read_only_handle is None:
-            profile = self.netbox.get_preferred_snmp_management_profile(writeable=False)
+            profile = self.netbox.get_preferred_snmp_management_profile()
 
             if not profile:
                 raise NoReadOnlyManagementProfileError
@@ -201,7 +201,9 @@ class SNMPHandler(ManagementHandler):
         :rtype: nav.Snmp.Snmp
         """
         if self.read_write_handle is None:
-            profile = self.netbox.get_preferred_snmp_management_profile(writeable=True)
+            profile = self.netbox.get_preferred_snmp_management_profile(
+                require_write=True
+            )
             self.read_write_handle = get_snmp_session_for_profile(profile)(
                 host=self.netbox.ip,
                 retries=self.retries,
@@ -563,7 +565,7 @@ class SNMPHandler(ManagementHandler):
             raise ProtocolError("SNMP error") from error
 
     def raise_if_not_configurable(self):
-        if not self.netbox.get_preferred_snmp_management_profile(writeable=True):
+        if not self.netbox.get_preferred_snmp_management_profile(require_write=True):
             raise DeviceNotConfigurableError(
                 "No writeable SNMP management profile set for this device, "
                 "changes cannot be saved"
