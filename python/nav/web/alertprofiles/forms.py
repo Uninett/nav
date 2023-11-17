@@ -663,16 +663,12 @@ class ExpressionForm(forms.ModelForm):
                     )
                 else:
                     validated_ip_addresses.append(str(ip))
-            # Bring ip address back into original format to be processed below
-            value = " ".join(validated_ip_addresses)
+            validated_data["value"] = "|".join(validated_ip_addresses)
+            return validated_data
 
         if operator_type == Operator.IN:
-            """If input was a multiple choice list we have to join each option in one
-            string, where each option is separated by a | (pipe).
-            If input was a IP adress we should replace space with | (pipe)."""
-            if match_field.data_type == MatchField.IP:
-                validated_data["value"] = value.replace(' ', '|')
-            else:
-                validated_data["value"] = "|".join(value)
+            validated_data["value"] = "|".join(value)
+        elif operator_type == Operator.EQUALS:
+            validated_data["value"] = value[0]
 
         return validated_data
