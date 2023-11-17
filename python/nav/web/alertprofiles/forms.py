@@ -650,20 +650,9 @@ class ExpressionForm(forms.ModelForm):
         value = validated_data["value"]
 
         if match_field.data_type == MatchField.IP:
-            if operator_type == Operator.IN:
-                ip_list = value.split()
-            else:
-                ip_list = [value]
-            validated_ip_addresses = []
-            for ip in ip_list:
-                if not is_valid_ip(ip=ip, strict=True) and not is_valid_cidr(cidr=ip):
-                    self.add_error(
-                        field="value",
-                        error=forms.ValidationError(("Invalid IP address: %s" % ip)),
-                    )
-                else:
-                    validated_ip_addresses.append(str(ip))
-            validated_data["value"] = "|".join(validated_ip_addresses)
+            validated_data["value"] = self._clean_ip_addresses(
+                operator_type=operator_type, value=value
+            )
             return validated_data
 
         if operator_type == Operator.IN:
@@ -672,3 +661,20 @@ class ExpressionForm(forms.ModelForm):
             validated_data["value"] = value[0]
 
         return validated_data
+
+    def _clean_ip_addresses(self, operator_type, value):
+        if operator_type == Operator.IN:
+            ip_list = value.split()
+        else:
+            ip_list = [value]
+        validated_ip_addresses = []
+        for ip in ip_list:
+            if not is_valid_ip(ip=ip, strict=True) and not is_valid_cidr(cidr=ip):
+                self.add_error(
+                    field="value",
+                    error=forms.ValidationError(("Invalid IP address: %s" % ip)),
+                )
+            else:
+                validated_ip_addresses.append(str(ip))
+
+        return "|".join(validated_ip_addresses)
