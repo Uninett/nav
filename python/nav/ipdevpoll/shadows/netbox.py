@@ -62,13 +62,15 @@ class Netbox(Shadow):
         return self.up == manage.Netbox.UP_UP
 
     def copy(self, other):
+        """In addition to copying the 'official' attrs of another Netbox object,
+        this also copies 'computed'/'internal' attributes that are only part of the
+        Netbox shadow class definition.
+        """
         super(Netbox, self).copy(other)
         for attr in (
             "snmp_up",
             "last_updated",
-            "snmp_version",
-            "read_only",
-            "read_write",
+            "snmp_parameters",
         ):
             if hasattr(other, attr):
                 setattr(self, attr, getattr(other, attr))

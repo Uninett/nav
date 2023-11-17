@@ -178,9 +178,9 @@ def is_netbox_changed(netbox1, netbox2):
         'type',
         'up',
         'snmp_up',
+        'snmp_parameters',
         'deleted_at',
     ):
-        # TODO Need some way to detect an updated SNMP profile
         if getattr(netbox1, attr) != getattr(netbox2, attr):
             _logger.debug(
                 "%s.%s changed from %r to %r",
