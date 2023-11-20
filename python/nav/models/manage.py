@@ -160,10 +160,17 @@ class ManagementProfile(models.Model):
     def snmp_version(self):
         """Returns the configured SNMP version as an integer"""
         if self.protocol == self.PROTOCOL_SNMP:
-            value = self.configuration['version']
+            value = self.configuration.get("version")
             if value == "2c":
                 return 2
-            return int(value)
+            if value:
+                return int(value)
+            else:
+                _logger.error(
+                    "Broken management profile %s has no SNMP version", self.name
+                )
+                return None
+
         elif self.protocol == self.PROTOCOL_SNMPV3:
             return 3
 
