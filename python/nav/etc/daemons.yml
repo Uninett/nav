@@ -2,7 +2,7 @@
 daemons:
     alertengine:
         description: Dispatches alerts according to individual alert profiles.
-        command: alertengine.py
+        command: alertengine
 
     eventengine:
         command: eventengine
@@ -15,18 +15,18 @@ daemons:
 
     pping:
         description: Pings all IP devices for status monitoring.
-        command: pping.py
+        command: pping
         privileged: true
 
     servicemon:
         description: Monitors configured services.
-        command: servicemon.py
+        command: servicemon
 
     smsd:
         description: Dispatches queued SMS alerts.
-        command: smsd.py
+        command: smsd
 
     snmptrapd:
         description: Receives and processes SNMP traps and notifications.
-        command: snmptrapd.py
+        command: snmptrapd
         privileged: true
