@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """snmp check plugin"""
-
+from pynetsnmp.netsnmp import SnmpTimeoutError
 from twisted.internet import error, defer
 from twisted.internet.defer import returnValue
 
@@ -44,14 +44,16 @@ class SnmpCheck(Plugin):
 
     @classmethod
     def can_handle(cls, netbox):
-        return netbox.is_up() and bool(netbox.read_only)
+        return netbox.is_up() and bool(netbox.snmp_parameters)
 
     def __init__(self, *args, **kwargs):
         super(SnmpCheck, self).__init__(*args, **kwargs)
 
     @defer.inlineCallbacks
     def handle(self):
-        self._logger.debug("snmp version from db: %s", self.netbox.snmp_version)
+        self._logger.debug(
+            "snmp version from db: %s", self.netbox.snmp_parameters.version
+        )
         was_down = yield db.run_in_thread(self._currently_down)
         is_ok = yield self._do_check()
 
@@ -64,11 +66,11 @@ class SnmpCheck(Plugin):
 
     @defer.inlineCallbacks
     def _do_check(self):
-        self._logger.debug("checking SNMP%s availability", self.agent.snmpVersion)
+        self._logger.debug("checking SNMP v%s availability", self.agent.snmpVersion)
         try:
             result = yield self.agent.walk(SYSTEM_OID)
-        except (defer.TimeoutError, error.TimeoutError):
-            self._logger.debug("SNMP%s timed out", self.agent.snmpVersion)
+        except (defer.TimeoutError, error.TimeoutError, SnmpTimeoutError):
+            self._logger.debug("SNMP v%s timed out", self.agent.snmpVersion)
             returnValue(False)
 
         self._logger.debug("SNMP response: %r", result)

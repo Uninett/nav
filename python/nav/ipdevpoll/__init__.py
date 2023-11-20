@@ -77,7 +77,7 @@ class Plugin(object):
         """
         snmp_up = getattr(netbox, 'snmp_up', True)
 
-        basic_req = netbox.is_up() and snmp_up and bool(netbox.read_only)
+        basic_req = netbox.is_up() and snmp_up and bool(netbox.snmp_parameters)
         vendor_check = cls._verify_vendor_restriction(netbox)
         return basic_req and vendor_check
 

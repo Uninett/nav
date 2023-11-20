@@ -28,7 +28,7 @@ from itertools import count, groupby
 import logging
 import math
 import re
-from typing import Set
+from typing import Set, Optional
 
 import IPy
 from django.conf import settings
@@ -358,7 +358,9 @@ class Netbox(models.Model):
         if profiles:
             return profiles[0].configuration.get(variable)
 
-    def get_preferred_snmp_management_profile(self, writeable=None):
+    def get_preferred_snmp_management_profile(
+        self, writeable=None
+    ) -> Optional[ManagementProfile]:
         """
         Returns the snmp management profile with the highest available
         SNMP version.

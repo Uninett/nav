@@ -176,10 +176,9 @@ def is_netbox_changed(netbox1, netbox2):
     for attr in (
         'ip',
         'type',
-        'read_only',
-        'snmp_version',
         'up',
         'snmp_up',
+        'snmp_parameters',
         'deleted_at',
     ):
         if getattr(netbox1, attr) != getattr(netbox2, attr):
