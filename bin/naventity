@@ -33,7 +33,7 @@ from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
 from nav.util import is_valid_ip
-from nav.ipdevpoll.snmp.common import snmp_parameter_factory, SnmpError, SNMPParameters
+from nav.ipdevpoll.snmp.common import SnmpError, SNMPParameters
 from nav.ipdevpoll.snmp import AgentProxy, snmpprotocol
 from nav.mibs.entity_mib import EntityMib
 from nav.models.manage import Netbox
