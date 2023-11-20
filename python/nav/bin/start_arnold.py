@@ -19,7 +19,7 @@
 """
 Use this to run automatic detentions based on detention profiles
 
-Usage: start_arnold.py [options] id
+Usage: start_arnold [options] id
 Pipe in ip-addresses to block or use the -f option to specify file
 
 Options:
