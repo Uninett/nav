@@ -16,7 +16,8 @@ from nav.bootstrap import bootstrap_django
 
 bootstrap_django(__file__)
 
-if __name__ == '__main__':
+
+def main():
     if platform.system() == "Linux":
         from nav.ipdevpoll.epollreactor2 import install
 
@@ -24,4 +25,8 @@ if __name__ == '__main__':
 
     from nav.ipdevpoll.daemon import main
 
+    main()
+
+
+if __name__ == '__main__':
     main()
