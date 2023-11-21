@@ -214,9 +214,10 @@ def populate_infodict(request, netbox, interfaces):
             "%s did not respond within the set timeouts. Values displayed are from database"
             % netbox.sysname,
         )
-        if isinstance(
-            handler, SNMPHandler
-        ) and not netbox.get_preferred_snmp_management_profile(writeable=False):
+        if (
+            isinstance(handler, SNMPHandler)
+            and not netbox.get_preferred_snmp_management_profile()
+        ):
             messages.error(request, "Read only management profile not set")
     except ProtocolError:
         readonly = True

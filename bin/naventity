@@ -164,7 +164,7 @@ def device(devicestring):
         else:
             netbox = netbox[0]
 
-    if not netbox.get_preferred_snmp_management_profile(writeable=False):
+    if not netbox.get_preferred_snmp_management_profile():
         msg = "No SNMP management profile set for %s" % netbox
         raise argparse.ArgumentTypeError(msg)
 

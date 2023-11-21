@@ -202,7 +202,7 @@ class SNMPParameters:
         """
         kwargs_out = {}
         if netbox:
-            profile = netbox.get_preferred_snmp_management_profile(writeable=False)
+            profile = netbox.get_preferred_snmp_management_profile()
             if profile:
                 if profile.protocol == profile.PROTOCOL_SNMPV3:
                     kwargs["version"] = 3

@@ -160,10 +160,17 @@ class ManagementProfile(models.Model):
     def snmp_version(self):
         """Returns the configured SNMP version as an integer"""
         if self.protocol == self.PROTOCOL_SNMP:
-            value = self.configuration['version']
+            value = self.configuration.get("version")
             if value == "2c":
                 return 2
-            return int(value)
+            if value:
+                return int(value)
+            else:
+                _logger.error(
+                    "Broken management profile %s has no SNMP version", self.name
+                )
+                return None
+
         elif self.protocol == self.PROTOCOL_SNMPV3:
             return 3
 
@@ -304,11 +311,14 @@ class Netbox(models.Model):
             return chassis.device
 
     def get_preferred_snmp_management_profile(
-        self, writeable=None
+        self, require_write=False
     ) -> Optional[ManagementProfile]:
-        """
-        Returns the snmp management profile with the highest available
-        SNMP version.
+        """Returns the snmp management profile with the highest available SNMP version.
+
+        :param require_write: If True, only write-enabled profiles will be
+                              considered.  If false, read-only profiles will be
+                              preferred, unless a write-enabled profile is the only
+                              available alternative.
         """
         query = Q(
             protocol__in=(
@@ -316,17 +326,18 @@ class Netbox(models.Model):
                 ManagementProfile.PROTOCOL_SNMPV3,
             )
         )
-        if writeable:
+        if require_write:
             query = query & Q(configuration__write=True)
-        elif writeable is not None:
-            query = query & (
-                Q(configuration__write=False) | ~Q(configuration__has_key='write')
+
+        profiles = self.profiles.filter(query)
+
+        if not require_write:
+            # Sort read-only profiles first
+            profiles = sorted(
+                profiles, key=lambda p: p.configuration.get("write", False)
             )
-        profiles = sorted(
-            self.profiles.filter(query),
-            key=lambda p: p.snmp_version or 0,
-            reverse=True,
-        )
+
+        profiles = sorted(profiles, key=lambda p: p.snmp_version or 0, reverse=True)
         if profiles:
             return profiles[0]
 
