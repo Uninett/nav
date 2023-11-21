@@ -657,7 +657,7 @@ class ExpressionForm(forms.ModelForm):
 
         if operator_type == Operator.IN:
             validated_data["value"] = "|".join(value)
-        elif operator_type == Operator.EQUALS:
+        elif operator_type == Operator.EQUALS and isinstance(value, list):
             validated_data["value"] = value[0]
 
         return validated_data
