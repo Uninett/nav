@@ -264,16 +264,5 @@ class SNMPParameters:
         return kwargs
 
 
-# pylint: disable=W0212
-def snmp_parameter_factory(host=None):
-    """Returns specific SNMP parameters for `host`, or default values from
-    ipdevpoll's config if host specific values aren't available.
-
-    :returns: An SNMPParameters namedtuple.
-
-    """
-    return SNMPParameters.factory(netbox=host)
-
-
 class SnmpError(Exception):
     pass
