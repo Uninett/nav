@@ -163,9 +163,7 @@ class TestsAlertProfiles:
             valid_during=TimePeriod.WEEKENDS,
         ).exists()
 
-    def test_alertprofiles_save_profile_with_non_existent_id_should_fail(
-        self, db, client
-    ):
+    def test_alertprofiles_save_profile_with_str_id_should_fail(self, db, client):
         url = reverse('alertprofiles-profile-save')
         profile_name = 'Catch 22'
 
@@ -185,7 +183,9 @@ class TestsAlertProfiles:
         assert 'Requested profile does not exist' in smart_str(response.content)
         assert not AlertProfile.objects.filter(name=profile_name).exists()
 
-    def test_alertprofiles_save_profile_with_str_id_should_fail(self, db, client):
+    def test_alertprofiles_save_profile_with_non_existent_id_should_fail(
+        self, db, client
+    ):
         url = reverse('alertprofiles-profile-save')
         profile_name = 'Catch 22'
         last_alert_profile_id = getattr(AlertProfile.objects.last(), "pk", 0)
