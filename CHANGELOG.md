@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## [Unreleased]
+
+### Fixed
+
+- Prevent crash errors in esoteric situations where multiple dashboards have been erroneously marked as a user's default dashboard ([#2680](https://github.com/Uninett/nav/pull/2680))
+- Fix regression that prevented filter groups from being deleted from an alert profile ([#2729](https://github.com/Uninett/nav/pull/2729))
+- Fix regression that prevented activation/deactivation of alert profiles ([#2732](https://github.com/Uninett/nav/pull/2732))
+
 ## [5.7.1] - 2023-09-18
 
 ### Fixed
