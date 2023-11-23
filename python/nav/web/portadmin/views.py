@@ -46,6 +46,7 @@ from nav.web.portadmin.utils import (
     mark_detained_interfaces,
     is_cisco,
     add_dot1x_info,
+    add_poe_info,
 )
 from nav.portadmin.config import CONFIG
 from nav.portadmin.snmp.base import SNMPHandler
@@ -55,6 +56,9 @@ from nav.portadmin.handlers import (
     NoResponseError,
     ProtocolError,
     ManagementError,
+    POEIndexNotFoundError,
+    XMLParseError,
+    POEStateNotSupportedError,
 )
 from .forms import SearchForm
 from ...portadmin.handlers import DeviceNotConfigurableError
@@ -192,6 +196,8 @@ def populate_infodict(request, netbox, interfaces):
     voice_vlan = None
     readonly = False
     handler = None
+    supports_poe = False
+    poe_options = []
 
     try:
         handler = get_and_populate_livedata(netbox, interfaces)
@@ -207,6 +213,17 @@ def populate_infodict(request, netbox, interfaces):
         mark_detained_interfaces(interfaces)
         if CONFIG.is_dot1x_enabled():
             add_dot1x_info(interfaces, handler)
+        try:
+            poe_options = handler.get_poe_state_options()
+            add_poe_info(interfaces, handler)
+            # Tag poe as being supported if at least one interface supports poe
+            for interface in interfaces:
+                if interface.supports_poe:
+                    supports_poe = True
+                    break
+        except NotImplementedError:
+            # Only Cisco and Juniper has PoE support currently
+            pass
     except NoResponseError:
         readonly = True
         messages.error(
@@ -227,6 +244,14 @@ def populate_infodict(request, netbox, interfaces):
             % netbox.sysname,
         )
     except DeviceNotConfigurableError as error:
+        readonly = True
+        messages.error(request, str(error))
+
+    except (
+        POEIndexNotFoundError,
+        XMLParseError,
+        POEStateNotSupportedError,
+    ) as error:
         readonly = True
         messages.error(request, str(error))
 
@@ -260,6 +285,8 @@ def populate_infodict(request, netbox, interfaces):
             'aliastemplate': aliastemplate,
             'trunk_edit': CONFIG.get_trunk_edit(),
             'auditlog_api_parameters': json.dumps(auditlog_api_parameters),
+            'supports_poe': supports_poe,
+            'poe_options': poe_options,
         }
     )
     return info_dict
