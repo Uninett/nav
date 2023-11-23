@@ -273,7 +273,7 @@ def profile_save(request):
     if request.POST.get('id'):
         try:
             profile = AlertProfile.objects.get(pk=request.POST.get('id'))
-        except AlertProfile.DoesNotExist:
+        except (ValueError, AlertProfile.DoesNotExist):
             return alertprofiles_response_not_found(
                 request, 'Requested profile does not exist'
             )

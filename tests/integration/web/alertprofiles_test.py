@@ -163,6 +163,49 @@ class TestsAlertProfiles:
             valid_during=TimePeriod.WEEKENDS,
         ).exists()
 
+    def test_alertprofiles_save_profile_with_str_id_should_fail(self, db, client):
+        url = reverse('alertprofiles-profile-save')
+        profile_name = 'Catch 22'
+
+        response = client.post(
+            url,
+            follow=True,
+            data={
+                'id': "-9337'))) ORDER BY 1-- SVmx",
+                'name': profile_name,
+                'daily_dispatch_time': '08:00',
+                'weekly_dispatch_time': '08:00',
+                'weekly_dispatch_day': AlertProfile.MONDAY,
+            },
+        )
+
+        assert response.status_code == 404
+        assert 'Requested profile does not exist' in smart_str(response.content)
+        assert not AlertProfile.objects.filter(name=profile_name).exists()
+
+    def test_alertprofiles_save_profile_with_non_existent_id_should_fail(
+        self, db, client
+    ):
+        url = reverse('alertprofiles-profile-save')
+        profile_name = 'Catch 22'
+        last_alert_profile_id = getattr(AlertProfile.objects.last(), "pk", 0)
+
+        response = client.post(
+            url,
+            follow=True,
+            data={
+                'id': last_alert_profile_id + 1,
+                'name': profile_name,
+                'daily_dispatch_time': '08:00',
+                'weekly_dispatch_time': '08:00',
+                'weekly_dispatch_day': AlertProfile.MONDAY,
+            },
+        )
+
+        assert response.status_code == 404
+        assert 'Requested profile does not exist' in smart_str(response.content)
+        assert not AlertProfile.objects.filter(name=profile_name).exists()
+
     def test_alertprofiles_confirm_remove_profile(self, db, client, dummy_profile):
         url = reverse('alertprofiles-profile-remove')
         response = client.post(
