@@ -549,6 +549,4 @@ def check_log_level(logger, loglevel):
         logger.info("%s", expensive_function())
     """
     level = logger.getEffectiveLevel()
-    if level <= loglevel:
-        return True
-    return False
+    return level <= loglevel
