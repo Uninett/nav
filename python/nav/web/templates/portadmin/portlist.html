@@ -36,6 +36,11 @@
         Tel
       </div>
     {% endif %}
+    {% if supports_poe %}
+      <div class="hide-for-small medium-2 column">
+        PoE State
+      </div>
+    {% endif %}
     <div class="column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
       {% if not readonly %}
         <input type="button" class="saveall_button button tiny" value="Save all"/>
@@ -160,6 +165,24 @@
             &nbsp;
           {% endif %}
         </div>
+      {% endif %}
+
+      {# POE STATE #}
+      {% if supports_poe %}
+        {% if interface.supports_poe %}
+        <div class="medium-2 small-4 column">
+          <form class="custom">
+            <select class="poelist" name="{{ interface.ifname }}">
+              {% for poe_option in poe_options %}
+                  <option value="{{ poe_option.name }}" label="{{ poe_option.name }}"
+                          {% if interface.poe_state.name == poe_option.name %}selected="selected"
+                          data-orig="{{ poe_option.name }}"{% endif %}>
+                    {{ vlan }}
+              {% endfor %}
+            </select>
+          </form>
+        </div>
+        {% endif %}
       {% endif %}
 
       {# Button for saving #}
