@@ -24,10 +24,15 @@ found in the [HISTORY](HISTORY) file.
 - Power-over-Ethernet configuration support for Cisco and Juniper equipment backends in PortAdmin ([#2632](https://github.com/Uninett/nav/issues/2632), [#2633](https://github.com/Uninett/nav/issues/2633), [#2666](https://github.com/Uninett/nav/pull/2666), [#2635](https://github.com/Uninett/nav/pull/2635))
 - Extract VLAN association from router port names on Checkpoint firewalls ([#2684](https://github.com/Uninett/nav/issues/2684), [#2701](https://github.com/Uninett/nav/pull/2701))
 - Add link to our GitHub discussion forums in "Getting help" documentation ([#2746](https://github.com/Uninett/nav/pull/2746))
+- Add subcommand to `navuser` command line program for deleting users ([#2705](https://github.com/Uninett/nav/pull/2705))
+- Add toggle in `webfront.conf` for automatic creation of remote users ([#2698](https://github.com/Uninett/nav/issue/2698), [#2707](https://github.com/Uninett/nav/pull/2707))
+- Add proper documentation index page for all howto guides ([#2716](https://github.com/Uninett/nav/pull/2716))
+
 
 #### Developer-centric additions
 
 - Add tests for overview of alert profiles page  ([#2741](https://github.com/Uninett/nav/pull/2741))
+- Add make rule for cleaning `doc` directory ([#2717](https://github.com/Uninett/nav/pull/2717))
 - Add an snmpd service container for SNMPv3 comms testing ([#2697](https://github.com/Uninett/nav/pull/2697))
 
 ### Fixed
@@ -47,7 +52,11 @@ found in the [HISTORY](HISTORY) file.
 ### Changed
 
 - Allow write-enabled SNMP profiles to be used for reading when device has no read-only SNMP profiles ([#2735](https://github.com/Uninett/nav/issues/2735), [#2751](https://github.com/Uninett/nav/pull/2751))
+- Improved howto guide for setting up remote user authentication using `mod_auth_oidc` ([#2708](https://github.com/Uninett/nav/pull/2708))
 
+#### Developer-centric changes
+
+- Refactored web authentication code in preparation for future changes to authentication flow ([#2706](https://github.com/Uninett/nav/pull/2706))
 
 ### Removed
 
