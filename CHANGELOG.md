@@ -37,6 +37,7 @@ found in the [HISTORY](HISTORY) file.
 
 ### Fixed
 
+- Handle invalid alert profile ID form input without crashing ([#2756](https://github.com/Uninett/nav/pull/2756))
 - Prevent crash errors in esoteric situations where multiple dashboards have been erroneously marked as a user's default dashboard ([#2680](https://github.com/Uninett/nav/pull/2680))
 - Fix broken `navoidverify` command on Linux ([#2737](https://github.com/Uninett/nav/pull/2737))
 - Several regressions related to input validation in Alert Profiles were fixed:
