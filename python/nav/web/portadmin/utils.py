@@ -243,3 +243,11 @@ def is_cisco(netbox):
     :type netbox: manage.Netbox
     """
     return netbox.type.get_enterprise_id() == VENDOR_ID_CISCOSYSTEMS
+
+
+def add_poe_info(interfaces, handler):
+    """Add information about PoE state for interfaces"""
+    states = handler.get_poe_states(interfaces)
+    for interface in interfaces:
+        interface.poe_state = states.get(interface.ifname)
+        interface.supports_poe = True if interface.poe_state else False
