@@ -390,9 +390,21 @@ def set_interface_values(account, interface, request):
         set_ifalias(account, handler, interface, request)
         set_vlan(account, handler, interface, request)
         set_admin_status(handler, interface, request)
+        set_poe_state(handler, interface, request)
         save_to_database([interface])
     else:
         messages.info(request, 'Could not connect to netbox')
+
+
+def set_poe_state(handler, interface, request):
+    if 'poe_state' in request.POST:
+        poe_state_name = request.POST.get('poe_state')
+        for option in handler.get_poe_state_options():
+            if option.name == poe_state_name:
+                handler.set_poe_state(interface, option)
+                return
+        # If there was no match between posted value and known states
+        raise ValueError(f"Invalid PoE state name: {poe_state_name}")
 
 
 def build_ajax_messages(request):
