@@ -209,6 +209,8 @@ class SNMPParameters:
                 kwargs_out.update(
                     {k: v for k, v in profile.configuration.items() if hasattr(cls, k)}
                 )
+                # Sometimes profiles store the version number as a string
+                kwargs_out["version"] = int(kwargs_out["version"])
             else:
                 _logger.debug("%r has no snmp profile", netbox)
                 return None
