@@ -176,13 +176,16 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         $wrapper.on('change', '.ifadminstatus', function (event) {
             actOnChange($(event.target).parents(parentSelector));
         });
+        $wrapper.on('change', '.poelist', function (event) {
+            actOnChange($(event.target).parents(parentSelector));
+        });
     }
 
     /*
      * Mark card changed or not based on values in card
      */
     function actOnChange(row) {
-        if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row) || adminStatusChanged(row)) {
+        if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row) || adminStatusChanged(row) || poeDropDownChanged(row)) {
             markAsChanged(row);
         } else {
             markAsUnchanged(row);
@@ -214,6 +217,13 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
 
     function dropDownChanged(row) {
         var dropdown = $(row).find(".vlanlist");
+        var origOption = $('[data-orig]', dropdown)[0];
+        var selectedOption = $('option:selected', dropdown)[0];
+        return origOption !== selectedOption;
+    }
+
+    function poeDropDownChanged(row) {
+        var dropdown = $(row).find(".poelist");
         var origOption = $('[data-orig]', dropdown)[0];
         var selectedOption = $('option:selected', dropdown)[0];
         return origOption !== selectedOption;
@@ -302,6 +312,9 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             } else {
                 data.ifadminstatus = 2;
             }
+        }
+        if (poeDropDownChanged($row)) {
+            data.poe_state = $row.find(".poelist").val();
         }
         if ($row.find(".voicevlan").prop('checked')) {
             data.voice_activated = true;
