@@ -37,6 +37,7 @@ found in the [HISTORY](HISTORY) file.
 
 ### Fixed
 
+- Improve validation of maintenance form input in order to avoid unintentional crash reports ([#2757](https://github.com/Uninett/nav/pull/2757))
 - Handle invalid alert profile ID form input without crashing ([#2756](https://github.com/Uninett/nav/pull/2756))
 - Prevent crash errors in esoteric situations where multiple dashboards have been erroneously marked as a user's default dashboard ([#2680](https://github.com/Uninett/nav/pull/2680))
 - Fix broken `navoidverify` command on Linux ([#2737](https://github.com/Uninett/nav/pull/2737))
@@ -65,7 +66,7 @@ found in the [HISTORY](HISTORY) file.
 
 - Remove remaining uses of `Netbox.snmp_version` ([#2522](https://github.com/Uninett/nav/issues/2522))
 - Remove unused function `snmp_parameter_factory` ([#2753](https://github.com/Uninett/nav/pull/2753))
-- Remove deprecated Netbox SNMP properties ([#2754](https://github.com/Uninett/nav/pull/2754))
+- Remove deprecated Netbox SNMP properties ([#2754](https://github.com/Uninett/nav/pull/2754), [#2761](https://github.com/Uninett/nav/pull/2761))
 
 
 
