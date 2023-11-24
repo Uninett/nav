@@ -6,7 +6,6 @@ from django.test.client import RequestFactory
 from mock import MagicMock
 
 from nav.models.manage import Netbox, Room
-from nav.models.profiles import Account, AlertProfile
 from nav.web.seeddb.page.netbox.edit import netbox_edit, log_netbox_change
 from nav.web.seeddb.utils.delete import dependencies
 
