@@ -21,7 +21,7 @@ found in the [HISTORY](HISTORY) file.
   - Add SNMPv3 support to Arnold ([#2726](https://github.com/Uninett/nav/issues/2726), [#2733](https://github.com/Uninett/nav/pull/2733))
   - Add SNMPv3 session support to ipdevpoll's asynchronous SNMP libraries ([#2736](https://github.com/Uninett/nav/issues/2736), [#2743](https://github.com/Uninett/nav/pull/2743))
   - Add SNMPv3 support to`navoidverify` and `naventity` command line programs ([#2747](https://github.com/Uninett/nav/issues/2747), [#2748](https://github.com/Uninett/nav/pull/2748))
-- Power-over-Ethernet configuration support for Cisco and Juniper equipment backends in PortAdmin ([#2632](https://github.com/Uninett/nav/issues/2632), [#2633](https://github.com/Uninett/nav/issues/2633), [#2666](https://github.com/Uninett/nav/pull/2666), [#2635](https://github.com/Uninett/nav/pull/2635))
+- Power-over-Ethernet configuration support for Cisco and Juniper equipment in PortAdmin ([#2632](https://github.com/Uninett/nav/issues/2632), [#2633](https://github.com/Uninett/nav/issues/2633), [#2666](https://github.com/Uninett/nav/pull/2666), [#2635](https://github.com/Uninett/nav/pull/2635), [#2759](https://github.com/Uninett/nav/pull/2759))
 - Extract VLAN association from router port names on Checkpoint firewalls ([#2684](https://github.com/Uninett/nav/issues/2684), [#2701](https://github.com/Uninett/nav/pull/2701))
 - Add link to our GitHub discussion forums in "Getting help" documentation ([#2746](https://github.com/Uninett/nav/pull/2746))
 - Add subcommand to `navuser` command line program for deleting users ([#2705](https://github.com/Uninett/nav/pull/2705))

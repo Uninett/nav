@@ -59,6 +59,16 @@ replacement for community indexing, so the types of data described above may be
 missing from some devices if switching them to SNMPv3.
 
 
+Power-over-Ethernet configuration in PortAdmin
+----------------------------------------------
+
+PortAdmin has gained supported for enabling/disabling Power-over-Ethernet on
+Juniper and Cisco switches.  The available configuration options will vary from
+device to device and vendor to vendor, so the available presets will simply be
+presented for selection in a dropdown menu if PoE support is detected on a
+device.
+
+
 NAV 5.7
 =======
 
