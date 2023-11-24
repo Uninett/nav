@@ -205,7 +205,7 @@ def view(request, task_id):
             value = int(value)
         component_keys[key].append(value)
 
-    component_data = components_for_keys(component_keys)
+    component_data, _ = components_for_keys(component_keys)
     components = structure_component_data(component_data)
     component_trail = task_component_trails(component_keys, components)
 
@@ -279,9 +279,11 @@ def edit(request, task_id=None, start_time=None, **_):
         component_keys, component_keys_errors = get_component_keys(request.GET)
 
     if component_keys:
-        component_data = components_for_keys(component_keys)
+        component_data, component_data_errors = components_for_keys(component_keys)
         components = structure_component_data(component_data)
         component_trail = task_component_trails(component_keys, components)
+        if component_data_errors:
+            new_message(request, ",".join(component_data_errors), Messages.ERROR)
 
     if component_keys_errors:
         new_message(request, ",".join(component_keys_errors), Messages.ERROR)
