@@ -25,7 +25,7 @@
     <div class="hide-for-small medium-1 column">
       Linked
     </div>
-    <div class="hide-for-small medium-4 column">
+    <div class="hide-for-small {% if supports_poe %}medium-3{% else %}medium-4{% endif %} column">
       Port description
     </div>
     <div class="hide-for-small medium-2 column">
@@ -37,7 +37,7 @@
       </div>
     {% endif %}
     {% if supports_poe %}
-      <div class="hide-for-small medium-2 column">
+      <div class="hide-for-small medium-1 column">
         PoE State
       </div>
     {% endif %}
@@ -81,7 +81,7 @@
       </div>
 
       {# Port Description - input field #}
-      <div class="medium-4 column">
+      <div class="{% if supports_poe %}medium-3{% else %}medium-4{% endif %} column">
         {% if interface.iseditable and not readonly %}
           <input class="ifalias" type="text"
                  value="{{ interface.ifalias|default_if_none:'' }}"
@@ -170,7 +170,7 @@
       {# POE STATE #}
       {% if supports_poe %}
         {% if interface.supports_poe %}
-        <div class="medium-2 small-4 column">
+        <div class="medium-1 small-4 column">
           <form class="custom">
             <select class="poelist" name="{{ interface.ifname }}">
               {% for poe_option in poe_options %}
