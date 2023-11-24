@@ -68,6 +68,20 @@ device to device and vendor to vendor, so the available presets will simply be
 presented for selection in a dropdown menu if PoE support is detected on a
 device.
 
+REMOTE_USER autocreate option
+-----------------------------
+
+The external authentication integration system (popularly named
+``REMOTE_USER``) has gained a new toggle ``autocreate`` in the
+``[remote-user]`` section of :file:`webfront/webfront.conf`.  This option is
+``False`` by default, meaning that externally authenticated users will not be
+allowed to use NAV unless they have already been pre-created in the user admin
+panel.
+
+This changes the old behavior, in where any unknown user referenced in the
+``REMOTE_USER`` header by the web server is automatically created in NAV.  If
+you need the old functionality, you need to set this option to ``True``.
+
 
 NAV 5.7
 =======
