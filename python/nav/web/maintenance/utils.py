@@ -98,6 +98,7 @@ def infodict_by_state(task):
 
 def get_component_keys(post):
     remove = {}
+    errors = []
     raw_component_keys = {
         'service': post.getlist('service'),
         'netbox': post.getlist('netbox'),
@@ -125,10 +126,13 @@ def get_component_keys(post):
         for value in raw_component_keys[key]:
             if not remove or value not in remove[key]:
                 if key in PRIMARY_KEY_INTEGER:
+                    if not value.isdigit():
+                        errors.append(key + ": argument needs to be a number")
+                        continue
                     value = int(value)
                 if value not in component_keys[key]:
                     component_keys[key].append(value)
-    return component_keys
+    return component_keys, errors
 
 
 def components_for_keys(component_keys):
