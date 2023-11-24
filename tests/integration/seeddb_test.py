@@ -5,6 +5,7 @@ from django.http import Http404
 from django.test.client import RequestFactory
 from mock import MagicMock
 
+from nav.compatibility import smart_str
 from nav.models.manage import Netbox, Room
 from nav.web.seeddb.page.netbox.edit import netbox_edit, log_netbox_change
 from nav.web.seeddb.utils.delete import dependencies
@@ -26,6 +27,26 @@ def test_editing_deleted_netboxes_should_raise_404(admin_account):
 
     with pytest.raises(Http404):
         netbox_edit(request, netboxid)
+
+
+def test_adding_netbox_with_invalid_ip_should_fail(db, client):
+    url = reverse('seeddb-netbox-edit')
+    ip = "195.88.54.16'))) OR 2121=(SELECT COUNT(*) FROM GENERATE_SERIES(1,15000000)) AND ((('FRyc' LIKE 'FRyc"
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "ip": ip,
+            "room": "myroom",
+            "category": "GW",
+            "organization": "myorg",
+        },
+    )
+
+    assert response.status_code == 200
+    assert 'Form was not valid' in smart_str(response.content)
+    assert 'Could not resolve name' in smart_str(response.content)
 
 
 @pytest.fixture()
