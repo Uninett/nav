@@ -56,20 +56,16 @@ def log_netbox_change(account, old, new):
 
     # Compare changes from old to new
     attribute_list = [
-        'read_only',
-        'read_write',
         'category',
         'ip',
         'room',
         'organization',
-        'snmp_version',
     ]
     LogEntry.compare_objects(
         account,
         old,
         new,
         attribute_list,
-        censored_attributes=['read_only', 'read_write'],
     )
 
 
