@@ -45,29 +45,13 @@ class TestSNMPParametersAsAgentProxyArgs:
 
 
 class TestSNMPParametersFactory:
-    def test_snmp_profile_with_v2c_version_string_should_be_parsed_without_error(
-        self, snmpv2c_profile
+    @pytest.mark.parametrize("version_value", (2, "2", "2c"))
+    def test_snmp_v2_profile_should_be_parsed_without_error(
+        self, snmpv2c_profile, version_value
     ):
         mock_netbox = Mock()
         mock_netbox.get_preferred_snmp_management_profile.return_value = snmpv2c_profile
-        params = SNMPParameters.factory(mock_netbox)
-        assert params.version == 2
-
-    def test_snmp_profile_with_v2_version_string_should_be_parsed_without_error(
-        self, snmpv2c_profile
-    ):
-        mock_netbox = Mock()
-        mock_netbox.get_preferred_snmp_management_profile.return_value = snmpv2c_profile
-        snmpv2c_profile.configuration["version"] = "2"
-        params = SNMPParameters.factory(mock_netbox)
-        assert params.version == 2
-
-    def test_snmp_profile_with_v2_version_integer_should_be_parsed_without_error(
-        self, snmpv2c_profile
-    ):
-        mock_netbox = Mock()
-        mock_netbox.get_preferred_snmp_management_profile.return_value = snmpv2c_profile
-        snmpv2c_profile.configuration["version"] = 2
+        snmpv2c_profile.configuration["version"] = version_value
         params = SNMPParameters.factory(mock_netbox)
         assert params.version == 2
 
