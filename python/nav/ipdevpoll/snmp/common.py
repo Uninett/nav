@@ -204,13 +204,11 @@ class SNMPParameters:
         if netbox:
             profile = netbox.get_preferred_snmp_management_profile()
             if profile:
-                if profile.protocol == profile.PROTOCOL_SNMPV3:
-                    kwargs["version"] = 3
                 kwargs_out.update(
                     {k: v for k, v in profile.configuration.items() if hasattr(cls, k)}
                 )
-                # Sometimes profiles store the version number as a string
-                kwargs_out["version"] = int(kwargs_out["version"])
+                # Let profile object parse its own version to an int
+                kwargs_out["version"] = profile.snmp_version
             else:
                 _logger.debug("%r has no snmp profile", netbox)
                 return None
