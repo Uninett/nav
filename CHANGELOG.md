@@ -26,6 +26,7 @@ found in the [HISTORY](HISTORY) file.
 - Add subcommand to `navuser` command line program for deleting users ([#2705](https://github.com/Uninett/nav/pull/2705))
 - Add toggle in `webfront.conf` for automatic creation of remote users ([#2698](https://github.com/Uninett/nav/issue/2698), [#2707](https://github.com/Uninett/nav/pull/2707))
 - Add proper documentation index page for all howto guides ([#2716](https://github.com/Uninett/nav/pull/2716))
+- Add description to threshold alarms ([#2691](https://github.com/Uninett/nav/issue/2691), [#2709](https://github.com/Uninett/nav/pull/2709))
 
 
 #### Developer-centric additions
