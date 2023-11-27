@@ -1,1 +1,1 @@
-{{ metric }} cleared at {{ measured_value }} {% firstof clear alert %} on {{ time }}.
+{{ metric }} cleared at {{ measured_value }} {% firstof clear alert %} on {{ time }}{% if description %} ({{ description }}){% endif %}.

@@ -136,7 +136,7 @@ def build_netmap_layer2_graph(
     _logger.debug("build_netmap_layer2_graph() vlan metadata for _nodes_ done")
 
     if view:
-        saved_views = view.node_position_set.all()
+        saved_views = view.node_positions.all()
         netmap_graph = _attach_node_positions(netmap_graph, saved_views)
     _logger.debug("build_netmap_layer2_graph() view positions and graph done")
 
@@ -191,7 +191,7 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False, vie
             metadata[gwpp_u.prefix.vlan.id].append(additional_metadata)
 
     if view:
-        graph = _attach_node_positions(graph, view.node_position_set.all())
+        graph = _attach_node_positions(graph, view.node_positions.all())
     _logger.debug("build_netmap_layer3_graph() view positions and graph done")
     return graph
 

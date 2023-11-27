@@ -16,12 +16,16 @@
 "common AgentProxy mixin"
 import time
 import logging
+from dataclasses import dataclass
 from functools import wraps
-from collections import namedtuple
+from typing import Optional, Any, Dict
 
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
 from twisted.internet.task import deferLater
+
+from nav.Snmp.defines import SecurityLevel, AuthenticationProtocol, PrivacyProtocol
+from nav.models.manage import Netbox
 
 _logger = logging.getLogger(__name__)
 
@@ -89,12 +93,14 @@ class AgentProxyMixIn(object):
             self.snmp_parameters = kwargs['snmp_parameters']
             del kwargs['snmp_parameters']
         else:
-            self.snmp_parameters = SNMP_DEFAULTS
+            self.snmp_parameters = SNMPParameters()
         self._result_cache = {}
         self._last_request = 0
         self.throttle_delay = self.snmp_parameters.throttle_delay
 
-        super(AgentProxyMixIn, self).__init__(*args, **kwargs)
+        kwargs_out = self.snmp_parameters.as_agentproxy_args()
+        kwargs_out.update(kwargs)
+        super(AgentProxyMixIn, self).__init__(*args, **kwargs_out)
         # If we're mixed in with a pure twistedsnmp AgentProxy, the timeout
         # parameter will have no effect, since it is an argument to individual
         # method calls.
@@ -134,36 +140,130 @@ class AgentProxyMixIn(object):
         return super(AgentProxyMixIn, self)._getbulk(*args, **kwargs)
 
 
-# pylint: disable=C0103
-SNMPParameters = namedtuple('SNMPParameters', 'timeout max_repetitions throttle_delay')
+@dataclass
+class SNMPParameters:
+    """SNMP session parameters common to all SNMP protocol versions"""
 
-SNMP_DEFAULTS = SNMPParameters(timeout=1.5, max_repetitions=50, throttle_delay=0)
+    # Common for all SNMP sessions
+    version: int = 1
+    timeout: float = 1.5
+    tries: int = 3
 
+    # Common for v1 and v2 only
+    community: str = "public"
 
-# pylint: disable=W0212
-def snmp_parameter_factory(host=None):
-    """Returns specific SNMP parameters for `host`, or default values from
-    ipdevpoll's config if host specific values aren't available.
+    # Common for v2c +
+    max_repetitions: int = 50
 
-    :returns: An SNMPParameters namedtuple.
+    # SNMPv3 only
+    sec_level: Optional[SecurityLevel] = None
+    auth_protocol: Optional[AuthenticationProtocol] = None
+    sec_name: str = None
+    auth_password: Optional[str] = None
+    priv_protocol: Optional[PrivacyProtocol] = None
+    priv_password: Optional[str] = None
 
-    """
-    section = 'snmp'
+    # Specific to ipdevpoll-derived implementations
+    throttle_delay: int = 0
 
-    from nav.ipdevpoll.config import ipdevpoll_conf as config
+    def __post_init__(self):
+        """Enforces Enum types on init"""
+        if self.sec_level and not isinstance(self.sec_level, SecurityLevel):
+            self.sec_level = SecurityLevel(self.sec_level)
+        if self.auth_protocol and not isinstance(
+            self.auth_protocol, AuthenticationProtocol
+        ):
+            self.auth_protocol = AuthenticationProtocol(self.auth_protocol)
+        if self.priv_protocol and not isinstance(self.priv_protocol, PrivacyProtocol):
+            self.priv_protocol = PrivacyProtocol(self.priv_protocol)
 
-    params = SNMP_DEFAULTS._asdict()
+    @property
+    def version_string(self):
+        """Returns the SNMP protocol version as a command line compatible string"""
+        return "2c" if self.version == 2 else str(self.version)
 
-    for var, getter in [
-        ('max-repetitions', config.getint),
-        ('timeout', config.getfloat),
-        ('throttle-delay', config.getfloat),
-    ]:
-        if config.has_option(section, var):
-            key = var.replace('-', '_')
-            params[key] = getter(section, var)
+    @classmethod
+    def factory(
+        cls, netbox: Optional[Netbox] = None, **kwargs
+    ) -> Optional["SNMPParameters"]:
+        """Creates and returns a set of SNMP parameters based on three sources, in
+        reverse order of precedence:
 
-    return SNMPParameters(**params)
+        1. Given a Netbox, adds the parameters from its preferred SNMP profile.
+        2. SNMP parameters from ipdevpoll.conf.
+        3. SNMP parameters given as keyword arguments to the factory method.
+
+        Beware that this method will synchronously fetch management profiles from the
+        database using the Django ORM, and should not be called from async code
+        unless deferred to a worker thread.
+
+        If the netbox argument is a Netbox without a configured SNMP profile, None will
+        be returned.
+        """
+        kwargs_out = {}
+        if netbox:
+            profile = netbox.get_preferred_snmp_management_profile()
+            if profile:
+                if profile.protocol == profile.PROTOCOL_SNMPV3:
+                    kwargs["version"] = 3
+                kwargs_out.update(
+                    {k: v for k, v in profile.configuration.items() if hasattr(cls, k)}
+                )
+                # Sometimes profiles store the version number as a string
+                kwargs_out["version"] = int(kwargs_out["version"])
+            else:
+                _logger.debug("%r has no snmp profile", netbox)
+                return None
+
+        kwargs_out.update(cls.get_params_from_ipdevpoll_config())
+        kwargs_out.update(kwargs)
+        return cls(**kwargs_out)
+
+    @classmethod
+    def get_params_from_ipdevpoll_config(cls, section: str = "snmp") -> Dict[str, Any]:
+        """Reads and returns global SNMP parameters from ipdevpoll configuration as a
+        simple dict.
+        """
+        from nav.ipdevpoll.config import ipdevpoll_conf as config
+
+        params = {}
+        for var, getter in [
+            ('max-repetitions', config.getint),
+            ('timeout', config.getfloat),
+            ('throttle-delay', config.getfloat),
+        ]:
+            if config.has_option(section, var):
+                key = var.replace('-', '_')
+                params[key] = getter(section, var)
+
+        return params
+
+    def as_agentproxy_args(self) -> Dict[str, Any]:
+        """Returns the SNMP session parameters in a dict format compatible with
+        pynetsnmp.twistedsnmp.AgentProxy() keyword arguments.
+        """
+        kwargs = {"snmpVersion": self.version_string}
+        if self.version in (1, 2):
+            kwargs["community"] = self.community
+        if self.timeout:
+            kwargs["timeout"] = self.timeout
+        if self.tries:
+            kwargs["tries"] = self.tries
+
+        if self.version == 3:
+            params = []
+            params.extend(["-l", self.sec_level.value, "-u", self.sec_name])
+            if self.auth_protocol:
+                params.extend(["-a", self.auth_protocol.value])
+            if self.auth_password:
+                params.extend(["-A", self.auth_password])
+            if self.priv_protocol:
+                params.extend(["-x", self.priv_protocol.value])
+            if self.priv_password:
+                params.extend(["-X", self.priv_password])
+            kwargs["cmdLineArgs"] = tuple(params)
+
+        return kwargs
 
 
 class SnmpError(Exception):

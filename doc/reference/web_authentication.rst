@@ -21,6 +21,17 @@ Since the password is controlled from a system externally to NAV, the user does
 not have access to change the password from inside NAV. If an account is set to
 invalid in NAV, the user will not be logged in, even if the header is set.
 
+Creating users on first login
+-----------------------------
+
+Earlier versions of this functionality created users on first login. That is no
+longer the case. To enable the previous behaviour, set ``autocreate = on`` in
+the ``[remote-user]`` section in the config-file.
+
+With the default, which is ``off``, it is necessary to pre-create users for
+them to be able to log in. This can be done from the command line with
+``navuser``, or via the web interface.
+
 Workarounds for "strange" `REMOTE_USER` values
 ----------------------------------------------
 

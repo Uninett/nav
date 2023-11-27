@@ -46,6 +46,7 @@ from nav.web.portadmin.utils import (
     mark_detained_interfaces,
     is_cisco,
     add_dot1x_info,
+    add_poe_info,
 )
 from nav.portadmin.config import CONFIG
 from nav.portadmin.snmp.base import SNMPHandler
@@ -55,6 +56,9 @@ from nav.portadmin.handlers import (
     NoResponseError,
     ProtocolError,
     ManagementError,
+    POEIndexNotFoundError,
+    XMLParseError,
+    POEStateNotSupportedError,
 )
 from .forms import SearchForm
 from ...portadmin.handlers import DeviceNotConfigurableError
@@ -192,6 +196,8 @@ def populate_infodict(request, netbox, interfaces):
     voice_vlan = None
     readonly = False
     handler = None
+    supports_poe = False
+    poe_options = []
 
     try:
         handler = get_and_populate_livedata(netbox, interfaces)
@@ -207,6 +213,17 @@ def populate_infodict(request, netbox, interfaces):
         mark_detained_interfaces(interfaces)
         if CONFIG.is_dot1x_enabled():
             add_dot1x_info(interfaces, handler)
+        try:
+            poe_options = handler.get_poe_state_options()
+            add_poe_info(interfaces, handler)
+            # Tag poe as being supported if at least one interface supports poe
+            for interface in interfaces:
+                if interface.supports_poe:
+                    supports_poe = True
+                    break
+        except NotImplementedError:
+            # Only Cisco and Juniper has PoE support currently
+            pass
     except NoResponseError:
         readonly = True
         messages.error(
@@ -214,9 +231,10 @@ def populate_infodict(request, netbox, interfaces):
             "%s did not respond within the set timeouts. Values displayed are from database"
             % netbox.sysname,
         )
-        if isinstance(
-            handler, SNMPHandler
-        ) and not netbox.get_preferred_snmp_management_profile(writeable=False):
+        if (
+            isinstance(handler, SNMPHandler)
+            and not netbox.get_preferred_snmp_management_profile()
+        ):
             messages.error(request, "Read only management profile not set")
     except ProtocolError:
         readonly = True
@@ -226,6 +244,14 @@ def populate_infodict(request, netbox, interfaces):
             % netbox.sysname,
         )
     except DeviceNotConfigurableError as error:
+        readonly = True
+        messages.error(request, str(error))
+
+    except (
+        POEIndexNotFoundError,
+        XMLParseError,
+        POEStateNotSupportedError,
+    ) as error:
         readonly = True
         messages.error(request, str(error))
 
@@ -259,6 +285,8 @@ def populate_infodict(request, netbox, interfaces):
             'aliastemplate': aliastemplate,
             'trunk_edit': CONFIG.get_trunk_edit(),
             'auditlog_api_parameters': json.dumps(auditlog_api_parameters),
+            'supports_poe': supports_poe,
+            'poe_options': poe_options,
         }
     )
     return info_dict
@@ -362,9 +390,21 @@ def set_interface_values(account, interface, request):
         set_ifalias(account, handler, interface, request)
         set_vlan(account, handler, interface, request)
         set_admin_status(handler, interface, request)
+        set_poe_state(handler, interface, request)
         save_to_database([interface])
     else:
         messages.info(request, 'Could not connect to netbox')
+
+
+def set_poe_state(handler, interface, request):
+    if 'poe_state' in request.POST:
+        poe_state_name = request.POST.get('poe_state')
+        for option in handler.get_poe_state_options():
+            if option.name == poe_state_name:
+                handler.set_poe_state(interface, option)
+                return
+        # If there was no match between posted value and known states
+        raise ValueError(f"Invalid PoE state name: {poe_state_name}")
 
 
 def build_ajax_messages(request):

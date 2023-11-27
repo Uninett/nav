@@ -205,7 +205,7 @@ def view(request, task_id):
             value = int(value)
         component_keys[key].append(value)
 
-    component_data = components_for_keys(component_keys)
+    component_data, _ = components_for_keys(component_keys)
     components = structure_component_data(component_data)
     component_trail = task_component_trails(component_keys, components)
 
@@ -261,7 +261,8 @@ def edit(request, task_id=None, start_time=None, **_):
     task_form = MaintenanceTaskForm(initial=task_form_initial(task, start_time))
 
     if request.method == 'POST':
-        component_keys = get_component_keys(request.POST)
+        component_keys, component_keys_errors = get_component_keys(request.POST)
+
     elif task:
         component_keys = {
             'service': [],
@@ -275,19 +276,24 @@ def edit(request, task_id=None, start_time=None, **_):
                 value = int(value)
             component_keys[key].append(value)
     else:
-        component_keys = get_component_keys(request.GET)
+        component_keys, component_keys_errors = get_component_keys(request.GET)
 
     if component_keys:
-        component_data = components_for_keys(component_keys)
+        component_data, component_data_errors = components_for_keys(component_keys)
         components = structure_component_data(component_data)
         component_trail = task_component_trails(component_keys, components)
+        if component_data_errors:
+            new_message(request, ",".join(component_data_errors), Messages.ERROR)
+
+    if component_keys_errors:
+        new_message(request, ",".join(component_keys_errors), Messages.ERROR)
 
     if request.method == 'POST':
         if 'save' in request.POST:
             task_form = MaintenanceTaskForm(request.POST)
-            if not any(component_data.values()):
+            if component_keys and not any(component_data.values()):
                 new_message(request, "No components selected.", Messages.ERROR)
-            elif task_form.is_valid():
+            elif not component_keys_errors and task_form.is_valid():
                 start_time = task_form.cleaned_data['start_time']
                 end_time = task_form.cleaned_data['end_time']
                 no_end_time = task_form.cleaned_data['no_end_time']

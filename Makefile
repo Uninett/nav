@@ -1,4 +1,4 @@
-.PHONY: dummy clean distclean testclean doc .FORCE
+.PHONY: dummy clean distclean testclean docclean doc .FORCE
 
 dummy:
 	@echo "'make' is no longer used for deployment. See 'doc/intro/install.rst'"
@@ -18,6 +18,9 @@ testclean: clean
 	-rm *.stats
 	-rm python/nav/web/static/js/package-lock.json
 	-rm -rf .tox
+
+docclean:
+	-rm -rf doc/_build
 
 doc: doc/reference/alerttypes.rst
 

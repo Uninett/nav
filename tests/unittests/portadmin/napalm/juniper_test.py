@@ -20,29 +20,12 @@ from unittest.mock import Mock, patch
 
 from jnpr.junos.exception import RpcError
 
-from nav.enterprise.ids import VENDOR_ID_RESERVED, VENDOR_ID_JUNIPER_NETWORKS_INC
-from nav.models import manage
-from nav.portadmin.handlers import DeviceNotConfigurableError, ProtocolError
+from nav.enterprise.ids import VENDOR_ID_RESERVED
+from nav.portadmin.handlers import (
+    DeviceNotConfigurableError,
+    ProtocolError,
+)
 from nav.portadmin.napalm.juniper import wrap_unhandled_rpc_errors, Juniper
-
-
-@pytest.fixture()
-def netbox_mock():
-    """Create netbox model mock object"""
-    netbox = Mock()
-    netbox.ip = '10.0.0.1'
-    netbox.type.get_enterprise_id.return_value = VENDOR_ID_JUNIPER_NETWORKS_INC
-    yield netbox
-
-
-@pytest.fixture()
-def profile_mock():
-    """Create management profile model mock object"""
-    profile = Mock()
-    profile.protocol = manage.ManagementProfile.PROTOCOL_NAPALM
-    profile.PROTOCOL_NAPALM = manage.ManagementProfile.PROTOCOL_NAPALM
-    profile.configuration = {"driver": "mock"}
-    yield profile
 
 
 class TestWrapUnhandledRpcErrors:
@@ -64,7 +47,7 @@ class TestWrapUnhandledRpcErrors:
 
 
 class TestJuniper:
-    def test_juniper_device_returns_device_connection(self, netbox_mock, profile_mock):
+    def test_juniper_device_returns_device_connection(self, handler_mock):
         driver = napalm.get_network_driver('mock')
         device = driver(
             hostname='foo',
@@ -73,10 +56,7 @@ class TestJuniper:
             optional_args={},
         )
         device.open()
-        juniper = Juniper(netbox=netbox_mock)
-        juniper._profile = profile_mock
-
-        assert juniper.device
+        assert handler_mock.device
 
     def test_juniper_device_raises_error_if_vendor_not_juniper(
         self, netbox_mock, profile_mock

@@ -650,29 +650,31 @@ class ExpressionForm(forms.ModelForm):
         value = validated_data["value"]
 
         if match_field.data_type == MatchField.IP:
-            if operator_type == Operator.IN:
-                ip_list = value.split()
-            else:
-                ip_list = [value]
-            validated_ip_addresses = []
-            for ip in ip_list:
-                if not is_valid_ip(ip=ip, strict=True) and not is_valid_cidr(cidr=ip):
-                    self.add_error(
-                        field="value",
-                        error=forms.ValidationError(("Invalid IP address: %s" % ip)),
-                    )
-                else:
-                    validated_ip_addresses.append(str(ip))
-            # Bring ip address back into original format to be processed below
-            value = " ".join(validated_ip_addresses)
+            validated_data["value"] = self._clean_ip_addresses(
+                operator_type=operator_type, value=value
+            )
+            return validated_data
 
         if operator_type == Operator.IN:
-            """If input was a multiple choice list we have to join each option in one
-            string, where each option is separated by a | (pipe).
-            If input was a IP adress we should replace space with | (pipe)."""
-            if match_field.data_type == MatchField.IP:
-                validated_data["value"] = value.replace(' ', '|')
-            else:
-                validated_data["value"] = "|".join(value)
+            validated_data["value"] = "|".join(value)
+        elif operator_type == Operator.EQUALS and isinstance(value, list):
+            validated_data["value"] = value[0]
 
         return validated_data
+
+    def _clean_ip_addresses(self, operator_type, value):
+        if operator_type == Operator.IN:
+            ip_list = value.split()
+        else:
+            ip_list = [value]
+        validated_ip_addresses = []
+        for ip in ip_list:
+            if not is_valid_ip(ip=ip, strict=True) and not is_valid_cidr(cidr=ip):
+                self.add_error(
+                    field="value",
+                    error=forms.ValidationError(("Invalid IP address: %s" % ip)),
+                )
+            else:
+                validated_ip_addresses.append(str(ip))
+
+        return "|".join(validated_ip_addresses)

@@ -34,6 +34,7 @@ from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
 from nav.models.manage import NetboxInfo, ManagementProfile
 from nav.Snmp import Snmp, safestring
 from nav.Snmp.errors import SnmpError
+from nav.Snmp.profile import get_snmp_session_for_profile
 from nav import napalm
 from nav.util import is_valid_ip
 from nav.web.seeddb import reverse_lazy
@@ -55,20 +56,16 @@ def log_netbox_change(account, old, new):
 
     # Compare changes from old to new
     attribute_list = [
-        'read_only',
-        'read_write',
         'category',
         'ip',
         'room',
         'organization',
-        'snmp_version',
     ]
     LogEntry.compare_objects(
         account,
         old,
         new,
         attribute_list,
-        censored_attributes=['read_only', 'read_write'],
     )
 
 
@@ -186,7 +183,11 @@ def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
 
 
 def snmp_write_test(ip, profile):
-    """Test that snmp write works"""
+    """Tests that an SNMP profile really has write access.
+
+    Tests by fetching sysLocation.0 and setting the same value.  This will fail if
+    the device only allows writing to other parts of its mib view.
+    """
 
     testresult = {
         'error_message': '',
@@ -198,11 +199,7 @@ def snmp_write_test(ip, profile):
     syslocation = '1.3.6.1.2.1.1.6.0'
     value = ''
     try:
-        snmp = Snmp(
-            ip,
-            profile.configuration.get("community"),
-            profile.configuration.get("version"),
-        )
+        snmp = get_snmp_session_for_profile(profile)(ip)
         value = safestring(snmp.get(syslocation))
         snmp.set(syslocation, 's', value.encode('utf-8'))
     except SnmpError as error:
@@ -223,11 +220,7 @@ def check_snmp_version(ip, profile):
     """Check if version of snmp is supported by device"""
     sysobjectid = '1.3.6.1.2.1.1.2.0'
     try:
-        snmp = Snmp(
-            ip,
-            profile.configuration.get("community"),
-            profile.configuration.get("version"),
-        )
+        snmp = get_snmp_session_for_profile(profile)(ip)
         snmp.get(sysobjectid)
     except Exception:  # pylint: disable=W0703
         return False
@@ -256,16 +249,14 @@ def get_sysname(ip_address):
 
 def get_type_id(ip_addr, profile):
     """Gets the id of the type of the ip_addr"""
-    netbox_type = snmp_type(
-        ip_addr, profile.configuration.get("community"), profile.snmp_version
-    )
+    netbox_type = snmp_type(ip_addr, profile)
     if netbox_type:
         return netbox_type.id
 
 
-def snmp_type(ip_addr, snmp_ro, snmp_version):
+def snmp_type(ip_addr, profile: ManagementProfile):
     """Query ip for sysobjectid using form data"""
-    snmp = Snmp(ip_addr, snmp_ro, snmp_version)
+    snmp = get_snmp_session_for_profile(profile)(ip_addr)
     try:
         sysobjectid = snmp.get('.1.3.6.1.2.1.1.2.0')
     except SnmpError:

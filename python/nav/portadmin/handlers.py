@@ -301,8 +301,8 @@ class ManagementHandler:
         raise NotImplementedError
 
     def get_poe_states(
-        self, interfaces: Sequence[manage.Interface] = None
-    ) -> Dict[int, Optional[PoeState]]:
+        self, interfaces: Optional[Sequence[manage.Interface]] = None
+    ) -> Dict[str, Optional[PoeState]]:
         """Retrieves current PoE state for interfaces on this device.
 
         :param interfaces: Optional sequence of interfaces to filter for, as fetching
@@ -311,7 +311,7 @@ class ManagementHandler:
                            the default behavior is to filter on all Interface objects
                            registered for this device.
         :returns: A dict mapping interfaces to their discovered PoE state.
-                  The key matches the `ifindex` attribute for the related
+                  The key matches the `ifname` attribute for the related
                   Interface object.
                   The value will be None if the interface does not support PoE.
         """
@@ -338,3 +338,21 @@ class ProtocolError(ManagementError):
     """Raised when some non-categorized error in the underlying protocol occurred
     during communication
     """
+
+
+class POENotSupportedError(ManagementError):
+    """Raised when an interface that does not support PoE is used in a context
+    where PoE support is expected
+    """
+
+
+class POEStateNotSupportedError(ManagementError):
+    """Raised when a PoE state is detected in a context where it is not supported"""
+
+
+class XMLParseError(ManagementError):
+    """Raised when failing to parse XML"""
+
+
+class POEIndexNotFoundError(ManagementError):
+    """Raised when a PoE index could not be found for an interface"""

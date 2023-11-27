@@ -273,7 +273,7 @@ def profile_save(request):
     if request.POST.get('id'):
         try:
             profile = AlertProfile.objects.get(pk=request.POST.get('id'))
-        except AlertProfile.DoesNotExist:
+        except (ValueError, AlertProfile.DoesNotExist):
             return alertprofiles_response_not_found(
                 request, 'Requested profile does not exist'
             )
@@ -313,7 +313,7 @@ def profile_save(request):
 def profile_remove(request):
     """Removes a profile"""
     post = request.POST.copy()
-    for data in post:
+    for data in request.POST:
         if data.find("=") != -1:
             attr, value = data.split("=")
             del post[data]
@@ -1929,7 +1929,7 @@ def filter_group_remove(request):
             time_periods = TimePeriod.objects.filter(
                 alert_subscriptions__in=subscriptions
             )
-            profiles = AlertProfile.objects.filter(timeperiod__in=time_periods)
+            profiles = AlertProfile.objects.filter(time_periods__in=time_periods)
             warnings = []
 
             try:

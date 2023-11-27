@@ -16,6 +16,7 @@
 #
 """Cisco specific PortAdmin SNMP handling"""
 import logging
+from typing import Sequence, Dict, Optional, Tuple
 
 from nav.Snmp.errors import SnmpError
 from nav.bitvector import BitVector
@@ -23,6 +24,13 @@ from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.smidumps import get_mib
 from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
+from nav.portadmin.handlers import (
+    PoeState,
+    POEStateNotSupportedError,
+    POENotSupportedError,
+    POEIndexNotFoundError,
+)
+from nav.models import manage
 
 
 _logger = logging.getLogger(__name__)
@@ -35,6 +43,7 @@ class Cisco(SNMPHandler):
 
     VTPNODES = get_mib('CISCO-VTP-MIB')['nodes']
     PAENODES = get_mib('CISCO-PAE-MIB')['nodes']
+    POENODES = get_mib('CISCO-POWER-ETHERNET-EXT-MIB')['nodes']
 
     VTPVLANSTATE = VTPNODES['vtpVlanState']['oid']
     VTPVLANTYPE = VTPNODES['vtpVlanType']['oid']
@@ -56,6 +65,19 @@ class Cisco(SNMPHandler):
     dot1xPortAuth = PAENODES['cpaePortCapabilitiesEnabled']['oid']
     DOT1X_AUTHENTICATOR = 0b10000000
     DOT1X_SUPPLICANT = 0b01000000
+
+    POEENABLE = POENODES['cpeExtPsePortEnable']['oid']
+    POE_AUTO = PoeState(state=1, name="AUTO")
+    POE_STATIC = PoeState(state=2, name="STATIC")
+    POE_LIMIT = PoeState(state=3, name="LIMIT")
+    POE_DISABLE = PoeState(state=4, name="DISABLE")
+
+    POE_OPTIONS = [
+        POE_AUTO,
+        POE_STATIC,
+        POE_LIMIT,
+        POE_DISABLE,
+    ]
 
     def __init__(self, netbox, **kwargs):
         super(Cisco, self).__init__(netbox, **kwargs)
@@ -299,6 +321,83 @@ class Cisco(SNMPHandler):
             names.get(OID(oid)[-1]): state[0] & self.DOT1X_AUTHENTICATOR
             for oid, state in self._bulkwalk(self.dot1xPortAuth)
         }
+
+    def get_poe_state_options(self) -> Sequence[PoeState]:
+        """Returns the available options for enabling/disabling PoE on this netbox"""
+        return self.POE_OPTIONS
+
+    @translate_protocol_errors
+    def set_poe_state(self, interface: manage.Interface, state: PoeState):
+        """Set state for enabling/disabling PoE on this interface.
+        Available options should be retrieved using `get_poe_state_options`
+        """
+        unit_number, interface_number = self._get_poe_indexes_for_interface(interface)
+        oid_with_unit_number = self.POEENABLE + OID((unit_number,))
+        try:
+            self._set_netbox_value(
+                oid_with_unit_number, interface_number, 'i', state.state
+            )
+        except SnmpError as error:
+            _logger.error('Error setting poe state: %s', error)
+            raise
+        except ValueError as error:
+            _logger.error('%s is not a valid option for poe state', state)
+            raise
+
+    def _get_poe_indexes_for_interface(
+        self, interface: manage.Interface
+    ) -> Tuple[int, int]:
+        """Returns the unit number and interface number for the given interface"""
+        try:
+            poeport = manage.POEPort.objects.get(interface=interface)
+        except manage.POEPort.DoesNotExist:
+            raise POEIndexNotFoundError(
+                "This interface does not have PoE indexes defined"
+            )
+        unit_number = poeport.poegroup.index
+        interface_number = poeport.index
+        return unit_number, interface_number
+
+    def get_poe_states(
+        self, interfaces: Optional[Sequence[manage.Interface]] = None
+    ) -> Dict[str, Optional[PoeState]]:
+        """Retrieves current PoE state for interfaces on this device.
+
+        :param interfaces: Optional sequence of interfaces to filter for, as fetching
+                           data for all interfaces may be a waste of time if only a
+                           single interface is needed. If this parameter is omitted,
+                           the default behavior is to filter on all Interface objects
+                           registered for this device.
+        :returns: A dict mapping interfaces to their discovered PoE state.
+                  The key matches the `ifname` attribute for the related
+                  Interface object.
+                  The value will be None if the interface does not support PoE.
+        """
+        if not interfaces:
+            interfaces = self.netbox.interfaces
+        states_dict = {}
+        for interface in interfaces:
+            try:
+                state = self._get_poe_state_for_single_interface(interface)
+            except POENotSupportedError:
+                state = None
+            states_dict[interface.ifname] = state
+        return states_dict
+
+    @translate_protocol_errors
+    def _get_poe_state_for_single_interface(
+        self, interface: manage.Interface
+    ) -> PoeState:
+        """Retrieves current PoE state for given the given interface"""
+        unit_number, interface_number = self._get_poe_indexes_for_interface(interface)
+        oid_with_unit_number = self.POEENABLE + OID((unit_number,))
+        state_value = self._query_netbox(oid_with_unit_number, interface_number)
+        if state_value == None:
+            raise POENotSupportedError("This interface does not support PoE")
+        for state in self.get_poe_state_options():
+            if state.state == state_value:
+                return state
+        raise POEStateNotSupportedError(f"Unknown PoE state {state_value}")
 
 
 CHARS_IN_1024_BITS = 128

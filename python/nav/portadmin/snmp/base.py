@@ -14,13 +14,12 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-import time
 from functools import wraps
 from operator import attrgetter
 import logging
 from typing import Dict, Sequence, List, Any
 
-from nav import Snmp
+from nav.Snmp.profile import get_snmp_session_for_profile
 from nav.Snmp import safestring, OID
 from nav.Snmp.errors import (
     UnsupportedSnmpVersionError,
@@ -170,19 +169,13 @@ class SNMPHandler(ManagementHandler):
     def _get_read_only_handle(self):
         """Get a read only SNMP-handle."""
         if self.read_only_handle is None:
-            profile = self.netbox.get_preferred_snmp_management_profile(writeable=False)
+            profile = self.netbox.get_preferred_snmp_management_profile()
 
             if not profile:
                 raise NoReadOnlyManagementProfileError
-            if not hasattr(profile, "snmp_community") or not hasattr(
-                profile, "snmp_version"
-            ):
-                raise InvalidManagementProfileError
 
-            self.read_only_handle = Snmp.Snmp(
+            self.read_only_handle = get_snmp_session_for_profile(profile)(
                 host=self.netbox.ip,
-                community=profile.snmp_community,
-                version=profile.snmp_version,
                 retries=self.retries,
                 timeout=self.timeout,
             )
@@ -208,11 +201,11 @@ class SNMPHandler(ManagementHandler):
         :rtype: nav.Snmp.Snmp
         """
         if self.read_write_handle is None:
-            profile = self.netbox.get_preferred_snmp_management_profile(writeable=True)
-            self.read_write_handle = Snmp.Snmp(
+            profile = self.netbox.get_preferred_snmp_management_profile(
+                require_write=True
+            )
+            self.read_write_handle = get_snmp_session_for_profile(profile)(
                 host=self.netbox.ip,
-                community=profile.snmp_community,
-                version=profile.snmp_version,
                 retries=self.retries,
                 timeout=self.timeout,
             )
@@ -572,7 +565,7 @@ class SNMPHandler(ManagementHandler):
             raise ProtocolError("SNMP error") from error
 
     def raise_if_not_configurable(self):
-        if not self.netbox.get_preferred_snmp_management_profile(writeable=True):
+        if not self.netbox.get_preferred_snmp_management_profile(require_write=True):
             raise DeviceNotConfigurableError(
                 "No writeable SNMP management profile set for this device, "
                 "changes cannot be saved"

@@ -64,6 +64,8 @@ class MaintenanceTaskForm(forms.Form):
         no_end_time = self.cleaned_data['no_end_time']
         if not no_end_time and not end_time:
             raise forms.ValidationError("End time or no end time must be specified")
+        if end_time and end_time < self.cleaned_data["start_time"]:
+            raise forms.ValidationError("End time must be after start time")
         return self.cleaned_data
 
 

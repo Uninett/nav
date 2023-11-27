@@ -33,6 +33,7 @@ this to allow asynchronous data retrieval.
 
 import logging
 
+from pynetsnmp.netsnmp import SnmpTimeoutError
 from twisted.internet import defer, reactor
 from twisted.internet.defer import returnValue
 from twisted.internet.error import TimeoutError
@@ -427,6 +428,11 @@ class MibRetriever(object, metaclass=MibRetrieverMaker):
 
             return formatted_result
 
+        def _snmp_timeout_handler(failure: defer.failure.Failure):
+            """Transforms SnmpTimeoutErrors into "regular" TimeoutErrors"""
+            failure.trap(SnmpTimeoutError)
+            raise TimeoutError(failure.value)
+
         def _valueerror_handler(failure):
             failure.trap(ValueError)
             self._logger.warning(
@@ -439,6 +445,7 @@ class MibRetriever(object, metaclass=MibRetrieverMaker):
             return {}  # alternative is to retry or raise a Timeout exception
 
         deferred = self.agent_proxy.getTable([str(node.oid)])
+        deferred.addErrback(_snmp_timeout_handler)
         deferred.addCallbacks(_result_formatter, _valueerror_handler)
         return deferred
 

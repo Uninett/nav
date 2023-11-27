@@ -31,3 +31,7 @@ class UnsupportedSnmpVersionError(SnmpError):
 
 class NoSuchObjectError(SnmpError):
     """SNMP agent did not know of this object"""
+
+
+class SNMPv3ConfigurationError(SnmpError):
+    """Error in SNMPv3 configuration parameters"""

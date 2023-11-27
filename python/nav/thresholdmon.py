@@ -181,6 +181,8 @@ def make_event(start, rule, metric, value):
     )
     if rule.clear:
         varmap['clear'] = str(rule.clear)
+    if rule.description:
+        varmap['description'] = rule.description
     _add_subject_details(event, metric, varmap)
 
     event.save()

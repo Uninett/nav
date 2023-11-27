@@ -14,6 +14,10 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+"""Outputs NAV's SNMP configuration for input devices as NET-SNMP compatible command
+line arguments.
+
+"""
 from __future__ import print_function
 import argparse
 import sys
@@ -41,8 +45,7 @@ def main():
 def parse_args():
     """Builds an ArgumentParser and returns parsed program arguments"""
     parser = argparse.ArgumentParser(
-        description="Outputs NAV's SNMP configuration of input devices as NET-SNMP "
-        "compatible command line arguments",
+        description=__doc__.replace("\n", " ").strip(),
         epilog="Example usage:\nsnmpwalk $(%(prog)s example-sw.example.org) "
         "SNMPv2-MIB::system ",
     )
@@ -70,11 +73,12 @@ def get_matching_boxes(patterns):
 
 def snmp_printer(netbox):
     profile = netbox.get_preferred_snmp_management_profile()
-    version = ''
-    if getattr(profile, "snmp_version", None) == 1:
-        version = '1'
-    elif getattr(profile, "snmp_version", None) == 2:
-        version = '2c'
+    try:
+        version = profile.snmp_version
+        if version == 2:
+            version = "2c"
+    except (AttributeError, ValueError):
+        version = None
 
     if not profile or not version:
         print("%s has no valid SNMP configuration in NAV" % netbox, file=sys.stderr)
@@ -85,13 +89,25 @@ def snmp_printer(netbox):
         ipaddr = "ipv6:[%s]" % ipaddr
 
     print("# {}".format(netbox.sysname), file=sys.stderr)
-    print(
-        "-v{version} -c {community} {ipaddr}".format(
-            version=version,
-            community=profile.snmp_community,
-            ipaddr=ipaddr,
-        )
-    )
+
+    args = [f"-v{version}"]
+    if version != 3:
+        args.append(f"-c {profile.snmp_community}")
+    else:
+        conf = profile.configuration
+        args.extend(["-l", conf["sec_level"], "-u", conf["sec_name"]])
+        if conf.get("auth_protocol"):
+            args.extend(["-a", conf.get("auth_protocol")])
+        if conf.get("auth_password"):
+            args.extend(["-A", conf.get("auth_password")])
+        if conf.get("priv_protocol"):
+            args.extend(["-x", conf.get("priv_protocol")])
+        if conf.get("priv_password"):
+            args.extend(["-X", conf.get("priv_password")])
+
+    args.append(ipaddr)
+
+    print(" ".join(str(i) for i in args))
 
 
 if __name__ == '__main__':

@@ -8,6 +8,81 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.8
+=======
+
+Dependency changes
+------------------
+
+Upgrade your :mod:`pynetsnmp-2` library to at least version *0.1.10* to ensure
+SNMPv3 compatibility.
+
+SNMPv3
+------
+
+NAV 5.8 finally adds SNMPv3 support, although it is not yet 100%
+feature-complete.  A new management profile type has been added specifically
+for SNMPv3.  SNMPv3 management requires a host of configuration attributes,
+whereas v1/v2c only requires a community string.
+
+Additionally, if a device only has write-enabled SNMP management profiles
+attached to it, NAV will now try to use those also for read operations.  If
+your SNMPv3 profile supports both reading and writing, you should be able to
+get by with a single profile per device.
+
+
+Missing SNMPv3 features
+~~~~~~~~~~~~~~~~~~~~~~~
+
+**SNMPv3 traps**
+
+SNMPv3 trap support is still being worked on, but no working solution is
+available in 5.8.  See `issue #2755 for snmptrapd implementation and progress
+details <https://github.com/Uninett/nav/issues/2755>`.
+
+**SNMPv3 contexts**
+
+Various vendors use the concept of "community indexing" to fetch multiple
+logical instances of MIBs.  Examples include Cisco switches, where multiple
+instances of the ``BRIDGE-MIB`` are kept, one for each active VLAN.  To access
+the switch forwarding tables of VLAN 12 with an SNMP community of ``public``,
+the community must be modified to ``public@20``.
+
+Another common example is devices that allow SNMP management of individual VRF
+instances by modifying the SNMP community.
+
+However, since SNMPv3 does not use community strings, it instead provides the
+concept of "contexts", where the default context is typical an empty string.
+
+:program:`ipdevpoll` does not yet support using SNMPv3 contexts as a
+replacement for community indexing, so the types of data described above may be
+missing from some devices if switching them to SNMPv3.
+
+
+Power-over-Ethernet configuration in PortAdmin
+----------------------------------------------
+
+PortAdmin has gained supported for enabling/disabling Power-over-Ethernet on
+Juniper and Cisco switches.  The available configuration options will vary from
+device to device and vendor to vendor, so the available presets will simply be
+presented for selection in a dropdown menu if PoE support is detected on a
+device.
+
+REMOTE_USER autocreate option
+-----------------------------
+
+The external authentication integration system (popularly named
+``REMOTE_USER``) has gained a new toggle ``autocreate`` in the
+``[remote-user]`` section of :file:`webfront/webfront.conf`.  This option is
+``False`` by default, meaning that externally authenticated users will not be
+allowed to use NAV unless they have already been pre-created in the user admin
+panel.
+
+This changes the old behavior, in where any unknown user referenced in the
+``REMOTE_USER`` header by the web server is automatically created in NAV.  If
+you need the old functionality, you need to set this option to ``True``.
+
+
 NAV 5.7
 =======
 
@@ -182,7 +257,7 @@ just doing everything under a new name.
 In the coming year, references to Uninett, both in the NAV documentation, code
 and related web sites will slowly change into Sikt, but for some time going
 forward, there will be references to both names.  For more information about
-the new organization, we refer you to https://sikt.no/about-sikt
+the new organization, we refer you to https://sikt.no/en/about-sikt
 
 
 Dependency changes

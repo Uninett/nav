@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "setuptools_scm[toml]>=6.2", "libsass"]
+requires = ["setuptools>=61.0", "wheel", "setuptools_scm[toml]>=6.2", "libsass==0.15.1"]
 build-backend = "setuptools.build_meta"
 
 [project]

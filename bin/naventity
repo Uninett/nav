@@ -33,7 +33,7 @@ from nav.bootstrap import bootstrap_django
 bootstrap_django(__file__)
 
 from nav.util import is_valid_ip
-from nav.ipdevpoll.snmp.common import snmp_parameter_factory, SnmpError
+from nav.ipdevpoll.snmp.common import SnmpError, SNMPParameters
 from nav.ipdevpoll.snmp import AgentProxy, snmpprotocol
 from nav.mibs.entity_mib import EntityMib
 from nav.models.manage import Netbox
@@ -164,7 +164,7 @@ def device(devicestring):
         else:
             netbox = netbox[0]
 
-    if not netbox.get_preferred_snmp_management_profile(writeable=False):
+    if not netbox.get_preferred_snmp_management_profile():
         msg = "No SNMP management profile set for %s" % netbox
         raise argparse.ArgumentTypeError(msg)
 
@@ -172,22 +172,13 @@ def device(devicestring):
 
 
 def _create_agentproxy(netbox, portnumber):
-    profile = netbox.get_preferred_snmp_management_profile(writeable=False)
-    if (
-        not profile
-        or not hasattr(profile, "snmp_community")
-        or not hasattr(profile, "snmp_version")
-    ):
+    params = SNMPParameters.factory(netbox)
+    if not params:
         return
 
     port = snmpprotocol.port()
     agent = AgentProxy(
-        netbox.ip,
-        portnumber,
-        community=profile.snmp_community,
-        snmpVersion='v%s' % profile.snmp_version,
-        protocol=port.protocol,
-        snmp_parameters=snmp_parameter_factory(netbox),
+        netbox.ip, portnumber, protocol=port.protocol, snmp_parameters=params
     )
     try:
         agent.open()

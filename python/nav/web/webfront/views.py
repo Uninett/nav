@@ -37,9 +37,10 @@ from django.utils.http import urlquote
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
-from nav.web.auth import ACCOUNT_ID_VAR
+from nav.web.auth.utils import ACCOUNT_ID_VAR
 from nav.web.auth import logout as auth_logout
-from nav.web import ldapauth, auth
+from nav.web import auth
+from nav.web.auth import ldap
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (
@@ -222,7 +223,7 @@ def do_login(request):
 
         try:
             account = auth.authenticate(username, password)
-        except ldapauth.Error as error:
+        except ldap.Error as error:
             errors.append('Error while talking to LDAP:\n%s' % error)
         else:
             if account:
@@ -233,7 +234,7 @@ def do_login(request):
                 try:
                     request.session[ACCOUNT_ID_VAR] = account.id
                     request.account = account
-                except ldapauth.Error as error:
+                except ldap.Error as error:
                     errors.append('Error while talking to LDAP:\n%s' % error)
                 else:
                     _logger.info("%s successfully logged in", account.login)
@@ -403,19 +404,19 @@ def set_account_preference(request):
 def set_default_dashboard(request, did):
     """Set the default dashboard for the user"""
     dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
-    try:
-        old_default = AccountDashboard.objects.get(
-            account=request.account, is_default=True
-        )
-    except AccountDashboard.DoesNotExist:
-        # No previous default
-        old_default = None
+
+    old_defaults = list(
+        AccountDashboard.objects.filter(account=request.account, is_default=True)
+    )
+    for old_default in old_defaults:
+        old_default.is_default = False
 
     dash.is_default = True
-    dash.save()
-    if old_default:
-        old_default.is_default = False
-        old_default.save()
+
+    AccountDashboard.objects.bulk_update(
+        objs=old_defaults + [dash], fields=["is_default"]
+    )
+
     return HttpResponse(u'Default dashboard set to «{}»'.format(dash.name))
 
 

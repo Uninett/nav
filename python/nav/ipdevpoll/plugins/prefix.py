@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2008-2012 Uninett AS
-# Copyright (C) 2022 Sikt
+# Copyright (C) 2022-2023 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -51,7 +51,7 @@ from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
 
 VLAN_PATTERN = re.compile(
-    r"(Vl(an)?|irb\.|reth\d+\.)(?P<vlan>\d+)",
+    r"(Vl(an)?|irb\.|reth\d+\.|bond\d+\.)(?P<vlan>\d+)",
     re.IGNORECASE,
 )
 

@@ -21,6 +21,8 @@ Getting help
 
 * Ask a question on the `#nav IRC channel`_ on Libera.Chat.
 
+* Ask a question in our `GitHub discussion forum`_.
+
 * Report a bug in our `bug tracker`_.
 
 .. _wiki pages: https://nav.uninett.no/wiki/
@@ -28,6 +30,7 @@ Getting help
 .. _the nav-users mailing list: https://lister.sikt.no/postorius/lists/nav-users.lister.sikt.no/
 .. _#nav IRC channel: irc://irc.libera.chat/nav
 .. _bug tracker: https://github.com/Uninett/nav
+.. _GitHub discussion forum: https://github.com/Uninett/nav/discussions/categories/q-a
 
 First steps
 ===========

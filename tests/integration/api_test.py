@@ -380,7 +380,7 @@ def test_api_urls_should_resolve(urlname, arg):
 
 
 @pytest.fixture()
-def serializer_models(localhost):
+def serializer_models(localhost, admin_account):
     """Fixture for testing API serializers
 
     - unrecognized_neighbor
@@ -433,7 +433,6 @@ def serializer_models(localhost):
         alert_type_id=boxdown_id,
         end_time=INFINITY,
     ).save()
-    admin = profiles.Account.objects.get(login='admin')
-    auditlog.LogEntry.add_log_entry(admin, verb='verb', template='asd')
+    auditlog.LogEntry.add_log_entry(admin_account, verb='verb', template='asd')
     manage.Usage(id='ans', description='Ansatte').save()
     manage.Usage(id='student', description='Studenter').save()
