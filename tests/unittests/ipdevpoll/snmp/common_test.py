@@ -1,7 +1,10 @@
+from unittest.mock import Mock
+
 import pytest
 
 from nav.ipdevpoll.snmp.common import SNMPParameters
 from nav.Snmp.defines import AuthenticationProtocol, PrivacyProtocol, SecurityLevel
+from nav.models.manage import ManagementProfile
 
 
 class TestSNMPParameters:
@@ -41,6 +44,18 @@ class TestSNMPParametersAsAgentProxyArgs:
         assert "-u foobar" in args
 
 
+class TestSNMPParametersFactory:
+    @pytest.mark.parametrize("version_value", (2, "2", "2c"))
+    def test_snmp_v2_profile_should_be_parsed_without_error(
+        self, snmpv2c_profile, version_value
+    ):
+        mock_netbox = Mock()
+        mock_netbox.get_preferred_snmp_management_profile.return_value = snmpv2c_profile
+        snmpv2c_profile.configuration["version"] = version_value
+        params = SNMPParameters.factory(mock_netbox)
+        assert params.version == 2
+
+
 @pytest.fixture
 def snmpv3_params():
     param = SNMPParameters(
@@ -53,3 +68,16 @@ def snmpv3_params():
         priv_password="secret2",
     )
     yield param
+
+
+@pytest.fixture
+def snmpv2c_profile():
+    profile = ManagementProfile(
+        protocol=ManagementProfile.PROTOCOL_SNMP,
+        configuration={
+            "version": "2c",
+            "community": "private",
+            "write": True,
+        },
+    )
+    yield profile
