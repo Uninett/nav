@@ -235,7 +235,7 @@ class NetboxModelForm(forms.ModelForm):
             self._errors['profiles'] = self.error_class(
                 ["Category %s requires a management profile." % cat.id]
             )
-            del cleaned_data['profiles']
+            cleaned_data.pop('profiles', None)
 
         return cleaned_data
 
