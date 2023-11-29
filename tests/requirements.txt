@@ -14,8 +14,5 @@ pytidylib==0.3.2
 selenium==3.141.0
 whisper>=0.9.9
 whitenoise==4.1.4
-# the next dep is here because newer versions of ciscoconfparse has broken dependencies
-# this can be removed once we move to napalm 4, which no longer depends on ciscoconfparse
-ciscoconfparse<1.6.51
 # Our version of selenium breaks down if it is allowed to pull in the newest version of urllib3
 urllib3<2.0
