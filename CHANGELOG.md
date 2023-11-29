@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
-## [Unreleased]
+## [5.8.1] - 2023-11-29
 
 ### Fixed
 
+- Constrain version of 3rd party module `ciscoconfparse`, in order to avoid NAV not working under Python 3.7 ([#2770](https://github.com/Uninett/nav/issues/2770), [#2771](https://github.com/Uninett/nav/pull/2771))
 - Fix ipdevpoll crash error from using SNMP v2c profile example that came with NAV ([#2767](https://github.com/Uninett/nav/issues/2767), [#2768](https://github.com/Uninett/nav/pull/2768))
 - Gracefully handle encoding errors in invalid sysname/IP input in SeedDB IP Device form ([#2764](https://github.com/Uninett/nav/pull/2764))
 - Gracefully handle errors from invalid profiles list input in SeedDB IP Device form ([#2765](https://github.com/Uninett/nav/pull/2765))
