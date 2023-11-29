@@ -85,10 +85,11 @@ COPY tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 
 COPY requirements/ /requirements
 COPY requirements.txt /
+COPY constraints.txt /
 COPY tests/requirements.txt /test-requirements.txt
 COPY doc/requirements.txt /doc-requirements.txt
 # Since we used pip3 to install pip globally, pip should now be for Python 3
-RUN pip-compile --resolver=backtracking --output-file /requirements.txt.lock /requirements.txt /test-requirements.txt /doc-requirements.txt
+RUN pip-compile --resolver=backtracking --output-file /requirements.txt.lock -c /constraints.txt /requirements.txt /test-requirements.txt /doc-requirements.txt
 RUN pip install -r /requirements.txt.lock
 
 ARG CUSTOM_PIP=ipython

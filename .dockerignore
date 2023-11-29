@@ -6,6 +6,7 @@
 # We only need a few build tools and the requirements files, that is all
 !tools/**/*
 !requirements.txt
+!constraints.txt
 !tests/requirements.txt
 !doc/requirements.txt
 !requirements/**/*
