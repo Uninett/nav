@@ -252,8 +252,10 @@ def populate_infodict(request, netbox, interfaces):
         XMLParseError,
         POEStateNotSupportedError,
     ) as error:
-        readonly = True
-        messages.error(request, str(error))
+        supports_poe = False
+        _logger.error(
+            'Error getting PoE information from netbox %s: %s', str(netbox), str(error)
+        )
 
     if handler and not handler.is_configurable():
         add_readonly_reason(request, handler)
