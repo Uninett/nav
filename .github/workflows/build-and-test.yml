@@ -5,11 +5,14 @@ jobs:
   build-and-test:
     name: "Test on Python ${{ matrix.python-version}}"
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
 
     strategy:
       max-parallel: 4
+      fail-fast: true
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10"]
+        experimental: [true]
 
     steps:
       - uses: actions/checkout@v3
