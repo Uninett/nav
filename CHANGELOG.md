@@ -11,6 +11,7 @@ found in the [HISTORY](HISTORY) file.
 
 ### Fixed
 
+- Fix crashing PDU widget ([#2776](https://github.com/Uninett/nav/pull/2776))
 - Fix bug that caused PortAdmin to stop working for Cisco switches ([#2773](https://github.com/Uninett/nav/issues/2773), ([#2774](https://github.com/Uninett/nav/pull/2774))
 
 
