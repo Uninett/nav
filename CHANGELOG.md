@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## [Unreleased]
+
+### Fixed
+
+- Fix bug that caused PortAdmin to stop working for Cisco switches ([#2773](https://github.com/Uninett/nav/issues/2773), ([#2774](https://github.com/Uninett/nav/pull/2774))
+
+
 ## [5.8.1] - 2023-11-29
 
 ### Fixed
