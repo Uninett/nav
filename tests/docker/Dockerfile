@@ -20,6 +20,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
       python3.7-dbg python3.7-dev python3.7-distutils \
       python3.8-dbg python3.8-dev \
       python3.9-dbg python3.9-dev \
+      python3.10-dbg python3.10-dev \
       python3-pip
 
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
