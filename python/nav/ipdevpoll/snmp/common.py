@@ -240,7 +240,7 @@ class SNMPParameters:
         """Returns the SNMP session parameters in a dict format compatible with
         pynetsnmp.twistedsnmp.AgentProxy() keyword arguments.
         """
-        kwargs = {"snmpVersion": self.version_string}
+        kwargs = {"snmpVersion": f"v{self.version_string}"}
         if self.version in (1, 2):
             kwargs["community"] = self.community
         if self.timeout:
