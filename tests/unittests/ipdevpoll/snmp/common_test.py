@@ -31,7 +31,7 @@ class TestSNMPParametersAsAgentProxyArgs:
 
     def test_should_contain_version_argument(self, snmpv3_params):
         kwargs = snmpv3_params.as_agentproxy_args()
-        assert kwargs.get("snmpVersion") == "3"
+        assert kwargs.get("snmpVersion") == "v3"
 
     def test_should_contain_sec_level_cmdline_argument(self, snmpv3_params):
         kwargs = snmpv3_params.as_agentproxy_args()
