@@ -177,7 +177,6 @@
                   <option value="{{ poe_option.name }}" label="{{ poe_option.name }}"
                           {% if interface.poe_state.name == poe_option.name %}selected="selected"
                           data-orig="{{ poe_option.name }}"{% endif %}>
-                    {{ vlan }}
                 {% endfor %}
               </select>
             </form>
