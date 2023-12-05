@@ -351,7 +351,7 @@ class Cisco(SNMPHandler):
         try:
             poeport = manage.POEPort.objects.get(interface=interface)
         except manage.POEPort.DoesNotExist:
-            raise POEIndexNotFoundError(
+            raise POENotSupportedError(
                 "This interface does not have PoE indexes defined"
             )
         unit_number = poeport.poegroup.index
