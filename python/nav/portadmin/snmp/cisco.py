@@ -28,7 +28,6 @@ from nav.portadmin.handlers import (
     PoeState,
     POEStateNotSupportedError,
     POENotSupportedError,
-    POEIndexNotFoundError,
 )
 from nav.models import manage
 

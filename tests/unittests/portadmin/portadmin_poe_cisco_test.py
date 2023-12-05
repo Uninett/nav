@@ -3,10 +3,7 @@ from mock import Mock, patch
 import pytest
 
 from nav.portadmin.snmp.cisco import Cisco
-from nav.portadmin.handlers import (
-    POEIndexNotFoundError,
-    POEStateNotSupportedError,
-)
+from nav.portadmin.handlers import POEStateNotSupportedError
 from nav.models import manage
 
 
