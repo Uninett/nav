@@ -28,12 +28,12 @@ class TestGetPoeState:
             handler_cisco.get_poe_states([interface])
 
     @pytest.mark.usefixtures('poeport_get_mock_error')
-    def test_should_raise_exception_if_interface_is_missing_poeport(
+    def test_dict_should_give_none_if_interface_does_not_have_poeport(
         self, handler_cisco
     ):
         interface = Mock(interface="interface")
-        with pytest.raises(POEIndexNotFoundError):
-            handler_cisco.get_poe_states([interface])
+        states = handler_cisco.get_poe_states([interface])
+        assert states[interface.ifname] is None
 
     @pytest.mark.usefixtures('poeport_get_mock')
     def test_dict_should_give_none_if_interface_does_not_support_poe(
