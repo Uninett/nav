@@ -15,7 +15,7 @@
 #
 """Util functions for the PortAdmin"""
 from __future__ import unicode_literals
-from typing import List, Sequence, Dict, Any
+from typing import List, Sequence, Dict, Any, Optional
 import re
 import logging
 from operator import attrgetter
@@ -24,6 +24,7 @@ from django.template import loader
 
 from nav.models import manage, profiles
 from nav.django.utils import is_admin
+from nav.models.profiles import Account
 from nav.portadmin.config import CONFIG
 from nav.portadmin.management import ManagementFactory
 from nav.portadmin.handlers import ManagementHandler
@@ -76,7 +77,7 @@ def find_and_populate_allowed_vlans(
 ):
     """Finds allowed vlans and indicate which interfaces can be edited"""
     allowed_vlans = find_allowed_vlans_for_user_on_netbox(account, netbox, handler)
-    set_editable_flag_on_interfaces(interfaces, allowed_vlans)
+    set_editable_flag_on_interfaces(interfaces, allowed_vlans, account)
     return allowed_vlans
 
 
@@ -126,7 +127,9 @@ def find_allowed_vlans_for_user(account):
 
 
 def set_editable_flag_on_interfaces(
-    interfaces: Sequence[manage.Interface], vlans: Sequence[FantasyVlan]
+    interfaces: Sequence[manage.Interface],
+    vlans: Sequence[FantasyVlan],
+    user: Optional[Account] = None,
 ):
     """Sets the pseudo-attribute `iseditable` on each interface in the interfaces
     list, indicating whether the PortAdmin UI should allow edits to it or not.
@@ -136,8 +139,13 @@ def set_editable_flag_on_interfaces(
     an uplink, depending on how portadmin is configured.
     """
     vlan_tags = {vlan.vlan for vlan in vlans}
+    allow_everything = not should_check_access_rights(account=user) if user else False
 
     for interface in interfaces:
+        if allow_everything:
+            interface.iseditable = True
+            continue
+
         vlan_is_acceptable = interface.vlan in vlan_tags
         is_link = bool(interface.to_netbox)
         refuse_link_edit = not CONFIG.get_link_edit() and is_link
