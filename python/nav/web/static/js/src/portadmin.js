@@ -482,6 +482,9 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         if ('ifadminstatus' in data) {
             updateAdminStatusDefault($row, data.ifadminstatus);
         }
+        if ('poe_state' in data) {
+            updatePoeDefault($row, data.poe_state);
+        }
     }
 
     function updateIfAliasDefault($row, ifalias) {
@@ -515,6 +518,15 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         var old_value = $adminStatusCheckbox.attr('data-orig');
         if (old_value !== new_value) {
             $adminStatusCheckbox.attr('data-orig', new_value);
+        }
+    }
+
+    function updatePoeDefault($row, new_value) {
+        var old_value = $row.find('option[data-orig]').val();
+        if (old_value !== new_value) {
+            console.log('Updating PoE state default from ' + old_value + ' to ' + new_value);
+            $row.find('option[data-orig]').removeAttr('data-orig');
+            $row.find('option[value=' + new_value + ']').attr('data-orig', new_value);
         }
     }
 

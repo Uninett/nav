@@ -169,20 +169,19 @@
 
       {# POE STATE #}
       {% if supports_poe %}
-        {% if interface.supports_poe %}
         <div class="medium-1 small-4 column">
-          <form class="custom">
-            <select class="poelist" name="{{ interface.ifname }}">
-              {% for poe_option in poe_options %}
+          {% if interface.supports_poe %}
+            <form class="custom">
+              <select class="poelist" name="{{ interface.ifname }}">
+                {% for poe_option in poe_options %}
                   <option value="{{ poe_option.name }}" label="{{ poe_option.name }}"
                           {% if interface.poe_state.name == poe_option.name %}selected="selected"
                           data-orig="{{ poe_option.name }}"{% endif %}>
-                    {{ vlan }}
-              {% endfor %}
-            </select>
-          </form>
+                {% endfor %}
+              </select>
+            </form>
+          {% endif %}
         </div>
-        {% endif %}
       {% endif %}
 
       {# Button for saving #}

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## [Unreleased]
+
+### Fixed
+
+- Allow admins to configure ports with invalid or unset native VLANs in PortAdmin ([#2477](https://github.com/Uninett/nav/issues/2477), [#2786](https://github.com/Uninett/nav/pull/2786))
+- Fix bug that caused PoE config to be completely disabled for Cisco devices where at least one port did not support PoE ([#2781](https://github.com/Uninett/nav/pull/2781))
+- Fix PortAdmin save button moving around for ports without PoE support ([#2782](https://github.com/Uninett/nav/pull/2782))
+- Fix PortAdmin bug that prevented switching PoE state back and forth without reloading entire page ([#2785](https://github.com/Uninett/nav/pull/2785))
+- Fix regression that caused maintenance tasks to be un-editable ([#2783](https://github.com/Uninett/nav/issues/2783), [#2784](https://github.com/Uninett/nav/pull/2784))
+
 ## [5.8.3] - 2023-12-01
 
 ### Fixed

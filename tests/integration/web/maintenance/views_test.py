@@ -13,8 +13,11 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
+import datetime
 
+import pytest
 from django.urls import reverse
+
 from nav.compatibility import smart_str
 from nav.models.manage import Netbox
 from nav.models.msgmaint import MaintenanceTask
@@ -136,3 +139,27 @@ class TestAddMaintenanceTask:
         assert not MaintenanceTask.objects.filter(
             description=data["description"]
         ).exists()
+
+
+class TestEditMaintenanceTask:
+    def test_when_existing_task_is_requested_it_should_render_with_intact_description(
+        self, db, client, localhost, empty_maintenance_task
+    ):
+        url = reverse("maintenance-edit", kwargs={"task_id": empty_maintenance_task.id})
+        response = client.get(url, follow=True)
+
+        assert response.status_code == 200
+        assert empty_maintenance_task.description in smart_str(response.content)
+
+
+@pytest.fixture
+def empty_maintenance_task(db):
+    now = datetime.datetime.now()
+    task = MaintenanceTask(
+        start_time=now,
+        end_time=now + datetime.timedelta(hours=1),
+        description="Temporary test fixture task",
+    )
+    task.save()
+    yield task
+    task.delete()
