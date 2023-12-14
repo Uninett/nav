@@ -56,7 +56,6 @@ from nav.portadmin.handlers import (
     NoResponseError,
     ProtocolError,
     ManagementError,
-    POEIndexNotFoundError,
     XMLParseError,
     POEStateNotSupportedError,
 )
@@ -248,7 +247,6 @@ def populate_infodict(request, netbox, interfaces):
         messages.error(request, str(error))
 
     except (
-        POEIndexNotFoundError,
         XMLParseError,
         POEStateNotSupportedError,
     ) as error:
