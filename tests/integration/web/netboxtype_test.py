@@ -5,7 +5,7 @@ from nav.models.manage import NetboxType
 from nav.web.seeddb.forms import SEPARATOR
 
 from django.urls import reverse
-from nav.compatibility import smart_str
+from django.utils.encoding import smart_str
 
 
 def test_post_netboxtype_with_sysobjectid_without_leading_period_should_succeed(client):

@@ -16,7 +16,7 @@
 #
 from twisted.internet import defer
 
-from nav.compatibility import smart_str
+from django.utils.encoding import smart_str
 
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever

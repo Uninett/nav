@@ -19,7 +19,7 @@
 from datetime import date, timedelta
 
 from django import forms
-from nav.compatibility import force_str
+from django.utils.encoding import force_str
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import (

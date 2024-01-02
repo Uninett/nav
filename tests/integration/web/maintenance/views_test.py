@@ -18,7 +18,7 @@ import datetime
 import pytest
 from django.urls import reverse
 
-from nav.compatibility import smart_str
+from django.utils.encoding import smart_str
 from nav.models.manage import Netbox
 from nav.models.msgmaint import MaintenanceTask
 

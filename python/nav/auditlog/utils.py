@@ -16,7 +16,7 @@
 #
 from __future__ import unicode_literals
 
-from nav.compatibility import force_str
+from django.utils.encoding import force_str
 from django.db.models import Q
 
 from . import find_modelname

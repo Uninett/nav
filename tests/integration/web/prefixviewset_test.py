@@ -2,7 +2,7 @@ import json
 import pytest
 
 from nav.models.manage import Prefix, Vlan, NetType
-from nav.compatibility import force_str
+from django.utils.encoding import force_str
 from nav.web.api.v1.views import get_endpoints
 
 ENDPOINTS = {name: force_str(url) for name, url in get_endpoints().items()}
