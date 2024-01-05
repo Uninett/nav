@@ -30,6 +30,11 @@ from secrets import token_hex
 
 import IPy
 
+try:
+    from importlib.resources import files, as_file
+except ImportError:  # Python 3.7!
+    from importlib_resources import files, as_file
+
 
 def gradient(start, stop, steps):
     """Create and return a sequence of steps representing an integer
@@ -509,3 +514,9 @@ class NumberRange(object):
             return str(x)
         else:
             return "{}-{}".format(x, y)
+
+
+def resource_filename(package, filename):
+    ref = files(package) / filename
+    with as_file(ref) as path:
+        return str(path)
