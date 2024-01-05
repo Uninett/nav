@@ -27,17 +27,11 @@ import sys
 import pwd
 import stat
 import configparser
-import pkg_resources
+from pathlib import Path
 
 from nav.errors import GeneralException
 from nav.util import files, resource_bytes
 from . import buildconf
-
-try:
-    from importlib.resources import files
-except ImportError:  # Python 3.7!
-    from importlib_resources import files
-
 
 _logger = logging.getLogger(__name__)
 
@@ -254,13 +248,15 @@ def _config_resource_walk(source=''):
     from available nav package resources. All paths returned will be relative to
     the etc top directory.
     """
-    current_path = os.path.join('etc', source)
-    for name in pkg_resources.resource_listdir('nav', current_path):
-        full_name = os.path.join(current_path, name)
-        relative_name = os.path.join(source, name)
-        if pkg_resources.resource_isdir('nav', full_name):
+    source = Path(source)
+    current_path = Path('etc') / source
+    for path in files('nav').joinpath(current_path).iterdir():
+        name = path.name
+        full_name = current_path / name
+        relative_name = str(source / name)
+        if files('nav').joinpath(full_name).is_dir():
             for path in _config_resource_walk(source=relative_name):
-                yield path
+                yield str(path)
         else:
             yield relative_name
 
