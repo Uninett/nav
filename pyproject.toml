@@ -18,6 +18,8 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "pydantic >= 2.0",
+    "importlib_metadata; python_version < '3.8'",
+    "importlib_resources; python_version < '3.9'",
 ]
 
 

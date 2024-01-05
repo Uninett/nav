@@ -37,4 +37,6 @@ libsass==0.15.1
 napalm==3.4.1
 
 backports.zoneinfo ; python_version < '3.9'
+importlib_metadata ; python_version < '3.8'
+importlib_resources ; python_version < '3.9'
 git+https://github.com/Uninett/drf-oidc-auth@v4.0#egg=drf-oidc-auth
