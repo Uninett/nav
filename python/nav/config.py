@@ -30,7 +30,14 @@ import configparser
 import pkg_resources
 
 from nav.errors import GeneralException
+from nav.util import files, resource_bytes
 from . import buildconf
+
+try:
+    from importlib.resources import files
+except ImportError:  # Python 3.7!
+    from importlib_resources import files
+
 
 _logger = logging.getLogger(__name__)
 
@@ -272,7 +279,7 @@ def _install_single_config_resource_(source, target, overwrite=False):
     if not overwrite and os.path.exists(target_file):
         return False
 
-    content = pkg_resources.resource_string('nav', resource_path)
+    content = resource_bytes('nav', resource_path)
     with open(target_file, 'wb') as handle:
         handle.write(content)
         return target_file

@@ -520,3 +520,8 @@ def resource_filename(package, filename):
     ref = files(package) / filename
     with as_file(ref) as path:
         return str(path)
+
+
+def resource_bytes(package, filename):
+    ref = files(package) / filename
+    return ref.read_bytes()

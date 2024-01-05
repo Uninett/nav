@@ -26,11 +26,18 @@ import subprocess
 from textwrap import wrap
 from errno import ENOENT, EACCES
 import psycopg2
-from pkg_resources import resource_listdir, resource_string
+from pkg_resources import resource_listdir
 
 from nav.db import ConnectionParameters
 from nav.colors import colorize, print_color
 from nav.colors import COLOR_CYAN, COLOR_YELLOW, COLOR_RED, COLOR_GREEN
+
+try:
+    from importlib.resources import files
+except ImportError:  # Python 3.7!
+    from importlib_resources import files
+
+from nav.util import files, resource_bytes
 
 
 def main():
@@ -546,7 +553,7 @@ class Synchronizer(object):
             print_color("OK", COLOR_GREEN)
 
     def _read_sql_file(self, filename):
-        return resource_string(self.resource_module, filename)
+        return resource_bytes(self.resource_module, filename)
 
 
 class ChangeScriptFinder(list):
