@@ -281,13 +281,16 @@ class Synchronizer(object):
         (None, 'indexes.sql'),
     ]
 
-    def __init__(self, resource_module, apply_out_of_order_changes=False):
+    def __init__(self, resource_module, apply_out_of_order_changes=False, config=None):
         self.resource_module = resource_module
         self.connection = None
         self.cursor = None
-        self.connect_options = ConnectionParameters.from_config()
         self.apply_out_of_order_changes = apply_out_of_order_changes
         self.finder = ChangeScriptFinder(self.resource_module)
+        if config:
+            self.connect_options = config
+        else:
+            self.connect_options = ConnectionParameters.from_config()
 
     def connect(self):
         """Connects the synchronizer to the NAV configured database."""
@@ -532,7 +535,7 @@ class Synchronizer(object):
         Terminates the process if there are errors.
 
         """
-        sql = resource_string(self.resource_module, filename)
+        sql = self._read_sql_file(filename)
         print_color("%-20s " % (filename + ":"), COLOR_CYAN, newline=False)
         try:
             self.cursor.execute(sql)
@@ -541,6 +544,9 @@ class Synchronizer(object):
             sys.exit(2)
         else:
             print_color("OK", COLOR_GREEN)
+
+    def _read_sql_file(self, filename):
+        return resource_string(self.resource_module, filename)
 
 
 class ChangeScriptFinder(list):
