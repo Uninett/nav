@@ -32,9 +32,13 @@ ACCOUNT_ID_VAR = 'account_id'
 
 
 def _set_account(request, account):
+    """Updates request with new account.
+    Cycles the session ID to avoid session fixation.
+    """
     request.session[ACCOUNT_ID_VAR] = account.id
     request.account = account
     _logger.debug('Set active account to "%s"', account.login)
+    request.session.cycle_key()
     request.session.save()
 
 
