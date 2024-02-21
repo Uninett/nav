@@ -29,6 +29,9 @@ class FakeSession(dict):
     def save(self, *_):
         pass
 
+    def cycle_key(self, *_):
+        pass
+
 
 def test_set_account():
     r = RequestFactory()
