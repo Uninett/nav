@@ -22,7 +22,7 @@ from os.path import join
 from nav.auditlog.models import LogEntry
 from nav.config import NAVConfigParser
 from nav.models.profiles import Account
-from nav.web.auth.utils import _set_account
+from nav.web.auth.utils import set_account
 
 try:
     # Python 3.6+
@@ -122,7 +122,7 @@ def login(request):
         # Get or create an account from the REMOTE_USER http header
         account = authenticate(request)
         if account:
-            _set_account(request, account)
+            set_account(request, account)
             return account
     return None
 

@@ -40,7 +40,7 @@ from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web.auth import logout as auth_logout
 from nav.web import auth
 from nav.web.auth import ldap
-from nav.web.auth.utils import _set_account
+from nav.web.auth.utils import set_account
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (
@@ -230,7 +230,7 @@ def do_login(request):
                 LogEntry.add_log_entry(
                     account, 'log-in', '{actor} logged in', before=account
                 )
-                _set_account(request, account)
+                set_account(request, account)
                 _logger.info("%s successfully logged in", account.login)
                 if not origin:
                     origin = reverse('webfront-index')

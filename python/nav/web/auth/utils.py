@@ -31,7 +31,7 @@ _logger = logging.getLogger(__name__)
 ACCOUNT_ID_VAR = 'account_id'
 
 
-def _set_account(request, account):
+def set_account(request, account):
     """Updates request with new account.
     Cycles the session ID to avoid session fixation.
     """
@@ -56,7 +56,7 @@ def ensure_account(request):
         # Assumes nobody has locked it..
         account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
 
-    _set_account(request, account)
+    set_account(request, account)
 
 
 def authorization_not_required(fullpath):
