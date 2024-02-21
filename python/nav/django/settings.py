@@ -29,6 +29,7 @@ from nav.config import NAV_CONFIG, getconfig, find_config_dir
 from nav.db import get_connection_parameters
 import nav.buildconf
 from nav.jwtconf import JWTConf
+from nav.web.security import WebSecurityConfigParser
 
 ALLOWED_HOSTS = ['*']
 
@@ -251,6 +252,20 @@ SEARCHPROVIDERS = [
     'nav.web.info.searchproviders.DevicegroupSearchProvider',
     'nav.web.info.searchproviders.UnrecognizedNeighborSearchProvider',
 ]
+
+# Web security options supported by Django
+# * https://docs.djangoproject.com/en/3.2/ref/middleware/#module-django.middleware.security
+# * https://docs.djangoproject.com/en/3.2/topics/http/sessions/
+# * https://docs.djangoproject.com/en/3.2/ref/clickjacking/
+# Example conf:
+#  [security]
+#  ssl = on
+
+SECURE_BROWSER_XSS_FILTER = True  # Does no harm
+
+_websecurity_config = WebSecurityConfigParser()
+_tls_enabled = bool(_websecurity_config.getboolean('security', 'tls'))
+SESSION_COOKIE_SECURE = _tls_enabled
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
