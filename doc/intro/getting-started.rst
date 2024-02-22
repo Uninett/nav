@@ -95,7 +95,7 @@ This is openly accessible to anonymous users by default.
 
 To log in for the first time, click the `Login` link on the upper right of the
 page, and enter the username "admin" and the default password "admin".  Then
-click the `Userinfo` link in the grey navigation bar and change the
+click `My stuff` and `My account` in the navigation bar on top and change the
 adminstrator's password to something more sensible.
 
 
@@ -106,13 +106,13 @@ NAV will *not* autodiscover the routers and switches of your network. The
 assumption is that you already have this information in some inventory
 system.
 
-The *SeedDB* tool enables to you add and edit a multitude of "seed" information
+The *Seed Database* tool enables to you add and edit a multitude of "seed" information
 in the NAV database, which tells NAV what and how to monitor. The essential bit
 here is the :term:`IP Device`, which represents your switches, routers and
 other networked devices.
 
-The *SeedDB* tool is listed on NAV's *Toolbox* page, reachable from the grey
-navigation bar.
+The *Seed Database* tool is listed on NAV's *Toolbox* page, reachable from the
+navigation bar on top.
 
 Adding your first management profile
 ------------------------------------
@@ -126,7 +126,7 @@ devices can be managed using SNMP v2c and a default community string of
 1. Click the :guilabel:`Management Profile` tab and then the sub-tab
    :guilabel:`Add new management profile`.
 2. Choose and fill out a unique name for your profile, e.g. ``Default SNMP v2c
-   read-only profile``, and add an optional description of it.
+   read-only profile``, and optionally add a description of it.
 3. Select ``SNMP`` from the :guilabel:`Protocol` dropdown menu. An
    :guilabel:`SNMP Configuration` form will appear to the right.
 4. Ensure ``v2c`` is selected from the :guilabel:`Version` dropdown, and put
@@ -195,7 +195,7 @@ Verifying that collection is working
 ------------------------------------
 
 Within two minutes, NAV's :doc:`SNMP collection engine </reference/ipdevpoll>` should launch a job to poll
-your newly added device for information. The grey navigation bar features a
+your newly added device for information. The navigation bar on top features a
 search field; search for your newly entered device's IP address or DNS name to
 show its `IP Device Info` page. The resulting page should look something like
 this:
@@ -205,8 +205,9 @@ this:
 
 The `IP Device Info` page will try to display every bit of pertinent
 information about a monitored device.  For now, the key information here is
-the `Last updated` field of the top-left detail panel.  Keep reloading the
-page until its value changes from `N/A` into a meaningful timestamp.
+in the lower-right :guilabel:`Jobs` panel. Keep reloading the page until the panel
+appears and the :guilabel:`End time` field is filled and the :guilabel:`Status`
+indicators are green.
 
 .. NOTE:: If no new information appears on this page within three minutes
           after adding your switch to NAV, you may need to start

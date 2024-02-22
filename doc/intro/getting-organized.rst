@@ -85,7 +85,7 @@ Vendors and device types
 ------------------------
 
 NAV will automatically discover and assign *device types* to SNMP-enabled
-devices being monitored. Each device type corresponds to a unique
+devices that are being monitored. Each device type corresponds to a unique
 *sysObjectID*. An SNMP-enabled device will usually report a vendor-specific
 and unique *sysObjectID*, which may map to some specific device model, type
 and/or software.
