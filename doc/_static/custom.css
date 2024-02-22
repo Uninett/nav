@@ -1,9 +1,11 @@
 /* Custom css for the Sphinx theme in NAV */
 
-a { color: #1f74ad; }
-a:hover, a:focus { color: #1f74ad; }
-.alert a, .alert .alert-link { color: #1f74ad; }
+a, a:hover, a:focus, a:visited, .alert a, .alert .alert-link {color: #1f74ad;}
+.wy-menu a:visited, .wy-menu-vertical a:visited, .wy-menu a:hover, .wy-menu-vertical a:hover { color: #d9d9d9; }
 
+pre {
+    background: #ecf0f1;
+}
 
 img {
     margin-bottom: 1em;
