@@ -40,8 +40,8 @@ before running NAV:
     2. :kbd:`makepasswd --chars 51`
     3. :kbd:`pwgen -s 51 1`
 
-  Please see
-  https://docs.djangoproject.com/en/1.7/ref/settings/#std:setting-SECRET_KEY
+  Please see the 
+  `Django secret key documentation <https://docs.djangoproject.com/en/3.2/ref/settings/#std-setting-SECRET_KEY>`_
   if you want to know more about this.
 
 `TIME_ZONE`
