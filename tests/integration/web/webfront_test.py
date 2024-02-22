@@ -78,3 +78,13 @@ def test_session_id_is_changed_after_logging_in(db, client, admin_account):
     )
     session_id_post_login = client.session.session_key
     assert session_id_post_login != session_id_pre_login
+
+
+def test_session_id_is_not_changed_after_request_unrelated_to_login(db, client):
+    index_url = reverse('webfront-index')
+    # make sure we have a session ID we can use for comparison
+    assert client.session.session_key
+    session_id_pre_login = client.session.session_key
+    client.get(index_url)
+    session_id_post_login = client.session.session_key
+    assert session_id_post_login == session_id_pre_login
