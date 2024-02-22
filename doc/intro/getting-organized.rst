@@ -29,7 +29,7 @@ NAV's data model allows you to organize your IP device information in several wa
 
 All these definitions are entered into NAV through the *SeedDB* tool, where
 you added your devices in the :doc:`getting started guide <getting-started>`.
-If you alreadu have much of this information in electronic format, it too can
+If you already have much of this information in electronic format, it too can
 be bulk imported into NAV using the text formats described in each SeedDB tab.
 
 As seen in that guide, NAV ships with an example location, room and
