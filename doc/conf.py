@@ -263,8 +263,11 @@ latex_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'http://docs.python.org/': None,
-    'https://docs.djangoproject.com/en/3.2': 'https://docs.djangoproject.com/en/3.2/_objects',
+    'python': ('https://docs.python.org/3', None),
+    'django': (
+        'https://docs.djangoproject.com/en/3.2',
+        'https://docs.djangoproject.com/en/3.2/_objects',
+    ),
 }
 
 
