@@ -68,14 +68,14 @@ def test_set_default_dashboard_with_multiple_previous_defaults_should_succeed(
     )
 
 
-def test_session_id_is_changed_after_logging_in(db, client, admin_account):
+def test_session_id_is_changed_after_logging_in(
+    db, client, admin_username, admin_password
+):
     login_url = reverse('webfront-login')
     # make sure we have a session ID we can use for comparison
     assert client.session.session_key
     session_id_pre_login = client.session.session_key
-    client.post(
-        login_url, {'username': admin_account.login, 'password': admin_account.password}
-    )
+    client.post(login_url, {'username': admin_username, 'password': admin_password})
     session_id_post_login = client.session.session_key
     assert session_id_post_login != session_id_pre_login
 

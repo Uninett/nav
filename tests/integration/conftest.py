@@ -218,16 +218,14 @@ def localhost_using_legacy_db():
 
 
 @pytest.fixture(scope='session')
-def client():
+def client(admin_username, admin_password):
     """Provides a Django test Client object already logged in to the web UI as
     an admin"""
     from django.urls import reverse
 
     client_ = Client()
     url = reverse('webfront-login')
-    username = os.environ.get('ADMINUSERNAME', 'admin')
-    password = os.environ.get('ADMINPASSWORD', 'admin')
-    client_.post(url, {'username': username, 'password': password})
+    client_.post(url, {'username': admin_username, 'password': admin_password})
     return client_
 
 
@@ -373,3 +371,13 @@ def admin_account(db):
     from nav.models.profiles import Account
 
     yield Account.objects.get(id=Account.ADMIN_ACCOUNT)
+
+
+@pytest.fixture(scope='session')
+def admin_username():
+    return os.environ.get('ADMINUSERNAME', 'admin')
+
+
+@pytest.fixture(scope='session')
+def admin_password():
+    return os.environ.get('ADMINPASSWORD', 'admin')
