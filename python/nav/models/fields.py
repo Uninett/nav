@@ -73,15 +73,9 @@ class DictAsJsonField(models.TextField):
     def db_type(self, connection):
         return 'varchar'
 
-    if django.VERSION < (2,):  # Django < 2.x
-        # pylint: disable=unused-argument
-        def from_db_value(self, value, expression, connection, context):
-            return self.to_python(value)
-
-    else:
-        # pylint: disable=unused-argument
-        def from_db_value(self, value, expression, connection):
-            return self.to_python(value)
+    # pylint: disable=unused-argument
+    def from_db_value(self, value, expression, connection):
+        return self.to_python(value)
 
     def to_python(self, value):
         if value:
@@ -128,15 +122,8 @@ class PointField(models.CharField):
     def db_type(self, connection):
         return 'point'
 
-    if django.VERSION < (2,):  # Django < 2.x
-
-        def from_db_value(self, value, expression, connection, context):
-            return self.to_python(value)
-
-    else:
-
-        def from_db_value(self, value, expression, connection):
-            return self.to_python(value)
+    def from_db_value(self, value, expression, connection):
+        return self.to_python(value)
 
     def to_python(self, value):
         if not value or isinstance(value, tuple):
@@ -196,10 +183,7 @@ class LegacyGenericForeignKey(object):
         self.name = name
         self.model = cls
         self.cache_attr = "_%s_cache" % name
-        if django.VERSION[:2] == (1, 8):  # Django <= 1.8
-            cls._meta.virtual_fields.append(self)
-        else:
-            cls._meta.private_fields.append(self)
+        cls._meta.private_fields.append(self)
 
         if not cls._meta.abstract:
             signals.pre_init.connect(self.instance_pre_init, sender=cls)
