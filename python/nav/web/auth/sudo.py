@@ -22,7 +22,7 @@ import logging
 from nav.auditlog.models import LogEntry
 from nav.django.utils import is_admin, get_account
 from nav.models.profiles import Account
-from nav.web.auth.utils import set_account, ACCOUNT_ID_VAR
+from nav.web.auth.utils import set_account, ACCOUNT_ID_VAR, clear_session
 
 
 _logger = logging.getLogger(__name__)
@@ -68,8 +68,7 @@ def desudo(request):
     original_user_id = request.session[SUDOER_ID_VAR]
     original_user = Account.objects.get(id=original_user_id)
 
-    del request.session[ACCOUNT_ID_VAR]
-    del request.session[SUDOER_ID_VAR]
+    clear_session(request)
     set_account(request, original_user)
     _logger.info(
         'DeSudo: "%s" no longer acting as "%s"', original_user, request.account
