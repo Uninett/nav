@@ -217,7 +217,7 @@ def localhost_using_legacy_db():
     conn.commit()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def client(admin_username, admin_password):
     """Provides a Django test Client object already logged in to the web UI as
     an admin"""
