@@ -43,6 +43,14 @@ def set_account(request, account, cycle_session_id=True):
     request.session.save()
 
 
+def clear_session(request):
+    """Clears the session and logs out the current account"""
+    if hasattr(request, "account"):
+        del request.account
+    request.session.flush()
+    request.session.save()
+
+
 def ensure_account(request):
     """Guarantee that valid request.account is set"""
     session = request.session
