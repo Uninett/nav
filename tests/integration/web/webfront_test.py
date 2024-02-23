@@ -83,7 +83,10 @@ def test_session_id_is_changed_after_logging_in(
     assert session_id_post_login != session_id_pre_login
 
 
-def test_session_id_is_not_changed_after_request_unrelated_to_login(db, client):
+def test_non_expired_session_id_is_not_changed_after_request_unrelated_to_login(
+    db, client
+):
+    """Client should be fresh and guaranteed to not be expired"""
     index_url = reverse('webfront-index')
     # make sure we have a session ID we can use for comparison
     assert client.session.session_key
