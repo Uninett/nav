@@ -72,6 +72,9 @@ def test_session_id_is_changed_after_logging_in(
     db, client, admin_username, admin_password
 ):
     login_url = reverse('webfront-login')
+    logout_url = reverse('webfront-logout')
+    # log out first to compare before and after being logged in
+    client.post(logout_url)
     # make sure we have a session ID we can use for comparison
     assert client.session.session_key
     session_id_pre_login = client.session.session_key
