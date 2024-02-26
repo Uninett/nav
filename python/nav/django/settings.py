@@ -259,13 +259,13 @@ SEARCHPROVIDERS = [
 # * https://docs.djangoproject.com/en/3.2/ref/clickjacking/
 # Example conf:
 #  [security]
-#  ssl = on
+#  needs_tls = yes
 
 SECURE_BROWSER_XSS_FILTER = True  # Does no harm
 
 _websecurity_config = WebSecurityConfigParser()
-_tls_enabled = bool(_websecurity_config.getboolean('security', 'tls'))
-SESSION_COOKIE_SECURE = _tls_enabled
+_needs_tls = bool(_websecurity_config.getboolean('security', 'needs_tls'))
+SESSION_COOKIE_SECURE = _needs_tls
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
