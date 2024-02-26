@@ -1,7 +1,7 @@
 from mock import Mock
 
 from django.urls import reverse
-from nav.compatibility import smart_str
+from django.utils.encoding import smart_str
 from nav.models.profiles import AccountDashboard
 from nav.web.webfront.utils import tool_list
 

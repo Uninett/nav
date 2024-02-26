@@ -18,7 +18,7 @@
 from __future__ import unicode_literals, absolute_import
 
 import logging
-from nav.compatibility import force_str
+from django.utils.encoding import force_str
 
 from django.db import models
 from django.utils.timezone import now as utcnow

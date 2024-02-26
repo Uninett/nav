@@ -5,7 +5,7 @@ from django.http import Http404
 from django.test.client import RequestFactory
 from mock import MagicMock
 
-from nav.compatibility import smart_str
+from django.utils.encoding import smart_str
 from nav.models.manage import Netbox, Room
 from nav.web.seeddb.page.netbox.edit import netbox_edit, log_netbox_change
 from nav.web.seeddb.utils.delete import dependencies

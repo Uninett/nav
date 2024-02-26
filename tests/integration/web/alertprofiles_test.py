@@ -7,7 +7,7 @@ import pytest
 
 from django.test.client import RequestFactory
 from django.urls import reverse
-from nav.compatibility import smart_str
+from django.utils.encoding import smart_str
 from nav.models.profiles import (
     AlertAddress,
     AlertPreference,

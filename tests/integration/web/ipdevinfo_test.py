@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 from django.urls import reverse
-from nav.compatibility import smart_str
+from django.utils.encoding import smart_str
 
 from nav.models.manage import Netbox, Module, Interface, Device, NetboxProfile
 from nav.web.ipdevinfo.utils import get_module_view

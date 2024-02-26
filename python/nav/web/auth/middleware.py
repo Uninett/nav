@@ -21,11 +21,7 @@ import logging
 import os
 
 from django.http import HttpResponseRedirect, HttpResponse
-
-try:
-    from django.utils.deprecation import MiddlewareMixin
-except ImportError:  # Django <= 1.9
-    MiddlewareMixin = object
+from django.utils.deprecation import MiddlewareMixin
 
 from nav.models.profiles import Account
 from nav.web.auth import remote_user, get_login_url, logout

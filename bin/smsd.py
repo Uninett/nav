@@ -29,7 +29,7 @@ import socket
 import sys
 import time
 
-from nav.compatibility import smart_str
+from django.utils.encoding import smart_str
 
 import nav.config
 import nav.daemon
