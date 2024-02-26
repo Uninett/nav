@@ -517,11 +517,21 @@ class NumberRange(object):
 
 
 def resource_filename(package, filename):
+    """Return the path of the filename as it is inside the package
+
+    package: either a dotted path to a module or a module object
+    filename: str or pathlib.Path
+    """
     ref = resource_files(package) / filename
     with as_file(ref) as path:
         return str(path)
 
 
 def resource_bytes(package, filename):
+    """Read and return a bytes-object of the filename found in the package
+
+    package: either a dotted path to a module or a module object
+    filename: str or pathlib.Path
+    """
     ref = resource_files(package) / filename
     return ref.read_bytes()
