@@ -8,15 +8,11 @@ import os
 
 from django.db import connection
 
-try:
-    # Django >= 1.8
-    import django.apps
+import django.apps
 
-    get_models = django.apps.apps.get_models
-    del django.apps
-except ImportError:
-    # Django < 1.9
-    from django.db.models import get_models
+get_models = django.apps.apps.get_models
+del django.apps
+
 
 import pytest
 
