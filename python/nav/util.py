@@ -31,9 +31,9 @@ from secrets import token_hex
 import IPy
 
 try:
-    from importlib.resources import files, as_file
+    from importlib.resources import as_file, files as resource_files
 except ImportError:  # Python 3.7!
-    from importlib_resources import files, as_file
+    from importlib_resources import as_file, files as resource_files
 
 
 def gradient(start, stop, steps):
@@ -517,11 +517,11 @@ class NumberRange(object):
 
 
 def resource_filename(package, filename):
-    ref = files(package) / filename
+    ref = resource_files(package) / filename
     with as_file(ref) as path:
         return str(path)
 
 
 def resource_bytes(package, filename):
-    ref = files(package) / filename
+    ref = resource_files(package) / filename
     return ref.read_bytes()

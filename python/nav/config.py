@@ -30,7 +30,7 @@ import configparser
 from pathlib import Path
 
 from nav.errors import GeneralException
-from nav.util import files, resource_bytes
+from nav.util import resource_files, resource_bytes
 from . import buildconf
 
 _logger = logging.getLogger(__name__)
@@ -250,11 +250,11 @@ def _config_resource_walk(source=''):
     """
     source = Path(source)
     current_path = Path('etc') / source
-    for path in files('nav').joinpath(current_path).iterdir():
+    for path in resource_files('nav').joinpath(current_path).iterdir():
         name = path.name
         full_name = current_path / name
         relative_name = str(source / name)
-        if files('nav').joinpath(full_name).is_dir():
+        if resource_files('nav').joinpath(full_name).is_dir():
             for path in _config_resource_walk(source=relative_name):
                 yield str(path)
         else:

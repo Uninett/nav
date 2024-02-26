@@ -31,7 +31,7 @@ import psycopg2
 from nav.db import ConnectionParameters
 from nav.colors import colorize, print_color
 from nav.colors import COLOR_CYAN, COLOR_YELLOW, COLOR_RED, COLOR_GREEN
-from nav.util import files, resource_bytes
+from nav.util import resource_files, resource_bytes
 
 
 def main():
@@ -565,7 +565,7 @@ class ChangeScriptFinder(list):
     def _find_change_scripts(self):
         changes_dir = Path('sql/changes')
         scripts = []
-        sql_path = files(self.resource_module).joinpath(changes_dir)
+        sql_path = resource_files(self.resource_module).joinpath(changes_dir)
         for path in sql_path.iterdir():
             filename = path.name
             if self.script_pattern.match(str(filename)):
