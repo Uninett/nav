@@ -8,6 +8,22 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.9
+=======
+
+Web security
+------------
+
+While it is only relevant for older browsers, the HTTP header
+``X-XSS-Protection`` is set to ``1; mode=block``. It does not affect browsers
+that do not support it after all.
+
+There's a new section in :file:`webfront/webfront.conf`, ``[security]``. When
+running in production with SSL/TLS turned on, there's a new flag ``needs_tls``
+that should also be toggled on. This'll turn on secure cookies (only sent over
+SSL/TLS). See also the new howto
+:doc:`Securing NAV in production </howto/securing-nav-in-production>`.
+
 NAV 5.8
 =======
 

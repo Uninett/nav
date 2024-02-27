@@ -19,3 +19,4 @@ Howtos
    setting-up-logging
    using_the_api
    api_parameters
+   securing-nav-in-production
