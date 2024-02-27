@@ -25,12 +25,13 @@ from optparse import OptionParser
 import subprocess
 from textwrap import wrap
 from errno import ENOENT, EACCES
+from pathlib import Path
 import psycopg2
-from pkg_resources import resource_listdir, resource_string
 
 from nav.db import ConnectionParameters
 from nav.colors import colorize, print_color
 from nav.colors import COLOR_CYAN, COLOR_YELLOW, COLOR_RED, COLOR_GREEN
+from nav.util import resource_files, resource_bytes
 
 
 def main():
@@ -546,7 +547,7 @@ class Synchronizer(object):
             print_color("OK", COLOR_GREEN)
 
     def _read_sql_file(self, filename):
-        return resource_string(self.resource_module, filename)
+        return resource_bytes(self.resource_module, filename)
 
 
 class ChangeScriptFinder(list):
@@ -562,12 +563,13 @@ class ChangeScriptFinder(list):
         self._find_change_scripts()
 
     def _find_change_scripts(self):
-        changes_dir = 'sql/changes'
-        scripts = [
-            os.path.join(changes_dir, f)
-            for f in resource_listdir(self.resource_module, changes_dir)
-            if self.script_pattern.match(f)
-        ]
+        changes_dir = Path('sql/changes')
+        scripts = []
+        sql_path = resource_files(self.resource_module).joinpath(changes_dir)
+        for path in sql_path.iterdir():
+            filename = path.name
+            if self.script_pattern.match(str(filename)):
+                scripts.append(str(changes_dir / filename))
         self[:] = scripts
 
     def get_missing_changes(self, versions):

@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """RADIUS service checker"""
-from pkg_resources import resource_filename
+from nav.util import resource_filename
 
 # Python-radius specific modules. pyrad found at
 # http://www.wiggy.net/code/pyrad/ by Wichert Akkermann
