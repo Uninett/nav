@@ -10,7 +10,6 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-import sphinx_rtd_theme
 import sys, os
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -39,7 +38,7 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ['templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -108,12 +107,7 @@ pygments_style = 'sphinx'
 # Sphinx are currently 'default' and 'sphinxdoc'.
 html_theme = 'sphinx_rtd_theme'
 
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates")
-]
-
-html_logo = "templates/bootstrap/static/nav-logo.svg"
+html_logo = "templates/static/nav-logo.svg"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
