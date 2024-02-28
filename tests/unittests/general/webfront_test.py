@@ -178,6 +178,9 @@ class TestLoginRemoteUser(object):
                 )
 
 
+@pytest.mark.skipif(
+    not nav.web.auth.ldap.available, reason="ldap module is not available"
+)
 class TestLdapUser(object):
     @patch.dict(
         "nav.web.auth.ldap._config._sections",
@@ -276,6 +279,9 @@ class TestLdapUser(object):
             'entitlement_attribute': 'eduPersonEntitlement',
         },
     },
+)
+@pytest.mark.skipif(
+    not nav.web.auth.ldap.available, reason="ldap module is not available"
 )
 class TestLdapEntitlements(object):
     def test_required_entitlement_should_be_verified(self, user_zaphod):

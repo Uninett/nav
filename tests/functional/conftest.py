@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 import pytest
 from selenium.webdriver.common.by import By
@@ -7,46 +6,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 USERNAME = 'admin'
-gunicorn = None
-
-########################################################################
-#                                                                      #
-# Set up the required components for an integration test. Components   #
-# such as PostgreSQL and Apache are assumed to already be installed on #
-# the system. The system is assumed to be Debian. See                  #
-# tests/docker/Dockerfile.                                             #
-#                                                                      #
-########################################################################
-
-if os.environ.get('WORKSPACE'):
-    SCRIPT_PATH = os.path.join(os.environ['WORKSPACE'], 'tests/docker/scripts')
-else:
-    SCRIPT_PATH = '/'
-SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
-
-
-def pytest_configure(config):
-    subprocess.check_call([SCRIPT_CREATE_DB])
-    start_gunicorn()
-
-
-def pytest_unconfigure(config):
-    stop_gunicorn()
-
-
-def start_gunicorn():
-    global gunicorn
-    gunicorn_log = open("reports/gunicorn.log", "ab")
-    gunicorn = subprocess.Popen(
-        ['gunicorn', 'navtest_wsgi:application'],
-        stdout=gunicorn_log,
-        stderr=subprocess.STDOUT,
-    )
-
-
-def stop_gunicorn():
-    if gunicorn:
-        gunicorn.terminate()
 
 
 ############

@@ -1,17 +1,18 @@
-from __future__ import print_function
 import os
 import io
+import platform
 import re
 import shlex
 from itertools import cycle
 from shutil import which
 import subprocess
-import time
 
 import pytest
+from retry import retry
 from django.test import Client
 
-gunicorn = None
+
+SNMP_TEST_PORT = 1024
 
 ########################################################################
 #                                                                      #
@@ -22,58 +23,25 @@ gunicorn = None
 #                                                                      #
 ########################################################################
 
-if os.environ.get('WORKSPACE'):
-    SCRIPT_PATH = os.path.join(os.environ['WORKSPACE'], 'tests/docker/scripts')
-else:
-    SCRIPT_PATH = '/'
-SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
-
 
 def pytest_configure(config):
-    subprocess.check_call([SCRIPT_CREATE_DB])
     os.environ['TARGETURL'] = "http://localhost:8000/"
-    start_gunicorn()
 
     # Bootstrap Django config
     from nav.bootstrap import bootstrap_django
 
     bootstrap_django('pytest')
 
-    # Install custom reactor for Twisted tests
-    from nav.ipdevpoll.epollreactor2 import install
+    if platform.system() == 'Linux':
+        # Install custom reactor for Twisted tests
+        from nav.ipdevpoll.epollreactor2 import install
 
-    install()
+        install()
 
     # Setup test environment for Django
     from django.test.utils import setup_test_environment
 
     setup_test_environment()
-
-
-def pytest_unconfigure(config):
-    stop_gunicorn()
-
-
-def start_gunicorn():
-    global gunicorn
-    workspace = os.path.join(os.environ.get('WORKSPACE', ''), 'reports')
-    errorlog = os.path.join(workspace, 'gunicorn-error.log')
-    accesslog = os.path.join(workspace, 'gunicorn-access.log')
-    gunicorn = subprocess.Popen(
-        [
-            'gunicorn',
-            '--error-logfile',
-            errorlog,
-            '--access-logfile',
-            accesslog,
-            'navtest_wsgi:application',
-        ]
-    )
-
-
-def stop_gunicorn():
-    if gunicorn:
-        gunicorn.terminate()
 
 
 ########################################################################
@@ -94,11 +62,6 @@ def pytest_generate_tests(metafunc):
         binaries = _nav_binary_tests()
         ids = [b[0] for b in binaries]
         metafunc.parametrize("binary", _nav_binary_tests(), ids=ids)
-    elif 'admin_navlet' in metafunc.fixturenames:
-        from nav.models.profiles import AccountNavlet
-
-        navlets = AccountNavlet.objects.filter(account__login='admin')
-        metafunc.parametrize("admin_navlet", navlets)
 
 
 def _nav_binary_tests():
@@ -153,7 +116,7 @@ def _scan_testargs(filename):
 
 
 @pytest.fixture()
-def management_profile():
+def management_profile(postgresql):
     from nav.models.manage import ManagementProfile
 
     profile = ManagementProfile(
@@ -189,7 +152,7 @@ def localhost(management_profile):
 
 
 @pytest.fixture()
-def localhost_using_legacy_db():
+def localhost_using_legacy_db(postgresql):
     """Alternative to the Django-based localhost fixture, for tests that operate on
     code that uses legacy database connections.
     """
@@ -218,7 +181,7 @@ def localhost_using_legacy_db():
 
 
 @pytest.fixture(scope='session')
-def client():
+def client(postgresql):
     """Provides a Django test Client object already logged in to the web UI as
     an admin"""
     from django.urls import reverse
@@ -232,7 +195,7 @@ def client():
 
 
 @pytest.fixture(scope='function')
-def db(request):
+def db(request, postgresql):
     """Ensures db modifications are rolled back after the test ends.
 
     This is done by disabling transaction management, running everything
@@ -307,21 +270,26 @@ def snmpsim():
     """
     snmpsimd = which('snmpsimd.py')
     assert snmpsimd, "Could not find snmpsimd.py"
-    workspace = os.getenv('WORKSPACE', os.getenv('HOME', '/source'))
+    workspace = os.getenv('WORKSPACE', os.getcwd())
     proc = subprocess.Popen(
         [
             snmpsimd,
             '--data-dir={}/tests/integration/snmp_fixtures'.format(workspace),
             '--log-level=error',
-            '--agent-udpv4-endpoint=127.0.0.1:1024',
+            '--agent-udpv4-endpoint=127.0.0.1:{}'.format(SNMP_TEST_PORT),
         ],
         env={'HOME': workspace},
     )
 
-    while not _lookfor('0100007F:0400', '/proc/net/udp'):
-        print("Still waiting for snmpsimd to listen for queries")
-        proc.poll()
-        time.sleep(0.1)
+    @retry(Exception, tries=3, delay=0.5, backoff=2)
+    def _wait_for_snmpsimd():
+        if _verify_localhost_snmp_response():
+            return True
+        else:
+            proc.poll()
+            raise TimeoutError("Still waiting for snmpsimd to listen for queries")
+
+    _wait_for_snmpsimd()
 
     yield
     proc.kill()
@@ -338,7 +306,7 @@ def snmp_agent_proxy(snmpsim, snmp_ports):
     port = next(snmp_ports)
     agent = AgentProxy(
         '127.0.0.1',
-        1024,
+        SNMP_TEST_PORT,
         community='placeholder',
         snmpVersion='v2c',
         protocol=port.protocol,
@@ -362,14 +330,19 @@ def snmp_ports():
     return _ports
 
 
-def _lookfor(string, filename):
-    """Very simple grep-like function"""
-    data = io.open(filename, 'r', encoding='utf-8').read()
-    return string in data
-
-
 @pytest.fixture
 def admin_account(db):
     from nav.models.profiles import Account
 
     yield Account.objects.get(id=Account.ADMIN_ACCOUNT)
+
+
+def _verify_localhost_snmp_response(port=SNMP_TEST_PORT):
+    """Verifies that the snmpsimd fixture process is responding, by using NAV's own
+    SNMP framework to query it.
+    """
+    from nav.Snmp import Snmp
+
+    session = Snmp(host="127.0.0.1", community="public", version="2c", port=port)
+    resp = session.jog("1.3.6.1.2.1.47.1.1.1.1.2")
+    return resp

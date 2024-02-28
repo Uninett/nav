@@ -1,10 +1,14 @@
-import pytest
-import sys
+from shutil import which
 import subprocess
 
+import pytest
 
-def test_binary_runs(binary):
+
+def test_binary_runs(postgresql, binary):
     """Verifies that a command runs with a zero exit code"""
+    if "netbiostracker" in binary[0] and not which("nbtscan"):
+        pytest.skip("nbtscan is not installed")
+
     proc = subprocess.Popen(binary, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
     (done, fail) = proc.communicate()
     retcode = proc.wait()

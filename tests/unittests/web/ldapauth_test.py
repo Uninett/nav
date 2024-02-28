@@ -1,6 +1,14 @@
+import pytest
+
+import nav.web.auth.ldap
 from nav.config import NAVConfigParser
 from nav.web.auth.ldap import LDAPUser, open_ldap
 from mock import Mock, patch
+
+
+pytestmark = pytest.mark.skipif(
+    not nav.web.auth.ldap.available, reason="ldap module is not available"
+)
 
 
 class LdapTestConfig(NAVConfigParser):
