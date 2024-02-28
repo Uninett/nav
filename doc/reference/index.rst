@@ -28,3 +28,4 @@ This section contains reference material for end-users.
    smsd
    snmptrapd
    backend-processes
+   jwt
