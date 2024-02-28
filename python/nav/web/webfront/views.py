@@ -230,17 +230,12 @@ def do_login(request):
                 LogEntry.add_log_entry(
                     account, 'log-in', '{actor} logged in', before=account
                 )
-
-                try:
-                    request.session[ACCOUNT_ID_VAR] = account.id
-                    request.account = account
-                except ldap.Error as error:
-                    errors.append('Error while talking to LDAP:\n%s' % error)
-                else:
-                    _logger.info("%s successfully logged in", account.login)
-                    if not origin:
-                        origin = reverse('webfront-index')
-                    return HttpResponseRedirect(origin)
+                request.session[ACCOUNT_ID_VAR] = account.id
+                request.account = account
+                _logger.info("%s successfully logged in", account.login)
+                if not origin:
+                    origin = reverse('webfront-index')
+                return HttpResponseRedirect(origin)
             else:
                 _logger.info("failed login: %r", username)
                 errors.append(
