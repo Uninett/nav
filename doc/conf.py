@@ -113,7 +113,7 @@ html_theme_path = [
     os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates")
 ]
 
-html_logo = "templates/bootstrap/static/nav-logo.svg"
+html_logo = "templates/static/nav-logo.svg"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
