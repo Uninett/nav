@@ -10,7 +10,6 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-import sphinx_rtd_theme
 import sys, os
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -107,11 +106,6 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
 html_theme = 'sphinx_rtd_theme'
-
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates")
-]
 
 html_logo = "templates/static/nav-logo.svg"
 
