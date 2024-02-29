@@ -37,7 +37,6 @@ class TestEnsureAccount(object):
     def test_account_is_set_if_missing(self, fake_session):
         r = RequestFactory()
         request = r.get('/')
-        request.session = {}
         request.session = fake_session
         with patch("nav.web.auth.Account.objects.get", return_value=DEFAULT_ACCOUNT):
             ensure_account(request)
