@@ -47,10 +47,8 @@ def ensure_account(request):
     """Guarantee that valid request.account is set"""
     session = request.session
 
-    if not ACCOUNT_ID_VAR in session:
-        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
-
-    account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+    account_id = session.get(ACCOUNT_ID_VAR, Account.DEFAULT_ACCOUNT)
+    account = Account.objects.get(id=account_id)
 
     if account.locked:
         # Switch back to fallback, the anonymous user
