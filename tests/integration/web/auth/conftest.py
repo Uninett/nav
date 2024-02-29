@@ -11,7 +11,7 @@ def session_request(db):
     session_request = r.post('/anyurl')
 
     # use middleware to make session for session_request
-    middleware = SessionMiddleware()
+    middleware = SessionMiddleware(lambda request: None)
     middleware.process_request(session_request)
     session_request.session.save()
     return session_request

@@ -1,7 +1,6 @@
 import pytest
 
 from django.test import RequestFactory
-from django.contrib.sessions.middleware import SessionMiddleware
 
 from nav.web.auth.utils import set_account
 from nav.web.auth.sudo import sudo, desudo

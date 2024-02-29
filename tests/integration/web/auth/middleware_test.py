@@ -12,7 +12,7 @@ def test_when_remote_user_logs_in_it_should_change_the_session_id(
     with patch(
         'nav.web.auth.remote_user.get_username', return_value=remote_account.login
     ):
-        middleware = AuthenticationMiddleware()
+        middleware = AuthenticationMiddleware(lambda request: None)
         middleware.process_request(session_request)
     assert session_request.account == remote_account
     post_login_session_id = session_request.session.session_key
