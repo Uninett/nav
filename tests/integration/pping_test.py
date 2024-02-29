@@ -90,9 +90,8 @@ def get_pping_output(timeout=5):
 
     Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
     """
-    pping = Path(BINDIR).absolute() / 'pping.py'
-    assert pping.exists(), "Cannot find pping.py on path"
-    pping = str(pping)
+    pping = which("pping")
+    assert pping, "Cannot find pping in PATH"
     cmd = get_root_method() + ["/usr/bin/timeout", str(timeout), pping, "-f"]
     try:
         output = check_output(cmd, stderr=STDOUT)
