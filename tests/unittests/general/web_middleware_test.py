@@ -22,21 +22,10 @@ DEFAULT_ACCOUNT = auth.Account(
 )
 
 
-class FakeSession(dict):
-    def set_expiry(self, *_):
-        pass
-
-    def save(self, *_):
-        pass
-
-    def cycle_key(self, *_):
-        pass
-
-
-def test_set_account():
+def test_set_account(fake_session):
     r = RequestFactory()
     request = r.get('/')
-    request.session = FakeSession()
+    request.session = fake_session
     set_account(request, DEFAULT_ACCOUNT)
     assert ACCOUNT_ID_VAR in request.session, 'Account id is not in the session'
     assert hasattr(request, 'account'), 'Account not set'
@@ -45,11 +34,11 @@ def test_set_account():
 
 
 class TestEnsureAccount(object):
-    def test_account_is_set_if_missing(self):
+    def test_account_is_set_if_missing(self, fake_session):
         r = RequestFactory()
         request = r.get('/')
         request.session = {}
-        request.session = FakeSession()
+        request.session = fake_session
         with patch("nav.web.auth.Account.objects.get", return_value=DEFAULT_ACCOUNT):
             ensure_account(request)
             assert (
@@ -60,10 +49,10 @@ class TestEnsureAccount(object):
                 request.account.id == request.session[auth.ACCOUNT_ID_VAR]
             ), 'Correct user not set'
 
-    def test_account_is_switched_to_default_if_locked(self):
+    def test_account_is_switched_to_default_if_locked(self, fake_session):
         r = RequestFactory()
         request = r.get('/')
-        request.session = FakeSession()
+        request.session = fake_session
         request.session[auth.ACCOUNT_ID_VAR] = LOCKED_ACCOUNT.id
         with patch(
             "nav.web.auth.Account.objects.get",
@@ -73,10 +62,10 @@ class TestEnsureAccount(object):
             assert request.session[auth.ACCOUNT_ID_VAR] == DEFAULT_ACCOUNT.id
             assert request.account == DEFAULT_ACCOUNT, 'Correct user not set'
 
-    def test_account_is_left_alone_if_ok(self):
+    def test_account_is_left_alone_if_ok(self, fake_session):
         r = RequestFactory()
         request = r.get('/')
-        request.session = FakeSession()
+        request.session = fake_session
         request.session[auth.ACCOUNT_ID_VAR] = return_value = PLAIN_ACCOUNT.id
         with patch("nav.web.auth.Account.objects.get", return_value=PLAIN_ACCOUNT):
             ensure_account(request)
@@ -85,10 +74,11 @@ class TestEnsureAccount(object):
 
 
 class TestAuthenticationMiddleware(object):
-    def test_process_request_logged_in(self):
+    def test_process_request_logged_in(self, fake_session):
         r = RequestFactory()
         fake_request = r.get('/')
-        fake_request.session = FakeSession(ACCOUNT_ID_VAR=PLAIN_ACCOUNT.id)
+        fake_session[ACCOUNT_ID_VAR] = PLAIN_ACCOUNT.id
+        fake_request.session = fake_session
         with patch(
             'nav.web.auth.middleware.ensure_account',
             side_effect=set_account(fake_request, PLAIN_ACCOUNT),
@@ -97,12 +87,12 @@ class TestAuthenticationMiddleware(object):
             assert fake_request.account == PLAIN_ACCOUNT
             assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
 
-    def test_process_request_set_sudoer(self):
+    def test_process_request_set_sudoer(self, fake_session):
         r = RequestFactory()
         fake_request = r.get('/')
-        fake_request.session = FakeSession(
-            ACCOUNT_ID_VAR=PLAIN_ACCOUNT.id, SUDOER_ID_VAR=SUDO_ACCOUNT.id
-        )
+        fake_session[ACCOUNT_ID_VAR] = PLAIN_ACCOUNT.id
+        fake_session[SUDOER_ID_VAR] = SUDO_ACCOUNT.id
+        fake_request.session = fake_session
         with patch(
             'nav.web.auth.middleware.ensure_account',
             side_effect=set_account(fake_request, PLAIN_ACCOUNT),
@@ -113,10 +103,10 @@ class TestAuthenticationMiddleware(object):
                     getattr(fake_request.account, 'sudo_operator', None) == SUDO_ACCOUNT
                 )
 
-    def test_process_request_not_logged_in(self):
+    def test_process_request_not_logged_in(self, fake_session):
         r = RequestFactory()
         fake_request = r.get('/')
-        fake_request.session = FakeSession()
+        fake_request.session = fake_session
         with patch(
             'nav.web.auth.middleware.ensure_account',
             side_effect=set_account(fake_request, DEFAULT_ACCOUNT),
@@ -126,10 +116,10 @@ class TestAuthenticationMiddleware(object):
                 assert fake_request.account == DEFAULT_ACCOUNT
                 assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
 
-    def test_process_request_log_in_remote_user(self):
+    def test_process_request_log_in_remote_user(self, fake_session):
         r = RequestFactory()
         fake_request = r.get('/')
-        fake_request.session = FakeSession()
+        fake_request.session = fake_session
         with patch(
             'nav.web.auth.middleware.ensure_account',
             side_effect=set_account(fake_request, DEFAULT_ACCOUNT),
@@ -146,10 +136,10 @@ class TestAuthenticationMiddleware(object):
                     assert fake_request.account == PLAIN_ACCOUNT
                     assert fake_request.session[ACCOUNT_ID_VAR] == PLAIN_ACCOUNT.id
 
-    def test_process_request_switch_users(self):
+    def test_process_request_switch_users(self, fake_session):
         r = RequestFactory()
         fake_request = r.get('/')
-        fake_request.session = FakeSession()
+        fake_request.session = fake_session
         with patch(
             'nav.web.auth.middleware.ensure_account',
             side_effect=set_account(fake_request, PLAIN_ACCOUNT),
@@ -226,11 +216,11 @@ class TestLogout(object):
             result = logout(fake_request)
             assert result == None
 
-    def test_non_sudo_logout(self):
+    def test_non_sudo_logout(self, fake_session):
         r = RequestFactory()
         fake_request = r.get('/anyurl')
-        session = FakeSession(**{ACCOUNT_ID_VAR: PLAIN_ACCOUNT.id})
-        fake_request.session = session
+        fake_session[ACCOUNT_ID_VAR] = PLAIN_ACCOUNT.id
+        fake_request.session = fake_session
         fake_request.account = PLAIN_ACCOUNT
         with patch('nav.web.auth.LogEntry.add_log_entry'):
             result = logout(fake_request)
@@ -238,11 +228,11 @@ class TestLogout(object):
             assert not hasattr(fake_request, 'account')
             assert ACCOUNT_ID_VAR not in fake_request.session
 
-    def test_sudo_logout(self):
+    def test_sudo_logout(self, fake_session):
         r = RequestFactory()
         fake_request = r.post('/anyurl', data={'submit_desudo': True})
-        session = FakeSession(**{ACCOUNT_ID_VAR: PLAIN_ACCOUNT.id})
-        fake_request.session = session
+        fake_session[ACCOUNT_ID_VAR] = PLAIN_ACCOUNT.id
+        fake_request.session = fake_session
         fake_request.account = PLAIN_ACCOUNT
         with patch('nav.web.auth.desudo'):
             with patch('nav.web.auth.reverse', return_value='parrot'):
