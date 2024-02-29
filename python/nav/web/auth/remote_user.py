@@ -18,26 +18,12 @@ Support logging in by having the web server set the REMOTE_USER header.
 """
 import logging
 from os.path import join
+import secrets
 
 from nav.auditlog.models import LogEntry
 from nav.config import NAVConfigParser
 from nav.models.profiles import Account
 from nav.web.auth.utils import set_account
-
-try:
-    # Python 3.6+
-    import secrets
-
-    def fake_password(length):
-        return secrets.token_urlsafe(length)
-
-except ImportError:
-    from random import choice
-    import string
-
-    def fake_password(length):
-        symbols = string.ascii_letters + string.punctuation + string.digits
-        return u"".join(choice(symbols) for i in range(length))
 
 
 __all__ = []
@@ -59,6 +45,10 @@ post-logout-redirect-url=/
 
 _logger = logging.getLogger(__name__)
 _config = RemoteUserConfigParser()
+
+
+def fake_password(length):
+    return secrets.token_urlsafe(length)
 
 
 def authenticate(request):
