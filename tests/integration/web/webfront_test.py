@@ -75,8 +75,7 @@ def test_when_logging_in_it_should_change_the_session_id(
     logout_url = reverse('webfront-logout')
     # log out first to compare before and after being logged in
     client.post(logout_url)
-    # make sure we have a session ID we can use for comparison
-    assert client.session.session_key
+    assert client.session.session_key, "the initial session lacks an ID"
     session_id_pre_login = client.session.session_key
     client.post(login_url, {'username': admin_username, 'password': admin_password})
     session_id_post_login = client.session.session_key
@@ -88,8 +87,7 @@ def test_non_expired_session_id_should_not_be_changed_on_request_unrelated_to_lo
 ):
     """Client should be fresh and guaranteed to not be expired"""
     index_url = reverse('webfront-index')
-    # make sure we have a session ID we can use for comparison
-    assert client.session.session_key
+    assert client.session.session_key, "the initial session lacks an ID"
     session_id_pre_login = client.session.session_key
     client.get(index_url)
     session_id_post_login = client.session.session_key
