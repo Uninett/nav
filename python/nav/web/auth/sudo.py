@@ -22,7 +22,7 @@ import logging
 from nav.auditlog.models import LogEntry
 from nav.django.utils import is_admin, get_account
 from nav.models.profiles import Account
-from nav.web.auth.utils import _set_account, ACCOUNT_ID_VAR
+from nav.web.auth.utils import set_account, ACCOUNT_ID_VAR
 
 
 _logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ def sudo(request, other_user):
         raise SudoNotAdminError()
     original_user = request.account
     request.session[SUDOER_ID_VAR] = original_user.id
-    _set_account(request, other_user)
+    set_account(request, other_user)
     _logger.info('Sudo: "%s" acting as "%s"', original_user, other_user)
     _logger.debug(
         'Sudo: (session: %s, account: %s)', dict(request.session), request.account
@@ -70,7 +70,7 @@ def desudo(request):
 
     del request.session[ACCOUNT_ID_VAR]
     del request.session[SUDOER_ID_VAR]
-    _set_account(request, original_user)
+    set_account(request, original_user)
     _logger.info(
         'DeSudo: "%s" no longer acting as "%s"', original_user, request.account
     )

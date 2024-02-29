@@ -31,10 +31,15 @@ _logger = logging.getLogger(__name__)
 ACCOUNT_ID_VAR = 'account_id'
 
 
-def _set_account(request, account):
+def set_account(request, account, cycle_session_id=True):
+    """Updates request with new account.
+    Cycles the session ID by default to avoid session fixation.
+    """
     request.session[ACCOUNT_ID_VAR] = account.id
     request.account = account
     _logger.debug('Set active account to "%s"', account.login)
+    if cycle_session_id:
+        request.session.cycle_key()
     request.session.save()
 
 
@@ -52,7 +57,8 @@ def ensure_account(request):
         # Assumes nobody has locked it..
         account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
 
-    _set_account(request, account)
+    # Do not cycle to avoid session_id being changed on every request
+    set_account(request, account, cycle_session_id=False)
 
 
 def authorization_not_required(fullpath):

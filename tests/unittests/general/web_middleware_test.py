@@ -3,7 +3,7 @@ import os
 
 from django.test import RequestFactory
 
-from nav.web.auth.utils import ACCOUNT_ID_VAR, _set_account, ensure_account
+from nav.web.auth.utils import ACCOUNT_ID_VAR, set_account, ensure_account
 from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.middleware import AuthenticationMiddleware
 from nav.web.auth.middleware import AuthorizationMiddleware
@@ -29,12 +29,15 @@ class FakeSession(dict):
     def save(self, *_):
         pass
 
+    def cycle_key(self, *_):
+        pass
+
 
 def test_set_account():
     r = RequestFactory()
     request = r.get('/')
     request.session = FakeSession()
-    _set_account(request, DEFAULT_ACCOUNT)
+    set_account(request, DEFAULT_ACCOUNT)
     assert ACCOUNT_ID_VAR in request.session, 'Account id is not in the session'
     assert hasattr(request, 'account'), 'Account not set'
     assert request.account.id == request.session[ACCOUNT_ID_VAR], 'Correct user not set'
@@ -88,7 +91,7 @@ class TestAuthenticationMiddleware(object):
         fake_request.session = FakeSession(ACCOUNT_ID_VAR=PLAIN_ACCOUNT.id)
         with patch(
             'nav.web.auth.middleware.ensure_account',
-            side_effect=_set_account(fake_request, PLAIN_ACCOUNT),
+            side_effect=set_account(fake_request, PLAIN_ACCOUNT),
         ):
             AuthenticationMiddleware(lambda x: x).process_request(fake_request)
             assert fake_request.account == PLAIN_ACCOUNT
@@ -102,7 +105,7 @@ class TestAuthenticationMiddleware(object):
         )
         with patch(
             'nav.web.auth.middleware.ensure_account',
-            side_effect=_set_account(fake_request, PLAIN_ACCOUNT),
+            side_effect=set_account(fake_request, PLAIN_ACCOUNT),
         ):
             with patch('nav.web.auth.middleware.get_sudoer', return_value=SUDO_ACCOUNT):
                 AuthenticationMiddleware(lambda x: x).process_request(fake_request)
@@ -116,7 +119,7 @@ class TestAuthenticationMiddleware(object):
         fake_request.session = FakeSession()
         with patch(
             'nav.web.auth.middleware.ensure_account',
-            side_effect=_set_account(fake_request, DEFAULT_ACCOUNT),
+            side_effect=set_account(fake_request, DEFAULT_ACCOUNT),
         ):
             with patch('nav.web.auth.remote_user.get_username', return_value=None):
                 AuthenticationMiddleware(lambda x: x).process_request(fake_request)
@@ -129,7 +132,7 @@ class TestAuthenticationMiddleware(object):
         fake_request.session = FakeSession()
         with patch(
             'nav.web.auth.middleware.ensure_account',
-            side_effect=_set_account(fake_request, DEFAULT_ACCOUNT),
+            side_effect=set_account(fake_request, DEFAULT_ACCOUNT),
         ):
             with patch(
                 'nav.web.auth.remote_user.get_username',
@@ -137,7 +140,7 @@ class TestAuthenticationMiddleware(object):
             ):
                 with patch(
                     'nav.web.auth.remote_user.login',
-                    side_effect=_set_account(fake_request, PLAIN_ACCOUNT),
+                    side_effect=set_account(fake_request, PLAIN_ACCOUNT),
                 ):
                     AuthenticationMiddleware(lambda x: x).process_request(fake_request)
                     assert fake_request.account == PLAIN_ACCOUNT
@@ -149,7 +152,7 @@ class TestAuthenticationMiddleware(object):
         fake_request.session = FakeSession()
         with patch(
             'nav.web.auth.middleware.ensure_account',
-            side_effect=_set_account(fake_request, PLAIN_ACCOUNT),
+            side_effect=set_account(fake_request, PLAIN_ACCOUNT),
         ):
             with patch(
                 'nav.web.auth.remote_user.get_username',
@@ -157,7 +160,7 @@ class TestAuthenticationMiddleware(object):
             ):
                 with patch(
                     'nav.web.auth.remote_user.login',
-                    side_effect=_set_account(fake_request, ANOTHER_PLAIN_ACCOUNT),
+                    side_effect=set_account(fake_request, ANOTHER_PLAIN_ACCOUNT),
                 ):
                     with patch('nav.web.auth.logout'):
                         AuthenticationMiddleware(lambda x: x).process_request(

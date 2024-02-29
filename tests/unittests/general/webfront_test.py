@@ -23,6 +23,9 @@ class FakeSession(dict):
     def save(self, *_):
         pass
 
+    def cycle_key(self, *_):
+        pass
+
 
 @patch("nav.web.auth.Account.save", new=MagicMock(return_value=True))
 @patch("nav.web.auth.Account.objects.get", new=MagicMock(return_value=LDAP_ACCOUNT))
