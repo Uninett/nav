@@ -9,7 +9,7 @@ pytest-metadata<2.0.0
 pytest-cov==2.7.1
 pytest-selenium==2.0.1
 pytest-timeout
-pytest-twisted==1.12
+pytest-twisted~=1.13.0
 pytidylib==0.3.2
 selenium==3.141.0
 whisper>=0.9.9

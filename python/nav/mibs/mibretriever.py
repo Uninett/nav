@@ -37,6 +37,7 @@ from pynetsnmp.netsnmp import SnmpTimeoutError
 from twisted.internet import defer, reactor
 from twisted.internet.defer import returnValue
 from twisted.internet.error import TimeoutError
+from twisted.python.failure import Failure
 
 from nav.Snmp import safestring
 from nav.ipdevpoll import ContextLogger
@@ -428,7 +429,7 @@ class MibRetriever(object, metaclass=MibRetrieverMaker):
 
             return formatted_result
 
-        def _snmp_timeout_handler(failure: defer.failure.Failure):
+        def _snmp_timeout_handler(failure: Failure):
             """Transforms SnmpTimeoutErrors into "regular" TimeoutErrors"""
             failure.trap(SnmpTimeoutError)
             raise TimeoutError(failure.value)
