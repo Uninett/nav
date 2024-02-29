@@ -5,7 +5,7 @@ from nav.web.auth.middleware import AuthenticationMiddleware
 from nav.models.profiles import Account
 
 
-def test_remote_user_being_logged_in_should_change_session_id(
+def test_when_remote_user_logs_in_it_should_change_the_session_id(
     db, session_request, remote_account
 ):
     pre_login_session_id = session_request.session.session_key

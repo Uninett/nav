@@ -68,7 +68,7 @@ def test_set_default_dashboard_with_multiple_previous_defaults_should_succeed(
     )
 
 
-def test_session_id_is_changed_after_logging_in(
+def test_when_logging_in_it_should_change_the_session_id(
     db, client, admin_username, admin_password
 ):
     login_url = reverse('webfront-login')
@@ -83,7 +83,7 @@ def test_session_id_is_changed_after_logging_in(
     assert session_id_post_login != session_id_pre_login
 
 
-def test_non_expired_session_id_is_not_changed_after_request_unrelated_to_login(
+def test_non_expired_session_id_should_not_be_changed_on_request_unrelated_to_login(
     db, client
 ):
     """Client should be fresh and guaranteed to not be expired"""
