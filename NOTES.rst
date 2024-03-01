@@ -562,7 +562,7 @@ Daemon startup privileges
 
 By accident, some of NAV's daemons have been running as the privileged ``root``
 user since NAV 4.9.0, due to changes in the process control system.  NAV 5.0.4
-introduces the :option:`privileged` option in the :file:`daemons.yml` configuration
+introduces the ``privileged`` option in the :file:`daemons.yml` configuration
 file, to signal which daemons actually need to be started with root privileges.
 
 Only :program:`snmptrapd` and :program:`pping` need root privileges on startup,
@@ -573,7 +573,7 @@ Please ensure your :file:`daemon.yml` configuration file is updated. Also, be
 aware that after upgrading to NAV 5.0.4 from any version from 4.9.0 and up, you
 may have some NAV log files that are owned by ``root``, which will cause some
 of the daemons to fail on startup. Please ensure all NAV log files are writable
-for the user defined as :option:`NAV_USER` in :file:`nav.conf`.
+for the user defined as ``NAV_USER`` in :file:`nav.conf`.
 
 
 New features

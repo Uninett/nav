@@ -135,7 +135,7 @@ are reserved for synchronous communication with the PostgreSQL database
 backend. Even on a multi-core server, this means all of ipdevpoll's work is
 limited to a single core. Once ipdevpoll's workload grows beyond what a single
 core can handle, ipdevpoll can optionally run in a *multiprocess mode*, using
-the :option:`--multiprocess` option.
+the ``--multiprocess`` option.
 
 In multiprocess mode, ipdevpoll spawns a number of worker processes, while the
 master process becomes a simple job scheduler, distributing the actual jobs to
@@ -145,7 +145,7 @@ the individual workers.
 
    ipdevpoll's default number of workers processes and threads aren't
    necessarily sane for multiprocess usage. Unless a number of workers is
-   supplied to the :option:`--multiprocess` option, it will spawn a number of
+   supplied to the ``--multiprocess`` option, it will spawn a number of
    workers corresponding to the number of cores it detects on your system. The
    default number of database threads in ipdevpoll's threadpool is **10** per process,
    which means each worker process will create **10 individual connections to
@@ -155,13 +155,13 @@ the individual workers.
    default pool of 100 available connections, causing other NAV processes to
    be unable to connect to the database. When enabling multiprocess mode, you
    should really tune down the threadpool size by adding the
-   :option:`--threadpoolsize` option.
+   ``--threadpoolsize`` option.
 
 
 Another good thing about the multiprocess mode is that you can limit the
 number of jobs any worker process will run before it is killed and respawned.
 This may provide additional protection against unintended resource leaks. See
-the :option:`--max-jobs-per-worker` option.
+the ``--max-jobs-per-worker`` option.
 
 You can make sure ipdevpoll always runs in multiprocess mode by altering the
 ``command`` option in the ``ipdevpoll`` entry of the configuration file
