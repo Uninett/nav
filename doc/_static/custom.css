@@ -1,16 +1,29 @@
 /* Custom css for the Sphinx theme in NAV */
 
-a, a:hover, a:focus, a:visited, .alert a, .alert .alert-link {color: #1f74ad;}
-.wy-menu a:visited, .wy-menu-vertical a:visited, .wy-menu a:hover, .wy-menu-vertical a:hover { color: #d9d9d9; }
+a,
+a:hover,
+a:focus,
+a:visited,
+.alert a,
+.alert .alert-link {
+    color: #1f74ad;
+}
 
-.wy-nav-top>a img.logo {
-  display:block;
-  margin:0 auto;
-  height:auto;
-  width:auto;
-  border-radius:0;
-  max-width:100%;
-  background:transparent
+.wy-menu a:visited,
+.wy-menu-vertical a:visited,
+.wy-menu a:hover,
+.wy-menu-vertical a:hover {
+    color: #d9d9d9;
+}
+
+.wy-nav-top > a img.logo {
+    display: block;
+    margin: 0 auto;
+    height: auto;
+    width: auto;
+    border-radius: 0;
+    max-width: 100%;
+    background: transparent;
 }
 
 pre {
@@ -26,7 +39,6 @@ footer {
     color: #575757;
 }
 
-
 /* When people creates documentation they usually end up with a big honking list
 of h3's. This makes it very hard to separate the different sections, and adding
 this border helps a lot with that. That and I always wanted to make a css style
@@ -37,16 +49,14 @@ h3 {
 
 /* Override the red color and background for code elements */
 code {
-    color: #2C3E50;
-    background-color: #ECF0F1;
+    color: #2c3e50;
+    background-color: #ecf0f1;
 }
-
 
 /* Contrast for pre elements was to small. */
 pre {
-    color: #2C3E50;
+    color: #2c3e50;
 }
-
 
 /* The following overrides the admonition colors. They all pass the WCAG 2.0
 level AA test for contrast */
@@ -54,7 +64,7 @@ level AA test for contrast */
 /* This covers the admonitions 'note', 'attention', 'hint', 'important' and 'tip' */
 .alert-info {
     color: #2a617d;
-    background-color: #D9EDF7;
+    background-color: #d9edf7;
 }
 
 /* This covers the admonitions 'warning' and 'caution' */
@@ -66,9 +76,8 @@ level AA test for contrast */
 /* This covers the admonitions 'alert' and 'danger' */
 .alert-danger {
     color: #a73a00;
-    background-color: #F2DEDE;
+    background-color: #f2dede;
 }
-
 
 /* Definition list */
 dl {
@@ -83,7 +92,7 @@ dt {
 }
 
 dt:after {
-    content: ':'
+    content: ":";
 }
 
 dd {
@@ -103,8 +112,9 @@ dd {
     margin-left: auto;
 }
 
-.class dt:after { content: initial; }
-
+.class dt:after {
+    content: initial;
+}
 
 /* Highlight versionadded more */
 p.versionadded {
@@ -115,7 +125,7 @@ p.versionadded {
 }
 
 .guilabel {
-    background-color: #ECF0F1;
+    background-color: #ecf0f1;
     padding: 2px 4px;
     font-size: 90%;
     border-radius: 3px;
