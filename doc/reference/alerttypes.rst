@@ -109,13 +109,6 @@ Tells us whether the load has passed a certain threshold.
 ------------------
 Tells us whether a link is up or down.
 
-.. list-table:: Alerts associated with linkState events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-
 
 
 
@@ -161,13 +154,6 @@ Basic information
 ---------------------
 Notification event, typically between NAV systems
 
-.. list-table:: Alerts associated with notification events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
-
 
 
 
@@ -175,12 +161,6 @@ Notification event, typically between NAV systems
 ---------------------
 Lifetime event for a device
 
-.. list-table:: Alerts associated with deviceActive events
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Alert type name
-     - Description
 
 
 
