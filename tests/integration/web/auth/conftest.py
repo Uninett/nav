@@ -18,7 +18,7 @@ def session_request(db):
 
 
 @pytest.fixture()
-def other_account(db):
+def account(db):
     from nav.models.profiles import Account
 
     account = Account(login="other_user")

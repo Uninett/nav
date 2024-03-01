@@ -19,12 +19,12 @@ def test_non_sudo_logout_returns_path_to_index(db, session_request, admin_accoun
 
 
 def test_sudo_logout_sets_session_to_original_user(
-    db, session_request, admin_account, other_account
+    db, session_request, admin_account, account
 ):
     # login with admin acount
     set_account(session_request, admin_account)
-    sudo(session_request, other_account)
-    assert session_request.account is other_account
+    sudo(session_request, account)
+    assert session_request.account is account
     result = logout(session_request, sudo=True)
     assert result == '/'
     assert session_request.account == admin_account
