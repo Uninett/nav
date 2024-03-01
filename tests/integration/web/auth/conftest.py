@@ -15,3 +15,13 @@ def session_request(db):
     middleware.process_request(session_request)
     session_request.session.save()
     return session_request
+
+
+@pytest.fixture()
+def other_account(db):
+    from nav.models.profiles import Account
+
+    account = Account(login="other_user")
+    account.save()
+    yield account
+    account.delete()
