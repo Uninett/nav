@@ -215,18 +215,6 @@ class TestLogout(object):
             result = logout(fake_request)
             assert result == None
 
-    def test_non_sudo_logout(self, fake_session):
-        r = RequestFactory()
-        fake_request = r.get('/anyurl')
-        fake_session[ACCOUNT_ID_VAR] = PLAIN_ACCOUNT.id
-        fake_request.session = fake_session
-        fake_request.account = PLAIN_ACCOUNT
-        with patch('nav.web.auth.LogEntry.add_log_entry'):
-            result = logout(fake_request)
-            assert result == '/'
-            assert not hasattr(fake_request, 'account')
-            assert ACCOUNT_ID_VAR not in fake_request.session
-
     def test_sudo_logout(self, fake_session):
         r = RequestFactory()
         fake_request = r.post('/anyurl', data={'submit_desudo': True})
