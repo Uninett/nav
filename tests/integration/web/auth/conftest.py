@@ -22,6 +22,7 @@ def other_account(db):
     from nav.models.profiles import Account
 
     account = Account(login="other_user")
+    account.set_password("password")
     account.save()
     yield account
     account.delete()
