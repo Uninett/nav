@@ -26,3 +26,13 @@ def other_account(db):
     account.save()
     yield account
     account.delete()
+
+
+@pytest.fixture()
+def locked_account(db):
+    from nav.models.profiles import Account
+
+    account = Account(login="locked_user")
+    account.save()
+    yield account
+    account.delete()
