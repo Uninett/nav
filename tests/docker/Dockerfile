@@ -18,7 +18,6 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get -y install --no-install-recommends \
       curl git build-essential \
       python3.7-dbg python3.7-dev python3.7-distutils \
-      python3.8-dbg python3.8-dev \
       python3.9-dbg python3.9-dev \
       python3-pip
 
