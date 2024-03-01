@@ -16,6 +16,7 @@ a:visited,
     color: #d9d9d9;
 }
 
+/* Show the logo on mobile exactly like on big screen */
 .wy-nav-top > a img.logo {
     display: block;
     margin: 0 auto;
