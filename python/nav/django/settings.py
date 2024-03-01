@@ -126,6 +126,7 @@ TEMPLATES = [
 
 # Middleware
 MIDDLEWARE = (
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'nav.web.auth.middleware.AuthenticationMiddleware',
@@ -261,12 +262,14 @@ SEARCHPROVIDERS = [
 # Configured in etc/webfront/webfront.conf:
 #  [security]
 #  needs_tls = yes
+#  frames_allow = self
 
 SECURE_BROWSER_XSS_FILTER = True  # Does no harm
 
 _websecurity_config = WebSecurityConfigParser()
-_needs_tls = bool(_websecurity_config.getboolean('security', 'needs_tls'))
+_needs_tls = bool(_websecurity_config.getboolean('needs_tls'))
 SESSION_COOKIE_SECURE = _needs_tls
+X_FRAME_OPTIONS = _websecurity_config.get_x_frame_options()
 
 # Hack for hackers to use features like debug_toolbar etc.
 # https://code.djangoproject.com/wiki/SplitSettings (Rob Golding's method)
