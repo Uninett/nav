@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 # Ensure latest NAV code is built
 mydir=$(dirname $0)

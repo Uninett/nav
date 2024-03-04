@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 if [[ ! -f "/source/setup.py" ]]; then
   echo NAV source code does not appear to be mounted at /source
@@ -8,7 +8,7 @@ if [[ ! -f "/source/setup.py" ]]; then
 fi
 
 cd /source
-pip install -e .
+pip install -vv -e .
 sudo -u nav python3 setup.py build_sass
 
 if [[ ! -f "/etc/nav/nav.conf" ]]; then
