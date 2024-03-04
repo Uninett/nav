@@ -80,7 +80,9 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        iputils-ping \
        snmp
 
-RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
+ARG UID
+ARG GID
+RUN groupadd --gid "$GID" nav ; adduser --home=/source --shell=/bin/bash --uid=$UID --gid=$GID nav
 
 RUN pip3 install --upgrade 'setuptools>=61' wheel && \
     pip3 install --upgrade 'pip<=23.1.0' pip-tools build
