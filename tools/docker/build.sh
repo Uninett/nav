@@ -8,7 +8,6 @@ if [[ ! -f "/source/setup.py" ]]; then
 fi
 
 cd /source
-sudo -u nav python3 -m build
 pip install -e .
 sudo -u nav python3 setup.py build_sass
 
