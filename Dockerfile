@@ -30,7 +30,9 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN echo 'deb-src http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.list.d/srcpkg.list && \
     echo 'deb-src http://security.debian.org/debian-security bullseye-security main' >> /etc/apt/sources.list.d/srcpkg.list
-RUN apt-get update && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt-get update && \
     apt-get -y --no-install-recommends install \
             locales \
             python3-dbg gdb \
@@ -53,7 +55,9 @@ RUN echo "${TIMEZONE}" > /etc/timezone && cp /usr/share/zoneinfo/${TIMEZONE} /et
 
 #### Install various build and runtime requirements as Debian packages ####
 
-RUN apt-get update \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt-get update \
     && apt-get -y --no-install-recommends install \
        git-core \
        libsnmp40 \
