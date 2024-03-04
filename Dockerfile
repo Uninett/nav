@@ -22,7 +22,7 @@
 # be world-readable!
 #
 #
-FROM debian:bullseye
+FROM --platform=linux/amd64 debian:bullseye
 
 #### Prepare the OS base setup ###
 
