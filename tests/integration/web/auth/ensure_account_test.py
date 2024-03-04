@@ -3,7 +3,9 @@ from nav.web.auth.utils import ACCOUNT_ID_VAR, set_account, ensure_account
 from nav.web.auth.sudo import sudo
 
 
-def test_account_is_set_if_missing(session_request):
+def test_account_should_be_set_if_request_does_not_already_have_an_account(
+    session_request,
+):
     assert not hasattr(session_request, "account")
     ensure_account(session_request)
     assert ACCOUNT_ID_VAR in session_request.session, 'Account id is not in the session'
@@ -13,7 +15,9 @@ def test_account_is_set_if_missing(session_request):
     ), 'Correct user not set'
 
 
-def test_account_is_switched_to_default_if_locked(session_request, locked_account):
+def test_account_should_be_switched_to_default_if_locked(
+    session_request, locked_account
+):
     set_account(session_request, locked_account)
     ensure_account(session_request)
     default_account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
@@ -21,7 +25,7 @@ def test_account_is_switched_to_default_if_locked(session_request, locked_accoun
     assert session_request.account == default_account, 'Correct user not set'
 
 
-def test_account_is_left_alone_if_ok(session_request, account):
+def test_account_should_be_unchanged_if_ok(session_request, account):
     set_account(session_request, account)
     ensure_account(session_request)
     assert session_request.account == account

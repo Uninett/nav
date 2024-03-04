@@ -3,7 +3,7 @@ from nav.web.auth.utils import ACCOUNT_ID_VAR, set_account
 from nav.web.auth.sudo import sudo
 
 
-def test_non_sudo_logout_removes_session_data(db, session_request, admin_account):
+def test_non_sudo_logout_should_remove_session_data(db, session_request, admin_account):
     # login with admin acount
     set_account(session_request, admin_account)
     logout(session_request)
@@ -11,14 +11,16 @@ def test_non_sudo_logout_removes_session_data(db, session_request, admin_account
     assert ACCOUNT_ID_VAR not in session_request.session
 
 
-def test_non_sudo_logout_returns_path_to_index(db, session_request, admin_account):
+def test_non_sudo_logout_should_return_path_to_index(
+    db, session_request, admin_account
+):
     # login with admin acount
     set_account(session_request, admin_account)
     result = logout(session_request)
     assert result == '/'
 
 
-def test_sudo_logout_sets_session_to_original_user(
+def test_sudo_logout_should_set_session_to_original_user(
     db, session_request, admin_account, account
 ):
     # login with admin acount
