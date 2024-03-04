@@ -30,3 +30,24 @@ def test_sudo_logout_should_set_session_to_original_user(
     result = logout(session_request, sudo=True)
     assert result == '/'
     assert session_request.account == admin_account
+
+
+def test_non_sudo_logout_should_change_session_id(db, session_request, admin_account):
+    # login with admin acount
+    set_account(session_request, admin_account)
+    pre_session_id = session_request.session.session_key
+    logout(session_request)
+    post_session_id = session_request.session.session_key
+    assert post_session_id != pre_session_id
+
+
+def test_sudo_logout_should_change_session_id(
+    db, session_request, admin_account, account
+):
+    # login with admin acount
+    set_account(session_request, admin_account)
+    sudo(session_request, account)
+    pre_session_id = session_request.session.session_key
+    logout(session_request, sudo=True)
+    post_session_id = session_request.session.session_key
+    assert post_session_id != pre_session_id
