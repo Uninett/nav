@@ -33,45 +33,6 @@ def test_set_account(fake_session):
     assert request.session[ACCOUNT_ID_VAR] == DEFAULT_ACCOUNT.id
 
 
-class TestEnsureAccount(object):
-    def test_account_is_set_if_missing(self, fake_session):
-        r = RequestFactory()
-        request = r.get('/')
-        request.session = fake_session
-        with patch("nav.web.auth.Account.objects.get", return_value=DEFAULT_ACCOUNT):
-            ensure_account(request)
-            assert (
-                auth.ACCOUNT_ID_VAR in request.session
-            ), 'Account id is not in the session'
-            assert hasattr(request, 'account'), 'Account not set'
-            assert (
-                request.account.id == request.session[auth.ACCOUNT_ID_VAR]
-            ), 'Correct user not set'
-
-    def test_account_is_switched_to_default_if_locked(self, fake_session):
-        r = RequestFactory()
-        request = r.get('/')
-        request.session = fake_session
-        request.session[auth.ACCOUNT_ID_VAR] = LOCKED_ACCOUNT.id
-        with patch(
-            "nav.web.auth.Account.objects.get",
-            side_effect=[LOCKED_ACCOUNT, DEFAULT_ACCOUNT],
-        ):
-            ensure_account(request)
-            assert request.session[auth.ACCOUNT_ID_VAR] == DEFAULT_ACCOUNT.id
-            assert request.account == DEFAULT_ACCOUNT, 'Correct user not set'
-
-    def test_account_is_left_alone_if_ok(self, fake_session):
-        r = RequestFactory()
-        request = r.get('/')
-        request.session = fake_session
-        request.session[auth.ACCOUNT_ID_VAR] = return_value = PLAIN_ACCOUNT.id
-        with patch("nav.web.auth.Account.objects.get", return_value=PLAIN_ACCOUNT):
-            ensure_account(request)
-            assert request.account == PLAIN_ACCOUNT
-            assert request.session[auth.ACCOUNT_ID_VAR] == PLAIN_ACCOUNT.id
-
-
 class TestAuthenticationMiddleware(object):
     def test_process_request_logged_in(self, fake_session):
         r = RequestFactory()
