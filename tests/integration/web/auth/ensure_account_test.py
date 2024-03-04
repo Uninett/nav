@@ -29,3 +29,14 @@ def test_account_should_be_unchanged_if_ok(session_request, account):
     ensure_account(session_request)
     assert session_request.account == account
     assert session_request.session[ACCOUNT_ID_VAR] == account.id
+
+
+def test_session_id_should_be_changed_if_going_from_locked_to_default_account(
+    session_request, locked_account, default_account
+):
+    set_account(session_request, locked_account)
+    pre_session_id = session_request.session.session_key
+    ensure_account(session_request)
+    assert session_request.account == default_account
+    post_session_id = session_request.session.session_key
+    assert post_session_id != pre_session_id
