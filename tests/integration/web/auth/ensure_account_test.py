@@ -16,11 +16,10 @@ def test_account_should_be_set_if_request_does_not_already_have_an_account(
 
 
 def test_account_should_be_switched_to_default_if_locked(
-    session_request, locked_account
+    session_request, locked_account, default_account
 ):
     set_account(session_request, locked_account)
     ensure_account(session_request)
-    default_account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
     assert session_request.session[ACCOUNT_ID_VAR] == default_account.id
     assert session_request.account == default_account, 'Correct user not set'
 
