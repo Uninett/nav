@@ -65,7 +65,7 @@ services:
     build: .
     command: ["/source/tools/docker/web.sh"]
     ports:
-      - "80:80"
+      - "80:8080"
     volumes_from:
       - nav
     depends_on:

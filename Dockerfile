@@ -126,6 +126,6 @@ COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
 VOLUME ["/source"]
 ENV    DJANGO_SETTINGS_MODULE nav.django.settings
-EXPOSE 80
+EXPOSE 8080
 
 CMD        ["/source/tools/docker/run.sh"]
