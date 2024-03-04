@@ -62,7 +62,11 @@ services:
 #      - postgres
 
   web:
-    build: .
+    build:
+      context: .
+      args:
+        UID: $UID
+        GID: $GID
     command: ["/source/tools/docker/web.sh"]
     ports:
       - "80:8080"
@@ -90,7 +94,11 @@ services:
   # Add a service to continuously rebuild the Sphinx documentation if the doc
   # directory is modified:
   docbuild:
-    build: .
+    build:
+      context: .
+      args:
+        UID: $UID
+        GID: $GID
     volumes_from:
       - nav
     command: /source/tools/docker/doc-watch.sh
