@@ -16,6 +16,8 @@ jobs:
 
       - name: docker-compose build
         run: |
+          echo "UID=$(id -u)" >> .env
+          echo "GID=$(id -g)" >> .env
           docker-compose build
 
       - name: Verify containers stay running at least 1 minute
