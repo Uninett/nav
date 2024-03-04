@@ -1,6 +1,5 @@
-from nav.web.auth import logout, Account
+from nav.web.auth import logout
 from nav.web.auth.utils import ACCOUNT_ID_VAR, set_account, ensure_account
-from nav.web.auth.sudo import sudo
 
 
 def test_account_should_be_set_if_request_does_not_already_have_an_account(
