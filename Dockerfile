@@ -80,9 +80,12 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        iputils-ping \
        snmp
 
+# Make an unprivileged nav user that corresponds to the user building this image.
+# Allow this user to run sudo commands and make a virtualenv for them to install NAV in
 ARG UID
 ARG GID
 RUN groupadd --gid "$GID" nav ; adduser --home=/source --shell=/bin/bash --uid=$UID --gid=$GID nav
+RUN echo "nav    ALL =(ALL: ALL) NOPASSWD: ALL" > /etc/sudoers.d/nav
 
 RUN pip3 install --upgrade 'setuptools>=61' wheel && \
     pip3 install --upgrade 'pip<=23.1.0' pip-tools build
