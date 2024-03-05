@@ -22,7 +22,7 @@ import logging
 from nav.auditlog.models import LogEntry
 from nav.django.utils import is_admin, get_account
 from nav.models.profiles import Account
-from nav.web.auth.utils import set_account, ACCOUNT_ID_VAR, clear_session
+from nav.web.auth.utils import set_account, clear_session
 
 
 _logger = logging.getLogger(__name__)

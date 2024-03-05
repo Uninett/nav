@@ -3,7 +3,7 @@ import os
 
 from django.test import RequestFactory
 
-from nav.web.auth.utils import ACCOUNT_ID_VAR, set_account, ensure_account
+from nav.web.auth.utils import ACCOUNT_ID_VAR, set_account
 from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.middleware import AuthenticationMiddleware
 from nav.web.auth.middleware import AuthorizationMiddleware
