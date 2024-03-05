@@ -11,19 +11,27 @@ found in the [HISTORY](HISTORY) file.
 
 ### Added
 
-- Make `mod_auth_mellon` (SAML) work for logins ([#2740](https://github.com/Uninett/nav/pull/2740))
+- Added option to enable secure cookies in new web security section of `webfront.conf` ([#2194](https://github.com/Uninett/nav/issue/2194), [#2815](https://github.com/Uninett/nav/pull/2815))
+- Made `mod_auth_mellon` (SAML) work for logins ([#2740](https://github.com/Uninett/nav/pull/2740))
   - Also added howto for setting up `mod_auth_mellon` for Feide authentication.
 
 ### Fixed
 
 - Cycle session IDs on login/logout to protect against potential session fixation attacks ([#2804](https://github.com/Uninett/nav/issues/2804), [#2813](https://github.com/Uninett/nav/pull/2813), [#2836](https://github.com/Uninett/nav/pull/2836), [#2835](https://github.com/Uninett/nav/pull/2835))
+- Prevent clickjacking attacks on NAV by disallowing putting NAV site in document frames ([#2816](https://github.com/Uninett/nav/pull/2816), [#2817](https://github.com/Uninett/nav/pull/2817))
+
 
 - Various changes needed to move NAV closer to being fully compatible with Python 3.11:
   - Replaced all uses of `pkg_resources` with `importlib` ([#2791](https://github.com/Uninett/nav/issues/2791), [#2798](https://github.com/Uninett/nav/pull/2798), [#2799](https://github.com/Uninett/nav/pull/2799))
   - Upgraded Twisted to a version that supports Python 3.11 ([#2792](https://github.com/Uninett/nav/issues/2792), [#2796](https://github.com/Uninett/nav/pull/2796))
   - Upgraded psycopg to 2.9.9 ([#2793](https://github.com/Uninett/nav/issues/2793), [#2795](https://github.com/Uninett/nav/pull/2795))
-  - Stop supporting Django's older than 3.2 ([#2823](https://github.com/Uninett/nav/pull/2823))
-  - Upgrade python-ldap from 3.4.0->3.4.4 ([#2830](https://github.com/Uninett/nav/pull/2830))
+  - Dropped code that was there to support Django's older than 3.2 ([#2823](https://github.com/Uninett/nav/pull/2823))
+  - Upgraded python-ldap from 3.4.0->3.4.4 ([#2830](https://github.com/Uninett/nav/pull/2830))
+  - Enabled running test suite on Python 3.10 by default ([#2838](https://github.com/Uninett/nav/pull/2838))
+  - Stopped running test suite on Python 3.8 by default ([#2851](https://github.com/Uninett/nav/pull/2851))
+  - Fixed invalid/deprecated backslash escapes in MIB dump files, as warned about in newer Python versions ([#2846](https://github.com/Uninett/nav/pull/2846), [#2848](https://github.com/Uninett/nav/pull/2848))
+  - Fixed deprecation warning for Django 4.0 in test suite ([#2844](https://github.com/Uninett/nav/pull/2844))
+  - Removed an adaption to Pythons older than 3.7 ([#2840](https://github.com/Uninett/nav/pull/2840))
 
 - Various cleanups of the test suites:
   - Remove `FakeSession` redundancy ([#2841](https://github.com/Uninett/nav/issues/2841), [#2842](https://github.com/Uninett/nav/pull/2842))
