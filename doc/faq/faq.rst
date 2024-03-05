@@ -140,3 +140,8 @@ example::
   * 6 * * * navclean --force --arp --cam --interval '6 months'
 
 See the output of ``navclean --help`` for usage details.
+
+.. toctree::
+    :hidden:
+
+    /faq/graph_gaps

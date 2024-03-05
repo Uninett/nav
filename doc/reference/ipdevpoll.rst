@@ -9,41 +9,7 @@ intervals. These jobs are fully user-configurable.
 Usage
 =====
 
-::
-
-    usage: ipdevpolld [-h] [--version] [-f] [-s] [-j] [-p] [-J JOBNAME]
-		      [-n NETBOX] [-m [WORKERS]] [-M JOBS] [-P] [--capture-vars]
-		      [-c] [--threadpoolsize COUNT] [--worker]
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      --version             show program's version number and exit
-      -f, --foreground      run in foreground instead of daemonizing
-      -s, --log-stderr      log to stderr instead of log file
-      -j, --list-jobs       print a list of configured jobs and exit
-      -p, --list-plugins    load and print a list of configured plugins
-      -J JOBNAME            run only JOBNAME jobs in this process
-      -n NETBOX, --netbox NETBOX
-			    Run JOBNAME once for NETBOX. Also implies -f and -s
-			    options.
-      -m [WORKERS], --multiprocess [WORKERS]
-			    Run ipdevpoll in a multiprocess setup. If WORKERS is
-			    not set it will default to number of cpus in the
-			    system
-      -M JOBS, --max-jobs-per-worker JOBS
-			    Restart worker processes after completing JOBS jobs.
-			    (Default: Don't restart)
-      -P, --pidlog          Include process ID in every log line
-      --capture-vars        Capture and print locals and globals in tracebacks
-			    when debug logging
-      -c, --clean           cleans/purges old job log entries from the database
-			    and then exits
-      --threadpoolsize COUNT
-			    the number of database worker threads, and thus db
-			    connections, to use in this process
-      --worker              Used internally when lauching worker processes
-
-    This program runs SNMP polling jobs for IP devices monitored by NAV
+.. program-output:: ipdevpolld --help
 
 Manually running a job for a given netbox
 -----------------------------------------
@@ -169,7 +135,7 @@ are reserved for synchronous communication with the PostgreSQL database
 backend. Even on a multi-core server, this means all of ipdevpoll's work is
 limited to a single core. Once ipdevpoll's workload grows beyond what a single
 core can handle, ipdevpoll can optionally run in a *multiprocess mode*, using
-the :option:`--multiprocess` option.
+the ``--multiprocess`` option.
 
 In multiprocess mode, ipdevpoll spawns a number of worker processes, while the
 master process becomes a simple job scheduler, distributing the actual jobs to
@@ -179,7 +145,7 @@ the individual workers.
 
    ipdevpoll's default number of workers processes and threads aren't
    necessarily sane for multiprocess usage. Unless a number of workers is
-   supplied to the :option:`--multiprocess` option, it will spawn a number of
+   supplied to the ``--multiprocess`` option, it will spawn a number of
    workers corresponding to the number of cores it detects on your system. The
    default number of database threads in ipdevpoll's threadpool is **10** per process,
    which means each worker process will create **10 individual connections to
@@ -189,13 +155,13 @@ the individual workers.
    default pool of 100 available connections, causing other NAV processes to
    be unable to connect to the database. When enabling multiprocess mode, you
    should really tune down the threadpool size by adding the
-   :option:`--threadpoolsize` option.
+   ``--threadpoolsize`` option.
 
 
 Another good thing about the multiprocess mode is that you can limit the
 number of jobs any worker process will run before it is killed and respawned.
 This may provide additional protection against unintended resource leaks. See
-the :option:`--max-jobs-per-worker` option.
+the ``--max-jobs-per-worker`` option.
 
 You can make sure ipdevpoll always runs in multiprocess mode by altering the
 ``command`` option in the ``ipdevpoll`` entry of the configuration file

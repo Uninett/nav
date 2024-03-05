@@ -115,6 +115,10 @@ Tells us whether a link is up or down.
 
    * - Alert type name
      - Description
+   * - ``linkUp``
+     - Link active
+   * - ``linkDown``
+     - Link inactive
 
 
 
@@ -196,19 +200,20 @@ Registers the state of a device
    * - Alert type name
      - Description
    * - ``deviceInIPOperation``
-     - The device is now in operation with an active IP address.
+     - The device is now in operation with an active IP address
    * - ``deviceInStack``
-     - The device is now in operation as a chassis module.
+     - The device is now in operation as a chassis module
    * - ``deviceRMA``
      - RMA event for device.
    * - ``deviceNewModule``
-     -  The device has been found as a module.
+     - The device has been found as a module.
    * - ``deviceNewChassis``
      - The device has been found as a chassis.
    * - ``deviceNewPsu``
      - The device has been found as a power supply.
    * - ``deviceNewFan``
      - The device has been found as a fan.
+
 
 
 
@@ -376,6 +381,188 @@ The state of this BGP peering session changed
      - This BGP peering session has been established
    * - ``bgpAdmDown``
      - This BGP peering session is administratively down
+
+
+
+
+*juniperYellowAlarmState* events
+--------------------------------
+Tells us if a Juniper device has any open yellow alarms.
+
+.. list-table:: Alerts associated with juniperYellowAlarmState events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``juniperYellowAlarmOn``
+     - The Juniper device has some yellow alarms.
+   * - ``juniperYellowAlarmOff``
+     - The Juniper device has no yellow alarms.
+
+
+
+
+*juniperRedAlarmState* events
+-----------------------------
+Tells us if a Juniper device has any open red alarms.
+
+.. list-table:: Alerts associated with juniperRedAlarmState events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``juniperRedAlarmOn``
+     - The Juniper device has some red alarms.
+   * - ``juniperRedAlarmOff``
+     - The Juniper device has no red alarms.
+
+
+
+
+*weathergoose_temperature* events
+---------------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_temperature events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateTempCTRAP``
+     - Climate Temperature Sensor Trap
+   * - ``cmClimateTempCCLEAR``
+     - Climate Temperature Sensor Clear Trap
+   * - ``cmClimateTempCNOTIFY``
+     - Climate Temperature Sensor Trap
+   * - ``cmTempSensorTempCNOTIFY``
+     - Remote Temp Sensor - Temperature Trap
+   * - ``cmTempSensorTempCCLEAR``
+     - Remote Temp Sensor - Temperature Clear Trap
+   * - ``gstClimateTempCNOTIFY``
+     - Climate Temperature Sensor Trap
+   * - ``gstTempSensorTempCNOTIFY``
+     - Remote Temp Sensor - Temperature Trap
+   * - ``gstClimateTempCCLEAR``
+     - Climate Temperature Sensor Clear Trap
+   * - ``gstTempSensorTempCCLEAR``
+     - Remote Temp Sensor - Temperature Clear Trap
+
+
+
+
+*weathergoose_humidity* events
+------------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_humidity events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateHumidityTRAP``
+     - Climate Humidity Sensor Trap
+   * - ``cmClimateHumidityCLEAR``
+     - Climate Humidity Sensor Clear Trap
+   * - ``cmClimateHumidityNOTIFY``
+     - Climate Humidity Sensor Trap
+   * - ``gstClimateHumidityNOTIFY``
+     - Climate Humidity Sensor Trap
+   * - ``gstClimateHumidityCLEAR``
+     - Climate Humidity Sensor Clear Trap
+
+
+
+
+*weathergoose_airflow* events
+-----------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_airflow events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateAirflowTRAP``
+     - Climate Air Flow Sensor Trap
+   * - ``cmClimateAirflowCLEAR``
+     - Climate Air Flow Sensor Clear Trap
+   * - ``cmClimateAirflowNOTIFY``
+     - Climate Air Flow Sensor Trap
+   * - ``gstClimateAirflowNOTIFY``
+     - Climate Air Flow Sensor Trap
+   * - ``gstClimateAirflowCLEAR``
+     - Climate Air Flow Sensor Clear Trap
+
+
+
+
+*weathergoose_light* events
+---------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_light events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateLightTRAP``
+     - Climate Light Sensor Trap
+   * - ``cmClimateLightCLEAR``
+     - Climate Light Sensor Clear Trap
+   * - ``cmClimateLightNOTIFY``
+     - Climate Light Sensor Trap
+   * - ``gstClimateLightNOTIFY``
+     - Climate Light Sensor Trap
+   * - ``gstClimateLightCLEAR``
+     - Climate Light Sensor Clear Trap
+
+
+
+
+*weathergoose_sound* events
+---------------------------
+
+
+.. list-table:: Alerts associated with weathergoose_sound events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``cmClimateSoundTRAP``
+     - Climate Sound Sensor Trap
+   * - ``cmClimateSoundCLEAR``
+     - Climate Sound Sensor Clear Trap
+   * - ``cmClimateSoundNOTIFY``
+     - Climate Sound Sensor Trap
+   * - ``gstClimateSoundNOTIFY``
+     - Climate Sound Sensor Trap
+   * - ``gstClimateSoundCLEAR``
+     - Climate Sound Sensor Clear Trap
+
+
+
+
+*upsPowerState* events
+----------------------
+UPS running on battery or utility power
+
+.. list-table:: Alerts associated with upsPowerState events
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Alert type name
+     - Description
+   * - ``upsOnBatteryPower``
+     - Ups running on battery power
+   * - ``upsOnUtilityPower``
+     - Ups running on utility power
 
 
 

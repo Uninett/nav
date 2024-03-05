@@ -219,15 +219,13 @@ class MibTableResultRow(dict):
 
     Acts as a dictionary.  The row index is available through the
     integer key 0, or as the member attribute 'index'.
-
     """
 
     def __init__(self, index, columns=None):
         """Initialize with the row index of this row.
 
-        index -- index OID
-        columns -- optional list of column names to pre-allocate with
-                   None values.
+        :param index: index OID
+        :param columns: optional list of column names to pre-allocate with None values.
 
         """
         if columns is None:
