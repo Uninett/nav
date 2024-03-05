@@ -21,6 +21,7 @@ from datetime import datetime
 import json
 import logging
 from operator import attrgetter
+from urllib.parse import quote as urlquote
 
 from django.http import (
     HttpResponseForbidden,
@@ -32,7 +33,6 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.utils.http import urlquote
 
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
