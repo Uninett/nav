@@ -277,7 +277,11 @@ def test_page_should_be_valid_html(page):
 
 def should_validate(page: Page):
     """Returns True if page is eligible for HTML validation, False if not"""
-    if not page.content_type or 'html' not in page.content_type.lower():
+    if (
+        page.response == 500
+        or not page.content_type
+        or 'html' not in page.content_type.lower()
+    ):
         return False
     path = normalize_path(page.url)
     for blacklisted_path in TIDY_BLACKLIST:
