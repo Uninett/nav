@@ -29,7 +29,7 @@ NAV's data model allows you to organize your IP device information in several wa
 
 All these definitions are entered into NAV through the *SeedDB* tool, where
 you added your devices in the :doc:`getting started guide <getting-started>`.
-If you alreadu have much of this information in electronic format, it too can
+If you already have much of this information in electronic format, it too can
 be bulk imported into NAV using the text formats described in each SeedDB tab.
 
 As seen in that guide, NAV ships with an example location, room and
@@ -67,7 +67,7 @@ corresponds to each prefix. Sometimes, VLANs will have multiple prefixes, in
 the case of secondary network addresses or when both IPv4 and IPv6 are
 deployed in a subnet.
 
-NAV features a subnet matrix tool, which charts your subnet allocations and
+NAV features a subnet matrix tool which charts your subnet allocations and
 their utilization percentages. To take advantage of this, you must manually
 add one ore more *scope prefixes* through the SeedDB *Prefix* tab. Each scope
 prefix will usually correspond to an IP address block you have been assigned
@@ -85,7 +85,7 @@ Vendors and device types
 ------------------------
 
 NAV will automatically discover and assign *device types* to SNMP-enabled
-devices being monitored. Each device type corresponds to a unique
+devices that are being monitored. Each device type corresponds to a unique
 *sysObjectID*. An SNMP-enabled device will usually report a vendor-specific
 and unique *sysObjectID*, which may map to some specific device model, type
 and/or software.
@@ -94,16 +94,16 @@ Each device type in NAV is mapped to a *vendor ID*, a moniker such as
 ``cisco`` or ``juniper``. You can edit your device types and vendors through
 the SeedDB tool.
 
-When NAV sees a previously unknown *sysObjectID*, it will automatically
+When NAV sees a previously unknown *sysObjectID* it will automatically
 register a new device type and attach it to the ``unknown`` vendor id. You may
 wish to later edit these auto-created device types using the SeedDB *Type*
-tab, to set the correct vendor id and a more proper type name and description.
+tab to set the correct vendor id and a more proper type name and description.
 
 
 Cabling and patching
 --------------------
 
-If desireable, you can also document your cabling plans and your patch panels,
+If desireable, you can also document your cabling plans and your patch panels
 using SeedDB. This would enable NAV to tell you to which office each switch
 port is patched through to (unless you are already diligent and add this
 information to the switch port description when patching).

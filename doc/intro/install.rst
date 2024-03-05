@@ -56,7 +56,7 @@ patches from the Debian team.
 
 This is normally our recommended option for regular NAV users.
 
-`Instructions for installing the Debian package is available on the official
+`Instructions for installing the Debian package are available on the official
 NAV web site <https://nav.uninett.no/install-instructions/#debian>`_.
 
 After installing the Debian package, you will need to :ref:`integrate Graphite
