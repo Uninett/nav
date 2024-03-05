@@ -319,7 +319,7 @@ class JobHandler(object):
             return failure
 
         def save(result):
-            if self.cancelled.isSet():
+            if self.cancelled.is_set():
                 return wrap_up_job(result)
 
             df = self._save_container()
@@ -524,7 +524,7 @@ class JobHandler(object):
 
     def _raise_if_cancelled(self):
         """Raises an AbortedJobError if the current job is cancelled"""
-        if self.cancelled.isSet():
+        if self.cancelled.is_set():
             raise AbortedJobError("Job was already cancelled")
 
     @classmethod
