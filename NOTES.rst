@@ -62,7 +62,7 @@ Various vendors use the concept of "community indexing" to fetch multiple
 logical instances of MIBs.  Examples include Cisco switches, where multiple
 instances of the ``BRIDGE-MIB`` are kept, one for each active VLAN.  To access
 the switch forwarding tables of VLAN 12 with an SNMP community of ``public``,
-the community must be modified to ``public@20``.
+the community must be modified to ``public@12``.
 
 Another common example is devices that allow SNMP management of individual VRF
 instances by modifying the SNMP community.
