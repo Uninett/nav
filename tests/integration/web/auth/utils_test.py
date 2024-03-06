@@ -32,9 +32,7 @@ class TestClearSession:
 
 class TestEnsureAccount:
     def test_account_should_be_set_if_request_does_not_already_have_an_account(
-        self,
-        db,
-        session_request,
+        self, db, session_request
     ):
         assert not hasattr(session_request, "account")
         ensure_account(session_request)
