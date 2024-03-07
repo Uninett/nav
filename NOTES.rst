@@ -11,6 +11,38 @@ please go to https://github.com/uninett/nav/milestones .
 NAV 5.9
 =======
 
+Changed names of NAV command line programs
+------------------------------------------
+NAV has switched to a more canonical way of installing Python command line
+scripts, or "binaries".  This means that all NAV command line programs that
+previously ended with a ``.py`` extension now have been stripped of that
+extension.  Any custom cron jobs or scripts you have that may reference these
+NAV commands must be updated in order to continue working.
+
+It also means that you need to make sure your :file:`daemons.yml` configuration
+file is up-to-date after an upgrade, as well as the NAV cronjob snippets in the
+:file:`cron.d/` configuration directory.
+
+These commands are affected and no longer have a ``.py`` extension:
+
+* ``alertengine``
+* ``autoenable``
+* ``collect_active_ip``
+* ``emailreports``
+* ``logengine``
+* ``macwatch``
+* ``mailin``
+* ``maintengine``
+* ``netbiostracker``
+* ``pping``
+* ``radiusparser``
+* ``servicemon``
+* ``smsd``
+* ``snmptrapd``
+* ``sortedstats_cacher``
+* ``start_arnold``
+* ``t1000``
+
 Web security
 ------------
 
