@@ -22,7 +22,7 @@
 # be world-readable!
 #
 #
-FROM debian:bullseye
+FROM --platform=linux/amd64 debian:bullseye
 
 #### Prepare the OS base setup ###
 
@@ -35,7 +35,13 @@ RUN apt-get update && \
             locales \
             python3-dbg gdb \
             sudo python3-dev python3-pip python3-virtualenv build-essential supervisor \
-	    debian-keyring debian-archive-keyring ca-certificates
+	    debian-keyring debian-archive-keyring ca-certificates curl gpg
+
+## Use deb.nodesource.com to fetch more modern versions of Node/NPM than Debian can provide
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg && \
+    echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main' > /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && \
+    apt-get install -y nodejs
 
 ARG TIMEZONE=Europe/Oslo
 ARG LOCALE=en_US.UTF-8
