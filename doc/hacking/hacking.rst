@@ -104,6 +104,41 @@ contribute to NAV.
 
 .. _CLA assistant: https://cla-assistant.io/
 
+Adding a changelog entry
+------------------------
+
+We are using `towncrier`_ to automatically produce the changelog from separate files
+at the time of a release. These files can be found in the folder :file:`changelog.d/`.
+Every entry should explain what a change does in terms that are understandable for end
+users.
+
+When creating a pull request you should also add such a file.
+
+The name of the file consists of three parts separated by a period:
+
+1. The identifier: either the issue number (in case the pull request fixes that issue)
+   or the pull request number. If you don't want to add a link to the resulting
+   changelog entry then a + followed by a unique short description.
+2. The type of the change: we use security, removed, deprecated, added, changed and
+   fixed.
+3. The file suffix, e.g. .md, towncrier does not care which suffix a fragment has.
+
+So an example for a file name related to an issue/pull request would be
+:file:`214.added.md` or for a file without corresponding issue
+:file:`+fixed-pagination-bug.fixed.md`.
+
+This file can either be created manually with a file name as specified above and the
+changelog text as content or you can use towncrier to create such a file as following:
+
+.. code-block:: console
+
+   $ towncrier create -c "Changelog content" 214.added.md
+
+When opening a pull request there will be a check to make sure that a news fragment is
+added and it will fail if it is missing.
+
+.. _towncrier: https://towncrier.readthedocs.io/
+
 
 Directory layout
 ================

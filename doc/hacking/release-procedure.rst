@@ -58,27 +58,36 @@ new release.
 Updating changelog and release notes
 ------------------------------------
 
-* Generate a list of referenced issues from the GitHub milestone::
+Towncrier can be used to automatically produce a changelog using the
+:file:`changelog.d` directory which contains files describing changes since the last release.
 
-    ./tools/buglog.py 4.8.3
+To add these changes to :file:`CHANGELOG.md` simply run
 
-  ``buglog`` depends on the ``github`` library, install with
-  ``pip install PyGithub``.
-  (`PyGithub documentation <https://pygithub.readthedocs.io/en/latest/>`_)
+.. code-block:: console
 
-* Add a new entry :file:`CHANGELOG.md` for for the new release and paste the
-  list produced by the above command. Sort items into types of changes
-  according to the principles of `Keep A Changelog
-  <https://keepachangelog.com/en/1.0.0/>`_, and optionally change item titles
-  to be more end-user friendly if need be.  Commit the changes::
+  $ towncrier build --version {version}
 
-    git commit -m 'Update changelog for the upcoming X.Y.Z release'
+This will also delete all files in :file:`changelog.d/`.
 
-* Bump and tag the version number (and sign the tag) using ``version.sh``, and
-  push the changes back to the official repository::
+To preview what the addition to the changelog file would look like add the flag
+``--draft``.
+A few other helpful flags are:
+* `date DATE` - set the date of the release, default is today
+* `keep` - keep all news fragments
+  
+Commit the changes using
 
-    ./version.sh -t
-    git push --tags
+.. code-block:: console
+
+  $ git commit -m 'Update changelog for the upcoming X.Y.Z release'
+
+Bump and tag the version number (and sign the tag) using ``version.sh``, and
+push the changes back to the official repository:
+
+.. code-block:: console
+
+  $ ./version.sh -t
+  $ git push --tags
 
 
 Announcing the release

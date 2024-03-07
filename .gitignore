@@ -4,6 +4,7 @@
 *.swp
 *~
 .*
+!.gitkeep
 !.github/
 *.bak
 *.iml # JetBrains (PyCharm/IDEA) project files
