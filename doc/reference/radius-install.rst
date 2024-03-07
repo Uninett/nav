@@ -185,7 +185,7 @@ Copy the script to a location of your choice on the server where the
 that executes this script as often as you would like to make sure that the
 script is actually running. For example::
 
-  0 * * * *  /path/to/radiusparser.py
+  0 * * * *  /path/to/radiusparser
 
 This will run the script every hour, but if it detects that it is already
 running, it quits and leaves the running script alone.
@@ -210,14 +210,14 @@ accounting log table accumulating forever.  To arrange for periodic
 deletion of old records, create a cron snippet in NAV's ``etc/cron.d/``
 directory called ``radiusclean`` and add the following lines to it::
 
-  50 5 * * 6 /path/to/navclean.py --radiusacct -E "3 months" -f
-  45 5 * * 6 /path/to/navclean.py --radiuslog  -E "1 month" -f
+  50 5 * * 6 /path/to/navclean --radiusacct -E "3 months" -f
+  45 5 * * 6 /path/to/navclean --radiuslog  -E "1 month" -f
 
 To insert the cron snippet into `navcron`'s crontab, run::
 
   sudo nav start radiusclean
 
-This will run the ``navclean.py`` program once a week, deleting all radius
+This will run the ``navclean`` program once a week, deleting all radius
 accounting entries older than three months and all radius error log entries
 older than one month.  Feel free to change the intervals to something you
 think is suitable for your organization.

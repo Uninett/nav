@@ -3,6 +3,9 @@ import sys
 import subprocess
 
 
+BINDIR = './python/nav/bin'
+
+
 def test_binary_runs(binary):
     """Verifies that a command runs with a zero exit code"""
     proc = subprocess.Popen(binary, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
@@ -23,7 +26,7 @@ def test_naventity_runs_without_error_with_arguments(localhost, snmpsim):
     Added in regards to: https://github.com/Uninett/nav/issues/2433
     """
     proc = subprocess.Popen(
-        ["./bin/naventity", localhost.ip, "-p", "1024"],
+        [BINDIR + "/naventity.py", localhost.ip, "-p", "1024"],
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
     )
@@ -45,7 +48,7 @@ def test_nav_runs_without_error_without_arguments():
     Added in regards to: https://github.com/Uninett/nav/issues/2601
     """
     proc = subprocess.Popen(
-        ["./bin/nav"],
+        [BINDIR + "/navmain.py"],
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
     )

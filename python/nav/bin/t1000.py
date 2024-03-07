@@ -19,7 +19,7 @@
 t1000 finds blocked computers that have moved and blocks them again.
 
 Usage:
-sudo -u $NAV_USER ./t1000.py
+sudo -u $NAV_USER t1000
 
 t1000 is meant to be run as a cronjob. It checks the database for any
 detained ports. If it finds any, it checks if the mac-address is active on

@@ -20,7 +20,7 @@ Usage
 =====
 
 snmptrapd can be started and stopped using the regular `nav start` and
-`nav stop` commands.  The :program:`snmptrapd.py` program can also be run in
+`nav stop` commands.  The :program:`snmptrapd` program can also be run in
 the foreground on the command line, logging all its activites to the
 standard output instead of the log file.
 
@@ -30,7 +30,7 @@ the port is bound.
 
 ::
 
-    usage: snmptrapd.py [-h] [-d] [-c COMMUNITY] [address [address ...]]
+    usage: snmptrapd [-h] [-d] [-c COMMUNITY] [address [address ...]]
 
     NAV SNMP Trap daemon
 

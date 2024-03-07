@@ -139,8 +139,12 @@ class Controller:
             _logger.info("Caught %s. Resuming operation.", signum)
 
 
-def main(foreground):
+def main(args=None):
     """Daemon main entry point"""
+    os.umask(0o0002)
+    if args == None:
+        args = parse_args()
+    foreground = args.foreground
     conf = config.serviceconf()
     pidfilename = conf.get("pidfile", "servicemon.pid")
 
@@ -174,6 +178,4 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    os.umask(0o0002)
-    args = parse_args()
-    main(args.foreground)
+    main()

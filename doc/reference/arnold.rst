@@ -54,15 +54,15 @@ several views available. They are as follows:
 In addition you have two actions you can use - *Search* and *Manual detention*.
 
 - **Search** lets you search for detentions given some search parameters.
-- **Manual detention** lets you manually detain a port given an IP- or 
+- **Manual detention** lets you manually detain a port given an IP- or
   MAC-address.
 
 Predefined detentions
 ---------------------
-The only way to use a predefined detention is by using the ``start_arnold.py``
+The only way to use a predefined detention is by using the ``start_arnold``
 shell script. After creating a predefined detention you usually want to create a
 cron-job for running the script with some input parameters. See section about
-`start_arnold.py`_.
+`start_arnold`_.
 
 
 Using the scripts
@@ -71,48 +71,48 @@ Using the scripts
 Arnold consists of three scripts, which all are located in the ``nav/bin``
 directory.
 
-- **autoenable.py** enables ports based on the autoenable variable available for
+- **autoenable** enables ports based on the autoenable variable available for
   both manual and predefined detentions.
-- **start_arnold.py** is used in combination with predefined detentions to
+- **start_arnold** is used in combination with predefined detentions to
   invoke a series of detentions.
-- **t1000.py** verifies that the MAC-addresses that should be offline are not
+- **t1000** verifies that the MAC-addresses that should be offline are not
   active on other ports. If a detained MAC-address is online on another port, it
   will try to detain it there aswell.
 
 More details about the different scripts can be seen below.
 
-autoenable.py
--------------
+autoenable
+----------
 
-*autoenable.py* fetches all detained ports with an autoenable-value and enables
+*autoenable* fetches all detained ports with an autoenable-value and enables
 each of those detentions if the time is due. It can be run manually or as a
 periodic cron job.
 
 The simplest way of running automatic enabling periodically is to create a file
-containing cron configuration that calls the *autoenable.py* program as often as
+containing cron configuration that calls the *autoenable* program as often as
 you would like::
 
-  0 * * * * some_prefix/nav/bin/autoenable.py  # Run every hour on the hour
+  0 * * * * some_prefix/nav/bin/autoenable  # Run every hour on the hour
 
 Save this snippet in a file called ``autoenable`` in NAV's ``etc/cron.d/``
 directory. That way, you can add it to the navcron user's crontab by calling
 ``nav start autoenable``.
 
-start_arnold.py
----------------
+start_arnold
+------------
 
-When a predefined detention is created you can use *start_arnold.py* to invoke a
+When a predefined detention is created you can use *start_arnold* to invoke a
 series of detentions based on the input to the script.
 
 If the file or list of addresses exist locally then you can pipe it in using for
 instance ``cat``::
-  
-  # cat scanresult.txt | nav/bin/start_arnold_py -i
+
+  # cat scanresult.txt | nav/bin/start_arnold -i
 
 or you can do it from a remote server using ssh commands::
 
-  # cat scanresult.txt | ssh scanner@navinstall.network.com:nav/bin/start_arnold_py -i
-  
+  # cat scanresult.txt | ssh scanner@navinstall.network.com:nav/bin/start_arnold -i
+
 To avoid having to type passwords you want to create public keys, like described
 for instance `here <http://www.linuxproblem.org/art_9.html>`_.
 
@@ -123,19 +123,19 @@ Each line in this file is assumed to consist of an IP- or MAC-address and
 optionally a comment (separated by a space). For each valid address a detention
 will be made. Lines starting with *#* will be skipped.
 
-t1000.py
---------
+t1000
+-----
 
-This script needs to be set up to run in the same way as `autoenable.py`_.
+This script needs to be set up to run in the same way as `autoenable`_.
 
-*t1000.py* fetches all detained ports and checks if the MAC-address which was
+*t1000* fetches all detained ports and checks if the MAC-address which was
 behind the detained port is active on another port. If it is, it enforces the
 detention on that port aswell. Depending on options given at detention-time it
 will either remove the detention on the old port or just leave it.
 
 .. warning:: This does not detain the new port immediately after a detained
    computer has moved to it, because it takes some time before NAV discovers the
-   new location of the MAC-address. This combined with the interval t1000.py
+   new location of the MAC-address. This combined with the interval ``t1000``
    runs in could give the user quite some time with access before being detained
    again. This on-and-off behavior of internet access has been known to cause
    confusion and annoyance among the users - use this script knowing that.

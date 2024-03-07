@@ -113,7 +113,6 @@ A rough guide to the source tree:
 =================================  =================================================================
 Directory                          Description
 =================================  =================================================================
-:file:`bin/`                       NAV 'binaries'; executable scripts and programs.
 :file:`contrib/`                   User contributed NAV tools. NAV doesn't depend on these, and any
                                    maintenance of them is left up to the original developers. We do
                                    not offer support for these tools.
