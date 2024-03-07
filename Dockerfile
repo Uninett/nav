@@ -86,7 +86,10 @@ ARG UID
 ARG GID
 RUN groupadd --gid "$GID" nav ; adduser --home=/source --shell=/bin/bash --uid=$UID --gid=$GID nav
 RUN echo "nav    ALL =(ALL: ALL) NOPASSWD: ALL" > /etc/sudoers.d/nav
+# Ensure the virtualenv's bin directory is on everyone's PATH variable
 RUN sed -e 's,^Defaults.*secure_path.*,Defaults        secure_path="/opt/venvs/nav/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",' -i /etc/sudoers
+RUN sed -e 's,^ENV_SUPATH.*,ENV_SUPATH      PATH=/opt/venvs/nav/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",' -i /etc/login.defs
+RUN sed -e 's,^ENV_PATH.*,ENV_PATH        PATH=/opt/venvs/nav/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games",' -i /etc/login.defs
 
 RUN --mount=type=cache,target=/source/.cache \
     mkdir -p /opt/venvs/nav && chown nav /opt/venvs/nav && \
