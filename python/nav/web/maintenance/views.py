@@ -252,9 +252,7 @@ def cancel(request, task_id):
 def edit(request, task_id=None, start_time=None, **_):
     account = get_account(request)
     quickselect = QuickSelect(service=True)
-    component_trail = None
-    component_keys = None
-    task = None
+    component_trail = component_keys_errors = component_data = task = None
 
     if task_id:
         task = get_object_or_404(MaintenanceTask, pk=task_id)

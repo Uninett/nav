@@ -50,9 +50,15 @@ originating site upon login/logout completion, the originating NAV URL can be
 inserted using the placeholder string ``{}``.  Example::
 
     [remote-user]
-    enabled=yes
-    login-url: https://sso.example.org/login?nexthop={}
-    logout-url: https://sso.example.org/logout?nexthop={}
+    enabled = yes
+    login-url = https://sso.example.org/login?nexthop={}
+    logout-url = https://sso.example.org/logout?nexthop={}
+
+``logout-url`` will set the link that the logout-button points to, the default
+is "/index/logout".
+
+Some remote user systems need to be visited *after* NAV has logged out the
+user locally. The flag for that is ``post-logout-redirect-url``.
 
 
 Relevant How Tos:

@@ -186,10 +186,7 @@ class RelatedOrderingFilter(filters.OrderingFilter):
 
             # foreign key
             if len(components) == 2:
-                try:
-                    remote_model = field.remote_field.model
-                except AttributeError:  # Django <= 1.8
-                    remote_model = field.rel.to
+                remote_model = field.remote_field.model
                 if remote_model:
                     return self.is_valid_field(remote_model, components[1])
             return True

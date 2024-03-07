@@ -243,7 +243,7 @@ def get_sysname(ip_address):
     try:
         _, sysname = resolve_ip_and_sysname(ip_address)
         return sysname
-    except SocketError:
+    except (SocketError, UnicodeError):
         return None
 
 

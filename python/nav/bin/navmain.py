@@ -22,6 +22,7 @@ import os
 import os.path
 import argparse
 import textwrap
+
 from nav import colors
 
 try:
@@ -45,10 +46,11 @@ except (OSError, CrontabError) as _error:
     sys.exit(1)
 
 
-def main(args):
+def main(args=None):
     """Main execution point"""
-    parser = make_argparser()
-    args = parser.parse_args()
+    if args == None:
+        parser = make_argparser()
+        args = parser.parse_args()
     try:
         args.func(args)
     except AttributeError:
@@ -330,4 +332,4 @@ def command_config_install(args):
 # begin here #
 ##############
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

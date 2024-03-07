@@ -19,7 +19,7 @@
 """
 Use this to run automatic detentions based on detention profiles
 
-Usage: start_arnold.py [options] id
+Usage: start_arnold [options] id
 Pipe in ip-addresses to block or use the -f option to specify file
 
 Options:
@@ -63,8 +63,11 @@ LOG_FILE = "arnold/start_arnold.log"
 _logger = logging.getLogger('nav.start_arnold')
 
 
-def main(args):
+def main(args=None):
     """Main controller"""
+
+    if args == None:
+        args = parse_command_options()
 
     init_generic_logging(logfile=LOG_FILE, stderr=False, read_config=True)
 
@@ -316,5 +319,4 @@ def valid_profile(detention_profile_id):
 
 
 if __name__ == '__main__':
-    _args = parse_command_options()
-    main(_args)
+    main()

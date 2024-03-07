@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from nav.models.event import EventQueue, EventQueueVar
 
 from django.urls import reverse
-from nav.compatibility import smart_str
+from django.utils.encoding import smart_str
 
 
 def test_post_device_error_should_succeed(client, localhost):

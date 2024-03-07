@@ -17,12 +17,49 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "pydantic >= 2.0",
+    "importlib_metadata; python_version < '3.8'",
+    "importlib_resources; python_version < '3.9'",
 ]
 
 
 [project.urls]
 Homepage = "https://nav.uninett.no/"
+
+[project.scripts]
+alertengine = "nav.bin.alertengine:main"
+autoenable = "nav.bin.autoenable:main"
+collect_active_ip = "nav.bin.collect_active_ip:main"
+emailreports = "nav.bin.emailreports:main"
+eventengine = "nav.bin.eventengine:main"
+ipdevpolld = "nav.bin.ipdevpolld:main"
+logengine = "nav.bin.logengine:main"
+macwatch = "nav.bin.macwatch:main"
+mailin = "nav.bin.mailin:main"
+maintengine = "nav.bin.maintengine:main"
+nav = "nav.bin.navmain:main"
+navcheckservice = "nav.bin.navcheckservice:main"
+navclean = "nav.bin.navclean:main"
+navdf = "nav.bin.navdf:main"
+navdump = "nav.bin.navdump:main"
+naventity = "nav.bin.naventity:main"
+navoidverify = "nav.bin.navoidverify:main"
+navpgdump = "nav.bin.navpgdump:main"
+navsnmp = "nav.bin.navsnmp:main"
+navstats = "nav.bin.navstats:main"
+navsyncdb = "nav.bin.navsyncdb:main"
+navsynctypes = "nav.bin.navsynctypes:main"
+navtopology = "nav.bin.navtopology:main"
+navuser = "nav.bin.navuser:main"
+netbiostracker = "nav.bin.netbiostracker:main"
+pping = "nav.bin.pping:main"
+radiusparser = "nav.bin.radiusparser:main"
+servicemon = "nav.bin.servicemon:main"
+smsd = "nav.bin.smsd:main"
+snmptrapd = "nav.bin.snmptrapd:main"
+sortedstats_cacher = "nav.bin.sortedstats_cacher:main"
+start_arnold = "nav.bin.start_arnold:main"
+t1000 = "nav.bin.t1000:main"
+thresholdmon = "nav.bin.thresholdmon:main"
 
 [tool.setuptools]
 include-package-data = true

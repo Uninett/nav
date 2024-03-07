@@ -19,7 +19,7 @@
 Autoenable removes detention for computers that are done with detention.
 
 Usage:
-sudo -u $NAV_USER ./autoenable.py
+sudo -u $NAV_USER autoenable
 
 autoenable is meant to be run as a cronjob. It checks the configured
 arnold-database for any detained ports and opens them if they have a

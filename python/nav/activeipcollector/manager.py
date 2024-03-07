@@ -16,9 +16,11 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Manage collection and storing of active ip-addresses statistics"""
-
+import datetime
 import logging
 import time
+from typing import Optional
+
 from IPy import IP
 
 import nav.activeipcollector.collector as collector
@@ -82,11 +84,7 @@ def find_range(prefix):
         return 0
 
 
-def get_timestamp(timestamp=None):
+def get_timestamp(timestamp: Optional[datetime.datetime] = None) -> int:
     """Find timestamp closest to 30 minutes intervals"""
 
-    def get_epoch():
-        """Find epoch from a datetime object"""
-        return int(time.mktime(timestamp.timetuple()))
-
-    return get_epoch() if timestamp else int(time.time())
+    return timestamp.timestamp() if timestamp else int(time.time())

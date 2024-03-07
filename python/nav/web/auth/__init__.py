@@ -28,7 +28,7 @@ from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account, AccountGroup
 from nav.web.auth import ldap, remote_user
 from nav.web.auth.sudo import desudo
-from nav.web.auth.utils import ACCOUNT_ID_VAR
+from nav.web.auth.utils import clear_session
 
 
 _logger = logging.getLogger(__name__)
@@ -124,6 +124,12 @@ def get_login_url(request):
     return remote_loginurl if remote_loginurl else default_new_url
 
 
+def get_post_logout_redirect_url(request):
+    default = "/"
+    redirect_url = remote_user.get_post_logout_redirect_url(request)
+    return redirect_url if redirect_url else default
+
+
 def get_logout_url(request):
     """Calculate which logout_url to use"""
     remote_logouturl = remote_user.get_logouturl(request)
@@ -145,11 +151,8 @@ def logout(request, sudo=False):
         return reverse('webfront-index')
     else:
         account = request.account
-        del request.session[ACCOUNT_ID_VAR]
-        del request.account
-        request.session.set_expiry(datetime.now())
-        request.session.save()
+        clear_session(request)
         _logger.debug('logout: logout %s', account.login)
         LogEntry.add_log_entry(account, 'log-out', '{actor} logged out', before=account)
     _logger.debug('logout: redirect to "/" after logout')
-    return u'/'
+    return get_post_logout_redirect_url(request)

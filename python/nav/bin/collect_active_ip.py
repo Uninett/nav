@@ -37,8 +37,11 @@ LOGFILE = 'collect_active_ip.log'
 _logger = logging.getLogger('nav.ipcollector')
 
 
-def main(days=None):
+def main(args=None):
     """Controller"""
+    if args == None:
+        args = get_parser().parse_args()
+    days = args.days or None
     exit_if_already_running()
     init_generic_logging(logfile=LOGFILE, stderr=False)
     run(days)
@@ -62,9 +65,9 @@ def run(days):
     _logger.info('Done in %.2f seconds', time.time() - starttime)
 
 
-if __name__ == '__main__':
-    _parser = argparse.ArgumentParser()
-    _parser.add_argument(
+def get_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
         "-d",
         "--days",
         default=None,
@@ -72,5 +75,8 @@ if __name__ == '__main__':
         help="days back in time to start collecting from",
     )
 
-    _args = _parser.parse_args()
-    main(_args.days)
+    return parser
+
+
+if __name__ == '__main__':
+    main()

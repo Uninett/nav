@@ -31,7 +31,7 @@ from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
 from nav.models.api import APIToken
 
-from nav.web.auth import sudo
+from nav.web.auth.sudo import sudo
 from nav.web.useradmin import forms
 
 
@@ -396,7 +396,6 @@ def group_detail(request, group_id=None):
     privilege_form = forms.PrivilegeForm()
 
     if request.method == 'POST':
-
         if 'submit_group' in request.POST:
             group_form = forms.AccountGroupForm(request.POST, instance=group)
 

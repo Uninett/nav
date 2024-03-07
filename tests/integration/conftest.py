@@ -86,7 +86,7 @@ TESTARGS_PATTERN = re.compile(
     r'^# +-\*-\s*testargs:\s*(?P<args>.*?)\s*(-\*-)?\s*$', re.MULTILINE
 )
 NOTEST_PATTERN = re.compile(r'^# +-\*-\s*notest\s*(-\*-)?\s*$', re.MULTILINE)
-BINDIR = './bin'
+BINDIR = './python/nav/bin'
 
 
 def pytest_generate_tests(metafunc):
@@ -119,6 +119,7 @@ def _is_excluded(filename):
     return (
         filename.endswith('~')
         or filename.startswith('.')
+        or filename.startswith('__')
         or filename.startswith('Makefile')
     )
 
@@ -217,17 +218,15 @@ def localhost_using_legacy_db():
     conn.commit()
 
 
-@pytest.fixture(scope='session')
-def client():
+@pytest.fixture(scope='function')
+def client(admin_username, admin_password):
     """Provides a Django test Client object already logged in to the web UI as
     an admin"""
     from django.urls import reverse
 
     client_ = Client()
     url = reverse('webfront-login')
-    username = os.environ.get('ADMINUSERNAME', 'admin')
-    password = os.environ.get('ADMINPASSWORD', 'admin')
-    client_.post(url, {'username': username, 'password': password})
+    client_.post(url, {'username': admin_username, 'password': admin_password})
     return client_
 
 
@@ -373,3 +372,13 @@ def admin_account(db):
     from nav.models.profiles import Account
 
     yield Account.objects.get(id=Account.ADMIN_ACCOUNT)
+
+
+@pytest.fixture(scope='session')
+def admin_username():
+    return os.environ.get('ADMINUSERNAME', 'admin')
+
+
+@pytest.fixture(scope='session')
+def admin_password():
+    return os.environ.get('ADMINPASSWORD', 'admin')

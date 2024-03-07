@@ -52,7 +52,15 @@ radius_logfile = ""  # Location of the freeradius-logfile to parse
 my_logfile = "./radiusparser.log"  # Location of this program's debug log file
 
 
-def main(args):
+def main(args=None):
+    # If script is already running, abort
+    if pid_running():
+        sys.exit(1)
+    else:
+        print("Running instance of script not found. Starting...")
+
+    if args == None:
+        args = sys.argv[1:]
 
     try:
         db_params = (dbhost, dbport, dbname, dbuser, dbpasswd)
@@ -460,10 +468,4 @@ def iter_lines(file):
 ###########
 
 if __name__ == '__main__':
-    # If script is already running, abort
-    if pid_running():
-        sys.exit(1)
-    else:
-        print("Running instance of script not found. Starting...")
-
-    main(sys.argv[1:])
+    main()

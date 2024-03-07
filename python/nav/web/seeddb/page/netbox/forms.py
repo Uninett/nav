@@ -204,7 +204,7 @@ class NetboxModelForm(forms.ModelForm):
         name = self.cleaned_data['ip'].strip()
         try:
             ip, _ = resolve_ip_and_sysname(name)
-        except SocketError:
+        except (SocketError, UnicodeError):
             raise forms.ValidationError("Could not resolve name %s" % name)
         return str(ip)
 
@@ -235,7 +235,7 @@ class NetboxModelForm(forms.ModelForm):
             self._errors['profiles'] = self.error_class(
                 ["Category %s requires a management profile." % cat.id]
             )
-            del cleaned_data['profiles']
+            cleaned_data.pop('profiles', None)
 
         return cleaned_data
 

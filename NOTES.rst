@@ -8,6 +8,54 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.9
+=======
+
+Changed names of NAV command line programs
+------------------------------------------
+NAV has switched to a more canonical way of installing Python command line
+scripts, or "binaries".  This means that all NAV command line programs that
+previously ended with a ``.py`` extension now have been stripped of that
+extension.  Any custom cron jobs or scripts you have that may reference these
+NAV commands must be updated in order to continue working.
+
+It also means that you need to make sure your :file:`daemons.yml` configuration
+file is up-to-date after an upgrade, as well as the NAV cronjob snippets in the
+:file:`cron.d/` configuration directory.
+
+These commands are affected and no longer have a ``.py`` extension:
+
+* ``alertengine``
+* ``autoenable``
+* ``collect_active_ip``
+* ``emailreports``
+* ``logengine``
+* ``macwatch``
+* ``mailin``
+* ``maintengine``
+* ``netbiostracker``
+* ``pping``
+* ``radiusparser``
+* ``servicemon``
+* ``smsd``
+* ``snmptrapd``
+* ``sortedstats_cacher``
+* ``start_arnold``
+* ``t1000``
+
+Web security
+------------
+
+While it is only relevant for older browsers, the HTTP header
+``X-XSS-Protection`` is set to ``1; mode=block``. It does not affect browsers
+that do not support it after all.
+
+There's a new section in :file:`webfront/webfront.conf`, ``[security]``. When
+running in production with SSL/TLS turned on, there's a new flag ``needs_tls``
+that should also be toggled on. This'll turn on secure cookies (only sent over
+SSL/TLS). See also the new howto
+:doc:`Securing NAV in production </howto/securing-nav-in-production>`.
+
 NAV 5.8
 =======
 
@@ -46,7 +94,7 @@ Various vendors use the concept of "community indexing" to fetch multiple
 logical instances of MIBs.  Examples include Cisco switches, where multiple
 instances of the ``BRIDGE-MIB`` are kept, one for each active VLAN.  To access
 the switch forwarding tables of VLAN 12 with an SNMP community of ``public``,
-the community must be modified to ``public@20``.
+the community must be modified to ``public@12``.
 
 Another common example is devices that allow SNMP management of individual VRF
 instances by modifying the SNMP community.
@@ -546,7 +594,7 @@ Daemon startup privileges
 
 By accident, some of NAV's daemons have been running as the privileged ``root``
 user since NAV 4.9.0, due to changes in the process control system.  NAV 5.0.4
-introduces the :option:`privileged` option in the :file:`daemons.yml` configuration
+introduces the ``privileged`` option in the :file:`daemons.yml` configuration
 file, to signal which daemons actually need to be started with root privileges.
 
 Only :program:`snmptrapd` and :program:`pping` need root privileges on startup,
@@ -557,7 +605,7 @@ Please ensure your :file:`daemon.yml` configuration file is updated. Also, be
 aware that after upgrading to NAV 5.0.4 from any version from 4.9.0 and up, you
 may have some NAV log files that are owned by ``root``, which will cause some
 of the daemons to fail on startup. Please ensure all NAV log files are writable
-for the user defined as :option:`NAV_USER` in :file:`nav.conf`.
+for the user defined as ``NAV_USER`` in :file:`nav.conf`.
 
 
 New features

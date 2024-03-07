@@ -60,11 +60,7 @@ def get_verbose_name(model, lookup):
 
     foreign_key, lookup = lookup.split('__', 1)
     try:
-        foreign_model_field = model._meta.get_field(foreign_key)
-        try:
-            foreign_model = foreign_model_field.remote_field.model
-        except AttributeError:  # Django <= 1.8
-            foreign_model = foreign_model_field.rel.to
+        foreign_model = model._meta.get_field(foreign_key).remote_field.model
         return get_verbose_name(foreign_model, lookup)
     except FieldDoesNotExist:
         pass

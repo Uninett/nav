@@ -16,14 +16,6 @@ REMOTE_USER_ACCOUNT = auth.Account(
 )
 
 
-class FakeSession(dict):
-    def set_expiry(self, *_):
-        pass
-
-    def save(self, *_):
-        pass
-
-
 @patch("nav.web.auth.Account.save", new=MagicMock(return_value=True))
 @patch("nav.web.auth.Account.objects.get", new=MagicMock(return_value=LDAP_ACCOUNT))
 class TestLdapAuthenticate(object):
@@ -151,19 +143,19 @@ class TestGetRemoteUsername(object):
 
 
 class TestLoginRemoteUser(object):
-    def test_remote_user_unset(self):
+    def test_remote_user_unset(self, fake_session):
         r = RequestFactory()
         request = r.get('/')
-        request.session = FakeSession()
+        request.session = fake_session
         with patch("nav.web.auth.remote_user.get_username", return_value=False):
             remote_user.login(request)
             assert not getattr(request, 'account', False)
             assert ACCOUNT_ID_VAR not in request.session
 
-    def test_remote_user_set(self):
+    def test_remote_user_set(self, fake_session):
         r = RequestFactory()
         request = r.get('/')
-        request.session = FakeSession()
+        request.session = fake_session
         with patch("nav.web.auth.remote_user.get_username", return_value=True):
             with patch(
                 "nav.web.auth.remote_user.authenticate",

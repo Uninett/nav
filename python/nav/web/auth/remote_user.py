@@ -18,26 +18,12 @@ Support logging in by having the web server set the REMOTE_USER header.
 """
 import logging
 from os.path import join
+import secrets
 
 from nav.auditlog.models import LogEntry
 from nav.config import NAVConfigParser
 from nav.models.profiles import Account
-from nav.web.auth.utils import ACCOUNT_ID_VAR
-
-try:
-    # Python 3.6+
-    import secrets
-
-    def fake_password(length):
-        return secrets.token_urlsafe(length)
-
-except ImportError:
-    from random import choice
-    import string
-
-    def fake_password(length):
-        symbols = string.ascii_letters + string.punctuation + string.digits
-        return u"".join(choice(symbols) for i in range(length))
+from nav.web.auth.utils import set_account
 
 
 __all__ = []
@@ -53,11 +39,16 @@ logout-url=
 varname=REMOTE_USER
 workaround=none
 autocreate=off
+post-logout-redirect-url=/
 """
 
 
 _logger = logging.getLogger(__name__)
 _config = RemoteUserConfigParser()
+
+
+def fake_password(length):
+    return secrets.token_urlsafe(length)
 
 
 def authenticate(request):
@@ -121,8 +112,7 @@ def login(request):
         # Get or create an account from the REMOTE_USER http header
         account = authenticate(request)
         if account:
-            request.session[ACCOUNT_ID_VAR] = account.id
-            request.account = account
+            set_account(request, account)
             return account
     return None
 
@@ -143,6 +133,15 @@ def get_logouturl(request):
     :rtype: str, None
     """
     return get_remote_url(request, 'logout-url')
+
+
+def get_post_logout_redirect_url(request):
+    """Return a url (if set) to log out to/via a remote service
+
+    :return: Either a string with an url, or None.
+    :rtype: str, None
+    """
+    return get_remote_url(request, "post-logout-redirect-url")
 
 
 def get_remote_url(request, urltype):

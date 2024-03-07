@@ -26,7 +26,7 @@ from nav.models.profiles import Account
 
 class MacWatch(models.Model):
     """Data-model for mac-address that should get watched
-    by bin/macwatch.py"""
+    by bin/macwatch"""
 
     MAC_ADDR_DELIM_CHAR = ':'
 

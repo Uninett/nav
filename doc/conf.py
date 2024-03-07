@@ -10,7 +10,6 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-import sphinx_bootstrap_theme
 import sys, os
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -39,7 +38,7 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ['templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -52,7 +51,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'NAV'
-copyright = u'2012-2021 Uninett AS, 2022-2023 Sikt'
+copyright = u'2012-2021 Uninett AS, 2022-2024 Sikt'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -106,66 +105,31 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'bootstrap'
+html_theme = 'sphinx_rtd_theme'
 
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates")
-]
-
-html_logo = "templates/bootstrap/static/nav-logo.svg"
+html_logo = "templates/static/nav-logo.svg"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    # Navigation bar title. (Default: ``project`` value)
-    'navbar_title': " ",
-    # Tab name for entire site. (Default: "Site")
-    'navbar_site_name': "Contents",
-    # A list of tuples containing pages or urls to link to.
-    # Valid tuples should be in the following forms:
-    #    (name, page)                 # a link to a page
-    #    (name, "/aa/bb", 1)          # a link to an arbitrary relative url
-    #    (name, "http://example.com", True) # arbitrary absolute url
-    # Note the "1" or "True" value above as the third argument to indicate
-    # an arbitrary url.
-    #'navbar_links': [
-    #    ("Examples", "examples"),
-    #    ("Link", "http://example.com", True),
-    # ],
-    # Render the next and previous page links in navbar. (Default: true)
-    'navbar_sidebarrel': True,
-    # Render the current pages TOC in the navbar. (Default: true)
-    'navbar_pagenav': True,
-    # Global TOC depth for "site" navbar tab. (Default: 1)
-    # Switching to -1 shows all levels.
-    'globaltoc_depth': 2,
-    # Include hidden TOCs in Site navbar?
-    #
-    # Note: If this is "false", you cannot have mixed ``:hidden:`` and
-    # non-hidden ``toctree`` directives in the same page, or else the build
-    # will break.
-    #
-    # Values: "true" (default) or "false"
-    'globaltoc_includehidden': "true",
-    # HTML navbar class (Default: "navbar") to attach to <div> element.
-    # For black navbar, do "navbar navbar-inverse"
-    'navbar_class': "navbar",
-    # Fix navigation bar to top of page?
-    # Values: "true" (default) or "false"
-    'navbar_fixed_top': "true",
-    # Location of link to source.
-    # Options are "nav" (default), "footer" or anything else to exclude.
-    'source_link_position': "navbar-brand",
-    # Bootswatch (http://bootswatch.com/) theme.
-    #
-    # Options are nothing with "" (default) or the name of a valid theme
-    # such as "amelia" or "cosmo".
-    'bootswatch_theme': "flatly",
-    # Choose Bootstrap version.
-    # Values: "3" (default) or "2" (in quotes)
-    'bootstrap_version': "3",
+    # The maximum depth of the table of contents tree. Set this to -1 to allow
+    # unlimited depth.
+    'navigation_depth': 4,
+    # Only display the logo image, do not display the project name at the top of the
+    # sidebar
+    'logo_only': True,
+    # Location to display Next and Previous buttons. This can be either bottom, top,
+    # both, or None.
+    'prev_next_buttons_location': 'both',
+    # Changes the background of the search area in the navigation bar. The value can be
+    # anything valid in a CSS background property.
+    'style_nav_header_background': '#2c3e50',
+}
+
+# Do not show Edit on Github link
+html_context = {
+    'display_github': False,
 }
 
 
@@ -189,6 +153,12 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    'custom.css',
+]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -215,7 +185,7 @@ html_sidebars = {'**': ['localtoc.html', 'sourcelink.html', 'searchbox.html']}
 # html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-# html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
@@ -263,8 +233,11 @@ latex_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'http://docs.python.org/': None,
-    'https://docs.djangoproject.com/en/3.2': 'https://docs.djangoproject.com/en/3.2/_objects',
+    'python': ('https://docs.python.org/3', None),
+    'django': (
+        'https://docs.djangoproject.com/en/3.2',
+        'https://docs.djangoproject.com/en/3.2/_objects',
+    ),
 }
 
 

@@ -2,6 +2,7 @@
 various pping integration tests
 """
 import os
+from pathlib import Path
 import getpass
 from shutil import which
 
@@ -15,6 +16,9 @@ import pytest
 from nav.models.manage import Netbox, NetboxProfile
 from nav.models.event import EventQueue
 from nav.config import find_config_file
+
+
+BINDIR = './python/nav/bin'
 
 
 def can_be_root():
@@ -86,8 +90,8 @@ def get_pping_output(timeout=5):
 
     Also asserts that pping shouldn't unexpectedly exit with a zero exitcode.
     """
-    pping = which('pping.py')
-    assert pping, "Cannot find pping.py on path"
+    pping = which("pping")
+    assert pping, "Cannot find pping in PATH"
     cmd = get_root_method() + ["/usr/bin/timeout", str(timeout), pping, "-f"]
     try:
         output = check_output(cmd, stderr=STDOUT)

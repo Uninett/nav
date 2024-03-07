@@ -18,7 +18,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.defaultfilters import urlize
 from django.urls import reverse
-from nav.compatibility import force_str
+from django.utils.encoding import force_str
 from django.utils.html import strip_tags
 from rest_framework import serializers
 

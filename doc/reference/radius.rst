@@ -21,10 +21,10 @@ Files
 doc/README.txt            What you are probably reading right now :]
 doc/INSTALL.txt           How to install the radius accounting subsystem
 
-bin/navclean.py           Modified version of navclean.py, that also handles
+bin/navclean              Modified version of navclean.py, that also handles
                           the radius accounting table. Should probably me made
                           to also handle the log table, or dropped all together.
-bin/radiusparser.py       radius.log parser that inserts data into the database.
+bin/radiusparser          radius.log parser that inserts data into the database.
 
 sql/accounting_table.sql  Script for creating the accounting table
 sql/log_table.sql         Script for creating the log table
@@ -62,7 +62,7 @@ It should be pretty obvious that we have ripped extensively from NAV's
 MachineTracker subsystem, and at the time writing this, even the graphics in the
 tables are from MachineTracker.
 
-There have yet to be confirmed reports on this stuff working (or even being 
+There have yet to be confirmed reports on this stuff working (or even being
 tried) on any other setup than what it was developed on, which is:
 
 * NAV v3.3.3
@@ -94,9 +94,9 @@ Hopefully it will be pretty self explanatory. You choose your search criteria
 and click the search button. The sessions that get matched are all sessions
 that "touch" your specified time interval in any way. At the bottom of the
 page, you will get a summary for your search, giving you the total amount of
-uploaded/downloaded data for all sessions matching your search criterias. This 
-feature is currently made a bit useless from the duplicate sessions in the 
-database (see `Known Issues`_). 
+uploaded/downloaded data for all sessions matching your search criterias. This
+feature is currently made a bit useless from the duplicate sessions in the
+database (see `Known Issues`_).
 
 In the search results, you will sometimes see sessions whose `Session Stop`
 field contains text in stead of the actual stop time. Here is an explanation
@@ -114,7 +114,7 @@ of what they mean:
 
 For this feature to work correctly, the variable ``REAUTH_TIMEOUT`` in
 ``radius_config.py`` must be set correctly
- 
+
 There are links from `Username`, `Realm`, `Assigned IP` and `NAS IP`
 to new searches. I.e. clicking on a username will show all sessions for this
 user, using the already specified time interval. A click on a session id will
@@ -141,7 +141,7 @@ This chart will lie a little, since it sums up all sessions that ended within
 the specified number of days. The reason for doing this is that we only get any
 numbers on how much data the user has sent/received when the session ends. Thus
 there is really no way to know for sure, just from the radius accounting log,
-when during the session the data was transferred. 
+when during the session the data was transferred.
 
 Of course, we could always limit the search to sessions that only started
 inside our search interval, but then a lot of long sessions might slip under
@@ -165,18 +165,18 @@ Known Issues
 Accounting module: Duplicate entries for some sessions
 ------------------------------------------------------
 
-Sometimes, when a Start message is immediately followed by an Alive message for 
-the same session, FreeRADIUS inserts the session into the database twice, the 
-only difference between them seem to be a few hundreds of a second on the Start 
+Sometimes, when a Start message is immediately followed by an Alive message for
+the same session, FreeRADIUS inserts the session into the database twice, the
+only difference between them seem to be a few hundreds of a second on the Start
 time. This seems to be caused by the following scenario:
 
 1) FreeRADIUS receives a Start packet and inserts a new entry/session in the db
-2) FreeRADIUS receives an Alive packet for the same session *immediately* after 
+2) FreeRADIUS receives an Alive packet for the same session *immediately* after
    the Start packet, and queries the database to see if the `unique-session-id`
    already exists.
 3) The query doesn't return anything, since postgresql hasn't had time to
-   complete the `INSERT`-query for the Start packet, and 
-   ``accounting_update_query_alt`` is thus run, inserting a new row. 
+   complete the `INSERT`-query for the Start packet, and
+   ``accounting_update_query_alt`` is thus run, inserting a new row.
 
 How to get around this? I'm not quite sure. Maybe someone with more experience
 with (Postgre)SQL could look at some kind of table locking, if this wouldn't

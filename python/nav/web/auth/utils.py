@@ -31,10 +31,23 @@ _logger = logging.getLogger(__name__)
 ACCOUNT_ID_VAR = 'account_id'
 
 
-def _set_account(request, account):
+def set_account(request, account, cycle_session_id=True):
+    """Updates request with new account.
+    Cycles the session ID by default to avoid session fixation.
+    """
     request.session[ACCOUNT_ID_VAR] = account.id
     request.account = account
     _logger.debug('Set active account to "%s"', account.login)
+    if cycle_session_id:
+        request.session.cycle_key()
+    request.session.save()
+
+
+def clear_session(request):
+    """Clears the session and logs out the current account"""
+    if hasattr(request, "account"):
+        del request.account
+    request.session.flush()
     request.session.save()
 
 
@@ -42,17 +55,19 @@ def ensure_account(request):
     """Guarantee that valid request.account is set"""
     session = request.session
 
-    if not ACCOUNT_ID_VAR in session:
-        session[ACCOUNT_ID_VAR] = Account.DEFAULT_ACCOUNT
-
-    account = Account.objects.get(id=session[ACCOUNT_ID_VAR])
+    account_id = session.get(ACCOUNT_ID_VAR, Account.DEFAULT_ACCOUNT)
+    account = Account.objects.get(id=account_id)
 
     if account.locked:
+        # logout of locked account
+        clear_session(request)
+
         # Switch back to fallback, the anonymous user
         # Assumes nobody has locked it..
         account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
 
-    _set_account(request, account)
+    # Do not cycle to avoid session_id being changed on every request
+    set_account(request, account, cycle_session_id=False)
 
 
 def authorization_not_required(fullpath):

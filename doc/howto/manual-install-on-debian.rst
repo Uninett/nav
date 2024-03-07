@@ -39,7 +39,7 @@ available tags, and ``git checkout x.y.z`` to checkout version ``x.y.z``.
 To install NAV's Python requirements::
 
   apt-get install -y libpq-dev libjpeg-dev libz-dev libldap2-dev libsasl2-dev
-  pip install -r requirements.txt
+  pip install -r requirements.txt -c constraints.txt
 
 4. Install NAV itself
 =====================

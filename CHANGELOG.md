@@ -7,6 +7,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## [Unreleased]
+
+### Added
+
+- Added option to enable secure cookies in new web security section of `webfront.conf` ([#2194](https://github.com/Uninett/nav/issue/2194), [#2815](https://github.com/Uninett/nav/pull/2815))
+- Made `mod_auth_mellon` (SAML) work for logins ([#2740](https://github.com/Uninett/nav/pull/2740))
+  - Also added howto for setting up `mod_auth_mellon` for Feide authentication.
+
+### Fixed
+
+- Cycle session IDs on login/logout to protect against potential session fixation attacks ([#2804](https://github.com/Uninett/nav/issues/2804), [#2813](https://github.com/Uninett/nav/pull/2813), [#2836](https://github.com/Uninett/nav/pull/2836), [#2835](https://github.com/Uninett/nav/pull/2835))
+- Prevent clickjacking attacks on NAV by disallowing putting NAV site in document frames ([#2816](https://github.com/Uninett/nav/pull/2816), [#2817](https://github.com/Uninett/nav/pull/2817))
+
+
+- Various changes needed to move NAV closer to being fully compatible with Python 3.11:
+  - Replaced all uses of `pkg_resources` with `importlib` ([#2791](https://github.com/Uninett/nav/issues/2791), [#2798](https://github.com/Uninett/nav/pull/2798), [#2799](https://github.com/Uninett/nav/pull/2799))
+  - Upgraded Twisted to a version that supports Python 3.11 ([#2792](https://github.com/Uninett/nav/issues/2792), [#2796](https://github.com/Uninett/nav/pull/2796))
+  - Upgraded psycopg to 2.9.9 ([#2793](https://github.com/Uninett/nav/issues/2793), [#2795](https://github.com/Uninett/nav/pull/2795))
+  - Dropped code that was there to support Django's older than 3.2 ([#2823](https://github.com/Uninett/nav/pull/2823))
+  - Upgraded python-ldap from 3.4.0->3.4.4 ([#2830](https://github.com/Uninett/nav/pull/2830))
+  - Enabled running test suite on Python 3.10 by default ([#2838](https://github.com/Uninett/nav/pull/2838))
+  - Stopped running test suite on Python 3.8 by default ([#2851](https://github.com/Uninett/nav/pull/2851))
+  - Fixed invalid/deprecated backslash escapes in MIB dump files, as warned about in newer Python versions ([#2846](https://github.com/Uninett/nav/pull/2846), [#2848](https://github.com/Uninett/nav/pull/2848))
+  - Fixed deprecation warning for Django 4.0 in test suite ([#2844](https://github.com/Uninett/nav/pull/2844))
+  - Removed an adaption to Pythons older than 3.7 ([#2840](https://github.com/Uninett/nav/pull/2840))
+
+- Various cleanups of the test suites:
+  - Remove `FakeSession` redundancy ([#2841](https://github.com/Uninett/nav/issues/2841), [#2842](https://github.com/Uninett/nav/pull/2842))
+  - Fixed activeipcollector `get_timestamp` function implementation and its broken timezone-naive test ([#2831](https://github.com/Uninett/nav/pull/2831))
+  - Fixed broken statemon tests ([#2832](https://github.com/Uninett/nav/pull/2832))
+
+### Changed
+
+- Changed the documentation theme from "Bootstrap" to "Read The Docs", as the Bootstrap theme was no longer being maintained.  This also avoids unnecessary JavaScript libraries in the docs ([#2805](https://github.com/Uninett/nav/issues/2805), [#2825](https://github.com/Uninett/nav/pull/2825), [#2824](https://github.com/Uninett/nav/pull/2824), [#2834](https://github.com/Uninett/nav/issues/2834), [#2837](https://github.com/Uninett/nav/pull/2837), [#2833](https://github.com/Uninett/nav/issues/2833), [#2853](https://github.com/Uninett/nav/pull/2853))
+
+## [5.8.4] - 2023-12-14
+
+### Fixed
+
+- Allow admins to configure ports with invalid or unset native VLANs in PortAdmin ([#2477](https://github.com/Uninett/nav/issues/2477), [#2786](https://github.com/Uninett/nav/pull/2786))
+- Fix bug that caused PoE config to be completely disabled for Cisco devices where at least one port did not support PoE ([#2781](https://github.com/Uninett/nav/pull/2781))
+- Fix PortAdmin save button moving around for ports without PoE support ([#2782](https://github.com/Uninett/nav/pull/2782))
+- Fix PortAdmin bug that prevented switching PoE state back and forth without reloading entire page ([#2785](https://github.com/Uninett/nav/pull/2785))
+- Fix regression that caused maintenance tasks to be un-editable ([#2783](https://github.com/Uninett/nav/issues/2783), [#2784](https://github.com/Uninett/nav/pull/2784))
+
+## [5.8.3] - 2023-12-01
+
+### Fixed
+
+- Fix non-working SNMPv1 communication ([#2772](https://github.com/Uninett/nav/issues/2772), [#2779](https://github.com/Uninett/nav/issues/2779), [#2780](https://github.com/Uninett/nav/pull/2780))
+
+## [5.8.2] - 2023-11-30
+
+### Fixed
+
+- Fix broken "operate as user" function in User and API Administration tool ([#2766](https://github.com/Uninett/nav/issues/2766), [#2777](https://github.com/Uninett/nav/pull/2777))
+- Fix crashing PDU widget ([#2776](https://github.com/Uninett/nav/pull/2776))
+- Fix bug that caused PortAdmin to stop working for Cisco switches ([#2773](https://github.com/Uninett/nav/issues/2773), [#2774](https://github.com/Uninett/nav/pull/2774))
+
+
+## [5.8.1] - 2023-11-29
+
+### Fixed
+
+- Constrain version of 3rd party module `ciscoconfparse`, in order to avoid NAV not working under Python 3.7 ([#2770](https://github.com/Uninett/nav/issues/2770), [#2771](https://github.com/Uninett/nav/pull/2771))
+- Fix ipdevpoll crash error from using SNMP v2c profile example that came with NAV ([#2767](https://github.com/Uninett/nav/issues/2767), [#2768](https://github.com/Uninett/nav/pull/2768))
+- Gracefully handle encoding errors in invalid sysname/IP input in SeedDB IP Device form ([#2764](https://github.com/Uninett/nav/pull/2764))
+- Gracefully handle errors from invalid profiles list input in SeedDB IP Device form ([#2765](https://github.com/Uninett/nav/pull/2765))
+
 ## [5.8.0] - 2023-11-24
 
 ### Added
@@ -26,6 +95,7 @@ found in the [HISTORY](HISTORY) file.
 - Add subcommand to `navuser` command line program for deleting users ([#2705](https://github.com/Uninett/nav/pull/2705))
 - Add toggle in `webfront.conf` for automatic creation of remote users ([#2698](https://github.com/Uninett/nav/issue/2698), [#2707](https://github.com/Uninett/nav/pull/2707))
 - Add proper documentation index page for all howto guides ([#2716](https://github.com/Uninett/nav/pull/2716))
+- Add description to threshold alarms ([#2691](https://github.com/Uninett/nav/issue/2691), [#2709](https://github.com/Uninett/nav/pull/2709))
 
 
 #### Developer-centric additions

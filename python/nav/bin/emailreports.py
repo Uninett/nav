@@ -33,8 +33,10 @@ LOGFILE = 'emailreports.log'
 _logger = logging.getLogger('emailreports')
 
 
-def main(args):
+def main(args=None):
     """Send all reports"""
+    if args == None:
+        args = get_parser().parse_args()
     init_generic_logging(logfile=LOGFILE, stderr=False)
     send_reports(args.period)
 
@@ -50,4 +52,4 @@ def get_parser():
 
 
 if __name__ == '__main__':
-    main(get_parser().parse_args())
+    main()

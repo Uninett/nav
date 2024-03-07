@@ -21,6 +21,7 @@ from datetime import datetime
 import json
 import logging
 from operator import attrgetter
+from urllib.parse import quote as urlquote
 
 from django.http import (
     HttpResponseForbidden,
@@ -32,15 +33,14 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.utils.http import urlquote
 
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
-from nav.web.auth.utils import ACCOUNT_ID_VAR
 from nav.web.auth import logout as auth_logout
 from nav.web import auth
 from nav.web.auth import ldap
+from nav.web.auth.utils import set_account
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (
@@ -230,17 +230,11 @@ def do_login(request):
                 LogEntry.add_log_entry(
                     account, 'log-in', '{actor} logged in', before=account
                 )
-
-                try:
-                    request.session[ACCOUNT_ID_VAR] = account.id
-                    request.account = account
-                except ldap.Error as error:
-                    errors.append('Error while talking to LDAP:\n%s' % error)
-                else:
-                    _logger.info("%s successfully logged in", account.login)
-                    if not origin:
-                        origin = reverse('webfront-index')
-                    return HttpResponseRedirect(origin)
+                set_account(request, account)
+                _logger.info("%s successfully logged in", account.login)
+                if not origin:
+                    origin = reverse('webfront-index')
+                return HttpResponseRedirect(origin)
             else:
                 _logger.info("failed login: %r", username)
                 errors.append(

@@ -9,7 +9,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: ["3.7", "3.9", "3.10"]
 
     steps:
       - uses: actions/checkout@v3
@@ -49,7 +49,7 @@ jobs:
       - name: "Install test runner dependencies"
         run: |
           set -xe
-          python -m pip install --upgrade 'pip==23.1.0' setuptools wheel 'tox<4' tox-gh-actions coverage virtualenv snmpsim 'pyasn1<0.5.0'
+          python3 -m pip install --upgrade 'pip==23.1.0' setuptools wheel 'tox<4' tox-gh-actions coverage virtualenv snmpsim 'pyasn1<0.5.0'
           sudo apt-get install -y nbtscan
 
       # virtualenv seems to currently be embedding a broken version of
@@ -80,7 +80,7 @@ jobs:
           export DISPLAY=:99
           ulimit -c unlimited
           sudo sysctl -w kernel.core_pattern=/tmp/core-%e.%p.%h.%t
-          python -m tox
+          python3 -m tox
 
       - name: Upload Selenium driver logs (${{ matrix.python-version }})
         if: always()

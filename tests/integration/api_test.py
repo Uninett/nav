@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-from nav.compatibility import force_str
+from django.utils.encoding import force_str
 
 from datetime import datetime, timedelta
 import json
