@@ -1,0 +1,19 @@
+name: Check for changelog file
+
+on: [pull_request]
+
+jobs:
+  towncrier:
+    runs-on: ubuntu-latest
+    name: Towncrier check
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install towncrier
+      run: |
+        pip install -U pip
+        pip install towncrier
+    - name: Check for changelog file
+      run: towncrier check --compare-with origin/master
