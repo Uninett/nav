@@ -151,6 +151,20 @@ part of the startup process::
 
   docker compose up --build
 
+Sometimes, you may find that a rebuild isn't enough to clear out all the cruft
+after switching development branches or adding or changing NAV's default
+configuration file examples.  The Docker Compose environment defines two
+persistent volumes that will retain their data between restarts and rebuilds:
+``nav_cache`` and ``nav_config``.  The former exist just to share some caching
+data between the various service containers.  The second ensures the set of NAV
+config files remain persistent between restarts or rebuilds, and also that all
+service containers can share the same set of files.  When you really want to
+start from scratch, you can fully nuke the Docker Compose environment and the
+persistent volumes using this command (before initiating a new ``up`` or
+``build`` command)::
+
+  docker compose down --volumes
+
 
 Controlling processes inside the nav container
 ----------------------------------------------
