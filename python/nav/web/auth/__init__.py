@@ -28,7 +28,7 @@ from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account, AccountGroup
 from nav.web.auth import ldap, remote_user
 from nav.web.auth.sudo import desudo
-from nav.web.auth.utils import ACCOUNT_ID_VAR
+from nav.web.auth.utils import clear_session
 
 
 _logger = logging.getLogger(__name__)
@@ -151,10 +151,7 @@ def logout(request, sudo=False):
         return reverse('webfront-index')
     else:
         account = request.account
-        del request.session[ACCOUNT_ID_VAR]
-        del request.account
-        request.session.set_expiry(datetime.now())
-        request.session.save()
+        clear_session(request)
         _logger.debug('logout: logout %s', account.login)
         LogEntry.add_log_entry(account, 'log-out', '{actor} logged out', before=account)
     _logger.debug('logout: redirect to "/" after logout')

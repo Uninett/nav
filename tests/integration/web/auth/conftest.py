@@ -15,3 +15,31 @@ def session_request(db):
     middleware.process_request(session_request)
     session_request.session.save()
     return session_request
+
+
+@pytest.fixture()
+def account(db):
+    from nav.models.profiles import Account
+
+    account = Account(login="other_user")
+    account.set_password("password")
+    account.save()
+    yield account
+    account.delete()
+
+
+@pytest.fixture()
+def locked_account(db):
+    from nav.models.profiles import Account
+
+    account = Account(login="locked_user")
+    account.save()
+    yield account
+    account.delete()
+
+
+@pytest.fixture()
+def default_account(db):
+    from nav.models.profiles import Account
+
+    return Account.objects.get(id=Account.DEFAULT_ACCOUNT)

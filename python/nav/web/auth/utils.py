@@ -43,6 +43,14 @@ def set_account(request, account, cycle_session_id=True):
     request.session.save()
 
 
+def clear_session(request):
+    """Clears the session and logs out the current account"""
+    if hasattr(request, "account"):
+        del request.account
+    request.session.flush()
+    request.session.save()
+
+
 def ensure_account(request):
     """Guarantee that valid request.account is set"""
     session = request.session
@@ -51,6 +59,9 @@ def ensure_account(request):
     account = Account.objects.get(id=account_id)
 
     if account.locked:
+        # logout of locked account
+        clear_session(request)
+
         # Switch back to fallback, the anonymous user
         # Assumes nobody has locked it..
         account = Account.objects.get(id=Account.DEFAULT_ACCOUNT)
