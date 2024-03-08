@@ -22,3 +22,5 @@ if [[ ! -f "/etc/nav/nav.conf" ]]; then
 
     cp /source/tools/docker/graphite.conf /etc/nav/graphite.conf
 fi
+
+sudo chown -R nav /tmp/nav_cache
