@@ -58,7 +58,7 @@ copyright = u'2012-2021 Uninett AS, 2022-2024 Sikt'
 # built documents.
 #
 # The short X.Y version.
-version = 'dev'
+version = '5.9'
 # version = '.'.join(buildconf.VERSION.split('.')[:2])
 # The full version, including alpha/beta/rc tags.
 release = buildconf.VERSION
