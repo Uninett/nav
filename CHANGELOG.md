@@ -46,6 +46,7 @@ found in the [HISTORY](HISTORY) file.
   - Fixed deprecation warning for Django 4.0 in test suite ([#2844](https://github.com/Uninett/nav/pull/2844))
   - Removed an adaption to Pythons older than 3.7 ([#2840](https://github.com/Uninett/nav/pull/2840))
   - Install Node/NPM in docker dev environment ([#2855](https://github.com/Uninett/nav/pull/2855))
+  - Vendor the PickleSerializer ([#2866](https://github.com/Uninett/nav/pull/2866))
 
 ## [5.8.4] - 2023-12-14
 
