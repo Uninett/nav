@@ -19,7 +19,7 @@
 $(function() {
     $('.treeselect').each(function() {
         var treeselect = $(this);
-        var search = $('<label>Search <input tyoe="text" /></label>');
+        var search = $('<label>Search <input type="text" /></label>');
 
         search.find('input').keyup(function() {
 

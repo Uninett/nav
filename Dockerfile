@@ -30,10 +30,12 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN echo 'deb-src http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.list.d/srcpkg.list && \
     echo 'deb-src http://security.debian.org/debian-security bullseye-security main' >> /etc/apt/sources.list.d/srcpkg.list
-RUN apt-get update && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt-get update && \
     apt-get -y --no-install-recommends install \
             locales \
-            python3-dbg gdb \
+            python3-dbg python3-venv gdb \
             sudo python3-dev python3-pip python3-virtualenv build-essential supervisor \
 	    debian-keyring debian-archive-keyring ca-certificates curl gpg
 
@@ -53,7 +55,9 @@ RUN echo "${TIMEZONE}" > /etc/timezone && cp /usr/share/zoneinfo/${TIMEZONE} /et
 
 #### Install various build and runtime requirements as Debian packages ####
 
-RUN apt-get update \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt-get update \
     && apt-get -y --no-install-recommends install \
        git-core \
        libsnmp40 \
@@ -76,10 +80,26 @@ RUN apt-get update \
        iputils-ping \
        snmp
 
-RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
+# Make an unprivileged nav user that corresponds to the user building this image.
+# Allow this user to run sudo commands and make a virtualenv for them to install NAV in
+ARG UID
+ARG GID
+RUN groupadd --gid "$GID" nav ; adduser --home=/source --shell=/bin/bash --uid=$UID --gid=$GID nav
+RUN echo "nav    ALL =(ALL: ALL) NOPASSWD: ALL" > /etc/sudoers.d/nav
+# Ensure the virtualenv's bin directory is on everyone's PATH variable
+RUN sed -e 's,^Defaults.*secure_path.*,Defaults        secure_path="/opt/venvs/nav/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",' -i /etc/sudoers
+RUN sed -e 's,^ENV_SUPATH.*,ENV_SUPATH      PATH=/opt/venvs/nav/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",' -i /etc/login.defs
+RUN sed -e 's,^ENV_PATH.*,ENV_PATH        PATH=/opt/venvs/nav/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games",' -i /etc/login.defs
 
-RUN pip3 install --upgrade 'setuptools>=61' wheel && \
-    pip3 install --upgrade 'pip<=23.1.0' pip-tools build
+RUN --mount=type=cache,target=/source/.cache \
+    mkdir -p /opt/venvs/nav && chown nav /opt/venvs/nav && \
+    mkdir -p /etc/nav && chown nav /etc/nav && \
+    chown -R nav /source/.cache
+USER nav
+ENV PATH=/opt/venvs/nav/bin:$PATH
+RUN python3.9 -m venv /opt/venvs/nav
+RUN --mount=type=cache,target=/source/.cache \
+    pip install --upgrade setuptools wheel pip-tools build
 
 #################################################################################
 ### COPYing the requirements file to pip-install Python requirements may bust ###
@@ -89,25 +109,26 @@ RUN pip3 install --upgrade 'setuptools>=61' wheel && \
 
 COPY tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
 
+# Make an initial install of all NAV requirements into the virtualenv, to make
+# builds inside the container go faster
 COPY requirements/ /requirements
 COPY requirements.txt /
 COPY constraints.txt /
 COPY tests/requirements.txt /test-requirements.txt
 COPY doc/requirements.txt /doc-requirements.txt
-# Since we used pip3 to install pip globally, pip should now be for Python 3
-RUN pip-compile --resolver=backtracking --output-file /requirements.txt.lock -c /constraints.txt /requirements.txt /test-requirements.txt /doc-requirements.txt
-RUN pip install -r /requirements.txt.lock
+RUN --mount=type=cache,target=/source/.cache \
+    cd /opt/venvs/nav && \
+    pip-compile --resolver=backtracking --output-file ./requirements.txt.lock -c /constraints.txt /requirements.txt /test-requirements.txt /doc-requirements.txt ; \
+    pip install -r ./requirements.txt.lock
 
 ARG CUSTOM_PIP=ipython
-RUN pip install ${CUSTOM_PIP}
+RUN --mount=type=cache,target=/source/.cache \
+    pip install ${CUSTOM_PIP}
 
 COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
-# Set up for mounting live source code from git repo at /source
-RUN    git config --global --add safe.directory /source
 VOLUME ["/source"]
 ENV    DJANGO_SETTINGS_MODULE nav.django.settings
-EXPOSE 80
+EXPOSE 8080
 
-ENTRYPOINT ["/source/tools/docker/entrypoint.sh"]
 CMD        ["/source/tools/docker/run.sh"]

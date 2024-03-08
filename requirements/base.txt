@@ -30,9 +30,6 @@ iso8601
 
 pynetsnmp-2>=0.1.10
 
-# libsass for compiling scss files to css using distutils/setuptools
-libsass==0.15.1
-
 napalm==3.4.1
 
 backports.zoneinfo ; python_version < '3.9'

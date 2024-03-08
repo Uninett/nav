@@ -40,3 +40,7 @@ python/nav/web/static/css
 python/nav/web/static/js/node_modules
 python/nav/web/static/js/require_config.dev.js
 python/nav/web/static/js/coverage
+
+# Javascript libraries
+frontend/node_modules
+frontend/package-lock.json

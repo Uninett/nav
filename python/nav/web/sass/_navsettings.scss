@@ -23,8 +23,11 @@ $xxlarge-only: "#{$screen} and (min-width:#{lower-bound($xxlarge-range)}) and (m
 
 
 // Relative image path
-$image-path: '../../images' !global;
-$image-path-partials: '../images' !global;
+// Providing variables for all assets paths in this folder so that there will be no hard coding
+$assets-url: '../static' !global;
+$image-path: '#{$assets-url}/images' !global;
+$image-path-partials: '#{$assets-url}/images' !global;
+$fa-font-path: '#{$assets-url}/fonts';
 
 // Width of a row. To create a limited viewport use em-calc
 // Default from Foundation is $row-width: em-calc(1000) !global;

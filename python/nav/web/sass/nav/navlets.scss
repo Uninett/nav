@@ -135,7 +135,7 @@ $fullscreen-color: #EEE;
 
 
 .SensorWidget {
-    @import "sensors";
+    //@import "sensors";
     .room-sensor {
         display: flex;
         justify-content: center;

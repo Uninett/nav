@@ -1,3 +1,5 @@
+@import "settings";
+
 #map {
     height: 75vh;
 }
@@ -61,51 +63,51 @@
 }
 
 #time-navigation-prev-jump.enabled:before {
-    content: url('../../images/geomap/left2.png');
+    content: url('#{$assets-url}/images/geomap/left2.png');
 }
 
 #time-navigation-prev-jump.disabled:before {
-    content: url('../../images/geomap/left2_grey.png');
+    content: url('#{$assets-url}/images/geomap/left2_grey.png');
 }
 
 #time-navigation-prev.enabled:before {
-    content: url('../../images/geomap/left1.png');
+    content: url('#{$assets-url}/images/geomap/left1.png');
 }
 
 #time-navigation-prev.disabled:before {
-    content: url('../../images/geomap/left1_grey.png');
+    content: url('#{$assets-url}/images/geomap/left1_grey.png');
 }
 
 #time-navigation-next.enabled:before {
-    content: url('../../images/geomap/right1.png');
+    content: url('#{$assets-url}/images/geomap/right1.png');
 }
 
 #time-navigation-next.disabled:before {
-    content: url('../../images/geomap/right1_grey.png');
+    content: url('#{$assets-url}/images/geomap/right1_grey.png');
 }
 
 #time-navigation-next-jump.enabled:before {
-    content: url('../../images/geomap/right2.png');
+    content: url('#{$assets-url}/images/geomap/right2.png');
 }
 
 #time-navigation-next-jump.disabled:before {
-    content: url('../../images/geomap/right2_grey.png');
+    content: url('#{$assets-url}/images/geomap/right2_grey.png');
 }
 
 #time-navigation-last.enabled:before {
-    content: url('../../images/geomap/right_last.png');
+    content: url('#{$assets-url}/images/geomap/right_last.png');
 }
 
 #time-navigation-last.disabled:before {
-    content: url('../../images/geomap/right_last_grey.png');
+    content: url('#{$assets-url}/images/geomap/right_last_grey.png');
 }
 
 #time-navigation-up.enabled:before {
-    content: url('../../images/geomap/up1.png');
+    content: url('#{$assets-url}/images/geomap/up1.png');
 }
 
 #time-navigation-up.disabled:before {
-    content: url('../../images/geomap/up1_grey.png');
+    content: url('#{$assets-url}/images/geomap/up1_grey.png');
 }
 
 #time-navigation-down.disabled {
