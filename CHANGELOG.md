@@ -18,29 +18,34 @@ found in the [HISTORY](HISTORY) file.
 ### Fixed
 
 - Cycle session IDs on login/logout to protect against potential session fixation attacks ([#2804](https://github.com/Uninett/nav/issues/2804), [#2813](https://github.com/Uninett/nav/pull/2813), [#2836](https://github.com/Uninett/nav/pull/2836), [#2835](https://github.com/Uninett/nav/pull/2835))
+- Flush sessions on logout ([#2828](https://github.com/Uninett/nav/pull/2828))
 - Prevent clickjacking attacks on NAV by disallowing putting NAV site in document frames ([#2816](https://github.com/Uninett/nav/pull/2816), [#2817](https://github.com/Uninett/nav/pull/2817))
+- Cleaned up overview/intro docs ([#2827](https://github.com/Uninett/nav/pull/2827))
+- Various cleanups of the test suites:
+  - Remove `FakeSession` redundancy ([#2841](https://github.com/Uninett/nav/issues/2841), [#2842](https://github.com/Uninett/nav/pull/2842))
+  - Fixed activeipcollector `get_timestamp` function implementation and its broken timezone-naive test ([#2831](https://github.com/Uninett/nav/pull/2831))
+  - Fixed broken statemon tests ([#2832](https://github.com/Uninett/nav/pull/2832))
+  - Fixed warnings during integration tests ([#2847](https://github.com/Uninett/nav/issues/2847), [#2858](https://github.com/Uninett/nav/pull/2858))
+  - Preserve 500-errors in webcrawler tests ([#2861](https://github.com/Uninett/nav/pull/2861))
+- Removed nonsensical pydantic requirement ([#2867](https://github.com/Uninett/nav/pull/2867))
+- Removed warnings when building docs ([#2856](https://github.com/Uninett/nav/pull/2856))
 
+### Changed
 
+- Modernize installation of NAV scripts/binaries using `pyproject.toml` ([#2676](https://github.com/Uninett/nav/issues/2676), [#2679](https://github.com/Uninett/nav/pull/2679))
+- Changed the documentation theme from "Bootstrap" to "Read The Docs", as the Bootstrap theme was no longer being maintained.  This also avoids unnecessary JavaScript libraries in the docs ([#2805](https://github.com/Uninett/nav/issues/2805), [#2825](https://github.com/Uninett/nav/pull/2825), [#2824](https://github.com/Uninett/nav/pull/2824), [#2834](https://github.com/Uninett/nav/issues/2834), [#2837](https://github.com/Uninett/nav/pull/2837), [#2833](https://github.com/Uninett/nav/issues/2833), [#2853](https://github.com/Uninett/nav/pull/2853), [#2868](https://github.com/Uninett/nav/pull/2868))
 - Various changes needed to move NAV closer to being fully compatible with Python 3.11:
   - Replaced all uses of `pkg_resources` with `importlib` ([#2791](https://github.com/Uninett/nav/issues/2791), [#2798](https://github.com/Uninett/nav/pull/2798), [#2799](https://github.com/Uninett/nav/pull/2799))
   - Upgraded Twisted to a version that supports Python 3.11 ([#2792](https://github.com/Uninett/nav/issues/2792), [#2796](https://github.com/Uninett/nav/pull/2796))
   - Upgraded psycopg to 2.9.9 ([#2793](https://github.com/Uninett/nav/issues/2793), [#2795](https://github.com/Uninett/nav/pull/2795))
   - Dropped code that was there to support Django's older than 3.2 ([#2823](https://github.com/Uninett/nav/pull/2823))
-  - Upgraded python-ldap from 3.4.0->3.4.4 ([#2830](https://github.com/Uninett/nav/pull/2830))
+  - Upgraded `python-ldap` from 3.4.0->3.4.4 ([#2830](https://github.com/Uninett/nav/pull/2830))
   - Enabled running test suite on Python 3.10 by default ([#2838](https://github.com/Uninett/nav/pull/2838))
   - Stopped running test suite on Python 3.8 by default ([#2851](https://github.com/Uninett/nav/pull/2851))
   - Fixed invalid/deprecated backslash escapes in MIB dump files, as warned about in newer Python versions ([#2846](https://github.com/Uninett/nav/pull/2846), [#2848](https://github.com/Uninett/nav/pull/2848))
   - Fixed deprecation warning for Django 4.0 in test suite ([#2844](https://github.com/Uninett/nav/pull/2844))
   - Removed an adaption to Pythons older than 3.7 ([#2840](https://github.com/Uninett/nav/pull/2840))
-
-- Various cleanups of the test suites:
-  - Remove `FakeSession` redundancy ([#2841](https://github.com/Uninett/nav/issues/2841), [#2842](https://github.com/Uninett/nav/pull/2842))
-  - Fixed activeipcollector `get_timestamp` function implementation and its broken timezone-naive test ([#2831](https://github.com/Uninett/nav/pull/2831))
-  - Fixed broken statemon tests ([#2832](https://github.com/Uninett/nav/pull/2832))
-
-### Changed
-
-- Changed the documentation theme from "Bootstrap" to "Read The Docs", as the Bootstrap theme was no longer being maintained.  This also avoids unnecessary JavaScript libraries in the docs ([#2805](https://github.com/Uninett/nav/issues/2805), [#2825](https://github.com/Uninett/nav/pull/2825), [#2824](https://github.com/Uninett/nav/pull/2824), [#2834](https://github.com/Uninett/nav/issues/2834), [#2837](https://github.com/Uninett/nav/pull/2837), [#2833](https://github.com/Uninett/nav/issues/2833), [#2853](https://github.com/Uninett/nav/pull/2853))
+  - Install Node/NPM in docker dev environment ([#2855](https://github.com/Uninett/nav/pull/2855))
 
 ## [5.8.4] - 2023-12-14
 
