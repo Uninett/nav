@@ -1,12 +1,8 @@
-FROM debian:buster
+FROM debian:bookworm
 
 #### Prepare the OS base setup ###
 
 ENV DEBIAN_FRONTEND noninteractive
-
-RUN echo 'deb-src http://deb.debian.org/debian buster main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://security.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://deb.debian.org/debian buster-updates main' >> /etc/apt/sources.list.d/srcpkg.list
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \

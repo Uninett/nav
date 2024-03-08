@@ -22,20 +22,18 @@
 # be world-readable!
 #
 #
-FROM --platform=linux/amd64 debian:bullseye
+FROM --platform=linux/amd64 python:3.11-slim-bookworm
 
 #### Prepare the OS base setup ###
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN echo 'deb-src http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://security.debian.org/debian-security bullseye-security main' >> /etc/apt/sources.list.d/srcpkg.list
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
             locales \
             python3-dbg gdb \
             sudo python3-dev python3-pip python3-virtualenv build-essential supervisor \
-	    debian-keyring debian-archive-keyring ca-certificates curl gpg
+            debian-keyring debian-archive-keyring ca-certificates curl gpg
 
 ## Use deb.nodesource.com to fetch more modern versions of Node/NPM than Debian can provide
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg && \
@@ -55,6 +53,8 @@ RUN echo "${TIMEZONE}" > /etc/timezone && cp /usr/share/zoneinfo/${TIMEZONE} /et
 
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
+       build-essential \
+       supervisor \
        git-core \
        libsnmp40 \
        cron \
@@ -76,10 +76,18 @@ RUN apt-get update \
        iputils-ping \
        snmp
 
-RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-RUN pip3 install --upgrade 'setuptools>=61' wheel && \
-    pip3 install --upgrade 'pip<=23.1.0' pip-tools build
+RUN adduser --system --group --no-create-home --home=/source --shell=/bin/bash nav
+RUN mkdir -p /source && echo "export PATH=$PATH" >> /source/.bashrc
+
+RUN pip install --upgrade 'setuptools>=61' wheel && \
+    pip install --upgrade pip pip-tools build
+
+ARG CUSTOM_PIP=ipython
+RUN pip install ${CUSTOM_PIP}
 
 #################################################################################
 ### COPYing the requirements file to pip-install Python requirements may bust ###
@@ -94,12 +102,8 @@ COPY requirements.txt /
 COPY constraints.txt /
 COPY tests/requirements.txt /test-requirements.txt
 COPY doc/requirements.txt /doc-requirements.txt
-# Since we used pip3 to install pip globally, pip should now be for Python 3
 RUN pip-compile --resolver=backtracking --output-file /requirements.txt.lock -c /constraints.txt /requirements.txt /test-requirements.txt /doc-requirements.txt
 RUN pip install -r /requirements.txt.lock
-
-ARG CUSTOM_PIP=ipython
-RUN pip install ${CUSTOM_PIP}
 
 COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
