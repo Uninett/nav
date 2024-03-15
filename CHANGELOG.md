@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## [Unreleased]
+
+### Fixed
+
+- Fixed broken `navclean` and `navsynctypes`  scripts ([#2875](https://github.com/Uninett/nav/pull/2875), [#2874](https://github.com/Uninett/nav/issues/2874))
+
 ## [5.9.0] - 2024-03-08
 
 ### Added
