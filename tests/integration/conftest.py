@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import importlib.util
 import io
 import re
 import shlex
@@ -7,7 +8,9 @@ from itertools import cycle
 from shutil import which
 import subprocess
 import time
+from typing import Dict
 
+import toml
 import pytest
 from django.test import Client
 
@@ -90,10 +93,10 @@ BINDIR = './python/nav/bin'
 
 
 def pytest_generate_tests(metafunc):
-    if 'binary' in metafunc.fixturenames:
-        binaries = _nav_binary_tests()
-        ids = [b[0] for b in binaries]
-        metafunc.parametrize("binary", _nav_binary_tests(), ids=ids)
+    if 'script' in metafunc.fixturenames:
+        scripts = _nav_script_tests()
+        ids = [s[0] for s in scripts]
+        metafunc.parametrize("script", _nav_script_tests(), ids=ids)
     elif 'admin_navlet' in metafunc.fixturenames:
         from nav.models.profiles import AccountNavlet
 
@@ -101,27 +104,33 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("admin_navlet", navlets)
 
 
-def _nav_binary_tests():
-    for binary in _nav_binary_list():
-        for args in _scan_testargs(binary):
+def _nav_script_tests():
+    """Generates a list of command lines to run to test all the NAV scripts defined
+    in pyproject.toml.
+
+    Each NAV script can define 0 to many sets of test arguments that should be used
+    when executing the script, using comments at the top of the file.  This is because
+    some of the scripts are designed to require some arguments to be present in order
+    to run without exiting with an error.
+    """
+    for script, module_name in _nav_scripts_map().items():
+        spec = importlib.util.find_spec(module_name)
+        for args in _scan_testargs(spec.origin):
             if args:
-                yield args
+                yield [script] + args[1:]
 
 
-def _nav_binary_list():
-    files = sorted(
-        os.path.join(BINDIR, f) for f in os.listdir(BINDIR) if not _is_excluded(f)
-    )
-    return (f for f in files if os.path.isfile(f))
-
-
-def _is_excluded(filename):
-    return (
-        filename.endswith('~')
-        or filename.startswith('.')
-        or filename.startswith('__')
-        or filename.startswith('Makefile')
-    )
+def _nav_scripts_map() -> Dict[str, str]:
+    """Returns a map of installable script names to NAV module names from
+    pyproject.toml.
+    """
+    data = toml.load('pyproject.toml')
+    scripts: dict[str, str] = data.get('project', {}).get('scripts', {})
+    return {
+        script: module.split(':', maxsplit=1)[0]
+        for script, module in scripts.items()
+        if module.startswith('nav.')
+    }
 
 
 def _scan_testargs(filename):

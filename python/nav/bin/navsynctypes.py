@@ -28,12 +28,12 @@ from nav.models.manage import NetboxType
 
 
 VENDOR_INSERT_SQL_TEMPLATE = """
-INSERT INTO vendor 
+INSERT INTO vendor
 (SELECT {vendorid} AS vendorid
  WHERE NOT EXISTS (
   SELECT vendorid FROM vendor WHERE vendorid ILIKE {vendorid}
  )
-); 
+);
 """
 
 TYPE_UPSERT_SQL_TEMPLATE = """
@@ -43,7 +43,7 @@ VALUES (
   {typename},
   {sysobjectid},
   {descr}
-) ON CONFLICT (sysobjectid) DO UPDATE 
+) ON CONFLICT (sysobjectid) DO UPDATE
   SET
     vendorid=(SELECT vendorid FROM vendor WHERE vendorid ILIKE {vendorid}),
     typename={typename},
@@ -52,8 +52,9 @@ VALUES (
 """
 
 
-def main(_args):
+def main():
     """Main program"""
+    parse_args()
     types = NetboxType.objects.all().select_related("vendor")
     used_vendors = {t.vendor.id for t in types}
     if types:
@@ -109,4 +110,4 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    main(parse_args())
+    main()

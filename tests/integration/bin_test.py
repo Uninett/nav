@@ -6,9 +6,9 @@ import subprocess
 BINDIR = './python/nav/bin'
 
 
-def test_binary_runs(binary):
-    """Verifies that a command runs with a zero exit code"""
-    proc = subprocess.Popen(binary, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+def test_script_runs(script):
+    """Verifies that a script defined in pyproject.toml runs with a zero exit code"""
+    proc = subprocess.Popen(script, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
     (done, fail) = proc.communicate()
     retcode = proc.wait()
 

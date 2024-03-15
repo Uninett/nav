@@ -34,7 +34,7 @@ from django.utils import timezone
 import nav.db
 
 
-def main(args):
+def main():
     """Main execution function."""
     parser = make_argparser()
     args = parser.parse_args()
@@ -210,7 +210,7 @@ class RadiusAcctDeleter(RecordDeleter):
     selector = """
         WHERE (acctstoptime < {expiry})
         OR ((acctstarttime + (acctsessiontime * interval '1 sec')) < {expiry})
-        OR (acctstarttime < {expiry} 
+        OR (acctstarttime < {expiry}
             AND (acctstarttime + (acctsessiontime * interval '1 sec')) IS NULL)
         """
 
@@ -245,4 +245,4 @@ class SessionDeleter(RecordDeleter):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
