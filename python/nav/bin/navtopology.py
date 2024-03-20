@@ -5,4 +5,5 @@ bootstrap_django(__file__)
 
 from nav.topology.detector import main
 
-main()
+if __name__ == '__main__':
+    main()
