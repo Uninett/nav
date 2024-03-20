@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This changelog format was introduced in NAV 5.4.0. Older changelogs can be
 found in the [HISTORY](HISTORY) file.
 
+## [Unreleased]
+
+### Fixed
+
+- Avoid running command line scripts twice on every invocation ([#2877](https://github.com/Uninett/nav/issues/2877), [#2878](https://github.com/Uninett/nav/pull/2878))
+
 ## [5.9.1] - 2024-03-15
 
 ### Fixed
