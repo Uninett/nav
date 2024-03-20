@@ -1,1 +1,4 @@
 Django>=3.2,<3.3
+djangorestframework>=3.12,<3.13
+django-crispy-forms>=1.8,<1.9
+crispy-forms-foundation>=0.7,<0.8
