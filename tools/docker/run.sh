@@ -11,4 +11,4 @@ mydir=$(dirname $0)
 # Start supervisor to control the rest of the runtime
 [[ -f /source/tools/docker/supervisord.conf ]] && \
   sudo cp /source/tools/docker/supervisord.conf /etc/supervisor/conf.d/nav.conf
-exec sudo /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+exec sudo -E /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
