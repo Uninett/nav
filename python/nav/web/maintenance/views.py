@@ -20,16 +20,18 @@ import time
 from datetime import datetime
 
 from django.db import connection, transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Model, Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.views.decorators.http import require_http_methods
 
 import nav.maintengine
 from nav.django.utils import get_account
-from nav.models.manage import Netbox
+from nav.models.manage import Location, Netbox, NetboxGroup, Room
 from nav.models.msgmaint import MaintenanceComponent, MaintenanceTask
+from nav.models.service import Service
 from nav.web.maintenance.forms import (
     MaintenanceAddSingleNetbox,
     MaintenanceCalendarForm,
@@ -42,13 +44,14 @@ from nav.web.maintenance.utils import (
     MaintenanceCalendar,
     component_to_trail,
     get_component_keys,
+    get_component_name,
     get_components,
     get_components_from_keydict,
+    prefetch_and_group_components,
     infodict_by_state,
     task_form_initial,
 )
 from nav.web.message import Messages, new_message
-from nav.web.quickselect import QuickSelect
 
 INFINITY = datetime.max
 
@@ -242,7 +245,6 @@ def cancel(request, task_id):
 @transaction.atomic()
 def edit(request, task_id=None, start_time=None, **_):
     account = get_account(request)
-    quickselect = QuickSelect(service=True)
     components = task = None
     component_keys_errors = []
     component_keys = {}
@@ -342,10 +344,70 @@ def edit(request, task_id=None, start_time=None, **_):
             'heading': heading,
             'task_form': task_form,
             'task_id': task_id,
-            'quickselect': mark_safe(quickselect),
             'components': component_trail,
             'selected': component_keys,
         },
+    )
+
+
+@require_http_methods(["POST"])
+def component_search(request):
+    """HTMX endpoint for component searches from maintenance task form"""
+    search = request.POST.get("search")
+    if not search or search == '':
+        return render(
+            request, 'maintenance/_component-search-results.html', {'results': {}}
+        )
+
+    results = {}
+    searches: list[tuple[type[Model], Q, type[Model] | None]] = [
+        (Location, Q(id__icontains=search), None),
+        (Room, Q(id__icontains=search), Location),
+        (Netbox, Q(sysname__icontains=search), Room),
+        (NetboxGroup, Q(id__icontains=search), None),
+        (
+            Service,
+            Q(handler__icontains=search) | Q(netbox__sysname__icontains=search),
+            Netbox,
+        ),
+    ]
+
+    for component_type, query, group_by in searches:
+        component_results = component_type.objects.filter(query)
+        grouped_results = prefetch_and_group_components(
+            component_type, component_results, group_by
+        )
+
+        if component_results:
+            component_title = get_component_name(component_type)
+            results[component_title] = {
+                'label': component_type._meta.verbose_name.title(),
+                'values': grouped_results,
+                'has_grouping': group_by is not None,
+            }
+
+    return render(
+        request, 'maintenance/_component-search-results.html', {'results': results}
+    )
+
+
+@require_http_methods(["POST"])
+def component_select(request):
+    """HTMX endpoint for component selection from maintenance task form"""
+    component_keys, component_keys_errors = get_component_keys(request.POST)
+    for error in component_keys_errors:
+        new_message(request, error, Messages.ERROR)
+
+    components, components_errors = get_components_from_keydict(component_keys)
+    for error in components_errors:
+        new_message(request, error, Messages.ERROR)
+
+    component_trail = [component_to_trail(c) for c in components]
+
+    return render(
+        request,
+        'maintenance/_selected-components-list.html',
+        {'components': component_trail, 'selected': component_keys},
     )
 
 
