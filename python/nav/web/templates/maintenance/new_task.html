@@ -45,6 +45,20 @@
             <legend>Select components</legend>
             {{ quickselect }}
           </fieldset>
+
+            <h3>Search components
+            </h3>
+            <input class="form-control" type="search"
+                   name="search" placeholder="Begin Typing To Search for stuff..."
+                   hx-post="{% url 'maintenance-component-search' %}"
+                   hx-trigger="input changed delay:500ms, search"
+                   hx-target="#search-results"
+                   hx-indicator=".htmx-indicator">
+            <span class="htmx-indicator">
+                <img src="/static/images/select2/select2-spinner.gif"/> Searching...
+            </span>
+            <div id="search-results"></div>
+
         </div>
 
         <div class="large-4 columns">
@@ -81,6 +95,7 @@
                      value="Remove selected" disabled="disabled" class="button small secondary"/>
             {% endif %}
           </fieldset>
+
         </div> {# column #}
       </div> {# row #}
 
