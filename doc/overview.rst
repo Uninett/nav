@@ -23,7 +23,7 @@ NAV gives you:
 * The ability to block or quarantine access ports of network abusers.
 * The ability to perform simple access port configuration tasks via web, and
   also to delegate this access to other administrators within your
-  organizational hiearchy.
+  organizational hierarchy.
 
 Although NAV specializes in network infrastructure monitoring, it also
 provides simple service monitoring for those who have less complex service

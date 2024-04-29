@@ -8,6 +8,178 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.9
+=======
+
+Changed names of NAV command line programs
+------------------------------------------
+NAV has switched to a more canonical way of installing Python command line
+scripts, or "binaries".  This means that all NAV command line programs that
+previously ended with a ``.py`` extension now have been stripped of that
+extension.  Any custom cron jobs or scripts you have that may reference these
+NAV commands must be updated in order to continue working.
+
+It also means that you need to make sure your :file:`daemons.yml` configuration
+file is up-to-date after an upgrade, as well as the NAV cronjob snippets in the
+:file:`cron.d/` configuration directory.
+
+These commands are affected and no longer have a ``.py`` extension:
+
+* ``alertengine``
+* ``autoenable``
+* ``collect_active_ip``
+* ``emailreports``
+* ``logengine``
+* ``macwatch``
+* ``mailin``
+* ``maintengine``
+* ``netbiostracker``
+* ``pping``
+* ``radiusparser``
+* ``servicemon``
+* ``smsd``
+* ``snmptrapd``
+* ``sortedstats_cacher``
+* ``start_arnold``
+* ``t1000``
+
+Web security
+------------
+
+While it is only relevant for older browsers, the HTTP header
+``X-XSS-Protection`` is set to ``1; mode=block``. It does not affect browsers
+that do not support it after all.
+
+There's a new section in :file:`webfront/webfront.conf`, ``[security]``. When
+running in production with SSL/TLS turned on, there's a new flag ``needs_tls``
+that should also be toggled on. This'll turn on secure cookies (only sent over
+SSL/TLS). See also the new howto
+:doc:`Securing NAV in production </howto/securing-nav-in-production>`.
+
+NAV 5.8
+=======
+
+Dependency changes
+------------------
+
+Upgrade your :mod:`pynetsnmp-2` library to at least version *0.1.10* to ensure
+SNMPv3 compatibility.
+
+SNMPv3
+------
+
+NAV 5.8 finally adds SNMPv3 support, although it is not yet 100%
+feature-complete.  A new management profile type has been added specifically
+for SNMPv3.  SNMPv3 management requires a host of configuration attributes,
+whereas v1/v2c only requires a community string.
+
+Additionally, if a device only has write-enabled SNMP management profiles
+attached to it, NAV will now try to use those also for read operations.  If
+your SNMPv3 profile supports both reading and writing, you should be able to
+get by with a single profile per device.
+
+
+Missing SNMPv3 features
+~~~~~~~~~~~~~~~~~~~~~~~
+
+**SNMPv3 traps**
+
+SNMPv3 trap support is still being worked on, but no working solution is
+available in 5.8.  See `issue #2755 for snmptrapd implementation and progress
+details <https://github.com/Uninett/nav/issues/2755>`.
+
+**SNMPv3 contexts**
+
+Various vendors use the concept of "community indexing" to fetch multiple
+logical instances of MIBs.  Examples include Cisco switches, where multiple
+instances of the ``BRIDGE-MIB`` are kept, one for each active VLAN.  To access
+the switch forwarding tables of VLAN 12 with an SNMP community of ``public``,
+the community must be modified to ``public@12``.
+
+Another common example is devices that allow SNMP management of individual VRF
+instances by modifying the SNMP community.
+
+However, since SNMPv3 does not use community strings, it instead provides the
+concept of "contexts", where the default context is typical an empty string.
+
+:program:`ipdevpoll` does not yet support using SNMPv3 contexts as a
+replacement for community indexing, so the types of data described above may be
+missing from some devices if switching them to SNMPv3.
+
+
+Power-over-Ethernet configuration in PortAdmin
+----------------------------------------------
+
+PortAdmin has gained supported for enabling/disabling Power-over-Ethernet on
+Juniper and Cisco switches.  The available configuration options will vary from
+device to device and vendor to vendor, so the available presets will simply be
+presented for selection in a dropdown menu if PoE support is detected on a
+device.
+
+REMOTE_USER autocreate option
+-----------------------------
+
+The external authentication integration system (popularly named
+``REMOTE_USER``) has gained a new toggle ``autocreate`` in the
+``[remote-user]`` section of :file:`webfront/webfront.conf`.  This option is
+``False`` by default, meaning that externally authenticated users will not be
+allowed to use NAV unless they have already been pre-created in the user admin
+panel.
+
+This changes the old behavior, in where any unknown user referenced in the
+``REMOTE_USER`` header by the web server is automatically created in NAV.  If
+you need the old functionality, you need to set this option to ``True``.
+
+
+NAV 5.7
+=======
+
+Dependency changes
+------------------
+
+We have removed the upper version bound requirement for the :mod:`Pillow` library.
+
+Detection and alerting of Juniper chassis/system alarms
+-------------------------------------------------------
+
+Juniper devices have a concept of chassis and system alarms (e.g. a failing PSU
+might trigger such an alert). Alarms are categorized as either *yellow* or
+*red* alarms, depending on the running hardware and operating system.
+
+Juniper provides SNMP MIBs to poll information about the current number of
+alarms of each category, but does not provide for fetching information about
+individual active alerts.  To get details about ongoing alarms, one usually
+needs to access the device CLI to get the current status.
+
+NAV 5.7 adds support to poll the number of *yellow* and *red* alerts from a
+Juniper device, and produces its own alerts when any of these counts are
+non-zero.
+
+Two new event types are introduced, which can be used for subscriptions in
+Alert Profiles:
+
+* ``juniperYellowAlarmState``
+* ``juniperRedAlarmState``
+
+
+``contains_address`` filter on ``prefix`` API endpoint
+-------------------------------------------------------
+
+The ``prefix`` API endpoint has been updated to include a new
+``contains_address`` filter.  This can be used to filter prefixes based on
+whether they contain specific addresses.  To search for prefixes that match
+single IP addresses, a host mask can be used.  E.g., to get all prefixes that
+match a single host ``10.0.0.42``, query for ``10.0.0.42/32``, like
+``/api/1/prefix/?contains_address=10.0.0.42%2F32``.
+
+
+Even more flexible configuration of logging
+-------------------------------------------
+
+Advanced users will find that we have added more options for configuring NAV's
+logging output.  The available configuration options are explored in depth
+:doc:`in our new logging howto guide </howto/setting-up-logging>`.
+
 NAV 5.6
 =======
 
@@ -133,7 +305,7 @@ just doing everything under a new name.
 In the coming year, references to Uninett, both in the NAV documentation, code
 and related web sites will slowly change into Sikt, but for some time going
 forward, there will be references to both names.  For more information about
-the new organization, we refer you to https://sikt.no/about-sikt
+the new organization, we refer you to https://sikt.no/en/about-sikt
 
 
 Dependency changes
@@ -422,7 +594,7 @@ Daemon startup privileges
 
 By accident, some of NAV's daemons have been running as the privileged ``root``
 user since NAV 4.9.0, due to changes in the process control system.  NAV 5.0.4
-introduces the :option:`privileged` option in the :file:`daemons.yml` configuration
+introduces the ``privileged`` option in the :file:`daemons.yml` configuration
 file, to signal which daemons actually need to be started with root privileges.
 
 Only :program:`snmptrapd` and :program:`pping` need root privileges on startup,
@@ -433,7 +605,7 @@ Please ensure your :file:`daemon.yml` configuration file is updated. Also, be
 aware that after upgrading to NAV 5.0.4 from any version from 4.9.0 and up, you
 may have some NAV log files that are owned by ``root``, which will cause some
 of the daemons to fail on startup. Please ensure all NAV log files are writable
-for the user defined as :option:`NAV_USER` in :file:`nav.conf`.
+for the user defined as ``NAV_USER`` in :file:`nav.conf`.
 
 
 New features

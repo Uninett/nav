@@ -45,7 +45,7 @@ def connect(host: Host, profile: manage.ManagementProfile) -> NetworkDriver:
             hostname=hostname,
             username=config.get("username"),
             password=config.get("password"),
-            timeout=config.get("timeout", DEFAULT_TIMEOUT_SECONDS),
+            timeout=config.get("timeout") or DEFAULT_TIMEOUT_SECONDS,
             optional_args=optional_args,
         )
         # Let temporary file live as long as the device connection exists

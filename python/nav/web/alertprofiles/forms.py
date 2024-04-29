@@ -18,6 +18,8 @@
 
 # pylint: disable=R0903
 
+from typing import Any, Dict
+
 from django import forms
 from django.db.models import Q
 
@@ -25,11 +27,12 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit, HTML
 
 from nav.alertengine.dispatchers.email_dispatcher import Email
+from nav.alertengine.dispatchers.slack_dispatcher import Slack
 from nav.alertengine.dispatchers.sms_dispatcher import Sms
-
-from nav.models.profiles import MatchField, Filter, Expression, FilterGroup
+from nav.models.profiles import Expression, Filter, FilterGroup, MatchField, Operator
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress, AlertSender
+from nav.util import is_valid_cidr, is_valid_ip
 from nav.web.crispyforms import HelpField
 
 _ = lambda a: a  # gettext variable (for future implementations)
@@ -118,6 +121,9 @@ class AlertAddressForm(forms.ModelForm):
             elif type_.handler == 'email':
                 if not Email.is_valid_address(address):
                     error = 'Not a valid email address.'
+            elif type_.handler == 'slack':
+                if not Slack.is_valid_address(address):
+                    error = 'Not a valid absolute url.'
 
             if error:
                 self._errors['address'] = self.error_class([error])
@@ -532,19 +538,31 @@ class ExpressionForm(forms.ModelForm):
     create expressions that can be used in a filter.
     """
 
-    filter = forms.IntegerField(widget=forms.widgets.HiddenInput)
-    match_field = forms.IntegerField(widget=forms.widgets.HiddenInput)
-    value = forms.CharField(required=True)
+    filter = forms.ModelChoiceField(
+        queryset=Filter.objects.all(), widget=forms.widgets.HiddenInput
+    )
+    match_field = forms.ModelChoiceField(
+        queryset=MatchField.objects.all(), widget=forms.widgets.HiddenInput
+    )
 
     class Meta(object):
         model = Expression
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
-        match_field = kwargs.pop('match_field', None)
+        match_field = kwargs.pop('match_field', None)  # add_expression
+        if not match_field:
+            match_field = args[0].get('match_field', None)  # save_expression
+        self.match_field = match_field
         super(ExpressionForm, self).__init__(*args, **kwargs)
 
-        if isinstance(match_field, MatchField):
+        if not match_field:
+            return
+
+        if not isinstance(match_field, MatchField):
+            match_field = MatchField.objects.get(pk=match_field)
+
+        if True:  # maintain indent for the sake off smaller diff!
             # Get all operators and make a choice field
             operators = match_field.operators.all()
             self.fields['operator'] = forms.models.ChoiceField(
@@ -555,7 +573,7 @@ class ExpressionForm(forms.ModelForm):
                 # Values are selected from a multiple choice list.
                 # Populate that list with possible choices.
 
-                # MatcField stores which table and column alert engine should
+                # MatchField stores which table and column alert engine should
                 # watch, as well as a table and column for "friendly" names in
                 # the GUI and how we should sort the fields in the GUI (if we
                 # are displaying a list)
@@ -601,8 +619,8 @@ class ExpressionForm(forms.ModelForm):
 
                 choices = []
                 for obj in model_objects:
-                    # ID is what is acctually used in the expression that will
-                    # be evaluted by alert engine
+                    # ID is what is actually used in the expression that will
+                    # be evaluated by alert engine
                     ident = getattr(obj, attname)
 
                     if model == name_model:
@@ -621,3 +639,42 @@ class ExpressionForm(forms.ModelForm):
 
                 # At last we acctually add the multiple choice field.
                 self.fields['value'] = forms.MultipleChoiceField(choices=choices)
+            else:
+                self.fields['value'] = forms.CharField(required=True)
+
+    def clean(self) -> Dict[str, Any]:
+        validated_data = super().clean()
+
+        match_field = validated_data["match_field"]
+        operator_type = int(validated_data["operator"])
+        value = validated_data["value"]
+
+        if match_field.data_type == MatchField.IP:
+            validated_data["value"] = self._clean_ip_addresses(
+                operator_type=operator_type, value=value
+            )
+            return validated_data
+
+        if operator_type == Operator.IN:
+            validated_data["value"] = "|".join(value)
+        elif operator_type == Operator.EQUALS and isinstance(value, list):
+            validated_data["value"] = value[0]
+
+        return validated_data
+
+    def _clean_ip_addresses(self, operator_type, value):
+        if operator_type == Operator.IN:
+            ip_list = value.split()
+        else:
+            ip_list = [value]
+        validated_ip_addresses = []
+        for ip in ip_list:
+            if not is_valid_ip(ip=ip, strict=True) and not is_valid_cidr(cidr=ip):
+                self.add_error(
+                    field="value",
+                    error=forms.ValidationError(("Invalid IP address: %s" % ip)),
+                )
+            else:
+                validated_ip_addresses.append(str(ip))
+
+        return "|".join(validated_ip_addresses)

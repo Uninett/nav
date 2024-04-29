@@ -1,0 +1,1 @@
+{{ count }} yellow alarms on {{ netbox }}.

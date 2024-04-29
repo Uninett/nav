@@ -50,8 +50,9 @@
                 Watch <em><a href="{% url 'alertprofiles-filter_groups-detail' b.filter_group.id %}">{{ b.filter_group.name }}</a></em>,
                 send to
                 {% if not b.alert_address.type.supported %}<div class="alert-box error with-icon inside-table" title="{{ b.alert_address.type.name }} is no longer supported">{% endif %}
+                {% if b.alert_address.type.blacklisted_reason %}<div class="alert-box warning inside-table" title="{{ b.alert_address.type.name }} is currently non-functional: {{b.alert_address.type.blacklisted_reason}}">{% endif %}
                 <em><a href="{% url 'alertprofiles-address-detail' b.alert_address.id %}">{{ b.alert_address.address }}</a></em>
-                {% if not b.alert_address.type.supported %}</div>{% endif %},
+                {% if not b.alert_address.type.supported or b.alert_address.type.blacklisted_reason %}</div>{% endif %},
                 {{ b.get_type_display }}.
             </li>
             {% endfor %}

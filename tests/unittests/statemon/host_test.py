@@ -1,58 +1,50 @@
-from unittest import TestCase
-import os
 from nav.statemon.megaping import Host
 from nav.statemon.icmppacket import PacketV4, PacketV6
 
 
-class HostTestcase(TestCase):
-    def test_make_v4_packet(self):
-        """
-        Test to make a v4 packet
-        """
+class TestHost:
+    """Tests for the Host class"""
+
+    def test_make_v4_packet(self, modulo_pid):
+        """Test to make a v4 packet"""
         host = Host('127.0.0.1')
-        pid = os.getpid()
-        self.assertFalse(host.is_v6())
+        assert not host.is_v6()
 
-        self.assertTrue(host.packet)
-        self.assertTrue(isinstance(host.packet, PacketV4))
+        assert host.packet
+        assert isinstance(host.packet, PacketV4)
 
         packet, cookie = host.make_packet(64)
 
-        self.assertTrue(packet)
-        self.assertTrue(cookie)
-        self.assertEqual(len(packet), 64)
-        self.assertEqual(len(cookie), 16)
+        assert packet
+        assert cookie
+        assert len(packet) == 64
+        assert len(cookie) == 16
 
-        self.assertEqual(host.packet.sequence, 0)
-        self.assertEqual(host.packet.id, pid)
+        assert host.packet.sequence == 0
+        assert host.packet.id, modulo_pid
 
-    def test_make_v6_packet(self):
-        """
-        Test to make a v6 packet
-        """
+    def test_make_v6_packet(self, modulo_pid):
+        """Test to make a v6 packet"""
         host = Host('2001:701::FFFF')
-        pid = os.getpid()
-        self.assertTrue(host.is_v6())
+        assert host.is_v6()
 
-        self.assertTrue(host.packet)
-        self.assertTrue(isinstance(host.packet, PacketV6))
+        assert host.packet
+        assert isinstance(host.packet, PacketV6)
 
         packet, cookie = host.make_packet(64)
 
-        self.assertTrue(packet)
-        self.assertTrue(cookie)
-        self.assertEqual(len(packet), 64)
-        self.assertEqual(len(cookie), 16)
+        assert packet
+        assert cookie
+        assert len(packet) == 64
+        assert len(cookie) == 16
 
-        self.assertEqual(host.packet.sequence, 0)
-        self.assertEqual(host.packet.id, pid)
+        assert host.packet.sequence == 0
+        assert host.packet.id == modulo_pid
 
     def test_ip_validation(self):
-        """
-        Test the IP valdidation helper methods for both v6 & v4
-        """
-        self.assertTrue(Host('129.241.105.210').is_valid_ipv4())
-        self.assertFalse(Host('129.241.105.256').is_valid_ipv4())
+        """Test the IP valdidation helper methods for both v6 & v4"""
+        assert Host('129.241.105.210').is_valid_ipv4()
+        assert not Host('129.241.105.256').is_valid_ipv4()
 
-        self.assertTrue(Host('2001:701::FFFF').is_valid_ipv6())
-        self.assertFalse(Host('127.0.0.1').is_valid_ipv6())
+        assert Host('2001:701::FFFF').is_valid_ipv6()
+        assert not Host('127.0.0.1').is_valid_ipv6()

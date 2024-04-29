@@ -6,3 +6,4 @@ Metric: {{ metric }}
 Time: {{ time }}
 Value: {{ measured_value }}
 Threshold: {{ alert|safe }}
+{% if description %}Description: {{ description }}{% endif %}

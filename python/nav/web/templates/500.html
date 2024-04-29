@@ -37,11 +37,7 @@
 			<div class="large-12 columns">
 				<a id="traceback" href="#">View traceback <i id="chevron" class="fa fa-chevron-down"></i></a>
 				<div class="traceback-info" style="display:none;">
-					<code>{{ type }}: {{ value }}</p>
-						{% for line in traceback %}
-							{{ line }}<br />
-						{% endfor %}
-					</code>
+					<pre>{{ traceback }}</pre>
 				</div>
 			</div>
 			<div class="large-12 columns frontpage-button">

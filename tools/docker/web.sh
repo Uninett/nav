@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 # Ensure latest NAV code is built
 mydir=$(dirname $0)
@@ -8,4 +8,4 @@ mydir=$(dirname $0)
 cd /source
 
 
-django-admin check && exec django-admin runserver 0.0.0.0:80
+django-admin check && exec django-admin runserver --insecure 0.0.0.0:8080

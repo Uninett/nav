@@ -73,7 +73,7 @@ class _DB(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
-        self.setDaemon(1)
+        self.daemon = True
         self.queue = queue.Queue()
         self._hosts_to_ping = []
         self._checkers = []

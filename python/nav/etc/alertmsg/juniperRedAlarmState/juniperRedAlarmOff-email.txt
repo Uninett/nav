@@ -1,0 +1,2 @@
+Subject: No red alarms on {{ netbox }}
+All red alarms on {{ netbox }} were resolved.

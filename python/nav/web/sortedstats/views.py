@@ -31,8 +31,8 @@ from django.core.cache.backends.base import InvalidCacheBackendError
 from .forms import ViewForm
 from . import CLASSMAP, TIMEFRAMES
 from nav.metrics.errors import GraphiteUnreachableError
+from nav.metrics.data import GRAPHITE_TIME_FORMAT
 
-GRAPHITE_TIME_FORMAT = "%H:%M_%Y%m%d"
 _logger = logging.getLogger(__name__)
 
 

@@ -27,9 +27,10 @@ import sys
 import pwd
 import stat
 import configparser
-import pkg_resources
+from pathlib import Path
 
 from nav.errors import GeneralException
+from nav.util import resource_files, resource_bytes
 from . import buildconf
 
 _logger = logging.getLogger(__name__)
@@ -247,13 +248,15 @@ def _config_resource_walk(source=''):
     from available nav package resources. All paths returned will be relative to
     the etc top directory.
     """
-    current_path = os.path.join('etc', source)
-    for name in pkg_resources.resource_listdir('nav', current_path):
-        full_name = os.path.join(current_path, name)
-        relative_name = os.path.join(source, name)
-        if pkg_resources.resource_isdir('nav', full_name):
+    source = Path(source)
+    current_path = Path('etc') / source
+    for path in resource_files('nav').joinpath(current_path).iterdir():
+        name = path.name
+        full_name = current_path / name
+        relative_name = str(source / name)
+        if resource_files('nav').joinpath(full_name).is_dir():
             for path in _config_resource_walk(source=relative_name):
-                yield path
+                yield str(path)
         else:
             yield relative_name
 
@@ -272,7 +275,7 @@ def _install_single_config_resource_(source, target, overwrite=False):
     if not overwrite and os.path.exists(target_file):
         return False
 
-    content = pkg_resources.resource_string('nav', resource_path)
+    content = resource_bytes('nav', resource_path)
     with open(target_file, 'wb') as handle:
         handle.write(content)
         return target_file

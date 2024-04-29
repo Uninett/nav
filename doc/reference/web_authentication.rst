@@ -21,6 +21,17 @@ Since the password is controlled from a system externally to NAV, the user does
 not have access to change the password from inside NAV. If an account is set to
 invalid in NAV, the user will not be logged in, even if the header is set.
 
+Creating users on first login
+-----------------------------
+
+Earlier versions of this functionality created users on first login. That is no
+longer the case. To enable the previous behaviour, set ``autocreate = on`` in
+the ``[remote-user]`` section in the config-file.
+
+With the default, which is ``off``, it is necessary to pre-create users for
+them to be able to log in. This can be done from the command line with
+``navuser``, or via the web interface.
+
 Workarounds for "strange" `REMOTE_USER` values
 ----------------------------------------------
 
@@ -39,9 +50,15 @@ originating site upon login/logout completion, the originating NAV URL can be
 inserted using the placeholder string ``{}``.  Example::
 
     [remote-user]
-    enabled=yes
-    login-url: https://sso.example.org/login?nexthop={}
-    logout-url: https://sso.example.org/logout?nexthop={}
+    enabled = yes
+    login-url = https://sso.example.org/login?nexthop={}
+    logout-url = https://sso.example.org/logout?nexthop={}
+
+``logout-url`` will set the link that the logout-button points to, the default
+is "/index/logout".
+
+Some remote user systems need to be visited *after* NAV has logged out the
+user locally. The flag for that is ``post-logout-redirect-url``.
 
 
 Relevant How Tos:

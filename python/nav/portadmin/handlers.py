@@ -15,14 +15,26 @@
 #
 """Interface definition for PortAdmin management handlers"""
 import time
-from typing import List, Tuple, Dict, Any, Sequence
+from typing import List, Tuple, Dict, Any, Sequence, Union, Optional
 import logging
+from dataclasses import dataclass
 
 from nav.models import manage
 from nav.portadmin.vlan import FantasyVlan
 
 
 _logger = logging.getLogger(__name__)
+
+
+@dataclass
+class PoeState:
+    """Class for defining PoE states.
+    `state` is the value used on the device itself.
+    `name` is a human readable name for the state
+    """
+
+    state: Union[str, int]
+    name: str
 
 
 class ManagementHandler:
@@ -278,6 +290,33 @@ class ManagementHandler:
             return False
         return True
 
+    def get_poe_state_options(self) -> Sequence[PoeState]:
+        """Returns the available options for enabling/disabling PoE on this netbox"""
+        raise NotImplementedError
+
+    def set_poe_state(self, interface: manage.Interface, state: PoeState):
+        """Set state for enabling/disabling PoE on this interface.
+        Available options should be retrieved using `get_poe_state_options`
+        """
+        raise NotImplementedError
+
+    def get_poe_states(
+        self, interfaces: Optional[Sequence[manage.Interface]] = None
+    ) -> Dict[str, Optional[PoeState]]:
+        """Retrieves current PoE state for interfaces on this device.
+
+        :param interfaces: Optional sequence of interfaces to filter for, as fetching
+                           data for all interfaces may be a waste of time if only a
+                           single interface is needed. If this parameter is omitted,
+                           the default behavior is to filter on all Interface objects
+                           registered for this device.
+        :returns: A dict mapping interfaces to their discovered PoE state.
+                  The key matches the `ifname` attribute for the related
+                  Interface object.
+                  The value will be None if the interface does not support PoE.
+        """
+        raise NotImplementedError
+
 
 class ManagementError(Exception):
     """Base exception class for device management errors"""
@@ -299,3 +338,17 @@ class ProtocolError(ManagementError):
     """Raised when some non-categorized error in the underlying protocol occurred
     during communication
     """
+
+
+class POENotSupportedError(ManagementError):
+    """Raised when an interface that does not support PoE is used in a context
+    where PoE support is expected
+    """
+
+
+class POEStateNotSupportedError(ManagementError):
+    """Raised when a PoE state is detected in a context where it is not supported"""
+
+
+class XMLParseError(ManagementError):
+    """Raised when failing to parse XML"""

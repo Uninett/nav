@@ -39,7 +39,7 @@ from http import cookies
 from nav.bootstrap import bootstrap_django
 
 from django.contrib.sessions.middleware import SessionMiddleware
-from nav.web.auth import AuthenticationMiddleware, AuthorizationMiddleware
+from nav.web.auth.middleware import AuthenticationMiddleware, AuthorizationMiddleware
 from nav.web import loginit
 from django.db import connection
 

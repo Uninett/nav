@@ -19,6 +19,8 @@
 import json
 import time
 
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
@@ -86,4 +88,9 @@ class Slack(Dispatcher):
 
     @staticmethod
     def is_valid_address(address):
+        validator = URLValidator()
+        try:
+            validator(address)
+        except ValidationError:
+            return False
         return True

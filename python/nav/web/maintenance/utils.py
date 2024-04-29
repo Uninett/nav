@@ -98,6 +98,7 @@ def infodict_by_state(task):
 
 def get_component_keys(post):
     remove = {}
+    errors = []
     raw_component_keys = {
         'service': post.getlist('service'),
         'netbox': post.getlist('netbox'),
@@ -125,48 +126,77 @@ def get_component_keys(post):
         for value in raw_component_keys[key]:
             if not remove or value not in remove[key]:
                 if key in PRIMARY_KEY_INTEGER:
+                    if not value.isdigit():
+                        errors.append(key + ": argument needs to be a number")
+                        continue
                     value = int(value)
                 if value not in component_keys[key]:
                     component_keys[key].append(value)
-    return component_keys
+    return component_keys, errors
 
 
 def components_for_keys(component_keys):
     component_data = {}
-    component_data['service'] = Service.objects.filter(
-        id__in=component_keys['service']
-    ).values(
-        'id',
-        'handler',
-        'netbox__id',
-        'netbox__sysname',
-        'netbox__ip',
-        'netbox__room__id',
-        'netbox__room__description',
-        'netbox__room__location__id',
-        'netbox__room__location__description',
-    )
-    component_data['netbox'] = Netbox.objects.filter(
-        id__in=component_keys['netbox']
-    ).values(
-        'id',
-        'sysname',
-        'ip',
-        'room__id',
-        'room__description',
-        'room__location__id',
-        'room__location__description',
-    )
-    component_data['room'] = Room.objects.filter(id__in=component_keys['room']).values(
-        'id', 'description', 'location__id', 'location__description'
-    )
-    component_data['location'] = Location.objects.filter(
-        id__in=component_keys['location']
-    ).values('id', 'description')
-    component_data['netboxgroup'] = NetboxGroup.objects.filter(
-        id__in=component_keys['netboxgroup']
-    ).values('id', 'description')
-    return component_data
+    component_data_errors = []
+    if component_keys['service']:
+        component_data['service'] = Service.objects.filter(
+            id__in=component_keys['service']
+        ).values(
+            'id',
+            'handler',
+            'netbox__id',
+            'netbox__sysname',
+            'netbox__ip',
+            'netbox__room__id',
+            'netbox__room__description',
+            'netbox__room__location__id',
+            'netbox__room__location__description',
+        )
+        if not component_data['service']:
+            component_data_errors.append(
+                "service: no elements with the given identifiers found"
+            )
+    if component_keys['netbox']:
+        component_data['netbox'] = Netbox.objects.filter(
+            id__in=component_keys['netbox']
+        ).values(
+            'id',
+            'sysname',
+            'ip',
+            'room__id',
+            'room__description',
+            'room__location__id',
+            'room__location__description',
+        )
+        if not component_data['netbox']:
+            component_data_errors.append(
+                "netbox: no elements with the given identifiers found"
+            )
+    if component_keys['room']:
+        component_data['room'] = Room.objects.filter(
+            id__in=component_keys['room']
+        ).values('id', 'description', 'location__id', 'location__description')
+        if not component_data['room']:
+            component_data_errors.append(
+                "room: no elements with the given identifiers found"
+            )
+    if component_keys['location']:
+        component_data['location'] = Location.objects.filter(
+            id__in=component_keys['location']
+        ).values('id', 'description')
+        if not component_data['location']:
+            component_data_errors.append(
+                "location: no elements with the given identifiers found"
+            )
+    if component_keys['netboxgroup']:
+        component_data['netboxgroup'] = NetboxGroup.objects.filter(
+            id__in=component_keys['netboxgroup']
+        ).values('id', 'description')
+        if not component_data['netboxgroup']:
+            component_data_errors.append(
+                "netboxgroup: no elements with the given identifiers found"
+            )
+    return component_data, component_data_errors
 
 
 def structure_component_data(component_data):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-from nav.compatibility import force_str
+from django.utils.encoding import force_str
 
 from datetime import datetime, timedelta
 import json
@@ -129,6 +129,22 @@ def test_update_group_on_org(db, api_client, token):
 
 
 # Netbox specific tests
+
+
+def test_filter_netbox_by_invalid_ip(db, api_client, token):
+    create_token_endpoint(token, 'netbox')
+    response = api_client.get('{}?ip=10'.format(ENDPOINTS['netbox']))
+    print(response)
+    assert response.status_code == 200
+
+
+def test_filter_netbox_by_invalid_ip_that_cannot_be_converted_throws_error(
+    db, api_client, token
+):
+    create_token_endpoint(token, 'netbox')
+    response = api_client.get('{}?ip=x'.format(ENDPOINTS['netbox']))
+    print(response)
+    assert response.status_code == 400
 
 
 def test_update_netbox(db, api_client, token):
@@ -364,7 +380,7 @@ def test_api_urls_should_resolve(urlname, arg):
 
 
 @pytest.fixture()
-def serializer_models(localhost):
+def serializer_models(localhost, admin_account):
     """Fixture for testing API serializers
 
     - unrecognized_neighbor
@@ -417,7 +433,6 @@ def serializer_models(localhost):
         alert_type_id=boxdown_id,
         end_time=INFINITY,
     ).save()
-    admin = profiles.Account.objects.get(login='admin')
-    auditlog.LogEntry.add_log_entry(admin, verb='verb', template='asd')
+    auditlog.LogEntry.add_log_entry(admin_account, verb='verb', template='asd')
     manage.Usage(id='ans', description='Ansatte').save()
     manage.Usage(id='student', description='Studenter').save()

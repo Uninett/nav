@@ -2,6 +2,7 @@
 smsd integration tests
 """
 import os
+import os.path
 
 try:
     from subprocess32 import STDOUT, check_output, TimeoutExpired, CalledProcessError
@@ -12,6 +13,8 @@ import pytest
 from mock import Mock, patch
 
 from nav.config import find_config_file, find_config_dir
+
+BINDIR = "./python/nav/bin"
 
 
 def test_smsd_test_message_with_uninettmaildispatcher_should_work(
@@ -89,7 +92,7 @@ def get_smsd_test_output(phone_no, timeout=5):
     returns the combined stdout+stderr output from the process.
 
     """
-    cmd = ['smsd.py', '-t', phone_no]
+    cmd = [os.path.join(BINDIR, 'smsd.py'), '-t', phone_no]
     try:
         # remove environment var that may interfere with our test - this mimicks
         # a production environment

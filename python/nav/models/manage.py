@@ -28,7 +28,7 @@ from itertools import count, groupby
 import logging
 import math
 import re
-from typing import Set
+from typing import Set, Optional
 
 import IPy
 from django.conf import settings
@@ -57,6 +57,7 @@ import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 import nav.models.event
+from nav.oids import get_enterprise_id
 
 
 _logger = logging.getLogger(__name__)
@@ -130,9 +131,11 @@ class ManagementProfile(models.Model):
     PROTOCOL_DEBUG = 0
     PROTOCOL_SNMP = 1
     PROTOCOL_NAPALM = 2
+    PROTOCOL_SNMPV3 = 3
     PROTOCOL_CHOICES = [
         (PROTOCOL_SNMP, "SNMP"),
         (PROTOCOL_NAPALM, "NAPALM"),
+        (PROTOCOL_SNMPV3, "SNMPv3"),
     ]
     if settings.DEBUG:
         PROTOCOL_CHOICES.insert(0, (PROTOCOL_DEBUG, 'debug'))
@@ -151,16 +154,25 @@ class ManagementProfile(models.Model):
 
     @property
     def is_snmp(self):
-        return self.protocol == self.PROTOCOL_SNMP
+        return self.protocol in (self.PROTOCOL_SNMP, self.PROTOCOL_SNMPV3)
 
     @property
     def snmp_version(self):
         """Returns the configured SNMP version as an integer"""
-        if self.is_snmp:
-            value = self.configuration['version']
+        if self.protocol == self.PROTOCOL_SNMP:
+            value = self.configuration.get("version")
             if value == "2c":
                 return 2
-            return int(value)
+            if value:
+                return int(value)
+            else:
+                _logger.error(
+                    "Broken management profile %s has no SNMP version", self.name
+                )
+                return None
+
+        elif self.protocol == self.PROTOCOL_SNMPV3:
+            return 3
 
         raise ValueError(
             "Getting snmp protocol version for non-snmp management profile"
@@ -298,78 +310,34 @@ class Netbox(models.Model):
         for chassis in self.get_chassis().order_by('index'):
             return chassis.device
 
-    @property
-    def read_only(self):
-        """Returns the read-only SNMP community"""
-        warnings.warn(
-            "The Netbox.read_only attribute will be removed in a future release",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        return self._get_snmp_config('community', writeable=False)
+    def get_preferred_snmp_management_profile(
+        self, require_write=False
+    ) -> Optional[ManagementProfile]:
+        """Returns the snmp management profile with the highest available SNMP version.
 
-    @property
-    def read_write(self):
-        """Returns the read-write SNMP community"""
-        warnings.warn(
-            "The Netbox.read_write attribute will be removed in a future release",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        return self._get_snmp_config('community', writeable=True)
-
-    @property
-    def snmp_version(self):
-        """Returns the configured SNMP version as an integer"""
-        warnings.warn(
-            "The Netbox.snmp_version attribute will be removed in the next "
-            "feature release",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        value = self._get_snmp_config('version')
-        if value or value == 0:
-            if value == "2c":
-                return 2
-            return int(value)
-
-    def _get_snmp_config(self, variable='community', writeable=None):
-        """Returns SNMP profile configuration variables, preferring the profile
-        with the highest available SNMP version.
+        :param require_write: If True, only write-enabled profiles will be
+                              considered.  If false, read-only profiles will be
+                              preferred, unless a write-enabled profile is the only
+                              available alternative.
         """
-        # TODO: This method can be removed when the SNMP properties above are removed
-        query = Q(protocol=ManagementProfile.PROTOCOL_SNMP)
-        if writeable:
-            query = query & Q(configuration__write=True)
-        elif writeable is not None:
-            query = query & (
-                Q(configuration__write=False) | ~Q(configuration__has_key='write')
+        query = Q(
+            protocol__in=(
+                ManagementProfile.PROTOCOL_SNMP,
+                ManagementProfile.PROTOCOL_SNMPV3,
             )
-        profiles = sorted(
-            self.profiles.filter(query),
-            key=lambda p: str(p.configuration.get('version') or 0),
-            reverse=True,
         )
-        if profiles:
-            return profiles[0].configuration.get(variable)
-
-    def get_preferred_snmp_management_profile(self, writeable=None):
-        """
-        Returns the snmp management profile with the highest available
-        SNMP version.
-        """
-        query = Q(protocol=ManagementProfile.PROTOCOL_SNMP)
-        if writeable:
+        if require_write:
             query = query & Q(configuration__write=True)
-        elif writeable is not None:
-            query = query & (
-                Q(configuration__write=False) | ~Q(configuration__has_key='write')
+
+        profiles = self.profiles.filter(query)
+
+        if not require_write:
+            # Sort read-only profiles first
+            profiles = sorted(
+                profiles, key=lambda p: p.configuration.get("write", False)
             )
-        profiles = sorted(
-            self.profiles.filter(query),
-            key=lambda p: str(p.configuration.get('version') or 0),
-            reverse=True,
-        )
+
+        profiles = sorted(profiles, key=lambda p: p.snmp_version or 0, reverse=True)
         if profiles:
             return profiles[0]
 
@@ -908,7 +876,7 @@ class Device(models.Model):
         """
         modules = self.modules.all()
         power_supplies_or_fans = self.power_supplies_or_fans.all()
-        netbox_entities = self.entites.all()
+        netbox_entities = self.entities.all()
         return modules or power_supplies_or_fans or netbox_entities
 
     def get_preferred_related_object(self):
@@ -1344,11 +1312,10 @@ class NetboxType(models.Model):
         specific to the vendor.
 
         """
-        prefix = u"1.3.6.1.4.1."
-        if self.sysobjectid.startswith(prefix):
-            specific = self.sysobjectid[len(prefix) :]
-            enterprise = specific.split('.')[0]
-            return int(enterprise)
+        try:
+            return get_enterprise_id(self.sysobjectid)
+        except ValueError:
+            return None
 
 
 #######################################################################

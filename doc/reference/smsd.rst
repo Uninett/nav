@@ -12,7 +12,7 @@ dispatcher handler layer.
 Usage
 =====
 
-For more help on usage, run ``smsd.py --help`` and see the ``smsd.conf`` config
+For more help on usage, run ``smsd --help`` and see the ``smsd.conf`` config
 file.
 
 

@@ -158,11 +158,25 @@ class ProcessAMP(amp.AMP):
         self.lost_handler = None
 
     def makeConnection(self, transport):
-        """Called when a connection has been made to the AMP endpoint"""
-        if not hasattr(transport, 'getPeer'):
+        """Overrides the base implementation to fake the required getPeer() and
+        getHost() methods on the incoming process transport object, if needed ( the
+        base AMP class was not really designed with process pipe transports in mind,
+        but with IP transports).
+
+        Process transports in Twisted<21 did not implement these methods at all,
+        while in Twisted>=21 they resolve to base methods that raise
+        `NotImplementError`.
+        """
+        try:
+            transport.getPeer()
+        except (AttributeError, NotImplementedError):
             setattr(transport, 'getPeer', lambda: "peer")
-        if not hasattr(transport, 'getHost'):
+
+        try:
+            transport.getHost()
+        except (AttributeError, NotImplementedError):
             setattr(transport, 'getHost', lambda: "host")
+
         super(ProcessAMP, self).makeConnection(transport)
 
     def connectionLost(self, reason):

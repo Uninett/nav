@@ -30,6 +30,7 @@ import signal
 import time
 import argparse
 
+import twisted
 from twisted.internet import reactor
 from twisted.internet.defer import maybeDeferred, setDebugging
 from twisted.python.failure import Failure
@@ -412,6 +413,9 @@ class CommandProcessor(object):
 
     def init_logging(self, stderr_only=False):
         """Initializes ipdevpoll logging for the current process."""
+        observer = twisted.python.log.PythonLoggingObserver()
+        observer.start()
+
         formatter = ContextFormatter(self.options.pidlog)
 
         logfile_name = None

@@ -101,6 +101,13 @@ class FatalDispatcherException(DispatcherException):
     pass
 
 
+class InvalidAlertAddressError(Exception):
+    """Raised when an alert address is invalid, which is determined by the
+    is_valid_address method of each dispatcher"""
+
+    pass
+
+
 def is_valid_email(address):
     """Validates a string as an e-mail address"""
     try:

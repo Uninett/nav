@@ -176,13 +176,16 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         $wrapper.on('change', '.ifadminstatus', function (event) {
             actOnChange($(event.target).parents(parentSelector));
         });
+        $wrapper.on('change', '.poelist', function (event) {
+            actOnChange($(event.target).parents(parentSelector));
+        });
     }
 
     /*
      * Mark card changed or not based on values in card
      */
     function actOnChange(row) {
-        if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row) || adminStatusChanged(row)) {
+        if (textFieldChanged(row) || dropDownChanged(row) || voiceVlanChanged(row) || adminStatusChanged(row) || poeDropDownChanged(row)) {
             markAsChanged(row);
         } else {
             markAsUnchanged(row);
@@ -214,6 +217,13 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
 
     function dropDownChanged(row) {
         var dropdown = $(row).find(".vlanlist");
+        var origOption = $('[data-orig]', dropdown)[0];
+        var selectedOption = $('option:selected', dropdown)[0];
+        return origOption !== selectedOption;
+    }
+
+    function poeDropDownChanged(row) {
+        var dropdown = $(row).find(".poelist");
         var origOption = $('[data-orig]', dropdown)[0];
         var selectedOption = $('option:selected', dropdown)[0];
         return origOption !== selectedOption;
@@ -302,6 +312,9 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             } else {
                 data.ifadminstatus = 2;
             }
+        }
+        if (poeDropDownChanged($row)) {
+            data.poe_state = $row.find(".poelist").val();
         }
         if ($row.find(".voicevlan").prop('checked')) {
             data.voice_activated = true;
@@ -469,6 +482,9 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         if ('ifadminstatus' in data) {
             updateAdminStatusDefault($row, data.ifadminstatus);
         }
+        if ('poe_state' in data) {
+            updatePoeDefault($row, data.poe_state);
+        }
     }
 
     function updateIfAliasDefault($row, ifalias) {
@@ -502,6 +518,15 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         var old_value = $adminStatusCheckbox.attr('data-orig');
         if (old_value !== new_value) {
             $adminStatusCheckbox.attr('data-orig', new_value);
+        }
+    }
+
+    function updatePoeDefault($row, new_value) {
+        var old_value = $row.find('option[data-orig]').val();
+        if (old_value !== new_value) {
+            console.log('Updating PoE state default from ' + old_value + ' to ' + new_value);
+            $row.find('option[data-orig]').removeAttr('data-orig');
+            $row.find('option[value=' + new_value + ']').attr('data-orig', new_value);
         }
     }
 

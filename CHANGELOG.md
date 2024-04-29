@@ -9,11 +9,220 @@ found in the [HISTORY](HISTORY) file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Avoid running command line scripts twice on every invocation ([#2877](https://github.com/Uninett/nav/issues/2877), [#2878](https://github.com/Uninett/nav/pull/2878))
+
+## [5.9.1] - 2024-03-15
+
+### Fixed
+
+- Fixed broken `navclean` and `navsynctypes`  scripts ([#2875](https://github.com/Uninett/nav/pull/2875), [#2874](https://github.com/Uninett/nav/issues/2874))
+
+## [5.9.0] - 2024-03-08
+
+### Added
+
+- Added option to enable secure cookies in new web security section of `webfront.conf` ([#2194](https://github.com/Uninett/nav/issue/2194), [#2815](https://github.com/Uninett/nav/pull/2815))
+- Made `mod_auth_mellon` (SAML) work for logins ([#2740](https://github.com/Uninett/nav/pull/2740))
+  - Also added howto for setting up `mod_auth_mellon` for Feide authentication.
+
+### Fixed
+
+- Cycle session IDs on login/logout to protect against potential session fixation attacks ([#2804](https://github.com/Uninett/nav/issues/2804), [#2813](https://github.com/Uninett/nav/pull/2813), [#2836](https://github.com/Uninett/nav/pull/2836), [#2835](https://github.com/Uninett/nav/pull/2835))
+- Flush sessions on logout ([#2828](https://github.com/Uninett/nav/pull/2828))
+- Prevent clickjacking attacks on NAV by disallowing putting NAV site in document frames ([#2816](https://github.com/Uninett/nav/pull/2816), [#2817](https://github.com/Uninett/nav/pull/2817))
+- Cleaned up overview/intro docs ([#2827](https://github.com/Uninett/nav/pull/2827))
+- Various cleanups of the test suites:
+  - Remove `FakeSession` redundancy ([#2841](https://github.com/Uninett/nav/issues/2841), [#2842](https://github.com/Uninett/nav/pull/2842))
+  - Fixed activeipcollector `get_timestamp` function implementation and its broken timezone-naive test ([#2831](https://github.com/Uninett/nav/pull/2831))
+  - Fixed broken statemon tests ([#2832](https://github.com/Uninett/nav/pull/2832))
+  - Fixed warnings during integration tests ([#2847](https://github.com/Uninett/nav/issues/2847), [#2858](https://github.com/Uninett/nav/pull/2858))
+  - Preserve 500-errors in webcrawler tests ([#2861](https://github.com/Uninett/nav/pull/2861))
+- Removed nonsensical pydantic requirement ([#2867](https://github.com/Uninett/nav/pull/2867))
+- Removed warnings when building docs ([#2856](https://github.com/Uninett/nav/pull/2856))
+
+### Changed
+
+- Modernize installation of NAV scripts/binaries using `pyproject.toml` ([#2676](https://github.com/Uninett/nav/issues/2676), [#2679](https://github.com/Uninett/nav/pull/2679))
+- Changed the documentation theme from "Bootstrap" to "Read The Docs", as the Bootstrap theme was no longer being maintained.  This also avoids unnecessary JavaScript libraries in the docs ([#2805](https://github.com/Uninett/nav/issues/2805), [#2825](https://github.com/Uninett/nav/pull/2825), [#2824](https://github.com/Uninett/nav/pull/2824), [#2834](https://github.com/Uninett/nav/issues/2834), [#2837](https://github.com/Uninett/nav/pull/2837), [#2833](https://github.com/Uninett/nav/issues/2833), [#2853](https://github.com/Uninett/nav/pull/2853), [#2868](https://github.com/Uninett/nav/pull/2868))
+- Various changes needed to move NAV closer to being fully compatible with Python 3.11:
+  - Replaced all uses of `pkg_resources` with `importlib` ([#2791](https://github.com/Uninett/nav/issues/2791), [#2798](https://github.com/Uninett/nav/pull/2798), [#2799](https://github.com/Uninett/nav/pull/2799))
+  - Upgraded Twisted to a version that supports Python 3.11 ([#2792](https://github.com/Uninett/nav/issues/2792), [#2796](https://github.com/Uninett/nav/pull/2796))
+  - Upgraded psycopg to 2.9.9 ([#2793](https://github.com/Uninett/nav/issues/2793), [#2795](https://github.com/Uninett/nav/pull/2795))
+  - Dropped code that was there to support Django's older than 3.2 ([#2823](https://github.com/Uninett/nav/pull/2823))
+  - Upgraded `python-ldap` from 3.4.0->3.4.4 ([#2830](https://github.com/Uninett/nav/pull/2830))
+  - Enabled running test suite on Python 3.10 by default ([#2838](https://github.com/Uninett/nav/pull/2838))
+  - Stopped running test suite on Python 3.8 by default ([#2851](https://github.com/Uninett/nav/pull/2851))
+  - Fixed invalid/deprecated backslash escapes in MIB dump files, as warned about in newer Python versions ([#2846](https://github.com/Uninett/nav/pull/2846), [#2848](https://github.com/Uninett/nav/pull/2848))
+  - Fixed deprecation warning for Django 4.0 in test suite ([#2844](https://github.com/Uninett/nav/pull/2844))
+  - Removed an adaption to Pythons older than 3.7 ([#2840](https://github.com/Uninett/nav/pull/2840))
+  - Install Node/NPM in docker dev environment ([#2855](https://github.com/Uninett/nav/pull/2855))
+  - Vendor the PickleSerializer ([#2866](https://github.com/Uninett/nav/pull/2866))
+
+## [5.8.4] - 2023-12-14
+
+### Fixed
+
+- Allow admins to configure ports with invalid or unset native VLANs in PortAdmin ([#2477](https://github.com/Uninett/nav/issues/2477), [#2786](https://github.com/Uninett/nav/pull/2786))
+- Fix bug that caused PoE config to be completely disabled for Cisco devices where at least one port did not support PoE ([#2781](https://github.com/Uninett/nav/pull/2781))
+- Fix PortAdmin save button moving around for ports without PoE support ([#2782](https://github.com/Uninett/nav/pull/2782))
+- Fix PortAdmin bug that prevented switching PoE state back and forth without reloading entire page ([#2785](https://github.com/Uninett/nav/pull/2785))
+- Fix regression that caused maintenance tasks to be un-editable ([#2783](https://github.com/Uninett/nav/issues/2783), [#2784](https://github.com/Uninett/nav/pull/2784))
+
+## [5.8.3] - 2023-12-01
+
+### Fixed
+
+- Fix non-working SNMPv1 communication ([#2772](https://github.com/Uninett/nav/issues/2772), [#2779](https://github.com/Uninett/nav/issues/2779), [#2780](https://github.com/Uninett/nav/pull/2780))
+
+## [5.8.2] - 2023-11-30
+
+### Fixed
+
+- Fix broken "operate as user" function in User and API Administration tool ([#2766](https://github.com/Uninett/nav/issues/2766), [#2777](https://github.com/Uninett/nav/pull/2777))
+- Fix crashing PDU widget ([#2776](https://github.com/Uninett/nav/pull/2776))
+- Fix bug that caused PortAdmin to stop working for Cisco switches ([#2773](https://github.com/Uninett/nav/issues/2773), [#2774](https://github.com/Uninett/nav/pull/2774))
+
+
+## [5.8.1] - 2023-11-29
+
+### Fixed
+
+- Constrain version of 3rd party module `ciscoconfparse`, in order to avoid NAV not working under Python 3.7 ([#2770](https://github.com/Uninett/nav/issues/2770), [#2771](https://github.com/Uninett/nav/pull/2771))
+- Fix ipdevpoll crash error from using SNMP v2c profile example that came with NAV ([#2767](https://github.com/Uninett/nav/issues/2767), [#2768](https://github.com/Uninett/nav/pull/2768))
+- Gracefully handle encoding errors in invalid sysname/IP input in SeedDB IP Device form ([#2764](https://github.com/Uninett/nav/pull/2764))
+- Gracefully handle errors from invalid profiles list input in SeedDB IP Device form ([#2765](https://github.com/Uninett/nav/pull/2765))
+
+## [5.8.0] - 2023-11-24
+
+### Added
+
+- Initial SNMPv3 support added to most parts of NAV
+  - Add an SNMPv3 management profile type ([#2693](https://github.com/Uninett/nav/issues/2693), [#2699](https://github.com/Uninett/nav/pull/2699))
+  - Add SNMPv3 session support to the synchronous SNMP libraries used by most parts of NAV except ipdevpoll ([#2700](https://github.com/Uninett/nav/issues/2700), [#2710](https://github.com/Uninett/nav/pull/2710))
+  - Add SNMPv3 reachability tests in SeedDB IP Device registration forms ([#2704](https://github.com/Uninett/nav/issues/2704), [#2734](https://github.com/Uninett/nav/pull/2734), [#2727](https://github.com/Uninett/nav/issues/2727), [#2730](https://github.com/Uninett/nav/pull/2730))
+  - Add SNMPv3 support to Portadmin ([#2712](https://github.com/Uninett/nav/issues/2712), [#2731](https://github.com/Uninett/nav/pull/2731))
+  - Add SNMPv3 support to `navsnmp` command line program ([#2724](https://github.com/Uninett/nav/issues/2724), [#2725](https://github.com/Uninett/nav/pull/2725))
+  - Add SNMPv3 support to Arnold ([#2726](https://github.com/Uninett/nav/issues/2726), [#2733](https://github.com/Uninett/nav/pull/2733))
+  - Add SNMPv3 session support to ipdevpoll's asynchronous SNMP libraries ([#2736](https://github.com/Uninett/nav/issues/2736), [#2743](https://github.com/Uninett/nav/pull/2743))
+  - Add SNMPv3 support to`navoidverify` and `naventity` command line programs ([#2747](https://github.com/Uninett/nav/issues/2747), [#2748](https://github.com/Uninett/nav/pull/2748))
+- Power-over-Ethernet configuration support for Cisco and Juniper equipment in PortAdmin ([#2632](https://github.com/Uninett/nav/issues/2632), [#2633](https://github.com/Uninett/nav/issues/2633), [#2666](https://github.com/Uninett/nav/pull/2666), [#2635](https://github.com/Uninett/nav/pull/2635), [#2759](https://github.com/Uninett/nav/pull/2759))
+- Extract VLAN association from router port names on Checkpoint firewalls ([#2684](https://github.com/Uninett/nav/issues/2684), [#2701](https://github.com/Uninett/nav/pull/2701))
+- Add link to our GitHub discussion forums in "Getting help" documentation ([#2746](https://github.com/Uninett/nav/pull/2746))
+- Add subcommand to `navuser` command line program for deleting users ([#2705](https://github.com/Uninett/nav/pull/2705))
+- Add toggle in `webfront.conf` for automatic creation of remote users ([#2698](https://github.com/Uninett/nav/issue/2698), [#2707](https://github.com/Uninett/nav/pull/2707))
+- Add proper documentation index page for all howto guides ([#2716](https://github.com/Uninett/nav/pull/2716))
+- Add description to threshold alarms ([#2691](https://github.com/Uninett/nav/issue/2691), [#2709](https://github.com/Uninett/nav/pull/2709))
+
+
+#### Developer-centric additions
+
+- Add tests for overview of alert profiles page  ([#2741](https://github.com/Uninett/nav/pull/2741))
+- Add make rule for cleaning `doc` directory ([#2717](https://github.com/Uninett/nav/pull/2717))
+- Add an snmpd service container for SNMPv3 comms testing ([#2697](https://github.com/Uninett/nav/pull/2697))
+
+### Fixed
+
+- Improve validation of maintenance form input in order to avoid unintentional crash reports ([#2757](https://github.com/Uninett/nav/pull/2757))
+- Handle invalid alert profile ID form input without crashing ([#2756](https://github.com/Uninett/nav/pull/2756))
+- Prevent crash errors in esoteric situations where multiple dashboards have been erroneously marked as a user's default dashboard ([#2680](https://github.com/Uninett/nav/pull/2680))
+- Fix broken `navoidverify` command on Linux ([#2737](https://github.com/Uninett/nav/pull/2737))
+- Several regressions related to input validation in Alert Profiles were fixed:
+  - Fix regression that prevented filter groups from being deleted from an alert profile ([#2729](https://github.com/Uninett/nav/pull/2729))
+  - Fix regression that prevented activation/deactivation of alert profiles ([#2732](https://github.com/Uninett/nav/pull/2732))
+  - Fix form validation with "equal" and "in" operators for adding expression with group to filter ([#2750](https://github.com/Uninett/nav/pull/2750))
+  - Add more expression operator tests for alert profiles and fix cleaning in `ExpressionForm` ([#2752](https://github.com/Uninett/nav/pull/2752))
+
+#### Developer-centric fixes
+
+- Restructure alert profile tests ([#2739](https://github.com/Uninett/nav/pull/2739))
+
+### Changed
+
+- Allow write-enabled SNMP profiles to be used for reading when device has no read-only SNMP profiles ([#2735](https://github.com/Uninett/nav/issues/2735), [#2751](https://github.com/Uninett/nav/pull/2751))
+- Improved howto guide for setting up remote user authentication using `mod_auth_oidc` ([#2708](https://github.com/Uninett/nav/pull/2708))
+
+#### Developer-centric changes
+
+- Refactored web authentication code in preparation for future changes to authentication flow ([#2706](https://github.com/Uninett/nav/pull/2706))
+
+### Removed
+
+#### Developer-centric removals
+
+- Remove remaining uses of `Netbox.snmp_version` ([#2522](https://github.com/Uninett/nav/issues/2522))
+- Remove unused function `snmp_parameter_factory` ([#2753](https://github.com/Uninett/nav/pull/2753))
+- Remove deprecated Netbox SNMP properties ([#2754](https://github.com/Uninett/nav/pull/2754), [#2761](https://github.com/Uninett/nav/pull/2761))
+
+
+
+## [5.7.1] - 2023-09-18
+
+### Fixed
+
+- Fixed regression that caused Netmap to be unusable in 5.7.0 ([#2681](https://github.com/Uninett/nav/issues/2681), [#2683](https://github.com/Uninett/nav/pull/2683))
+
+## [5.7.0] - 2023-09-07
+
+### Added
+
+- Even more complex and flexible configuration of NAV logging is now supported through `logging.yml` ([#2659](https://github.com/Uninett/nav/pull/2659))
+- Added howto guide for log configuration ([#2660](https://github.com/Uninett/nav/pull/2660))
+- Currently non-functional (aka. "blacklisted") alert sender mechanisms are now flagged in the Alert Profiles tool wherever an affected alert address is displayed ([#2653](https://github.com/Uninett/nav/issues/2653), [#2664](https://github.com/Uninett/nav/issues/2664), [#2677](https://github.com/Uninett/nav/pull/2677), [#2678](https://github.com/Uninett/nav/pull/2678))
+- Added support for polling and alerting on Juniper chassis and system alerts ([#2358](https://github.com/Uninett/nav/issues/2358), [#2388](https://github.com/Uninett/nav/pull/2388))
+  - Juniper only provides alert counters via SNMP, no alert details, unfortunately.
+  - Since NAV doesn't support alert state updates, a new eventengine plugin handles alert count transitions by resolving old alerts and creating new ones ([#2432](https://github.com/Uninett/nav/issues/2432), [#2519](https://github.com/Uninett/nav/pull/2519))
+- Added a new `contains_address` filter to the `prefix` API endpoint, to enable lookup of matching prefix/vlan details from a single IP or subnet address ([#2577](https://github.com/Uninett/nav/issues/2577), [#2578](https://github.com/Uninett/nav/pull/2578))
+- Defined and added abstract methods for Power-over-Ethernet configuration to PortAdmin management handler classes ([#2636](https://github.com/Uninett/nav/pull/2636))
+  - These are needed for the upcoming vendor specific implementations of PoE config in PortAdmin.
+- Implemented configuration file parsing for upcoming local JWT token feature ([#2568](https://github.com/Uninett/nav/pull/2568))
+
+### Fixed
+
+#### User-visible fixes
+
+- Properly dispose of outgoing alert notifications to invalid alert addresses ([#2661](https://github.com/Uninett/nav/pull/2661))
+- Fixed crash when attempting to log device errors with an empty comment in the Device History tool ([#2579](https://github.com/Uninett/nav/issues/2579), [#2580](https://github.com/Uninett/nav/pull/2580))
+- Fixed bad styling and missing linebreaks in traceback section of the 500 error page ([#2607](https://github.com/Uninett/nav/issues/2607), [#2628](https://github.com/Uninett/nav/pull/2628))
+- Show help text instead of error when running `nav` command without arguments ([#2601](https://github.com/Uninett/nav/issues/2601), [#2603](https://github.com/Uninett/nav/pull/2603))
+- Prevent users from entering invalid `sysObjectID` values when editing Netbox types in SeedDB ([#2584](https://github.com/Uninett/nav/pull/2584), [#2566](https://github.com/Uninett/nav/issues/2566))
+- Removed upper version bound for *Pillow* image manipulation library, to fix security warnings ([#2567](https://github.com/Uninett/nav/pull/2567))
+- Alerts that cannot be sent due to blacklisted media plugins will no longer fill up `alertengine.log` every 30 seconds, unless DEBUG level logging is enabled ([#1787](https://github.com/Uninett/nav/issues/1787), [#2652](https://github.com/Uninett/nav/pull/2652))
+- DNS lookups in ipdevinfo are now properly case insensitive ([#2615](https://github.com/Uninett/nav/issues/2615), [#2650](https://github.com/Uninett/nav/pull/2650))
+- Alert Profiles will now properly require Slack alert addresses to be valid URLs ([#2657](https://github.com/Uninett/nav/pull/2657))
+- 5 minute and 15 minute load average values will now be collected correctly for Juniper devices ([#2671](https://github.com/Uninett/nav/issues/2671), [#2672](https://github.com/Uninett/nav/pull/2672))
+- Fix cabling API, which broke due to internal refactorings ([#2621](https://github.com/Uninett/nav/pull/2621))
+- Only install NAV's custom `epollreactor2` in ipdevpoll if running on Linux ([#2503](https://github.com/Uninett/nav/issues/2503), [#2604](https://github.com/Uninett/nav/pull/2604))
+  - Stops ipdevpoll from crashing on BSDs.
+
+#### Developer-centric fixes
+
+- Moved more of NAV's packaging definition to `pyproject.toml` ([#2655](https://github.com/Uninett/nav/pull/2655))
+- Pin pip to version 23.1.0 for CI pipelines to continue working ([#2647](https://github.com/Uninett/nav/pull/2647))
+- Improve ipdevpoll logging of SQL queries and from Twisted library ([#2640](https://github.com/Uninett/nav/pull/2640))
+- Stop making skipped validation tests for non HTML content ([#2623](https://github.com/Uninett/nav/pull/2623))
+- Version-locked indirect dependencies of test suites ([#2622](https://github.com/Uninett/nav/pull/2622), [#2617](https://github.com/Uninett/nav/issues/2617))
+- Improve SNMP forwarding/proxying container setup, including adding IPv6 support ([#2637](https://github.com/Uninett/nav/pull/2637), [#2516](https://github.com/Uninett/nav/pull/2516))
+- Documented a recipe for establishing SNMP tunnels when testing devices on otherwise unreachable networks ([#2426](https://github.com/Uninett/nav/issues/2426), [#2435](https://github.com/Uninett/nav/pull/2435))
+- Run Django development web server in "insecure" mode to improve simulation of a production environment when debug flag is turned off ([#2625](https://github.com/Uninett/nav/pull/2625))
+- Added a proper docstring to `bootstrap_django()` function ([#2619](https://github.com/Uninett/nav/pull/2619), [#2168](https://github.com/Uninett/nav/issues/2168))
+- Stop restoring stale tox environment caches in GitHub workflows ([#2605](https://github.com/Uninett/nav/pull/2605))
+- Added tests for ipdevpoll worker euthanization ([#2599](https://github.com/Uninett/nav/pull/2599), [#2548](https://github.com/Uninett/nav/issues/2548))
+- Added tests to ensure snmptrapd can properly look up a NAV router that sends traps from one of its non-management IP addresses ([#2500](https://github.com/Uninett/nav/issues/2500), [#2510](https://github.com/Uninett/nav/pull/2510))
+- Avoid redundant graphite time formatting strings by re-using constant ([#2588](https://github.com/Uninett/nav/pull/2588), [#2543](https://github.com/Uninett/nav/issues/2543))
+- Make detection of running in a virtualenv more compatible with modern toolchain ([#2573](https://github.com/Uninett/nav/pull/2573))
+- Revert to having tox run its own dependency installer ([#2572](https://github.com/Uninett/nav/pull/2572))
+- Added explicit back-relation names for several Django ORM models ([#2544](https://github.com/Uninett/nav/pull/2544), [#2546](https://github.com/Uninett/nav/pull/2546), [#2547](https://github.com/Uninett/nav/pull/2547), [#2549](https://github.com/Uninett/nav/pull/2549), [#2550](https://github.com/Uninett/nav/pull/2550), [#2551](https://github.com/Uninett/nav/pull/2551))
+
+## [5.6.1] - 2023-03-23
+
 ### Added
 
 #### Developer-centric features
 - Document a recipe for establishing SNMP tunnels using socat/SSH ([#2426](https://github.com/Uninett/nav/issues/2426), [#2435](https://github.com/Uninett/nav/pulls/2435))
 - Updated/added explicit relation names to various ORM models ([#2544](https://github.com/Uninett/nav/pull/2544), [#2546](https://github.com/Uninett/nav/pull/2546), [#2547](https://github.com/Uninett/nav/pull/2547), [#2549](https://github.com/Uninett/nav/pull/2549), [#2550](https://github.com/Uninett/nav/pull/2550), [#2551](https://github.com/Uninett/nav/pull/2551), [#2595](https://github.com/Uninett/nav/pull/2595), [#2596](https://github.com/Uninett/nav/pull/2596))
+- Added tests for simple searches ([#2597](https://github.com/Uninett/nav/pull/2597))
 
 ### Fixed
 
@@ -30,6 +239,7 @@ found in the [HISTORY](HISTORY) file.
 - Handle invalid IP address input in ipdevinfo device searches gracefully, rather then crashing with a 500 error ([#2589](https://github.com/Uninett/nav/issues/2589), [#2590](https://github.com/Uninett/nav/pull/2590))
 - Fix broken links to room details from room report for rooms with spaces in their names ([#2592](https://github.com/Uninett/nav/issues/2592), [#2593](https://github.com/Uninett/nav/pull/2593))
 - Catch Validation error in filtering of prefixes in API ([#2606](https://github.com/Uninett/nav/issues/2606), [#2608](https://github.com/Uninett/nav/pull/2608))
+- Redesign the 500 Error page so that the exception traceback if formatted as one
 
 
 ## [5.6.0] - 2023-01-20

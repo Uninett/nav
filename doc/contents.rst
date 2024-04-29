@@ -14,13 +14,9 @@ NAV documentation contents
 
     overview
     intro/install
-    howto/integrating-graphite-with-nav
     intro/getting-started
     intro/getting-organized
-    howto/debugging-topology
-    howto/migrate-data
-    howto/migrate-rrd-to-graphite
-    howto/using_the_api
+    howto/index
     faq/faq
     reference/index
     ../release-notes

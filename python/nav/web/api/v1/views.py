@@ -186,10 +186,7 @@ class RelatedOrderingFilter(filters.OrderingFilter):
 
             # foreign key
             if len(components) == 2:
-                try:
-                    remote_model = field.remote_field.model
-                except AttributeError:  # Django <= 1.8
-                    remote_model = field.rel.to
+                remote_model = field.remote_field.model
                 if remote_model:
                     return self.is_valid_field(remote_model, components[1])
             return True
@@ -404,7 +401,6 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     queryset = manage.Netbox.objects.all().prefetch_related("info_set")
     serializer_class = serializers.NetboxSerializer
     filterset_fields = (
-        'ip',
         'sysname',
         'room',
         'organization',
@@ -442,6 +438,15 @@ class NetboxViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
                 qs = qs.filter(type__name__istartswith=value[1:])
             else:
                 qs = qs.filter(type__name=value)
+        ip = params.get('ip', None)
+        if ip:
+            try:
+                addr = IP(ip)
+            except ValueError:
+                raise IPParseError
+            oper = '=' if addr.len() == 1 else '<<'
+            expr = "netbox.ip {} '{}'".format(oper, addr)
+            qs = qs.extra(where=[expr])
 
         return qs
 
@@ -599,7 +604,7 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         queryset = cabling.Cabling.objects.all()
         not_patched = self.request.query_params.get('available', None)
         if not_patched:
-            queryset = queryset.filter(patch=None)
+            queryset = queryset.filter(patches=None)
 
         return queryset
 

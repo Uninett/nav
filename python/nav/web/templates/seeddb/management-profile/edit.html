@@ -35,6 +35,9 @@
                 {% for form in protocol_forms %}
                     <fieldset class="protocol-configuration" id="protocol-{{ form.PROTOCOL }}">
                         <legend>{{ form.PROTOCOL_NAME }} configuration</legend>
+                        {% if form.NOTABENE %}
+                            <div class="alert-box warning with-icon">{{ form.NOTABENE }}</div>
+                        {% endif %}
                         {{ form | crispy }}
                     </fieldset>
                 {% endfor %}

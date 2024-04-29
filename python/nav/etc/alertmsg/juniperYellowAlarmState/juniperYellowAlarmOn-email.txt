@@ -1,0 +1,2 @@
+Subject: {{ count }} yellow alarms on {{ netbox }}
+The yellow alarm count on {{ netbox }} changed to {{ count }}.

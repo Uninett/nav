@@ -24,11 +24,11 @@ connections from outside the server, or no messages will come through.
 
 Pick an e-mail address on your NAV server to send 3rd party alerts to, for
 example `mailin@nav.example.org`.  Mail received at this address should be
-piped through the ``mailin.py`` program.  This can usually be accomplished by
+piped through the ``mailin`` program.  This can usually be accomplished by
 adding an e-mail alias to :file:`/etc/aliases`, like this::
 
   cat >> /etc/aliases <<EOF
-  mailin: "| /usr/local/nav/bin/mailin.py"
+  mailin: "| /usr/local/nav/bin/mailin"
   EOF
   newaliases
 

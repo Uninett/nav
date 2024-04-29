@@ -40,8 +40,8 @@ before running NAV:
     2. :kbd:`makepasswd --chars 51`
     3. :kbd:`pwgen -s 51 1`
 
-  Please see
-  https://docs.djangoproject.com/en/1.7/ref/settings/#std:setting-SECRET_KEY
+  Please see the 
+  `Django secret key documentation <https://docs.djangoproject.com/en/3.2/ref/settings/#std-setting-SECRET_KEY>`_
   if you want to know more about this.
 
 `TIME_ZONE`
@@ -81,7 +81,7 @@ processes can be controlled using the :program:`nav` command.
 
 The backend processes consist of some daemon processes, and some cron jobs.
 Running :kbd:`nav start` will start all the daemon processes in the
-background, and install all the cron jobs in the `navcron` user's crontab.
+background, and install all the cron jobs in the ``navcron`` user's crontab.
 
 Depending on your OS of choice, you should configure it to run :kbd:`nav
 start` on boot.
@@ -93,10 +93,10 @@ Logging in to the web interface
 When browsing the web interface at |URL| you will see the front page of NAV.
 This is openly accessible to anonymous users by default.
 
-To log in for the first time, click the `Login` link on the upper right of the
-page, and enter the username "admin" and the default password "admin".  Then
-click the `Userinfo` link in the grey navigation bar and change the
-adminstrator's password to something more sensible.
+To log in for the first time, click the :guilabel:`Login` link on the upper right of
+the page, and enter the username "admin" and the default password "admin".  Then
+click :guilabel:`My stuff` and :guilabel:`My account` in the navigation bar on top and
+change the adminstrator's password to something more sensible.
 
 
 Seeding your database
@@ -106,13 +106,13 @@ NAV will *not* autodiscover the routers and switches of your network. The
 assumption is that you already have this information in some inventory
 system.
 
-The *SeedDB* tool enables to you add and edit a multitude of "seed" information
+The *Seed Database* tool enables to you add and edit a multitude of "seed" information
 in the NAV database, which tells NAV what and how to monitor. The essential bit
 here is the :term:`IP Device`, which represents your switches, routers and
 other networked devices.
 
-The *SeedDB* tool is listed on NAV's *Toolbox* page, reachable from the grey
-navigation bar.
+The *Seed Database* tool is listed on NAV's *Toolbox* page, reachable from the
+navigation bar on top.
 
 Adding your first management profile
 ------------------------------------
@@ -126,7 +126,7 @@ devices can be managed using SNMP v2c and a default community string of
 1. Click the :guilabel:`Management Profile` tab and then the sub-tab
    :guilabel:`Add new management profile`.
 2. Choose and fill out a unique name for your profile, e.g. ``Default SNMP v2c
-   read-only profile``, and add an optional description of it.
+   read-only profile``, and optionally add a description of it.
 3. Select ``SNMP`` from the :guilabel:`Protocol` dropdown menu. An
    :guilabel:`SNMP Configuration` form will appear to the right.
 4. Ensure ``v2c`` is selected from the :guilabel:`Version` dropdown, and put
@@ -195,18 +195,18 @@ Verifying that collection is working
 ------------------------------------
 
 Within two minutes, NAV's :doc:`SNMP collection engine </reference/ipdevpoll>` should launch a job to poll
-your newly added device for information. The grey navigation bar features a
+your newly added device for information. The navigation bar on top features a
 search field; search for your newly entered device's IP address or DNS name to
-show its `IP Device Info` page. The resulting page should look something like
+show its :guilabel:`IP Device Info` page. The resulting page should look something like
 this:
 
 .. image:: ipdevinfo-switch-display.png
    :scale: 50%
 
-The `IP Device Info` page will try to display every bit of pertinent
+The :guilabel:`IP Device Info` page will try to display every bit of pertinent
 information about a monitored device.  For now, the key information here is
-the `Last updated` field of the top-left detail panel.  Keep reloading the
-page until its value changes from `N/A` into a meaningful timestamp.
+the :guilabel:`Last updated` field of the top-left detail panel.  Keep reloading the
+page until its value changes from ``N/A`` into a meaningful timestamp.
 
 .. NOTE:: If no new information appears on this page within three minutes
           after adding your switch to NAV, you may need to start
@@ -251,7 +251,7 @@ categories:
   Any other type of device not fitting neatly into the other categories.
 
 All categories will *require* a read-only SNMP profile to be assigned to the device, except for
-`SRV` and `OTHER`, where it is optional.
+``SRV`` and ``OTHER``, where it is optional.
 
 .. _seeddb-bulk-import-intro:
 
@@ -270,7 +270,7 @@ upload or paste it into the :guilabel:`bulk import` form.
 
 The format is pretty straightforward: The initial fields are required, while
 the fields listed in square brackets are optional. Optional fields can be
-omitted or left blank. A line beginning with a `#` sign will be regarded as a
+omitted or left blank. A line beginning with a ``#`` sign will be regarded as a
 comment and ignored. Thus, for adding some switch using the default SNMP
 management profile you added earlier, and a function description of
 :kbd:`Packet switching`, this line would do it::

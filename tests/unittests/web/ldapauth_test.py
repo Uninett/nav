@@ -1,5 +1,5 @@
 from nav.config import NAVConfigParser
-from nav.web.ldapauth import LDAPUser, open_ldap
+from nav.web.auth.ldap import LDAPUser, open_ldap
 from mock import Mock, patch
 
 
@@ -16,7 +16,7 @@ encoding=utf-8
 """
 
 
-@patch('nav.web.ldapauth._config', LdapTestConfig())
+@patch('nav.web.auth.ldap._config', LdapTestConfig())
 def test_ldapuser_search_dn_decode_regression():
     """Verifies that LDAPUser.search_dn() returns user's DN untouched"""
     connection = Mock()
@@ -47,7 +47,7 @@ debug=true
 """
 
 
-@patch('nav.web.ldapauth._config', LdapOpenTestConfig())
+@patch('nav.web.auth.ldap._config', LdapOpenTestConfig())
 def test_open_ldap_should_run_without_error():
     with patch('ldap.initialize') as initialize:
         assert open_ldap()
@@ -65,7 +65,7 @@ debug=true
 """
 
 
-@patch('nav.web.ldapauth._config', LdapOpenTestInvalidEncryptionConfig())
+@patch('nav.web.auth.ldap._config', LdapOpenTestInvalidEncryptionConfig())
 def test_when_encryption_setting_is_invalid_open_ldap_should_run_without_encryption():
     with patch('ldap.initialize') as initialize:
         assert open_ldap()

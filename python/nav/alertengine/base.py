@@ -29,6 +29,7 @@ from nav.compatibility import lru_cache
 from nav.models.profiles import (
     Account,
     AccountAlertQueue,
+    AlertSender,
     AlertSubscription,
     AlertAddress,
     FilterGroup,
@@ -649,3 +650,14 @@ def check_alert_against_filtergroupcontents(alert, filtergroupcontents, atype):
             )
 
     return matches
+
+
+def clear_blacklisted_status_of_alert_senders():
+    blacklisted_alert_senders = AlertSender.objects.exclude(
+        blacklisted_reason__isnull=True
+    )
+    for sender in blacklisted_alert_senders:
+        sender.blacklisted_reason = None
+    AlertSender.objects.bulk_update(
+        objs=blacklisted_alert_senders, fields=["blacklisted_reason"]
+    )

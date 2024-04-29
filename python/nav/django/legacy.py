@@ -15,10 +15,7 @@
 #
 """Various functionality to bridge legacy NAV code with Django"""
 
-try:
-    from django.utils.deprecation import MiddlewareMixin
-except ImportError:  # Django <= 1.9
-    MiddlewareMixin = object
+from django.utils.deprecation import MiddlewareMixin
 
 from nav import db
 

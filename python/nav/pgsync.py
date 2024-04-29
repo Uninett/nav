@@ -25,12 +25,13 @@ from optparse import OptionParser
 import subprocess
 from textwrap import wrap
 from errno import ENOENT, EACCES
+from pathlib import Path
 import psycopg2
-from pkg_resources import resource_listdir, resource_string
 
 from nav.db import ConnectionParameters
 from nav.colors import colorize, print_color
 from nav.colors import COLOR_CYAN, COLOR_YELLOW, COLOR_RED, COLOR_GREEN
+from nav.util import resource_files, resource_bytes
 
 
 def main():
@@ -281,13 +282,16 @@ class Synchronizer(object):
         (None, 'indexes.sql'),
     ]
 
-    def __init__(self, resource_module, apply_out_of_order_changes=False):
+    def __init__(self, resource_module, apply_out_of_order_changes=False, config=None):
         self.resource_module = resource_module
         self.connection = None
         self.cursor = None
-        self.connect_options = ConnectionParameters.from_config()
         self.apply_out_of_order_changes = apply_out_of_order_changes
         self.finder = ChangeScriptFinder(self.resource_module)
+        if config:
+            self.connect_options = config
+        else:
+            self.connect_options = ConnectionParameters.from_config()
 
     def connect(self):
         """Connects the synchronizer to the NAV configured database."""
@@ -532,7 +536,7 @@ class Synchronizer(object):
         Terminates the process if there are errors.
 
         """
-        sql = resource_string(self.resource_module, filename)
+        sql = self._read_sql_file(filename)
         print_color("%-20s " % (filename + ":"), COLOR_CYAN, newline=False)
         try:
             self.cursor.execute(sql)
@@ -541,6 +545,9 @@ class Synchronizer(object):
             sys.exit(2)
         else:
             print_color("OK", COLOR_GREEN)
+
+    def _read_sql_file(self, filename):
+        return resource_bytes(self.resource_module, filename)
 
 
 class ChangeScriptFinder(list):
@@ -556,12 +563,13 @@ class ChangeScriptFinder(list):
         self._find_change_scripts()
 
     def _find_change_scripts(self):
-        changes_dir = 'sql/changes'
-        scripts = [
-            os.path.join(changes_dir, f)
-            for f in resource_listdir(self.resource_module, changes_dir)
-            if self.script_pattern.match(f)
-        ]
+        changes_dir = Path('sql/changes')
+        scripts = []
+        sql_path = resource_files(self.resource_module).joinpath(changes_dir)
+        for path in sql_path.iterdir():
+            filename = path.name
+            if self.script_pattern.match(str(filename)):
+                scripts.append(str(changes_dir / filename))
         self[:] = scripts
 
     def get_missing_changes(self, versions):

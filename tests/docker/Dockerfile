@@ -10,16 +10,19 @@ ENV DEBIAN_FRONTEND noninteractive
 ### Installing packages
 RUN sed -ie 's/^# *deb-src/deb-src/' /etc/apt/sources.list  # Enable source repos
 RUN apt-get update && \
-    apt-get install -y software-properties-common gosu && \
+    apt-get install -y software-properties-common gosu sudo && \
     chmod u+s /usr/sbin/gosu
+
+RUN echo "build   ALL =(ALL: ALL) NOPASSWD: ALL" > /etc/sudoers.d/navbuild
+
 
 RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get -y install --no-install-recommends \
       curl git build-essential \
       python3.7-dbg python3.7-dev python3.7-distutils \
-      python3.8-dbg python3.8-dev \
       python3.9-dbg python3.9-dev \
+      python3.10-dbg python3.10-dev \
       python3-pip
 
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list

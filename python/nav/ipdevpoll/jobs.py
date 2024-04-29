@@ -37,7 +37,6 @@ from nav.ipdevpoll import db
 from .plugins import plugin_registry
 from . import storage, shadows, dataloader
 from .utils import log_unhandled_failure
-from .snmp.common import snmp_parameter_factory
 
 _logger = logging.getLogger(__name__)
 ports = cycle([snmpprotocol.port() for i in range(50)])
@@ -86,7 +85,7 @@ class JobHandler(object):
     def __init__(self, name, netbox, plugins=None, interval=None):
         self.name = name
         self.netbox_id = netbox
-        self.netbox = None
+        self.netbox: shadows.Netbox = None
         self.cancelled = threading.Event()
         self.interval = interval
 
@@ -101,7 +100,7 @@ class JobHandler(object):
         if self.agent:
             self._destroy_agentproxy()
 
-        if not self.netbox.read_only:
+        if not self.netbox.snmp_parameters:
             self.agent = None
             return
 
@@ -109,10 +108,8 @@ class JobHandler(object):
         self.agent = AgentProxy(
             self.netbox.ip,
             161,
-            community=self.netbox.read_only,
-            snmpVersion='v%s' % self.netbox.snmp_version,
             protocol=port.protocol,
-            snmp_parameters=snmp_parameter_factory(self.netbox),
+            snmp_parameters=self.netbox.snmp_parameters,
         )
         try:
             self.agent.open()
@@ -322,7 +319,7 @@ class JobHandler(object):
             return failure
 
         def save(result):
-            if self.cancelled.isSet():
+            if self.cancelled.is_set():
                 return wrap_up_job(result)
 
             df = self._save_container()
@@ -527,7 +524,7 @@ class JobHandler(object):
 
     def _raise_if_cancelled(self):
         """Raises an AbortedJobError if the current job is cancelled"""
-        if self.cancelled.isSet():
+        if self.cancelled.is_set():
             raise AbortedJobError("Job was already cancelled")
 
     @classmethod

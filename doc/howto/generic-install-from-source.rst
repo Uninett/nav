@@ -39,9 +39,10 @@ the same server as NAV.
 The required Python modules can be installed either from your OS package
 manager, or from the Python Package Index (PyPI_) using the regular ``setup.py``
 method described below. The packages can also be installed from PyPI_ in a
-separate step, using the pip_ tool and the provided requirements files::
+separate step, using the pip_ tool and the provided requirements and constraints
+files::
 
-  pip install -r requirements.txt
+  pip install -r requirements.txt -c constraints.txt
 
 *However*, some of the required modules are C extensions that will require the
 presence of some C libraries to be correctly built (unless PyPI provides binary
@@ -74,7 +75,7 @@ Installing NAV
 
 To build and install NAV and all its Python dependencies::
 
-  pip install -r requirements.txt .
+  pip install -r requirements.txt -c constraints.txt .
 
 This will build and install NAV in the default system-wide directories for your
 system. If you wish to customize the install locations, please consult the

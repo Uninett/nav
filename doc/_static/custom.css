@@ -1,0 +1,87 @@
+/* Custom css for the Sphinx theme in NAV */
+
+a,
+a:hover,
+a:focus,
+a:visited,
+.alert a,
+.alert .alert-link {
+    color: #1f74ad;
+}
+
+.wy-menu a:visited,
+.wy-menu-vertical a:visited,
+.wy-menu a:hover,
+.wy-menu-vertical a:hover {
+    color: #d9d9d9;
+}
+
+/* Show the logo on mobile exactly like on big screen */
+.wy-nav-top > a img.logo {
+    display: block;
+    margin: 0 auto;
+    height: auto;
+    width: auto;
+    border-radius: 0;
+    max-width: 100%;
+    background: transparent;
+}
+
+img {
+    margin-bottom: 1em;
+}
+
+footer {
+    margin-top: 2em;
+    color: #575757;
+}
+
+/* When people creates documentation they usually end up with a big honking list
+of h3's. This makes it very hard to separate the different sections, and adding
+this border helps a lot with that. That and I always wanted to make a css style
+that used some form of pink in a not horrific way, and it worked! */
+h3 {
+    border-bottom: 1px solid lightpink;
+}
+
+/* Contrast for pre elements was to small. */
+pre {
+    color: #2c3e50;
+    background: #ecf0f1;
+}
+
+/* The following overrides the admonition colors. They all pass the WCAG 2.0
+level AA test for contrast */
+
+/* This covers the admonitions 'note', 'attention', 'hint', 'important' and 'tip' */
+.alert-info {
+    color: #2a617d;
+    background-color: #d9edf7;
+}
+
+/* This covers the admonitions 'warning' and 'caution' */
+.alert-warning {
+    color: #9f5000;
+    background-color: #feefb3;
+}
+
+/* This covers the admonitions 'alert' and 'danger' */
+.alert-danger {
+    color: #a73a00;
+    background-color: #f2dede;
+}
+
+/* Highlight versionadded more */
+p.versionadded {
+    background-color: lightsteelblue;
+    display: inline-block;
+    font-size: 1.3rem;
+    padding: 0.2em 0.5em;
+}
+
+.guilabel {
+    background-color: #ecf0f1;
+    padding: 2px 4px;
+    font-size: 90%;
+    border-radius: 3px;
+}

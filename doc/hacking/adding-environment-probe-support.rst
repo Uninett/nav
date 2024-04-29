@@ -391,6 +391,12 @@ temperature sensors of this device into NAV's database. The
 :program:`ipdevpoll` ``1minstats`` job will retrieve the sensor readings once
 every minute and send them to Graphite.
 
-.. _sensorProbe8: http://www.akcpinc.com/products/base-units/sensorProbe-Series/sensorProbe8/
+.. toctree::
+    :hidden:
+
+    /api/sensor
+    /api/mibretriever
+
+.. _sensorProbe8: https://www.akcp.com/akcp-products/sensorprobe-series/sensorprobe8/
 .. _Twisted: https://twistedmatrix.com/
 .. _Deferred: http://twistedmatrix.com/documents/current/api/twisted.internet.defer.Deferred.html

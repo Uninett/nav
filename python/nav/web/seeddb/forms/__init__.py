@@ -36,6 +36,7 @@ from nav.models.manage import (
     Netbox,
 )
 from nav.models.cabling import Cabling
+from nav.oids import OID
 
 _logger = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ BOX_CHARS = {
     'UP_AND_RIGHT': '&#9492;',  # └
     'VERTICAL_AND_RIGHT': '&#9500;',  # ├
 }
+SEPARATOR = "."
 
 
 def create_hierarchy(klass):
@@ -312,6 +314,17 @@ class NetboxTypeForm(forms.ModelForm):
     class Meta(object):
         model = NetboxType
         fields = '__all__'
+
+    def clean_sysobjectid(self):
+        sysobjectid = self.cleaned_data.get('sysobjectid')
+        try:
+            sysobjectid_oid = OID(sysobjectid)
+        except ValueError:
+            raise forms.ValidationError(
+                "Sysobjectid can only contain digits and periods."
+            )
+        else:
+            return str(sysobjectid_oid).strip(SEPARATOR)
 
 
 class CablingForm(forms.ModelForm):

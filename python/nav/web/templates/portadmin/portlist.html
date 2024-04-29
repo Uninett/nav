@@ -25,7 +25,7 @@
     <div class="hide-for-small medium-1 column">
       Linked
     </div>
-    <div class="hide-for-small medium-4 column">
+    <div class="hide-for-small {% if supports_poe %}medium-3{% else %}medium-4{% endif %} column">
       Port description
     </div>
     <div class="hide-for-small medium-2 column">
@@ -34,6 +34,11 @@
     {% if voice_vlan %}
       <div class="hide-for-small medium-1 column ">
         Tel
+      </div>
+    {% endif %}
+    {% if supports_poe %}
+      <div class="hide-for-small medium-1 column">
+        PoE State
       </div>
     {% endif %}
     <div class="column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
@@ -76,7 +81,7 @@
       </div>
 
       {# Port Description - input field #}
-      <div class="medium-4 column">
+      <div class="{% if supports_poe %}medium-3{% else %}medium-4{% endif %} column">
         {% if interface.iseditable and not readonly %}
           <input class="ifalias" type="text"
                  value="{{ interface.ifalias|default_if_none:'' }}"
@@ -158,6 +163,23 @@
             </span>
           {% else %}
             &nbsp;
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {# POE STATE #}
+      {% if supports_poe %}
+        <div class="medium-1 small-4 column">
+          {% if interface.supports_poe %}
+            <form class="custom">
+              <select class="poelist" name="{{ interface.ifname }}">
+                {% for poe_option in poe_options %}
+                  <option value="{{ poe_option.name }}" label="{{ poe_option.name }}"
+                          {% if interface.poe_state.name == poe_option.name %}selected="selected"
+                          data-orig="{{ poe_option.name }}"{% endif %}>
+                {% endfor %}
+              </select>
+            </form>
           {% endif %}
         </div>
       {% endif %}

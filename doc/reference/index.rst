@@ -21,6 +21,8 @@ This section contains reference material for end-users.
    ipdevpoll
    external_authentication
    mailin
+   models-event
+   models-manage
    navstats
    portadmin
    radius
