@@ -145,7 +145,7 @@ qawbo_kZmetm6zWmrPDcyC95tYfd2JL8XhEGGpB3nfhQipqG8nQ"
 
 @pytest.fixture(scope="module", autouse=True)
 def jwtconf_mock(private_key, nav_name) -> str:
-    """Mocks the get_nave_name and get_nav_private_key functions for
+    """Mocks the get_nav_name and get_nav_private_key functions for
     the JWTConf class
     """
     with patch("nav.models.api.JWTConf") as _jwtconf_mock:
