@@ -81,10 +81,10 @@ class PaloaltoArp(Arp):
         returnValue(None)
 
     @defer.inlineCallbacks
-    def _get_paloalto_arp_mappings(self, ip, key):
+    def _get_paloalto_arp_mappings(self, address: str, key: str):
         """Get mappings from Paloalto device"""
 
-        arptable = yield self._do_request(ip, key)
+        arptable = yield self._do_request(address, key)
         if arptable is None:
             returnValue(None)
 
@@ -93,14 +93,14 @@ class PaloaltoArp(Arp):
         returnValue(mappings)
 
     @defer.inlineCallbacks
-    def _do_request(self, ip, key):
+    def _do_request(self, address: str, key: str):
         """Make request to Paloalto device"""
 
         class sslPolicy(client.BrowserLikePolicyForHTTPS):
             def creatorForNetloc(self, hostname, port):
                 return ssl.CertificateOptions(verify=False)
 
-        url = f'https://{ip}/api/?type=op&cmd=<show><arp><entry+name+=+\'all\'/></arp></show>&key={key}'
+        url = f"https://{address}/api/?type=op&cmd=<show><arp><entry+name+=+'all'/></arp></show>&key={key}"
         self._logger.debug("making request: %s", url)
 
         agent = Agent(reactor, contextFactory=sslPolicy())
