@@ -17,5 +17,3 @@ whisper>=0.9.9
 whitenoise==4.1.4
 # Our version of selenium breaks down if it is allowed to pull in the newest version of urllib3
 urllib3<2.0
-# plugins_paloaltoarp_test will not work withput PyOpenSSL as it is used by twisted to set the ssl certificate options
-PyOpenSSL==23.3.0
