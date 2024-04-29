@@ -25,6 +25,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.views.decorators.http import require_http_methods
 
 import nav.maintengine
 from nav.django.utils import get_account
@@ -350,6 +351,7 @@ def edit(request, task_id=None, start_time=None, **_):
     )
 
 
+@require_http_methods(["POST"])
 def component_search(request):
     """HTMX endpoint for component searches from maintenance task form"""
     search = request.POST.get("search")
