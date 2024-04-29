@@ -114,6 +114,12 @@ class TestEncodeToken:
         assert encoded_token == refresh_token
 
 
+def test_string_representation_should_match_token():
+    refresh_token = JWTRefreshToken.generate_refresh_token()
+    token = JWTRefreshToken(token=refresh_token)
+    assert str(token) == token.token
+
+
 @pytest.fixture()
 def refresh_token_data() -> Dict[Any, str]:
     """Yields the data of the token in the refresh_token fixture"""
