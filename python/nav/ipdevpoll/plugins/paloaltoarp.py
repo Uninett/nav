@@ -96,14 +96,14 @@ class PaloaltoArp(Arp):
     def _do_request(self, address: str, key: str):
         """Make request to Paloalto device"""
 
-        class sslPolicy(client.BrowserLikePolicyForHTTPS):
+        class SslPolicy(client.BrowserLikePolicyForHTTPS):
             def creatorForNetloc(self, hostname, port):
                 return ssl.CertificateOptions(verify=False)
 
         url = f"https://{address}/api/?type=op&cmd=<show><arp><entry+name+=+'all'/></arp></show>&key={key}"
         self._logger.debug("making request: %s", url)
 
-        agent = Agent(reactor, contextFactory=sslPolicy())
+        agent = Agent(reactor, contextFactory=SslPolicy())
 
         try:
             response = yield agent.request(
