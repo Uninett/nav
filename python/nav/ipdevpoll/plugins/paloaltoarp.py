@@ -114,9 +114,10 @@ class PaloaltoArp(Arp):
                 ),
                 None,
             )
-        except:
-            self._logger.info(
-                "make sure the device is reachable and the key is correct"
+        except Exception:  # noqa
+            self._logger.exception(
+                "Error when talking to PaloAlto API. "
+                "Make sure the device is reachable and the API key is correct."
             )
             returnValue(None)
 
