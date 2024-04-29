@@ -25,6 +25,7 @@ for example:
 """
 
 import xml.etree.ElementTree as ET
+from typing import Dict
 
 from IPy import IP
 from twisted.internet import defer, reactor, ssl
@@ -38,55 +39,44 @@ from nav.ipdevpoll.plugins.arp import Arp
 
 
 class PaloaltoArp(Arp):
-    def __init__(self, *args, **kwargs):
-        self._logger.debug("PaloaltoArp initialized")
+    configured_devices: Dict[str, str] = {}
 
-        self.paloalto_devices = []
+    @classmethod
+    def on_plugin_load(cls):
+        """Loads the list of PaloAlto access keys from ipdevpoll.conf into the plugin
+        class instance, so that `can_handle` will be able to answer which devices
+        this plugin can run for.
+        """
+        from nav.ipdevpoll.config import ipdevpoll_conf
 
-        if 'paloaltoarp' in self.config:
-            self._logger.debug("PaloaltoArp config section found")
-            for key in self.config['paloaltoarp']:
-                self.paloalto_devices.append(
-                    {'key': self.config['paloaltoarp'][key], 'hostname': key}
-                )
-        else:
-            self._logger.debug("PaloaltoArp config section NOT found")
-
-        super().__init__(*args, **kwargs)
+        cls._logger.debug("loading paloaltoarp configuration")
+        if 'paloaltoarp' not in ipdevpoll_conf:
+            cls._logger.debug("PaloaltoArp config section NOT found")
+            return
+        cls._logger.debug("PaloaltoArp config section found")
+        cls.configured_devices = dict(ipdevpoll_conf['paloaltoarp'])
 
     @classmethod
     def can_handle(cls, netbox):
         """Return True if this plugin can handle the given netbox."""
-        PaloaltoArp_Instance = cls(None, None, None)
-
-        for device in PaloaltoArp_Instance.paloalto_devices:
-            if device['hostname'] == netbox.sysname or device['hostname'] == netbox.ip:
-                return True
+        return (
+            netbox.sysname in cls.configured_devices
+            or str(netbox.ip) in cls.configured_devices
+        )
 
     @defer.inlineCallbacks
     def handle(self):
         """Handle plugin business, return a deferred."""
 
-        for device in self.paloalto_devices:
-            if (
-                self.netbox.ip == device['hostname']
-                or self.netbox.sysname == device['hostname']
-            ):
-                self._logger.debug(
-                    "Collecting IP/MAC mappings for Paloalto device: %s",
-                    device['hostname'],
-                )
+        api_key = self.configured_devices.get(str(self.netbox.ip), self.netbox.sysname)
+        self._logger.debug("Collecting IP/MAC mappings for Paloalto device")
 
-                mappings = yield self._get_paloalto_arp_mappings(
-                    self.netbox.ip, device['key']
-                )
-                if mappings is None:
-                    self._logger.info(
-                        "No mappings found for Paloalto device: %s", device['hostname']
-                    )
-                    returnValue(None)
+        mappings = yield self._get_paloalto_arp_mappings(self.netbox.ip, api_key)
+        if mappings is None:
+            self._logger.info("No mappings found for Paloalto device")
+            returnValue(None)
 
-                yield self._process_data(mappings)
+        yield self._process_data(mappings)
 
         returnValue(None)
 
