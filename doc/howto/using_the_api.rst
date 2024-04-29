@@ -50,11 +50,11 @@ as :ref:`classic tokens <classic-token>`::
 
   curl -H 'Authorization: Bearer <token>' https://<host>/api/netboxes/
 
-Note how JWTs require the prefix `Bearer` and not `Token`.
+Note how JWTs require the prefix ``Bearer`` and not ``Token``.
 
-JWTs must include valid `exp`, `nbf`, `iss` and `aud` claims in order to be valid.
-`ìss` and `aud` must match the :doc:`configuration <../reference/jwt>`, while `exp` must
-be in the future and `nbf` must be in the past.
+JWTs must include valid ``exp``, ``nbf``, ``iss`` and ``aud`` claims in order to be valid.
+``iss`` and ``aud`` must match the :doc:`configuration <../reference/jwt>`, while ``exp`` must
+be in the future and ``nbf`` must be in the past.
 
 Browsing the API
 ================
