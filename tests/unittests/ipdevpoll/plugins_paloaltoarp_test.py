@@ -1,53 +1,53 @@
-from nav.ipdevpoll.plugins.paloaltoarp import PaloaltoArp, parse_arp
-from twisted.internet.defer import inlineCallbacks
-from IPy import IP
-from twisted.internet import defer
-from mock import patch, Mock
+from unittest.mock import patch
 
+from IPy import IP
+from nav.ipdevpoll.plugins.paloaltoarp import PaloaltoArp, parse_arp
+from twisted.internet import defer
+from twisted.internet.defer import inlineCallbacks
 
 mock_data = b'''
     <response status="success">
-    <result>  
-            <max>132000</max>  
-            <total>3</total>  
-            <timeout>1800</timeout>  
-            <dp>s3dp1</dp>  
-            <entries>  
-                <entry>  
-                    <status>  s  </status>  
-                    <ip>192.168.0.1</ip>  
-                    <mac>00:00:00:00:00:01</mac>  
-                    <ttl>100</ttl>  
-                    <interface>ae2</interface>  
-                    <port>ae2</port>  
-                </entry>  
-                <entry>  
-                    <status>  e  </status>  
-                    <ip>192.168.0.2</ip>  
-                    <mac>00:00:00:00:00:02</mac>  
-                    <ttl>200</ttl>  
-                    <interface>ae2</interface>  
-                    <port>ae2</port>  
-                </entry> 
-                <entry>  
-                    <status>  c  </status>  
-                    <ip>192.168.0.3</ip>  
-                    <mac>00:00:00:00:00:03</mac>  
-                    <ttl>300</ttl>  
-                    <interface>ae3.61</interface>  
-                    <port>ae3</port>  
-                </entry>  
-                <entry>  
-                    <status>  i  </status>  
-                    <ip>192.168.0.4</ip>  
-                    <mac>00:00:00:00:00:04</mac>  
-                    <ttl>400</ttl>  
-                    <interface>ae3.61</interface>  
-                    <port>ae3</port>  
-                </entry> 
-            </entries>  
-        </result> 
-    </response> 
+    <result>
+            <max>132000</max>
+            <total>3</total>
+            <timeout>1800</timeout>
+            <dp>s3dp1</dp>
+            <entries>
+                <entry>
+                    <status>  s  </status>
+                    <ip>192.168.0.1</ip>
+                    <mac>00:00:00:00:00:01</mac>
+                    <ttl>100</ttl>
+                    <interface>ae2</interface>
+                    <port>ae2</port>
+                </entry>
+                <entry>
+                    <status>  e  </status>
+                    <ip>192.168.0.2</ip>
+                    <mac>00:00:00:00:00:02</mac>
+                    <ttl>200</ttl>
+                    <interface>ae2</interface>
+                    <port>ae2</port>
+                </entry>
+                <entry>
+                    <status>  c  </status>
+                    <ip>192.168.0.3</ip>
+                    <mac>00:00:00:00:00:03</mac>
+                    <ttl>300</ttl>
+                    <interface>ae3.61</interface>
+                    <port>ae3</port>
+                </entry>
+                <entry>
+                    <status>  i  </status>
+                    <ip>192.168.0.4</ip>
+                    <mac>00:00:00:00:00:04</mac>
+                    <ttl>400</ttl>
+                    <interface>ae3.61</interface>
+                    <port>ae3</port>
+                </entry>
+            </entries>
+        </result>
+    </response>
     '''
 
 
