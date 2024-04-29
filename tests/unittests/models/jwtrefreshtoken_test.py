@@ -80,8 +80,8 @@ class TestExpire:
     def test_should_make_active_token_inactive(self, refresh_token_data):
         now = datetime.now()
         # set claims so the token starts as being active
-        refresh_token_data['nbf'] = now - timedelta(hours=1)
-        refresh_token_data['exp'] = now + timedelta(hours=1)
+        refresh_token_data['nbf'] = (now - timedelta(hours=1)).timestamp()
+        refresh_token_data['exp'] = (now + timedelta(hours=1)).timestamp()
         encoded_token = JWTRefreshToken.encode_token(refresh_token_data)
         token = JWTRefreshToken(token=encoded_token)
         token.save = Mock()
