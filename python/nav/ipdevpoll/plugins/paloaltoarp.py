@@ -1,5 +1,6 @@
 #
-# Copyright (C) 2023 University of Tromsø
+# Copyright (C) 2023, 2024 University of Tromsø
+# Copyright (C) 2024 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
