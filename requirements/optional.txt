@@ -1,1 +1,2 @@
 python-ldap==3.4.4 # optional for LDAP authentication, requires libldap (OpenLDAP) to build
+towncrier
