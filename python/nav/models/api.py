@@ -15,7 +15,10 @@
 #
 """Models for the NAV API"""
 
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Dict, Any
+
+import jwt
 
 from django.db import models
 from django.urls import reverse
@@ -23,6 +26,7 @@ from django.urls import reverse
 from nav.adapters import HStoreField
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
+from nav.jwtconf import JWTConf
 
 
 class APIToken(models.Model):
@@ -66,3 +70,93 @@ class APIToken(models.Model):
 
     class Meta(object):
         db_table = 'apitoken'
+
+
+class JWTRefreshToken(models.Model):
+    """RefreshTokens are used for generating new access tokens"""
+
+    token = VarcharField()
+    name = VarcharField(unique=True)
+    description = models.TextField(null=True, blank=True)
+
+    ACCESS_EXPIRE_DELTA = timedelta(hours=1)
+    REFRESH_EXPIRE_DELTA = timedelta(days=1)
+
+    def __str__(self):
+        return self.token
+
+    def data(self) -> Dict[str, Any]:
+        """Data of token as a dict"""
+        return self._decode_token(self.token)
+
+    def is_active(self) -> bool:
+        """True if token is active. A token is considered active when
+        the nbf claim is in the past and the exp claim is in the future
+        """
+        now = datetime.now()
+        data = self.data()
+        nbf = datetime.fromtimestamp(data['nbf'])
+        exp = datetime.fromtimestamp(data['exp'])
+        return now >= nbf and now < exp
+
+    def expire(self):
+        """Expires the token"""
+        # Base claims for expired token on existing claims
+        expired_data = self.data()
+        expired_data['exp'] = (datetime.now() - timedelta(hours=1)).timestamp()
+        self.token = self._encode_token(expired_data)
+        self.save()
+
+    @classmethod
+    def generate_access_token(cls, token_data: Dict[str, Any] = {}) -> str:
+        """Generates and returns an access token in JWT format.
+        Will use `token_data` as a basis for the new token,
+        but certain claims will be overridden.
+        """
+        return cls._generate_token(token_data, cls.ACCESS_EXPIRE_DELTA, "access_token")
+
+    @classmethod
+    def generate_refresh_token(cls, token_data: Dict[str, Any] = {}) -> str:
+        """Generates and returns a refresh token in JWT format.
+        Will use `token_data` as a basis for the new token,
+        but certain claims will be overridden.
+        """
+        return cls._generate_token(
+            token_data, cls.REFRESH_EXPIRE_DELTA, "refresh_token"
+        )
+
+    @classmethod
+    def _generate_token(
+        cls, token_data: Dict[str, Any], expiry_delta: timedelta, token_type: str
+    ) -> str:
+        """Generates and returns a token in JWT format. Will use `token_data` as a basis
+        for the new token, but certain claims will be overridden
+        """
+        new_token = dict(token_data)
+        now = datetime.now()
+        name = JWTConf().get_nav_name()
+        updated_claims = {
+            'exp': (now + expiry_delta).timestamp(),
+            'nbf': now.timestamp(),
+            'iat': now.timestamp(),
+            'aud': name,
+            'iss': name,
+            'token_type': token_type,
+        }
+        new_token.update(updated_claims)
+        return cls._encode_token(new_token)
+
+    @classmethod
+    def _encode_token(cls, token_data: Dict[str, Any]) -> str:
+        """Returns an encoded token in JWT format"""
+        return jwt.encode(
+            token_data, JWTConf().get_nav_private_key(), algorithm="RS256"
+        )
+
+    @classmethod
+    def _decode_token(cls, token: str) -> Dict[str, Any]:
+        """Decodes a token in JWT format and returns the data of the decoded token"""
+        return jwt.decode(token, options={'verify_signature': False})
+
+    class Meta(object):
+        db_table = 'jwtrefreshtoken'
