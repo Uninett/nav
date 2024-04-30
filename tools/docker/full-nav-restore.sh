@@ -10,7 +10,7 @@ if ! which navsyncdb 2>/dev/null; then
     echo "NAV source directory not correctly mounted on /source" > /dev/stderr
     exit 1
 fi
-nav stop
+sudo nav stop
 export PGHOST=postgres
 export PGUSER=postgres
 
