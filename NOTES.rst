@@ -11,6 +11,12 @@ please go to https://github.com/uninett/nav/milestones .
 NAV 5.10 (Unreleased)
 =====================
 
+Deprecation warnings
+--------------------
+
+.. warning:: The next feature release of NAV (5.11) will drop support for
+             Python 3.7.
+
 Dependency changes
 ------------------
 
