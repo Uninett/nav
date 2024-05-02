@@ -1,9 +1,10 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from IPy import IP
 from nav.ipdevpoll.plugins.paloaltoarp import PaloaltoArp, parse_arp
 from twisted.internet import defer
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, succeed
+from twisted.web.client import Agent, Response
 
 mock_data = b'''
     <response status="success">
@@ -79,3 +80,30 @@ def test_get_mappings():
                 ('ifindex', IP('192.168.0.2'), '00:00:00:00:00:02'),
                 ('ifindex', IP('192.168.0.3'), '00:00:00:00:00:03'),
             ]
+
+
+@inlineCallbacks
+def test_do_request():
+    mock_response = Mock(spec=Response)
+    mock_agent = Mock(spec=Agent)
+    mock_agent.request.return_value = succeed(mock_response)
+
+    with patch(
+        'nav.ipdevpoll.plugins.paloaltoarp.Agent', return_value=mock_agent
+    ), patch('twisted.web.client.readBody', return_value="test content"):
+        mock_address = "paloalto.example.org"
+        mock_key = "secret"
+
+        mock_netbox = Mock(sysname=mock_address, ip="127.0.0.1")
+
+        plugin = PaloaltoArp(netbox=mock_netbox, agent=Mock(), containers=Mock())
+        result = yield plugin._do_request(mock_address, mock_key)
+
+        expected_url = f"https://{mock_address}/api/?type=op&cmd=<show><arp><entry+name+=+'all'/></arp></show>&key={mock_key}".encode(
+            "utf-8"
+        )
+        mock_agent.request.assert_called()
+        args, kwargs = mock_agent.request.call_args
+        assert expected_url in args
+
+        assert result == "test content"
