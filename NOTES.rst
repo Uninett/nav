@@ -8,6 +8,15 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.10 (Unreleased)
+=====================
+
+Dependency changes
+------------------
+
+.. IMPORTANT:: NAV 5.10 requires PostgreSQL to be at least version *11*.
+
+
 NAV 5.9
 =======
 
