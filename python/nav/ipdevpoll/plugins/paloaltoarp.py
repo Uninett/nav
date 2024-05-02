@@ -69,7 +69,9 @@ class PaloaltoArp(Arp):
     def handle(self):
         """Handle plugin business, return a deferred."""
 
-        api_key = self.configured_devices.get(str(self.netbox.ip), self.netbox.sysname)
+        api_key = self.configured_devices.get(
+            str(self.netbox.ip), self.configured_devices.get(self.netbox.sysname, "")
+        )
         self._logger.debug("Collecting IP/MAC mappings for Paloalto device")
 
         mappings = yield self._get_paloalto_arp_mappings(self.netbox.ip, api_key)
