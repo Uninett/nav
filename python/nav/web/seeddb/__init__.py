@@ -31,6 +31,7 @@ class SeeddbInfo(object):
 
     hide_move = False
     hide_delete = False
+    hide_qr_code = True
     copy_url_name = None
     delete_url = None
     delete_url_name = None
@@ -63,6 +64,7 @@ class SeeddbInfo(object):
             'tab_template': self.tab_template,
             'hide_move': self.hide_move,
             'hide_delete': self.hide_delete,
+            'hide_qr_code': self.hide_qr_code,
             'delete_url': self.delete_url,
             'delete_url_name': self.delete_url_name,
             'back_url': self.back_url,
