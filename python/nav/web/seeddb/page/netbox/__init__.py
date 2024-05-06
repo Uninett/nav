@@ -18,12 +18,14 @@
 import datetime
 from django.db import transaction
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
+from django.urls import reverse, reverse_lazy
 
 from nav.models.manage import Netbox
 from nav.bulkparse import NetboxBulkParser
 from nav.bulkimport import NetboxImporter
 
+from nav.web.message import new_message, Messages
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
@@ -32,6 +34,9 @@ from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
 from nav.web.seeddb.page.netbox.forms import NetboxFilterForm, NetboxMoveForm
+from nav.web.utils import (
+    generate_qr_codes_as_zip_file,
+)
 
 
 class NetboxInfo(SeeddbInfo):
@@ -55,7 +60,11 @@ class NetboxInfo(SeeddbInfo):
 def netbox(request):
     """Controller for landing page for netboxes"""
     return view_switcher(
-        request, list_view=netbox_list, move_view=netbox_move, delete_view=netbox_delete
+        request,
+        list_view=netbox_list,
+        move_view=netbox_move,
+        delete_view=netbox_delete,
+        generate_qr_codes_view=netbox_generate_qr_codes,
     )
 
 
@@ -111,6 +120,58 @@ def netbox_pre_deletion_mark(queryset):
     :type queryset: django.db.models.QuerySet
     """
     queryset.update(deleted_at=datetime.datetime.now(), up_to_date=False)
+
+
+def netbox_generate_qr_codes(request):
+    """Controller for generating qr codes for netboxes"""
+    if not request.POST.getlist('object'):
+        new_message(
+            request,
+            "You need to select at least one object to generate qr codes for",
+            Messages.ERROR,
+        )
+        return HttpResponseRedirect(reverse('seeddb-room'))
+
+    url_dict = dict()
+    netboxes = Netbox.objects.filter(id__in=request.POST.getlist('object'))
+
+    for netbox in netboxes:
+        url = request.build_absolute_uri(
+            reverse('ipdevinfo-details-by-id', kwargs={'netbox_id': netbox.id})
+        )
+        url_dict[str(netbox)] = url
+
+    qr_codes_zip_file = generate_qr_codes_as_zip_file(url_dict=url_dict)
+
+    info = NetboxInfo()
+    query = (
+        Netbox.objects.select_related("room", "category", "type", "organization")
+        .prefetch_related("profiles")
+        .annotate(profile=ArrayAgg("profiles__name"))
+    )
+    filter_form = NetboxFilterForm(request.GET)
+    value_list = (
+        'sysname',
+        'room',
+        'ip',
+        'category',
+        'organization',
+        'profile',
+        'type__name',
+    )
+    return render_list(
+        request,
+        query,
+        value_list,
+        'seeddb-netbox-edit',
+        edit_url_attr='pk',
+        filter_form=filter_form,
+        template='seeddb/list_netbox.html',
+        extra_context={
+            **info.template_context,
+            **{"qr_codes_zip_file": qr_codes_zip_file},
+        },
+    )
 
 
 def netbox_move(request):
