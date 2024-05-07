@@ -23,16 +23,12 @@ is used at a time.
 """
 from __future__ import absolute_import
 
-import threading
-
-try:
-    import queue
-except ImportError:
-    import Queue as queue
-import time
 import atexit
 from collections import defaultdict
 import logging
+import queue
+import time
+import threading
 
 import psycopg2
 from psycopg2.errorcodes import IN_FAILED_SQL_TRANSACTION

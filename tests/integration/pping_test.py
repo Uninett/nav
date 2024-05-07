@@ -1,15 +1,11 @@
 """
 various pping integration tests
 """
+
 import os
-from pathlib import Path
 import getpass
 from shutil import which
-
-try:
-    from subprocess32 import STDOUT, check_output, TimeoutExpired, CalledProcessError
-except ImportError:
-    from subprocess import STDOUT, check_output, TimeoutExpired, CalledProcessError
+from subprocess import STDOUT, check_output, CalledProcessError
 
 import pytest
 
