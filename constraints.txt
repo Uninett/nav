@@ -1,3 +1,0 @@
-# ciscoconfparse 1.8 has a bug that prevents it from being imported on Python 3.7,
-# even though it claims compatibility with 3.7.
-ciscoconfparse<1.8.0 ; python_version < '3.8'
