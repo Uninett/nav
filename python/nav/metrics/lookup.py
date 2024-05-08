@@ -16,9 +16,9 @@
 #
 """Functions for reverse-mapping metric names to NAV objects"""
 
+from functools import lru_cache
 import re
 
-from nav.compatibility import lru_cache
 from nav.models.manage import Netbox, Interface, Prefix, Sensor
 
 
