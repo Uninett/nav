@@ -111,24 +111,11 @@ class AbstractChecker(object):
         service = "%s:%s" % (self.sysname, self.get_type())
         _logger.info("%-20s -> %s", service, info)
 
-        if status == event.Event.UP:
-            # Dirty hack to check if we timed out...
-            # this is needed as ssl-socket calls may hang
-            # in python < 2.3
-            if self.response_time > 2 * self.timeout:
-                _logger.info(
-                    "Adjusting status due to high responsetime (%s, " "%s)",
-                    service,
-                    self.response_time,
-                )
-                status = event.Event.DOWN
-                self.response_time = 2 * self.timeout
-
         if status != self.status and (self.runcount < int(self._conf.get('retry', 3))):
             delay = int(self._conf.get('retry delay', 5))
             self.runcount += 1
             _logger.info(
-                "%-20s -> State changed. New check in %i sec. (%s, " "%s)",
+                "%-20s -> State changed. New check in %i sec. (%s, %s)",
                 service,
                 delay,
                 status,
