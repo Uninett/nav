@@ -22,10 +22,10 @@
 import gc
 import logging
 from datetime import datetime, timedelta
+from functools import lru_cache
 
 from django.db import transaction, reset_queries
 
-from nav.compatibility import lru_cache
 from nav.models.profiles import (
     Account,
     AccountAlertQueue,

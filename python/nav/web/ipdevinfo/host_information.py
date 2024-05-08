@@ -15,10 +15,10 @@
 #
 """Provides a function for getting host information"""
 
+from functools import lru_cache
 
 import IPy
 from nav import asyncdns
-from nav.compatibility import lru_cache
 
 from nav.util import is_valid_ip
 
