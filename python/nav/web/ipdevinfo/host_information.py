@@ -46,7 +46,8 @@ def reverse_lookup(addresses):
                 yield {'addr': addr, 'name': name}
 
 
-def _get_host_info(host):
+@lru_cache
+def get_host_info(host):
     """Returns a dictionary containing DNS information about the host"""
     if is_valid_ip(host, strict=True):
         addresses = list(reverse_lookup([host]))
@@ -61,6 +62,3 @@ def _get_host_info(host):
             addresses = list(reverse_lookup(addresses))
 
     return {'host': host, 'addresses': addresses}
-
-
-get_host_info = lru_cache()(_get_host_info)

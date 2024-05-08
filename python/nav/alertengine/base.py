@@ -163,7 +163,6 @@ def check_alerts(debug=False):
 @transaction.atomic()
 def handle_new_alerts(new_alerts):
     """Handles new alerts on the queue"""
-    memoized_check_alert = lru_cache()(check_alert_against_filtergroupcontents)
     _logger = logging.getLogger('nav.alertengine.handle_new_alerts')
     accounts = []
 
@@ -232,14 +231,13 @@ def handle_new_alerts(new_alerts):
                 alertsubscriptions,
                 dupemap,
                 _logger,
-                memoized_check_alert,
+                check_alert_against_filtergroupcontents,
                 permissions,
             )
             del alert
         del account
         del permissions
 
-    del memoized_check_alert
     del new_alerts
     gc.collect()
 
@@ -599,6 +597,7 @@ def alert_should_be_ignored(queued_alert, subscription, now):
     )
 
 
+@lru_cache
 def check_alert_against_filtergroupcontents(alert, filtergroupcontents, atype):
     """Checks a given alert against an array of filtergroupcontents"""
 
