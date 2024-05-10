@@ -17,8 +17,8 @@ processes and cron jobs, regardless of whether you are running under SysV init
 system, systemd or other process control systems.
 
 If NAV doesn't appear to be doing anything, the first order of business is
-checking the state of its background processes with the command :kbd:`nav
-status`
+checking the state of its background processes with the command
+:kbd:`nav status`
 
 
 Usage
