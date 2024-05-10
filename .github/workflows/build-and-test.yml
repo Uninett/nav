@@ -71,7 +71,7 @@ jobs:
       - name: "Set up PostgreSQL"
         uses: harmon758/postgresql-action@v1
         with:
-          postgresql version: '11'  # minimum NAV requirement
+          postgresql version: '13'  # minimum NAV requirement
           postgresql user: $PGUSER
           postgresql password: $PGPASSWORD
 
