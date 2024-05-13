@@ -26,7 +26,6 @@ for example:
 """
 
 import xml.etree.ElementTree as ET
-from typing import Dict
 
 from IPy import IP
 from twisted.internet import defer, reactor, ssl
@@ -40,7 +39,7 @@ from nav.ipdevpoll.plugins.arp import Arp
 
 
 class PaloaltoArp(Arp):
-    configured_devices: Dict[str, str] = {}
+    configured_devices: dict[str, str] = {}
 
     @classmethod
     def on_plugin_load(cls):

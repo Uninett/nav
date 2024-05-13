@@ -31,7 +31,7 @@ from ctypes import (
     c_ulong,
     c_uint64,
 )
-from typing import Union, Optional
+from typing import Optional, Union
 
 from IPy import IP
 from pynetsnmp import netsnmp

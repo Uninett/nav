@@ -16,7 +16,7 @@
 """This module contains NAPALM connectivity interfaces for NAV"""
 import weakref
 from tempfile import NamedTemporaryFile
-from typing import TypeVar, Type
+from typing import TypeVar
 import logging
 import napalm
 from napalm.base import NetworkDriver
@@ -71,7 +71,7 @@ def _write_key_to_temporary_file(config: dict, optional_args: dict):
 
 def get_driver(
     profile: manage.ManagementProfile,
-) -> Type[napalm.base.base.NetworkDriver]:
+) -> type[napalm.base.base.NetworkDriver]:
     """Returns a NAPALM NetworkDriver based on a management profile config"""
     if profile.protocol != profile.PROTOCOL_NAPALM:
         raise NapalmError("Management profile is not a NAPALM profile")

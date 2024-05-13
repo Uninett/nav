@@ -15,7 +15,7 @@
 #
 """Interface definition for PortAdmin management handlers"""
 import time
-from typing import List, Tuple, Dict, Any, Sequence, Union, Optional
+from typing import Any, Optional, Sequence, Union
 import logging
 from dataclasses import dataclass
 
@@ -58,7 +58,7 @@ class ManagementHandler:
 
     def get_interfaces(
         self, interfaces: Sequence[manage.Interface] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Retrieves running configuration switch ports on the device.
 
         :param interfaces: Optional list of interfaces to filter for, as fetching
@@ -140,7 +140,7 @@ class ManagementHandler:
 
     def _filter_oper_up_interfaces(
         self, interfaces: Sequence[manage.Interface]
-    ) -> List[manage.Interface]:
+    ) -> list[manage.Interface]:
         """Filters a list of Interface objects, returning only those that are
         currently operationally up.
 
@@ -183,7 +183,7 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def get_netbox_vlans(self) -> List[FantasyVlan]:
+    def get_netbox_vlans(self) -> list[FantasyVlan]:
         """Returns a list of FantasyVlan objects representing the enabled VLANs on
         this netbox.
 
@@ -193,7 +193,7 @@ class ManagementHandler:
         """
         raise NotImplementedError
 
-    def get_netbox_vlan_tags(self) -> List[int]:
+    def get_netbox_vlan_tags(self) -> list[int]:
         """Returns a list of enabled VLANs on this netbox.
 
         :returns: A list of VLAN tags (integers)
@@ -232,7 +232,7 @@ class ManagementHandler:
         """Should not be implemented on anything else than Cisco"""
         raise NotImplementedError
 
-    def get_native_and_trunked_vlans(self, interface) -> Tuple[int, List[int]]:
+    def get_native_and_trunked_vlans(self, interface) -> tuple[int, list[int]]:
         """Get the trunked vlans on this interface
 
         :returns: (native_vlan_tag, list_of_trunked_vlan_tags)
@@ -264,7 +264,7 @@ class ManagementHandler:
         """Returns True if 802.1X authentication is is enabled on interface"""
         raise NotImplementedError
 
-    def get_dot1x_enabled_interfaces(self) -> Dict[str, bool]:
+    def get_dot1x_enabled_interfaces(self) -> dict[str, bool]:
         """Fetches the 802.1X enabled state of every interface.
 
         :returns: A dict mapping each interface name to a "802.1X enabled" value
@@ -302,7 +302,7 @@ class ManagementHandler:
 
     def get_poe_states(
         self, interfaces: Optional[Sequence[manage.Interface]] = None
-    ) -> Dict[str, Optional[PoeState]]:
+    ) -> dict[str, Optional[PoeState]]:
         """Retrieves current PoE state for interfaces on this device.
 
         :param interfaces: Optional sequence of interfaces to filter for, as fetching

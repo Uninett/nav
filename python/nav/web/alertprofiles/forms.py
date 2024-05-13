@@ -18,7 +18,7 @@
 
 # pylint: disable=R0903
 
-from typing import Any, Dict
+from typing import Any
 
 from django import forms
 from django.db.models import Q
@@ -642,7 +642,7 @@ class ExpressionForm(forms.ModelForm):
             else:
                 self.fields['value'] = forms.CharField(required=True)
 
-    def clean(self) -> Dict[str, Any]:
+    def clean(self) -> dict[str, Any]:
         validated_data = super().clean()
 
         match_field = validated_data["match_field"]
