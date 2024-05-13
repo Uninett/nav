@@ -19,10 +19,9 @@ While Sikt is still the main contributor to NAV, developing NAV to support the
 needs of the Norwegian higher education community, contributions from third
 parties are highly appreciated.
 
-We communicate mainly through mailing lists, GitHub_, and the ``#nav`` IRC
-channel on *Libera.Chat*. At times, Sikt also arranges workshops and
-gatherings for its customers: Norwegian universities, university colleges and
-research institutions.
+We communicate mainly through mailing lists and GitHub_. At times, Sikt also
+arranges workshops and gatherings for its customers: Norwegian universities,
+university colleges and research institutions.
 
 To contribute:
 

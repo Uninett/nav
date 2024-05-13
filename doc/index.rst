@@ -19,8 +19,6 @@ Getting help
 * Post a question on `the nav-users mailing list`_ or search the
   `nav-users mailing list archives`_.
 
-* Ask a question on the `#nav IRC channel`_ on Libera.Chat.
-
 * Ask a question in our `GitHub discussion forum`_.
 
 * Report a bug in our `bug tracker`_.
@@ -28,7 +26,6 @@ Getting help
 .. _wiki pages: https://nav.uninett.no/wiki/
 .. _nav-users mailing list archives: https://lister.sikt.no/hyperkitty/list/nav-users@lister.sikt.no/
 .. _the nav-users mailing list: https://lister.sikt.no/postorius/lists/nav-users.lister.sikt.no/
-.. _#nav IRC channel: irc://irc.libera.chat/nav
 .. _bug tracker: https://github.com/Uninett/nav
 .. _GitHub discussion forum: https://github.com/Uninett/nav/discussions/categories/q-a
 
