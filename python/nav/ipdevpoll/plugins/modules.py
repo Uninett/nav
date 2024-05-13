@@ -25,7 +25,6 @@ entity and an interface from IF-MIB is kept.  For each mapping found,
 the interface will have its module set to be whatever the ancestor
 module of the physical entity is.
 """
-from typing import List
 import configparser
 import re
 
@@ -164,7 +163,7 @@ class Modules(Plugin):
         self._process_ports(entities, module_containers)
 
 
-def get_ignored_serials(config: configparser.ConfigParser) -> List[str]:
+def get_ignored_serials(config: configparser.ConfigParser) -> list[str]:
     """Returns a list of ignored serial numbers from a ConfigParser instance"""
     if config is None:
         return []

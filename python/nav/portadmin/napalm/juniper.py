@@ -26,9 +26,8 @@ but many of the operations PortAdmin needs are not directly supported by the NAP
 so the underlying Juniper PyEZ library is utilized directly in most cases.
 
 """
-from __future__ import annotations
 from operator import attrgetter
-from typing import List, Any, Dict, Tuple, Sequence, Optional
+from typing import Any, Optional, Sequence
 
 from django.template.loader import get_template
 from napalm.base.exceptions import ConnectAuthError, ConnectionException
@@ -165,7 +164,7 @@ class Juniper(ManagementHandler):
 
     def get_interfaces(
         self, interfaces: Sequence[manage.Interface] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         vlan_map = self._get_untagged_vlans()
         if interfaces and len(interfaces) == 1:
             # we can use a filter if only a single interface was specified
@@ -211,7 +210,7 @@ class Juniper(ManagementHandler):
             switching.get()
             return {port.ifname: port.tag for port in switching if not port.tagged}
 
-    def get_netbox_vlans(self) -> List[FantasyVlan]:
+    def get_netbox_vlans(self) -> list[FantasyVlan]:
         vlan_objects = manage.Vlan.objects.filter(
             swport_vlans__interface__netbox=self.netbox
         ).distinct()
@@ -234,7 +233,7 @@ class Juniper(ManagementHandler):
         }
         return sorted(result, key=attrgetter("vlan"))
 
-    def get_netbox_vlan_tags(self) -> List[int]:
+    def get_netbox_vlan_tags(self) -> list[int]:
         return [vlan.tag for vlan in self.vlans]
 
     def get_interface_native_vlan(self, interface: manage.Interface) -> int:
@@ -244,7 +243,7 @@ class Juniper(ManagementHandler):
     def set_native_vlan(self, interface: manage.Interface, vlan: int):
         raise NotImplementedError  # This is in fact never used on Juniper!
 
-    def get_native_and_trunked_vlans(self, interface) -> Tuple[int, List[int]]:
+    def get_native_and_trunked_vlans(self, interface) -> tuple[int, list[int]]:
         if not self.is_els:
             switching = EthernetSwitchingInterfaceTable(self.device.device)
             switching.get(interface_name=interface.ifname)
@@ -472,7 +471,7 @@ class Juniper(ManagementHandler):
 
     def get_poe_states(
         self, interfaces: Optional[Sequence[manage.Interface]] = None
-    ) -> Dict[str, Optional[PoeState]]:
+    ) -> dict[str, Optional[PoeState]]:
         """Retrieves current PoE state for interfaces on this device.
 
         :param interfaces: Optional sequence of interfaces to filter for, as fetching
@@ -520,7 +519,7 @@ class Juniper(ManagementHandler):
 
     def _get_poe_states_bulk(
         self, interfaces: Sequence[manage.Interface]
-    ) -> Dict[str, Optional[PoeState]]:
+    ) -> dict[str, Optional[PoeState]]:
         tree = self._get_all_poe_interface_information()
         interface_information_elements = tree.findall(".//interface-information")
         ifname_to_state_dict = {}
@@ -558,7 +557,7 @@ class Juniper(ManagementHandler):
     # dot1x authentication configuration fetchers aren't implemented yet, for lack
     # of configured devices to test on
     # def is_dot1x_enabled(self, interface: manage.Interface) -> bool:
-    # def get_dot1x_enabled_interfaces(self) -> Dict[str, bool]:
+    # def get_dot1x_enabled_interfaces(self) -> dict[str, bool]:
     # def is_port_access_control_enabled(self) -> bool:
 
     # These are not relevant for Juniper
@@ -578,7 +577,7 @@ def is_unit(name: str) -> bool:
     return len(names) == 2
 
 
-def split_master_unit(name: str) -> Tuple[str, str]:
+def split_master_unit(name: str) -> tuple[str, str]:
     """Splits an interface name into master and unit parts. If the name doesn't
     already refer to a unit, unit 0 will be assumed.
     """
