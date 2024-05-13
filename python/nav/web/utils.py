@@ -17,7 +17,6 @@
 import base64
 import io
 import os
-from typing import Dict, List
 
 from django.http import HttpResponse
 from django.views.generic.list import ListView
@@ -114,7 +113,7 @@ def convert_bytes_buffer_to_bytes_string(bytes_buffer: io.BytesIO) -> str:
     return base64.b64encode(bytes_buffer.getvalue()).decode('utf-8')
 
 
-def generate_qr_codes_as_byte_strings(url_dict: Dict[str, str]) -> List[str]:
+def generate_qr_codes_as_byte_strings(url_dict: dict[str, str]) -> list[str]:
     """
     Takes a dict of the form {name:url} and returns a list of generated QR codes as
     byte strings

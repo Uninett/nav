@@ -2,7 +2,7 @@ import logging
 from os.path import join
 from functools import partial
 import configparser
-from typing import Dict, Any
+from typing import Any
 
 from nav.config import ConfigurationError, NAVConfigParser
 
@@ -15,7 +15,7 @@ class JWTConf(NAVConfigParser):
     DEFAULT_CONFIG_FILES = [join('webfront', 'jwt.conf')]
     NAV_SECTION = "nav"
 
-    def get_issuers_setting(self) -> Dict[str, Any]:
+    def get_issuers_setting(self) -> dict[str, Any]:
         """Parses the webfront/jwt.conf config file and returns a dictionary that can
         be used as settings for the `drf-oidc-auth` django extension.
         If the parsing fails, an empty dict is returned.
