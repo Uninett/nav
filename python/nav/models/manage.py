@@ -509,12 +509,9 @@ class Netbox(models.Model):
         """Returns sysname without the domain suffix if specified in the
         DOMAIN_SUFFIX setting in nav.conf"""
 
-        if settings.DOMAIN_SUFFIX is not None and self.sysname.endswith(
-            settings.DOMAIN_SUFFIX
-        ):
-            return self.sysname[: -len(settings.DOMAIN_SUFFIX)]
-        else:
-            return self.sysname or self.ip
+        if settings.DOMAIN_SUFFIX is not None:
+            return self.sysname.removesuffix(settings.DOMAIN_SUFFIX)
+        return self.sysname or self.ip
 
     def is_on_maintenance(self):
         """Returns True if this netbox is currently on maintenance"""

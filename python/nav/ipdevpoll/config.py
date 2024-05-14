@@ -146,7 +146,7 @@ class JobDescriptor(object):
     def from_config_section(cls, config, section):
         """Creates a JobDescriptor from a ConfigParser section"""
         if section.startswith(JOB_PREFIX):
-            jobname = section[len(JOB_PREFIX) :]
+            jobname = section.removeprefix(JOB_PREFIX)
         else:
             raise InvalidJobSectionName(section)
 

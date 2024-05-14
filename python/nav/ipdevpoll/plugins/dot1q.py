@@ -172,8 +172,7 @@ class Dot1q(Plugin):
             for vlannum, name in names.items():
                 vlannum = self._remap_vlan(vlannum)
                 suffix = '+{}'.format(vlannum)
-                if name.endswith(suffix):
-                    name = name[: -len(suffix)]
+                name = name.removesuffix(suffix)
                 vlan = self.containers.factory(name, shadows.Vlan)
                 vlan.net_type = shadows.NetType.get('lan')
                 vlan.vlan = vlannum
