@@ -7,11 +7,11 @@ assignees: ''
 
 ---
 
-**Describe the bug**
+### Describe the bug
 
 <!-- A clear and concise description of what the bug is. -->
 
-**To Reproduce**
+### To Reproduce
 
 <!--
 Steps to reproduce the behavior:
@@ -21,15 +21,15 @@ Steps to reproduce the behavior:
 4. See error
 -->
 
-**Expected behavior**
+### Expected behavior
 
 <!-- A clear and concise description of what you expected to happen. -->
 
-**Screenshots**
+### Screenshots
 
 <!-- If applicable, add screenshots to help explain your problem. -->
 
-**Tracebacks**
+### Tracebacks
 
 <!-- If applicable, add a full traceback message inside a `pytb` code block.
 
@@ -38,7 +38,7 @@ Paste Python traceback here...
 ```
 -->
 
-**Environment (please complete the following information):**
+### Environment (please complete the following information):
 
 <!--
  - If the problem is with the web ui: Your OS, Browser and browser version [e.g. Windows, Chrome 64]
@@ -47,6 +47,6 @@ Paste Python traceback here...
  - Method of installation [e.g. from Debian package]
 -->
 
-**Additional context**
+### Additional context
 
 <!-- Add any other context about the problem here. -->
