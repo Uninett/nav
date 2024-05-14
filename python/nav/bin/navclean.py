@@ -116,6 +116,12 @@ def make_argparser():
     )
 
     arg("--arp", action="store_true", help="Delete old records from ARP table")
+    arg(
+        "--close-arp",
+        action="store_true",
+        help="Close expired ARP records. Expired records are those where the netbox "
+        "has been down for longer than the set expiry limit",
+    )
     arg("--cam", action="store_true", help="Delete old records from CAM table")
     arg(
         "--radiusacct",
@@ -216,6 +222,42 @@ class RecordCleaner:
 class ArpDeleter(RecordCleaner):
     expiry_type = "arp"
     selector = "WHERE end_time < {expiry}"
+
+
+class ArpCloser(RecordCleaner):
+    """Closes ARP records that have "expired", i.e. they're open, but the netbox they
+    were collected from has been down for too long.
+    """
+
+    expiry_type = "close_arp"
+
+    def sql(self, expiry):
+        """Returns the full UPDATE statement based on the expiry date"""
+        return f"""
+            WITH downsince AS (
+                SELECT
+                    netboxid,
+                    start_time AS downsince
+                FROM
+                    alerthist
+                WHERE
+                    eventtypeid = 'boxState'
+                    AND end_time >= 'infinity'
+            )
+            UPDATE
+                arp
+            SET
+                end_time = NOW()
+            WHERE
+                netboxid IN (
+                    SELECT
+                        netboxid
+                    FROM
+                        downsince
+                    WHERE
+                        downsince < {expiry})
+                AND end_time >= 'infinity'
+        """
 
 
 class CamDeleter(RecordCleaner):
