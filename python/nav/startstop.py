@@ -43,7 +43,7 @@ def get_info_from_content(content):
         if not line.startswith('#'):
             break
         elif line.startswith(INFOHEAD):
-            return line[len(INFOHEAD) :].strip()
+            return line.removeprefix(INFOHEAD).strip()
 
 
 class Service(object):

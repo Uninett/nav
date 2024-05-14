@@ -92,7 +92,7 @@ class MysqlConnection(object):
 
         data = self.file.read(size)
         if data.startswith(b'\xff'):
-            error = data[3:].decode("utf-8")
+            error = data.removeprefix(b'\xff').decode("utf-8")
             raise MysqlError(error)
 
         return data

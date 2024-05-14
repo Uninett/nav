@@ -230,8 +230,7 @@ class AbstractChecker(object):
         """Returns the name of the handler."""
         suffix = "checker"
         name = cls.__name__.lower()
-        if name.endswith(suffix):
-            name = name[: -len(suffix)]
+        name = name.removesuffix(suffix)
         return name
 
     def get_address(self):

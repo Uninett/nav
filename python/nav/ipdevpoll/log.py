@@ -45,7 +45,7 @@ class ContextFormatter(Formatter):
     def format(self, record):
         """Overridden to choose format based on record contents."""
         self._set_context(record)
-        self._strip_logger_prefix(record)
+        record.name = record.name.removeprefix(self.prefix)
         return Formatter.format(self, record)
 
     def _set_context(self, record):
@@ -63,10 +63,6 @@ class ContextFormatter(Formatter):
     def _set_format(self, fmt):
         self._fmt = fmt
         self._style._fmt = fmt
-
-    def _strip_logger_prefix(self, record):
-        if record.name.startswith(self.prefix):
-            record.name = record.name[len(self.prefix) :]
 
 
 # pylint: disable=R0903
