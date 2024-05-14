@@ -17,8 +17,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Deletes old data from the NAV database"""
-from __future__ import print_function
-
 import sys
 import argparse
 
