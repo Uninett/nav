@@ -18,8 +18,9 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Cleans old data from the NAV database"""
-import sys
 import argparse
+import sys
+from typing import List
 
 from nav.bootstrap import bootstrap_django
 
@@ -44,19 +45,20 @@ def main():
         expiry = args.datetime
 
     connection = nav.db.getConnection('default', 'manage')
-    deleters = get_selected_deleters(args, connection)
+    cleaners = get_selected_cleaners(args, connection)
 
-    deleted = False
-    for deleter in deleters:
+    cleaned = False
+    for cleaner in cleaners:
         try:
-            count = deleter.delete(expiry, dry_run=not args.force)
+            count = cleaner.clean(expiry, dry_run=not args.force)
             if not args.quiet:
                 print(
                     "Expired records in {table}: {count}".format(
-                        table=deleter.table, count=count if count is not None else "N/A"
+                        table=cleaner.expiry_type,
+                        count=count if count is not None else "N/A",
                     )
                 )
-            deleted = True
+            cleaned = True
 
         except psycopg2.Error as error:
             print("The PostgreSQL backend produced an error", file=sys.stderr)
@@ -66,15 +68,15 @@ def main():
 
     if not args.force:
         connection.rollback()
-        deleted = False
+        cleaned = False
     else:
         connection.commit()
 
     if not args.quiet:
-        if deleted:
-            print("Expired records were deleted.")
+        if cleaned:
+            print("Expired records were updated/deleted.")
         else:
-            print("Nothing deleted.")
+            print("Nothing changed.")
 
     connection.close()
 
@@ -160,26 +162,28 @@ def postgresql_interval(value):
         return value
 
 
-def get_selected_deleters(args, connection):
-    """Returns a list of RecordDeleter instances for each of the tables
+def get_selected_cleaners(
+    args: argparse.Namespace, connection
+) -> List["RecordCleaner"]:
+    """Returns a list of RecordCleaner instances for each of the tables
     selected in the supplied ArgumentParser.
     """
     return [
-        deleter(connection)
-        for deleter in RecordDeleter.__subclasses__()
-        if getattr(args, deleter.table, False)
+        cleaner(connection)
+        for cleaner in RecordCleaner.__subclasses__()
+        if getattr(args, cleaner.expiry_type, False)
     ]
 
 
 #
-# Deleter implementations
+# Cleaner implementations
 #
 
 
-class RecordDeleter(object):
-    """Base class for record deletion"""
+class RecordCleaner:
+    """Base class for record cleaning"""
 
-    table = None
+    expiry_type = None
     selector = ""
 
     def __init__(self, connection):
@@ -190,12 +194,16 @@ class RecordDeleter(object):
         return self.selector.format(expiry=expiry)
 
     def sql(self, expiry):
-        """Returns the full DELETE statement based on the expiry date"""
+        """Returns the full DELETE statement based on the expiry date.  Override this
+        method if a different kind of update statement is needed.
+        """
         where = self.filter(expiry)
-        return 'DELETE FROM {table} {filter}'.format(table=self.table, filter=where)
+        return 'DELETE FROM {table} {filter}'.format(
+            table=self.expiry_type, filter=where
+        )
 
-    def delete(self, expiry, dry_run=False):
-        """Deletes the records selected by the expiry spec"""
+    def clean(self, expiry: str, dry_run: bool = False):
+        """Cleans the records selected by the expiry spec"""
         cursor = self.connection.cursor()
         sql = self.sql(expiry)
         cursor.execute(sql)
@@ -205,18 +213,18 @@ class RecordDeleter(object):
 # pylint: disable=missing-docstring
 
 
-class ArpDeleter(RecordDeleter):
-    table = "arp"
+class ArpDeleter(RecordCleaner):
+    expiry_type = "arp"
     selector = "WHERE end_time < {expiry}"
 
 
-class CamDeleter(RecordDeleter):
-    table = "cam"
+class CamDeleter(RecordCleaner):
+    expiry_type = "cam"
     selector = "WHERE end_time < {expiry}"
 
 
-class RadiusAcctDeleter(RecordDeleter):
-    table = "radiusacct"
+class RadiusAcctDeleter(RecordCleaner):
+    expiry_type = "radiusacct"
     selector = """
         WHERE (acctstoptime < {expiry})
         OR ((acctstarttime + (acctsessiontime * interval '1 sec')) < {expiry})
@@ -225,23 +233,23 @@ class RadiusAcctDeleter(RecordDeleter):
         """
 
 
-class RadiusLogDeleter(RecordDeleter):
-    table = "radiuslog"
+class RadiusLogDeleter(RecordCleaner):
+    expiry_type = "radiuslog"
     selector = "WHERE time < {expiry}"
 
 
-class NetboxDeleter(RecordDeleter):
-    table = "netbox"
+class NetboxDeleter(RecordCleaner):
+    expiry_type = "netbox"
     selector = "WHERE pg_try_advisory_lock(netboxid) and deleted_at IS NOT NULL"
 
 
-class SessionDeleter(RecordDeleter):
+class SessionDeleter(RecordCleaner):
     """Special case deleter for Django Sessions"""
 
-    table = "websessions"
+    expiry_type = "websessions"
 
     @atomic
-    def delete(self, expiry, dry_run=False):
+    def clean(self, expiry, dry_run=False):
         """Deletes all expired django sessions if not a dry_run.
 
         Expiry spec is ignored, as sessions have a different expiry mechanism.
