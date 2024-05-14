@@ -58,9 +58,6 @@ def set_log_levels():
 
     for logger_name in config.options('levels'):
         level = config.get('levels', logger_name)
-        # Allow the config file to specify the root logger as 'root'
-        if logger_name.lower() == 'root':
-            logger_name = ''
         _logger = logging.getLogger(logger_name)
         _logger.setLevel(_translate_log_level(level))
 
@@ -92,9 +89,6 @@ def _set_custom_log_file():
 
     for logger_name in config.options(section):
         filename = config.get(section, logger_name)
-        # Allow the config file to specify the root logger as 'root'
-        if logger_name.lower() == 'root':
-            logger_name = ''
         _logger = logging.getLogger(logger_name)
 
         filehandler = logging.FileHandler(_get_logfile_path(filename), encoding='utf-8')
