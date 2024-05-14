@@ -282,9 +282,9 @@ class Account(models.Model):
 
     @locked.setter
     def locked(self, value):
-        if not value and self.password.startswith('!'):
-            self.password = self.password[1:]
-        elif value and not self.password.startswith('!'):
+        if not value:
+            self.password = self.password.removeprefix("!")
+        elif not self.password.startswith('!'):
             self.password = '!' + self.password
 
     @property
