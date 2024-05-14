@@ -3,6 +3,7 @@
 # -*- testargs: --arp -*-
 #
 # Copyright (C) 2017 Uninett AS
+# Copyright (C) 2024 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,7 +17,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Deletes old data from the NAV database"""
+"""Cleans old data from the NAV database"""
 import sys
 import argparse
 
@@ -86,39 +87,50 @@ def main():
 def make_argparser():
     """Makes this program's ArgumentParser"""
     parser = argparse.ArgumentParser(
-        description="Deletes old data from the NAV database",
-        epilog="Unless options are given, the number of expired records will "
-        "be printed. The default expiry limit is 6 months. The -e and -E"
-        " options set a common expiry date for all selected tables. If "
-        "you want different expiry dates for each table, you need to "
-        "run navclean more than once. To actually delete the expired "
-        "records, add the -f option.",
+        description="Cleans old data from the NAV database",
+        epilog="Cleaning old data means either deleting old records, or updating "
+        "expired records.  Use options to select which types of data to clean. "
+        "The -e and -E options set an expiry date that applies to all "
+        "selected data types.  Every run is a dry-run by default, unless the "
+        "-f option is given, in order to avoid accidental data deletion.",
     )
     arg = parser.add_argument
 
-    arg("-q", "--quiet", action="store_true", help="be quiet")
-    arg("-f", "--force", action="store_true", help="force deletion of expired records")
+    arg("-q", "--quiet", action="store_true", help="Be quiet")
+    arg("-f", "--force", action="store_true", help="Force actual database updates")
     arg(
         "-e",
         "--datetime",
         type=postgresql_datetime,
-        help="set an explicit expiry date on ISO format",
+        help="Set an explicit expiry date on ISO format",
     )
     arg(
         "-E",
         "--interval",
         type=postgresql_interval,
         default="6 months",
-        help="set an expiry interval using PostgreSQL interval syntax, e.g. "
-        "'30 days', '4 weeks', '6 months'",
+        help="Set an expiry interval using PostgreSQL interval syntax, e.g. "
+        "'30 days', '4 weeks', '6 months', '30 minutes'",
     )
 
-    arg("--arp", action="store_true", help="delete from ARP table")
-    arg("--cam", action="store_true", help="delete from CAM table")
-    arg("--radiusacct", action="store_true", help="delete from Radius accounting table")
-    arg("--radiuslog", action="store_true", help="delete from Radius error log table")
-    arg("--netbox", action="store_true", help="delete from NETBOX table")
-    arg("--websessions", action="store_true", help="delete expired web sessions")
+    arg("--arp", action="store_true", help="Delete old records from ARP table")
+    arg("--cam", action="store_true", help="Delete old records from CAM table")
+    arg(
+        "--radiusacct",
+        action="store_true",
+        help="Delete old records from Radius accounting table",
+    )
+    arg(
+        "--radiuslog",
+        action="store_true",
+        help="Delete old records from Radius error log table",
+    )
+    arg(
+        "--netbox",
+        action="store_true",
+        help="Delete netboxes that have been marked for deletion by Seed Database",
+    )
+    arg("--websessions", action="store_true", help="Delete expired web sessions")
 
     return parser
 
