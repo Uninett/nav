@@ -33,7 +33,7 @@ from collections import defaultdict
 from IPy import IP
 from twisted.names import dns
 from twisted.names import client
-from twisted.internet import defer
+from twisted.internet import defer, task
 
 # pylint: disable=E1101
 from twisted.internet import reactor
@@ -44,6 +44,9 @@ from twisted.names.error import DomainError, AuthoritativeDomainError
 from twisted.names.error import DNSQueryTimeoutError, DNSFormatError
 from twisted.names.error import DNSServerError, DNSNameError
 from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError
+
+
+BATCH_SIZE = 100
 
 
 def reverse_lookup(addresses):
@@ -81,14 +84,19 @@ class Resolver(object):
         self._finished = False
         self.results = defaultdict(list)
 
-        deferred_list = []
-        for name in names:
-            for deferred in self.lookup(name):
-                deferred.addCallback(self._extract_records, name)
-                deferred.addErrback(self._errback, name)
-                deferred_list.append(deferred)
+        def lookup_names():
+            for name in names:
+                for deferred in self.lookup(name):
+                    deferred.addCallback(self._extract_records, name)
+                    deferred.addErrback(self._errback, name)
+                    yield deferred
 
-        deferred_list = defer.DeferredList(deferred_list)
+        # Limits the number of parallel requests to BATCH_SIZE
+        coop = task.Cooperator()
+        work = lookup_names()
+        deferred_list = defer.DeferredList(
+            [coop.coiterate(work) for _ in range(BATCH_SIZE)]
+        )
         deferred_list.addCallback(self._parse_result)
         deferred_list.addCallback(self._finish)
 
