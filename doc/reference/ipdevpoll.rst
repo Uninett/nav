@@ -106,6 +106,36 @@ Section [linkstate]
   The value ``any`` will generate alerts for all link state changes, but
   **this is not recommended** for performance reasons.
 
+Section [paloaltoarp]
+---------------------
+
+This section configures the Palo Alto ARP plugin.  Palo Alto firewalls do
+support SNMP.  They do not, however, support fetching ARP cache data using
+SNMP.  This plugin enables fetching ARP records from Palo Alto firewalls using
+their built-in REST API.
+
+Currently, there is no management profile type for this type of REST APIs, so
+credentials to access a Palo Alto firewall's API must be configured in this
+section.
+
+If you have a Palo Alto firewall named ``example-fw.example.org``, with an IP
+address of ``10.0.42.42`` and a secret API token of
+``762e87e0ec051a1c5211a08dd48e7a93720eee63``, you can configure this in this
+section by adding::
+
+  example-fw.example.org = 762e87e0ec051a1c5211a08dd48e7a93720eee63
+
+Or, alternatively::
+
+  10.0.42.42 = 762e87e0ec051a1c5211a08dd48e7a93720eee63
+
+
+.. warning:: The Palo Alto ARP plugin does not currently verify TLS
+             certificates when accessing a Palo Alto API.  This will be changed
+             at a later date, but if it worries you, you should not use the
+             plugin yet.
+
+
 Job sections
 ------------
 

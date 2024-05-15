@@ -22,6 +22,30 @@ Dependency changes
 
 .. IMPORTANT:: NAV 5.10 requires PostgreSQL to be at least version *11*.
 
+New dependencies
+~~~~~~~~~~~~~~~~
+
+Dependencies to these Python modules have been added in order to support
+communicating with Palo Alto firewall APIs:
+
+* :mod:`PyOpenSSL` (``==23.3.0``)
+* :mod:`service-identity` (``==21.1.0``)
+
+Support for fetching ARP cache data from Palo Alto firewalls
+------------------------------------------------------------
+
+Palo Alto firewalls do support SNMP.  They do not, however, support fetching
+ARP cache data using SNMP.  A new ipdevpoll plugin, ``paloaltoarp``, has been
+added to fetch ARP cache data using the REST API built in to these firewall
+products.
+
+Access credentials for Palo Alto firewalls need to be configured in
+:file:`ipdevpoll.conf`, but a later NAV release should move to providing
+management profiles also for this.
+
+Please read more in :doc:`the ipdevpoll reference documentation
+</reference/ipdevpoll>` for configuration details.
+
 
 NAV 5.9
 =======

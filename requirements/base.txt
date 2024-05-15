@@ -39,3 +39,12 @@ backports.zoneinfo ; python_version < '3.9'
 importlib_metadata ; python_version < '3.8'
 importlib_resources ; python_version < '3.9'
 git+https://github.com/Uninett/drf-oidc-auth@v4.0#egg=drf-oidc-auth
+
+# The following modules are really sub-requirements of Twisted, not of
+# NAV directly.  They may be optional from Twisted's point of view,
+# but they are required for parts of the Twisted library that NAV uses:
+#
+# PyOpenSSL is required for TLS verification during PaloAlto API GET operations
+PyOpenSSL==23.3.0
+# service-identity is required to make TLS communication libraries shut up about potential MITM attacks
+service-identity==21.1.0
