@@ -125,7 +125,7 @@ def _nav_scripts_map() -> Dict[str, str]:
     pyproject.toml.
     """
     data = toml.load('pyproject.toml')
-    scripts: dict[str, str] = data.get('project', {}).get('scripts', {})
+    scripts: Dict[str, str] = data.get('project', {}).get('scripts', {})
     return {
         script: module.split(':', maxsplit=1)[0]
         for script, module in scripts.items()
