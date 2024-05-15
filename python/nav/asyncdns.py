@@ -89,6 +89,7 @@ class Resolver(object):
                 for deferred in self.lookup(name):
                     deferred.addCallback(self._extract_records, name)
                     deferred.addErrback(self._errback, name)
+                    deferred.addCallback(self._parse_result)
                     yield deferred
 
         # Limits the number of parallel requests to BATCH_SIZE
@@ -97,7 +98,6 @@ class Resolver(object):
         deferred_list = defer.DeferredList(
             [coop.coiterate(work) for _ in range(BATCH_SIZE)]
         )
-        deferred_list.addCallback(self._parse_result)
         deferred_list.addCallback(self._finish)
 
         while not self._finished:
@@ -117,12 +117,11 @@ class Resolver(object):
         raise NotImplementedError
 
     def _parse_result(self, result):
-        """Parses the result to the correct format"""
-        for _success, (name, response) in result:
-            if isinstance(response, Exception):
-                self.results[name] = response
-            else:
-                self.results[name].extend(response)
+        name, response = result
+        if isinstance(response, Exception):
+            self.results[name] = response
+        else:
+            self.results[name].extend(response)
 
     @staticmethod
     def _errback(failure, host):
