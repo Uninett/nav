@@ -16,6 +16,7 @@ def test_forward_lookup_should_work_with_ipv4_results():
 
     assert result_name == BUICK_NAME
     assert address_list == ["172.0.0.1"]
+    assert False, "failing on purpose"
 
 
 def test_forward_lookup_should_work_with_ipv6_results():
