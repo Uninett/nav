@@ -5,7 +5,6 @@ on:
     workflows: ["Build NAV and run full test suite"]
     types:
       - completed
-    branches-ignore: ["master"] # Do not run on pushes to master
 
 jobs:
   publish-test-results:
