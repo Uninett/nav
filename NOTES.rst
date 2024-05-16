@@ -15,7 +15,7 @@ Deprecation warnings
 --------------------
 
 .. warning:: The next feature release of NAV (5.11) will drop support for
-             Python 3.7.
+             Python versions older than 3.9.
 
 Dependency changes
 ------------------
