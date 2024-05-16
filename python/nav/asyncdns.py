@@ -78,11 +78,13 @@ class Resolver(object):
         )
         self.results = defaultdict(list)
         self._finished = False
+        self._errors = []
 
     def resolve(self, names):
         """Resolves DNS names in parallel"""
-        self._finished = False
         self.results = defaultdict(list)
+        self._finished = False
+        self._errors = []
 
         def lookup_names():
             for name in names:
@@ -96,7 +98,10 @@ class Resolver(object):
         coop = task.Cooperator()
         work = lookup_names()
         deferred_list = defer.DeferredList(
-            [coop.coiterate(work) for _ in range(BATCH_SIZE)]
+            [
+                coop.coiterate(work).addErrback(self._save_error)
+                for _ in range(BATCH_SIZE)
+            ]
         )
         deferred_list.addCallback(self._finish)
 
@@ -105,6 +110,10 @@ class Resolver(object):
         # Although the results are in at this point, we may need an extra
         # iteration to ensure the resolver library closes its UDP sockets
         reactor.iterate()
+
+        # raise first error if any occurred
+        for error in self._errors:
+            raise error
 
         return dict(self.results)
 
@@ -127,6 +136,10 @@ class Resolver(object):
     def _errback(failure, host):
         """Errback"""
         return host, failure.value
+
+    def _save_error(self, failure):
+        """Errback for coiterator. Saves error so it can be raised later"""
+        self._errors.append(failure.value)
 
     def _finish(self, _):
         self._finished = True
