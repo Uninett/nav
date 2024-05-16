@@ -12,7 +12,8 @@ jobs:
     name: "Publish test results"
     runs-on: ubuntu-latest
     if: >
-      github.event.workflow_run.conclusion != 'skipped'
+      github.event.workflow_run.conclusion != 'skipped' &&
+      github.event.workflow_run.event == 'pull_request'
 
     steps:
       - name: Download and Extract Artifacts
