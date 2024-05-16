@@ -89,7 +89,7 @@ class Resolver(object):
                 for deferred in self.lookup(name):
                     deferred.addCallback(self._extract_records, name)
                     deferred.addErrback(self._errback, name)
-                    deferred.addCallback(self._parse_result)
+                    deferred.addCallback(self._save_result)
                     yield deferred
 
         # Limits the number of parallel requests to BATCH_SIZE
@@ -116,7 +116,7 @@ class Resolver(object):
     def _extract_records(result, name):
         raise NotImplementedError
 
-    def _parse_result(self, result):
+    def _save_result(self, result):
         name, response = result
         if isinstance(response, Exception):
             self.results[name] = response
