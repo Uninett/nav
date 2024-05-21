@@ -54,8 +54,8 @@ def main():
             count = cleaner.clean(expiry, dry_run=not args.force)
             if not args.quiet:
                 print(
-                    "Expired records in {table}: {count}".format(
-                        table=cleaner.expiry_type,
+                    "Expired {expiry_type} records: {count}".format(
+                        expiry_type=cleaner.expiry_type,
                         count=count if count is not None else "N/A",
                     )
                 )
