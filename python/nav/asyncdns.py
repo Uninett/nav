@@ -33,7 +33,7 @@ from collections import defaultdict
 from IPy import IP
 from twisted.names import dns
 from twisted.names import client
-from twisted.internet import defer
+from twisted.internet import defer, task
 
 # pylint: disable=E1101
 from twisted.internet import reactor
@@ -44,6 +44,9 @@ from twisted.names.error import DomainError, AuthoritativeDomainError
 from twisted.names.error import DNSQueryTimeoutError, DNSFormatError
 from twisted.names.error import DNSServerError, DNSNameError
 from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError
+
+
+BATCH_SIZE = 100
 
 
 def reverse_lookup(addresses):
@@ -75,21 +78,31 @@ class Resolver(object):
         )
         self.results = defaultdict(list)
         self._finished = False
+        self._errors = []
 
     def resolve(self, names):
         """Resolves DNS names in parallel"""
-        self._finished = False
         self.results = defaultdict(list)
+        self._finished = False
+        self._errors = []
 
-        deferred_list = []
-        for name in names:
-            for deferred in self.lookup(name):
-                deferred.addCallback(self._extract_records, name)
-                deferred.addErrback(self._errback, name)
-                deferred_list.append(deferred)
+        def lookup_names():
+            for name in names:
+                for deferred in self.lookup(name):
+                    deferred.addCallback(self._extract_records, name)
+                    deferred.addErrback(self._errback, name)
+                    deferred.addCallback(self._save_result)
+                    yield deferred
 
-        deferred_list = defer.DeferredList(deferred_list)
-        deferred_list.addCallback(self._parse_result)
+        # Limits the number of parallel requests to BATCH_SIZE
+        coop = task.Cooperator()
+        work = lookup_names()
+        deferred_list = defer.DeferredList(
+            [
+                coop.coiterate(work).addErrback(self._save_error)
+                for _ in range(BATCH_SIZE)
+            ]
+        )
         deferred_list.addCallback(self._finish)
 
         while not self._finished:
@@ -97,6 +110,10 @@ class Resolver(object):
         # Although the results are in at this point, we may need an extra
         # iteration to ensure the resolver library closes its UDP sockets
         reactor.iterate()
+
+        # raise first error if any occurred
+        for error in self._errors:
+            raise error
 
         return dict(self.results)
 
@@ -108,18 +125,21 @@ class Resolver(object):
     def _extract_records(result, name):
         raise NotImplementedError
 
-    def _parse_result(self, result):
-        """Parses the result to the correct format"""
-        for _success, (name, response) in result:
-            if isinstance(response, Exception):
-                self.results[name] = response
-            else:
-                self.results[name].extend(response)
+    def _save_result(self, result):
+        name, response = result
+        if isinstance(response, Exception):
+            self.results[name] = response
+        else:
+            self.results[name].extend(response)
 
     @staticmethod
     def _errback(failure, host):
         """Errback"""
         return host, failure.value
+
+    def _save_error(self, failure):
+        """Errback for coiterator. Saves error so it can be raised later"""
+        self._errors.append(failure.value)
 
     def _finish(self, _):
         self._finished = True
