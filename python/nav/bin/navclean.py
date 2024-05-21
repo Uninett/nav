@@ -235,7 +235,7 @@ class ArpCloser(RecordCleaner):
     def sql(self, expiry):
         """Returns the full UPDATE statement based on the expiry date"""
         return f"""
-            WITH downsince AS (
+            WITH unreachable_devices AS (
                 SELECT
                     netboxid,
                     start_time AS downsince
@@ -254,7 +254,7 @@ class ArpCloser(RecordCleaner):
                     SELECT
                         netboxid
                     FROM
-                        downsince
+                        unreachable_devices
                     WHERE
                         downsince < {expiry})
                 AND end_time >= 'infinity'
