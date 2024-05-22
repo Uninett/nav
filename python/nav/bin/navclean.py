@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # -*- testargs: --arp -*-
+# -*- testargs: --close-arp -*-
 #
 # Copyright (C) 2017 Uninett AS
+# Copyright (C) 2024 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -16,11 +18,10 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""Deletes old data from the NAV database"""
-from __future__ import print_function
-
-import sys
+"""Cleans old data from the NAV database"""
 import argparse
+import sys
+from typing import List
 
 from nav.bootstrap import bootstrap_django
 
@@ -45,19 +46,20 @@ def main():
         expiry = args.datetime
 
     connection = nav.db.getConnection('default', 'manage')
-    deleters = get_selected_deleters(args, connection)
+    cleaners = get_selected_cleaners(args, connection)
 
-    deleted = False
-    for deleter in deleters:
+    cleaned = False
+    for cleaner in cleaners:
         try:
-            count = deleter.delete(expiry, dry_run=not args.force)
+            count = cleaner.clean(expiry, dry_run=not args.force)
             if not args.quiet:
                 print(
-                    "Expired records in {table}: {count}".format(
-                        table=deleter.table, count=count if count is not None else "N/A"
+                    "Expired {expiry_type} records: {count}".format(
+                        expiry_type=cleaner.expiry_type,
+                        count=count if count is not None else "N/A",
                     )
                 )
-            deleted = True
+            cleaned = True
 
         except psycopg2.Error as error:
             print("The PostgreSQL backend produced an error", file=sys.stderr)
@@ -67,15 +69,15 @@ def main():
 
     if not args.force:
         connection.rollback()
-        deleted = False
+        cleaned = False
     else:
         connection.commit()
 
     if not args.quiet:
-        if deleted:
-            print("Expired records were deleted.")
+        if cleaned:
+            print("Expired records were updated/deleted.")
         else:
-            print("Nothing deleted.")
+            print("Nothing changed.")
 
     connection.close()
 
@@ -88,39 +90,56 @@ def main():
 def make_argparser():
     """Makes this program's ArgumentParser"""
     parser = argparse.ArgumentParser(
-        description="Deletes old data from the NAV database",
-        epilog="Unless options are given, the number of expired records will "
-        "be printed. The default expiry limit is 6 months. The -e and -E"
-        " options set a common expiry date for all selected tables. If "
-        "you want different expiry dates for each table, you need to "
-        "run navclean more than once. To actually delete the expired "
-        "records, add the -f option.",
+        description="Cleans old data from the NAV database",
+        epilog="Cleaning old data means either deleting old records, or updating "
+        "expired records.  Use options to select which types of data to clean. "
+        "The -e and -E options set an expiry date that applies to all "
+        "selected data types.  Every run is a dry-run by default, unless the "
+        "-f option is given, in order to avoid accidental data deletion.",
     )
     arg = parser.add_argument
 
-    arg("-q", "--quiet", action="store_true", help="be quiet")
-    arg("-f", "--force", action="store_true", help="force deletion of expired records")
+    arg("-q", "--quiet", action="store_true", help="Be quiet")
+    arg("-f", "--force", action="store_true", help="Force actual database updates")
     arg(
         "-e",
         "--datetime",
         type=postgresql_datetime,
-        help="set an explicit expiry date on ISO format",
+        help="Set an explicit expiry date on ISO format",
     )
     arg(
         "-E",
         "--interval",
         type=postgresql_interval,
         default="6 months",
-        help="set an expiry interval using PostgreSQL interval syntax, e.g. "
-        "'30 days', '4 weeks', '6 months'",
+        help="Set an expiry interval using PostgreSQL interval syntax, e.g. "
+        "'30 days', '4 weeks', '6 months', '30 minutes'",
     )
 
-    arg("--arp", action="store_true", help="delete from ARP table")
-    arg("--cam", action="store_true", help="delete from CAM table")
-    arg("--radiusacct", action="store_true", help="delete from Radius accounting table")
-    arg("--radiuslog", action="store_true", help="delete from Radius error log table")
-    arg("--netbox", action="store_true", help="delete from NETBOX table")
-    arg("--websessions", action="store_true", help="delete expired web sessions")
+    arg("--arp", action="store_true", help="Delete old records from ARP table")
+    arg(
+        "--close-arp",
+        action="store_true",
+        help="Close expired ARP records. Expired records are those where the netbox "
+        "has been down for longer than the set expiry limit",
+    )
+    arg("--cam", action="store_true", help="Delete old records from CAM table")
+    arg(
+        "--radiusacct",
+        action="store_true",
+        help="Delete old records from Radius accounting table",
+    )
+    arg(
+        "--radiuslog",
+        action="store_true",
+        help="Delete old records from Radius error log table",
+    )
+    arg(
+        "--netbox",
+        action="store_true",
+        help="Delete netboxes that have been marked for deletion by Seed Database",
+    )
+    arg("--websessions", action="store_true", help="Delete expired web sessions")
 
     return parser
 
@@ -150,26 +169,28 @@ def postgresql_interval(value):
         return value
 
 
-def get_selected_deleters(args, connection):
-    """Returns a list of RecordDeleter instances for each of the tables
+def get_selected_cleaners(
+    args: argparse.Namespace, connection
+) -> List["RecordCleaner"]:
+    """Returns a list of RecordCleaner instances for each of the tables
     selected in the supplied ArgumentParser.
     """
     return [
-        deleter(connection)
-        for deleter in RecordDeleter.__subclasses__()
-        if getattr(args, deleter.table, False)
+        cleaner(connection)
+        for cleaner in RecordCleaner.__subclasses__()
+        if getattr(args, cleaner.expiry_type, False)
     ]
 
 
 #
-# Deleter implementations
+# Cleaner implementations
 #
 
 
-class RecordDeleter(object):
-    """Base class for record deletion"""
+class RecordCleaner:
+    """Base class for record cleaning"""
 
-    table = None
+    expiry_type = None
     selector = ""
 
     def __init__(self, connection):
@@ -180,12 +201,16 @@ class RecordDeleter(object):
         return self.selector.format(expiry=expiry)
 
     def sql(self, expiry):
-        """Returns the full DELETE statement based on the expiry date"""
+        """Returns the full DELETE statement based on the expiry date.  Override this
+        method if a different kind of update statement is needed.
+        """
         where = self.filter(expiry)
-        return 'DELETE FROM {table} {filter}'.format(table=self.table, filter=where)
+        return 'DELETE FROM {table} {filter}'.format(
+            table=self.expiry_type, filter=where
+        )
 
-    def delete(self, expiry, dry_run=False):
-        """Deletes the records selected by the expiry spec"""
+    def clean(self, expiry: str, dry_run: bool = False):
+        """Cleans the records selected by the expiry spec"""
         cursor = self.connection.cursor()
         sql = self.sql(expiry)
         cursor.execute(sql)
@@ -195,18 +220,54 @@ class RecordDeleter(object):
 # pylint: disable=missing-docstring
 
 
-class ArpDeleter(RecordDeleter):
-    table = "arp"
+class ArpDeleter(RecordCleaner):
+    expiry_type = "arp"
     selector = "WHERE end_time < {expiry}"
 
 
-class CamDeleter(RecordDeleter):
-    table = "cam"
+class ArpCloser(RecordCleaner):
+    """Closes ARP records that have "expired", i.e. they're open, but the netbox they
+    were collected from has been down for too long.
+    """
+
+    expiry_type = "close_arp"
+
+    def sql(self, expiry):
+        """Returns the full UPDATE statement based on the expiry date"""
+        return f"""
+            WITH unreachable_devices AS (
+                SELECT
+                    netboxid,
+                    start_time AS downsince
+                FROM
+                    alerthist
+                WHERE
+                    eventtypeid = 'boxState'
+                    AND end_time >= 'infinity'
+            )
+            UPDATE
+                arp
+            SET
+                end_time = NOW()
+            WHERE
+                netboxid IN (
+                    SELECT
+                        netboxid
+                    FROM
+                        unreachable_devices
+                    WHERE
+                        downsince < {expiry})
+                AND end_time >= 'infinity'
+        """
+
+
+class CamDeleter(RecordCleaner):
+    expiry_type = "cam"
     selector = "WHERE end_time < {expiry}"
 
 
-class RadiusAcctDeleter(RecordDeleter):
-    table = "radiusacct"
+class RadiusAcctDeleter(RecordCleaner):
+    expiry_type = "radiusacct"
     selector = """
         WHERE (acctstoptime < {expiry})
         OR ((acctstarttime + (acctsessiontime * interval '1 sec')) < {expiry})
@@ -215,23 +276,23 @@ class RadiusAcctDeleter(RecordDeleter):
         """
 
 
-class RadiusLogDeleter(RecordDeleter):
-    table = "radiuslog"
+class RadiusLogDeleter(RecordCleaner):
+    expiry_type = "radiuslog"
     selector = "WHERE time < {expiry}"
 
 
-class NetboxDeleter(RecordDeleter):
-    table = "netbox"
+class NetboxDeleter(RecordCleaner):
+    expiry_type = "netbox"
     selector = "WHERE pg_try_advisory_lock(netboxid) and deleted_at IS NOT NULL"
 
 
-class SessionDeleter(RecordDeleter):
+class SessionDeleter(RecordCleaner):
     """Special case deleter for Django Sessions"""
 
-    table = "websessions"
+    expiry_type = "websessions"
 
     @atomic
-    def delete(self, expiry, dry_run=False):
+    def clean(self, expiry, dry_run=False):
         """Deletes all expired django sessions if not a dry_run.
 
         Expiry spec is ignored, as sessions have a different expiry mechanism.

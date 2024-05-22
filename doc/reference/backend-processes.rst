@@ -126,7 +126,9 @@ dbclean
 Regularly cleans out old data from the NAV database, using the
 :program:`navclean` program. The standard cleanup routine removes old web user
 interface sessions, and deletes IP devices that have been scheduled for
-deletion through either SeedDB or the API.
+deletion through either SeedDB or the API.  Additionally, it closes open ARP
+records that have been collected from routers that have been unreachable for
+more than 30 minutes (adjustable by modifying the `dbclean` cron fragment).
 
 :Dependencies:
   None
