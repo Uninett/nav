@@ -138,11 +138,11 @@ def parse_arp(arp):
     arps = []
 
     root = ET.fromstring(arp)
-    entries = root[0][4]
+    entries = root.find("result").find("entries")
     for entry in entries:
-        status = entry[0].text
-        ip = entry[1].text
-        mac = entry[2].text
+        status = entry.find("status").text
+        ip = entry.find("ip").text
+        mac = entry.find("mac").text
         if status.strip() != "i":
             if mac != "(incomplete)":
                 arps.append(('ifindex', IP(ip), mac))
