@@ -11,6 +11,20 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [5.10.1] - 2024-05-27
+
+
+### Fixed
+
+- Fix Machine Tracker DNS search crashing from exhausting all available file
+  descriptors ([#2669](https://github.com/Uninett/nav/issues/2669))
+- ARP records of unreachable devices are now closed by `navclean` cron job at
+  configurable expiry intervals, rather than immediately as a response to a
+  short ICMP packet loss ([#2913](https://github.com/Uninett/nav/issues/2913))
+- Palo Alto API XML responses are now parsed based on keys instead of indexes
+  ([#2924](https://github.com/Uninett/nav/issues/2924))
+
+
 ## [5.10.0] - 2024-05-16
 
 
