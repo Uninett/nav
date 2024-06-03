@@ -46,6 +46,15 @@ management profiles also for this.
 Please read more in :doc:`the ipdevpoll reference documentation
 </reference/ipdevpoll>` for configuration details.
 
+Changed names of NAV command line programs
+------------------------------------------
+
+NAV 5.9 changed the names of most of NAV's command line programs by removing
+their ``.py`` file name extensions.  However, the :program:`snmptrapd` program
+had a naming conflict with Net-SNMP's trap daemon, if installed.  NAV 5.10.1
+renames the NAV trap daemon to :program:`navtrapd`.  Please ensure your
+:file:`daemons.yml` configuration file is up to date after an upgrade.
+
 
 NAV 5.9
 =======

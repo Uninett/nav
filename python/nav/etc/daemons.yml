@@ -28,5 +28,5 @@ daemons:
 
     snmptrapd:
         description: Receives and processes SNMP traps and notifications.
-        command: snmptrapd
+        command: navtrapd
         privileged: true
