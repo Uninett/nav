@@ -10,8 +10,7 @@ jobs:
   publish-test-results:
     name: "Publish test results"
     runs-on: ubuntu-latest
-    if: >
-      github.event.workflow_run.conclusion != 'skipped'
+    if: github.event.workflow_run.conclusion != 'skipped' && github.repository_owner == 'Uninett'
 
     steps:
       - name: Download and Extract Artifacts
@@ -37,7 +36,6 @@ jobs:
           files: artifacts/**/*-results.xml
 
       - name: "Upload coverage to Codecov"
-        if: github.repository_owner == 'Uninett'
         uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true
