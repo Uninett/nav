@@ -30,7 +30,7 @@ jobs:
            done
 
       - name: "Publish test results"
-        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           commit: ${{ github.event.workflow_run.head_sha }}
           check_name: "Test results"
