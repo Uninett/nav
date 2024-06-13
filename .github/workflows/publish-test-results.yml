@@ -35,8 +35,31 @@ jobs:
           check_name: "Test results"
           files: artifacts/**/*-results.xml
 
+      - name: Read PR number file
+        if: ${{ hashFiles('artifacts/extra/pr_number') != '' }}
+        run: |
+          pr_number=$(cat artifacts/extra/pr_number)
+          re='^[0-9]+$'
+          if [[ $pr_number =~ $re ]] ; then
+            echo "PR_NUMBER=$pr_number" >> $GITHUB_ENV
+          fi
+
+      - name: Read base SHA file
+        if: ${{ hashFiles('artifacts/extra/base_sha') != '' }}
+        run: |
+          base_sha=$(cat artifacts/extra/base_sha)
+          re='[0-9a-f]{40}'
+          if [[ $base_sha =~ $re ]] ; then
+            echo "BASE_SHA=$base_sha" >> $GITHUB_ENV
+          fi
+
       - name: "Upload coverage to Codecov"
         uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for forks of public repos
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+          override_branch: ${{ github.event.workflow_run.head_branch}}
+          override_commit: ${{ github.event.workflow_run.head_sha}}
+          commit_parent: ${{ env.BASE_SHA }}
+          override_pr: ${{ env.PR_NUMBER }}
