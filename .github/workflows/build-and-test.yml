@@ -90,13 +90,6 @@ jobs:
           path: |
             /tmp/pytest-of-runner
 
-      - name: "Upload coverage to Codecov"
-        if: github.repository_owner == 'Uninett'
-        uses: codecov/codecov-action@v4
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for forks of public repos
-
       - name: Upload test reports (${{ matrix.python-version }})
         if: always()
         uses: actions/upload-artifact@v4
