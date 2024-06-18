@@ -12,10 +12,10 @@ jobs:
         python-version: ["3.7", "3.9", "3.10"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: "Cache pip packages"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: pip-cache
         with:
           path: ~/.cache/pip
@@ -24,14 +24,14 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: "Cache tox environments"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: tox-cache
         with:
           path: .tox
           key: ${{ runner.os }}-tox-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt', '**/requirements/*.txt', 'tox.ini') }}
 
       - name: "Set up Python ${{ matrix.python-version }}"
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -84,32 +84,25 @@ jobs:
 
       - name: Upload Selenium driver logs (${{ matrix.python-version }})
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: pytest-logs
+          name: pytest-logs-${{ matrix.python-version }}
           path: |
             /tmp/pytest-of-runner
 
-      - name: "Upload coverage to Codecov"
-        if: github.repository_owner == 'Uninett'
-        uses: codecov/codecov-action@v4
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for forks of public repos
-
       - name: Upload test reports (${{ matrix.python-version }})
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: test-reports
+          name: test-reports-${{ matrix.python-version }}
           path: |
             reports/**/*
 
       - name: Upload core dumps (${{ matrix.python-version }})
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: core-dumps
+          name: core-dumps-${{ matrix.python-version }}
           path: |
             /tmp/core-*
 
@@ -130,11 +123,11 @@ jobs:
     name: "Test Javascript code"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@latest
       - uses: browser-actions/setup-firefox@latest
       - run: chrome --version
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 16
 
@@ -149,8 +142,29 @@ jobs:
 
       - name: Upload JavaScript test reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: javascript-test-reports
           path: |
             reports/**/*
+
+  upload-pr-number-base-sha:
+    name: Save PR number and base SHA in artifact
+    runs-on: ubuntu-latest
+    if: ${{ github.event.number && always() }}
+    env:
+      PR_NUMBER: ${{ github.event.number }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+    steps:
+      - name: Make PR number file
+        run: |
+          mkdir -p ./extra
+          echo $PR_NUMBER > ./extra/pr_number
+      - name: Make base SHA file
+        run: |
+          echo $BASE_SHA > ./extra/base_sha
+      - name: Upload PR number file and base SHA file
+        uses: actions/upload-artifact@v4
+        with:
+          name: extra
+          path: extra/
