@@ -133,6 +133,7 @@ MIDDLEWARE = (
     'nav.web.auth.middleware.AuthorizationMiddleware',
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
 )
 
 SESSION_SERIALIZER = 'nav.web.session_serializer.PickleSerializer'
@@ -223,6 +224,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.humanize',
     'django_filters',
+    'django_htmx',
     'crispy_forms',
     'crispy_forms_foundation',
     'rest_framework',
