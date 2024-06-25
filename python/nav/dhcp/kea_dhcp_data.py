@@ -119,8 +119,7 @@ class KeaDhcpSubnet:
             pools=pools,
         )
 
-@dataclass
-class KeaDhcpData:
+class KeaDhcpData(DhcpData):
     """
     Class representing information found in the configuration of a Kea DHCP
     server. Most importantly, this class contains:
