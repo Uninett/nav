@@ -1,4 +1,4 @@
-from nav.kea_stats import *
+from nav.dhcp.kea_dhcp_data import *
 import pytest
 import requests
 from IPy import IP
@@ -213,7 +213,7 @@ def dhcp4_config_response():
     '''
 
 def test_get_dhcp_config(dhcp4_config_response):
-    config = get_dhcp_config("example.org", ip_version=4)
+    config = get_dhcp_server("example.org", ip_version=4)
     assert len(config.subnets) == 1
     subnet = config.subnets[0]
     assert subnet.id == 1
@@ -237,4 +237,4 @@ def dhcp4_config_response_result_is_1():
 
 def test_get_dhcp_config_result_is_1(dhcp4_config_result_is_1):
     with pytest.raises(Exception): # TODO: Change
-        get_dhcp_config("example-org", ip_version=4)
+        get_dhcp_server("example-org", ip_version=4)

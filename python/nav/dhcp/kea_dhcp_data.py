@@ -73,7 +73,7 @@ class KeaDhcpSubnet:
     pools: list[tuple[IP]] # e.g. [(192.0.2.10, 192.0.2.20), (192.0.2.64, 192.0.2.128)]
 
     @classmethod
-    def from_json(cls, subnetjson: dict):
+    def from_json(cls, subnet_json: dict):
         """
         Initialize and return a Subnet instance based on json
 
@@ -93,16 +93,16 @@ class KeaDhcpSubnet:
                 ]
             }
         """
-        if "id" not in subnetjson:
+        if "id" not in subnet_json:
             raise ValueError("Expected subnetjson['id'] to exist")
-        id = subnetjson["id"]
+        id = subnet_json["id"]
 
-        if "subnet" not in subnetjson:
+        if "subnet" not in subnet_json:
             raise ValueError("Expected subnetjson['subnet'] to exist")
-        prefix = IP(subnetjson["subnet"]),
+        prefix = IP(subnet_json["subnet"]),
 
         pools = []
-        for obj in subnetjson.get("pools", []):
+        for obj in subnet_json.get("pools", []):
             pool = obj["pool"]
             if "-" in pool: # TODO: Error checking?
                 # pool == "x.x.x.x - y.y.y.y"
@@ -119,9 +119,8 @@ class KeaDhcpSubnet:
             pools=pools,
         )
 
-
 @dataclass
-class KeaDhcpConfig:
+class KeaDhcpData:
     """
     Class representing information found in the configuration of a Kea DHCP
     server. Most importantly, this class contains:
@@ -134,11 +133,26 @@ class KeaDhcpConfig:
     ip_version: int
     subnets: list[KeaDhcpSubnet]
 
+    rest_address: str
+    rest_port: int
+    rest_https: bool
+
+    @property
+    def rest_location(self):
+        scheme = "https" if self.rest_https else "http"
+        return f"{scheme}://{self.rest_address}:{self.rest_port}/"
 
     @classmethod
-    def from_json(cls, configjson: dict, hash: Optional[str] = None):
+    def from_json(
+            cls,
+            config_json: dict,
+            config_hash: Optional[str] = None,
+            rest_address: str,
+            rest_post: int,
+            rest_https: bool = True
+    ):
         """
-        Initialize and return a Config instance based on json
+        Initialize and return a KeaDhcpData instance based on json
 
         :param json: a dictionary that is structured the same way as a
         Kea DHCP configuration.
@@ -160,10 +174,10 @@ class KeaDhcpConfig:
         :param hash: hash of the Kea DHCP config file as returned by a
         `config-hash-get` query on the kea-ctrl-agent REST server.
         """
-        if len(configjson) > 1:
+        if len(config_json) > 1:
             raise ValueError("Did not expect len(configjson) > 1")
 
-        ip_version, json = configjson.popitem()
+        ip_version, json = config_json.popitem()
         if ip_version == "Dhcp4":
             ip_version = 4
         elif ip_version == "Dhcp6":
@@ -177,9 +191,12 @@ class KeaDhcpConfig:
             subnets.append(subnet)
 
         return cls(
-            _config_hash=hash,
+            _config_hash=config_hash,
             ip_version=ip_version,
             subnets=subnets,
+            rest_address=rest_address,
+            rest_post=rest_post,
+            rest_https=rest_https,
         )
 
 
@@ -206,17 +223,17 @@ def send_query(query: KeaQuery, address: str, port: int, https: bool = True, ses
         raise err
 
     try:
-        responsejson = r.json()
+        response_json = r.json()
     except JSONDecodeError as err:
         logger.error("send_query: expected json from %s, got %s", address, r.text)
         raise err
 
-    if isinstance(responsejson, dict):
-        logger.error("send_query: expected a json list of objects from %s, got %r", address, responsejson)
-        raise ValueError(f"bad response from {address}: {responsejson!r}")
+    if isinstance(response_json, dict):
+        logger.error("send_query: expected a json list of objects from %s, got %r", address, response_json)
+        raise ValueError(f"bad response from {address}: {response_json!r}")
 
     responses = []
-    for obj in responsejson:
+    for obj in response_json:
         response = KeaResponse(
             obj.get("result", KeaStatus.ERROR),
             obj.get("text", ""),
@@ -227,7 +244,7 @@ def send_query(query: KeaQuery, address: str, port: int, https: bool = True, ses
     return responses
 
 
-def get_dhcp_config(address: str, port: int, https: bool = True, ip_version: int = 4) -> KeaDhcpConfig:
+def get_dhcp_server(address: str, port: int, https: bool = True, ip_version: int = 4) -> KeaDhcpConfig:
     """ Fetch the config of a Kea DHCP server that manages addresses of IP
     version `ip_version` from a Kea Control Agent listening to `port` on
     `address`.
