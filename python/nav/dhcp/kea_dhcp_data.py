@@ -19,7 +19,7 @@ import json
 import logging
 import requests
 from dataclasses import dataclass, asdict
-from .dhcp_data import DhcpMetricSource
+from .dhcp_data import DhcpMetricSource, DhcpMetric
 from enum import IntEnum
 from IPy import IP
 from requests.exceptions import JSONDecodeError, HTTPError
@@ -64,6 +64,49 @@ class KeaQuery:
     command: str
     arguments: dict[str: Union[str, int]]
     service: list[str] # The server(s) at which the command is targeted. Usually ["dhcp4", "dhcp6"] or ["dhcp4"] or ["dhcp6"].
+
+def send_query(query: KeaQuery, address: str, port: int, https: bool = True, session: requests.Session = None) -> list[KeaResponse]:
+    """
+    Internal function.
+    Send `query` to a Kea Control Agent listening to `port`
+    on IP address `address`, using either http or https
+
+    :param session: optional session to be used when sending the query. Assumed
+    to not be closed. Session is not closed after the query, so that the session
+    can be used for persistent connections among differend send_query calls.
+    """
+    scheme = "https" if https else "http"
+    location = f"{scheme}://{address}:{port}/"
+    logger.debug("send_query: sending request to %s with query %r", location, query)
+    try:
+        if session is None:
+            r = requests.post(location, data=json.dumps(asdict(query)), headers={"Content-Type": "application/json"})
+        else:
+            r = session.post(location, data=json.dumps(asdict(query)), headers={"Content-Type": "application/json"})
+    except HTTPError as err:
+        logger.error("send_query: request to %s yielded an error: %d %s", err.url, err.status_code, err.reason)
+        raise err
+
+    try:
+        response_json = r.json()
+    except JSONDecodeError as err:
+        logger.error("send_query: expected json from %s, got %s", address, r.text)
+        raise err
+
+    if isinstance(response_json, dict):
+        logger.error("send_query: expected a json list of objects from %s, got %r", address, response_json)
+        raise ValueError(f"bad response from {address}: {response_json!r}")
+
+    responses = []
+    for obj in response_json:
+        response = KeaResponse(
+            obj.get("result", KeaStatus.ERROR),
+            obj.get("text", ""),
+            obj.get("arguments", {}),
+            obj.get("service", ""),
+        )
+        responses.append(response)
+    return responses
 
 
 @dataclass
@@ -120,7 +163,8 @@ class KeaDhcpSubnet:
             pools=pools,
         )
 
-class KeaDhcpData(DhcpData):
+@dataclass
+class KeaDhcpConfig:
     """
     Class representing information found in the configuration of a Kea DHCP
     server. Most importantly, this class contains:
@@ -133,23 +177,11 @@ class KeaDhcpData(DhcpData):
     ip_version: int
     subnets: list[KeaDhcpSubnet]
 
-    rest_address: str
-    rest_port: int
-    rest_https: bool
-
-    @property
-    def rest_location(self):
-        scheme = "https" if self.rest_https else "http"
-        return f"{scheme}://{self.rest_address}:{self.rest_port}/"
-
     @classmethod
     def from_json(
             cls,
             config_json: dict,
             config_hash: Optional[str] = None,
-            rest_address: str,
-            rest_post: int,
-            rest_https: bool = True
     ):
         """
         Initialize and return a KeaDhcpData instance based on json
@@ -194,97 +226,73 @@ class KeaDhcpData(DhcpData):
             _config_hash=config_hash,
             ip_version=ip_version,
             subnets=subnets,
-            rest_address=rest_address,
-            rest_post=rest_post,
-            rest_https=rest_https,
         )
 
 
-def send_query(query: KeaQuery, address: str, port: int, https: bool = True, session: requests.Session = None) -> list[KeaResponse]:
-    """
-    Internal function.
-    Send `query` to a Kea Control Agent listening to `port`
-    on IP address `address`, using either http or https
+class KeaDhcpMetricSource(DhcpMetricSource):
+    rest_address: str # IP address of the Kea Control Agent server
+    rest_port: int # Port of the Kea Control Agent server
+    rest_https: bool # If true, communicate with Kea Control Agent using https. If false, use http.
 
-    :param session: optional session to be used when sending the query. Assumed
-    to not be closed. Session is not closed after the query, so that the session
-    can be used for persistent connections among differend send_query calls.
-    """
-    scheme = "https" if https else "http"
-    location = f"{scheme}://{address}:{port}/"
-    logger.debug("send_query: sending request to %s with query %r", location, query)
-    try:
-        if session is None:
-            r = requests.post(location, data=json.dumps(asdict(query)), headers={"Content-Type": "application/json"})
-        else:
-            r = session.post(location, data=json.dumps(asdict(query)), headers={"Content-Type": "application/json"})
-    except HTTPError as err:
-        logger.error("send_query: request to %s yielded an error: %d %s", err.url, err.status_code, err.reason)
-        raise err
+    ip_version: int # The IP version of the Kea DHCP server. The Kea Control Agent uses this to tell if we want information from its IPv6 or IPv4 Kea DHCP server
+    kea_dhcp_config: dict # The configuration, i.e. most static pieces of information, of the Kea DHCP server that is used as a data/metric source
 
-    try:
-        response_json = r.json()
-    except JSONDecodeError as err:
-        logger.error("send_query: expected json from %s, got %s", address, r.text)
-        raise err
+    def __init__(self, address: str, port: int, https: bool = True, ip_version: int = 4,  *args, **kwargs):
+        super(*args, **kwargs)
+        self.rest_address = address
+        self.rest_port = port
+        self.rest_https = https
+        self.ip_version = ip_version
+        self.kea_dhcp_config = None
 
-    if isinstance(response_json, dict):
-        logger.error("send_query: expected a json list of objects from %s, got %r", address, response_json)
-        raise ValueError(f"bad response from {address}: {response_json!r}")
-
-    responses = []
-    for obj in response_json:
-        response = KeaResponse(
-            obj.get("result", KeaStatus.ERROR),
-            obj.get("text", ""),
-            obj.get("arguments", {}),
-            obj.get("service", ""),
+    def fetch_dhcp_config(self) -> KeaDhcpConfig:
+        """
+        Fetch the config of the Kea DHCP server that manages addresses of IP
+        version `self.ip_version` from the Kea Control Agent listening to
+        `self.rest_port` on `self.rest_address`.
+        """
+        query = KeaQuery(
+            command="config-get",
+            service=[f"dhcp{ip_version}"],
+            arguments={},
         )
-        responses.append(response)
-    return responses
-
-
-def get_dhcp_server(address: str, port: int, https: bool = True, ip_version: int = 4) -> KeaDhcpConfig:
-    """ Fetch the config of a Kea DHCP server that manages addresses of IP
-    version `ip_version` from a Kea Control Agent listening to `port` on
-    `address`.
-
-    :param address: the IP address or DNS addressable hostname of the Kea
-    Control Agent.
-    :param port: the port that the Kea Control Agent listens to.
-    :param https: whether or not to use https. If not using https, http is used.
-    :param ip_version: the IP version of the Kea DHCP server
-    """
-    query = KeaQuery(
-        command="config-get",
-        service=[f"dhcp{ip_version}"],
-        arguments={},
-    )
-    responses = send_query(query, address, port, https)
-    if len(responses) != 1:
-        raise Exception(f"Received invalid amount of responses from '{address}'") # TODO: Change Exception
-
-    response = responses[0]
-    if not response.success:
-        raise Exception("Did not receive config file from DHCP server")
-
-    return KeaDhcpConfig.from_json(responses[0].arguments)
-
-def get_dhcp_statistics(address: str, port: int, https: bool = True, ip_version: int = 4) -> KeaDhcpSubnet:
-    query = KeaQuery(
-        command="statistic-get",
-        service=[f"dhcp{ip_version}"],
-        arguments={
-            "name": f"subnet[1].assigned-addresses",
-        },
-    )
-
-    with requests.Session() as s:
-        responses = send_query(query, address, port, https, session=s)
+        responses = send_query(query, self.rest_address, self.rest_port, self.rest_https)
         if len(responses) != 1:
             raise Exception(f"Received invalid amount of responses from '{address}'") # TODO: Change Exception
 
         response = responses[0]
         if not response.success:
-            raise Exception("Did not receive statistics from DHCP server")
-    return response
+            raise Exception("Did not receive config file from DHCP server")
+
+        self.kea_dhcp_config = KeaDhcpConfig.from_json(responses[0].arguments)
+        return kea_dhcp_config
+
+    def fetch_metrics(self, address: str, port: int, https: bool = True, ip_version: int = 4) -> list[DhcpMetric]:
+        """
+        Implementation of the superclass method for fetching
+        standardised dhcp metrics; this method is what nav uses to
+        feed data into the graphite server.
+        """
+
+        metrics = []
+        with requests.Session() as s:
+            for subnet in self.kea_dhcp_config.subnets:
+                for kea_key, dhcpmetric_key in ("total-addresses","max"), ("assigned-addresses","cur"), ("","touch"), (,"free") # dhcmetric_key is the same as the graphite metric names used in nav/contrib/scripts/isc_dhpcd_graphite/isc_dhpcd_graphite.py
+                    query = KeaQuery(
+                        command="statistic-get",
+                        service=[f"dhcp{self.ip_version}"],
+                        arguments={
+                            "name": f"subnet[{subnet.id}].{kea_key}",
+                        },
+                    )
+
+                    responses = send_query(query, address, port, https, session=s)
+                    if len(responses) != 1:
+                        raise Exception(f"Received invalid amount of responses from '{address}'") # TODO: Change Exception
+
+                    response = responses[0]
+                    if not response.success:
+                        raise Exception("Did not receive statistics from DHCP server")
+
+
+        return response
