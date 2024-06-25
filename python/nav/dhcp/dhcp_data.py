@@ -1,6 +1,6 @@
-from typing import Iterator
 from dataclasses import dataclass
 from nav.metrics import carbon
+from typing import Iterator
 
 @dataclass
 class DhcpMetric:
@@ -21,6 +21,9 @@ class DhcpMetricSource:
         self.graphite_prefix = graphite_prefix
 
     def fetch_metrics(self) -> Iterator[DhcpMetric]:
+        """
+        Fetch 
+        """
         raise NotImplementedError
     def fetch_metrics_to_graphite(self, host, port):
         graphite_metrics = []

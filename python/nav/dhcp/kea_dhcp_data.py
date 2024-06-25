@@ -15,14 +15,15 @@ implementation for interacting with the Kea Control Agent.
 * See also the Kea Control Agent documentation. This script assumes Kea versions
 >= 2.2.0 are used.  (https://kea.readthedocs.io/en/kea-2.2.0/arm/agent.html).
 """
-from dataclasses import dataclass, asdict
-from enum import IntEnum
+import json
 import logging
 import requests
-import json
+from dataclasses import dataclass, asdict
+from .dhcp_data import DhcpMetricSource
+from enum import IntEnum
+from IPy import IP
 from requests.exceptions import JSONDecodeError, HTTPError
 from typing import Union, Optional
-from IPy import IP
 
 logger = logging.getLogger(__name__)
 
