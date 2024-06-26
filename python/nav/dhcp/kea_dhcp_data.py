@@ -175,7 +175,7 @@ class KeaDhcpConfig:
         assigned to that network
     * The IP version of the DCHP server
     """
-    _config_hash: Optional[str] # Used to check if there's a new config on the Kea DHCP server
+    config_hash: Optional[str] # Used to check if there's a new config on the Kea DHCP server
     ip_version: int
     subnets: list[KeaDhcpSubnet]
 
@@ -247,7 +247,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         self.ip_version = ip_version
         self.kea_dhcp_config = None
 
-    def fetch_dhcp_config(self) -> KeaDhcpConfig:
+    def fetch_and_set_dhcp_config(self, session=None):
         """
         Fetch the config of the Kea DHCP server that manages addresses of IP
         version `self.ip_version` from the Kea Control Agent listening to
@@ -258,7 +258,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             service=[f"dhcp{ip_version}"],
             arguments={},
         )
-        responses = send_query(query, self.rest_address, self.rest_port, self.rest_https)
+        responses = send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session)
         if len(responses) != 1:
             raise Exception(f"Received invalid amount of responses from '{address}'") # TODO: Change Exception
 
@@ -266,8 +266,9 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         if not response.success:
             raise Exception("Did not receive config file from DHCP server")
 
-        self.kea_dhcp_config = KeaDhcpConfig.from_json(responses[0].arguments)
-        return kea_dhcp_config
+        self.kea_dhcp_config = KeaDhcpConfig.from_json(response.arguments)
+        return self.kea_dhcp_config
+
 
     def fetch_metrics(self, address: str, port: int, https: bool = True, ip_version: int = 4) -> list[DhcpMetric]:
         """
@@ -275,14 +276,14 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         standardised dhcp metrics; this method is what nav uses to
         feed data into the graphite server.
         """
-
         metrics = []
         with requests.Session() as s:
+            self.fetch_and_set_dhcp_config(s)
             for subnet in self.kea_dhcp_config.subnets:
-                for kea_key, dhcpmetric_key in (("total-addresses", DhcpMetricKey.MAX),
-                                                ("assigned-addresses", DhcpMetricKey.CUR),
-                                                ("declined-addresses", DhcpMetricKey.TOUCH)): # dhcmetric_key is the same as the graphite metric names used in nav/contrib/scripts/isc_dhpcd_graphite/isc_dhpcd_graphite.py
-                    kea_statistic_name = f"subnet[{subnet.id}].{kea_key}",
+                for statistic_key, metric_key in (("total-addresses", DhcpMetricKey.MAX),
+                                                  ("assigned-addresses", DhcpMetricKey.CUR),
+                                                  ("declined-addresses", DhcpMetricKey.TOUCH)): # dhcmetric_key is the same as the graphite metric names used in nav/contrib/scripts/isc_dhpcd_graphite/isc_dhpcd_graphite.py
+                    kea_statistic_name = f"subnet[{subnet.id}].{statistic_key}",
                     query = KeaQuery(
                         command="statistic-get",
                         service=[f"dhcp{self.ip_version}"],
