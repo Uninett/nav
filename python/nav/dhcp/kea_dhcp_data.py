@@ -303,6 +303,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                     datapoints = response["arguments"].get(kea_statistic_name, [])
                     for value, timestamp in datapoints:
                         epochseconds = calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")) # Assumes for now that UTC timestamps are returned by Kea Control Agent; I'll need to read the documentation closer!
-                        metrics.append(DhcpMetric(epochseconds, subnet.id, dhcpmetric_key, value))
+                        metrics.append(DhcpMetric(epochseconds, subnet.prefix, metric_key, value))
 
         return metrics

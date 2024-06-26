@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from IPy import IP
 from nav.metrics import carbon
 from typing import Iterator
 
@@ -14,7 +15,7 @@ class DhcpMetricKey(Enum):
 @dataclass
 class DhcpMetric:
     timestamp: int
-    vlan: int # the vlan this metric tracks
+    subnet_prefix: IP
     key: DhcpMetricKey
     value: int
 
@@ -31,34 +32,15 @@ class DhcpMetricSource:
 
     def fetch_metrics(self) -> Iterator[DhcpMetric]:
         """
-        Fetch total addresses, assigned addresses, touched addresses,
-        and free adddresses for each vlan of the DHCP server.
-
-        None of the DHCP server packages that has had a
-        DhcpMetricSource class definition so far has any way to
-        explicitly define which subnet or pool belongs to which
-        vlan. The way we figure out which subnet or pool belongs to
-        which vlan, differs between the DHCP server packages; usually
-        it is possible to give each subnet or pool or group of
-        subnets/pools a name, ID, or tag.  The convention is that this
-        name, ID or tag is the vlan-number of that specific subnet or
-        pool or group of subnets/pools.
-
-        Each subclass of DhcpMetricSource should document how it finds
-        out what vlan a subnet/pool belongs to. It should be clear
-        whether or not it relies on any specific conventions that the
-        administrator of a DHCP server must follow.
-
-        TODO: document this properly. (do we need to specify the
-        rationale for grouping metrics by vlan and not
-        e.g. subnet-prefixes, etc. or is this clear to all users of
-        nav?)
+        Fetch DhcpMetrics having keys `MAX`, `CUR`, `TOUCH` and `FREE`
+        for each subnet of the DHCP server at current point of time.
         """
         raise NotImplementedError
     def fetch_metrics_to_graphite(self, host, port):
+        fmt = str.maketrans({".": "_", "/": "_"}) # 192.0.2.0/24 --> 192_0_0_0_24
         graphite_metrics = []
         for metric in self.fetch_metrics():
-            graphite_path = f"{self.graphite_prefix}.vlan{metric.vlan}.{metric.key}"
+            graphite_path = f"{self.graphite_prefix}.{str(metric.subnet_prefix).translate(fmt)}.{metric.key}"
             datapoint = (metric.timestamp, metric.value)
             graphite_metrics.append((graphite_path, datapoint))
         carbon.send_metrics_to(graphite_metrics, host, port)
