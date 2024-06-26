@@ -15,11 +15,13 @@ implementation for interacting with the Kea Control Agent.
 * See also the Kea Control Agent documentation. This script assumes Kea versions
 >= 2.2.0 are used.  (https://kea.readthedocs.io/en/kea-2.2.0/arm/agent.html).
 """
+import calendar
 import json
 import logging
 import requests
+import time
 from dataclasses import dataclass, asdict
-from .dhcp_data import DhcpMetricSource, DhcpMetric
+from .dhcp_data import DhcpMetricSource, DhcpMetric, DhcpMetricKey
 from enum import IntEnum
 from IPy import IP
 from requests.exceptions import JSONDecodeError, HTTPError
@@ -277,12 +279,15 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         metrics = []
         with requests.Session() as s:
             for subnet in self.kea_dhcp_config.subnets:
-                for kea_key, dhcpmetric_key in ("total-addresses","max"), ("assigned-addresses","cur"), ("","touch"), (,"free") # dhcmetric_key is the same as the graphite metric names used in nav/contrib/scripts/isc_dhpcd_graphite/isc_dhpcd_graphite.py
+                for kea_key, dhcpmetric_key in (("total-addresses", DhcpMetricKey.MAX),
+                                                ("assigned-addresses", DhcpMetricKey.CUR),
+                                                ("declined-addresses", DhcpMetricKey.TOUCH)): # dhcmetric_key is the same as the graphite metric names used in nav/contrib/scripts/isc_dhpcd_graphite/isc_dhpcd_graphite.py
+                    kea_statistic_name = f"subnet[{subnet.id}].{kea_key}",
                     query = KeaQuery(
                         command="statistic-get",
                         service=[f"dhcp{self.ip_version}"],
                         arguments={
-                            "name": f"subnet[{subnet.id}].{kea_key}",
+                            "name": kea_statistic_name,
                         },
                     )
 
@@ -294,5 +299,9 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                     if not response.success:
                         raise Exception("Did not receive statistics from DHCP server")
 
+                    datapoints = response["arguments"].get(kea_statistic_name, [])
+                    for value, timestamp in datapoints:
+                        epochseconds = calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")) # Assumes for now that UTC timestamps are returned by Kea Control Agent; I'll need to read the documentation closer!
+                        metrics.append(DhcpMetric(epochseconds, subnet.id, dhcpmetric_key, value))
 
-        return response
+        return metrics
