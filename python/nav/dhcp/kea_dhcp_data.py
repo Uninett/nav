@@ -253,6 +253,15 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         version `self.ip_version` from the Kea Control Agent listening to
         `self.rest_port` on `self.rest_address`.
         """
+        # Check if self.kea_dhcp_config is up to date
+        if not (
+                self.kea_dhcp_config is None
+                or self.kea_dhcp_config.config_hash is None
+                or self.fetch_dhcp_config_hash(session=s) != self.kea_dhcp_config.config_hash
+        ):
+            return self.kea_dhcp_config
+
+        # self.kea_dhcp_config is not up to date, fetch new
         query = KeaQuery(
             command="config-get",
             service=[f"dhcp{ip_version}"],
@@ -269,6 +278,24 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         self.kea_dhcp_config = KeaDhcpConfig.from_json(response.arguments)
         return self.kea_dhcp_config
 
+    def fetch_dhcp_config_hash(self, session=None):
+        query = KeaQuery(
+            command="config-hash-get",
+            service=[f"dhcp{ip_version}"],
+            arguments={},
+        )
+        responses = send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session)
+        if len(responses) != 1:
+            Exception(f"Received invalid amount of responses from '{address}'") # TODO: Change Exception
+
+        response = responses[0]
+        if response.result == KeaStatus.UNSUPPORTED:
+            logger.info("Kea DHCP%d server does not support quering for the hash of its config", ip_version)
+            return None
+        elif response.success:
+            return response.arguments.get("hash", None)
+        else:
+            raise Exception("Did not receive hash of config file from DHCP server")
 
     def fetch_metrics(self, address: str, port: int, https: bool = True, ip_version: int = 4) -> list[DhcpMetric]:
         """
