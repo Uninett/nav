@@ -4,10 +4,9 @@ from nav.metrics import carbon
 from typing import Iterator
 
 class DhcpMetricKey(Enum):
-    MAX = "total addresses"
-    CUR = "assigned addresses"
-    TOUCH = "touched addresses"
-    FREE = "free addresses"
+    MAX = "max" # total addresses
+    CUR = "cur" # assigned addresses
+    TOUCH = "touch" # touched addresses
 
     def __str__(self):
         return self.name.lower() # For use in graphite path
