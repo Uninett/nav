@@ -332,4 +332,14 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                         epochseconds = calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")) # Assumes for now that UTC timestamps are returned by Kea Control Agent; I'll need to read the documentation closer!
                         metrics.append(DhcpMetric(epochseconds, subnet.prefix, metric_key, value))
 
+
+            used_config = self.kea_dhcp_config
+            self.fetch_and_set_dhcp_config(s)
+            if sorted(used_config.subnets) != sorted(self.kea_dhcp_config.subnets):
+                logger.warning(
+                    "Subnet configuration was modified during metric fetching, "
+                    "this may cause metric data being associated with wrong "
+                    "subnet."
+                )
+
         return metrics
