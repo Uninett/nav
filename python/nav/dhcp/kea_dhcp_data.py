@@ -67,7 +67,7 @@ class KeaQuery:
     arguments: dict[str: Union[str, int]]
     service: list[str] # The server(s) at which the command is targeted. Usually ["dhcp4", "dhcp6"] or ["dhcp4"] or ["dhcp6"].
 
-def send_query(query: KeaQuery, address: str, port: int, https: bool = True, session: requests.Session = None) -> list[KeaResponse]:
+def send_query(query: KeaQuery, address: str, port: int = 443, https: bool = True, session: requests.Session = None) -> list[KeaResponse]:
     """
     Internal function.
     Send `query` to a Kea Control Agent listening to `port`
@@ -145,7 +145,7 @@ class KeaDhcpSubnet:
 
         if "subnet" not in subnet_json:
             raise ValueError("Expected subnetjson['subnet'] to exist")
-        prefix = IP(subnet_json["subnet"]),
+        prefix = IP(subnet_json["subnet"])
 
         pools = []
         for obj in subnet_json.get("pools", []):

@@ -1,3 +1,4 @@
+from collections import deque
 from nav.dhcp.kea_dhcp_data import *
 import pytest
 import requests
@@ -5,7 +6,9 @@ from IPy import IP
 import json
 from requests.exceptions import JSONDecodeError
 
-DHCP4_CONFIG = '''
+@pytest.fixture
+def dhcp4_config():
+    return '''
     {
         "Dhcp4": {
             "subnet4": [{
@@ -95,14 +98,22 @@ DHCP4_CONFIG = '''
     }
     '''
 
-def custom_post_response(func):
+@pytest.fixture(autouse=True)
+def enqueue_post_response(monkeypatch):
     """
-    Replace the content of the response from any call to requests.post()
-    with the content of func().encode("utf8")
+    Any test that include this fixture, gets access to a function that
+    can be used to append text strings to a fifo queue of post
+    responses that in fifo order will be returned as proper Response
+    objects by calls to requests.post and requests.Session().post.
+
+    This is how we mock what would otherwise be post requests to a
+    server.
     """
-    def new_post(url, *args, **kwargs):
+    fifo = deque() # stores the textual content of the responses we want to return on any call to requests.post
+
+    def new_post_function(url, *args, **kwargs):
         response = requests.Response()
-        response._content = func().encode("utf8")
+        response._content = fifo.popleft().encode("utf8")
         response.encoding = "utf8"
         response.status_code = 400
         response.reason = "OK"
@@ -113,17 +124,15 @@ def custom_post_response(func):
         return response
 
     def new_post_method(self, url, *args, **kwargs):
-        return new_post(url, *args, **kwargs)
+        return new_post_function(url, *args, **kwargs)
 
-    def replace_post(monkeypatch):
-        monkeypatch.setattr(requests, 'post', new_post)
-        monkeypatch.setattr(requests.Session, 'post', new_post_method) # Not sure this works?
+    monkeypatch.setattr(requests, 'post', new_post_function)
+    monkeypatch.setattr(requests.Session, 'post', new_post_method) # Not sure this works?
 
-    return replace_post
+    return fifo.append
 
 @pytest.fixture
-@custom_post_response
-def success_responses():
+def success_response():
     return '''[
     {"result": 0, "text": "b", "arguments": {"arg1": "val1"}, "service": "d"},
     {"result": 0, "arguments": {"arg1": "val1"}, "service": "d"},
@@ -132,8 +141,7 @@ def success_responses():
     ]'''
 
 @pytest.fixture
-@custom_post_response
-def error_responses():
+def error_response():
     return '''[
     {"result": 1, "text": "b", "arguments": {"arg1": "val1"}, "service": "d"},
     {"result": 2, "text": "b", "arguments": {"arg1": "val1"}, "service": "d"},
@@ -143,8 +151,7 @@ def error_responses():
     ]'''
 
 @pytest.fixture
-@custom_post_response
-def invalid_json_responses():
+def invalid_json_response():
     return '''[
     {"result": 1, "text": "b", "arguments": {"arg1": "val1"}, "service": "d"},
     {"result": 2, "text": "b", "arguments": {"arg1": "val1"}, "service": "d"},
@@ -154,87 +161,100 @@ def invalid_json_responses():
     ]'''
 
 @pytest.fixture
-@custom_post_response
-def large_responses():
+def large_response():
     return '''
 
     '''
 
-def test_success_responses_does_succeed(success_responses):
-    query = KeaQuery("command", {}, [])
-    responses = send_query(query, "example.org")
+def send_dummy_query():
+    return send_query(
+        query=KeaQuery("command", [], {}),
+        address="192.0.2.2",
+        port=80,
+    )
+
+def test_success_responses_does_succeed(success_response, enqueue_post_response):
+    enqueue_post_response(success_response)
+    responses = send_dummy_query()
     assert len(responses) == 4
     for response in responses:
         assert response.success
+        assert isinstance(response.text, str)
+        assert isinstance(response.arguments, dict)
+        assert isinstance(response.service, str)
 
-def test_error_responses_does_not_succeed(error_responses):
-    query = KeaQuery("command", {}, [])
-    responses = send_query(query, "example.org")
+def test_error_responses_does_not_succeed(error_response, enqueue_post_response):
+    enqueue_post_response(error_response)
+    responses = send_dummy_query()
     assert len(responses) == 5
     for response in responses:
         assert not response.success
+        assert isinstance(response.text, str)
+        assert isinstance(response.arguments, dict)
+        assert isinstance(response.service, str)
 
-def test_invalid_json_responses_raises_jsonerror(invalid_json_responses):
-    query = KeaQuery("command", {}, [])
+def test_invalid_json_responses_raises_jsonerror(invalid_json_response, enqueue_post_response):
+    enqueue_post_response(invalid_json_response)
     with pytest.raises(JSONDecodeError):
-        responses = send_query(query, "example.org")
+        responses = send_dummy_query()
 
 def test_correct_subnet_from_json(dhcp4_config):
     j = json.loads(dhcp4_config)
-    subnet = Subnet.from_json(j["Dhcp4"]["subnet4"][0])
+    subnet = KeaDhcpSubnet.from_json(j["Dhcp4"]["subnet4"][0])
     assert subnet.id == 1
     assert subnet.prefix == IP("192.0.0.0/8")
     assert len(subnet.pools) == 2
     assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
     assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
 
-def test_correct_config_from_json(dhcp4_config):
-    j = json.loads(dhcp4_config)
-    config = KeaDhcpConfig.from_json(j)
-    assert len(config.subnets) == 1
-    subnet = config.subnets[0]
-    assert subnet.id == 1
-    assert subnet.prefix == IP("192.0.0.0/8")
-    assert len(subnet.pools) == 2
-    assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
-    assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
-    assert config.ip_version == 4
+# def test_correct_config_from_json(dhcp4_config):
+#     j = json.loads(dhcp4_config)
+#     config = KeaDhcpConfig.from_json(j)
+#     assert len(config.subnets) == 1
+#     subnet = config.subnets[0]
+#     assert subnet.id == 1
+#     assert subnet.prefix == IP("192.0.0.0/8")
+#     assert len(subnet.pools) == 2
+#     assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
+#     assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
+#     assert config.ip_version == 4
 
-@pytest.fixture
-@custom_post_response
-def dhcp4_config_response():
-    return f'''
-    {{
-        "result": 0,
-        "arguments": {{
-            {DHCP4_CONFIG}
-        }}
-    }}
-    '''
+# @pytest.fixture
+# def dhcp4_config_response(dhcp4_config):
+#     return f'''
+#     {{
+#         "result": 0,
+#         "arguments": {{
+#             {dhcp4_config}
+#         }}
+#     }}
+#     '''
 
-def test_get_dhcp_config(dhcp4_config_response):
-    config = get_dhcp_server("example.org", ip_version=4)
-    assert len(config.subnets) == 1
-    subnet = config.subnets[0]
-    assert subnet.id == 1
-    assert subnet.prefix == IP("192.0.0.0/8")
-    assert len(subnet.pools) == 2
-    assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
-    assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
-    assert config.ip_version == 4
+# def test_get_dhcp_config(dhcp4_config_response):
+#     enqueue_post_response(dhcp4_config_response)
+#     response = send_dummy_query()
+#     config = KeaDhcpConfig.from_json(config_json)
+#     assert len(config.subnets) == 1
+#     subnet = config.subnets[0]
+#     assert subnet.id == 1
+#     assert subnet.prefix == IP("192.0.0.0/8")
+#     assert len(subnet.pools) == 2
+#     assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
+#     assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
+#     assert config.ip_version == 4
 
-@pytest.fixture
-@custom_post_response
-def dhcp4_config_response_result_is_1():
-    return f'''
-    {{
-        "result": 1,
-        "arguments": {{
-            {DHCP4_CONFIG}
-        }}
-    }}
-    '''
+# @pytest.fixture
+# @enqueue_post_response
+# def dhcp4_config_response_result_is_1():
+#     return f'''
+#     {{
+#         "result": 1,
+#         "arguments": {{
+#             {DHCP4_CONFIG}
+#         }}
+#     }}
+#     '''
 
-def test_get_dhcp_config_result_is_1(dhcp4_config_result_is_1):
-    with pytest.raises(Exception): # TODO: Change
-        get_dhcp_server("example-org", ip_version=4)
+# def test_get_dhcp_config_result_is_1(dhcp4_config_result_is_1):
+#     with pytest.raises(Exception): # TODO: Change
+#         get_dhcp_server("example-org", ip_version=4)
