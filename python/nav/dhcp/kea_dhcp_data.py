@@ -24,11 +24,14 @@ from dataclasses import dataclass, asdict
 from .dhcp_data import DhcpMetricSource, DhcpMetric, DhcpMetricKey
 from enum import IntEnum
 from IPy import IP
+from nav.errors import GeneralException
 from requests.exceptions import JSONDecodeError, HTTPError
 from typing import Union, Optional
 
 logger = logging.getLogger(__name__)
 
+class KeaError(GeneralException):
+    pass
 
 class KeaStatus(IntEnum):
     """Status of a REST response."""
@@ -97,7 +100,7 @@ def send_query(query: KeaQuery, address: str, port: int = 443, https: bool = Tru
 
     if isinstance(response_json, dict):
         logger.error("send_query: expected a json list of objects from %s, got %r", address, response_json)
-        raise ValueError(f"bad response from {address}: {response_json!r}")
+        raise KeaError(f"bad response from {address}: {response_json!r}")
 
     responses = []
     for obj in response_json:
@@ -110,6 +113,14 @@ def send_query(query: KeaQuery, address: str, port: int = 443, https: bool = Tru
         responses.append(response)
     return responses
 
+def unwrap(responses: list[KeaQuery], require_success=True) -> KeaQuery:
+    if len(responses) != 1:
+        raise KeaError(f"Received invalid amount of responses")
+
+    response = responses[0]
+    if require_success and not response.success:
+        raise KeaError("Did not receive a successful response")
+    return response
 
 @dataclass
 class KeaDhcpSubnet:
@@ -267,13 +278,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             service=[f"dhcp{self.ip_version}"],
             arguments={},
         )
-        responses = send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session)
-        if len(responses) != 1:
-            raise Exception(f"Received invalid amount of responses from '{address}'") # TODO: Change Exception
-
-        response = responses[0]
-        if not response.success:
-            raise Exception("Did not receive config file from DHCP server")
+        response = unwrap(send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session))
 
         self.kea_dhcp_config = KeaDhcpConfig.from_json(response.arguments)
         return self.kea_dhcp_config
@@ -284,18 +289,18 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             service=[f"dhcp{self.ip_version}"],
             arguments={},
         )
-        responses = send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session)
-        if len(responses) != 1:
-            Exception(f"Received invalid amount of responses from '{address}'") # TODO: Change Exception
+        response = unwrap(
+            send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session),
+            require_success=False
+        )
 
-        response = responses[0]
         if response.result == KeaStatus.UNSUPPORTED:
             logger.info("Kea DHCP%d server does not support quering for the hash of its config", ip_version)
             return None
         elif response.success:
             return response.arguments.get("hash", None)
         else:
-            raise Exception("Did not receive hash of config file from DHCP server")
+            raise KeaError("Unexpected error when querying the hash of config file from DHCP server")
 
     def fetch_metrics(self, address: str, port: int, https: bool = True, ip_version: int = 4) -> list[DhcpMetric]:
         """
@@ -318,14 +323,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                             "name": kea_statistic_name,
                         },
                     )
-
-                    responses = send_query(query, address, port, https, session=s)
-                    if len(responses) != 1:
-                        raise Exception(f"Received invalid amount of responses from '{address}'") # TODO: Change Exception
-
-                    response = responses[0]
-                    if not response.success:
-                        raise Exception("Did not receive statistics from DHCP server")
+                    response = unwrap(send_query(query, address, port, https, session=s))
 
                     datapoints = response["arguments"].get(kea_statistic_name, [])
                     for value, timestamp in datapoints:
