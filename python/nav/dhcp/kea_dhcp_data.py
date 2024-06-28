@@ -31,10 +31,11 @@ from typing import Union, Optional
 logger = logging.getLogger(__name__)
 
 class KeaError(GeneralException):
+    """Error related to interaction with a Kea Control Agent"""
     pass
 
 class KeaStatus(IntEnum):
-    """Status of a REST response."""
+    """Status of a response sent from a Kea Control Agent."""
     # Successful operation.
     SUCCESS = 0
     # General failure.
@@ -50,8 +51,8 @@ class KeaStatus(IntEnum):
 @dataclass
 class KeaResponse:
     """
-    Class representing a REST response on a REST query sent to a Kea Control
-    Agent.
+    Class representing the response to a REST query sent to a Kea
+    Control Agent.
     """
     result: int
     text: str
@@ -72,13 +73,15 @@ class KeaQuery:
 
 def send_query(query: KeaQuery, address: str, port: int = 443, https: bool = True, session: requests.Session = None) -> list[KeaResponse]:
     """
-    Internal function.
-    Send `query` to a Kea Control Agent listening to `port`
-    on IP address `address`, using either http or https
+    Send `query` to a Kea Control Agent listening to `port` on IP
+    address `address`, using either http or https
 
-    :param session: optional session to be used when sending the query. Assumed
-    to not be closed. Session is not closed after the query, so that the session
-    can be used for persistent connections among differend send_query calls.
+    :param https: If True, use https. Otherwise, use http.
+
+    :param session: Optional requests.Session to be used when sending
+    the query. Assumed to not be closed. session is not closed after
+    the end of this call, so that session can be used for persistent
+    http connections among different send_query calls.
     """
     scheme = "https" if https else "http"
     location = f"{scheme}://{address}:{port}/"
@@ -114,6 +117,10 @@ def send_query(query: KeaQuery, address: str, port: int = 443, https: bool = Tru
     return responses
 
 def unwrap(responses: list[KeaQuery], require_success=True) -> KeaQuery:
+    """
+    Helper function implementing the sequence of operations often done
+    on the list of responses returned by `send_query()`
+    """
     if len(responses) != 1:
         raise KeaError(f"Received invalid amount of responses")
 
@@ -243,12 +250,23 @@ class KeaDhcpConfig:
 
 
 class KeaDhcpMetricSource(DhcpMetricSource):
+    """
+    Using `send_query()`, this class:
+    * Maintains an up-to-date `KeaDhcpConfig` representation of the
+      configuration of the Kea DHCP server with ip version
+      `self.ip_version` reachable via the Kea Control Agent listening
+      to port `self.rest_port` on IP addresses `self.rest_address`
+    * Queries the Kea Control Agent for statistics about each subnet
+      found in the `KeaDhcpConfig` representation and creates an
+      iterable of `DhcpMetric` that its superclass uses to fill a
+      graphite server with metrics.
+    """
     rest_address: str # IP address of the Kea Control Agent server
     rest_port: int # Port of the Kea Control Agent server
     rest_https: bool # If true, communicate with Kea Control Agent using https. If false, use http.
 
     ip_version: int # The IP version of the Kea DHCP server. The Kea Control Agent uses this to tell if we want information from its IPv6 or IPv4 Kea DHCP server
-    kea_dhcp_config: dict # The configuration, i.e. most static pieces of information, of the Kea DHCP server that is used as a data/metric source
+    kea_dhcp_config: dict # The configuration, i.e. most static pieces of information, of the Kea DHCP server.
 
     def __init__(self, address: str, port: int, https: bool = True, ip_version: int = 4,  *args, **kwargs):
         super(*args, **kwargs)
@@ -260,9 +278,10 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
     def fetch_and_set_dhcp_config(self, session=None):
         """
-        Fetch the config of the Kea DHCP server that manages addresses of IP
-        version `self.ip_version` from the Kea Control Agent listening to
-        `self.rest_port` on `self.rest_address`.
+        Fetch the current config used by the Kea DHCP server that
+        manages addresses of IP version `self.ip_version` from the Kea
+        Control Agent listening to `self.rest_port` on
+        `self.rest_address`.
         """
         # Check if self.kea_dhcp_config is up to date
         if not (
@@ -284,6 +303,11 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         return self.kea_dhcp_config
 
     def fetch_dhcp_config_hash(self, session=None):
+        """
+        For Kea versions >= 2.4.0, fetch and return a hash of the
+        current configuration used by the Kea DHCP server. For Kea
+        versions < 2.4.0, return None.
+        """
         query = KeaQuery(
             command="config-hash-get",
             service=[f"dhcp{self.ip_version}"],
@@ -305,17 +329,17 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     def fetch_metrics(self, address: str, port: int, https: bool = True, ip_version: int = 4) -> list[DhcpMetric]:
         """
         Implementation of the superclass method for fetching
-        standardised dhcp metrics; this method is what nav uses to
-        feed data into the graphite server.
+        standardised dhcp metrics. This method is used by the
+        superclass to feed data into a graphite server.
         """
         metrics = []
-        with requests.Session() as s:
+        with requests.Session() as s: # All possible exceptions (HTTPError, KeyError, JSONDecodeError, KeaError) will cause a breakout and then be ignored. Is this okay?
             self.fetch_and_set_dhcp_config(s)
             for subnet in self.kea_dhcp_config.subnets:
                 for statistic_key, metric_key in (("total-addresses", DhcpMetricKey.MAX),
                                                   ("assigned-addresses", DhcpMetricKey.CUR),
-                                                  ("declined-addresses", DhcpMetricKey.TOUCH)): # dhcmetric_key is the same as the graphite metric names used in nav/contrib/scripts/isc_dhpcd_graphite/isc_dhpcd_graphite.py
-                    kea_statistic_name = f"subnet[{subnet.id}].{statistic_key}",
+                                                  ("declined-addresses", DhcpMetricKey.TOUCH)): # `statistic_key` is the name of the statistic used by Kea. `metric_key` is the name of the statistic used by NAV.
+                    kea_statistic_name = f"subnet[{subnet.id}].{statistic_key}"
                     query = KeaQuery(
                         command="statistic-get",
                         service=[f"dhcp{self.ip_version}"],
@@ -329,7 +353,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                     for value, timestamp in datapoints:
                         epochseconds = calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")) # Assumes for now that UTC timestamps are returned by Kea Control Agent; I'll need to read the documentation closer!
                         metrics.append(DhcpMetric(epochseconds, subnet.prefix, metric_key, value))
-
 
             used_config = self.kea_dhcp_config
             self.fetch_and_set_dhcp_config(s)
