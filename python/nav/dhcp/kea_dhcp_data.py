@@ -225,7 +225,7 @@ class KeaDhcpConfig:
             subnets.append(subnet)
 
         return cls(
-            _config_hash=config_hash,
+            config_hash=config_hash,
             ip_version=ip_version,
             subnets=subnets,
         )
@@ -264,7 +264,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         # self.kea_dhcp_config is not up to date, fetch new
         query = KeaQuery(
             command="config-get",
-            service=[f"dhcp{ip_version}"],
+            service=[f"dhcp{self.ip_version}"],
             arguments={},
         )
         responses = send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session)
@@ -281,7 +281,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     def fetch_dhcp_config_hash(self, session=None):
         query = KeaQuery(
             command="config-hash-get",
-            service=[f"dhcp{ip_version}"],
+            service=[f"dhcp{self.ip_version}"],
             arguments={},
         )
         responses = send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session)
