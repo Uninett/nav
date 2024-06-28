@@ -109,11 +109,45 @@ def enqueue_post_response(monkeypatch):
     This is how we mock what would otherwise be post requests to a
     server.
     """
-    fifo = deque() # stores the textual content of the responses we want to return on any call to requests.post
+    command_responses = {} # Dictonary of fifo queues, keyed by command name. A queue stored with key K has the textual content of the responses we want to return (in fifo order, one per call) on a call to requests.post with data that represents a Kea Control Agent command K
+    unknown_command_response = """[
+  {
+    "result": 2,
+    "text": "'{0}' command not supported."
+  }
+]"""
 
-    def new_post_function(url, *args, **kwargs):
+    def new_post_function(url, *args, data="{}", **kwargs):
+        if isinstance(data, dict):
+            data = json.dumps(data)
+        elif isinstance(data, bytes):
+            data = data.decode("utf8")
+        if not isinstance(data, str):
+            pytest.fail(f"data argument to the mocked requests.post() is of unknown type {type(data)}")
+
+        try:
+            data = json.loads(data)
+            command = data["command"]
+        except (JSONDecodeError, KeyError):
+            pytest.fail(
+                "All post requests that the Kea Control Agent receives from NAV"
+                "should be a JSON with a 'command' key. Instead, the mocked Kea "
+                f"Control Agent received {data!r}"
+            )
+
+        fifo = command_responses.get(command, deque())
+        if fifo:
+            first = fifo[0]
+            if callable(first):
+                text = first()
+            else:
+                text = str(first)
+                fifo.popleft()
+        else:
+            text = unknown_command_response.format(command)
+
         response = requests.Response()
-        response._content = fifo.popleft().encode("utf8")
+        response._content = text.encode("utf8")
         response.encoding = "utf8"
         response.status_code = 400
         response.reason = "OK"
@@ -126,10 +160,14 @@ def enqueue_post_response(monkeypatch):
     def new_post_method(self, url, *args, **kwargs):
         return new_post_function(url, *args, **kwargs)
 
-    monkeypatch.setattr(requests, 'post', new_post_function)
-    monkeypatch.setattr(requests.Session, 'post', new_post_method) # Not sure this works?
+    def add_command_response(command_name, text):
+        command_responses.setdefault(command_name, deque())
+        command_responses[command_name].append(text)
 
-    return fifo.append
+    monkeypatch.setattr(requests, 'post', new_post_function)
+    monkeypatch.setattr(requests.Session, 'post', new_post_method)
+
+    return add_command_response
 
 @pytest.fixture
 def success_response():
@@ -166,16 +204,20 @@ def large_response():
 
     '''
 
-def send_dummy_query():
+def send_dummy_query(command="command"):
     return send_query(
-        query=KeaQuery("command", [], {}),
+        query=KeaQuery(command, [], {}),
         address="192.0.2.2",
         port=80,
     )
 
+################################################################################
+# Testing the list[KeaResponse] returned by send_query()                       #
+################################################################################
+
 def test_success_responses_does_succeed(success_response, enqueue_post_response):
-    enqueue_post_response(success_response)
-    responses = send_dummy_query()
+    enqueue_post_response("command", success_response)
+    responses = send_dummy_query("command")
     assert len(responses) == 4
     for response in responses:
         assert response.success
@@ -184,8 +226,8 @@ def test_success_responses_does_succeed(success_response, enqueue_post_response)
         assert isinstance(response.service, str)
 
 def test_error_responses_does_not_succeed(error_response, enqueue_post_response):
-    enqueue_post_response(error_response)
-    responses = send_dummy_query()
+    enqueue_post_response("command", error_response)
+    responses = send_dummy_query("command")
     assert len(responses) == 5
     for response in responses:
         assert not response.success
@@ -194,11 +236,16 @@ def test_error_responses_does_not_succeed(error_response, enqueue_post_response)
         assert isinstance(response.service, str)
 
 def test_invalid_json_responses_raises_jsonerror(invalid_json_response, enqueue_post_response):
-    enqueue_post_response(invalid_json_response)
+    enqueue_post_response("command", invalid_json_response)
     with pytest.raises(JSONDecodeError):
-        responses = send_dummy_query()
+        responses = send_dummy_query("command")
 
-def test_correct_subnet_from_json(dhcp4_config):
+
+################################################################################
+# Testing KeaDhcpSubnet and KeaDhcpConfig instantiation from json              #
+################################################################################
+
+def test_correct_subnet_from_dhcp4_config_json(dhcp4_config):
     j = json.loads(dhcp4_config)
     subnet = KeaDhcpSubnet.from_json(j["Dhcp4"]["subnet4"][0])
     assert subnet.id == 1
@@ -207,41 +254,44 @@ def test_correct_subnet_from_json(dhcp4_config):
     assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
     assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
 
-# def test_correct_config_from_json(dhcp4_config):
-#     j = json.loads(dhcp4_config)
-#     config = KeaDhcpConfig.from_json(j)
-#     assert len(config.subnets) == 1
-#     subnet = config.subnets[0]
-#     assert subnet.id == 1
-#     assert subnet.prefix == IP("192.0.0.0/8")
-#     assert len(subnet.pools) == 2
-#     assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
-#     assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
-#     assert config.ip_version == 4
+def test_correct_config_from_dhcp4_config_json(dhcp4_config):
+    j = json.loads(dhcp4_config)
+    config = KeaDhcpConfig.from_json(j)
+    assert len(config.subnets) == 1
+    subnet = config.subnets[0]
+    assert subnet.id == 1
+    assert subnet.prefix == IP("192.0.0.0/8")
+    assert len(subnet.pools) == 2
+    assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
+    assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
+    assert config.ip_version == 4
+    assert config.config_hash is None
 
-# @pytest.fixture
-# def dhcp4_config_response(dhcp4_config):
-#     return f'''
-#     {{
-#         "result": 0,
-#         "arguments": {{
-#             {dhcp4_config}
-#         }}
-#     }}
-#     '''
+@pytest.fixture
+def dhcp4_config_response(dhcp4_config):
+    return f'''
+    [
+    {{
+        "result": 0,
+        "arguments": {dhcp4_config}
+    }}
+    ]
+    '''
 
-# def test_get_dhcp_config(dhcp4_config_response):
-#     enqueue_post_response(dhcp4_config_response)
-#     response = send_dummy_query()
-#     config = KeaDhcpConfig.from_json(config_json)
-#     assert len(config.subnets) == 1
-#     subnet = config.subnets[0]
-#     assert subnet.id == 1
-#     assert subnet.prefix == IP("192.0.0.0/8")
-#     assert len(subnet.pools) == 2
-#     assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
-#     assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
-#     assert config.ip_version == 4
+################################################################################
+# Now we assume KeaDhcpSubnet and KeaDhcpConfig instantiation from json is     #
+# correct.                                                                     #
+# Testing KeaDhcpSubnet and KeaDhcpConfig instantiation from server responses  #
+################################################################################
+
+def test_fetch_and_set_dhcp_config(dhcp4_config_response, enqueue_post_response):
+    enqueue_post_response("config-get", dhcp4_config_response)
+    source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
+    assert source.kea_dhcp_config is None
+    config = source.fetch_and_set_dhcp_config()
+    actual_config = KeaDhcpConfig.from_json(json.loads(dhcp4_config_response)[0]["arguments"])
+    assert config == actual_config
+    assert source.kea_dhcp_config == actual_config
 
 # @pytest.fixture
 # @enqueue_post_response
