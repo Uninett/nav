@@ -211,7 +211,7 @@ class KeaDhcpConfig:
     * The IP version of the DCHP server
     """
     config_hash: Optional[str] # Used to check if there's a new config on the Kea DHCP server
-    ip_version: int
+    dhcp_version: int
     subnets: list[KeaDhcpSubnet]
 
     @classmethod
@@ -261,26 +261,26 @@ class KeaDhcpConfig:
         if len(config_json) > 1:
             raise KeaError("Did not expect len(configjson) > 1")
 
-        ip_version, config_json = config_json.popitem()
-        if ip_version == "Dhcp4":
-            ip_version = 4
-        elif ip_version == "Dhcp6":
-            ip_version = 6
+        dhcp_version, config_json = config_json.popitem()
+        if dhcp_version == "Dhcp4":
+            dhcp_version = 4
+        elif dhcp_version == "Dhcp6":
+            dhcp_version = 6
         else:
-            raise KeaError(f"Unsupported DHCP IP version '{ip_version}'")
+            raise KeaError(f"Unsupported DHCP IP version '{dhcp_version}'")
 
         subnets = []
-        for obj in config_json.get(f"subnet{ip_version}", []):
+        for obj in config_json.get(f"subnet{dhcp_version}", []):
             subnet = KeaDhcpSubnet.from_json(obj)
             subnets.append(subnet)
         for obj in config_json.get("shared-networks", []):
-            for subobj in obj.get(f"subnet{ip_version}", []):
+            for subobj in obj.get(f"subnet{dhcp_version}", []):
                 subnet = KeaDhcpSubnet.from_json(subobj)
                 subnets.append(subnet)
 
         return cls(
             config_hash=config_hash,
-            ip_version=ip_version,
+            dhcp_version=dhcp_version,
             subnets=subnets,
         )
 
@@ -290,7 +290,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     Using `send_query()`, this class:
     * Maintains an up-to-date `KeaDhcpConfig` representation of the
       configuration of the Kea DHCP server with ip version
-      `self.ip_version` reachable via the Kea Control Agent listening
+      `self.dhcp_version` reachable via the Kea Control Agent listening
       to port `self.rest_port` on IP addresses `self.rest_address`
     * Queries the Kea Control Agent for statistics about each subnet
       found in the `KeaDhcpConfig` representation and creates an
@@ -301,21 +301,21 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     rest_port: int # Port of the Kea Control Agent server
     rest_https: bool # If true, communicate with Kea Control Agent using https. If false, use http.
 
-    ip_version: int # The IP version of the Kea DHCP server. The Kea Control Agent uses this to tell if we want information from its IPv6 or IPv4 Kea DHCP server
+    dhcp_version: int # The IP version of the Kea DHCP server. The Kea Control Agent uses this to tell if we want information from its IPv6 or IPv4 Kea DHCP server
     kea_dhcp_config: dict # The configuration, i.e. most static pieces of information, of the Kea DHCP server.
 
-    def __init__(self, address: str, port: int, *args, https: bool = True, ip_version: int = 4, **kwargs):
+    def __init__(self, address: str, port: int, *args, https: bool = True, dhcp_version: int = 4, **kwargs):
         super(*args, **kwargs)
         self.rest_address = address
         self.rest_port = port
         self.rest_https = https
-        self.ip_version = ip_version
+        self.dchp_version = dhcp_version
         self.kea_dhcp_config = None
 
     def fetch_and_set_dhcp_config(self, session=None):
         """
         Fetch the current config used by the Kea DHCP server that
-        manages addresses of IP version `self.ip_version` from the Kea
+        manages addresses of IP version `self.dhcp_version` from the Kea
         Control Agent listening to `self.rest_port` on
         `self.rest_address`.
         """
@@ -330,7 +330,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         # self.kea_dhcp_config is not up to date, fetch new
         query = KeaQuery(
             command="config-get",
-            service=[f"dhcp{self.ip_version}"],
+            service=[f"dhcp{self.dchp_version}"],
             arguments={},
         )
         response = unwrap(send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session))
@@ -346,7 +346,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         """
         query = KeaQuery(
             command="config-hash-get",
-            service=[f"dhcp{self.ip_version}"],
+            service=[f"dhcp{self.dchp_version}"],
             arguments={},
         )
         response = unwrap(
@@ -355,7 +355,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         )
 
         if response.result == KeaStatus.UNSUPPORTED:
-            logger.info("Kea DHCP%d server does not support quering for the hash of its config", self.ip_version)
+            logger.info("Kea DHCP%d server does not support quering for the hash of its config", self.dchp_version)
             return None
         elif response.success:
             return response.arguments.get("hash", None)
@@ -379,7 +379,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                     kea_statistic_name = f"subnet[{subnet.id}].{statistic_key}"
                     query = KeaQuery(
                         command="statistic-get",
-                        service=[f"dhcp{self.ip_version}"],
+                        service=[f"dhcp{self.dchp_version}"],
                         arguments={
                             "name": kea_statistic_name,
                         },

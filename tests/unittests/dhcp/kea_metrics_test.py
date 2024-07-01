@@ -307,7 +307,7 @@ def test_correct_config_from_dhcp4_config_json(dhcp4_config):
     assert len(subnet.pools) == 2
     assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
     assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
-    assert config.ip_version == 4
+    assert config.dhcp_version == 4
     assert config.config_hash is None
 
 def test_correct_config_from_dhcp4_config_w_shared_networks_json(dhcp4_config_w_shared_networks):
@@ -321,7 +321,7 @@ def test_correct_config_from_dhcp4_config_w_shared_networks_json(dhcp4_config_w_
     assert subnet1.prefix == IP("192.0.1.0/24")
     assert len(subnet1.pools) == 1
     assert subnet1.pools[0] == (IP("192.0.1.1"), IP("192.0.1.200"))
-    assert config.ip_version == 4
+    assert config.dhcp_version == 4
     assert config.config_hash is None
 
     subnet2 = subnets[2]
@@ -329,7 +329,7 @@ def test_correct_config_from_dhcp4_config_w_shared_networks_json(dhcp4_config_w_
     assert subnet2.prefix == IP("192.0.2.0/24")
     assert len(subnet2.pools) == 1
     assert subnet2.pools[0] == (IP("192.0.2.100"), IP("192.0.2.199"))
-    assert config.ip_version == 4
+    assert config.dhcp_version == 4
     assert config.config_hash is None
 
     subnet3 = subnets[3]
@@ -337,7 +337,7 @@ def test_correct_config_from_dhcp4_config_w_shared_networks_json(dhcp4_config_w_
     assert subnet3.prefix == IP("192.0.3.0/24")
     assert len(subnet3.pools) == 1
     assert subnet3.pools[0] == (IP("192.0.3.100"), IP("192.0.3.199"))
-    assert config.ip_version == 4
+    assert config.dhcp_version == 4
     assert config.config_hash is None
 
     subnet4 = subnets[4]
@@ -345,7 +345,7 @@ def test_correct_config_from_dhcp4_config_w_shared_networks_json(dhcp4_config_w_
     assert subnet4.prefix == IP("10.0.0.0/8")
     assert len(subnet4.pools) == 1
     assert subnet4.pools[0] == (IP("10.0.0.1"), IP("10.0.0.99"))
-    assert config.ip_version == 4
+    assert config.dhcp_version == 4
     assert config.config_hash is None
 
 
@@ -398,4 +398,4 @@ def test_fetch_and_set_dhcp_config_w_shared_networks(dhcp4_config_w_shared_netwo
 
 # def test_get_dhcp_config_result_is_1(dhcp4_config_result_is_1):
 #     with pytest.raises(Exception): # TODO: Change
-#         get_dhcp_server("example-org", ip_version=4)
+#         get_dhcp_server("example-org", dhcp_version=4)
