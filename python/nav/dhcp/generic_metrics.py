@@ -4,13 +4,15 @@ from IPy import IP
 from nav.metrics import carbon
 from typing import Iterator
 
+
 class DhcpMetricKey(Enum):
-    MAX = "max" # total addresses
-    CUR = "cur" # assigned addresses
-    TOUCH = "touch" # touched addresses
+    MAX = "max"  # total addresses
+    CUR = "cur"  # assigned addresses
+    TOUCH = "touch"  # touched addresses
 
     def __str__(self):
-        return self.name.lower() # For use in graphite path
+        return self.name.lower()  # For use in graphite path
+
 
 @dataclass
 class DhcpMetric:
@@ -19,12 +21,14 @@ class DhcpMetric:
     key: DhcpMetricKey
     value: int
 
+
 class DhcpMetricSource:
     """
     Superclass for all classes that wish to collect metrics from a
     specific line of DHCP servers and import the metrics into NAV's
     graphite server. Subclasses need to implement `fetch_metrics`.
     """
+
     graphite_prefix: str
 
     def __init__(self, graphite_prefix="nav.dhcp"):
@@ -36,8 +40,9 @@ class DhcpMetricSource:
         for each subnet of the DHCP server at current point of time.
         """
         raise NotImplementedError
+
     def fetch_metrics_to_graphite(self, host, port):
-        fmt = str.maketrans({".": "_", "/": "_"}) # 192.0.2.0/24 --> 192_0_0_0_24
+        fmt = str.maketrans({".": "_", "/": "_"})  # 192.0.2.0/24 --> 192_0_0_0_24
         graphite_metrics = []
         for metric in self.fetch_metrics():
             graphite_path = f"{self.graphite_prefix}.{str(metric.subnet_prefix).translate(fmt)}.{metric.key}"

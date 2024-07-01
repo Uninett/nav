@@ -15,6 +15,7 @@ implementation for interacting with the Kea Control Agent.
 * See also the Kea Control Agent documentation. This script assumes Kea versions
 >= 2.2.0 are used.  (https://kea.readthedocs.io/en/kea-2.2.0/arm/agent.html).
 """
+
 import calendar
 import json
 import logging
@@ -30,11 +31,14 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+
 class KeaError(GeneralException):
     """Error related to interaction with a Kea Control Agent"""
 
+
 class KeaStatus(IntEnum):
     """Status of a response sent from a Kea Control Agent."""
+
     # Successful operation.
     SUCCESS = 0
     # General failure.
@@ -53,6 +57,7 @@ class KeaResponse:
     Class representing the response to a REST query sent to a Kea
     Control Agent.
     """
+
     result: int
     text: str
     arguments: dict
@@ -66,17 +71,21 @@ class KeaResponse:
 @dataclass
 class KeaQuery:
     """Class representing a REST query to be sent to a Kea Control Agent."""
+
     command: str
     arguments: dict
-    service: list[str] # The server(s) at which the command is targeted. Usually ["dhcp4", "dhcp6"] or ["dhcp4"] or ["dhcp6"].
+
+    # The server(s) at which the command is targeted. Usually ["dhcp4", "dhcp6"] or ["dhcp4"] or ["dhcp6"].
+    service: list[str]
+
 
 def send_query(
-        query: KeaQuery,
-        address: str,
-        port: int = 443,
-        https: bool = True,
-        session: requests.Session = None,
-        timeout: int = 10,
+    query: KeaQuery,
+    address: str,
+    port: int = 443,
+    https: bool = True,
+    session: requests.Session = None,
+    timeout: int = 10,
 ) -> list[KeaResponse]:
     """
     Send `query` to a Kea Control Agent listening to `port` on IP
@@ -98,17 +107,22 @@ def send_query(
                 location,
                 data=json.dumps(asdict(query)),
                 headers={"Content-Type": "application/json"},
-                timeout=timeout
+                timeout=timeout,
             )
         else:
             r = session.post(
                 location,
                 data=json.dumps(asdict(query)),
                 headers={"Content-Type": "application/json"},
-                timeout=timeout
+                timeout=timeout,
             )
     except HTTPError as err:
-        logger.debug("send_query: request to %s yielded an error: %d %s", err.request.url, err.response.status_code, err.response.reason)
+        logger.debug(
+            "send_query: request to %s yielded an error: %d %s",
+            err.request.url,
+            err.response.status_code,
+            err.response.reason,
+        )
         raise err
     except Timeout as err:
         logger.debug("send_query: request to %s timed out", err.request.url)
@@ -121,7 +135,11 @@ def send_query(
         raise err
 
     if isinstance(response_json, dict):
-        logger.debug("send_query: expected a json list of objects from %s, got %r", address, response_json)
+        logger.debug(
+            "send_query: expected a json list of objects from %s, got %r",
+            address,
+            response_json,
+        )
         raise KeaError(f"bad response from {address}: {response_json!r}")
 
     responses = []
@@ -134,6 +152,7 @@ def send_query(
         )
         responses.append(response)
     return responses
+
 
 def unwrap(responses: list[KeaQuery], require_success=True) -> KeaQuery:
     """
@@ -148,12 +167,14 @@ def unwrap(responses: list[KeaQuery], require_success=True) -> KeaQuery:
         raise KeaError("Did not receive a successful response")
     return response
 
+
 @dataclass
 class KeaDhcpSubnet:
     """Class representing information about a subnet managed by a Kea DHCP server."""
-    id: int # either specified in the server config or assigned automatically by the dhcp server
-    prefix: IP # e.g. 192.0.2.1/24
-    pools: list[tuple[IP]] # e.g. [(192.0.2.10, 192.0.2.20), (192.0.2.64, 192.0.2.128)]
+
+    id: int  # either specified in the server config or assigned automatically by the dhcp server
+    prefix: IP  # e.g. 192.0.2.1/24
+    pools: list[tuple[IP]]  # e.g. [(192.0.2.10, 192.0.2.20), (192.0.2.64, 192.0.2.128)]
 
     @classmethod
     def from_json(cls, subnet_json: dict):
@@ -187,7 +208,7 @@ class KeaDhcpSubnet:
         pools = []
         for obj in subnet_json.get("pools", []):
             pool = obj["pool"]
-            if "-" in pool: # TODO: Error checking?
+            if "-" in pool:  # TODO: Error checking?
                 # pool == "x.x.x.x - y.y.y.y"
                 start, end = (IP(ip) for ip in pool.split("-"))
             else:
@@ -202,6 +223,7 @@ class KeaDhcpSubnet:
             pools=pools,
         )
 
+
 @dataclass
 class KeaDhcpConfig:
     """
@@ -210,15 +232,17 @@ class KeaDhcpConfig:
     * A list of the subnets managed by the DHCP server
     * The IP version of the DCHP server
     """
-    config_hash: Optional[str] # Used to check if there's a new config on the Kea DHCP server
+
+    # Used to check if there's a new config on the Kea DHCP server
+    config_hash: Optional[str]
     dhcp_version: int
     subnets: list[KeaDhcpSubnet]
 
     @classmethod
     def from_json(
-            cls,
-            config_json: dict,
-            config_hash: Optional[str] = None,
+        cls,
+        config_json: dict,
+        config_hash: Optional[str] = None,
     ):
         """
         Initialize and return a KeaDhcpConfig instance based on json
@@ -297,14 +321,23 @@ class KeaDhcpMetricSource(DhcpMetricSource):
       iterable of `DhcpMetric` that its superclass uses to fill a
       graphite server with metrics.
     """
-    rest_address: str # IP address of the Kea Control Agent server
-    rest_port: int # Port of the Kea Control Agent server
-    rest_https: bool # If true, communicate with Kea Control Agent using https. If false, use http.
 
-    dhcp_version: int # The IP version of the Kea DHCP server. The Kea Control Agent uses this to tell if we want information from its IPv6 or IPv4 Kea DHCP server
-    kea_dhcp_config: dict # The configuration, i.e. most static pieces of information, of the Kea DHCP server.
+    rest_address: str  # IP address of the Kea Control Agent server
+    rest_port: int  # Port of the Kea Control Agent server
+    rest_https: bool  # If true, communicate with Kea Control Agent using https. If false, use http.
 
-    def __init__(self, address: str, port: int, *args, https: bool = True, dhcp_version: int = 4, **kwargs):
+    dhcp_version: int  # The IP version of the Kea DHCP server. The Kea Control Agent uses this to tell if we want information from its IPv6 or IPv4 Kea DHCP server
+    kea_dhcp_config: dict  # The configuration, i.e. most static pieces of information, of the Kea DHCP server.
+
+    def __init__(
+        self,
+        address: str,
+        port: int,
+        *args,
+        https: bool = True,
+        dhcp_version: int = 4,
+        **kwargs,
+    ):
         super(*args, **kwargs)
         self.rest_address = address
         self.rest_port = port
@@ -321,9 +354,10 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         """
         # Check if self.kea_dhcp_config is up to date
         if not (
-                self.kea_dhcp_config is None
-                or self.kea_dhcp_config.config_hash is None
-                or self.fetch_dhcp_config_hash(session=session) != self.kea_dhcp_config.config_hash
+            self.kea_dhcp_config is None
+            or self.kea_dhcp_config.config_hash is None
+            or self.fetch_dhcp_config_hash(session=session)
+            != self.kea_dhcp_config.config_hash
         ):
             return self.kea_dhcp_config
 
@@ -333,7 +367,15 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             service=[f"dhcp{self.dchp_version}"],
             arguments={},
         )
-        response = unwrap(send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session))
+        response = unwrap(
+            send_query(
+                query,
+                self.rest_address,
+                self.rest_port,
+                self.rest_https,
+                session=session,
+            )
+        )
 
         self.kea_dhcp_config = KeaDhcpConfig.from_json(response.arguments)
         return self.kea_dhcp_config
@@ -350,17 +392,28 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             arguments={},
         )
         response = unwrap(
-            send_query(query, self.rest_address, self.rest_port, self.rest_https, session=session),
-            require_success=False
+            send_query(
+                query,
+                self.rest_address,
+                self.rest_port,
+                self.rest_https,
+                session=session,
+            ),
+            require_success=False,
         )
 
         if response.result == KeaStatus.UNSUPPORTED:
-            logger.info("Kea DHCP%d server does not support quering for the hash of its config", self.dchp_version)
+            logger.info(
+                "Kea DHCP%d server does not support quering for the hash of its config",
+                self.dchp_version,
+            )
             return None
         elif response.success:
             return response.arguments.get("hash", None)
         else:
-            raise KeaError("Unexpected error while querying the hash of config file from DHCP server")
+            raise KeaError(
+                "Unexpected error while querying the hash of config file from DHCP server"
+            )
 
     def fetch_metrics(self) -> list[DhcpMetric]:
         """
@@ -373,9 +426,11 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             s = requests.Session()
             self.fetch_and_set_dhcp_config(s)
             for subnet in self.kea_dhcp_config.subnets:
-                for statistic_key, metric_key in (("total-addresses", DhcpMetricKey.MAX),
-                                                  ("assigned-addresses", DhcpMetricKey.CUR),
-                                                  ("declined-addresses", DhcpMetricKey.TOUCH)): # `statistic_key` is the name of the statistic used by Kea. `metric_key` is the name of the statistic used by NAV.
+                for statistic_key, metric_key in (
+                    ("total-addresses", DhcpMetricKey.MAX),
+                    ("assigned-addresses", DhcpMetricKey.CUR),
+                    ("declined-addresses", DhcpMetricKey.TOUCH),
+                ):  # `statistic_key` is the name of the statistic used by Kea. `metric_key` is the name of the statistic used by NAV.
                     kea_statistic_name = f"subnet[{subnet.id}].{statistic_key}"
                     query = KeaQuery(
                         command="statistic-get",
@@ -384,12 +439,24 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                             "name": kea_statistic_name,
                         },
                     )
-                    response = unwrap(send_query(query, self.rest_address, self.rest_port, self.rest_https, session=s))
+                    response = unwrap(
+                        send_query(
+                            query,
+                            self.rest_address,
+                            self.rest_port,
+                            self.rest_https,
+                            session=s,
+                        )
+                    )
 
                     datapoints = response["arguments"].get(kea_statistic_name, [])
                     for value, timestamp in datapoints:
-                        epochseconds = calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")) # Assumes for now that UTC timestamps are returned by Kea Control Agent; I'll need to read the documentation closer!
-                        metrics.append(DhcpMetric(epochseconds, subnet.prefix, metric_key, value))
+                        epochseconds = calendar.timegm(
+                            time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
+                        )  # Assumes for now that UTC timestamps are returned by Kea Control Agent; I'll need to read the documentation closer!
+                        metrics.append(
+                            DhcpMetric(epochseconds, subnet.prefix, metric_key, value)
+                        )
 
             used_config = self.kea_dhcp_config
             self.fetch_and_set_dhcp_config(s)

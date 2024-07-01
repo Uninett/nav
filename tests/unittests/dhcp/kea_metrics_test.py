@@ -6,6 +6,7 @@ from IPy import IP
 import json
 from requests.exceptions import JSONDecodeError
 
+
 @pytest.fixture
 def dhcp4_config():
     return '''
@@ -98,6 +99,7 @@ def dhcp4_config():
     }
     '''
 
+
 @pytest.fixture
 def dhcp4_config_w_shared_networks():
     return '''{
@@ -141,6 +143,7 @@ def dhcp4_config_w_shared_networks():
             }
         }'''
 
+
 @pytest.fixture(autouse=True)
 def enqueue_post_response(monkeypatch):
     """
@@ -152,7 +155,9 @@ def enqueue_post_response(monkeypatch):
     This is how we mock what would otherwise be post requests to a
     server.
     """
-    command_responses = {} # Dictonary of fifo queues, keyed by command name. A queue stored with key K has the textual content of the responses we want to return (in fifo order, one per call) on a call to requests.post with data that represents a Kea Control Agent command K
+    command_responses = (
+        {}
+    )  # Dictonary of fifo queues, keyed by command name. A queue stored with key K has the textual content of the responses we want to return (in fifo order, one per call) on a call to requests.post with data that represents a Kea Control Agent command K
     unknown_command_response = """[
   {
     "result": 2,
@@ -166,7 +171,9 @@ def enqueue_post_response(monkeypatch):
         elif isinstance(data, bytes):
             data = data.decode("utf8")
         if not isinstance(data, str):
-            pytest.fail(f"data argument to the mocked requests.post() is of unknown type {type(data)}")
+            pytest.fail(
+                f"data argument to the mocked requests.post() is of unknown type {type(data)}"
+            )
 
         try:
             data = json.loads(data)
@@ -212,6 +219,7 @@ def enqueue_post_response(monkeypatch):
 
     return add_command_response
 
+
 @pytest.fixture
 def success_response():
     return '''[
@@ -220,6 +228,7 @@ def success_response():
     {"result": 0, "service": "d"},
     {"result": 0}
     ]'''
+
 
 @pytest.fixture
 def error_response():
@@ -231,6 +240,7 @@ def error_response():
     {"text": "b", "arguments": {"arg1": "val1"}, "service": "d"}
     ]'''
 
+
 @pytest.fixture
 def invalid_json_response():
     return '''[
@@ -241,11 +251,13 @@ def invalid_json_response():
     {"text": "b", "arguments": {"arg1": "val1"}, "service": "d"
     ]'''
 
+
 @pytest.fixture
 def large_response():
     return '''
 
     '''
+
 
 def send_dummy_query(command="command"):
     return send_query(
@@ -254,9 +266,11 @@ def send_dummy_query(command="command"):
         port=80,
     )
 
+
 ################################################################################
 # Testing the list[KeaResponse] returned by send_query()                       #
 ################################################################################
+
 
 def test_success_responses_does_succeed(success_response, enqueue_post_response):
     enqueue_post_response("command", success_response)
@@ -268,6 +282,7 @@ def test_success_responses_does_succeed(success_response, enqueue_post_response)
         assert isinstance(response.arguments, dict)
         assert isinstance(response.service, str)
 
+
 def test_error_responses_does_not_succeed(error_response, enqueue_post_response):
     enqueue_post_response("command", error_response)
     responses = send_dummy_query("command")
@@ -278,7 +293,10 @@ def test_error_responses_does_not_succeed(error_response, enqueue_post_response)
         assert isinstance(response.arguments, dict)
         assert isinstance(response.service, str)
 
-def test_invalid_json_responses_raises_jsonerror(invalid_json_response, enqueue_post_response):
+
+def test_invalid_json_responses_raises_jsonerror(
+    invalid_json_response, enqueue_post_response
+):
     enqueue_post_response("command", invalid_json_response)
     with pytest.raises(JSONDecodeError):
         responses = send_dummy_query("command")
@@ -288,6 +306,7 @@ def test_invalid_json_responses_raises_jsonerror(invalid_json_response, enqueue_
 # Testing KeaDhcpSubnet and KeaDhcpConfig instantiation from json              #
 ################################################################################
 
+
 def test_correct_subnet_from_dhcp4_config_json(dhcp4_config):
     j = json.loads(dhcp4_config)
     subnet = KeaDhcpSubnet.from_json(j["Dhcp4"]["subnet4"][0])
@@ -296,6 +315,7 @@ def test_correct_subnet_from_dhcp4_config_json(dhcp4_config):
     assert len(subnet.pools) == 2
     assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
     assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
+
 
 def test_correct_config_from_dhcp4_config_json(dhcp4_config):
     j = json.loads(dhcp4_config)
@@ -310,7 +330,10 @@ def test_correct_config_from_dhcp4_config_json(dhcp4_config):
     assert config.dhcp_version == 4
     assert config.config_hash is None
 
-def test_correct_config_from_dhcp4_config_w_shared_networks_json(dhcp4_config_w_shared_networks):
+
+def test_correct_config_from_dhcp4_config_w_shared_networks_json(
+    dhcp4_config_w_shared_networks,
+):
     j = json.loads(dhcp4_config_w_shared_networks)
     config = KeaDhcpConfig.from_json(j)
     assert len(config.subnets) == 4
@@ -349,7 +372,7 @@ def test_correct_config_from_dhcp4_config_w_shared_networks_json(dhcp4_config_w_
     assert config.config_hash is None
 
 
-def dhcp4_config_response(dhcp4_config):
+def response_json(dhcp4_config):
     return f'''
     [
     {{
@@ -359,27 +382,36 @@ def dhcp4_config_response(dhcp4_config):
     ]
     '''
 
+
 ################################################################################
 # Now we assume KeaDhcpSubnet and KeaDhcpConfig instantiation from json is     #
 # correct.                                                                     #
 # Testing KeaDhcpSubnet and KeaDhcpConfig instantiation from server responses  #
 ################################################################################
 
+
 def test_fetch_and_set_dhcp_config(dhcp4_config, enqueue_post_response):
-    enqueue_post_response("config-get", dhcp4_config_response(dhcp4_config))
+    enqueue_post_response("config-get", response_json(dhcp4_config))
     source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
     assert source.kea_dhcp_config is None
     config = source.fetch_and_set_dhcp_config()
-    actual_config = KeaDhcpConfig.from_json(json.loads(dhcp4_config_response(dhcp4_config))[0]["arguments"])
+    actual_config = KeaDhcpConfig.from_json(
+        json.loads(response_json(dhcp4_config))[0]["arguments"]
+    )
     assert config == actual_config
     assert source.kea_dhcp_config == actual_config
 
-def test_fetch_and_set_dhcp_config_w_shared_networks(dhcp4_config_w_shared_networks, enqueue_post_response):
-    enqueue_post_response("config-get", dhcp4_config_response(dhcp4_config_w_shared_networks))
+
+def test_fetch_and_set_dhcp_config_w_shared_networks(
+    dhcp4_config_w_shared_networks, enqueue_post_response
+):
+    enqueue_post_response("config-get", response_json(dhcp4_config_w_shared_networks))
     source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
     assert source.kea_dhcp_config is None
     config = source.fetch_and_set_dhcp_config()
-    actual_config = KeaDhcpConfig.from_json(json.loads(dhcp4_config_response(dhcp4_config_w_shared_networks))[0]["arguments"])
+    actual_config = KeaDhcpConfig.from_json(
+        json.loads(response_json(dhcp4_config_w_shared_networks))[0]["arguments"]
+    )
     assert config == actual_config
     assert source.kea_dhcp_config == actual_config
 
