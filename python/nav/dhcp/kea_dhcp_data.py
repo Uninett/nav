@@ -56,7 +56,7 @@ class KeaResponse:
     """
     result: int
     text: str
-    arguments: dict[str: Union[str, int]]
+    arguments: dict
     service: str
 
     @property
@@ -68,7 +68,7 @@ class KeaResponse:
 class KeaQuery:
     """Class representing a REST query to be sent to a Kea Control Agent."""
     command: str
-    arguments: dict[str: Union[str, int]]
+    arguments: dict
     service: list[str] # The server(s) at which the command is targeted. Usually ["dhcp4", "dhcp6"] or ["dhcp4"] or ["dhcp6"].
 
 def send_query(query: KeaQuery, address: str, port: int = 443, https: bool = True, session: requests.Session = None) -> list[KeaResponse]:
