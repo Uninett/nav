@@ -21,18 +21,17 @@ import logging
 import requests
 import time
 from dataclasses import dataclass, asdict
-from .dhcp_data import DhcpMetricSource, DhcpMetric, DhcpMetricKey
 from enum import IntEnum
 from IPy import IP
+from nav.dhcp.dhcp_data import DhcpMetricSource, DhcpMetric, DhcpMetricKey
 from nav.errors import GeneralException
-from requests.exceptions import JSONDecodeError, HTTPError
-from typing import Union, Optional
+from requests.exceptions import JSONDecodeError, HTTPError, Timeout
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 class KeaError(GeneralException):
     """Error related to interaction with a Kea Control Agent"""
-    pass
 
 class KeaStatus(IntEnum):
     """Status of a response sent from a Kea Control Agent."""
@@ -71,7 +70,14 @@ class KeaQuery:
     arguments: dict
     service: list[str] # The server(s) at which the command is targeted. Usually ["dhcp4", "dhcp6"] or ["dhcp4"] or ["dhcp6"].
 
-def send_query(query: KeaQuery, address: str, port: int = 443, https: bool = True, session: requests.Session = None) -> list[KeaResponse]:
+def send_query(
+        query: KeaQuery,
+        address: str,
+        port: int = 443,
+        https: bool = True,
+        session: requests.Session = None,
+        timeout: int = 10,
+) -> list[KeaResponse]:
     """
     Send `query` to a Kea Control Agent listening to `port` on IP
     address `address`, using either http or https
@@ -135,7 +141,7 @@ def unwrap(responses: list[KeaQuery], require_success=True) -> KeaQuery:
     on the list of responses returned by `send_query()`
     """
     if len(responses) != 1:
-        raise KeaError(f"Received invalid amount of responses")
+        raise KeaError("Received invalid amount of responses")
 
     response = responses[0]
     if require_success and not response.success:
@@ -255,19 +261,19 @@ class KeaDhcpConfig:
         if len(config_json) > 1:
             raise KeaError("Did not expect len(configjson) > 1")
 
-        ip_version, json = config_json.popitem()
+        ip_version, config_json = config_json.popitem()
         if ip_version == "Dhcp4":
             ip_version = 4
         elif ip_version == "Dhcp6":
-            ip_version == 6
+            ip_version = 6
         else:
             raise KeaError(f"Unsupported DHCP IP version '{ip_version}'")
 
         subnets = []
-        for obj in json.get(f"subnet{ip_version}", []):
+        for obj in config_json.get(f"subnet{ip_version}", []):
             subnet = KeaDhcpSubnet.from_json(obj)
             subnets.append(subnet)
-        for obj in json.get("shared-networks", []):
+        for obj in config_json.get("shared-networks", []):
             for subobj in obj.get(f"subnet{ip_version}", []):
                 subnet = KeaDhcpSubnet.from_json(subobj)
                 subnets.append(subnet)
@@ -298,7 +304,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     ip_version: int # The IP version of the Kea DHCP server. The Kea Control Agent uses this to tell if we want information from its IPv6 or IPv4 Kea DHCP server
     kea_dhcp_config: dict # The configuration, i.e. most static pieces of information, of the Kea DHCP server.
 
-    def __init__(self, address: str, port: int, https: bool = True, ip_version: int = 4,  *args, **kwargs):
+    def __init__(self, address: str, port: int, *args, https: bool = True, ip_version: int = 4, **kwargs):
         super(*args, **kwargs)
         self.rest_address = address
         self.rest_port = port
@@ -317,7 +323,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         if not (
                 self.kea_dhcp_config is None
                 or self.kea_dhcp_config.config_hash is None
-                or self.fetch_dhcp_config_hash(session=s) != self.kea_dhcp_config.config_hash
+                or self.fetch_dhcp_config_hash(session=session) != self.kea_dhcp_config.config_hash
         ):
             return self.kea_dhcp_config
 
@@ -349,7 +355,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         )
 
         if response.result == KeaStatus.UNSUPPORTED:
-            logger.info("Kea DHCP%d server does not support quering for the hash of its config", ip_version)
+            logger.info("Kea DHCP%d server does not support quering for the hash of its config", self.ip_version)
             return None
         elif response.success:
             return response.arguments.get("hash", None)
