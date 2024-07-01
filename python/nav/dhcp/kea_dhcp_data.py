@@ -158,11 +158,11 @@ class KeaDhcpSubnet:
             }
         """
         if "id" not in subnet_json:
-            raise ValueError("Expected subnetjson['id'] to exist")
+            raise KeaError("Expected subnetjson['id'] to exist")
         id = subnet_json["id"]
 
         if "subnet" not in subnet_json:
-            raise ValueError("Expected subnetjson['subnet'] to exist")
+            raise KeaError("Expected subnetjson['subnet'] to exist")
         prefix = IP(subnet_json["subnet"])
 
         pools = []
@@ -242,7 +242,7 @@ class KeaDhcpConfig:
         `config-hash-get` query on the kea-ctrl-agent REST server.
         """
         if len(config_json) > 1:
-            raise ValueError("Did not expect len(configjson) > 1")
+            raise KeaError("Did not expect len(configjson) > 1")
 
         ip_version, json = config_json.popitem()
         if ip_version == "Dhcp4":
@@ -250,7 +250,7 @@ class KeaDhcpConfig:
         elif ip_version == "Dhcp6":
             ip_version == 6
         else:
-            raise ValueError(f"Unsupported DHCP IP version '{ip_version}'")
+            raise KeaError(f"Unsupported DHCP IP version '{ip_version}'")
 
         subnets = []
         for obj in json.get(f"subnet{ip_version}", []):
