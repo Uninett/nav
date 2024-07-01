@@ -23,7 +23,7 @@ import time
 from dataclasses import dataclass, asdict
 from enum import IntEnum
 from IPy import IP
-from nav.dhcp.dhcp_data import DhcpMetricSource, DhcpMetric, DhcpMetricKey
+from nav.dhcp.generic_metrics import DhcpMetricSource, DhcpMetric, DhcpMetricKey
 from nav.errors import GeneralException
 from requests.exceptions import JSONDecodeError, HTTPError, Timeout
 from typing import Optional

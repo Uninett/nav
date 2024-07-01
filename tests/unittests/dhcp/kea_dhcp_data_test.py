@@ -1,5 +1,5 @@
 from collections import deque
-from nav.dhcp.kea_dhcp_data import *
+from nav.dhcp.kea_metrics import *
 import pytest
 import requests
 from IPy import IP
