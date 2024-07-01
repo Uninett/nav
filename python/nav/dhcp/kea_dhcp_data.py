@@ -108,20 +108,20 @@ def send_query(
                 timeout=timeout
             )
     except HTTPError as err:
-        logger.debug("send_query: request to %s yielded an error: %d %s", err.request.url, err.response.status_code, err.response.reason) # non-debug logging done by exception handler
+        logger.debug("send_query: request to %s yielded an error: %d %s", err.request.url, err.response.status_code, err.response.reason)
         raise err
     except Timeout as err:
-        logger.debug("send_query: request to %s timed out", err.request.url) # non-debug logging done by exception handler
+        logger.debug("send_query: request to %s timed out", err.request.url)
         raise err
 
     try:
         response_json = r.json()
     except JSONDecodeError as err:
-        logger.debug("send_query: expected json from %s, got %s", address, r.text) # non-debug logging done by exception handler
+        logger.debug("send_query: expected json from %s, got %s", address, r.text)
         raise err
 
     if isinstance(response_json, dict):
-        logger.debug("send_query: expected a json list of objects from %s, got %r", address, response_json) # non-debug logging done by exception handler
+        logger.debug("send_query: expected a json list of objects from %s, got %r", address, response_json)
         raise KeaError(f"bad response from {address}: {response_json!r}")
 
     responses = []
@@ -406,7 +406,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 exc_info=err,
             )
         except Exception as err:
-            # More detailed information is logged by deeper exception handlers at the logging.DEBUG level.
+            # More detailed information should be logged by deeper exception handlers at the logging.DEBUG level.
             logger.warning(
                 "Exception while fetching metrics from Kea Control Agent. Some "
                 "metrics may be missing.",
