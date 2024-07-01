@@ -345,7 +345,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         else:
             raise KeaError("Unexpected error when querying the hash of config file from DHCP server")
 
-    def fetch_metrics(self, address: str, port: int, https: bool = True, ip_version: int = 4) -> list[DhcpMetric]:
+    def fetch_metrics(self) -> list[DhcpMetric]:
         """
         Implementation of the superclass method for fetching
         standardised dhcp metrics. This method is used by the
@@ -367,7 +367,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                             "name": kea_statistic_name,
                         },
                     )
-                    response = unwrap(send_query(query, address, port, https, session=s))
+                    response = unwrap(send_query(query, self.rest_address, self.rest_port, self.rest_https, session=s))
 
                     datapoints = response["arguments"].get(kea_statistic_name, [])
                     for value, timestamp in datapoints:
