@@ -352,7 +352,8 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         superclass to feed data into a graphite server.
         """
         metrics = []
-        with requests.Session() as s: # All possible exceptions (HTTPError, KeyError, JSONDecodeError, KeaError) will cause a breakout and then be ignored. Is this okay?
+        try:
+            s = requests.Session()
             self.fetch_and_set_dhcp_config(s)
             for subnet in self.kea_dhcp_config.subnets:
                 for statistic_key, metric_key in (("total-addresses", DhcpMetricKey.MAX),
@@ -381,5 +382,29 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                     "this may cause metric data being associated with wrong "
                     "subnet."
                 )
+        except HTTPError as err:
+            logger.warning(
+                "HTTPError while fetching metrics from Kea Control Agent with url %s",
+                "(unknown)" if err.response is None else err.response.url,
+                exc_info=err,
+            )
+            pass
+        except KeaError as err:
+            logger.warning(
+                "KeaError while fetching metrics from Kea Control Agent",
+                exc_info=err,
+            )
+        except KeyError as err:
+            logging.warning(
+                "KeyError while fetching metrics from Kea Control Agent",
+                exc_info=err,
+            )
+        except JSONDecodeError as err:
+            logger.warning(
+                "JSONDecodeError while fetching metrics from Kea Control Agent",
+                exc_info=err,
+            )
+        finally:
+            s.close()
 
         return metrics
