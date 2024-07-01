@@ -211,6 +211,21 @@ class KeaDhcpConfig:
         Example:
         {
             "Dhcp4": {
+                "shared-networks": [
+                     {
+                         "name": "test-network",
+                         "subnet4": [
+                             {
+                                 "subnet": "10.0.0.0/8",
+                                 "pools": [ { "pool":  "10.0.0.1 - 10.0.0.99" } ],
+                             },
+                             {
+                                 "subnet": "192.0.3.0/24",
+                                 "pools": [ { "pool":  "192.0.3.100 - 192.0.3.199" } ]
+                             }
+                         ],
+                     }
+                 ], # end of shared-networks
                 "subnet4": [{
                 "id": 1,
                 "subnet": "192.0.2.0/24",
@@ -219,7 +234,7 @@ class KeaDhcpConfig:
                         "pool": "192.0.2.1 - 192.0.2.200",
                     },
                 ],
-                }]
+                }] # end of subnet4
             }
         }
 
@@ -241,6 +256,10 @@ class KeaDhcpConfig:
         for obj in json.get(f"subnet{ip_version}", []):
             subnet = KeaDhcpSubnet.from_json(obj)
             subnets.append(subnet)
+        for obj in json.get("shared-networks", []):
+            for subobj in obj.get(f"subnet{ip_version}", []):
+                subnet = KeaDhcpSubnet.from_json(subobj)
+                subnets.append(subnet)
 
         return cls(
             config_hash=config_hash,

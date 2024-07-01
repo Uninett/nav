@@ -98,6 +98,49 @@ def dhcp4_config():
     }
     '''
 
+@pytest.fixture
+def dhcp4_config_w_shared_networks():
+    return '''{
+            "Dhcp4": {
+                "shared-networks": [
+                     {
+                         "name": "shared-network-1",
+                         "subnet4": [
+                             {
+                                 "id": 4,
+                                 "subnet": "10.0.0.0/8",
+                                 "pools": [ { "pool":  "10.0.0.1 - 10.0.0.99" } ]
+                             },
+                             {
+                                 "id": 3,
+                                 "subnet": "192.0.3.0/24",
+                                 "pools": [ { "pool":  "192.0.3.100 - 192.0.3.199" } ]
+                             }
+                         ]
+                     },
+                     {
+                         "name": "shared-network-2",
+                         "subnet4": [
+                             {
+                                 "id": 2,
+                                 "subnet": "192.0.2.0/24",
+                                 "pools": [ { "pool":  "192.0.2.100 - 192.0.2.199" } ]
+                             }
+                         ]
+                     }
+                 ],
+                "subnet4": [{
+                "id": 1,
+                "subnet": "192.0.1.0/24",
+                "pools": [
+                    {
+                        "pool": "192.0.1.1 - 192.0.1.200"
+                    }
+                ]
+                }]
+            }
+        }'''
+
 @pytest.fixture(autouse=True)
 def enqueue_post_response(monkeypatch):
     """
@@ -267,7 +310,45 @@ def test_correct_config_from_dhcp4_config_json(dhcp4_config):
     assert config.ip_version == 4
     assert config.config_hash is None
 
-@pytest.fixture
+def test_correct_config_from_dhcp4_config_w_shared_networks_json(dhcp4_config_w_shared_networks):
+    j = json.loads(dhcp4_config_w_shared_networks)
+    config = KeaDhcpConfig.from_json(j)
+    assert len(config.subnets) == 4
+    subnets = {subnet.id: subnet for subnet in config.subnets}
+
+    subnet1 = subnets[1]
+    assert subnet1.id == 1
+    assert subnet1.prefix == IP("192.0.1.0/24")
+    assert len(subnet1.pools) == 1
+    assert subnet1.pools[0] == (IP("192.0.1.1"), IP("192.0.1.200"))
+    assert config.ip_version == 4
+    assert config.config_hash is None
+
+    subnet2 = subnets[2]
+    assert subnet2.id == 2
+    assert subnet2.prefix == IP("192.0.2.0/24")
+    assert len(subnet2.pools) == 1
+    assert subnet2.pools[0] == (IP("192.0.2.100"), IP("192.0.2.199"))
+    assert config.ip_version == 4
+    assert config.config_hash is None
+
+    subnet3 = subnets[3]
+    assert subnet3.id == 3
+    assert subnet3.prefix == IP("192.0.3.0/24")
+    assert len(subnet3.pools) == 1
+    assert subnet3.pools[0] == (IP("192.0.3.100"), IP("192.0.3.199"))
+    assert config.ip_version == 4
+    assert config.config_hash is None
+
+    subnet4 = subnets[4]
+    assert subnet4.id == 4
+    assert subnet4.prefix == IP("10.0.0.0/8")
+    assert len(subnet4.pools) == 1
+    assert subnet4.pools[0] == (IP("10.0.0.1"), IP("10.0.0.99"))
+    assert config.ip_version == 4
+    assert config.config_hash is None
+
+
 def dhcp4_config_response(dhcp4_config):
     return f'''
     [
@@ -284,14 +365,24 @@ def dhcp4_config_response(dhcp4_config):
 # Testing KeaDhcpSubnet and KeaDhcpConfig instantiation from server responses  #
 ################################################################################
 
-def test_fetch_and_set_dhcp_config(dhcp4_config_response, enqueue_post_response):
-    enqueue_post_response("config-get", dhcp4_config_response)
+def test_fetch_and_set_dhcp_config(dhcp4_config, enqueue_post_response):
+    enqueue_post_response("config-get", dhcp4_config_response(dhcp4_config))
     source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
     assert source.kea_dhcp_config is None
     config = source.fetch_and_set_dhcp_config()
-    actual_config = KeaDhcpConfig.from_json(json.loads(dhcp4_config_response)[0]["arguments"])
+    actual_config = KeaDhcpConfig.from_json(json.loads(dhcp4_config_response(dhcp4_config))[0]["arguments"])
     assert config == actual_config
     assert source.kea_dhcp_config == actual_config
+
+def test_fetch_and_set_dhcp_config_w_shared_networks(dhcp4_config_w_shared_networks, enqueue_post_response):
+    enqueue_post_response("config-get", dhcp4_config_response(dhcp4_config_w_shared_networks))
+    source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
+    assert source.kea_dhcp_config is None
+    config = source.fetch_and_set_dhcp_config()
+    actual_config = KeaDhcpConfig.from_json(json.loads(dhcp4_config_response(dhcp4_config_w_shared_networks))[0]["arguments"])
+    assert config == actual_config
+    assert source.kea_dhcp_config == actual_config
+
 
 # @pytest.fixture
 # @enqueue_post_response
