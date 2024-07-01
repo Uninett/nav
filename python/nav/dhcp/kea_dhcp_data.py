@@ -88,11 +88,24 @@ def send_query(query: KeaQuery, address: str, port: int = 443, https: bool = Tru
     logger.debug("send_query: sending request to %s with query %r", location, query)
     try:
         if session is None:
-            r = requests.post(location, data=json.dumps(asdict(query)), headers={"Content-Type": "application/json"})
+            r = requests.post(
+                location,
+                data=json.dumps(asdict(query)),
+                headers={"Content-Type": "application/json"},
+                timeout=timeout
+            )
         else:
-            r = session.post(location, data=json.dumps(asdict(query)), headers={"Content-Type": "application/json"})
+            r = session.post(
+                location,
+                data=json.dumps(asdict(query)),
+                headers={"Content-Type": "application/json"},
+                timeout=timeout
+            )
     except HTTPError as err:
-        logger.debug("send_query: request to %s yielded an error: %d %s", err.url, err.status_code, err.reason) # non-debug logging done by exception handler
+        logger.debug("send_query: request to %s yielded an error: %d %s", err.request.url, err.response.status_code, err.response.reason) # non-debug logging done by exception handler
+        raise err
+    except Timeout as err:
+        logger.debug("send_query: request to %s timed out", err.request.url) # non-debug logging done by exception handler
         raise err
 
     try:
@@ -380,25 +393,17 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                     "this may cause metric data being associated with wrong "
                     "subnet."
                 )
-        except HTTPError as err:
+        except Timeout as err:
             logger.warning(
-                "HTTPError while fetching metrics from Kea Control Agent with url %s",
-                "(unknown)" if err.response is None else err.response.url,
+                "Connection to Kea Control Agent timed before or during metric "
+                "fetching. Some metrics may be missing.",
                 exc_info=err,
             )
-        except KeaError as err:
+        except Exception as err:
+            # More detailed information is logged by deeper exception handlers at the logging.DEBUG level.
             logger.warning(
-                "KeaError while fetching metrics from Kea Control Agent",
-                exc_info=err,
-            )
-        except KeyError as err:
-            logger.warning(
-                "KeyError while fetching metrics from Kea Control Agent",
-                exc_info=err,
-            )
-        except JSONDecodeError as err:
-            logger.warning(
-                "JSONDecodeError while fetching metrics from Kea Control Agent",
+                "Exception while fetching metrics from Kea Control Agent. Some "
+                "metrics may be missing.",
                 exc_info=err,
             )
         finally:
