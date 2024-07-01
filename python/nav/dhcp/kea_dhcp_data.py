@@ -60,7 +60,7 @@ class KeaResponse:
     service: str
 
     @property
-    def success(self):
+    def success(self) -> bool:
         return self.result == KeaStatus.SUCCESS
 
 
@@ -92,17 +92,17 @@ def send_query(query: KeaQuery, address: str, port: int = 443, https: bool = Tru
         else:
             r = session.post(location, data=json.dumps(asdict(query)), headers={"Content-Type": "application/json"})
     except HTTPError as err:
-        logger.error("send_query: request to %s yielded an error: %d %s", err.url, err.status_code, err.reason)
+        logger.debug("send_query: request to %s yielded an error: %d %s", err.url, err.status_code, err.reason) # non-debug logging done by exception handler
         raise err
 
     try:
         response_json = r.json()
     except JSONDecodeError as err:
-        logger.error("send_query: expected json from %s, got %s", address, r.text)
+        logger.debug("send_query: expected json from %s, got %s", address, r.text) # non-debug logging done by exception handler
         raise err
 
     if isinstance(response_json, dict):
-        logger.error("send_query: expected a json list of objects from %s, got %r", address, response_json)
+        logger.debug("send_query: expected a json list of objects from %s, got %r", address, response_json) # non-debug logging done by exception handler
         raise KeaError(f"bad response from {address}: {response_json!r}")
 
     responses = []
@@ -188,9 +188,7 @@ class KeaDhcpConfig:
     """
     Class representing information found in the configuration of a Kea DHCP
     server. Most importantly, this class contains:
-    * A list of the shared networks managed by the DHCP server
-      * A shared network furthermore contain a list of subnets
-        assigned to that network
+    * A list of the subnets managed by the DHCP server
     * The IP version of the DCHP server
     """
     config_hash: Optional[str] # Used to check if there's a new config on the Kea DHCP server
@@ -204,7 +202,7 @@ class KeaDhcpConfig:
             config_hash: Optional[str] = None,
     ):
         """
-        Initialize and return a KeaDhcpData instance based on json
+        Initialize and return a KeaDhcpConfig instance based on json
 
         :param json: a dictionary that is structured the same way as a
         Kea DHCP configuration.
@@ -343,7 +341,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         elif response.success:
             return response.arguments.get("hash", None)
         else:
-            raise KeaError("Unexpected error when querying the hash of config file from DHCP server")
+            raise KeaError("Unexpected error while querying the hash of config file from DHCP server")
 
     def fetch_metrics(self) -> list[DhcpMetric]:
         """
@@ -388,14 +386,13 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 "(unknown)" if err.response is None else err.response.url,
                 exc_info=err,
             )
-            pass
         except KeaError as err:
             logger.warning(
                 "KeaError while fetching metrics from Kea Control Agent",
                 exc_info=err,
             )
         except KeyError as err:
-            logging.warning(
+            logger.warning(
                 "KeyError while fetching metrics from Kea Control Agent",
                 exc_info=err,
             )
