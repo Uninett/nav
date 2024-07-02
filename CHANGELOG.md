@@ -14,6 +14,10 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 ## [5.10.1] - 2024-05-27
 
 
+### Added
+
+- Added a report of software upgrade logs ([#2466](https://github.com/Uninett/nav/pull/2466), [#2457](https://github.com/Uninett/nav/issues/2457))
+
 ### Fixed
 
 - Fix Machine Tracker DNS search crashing from exhausting all available file
