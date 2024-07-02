@@ -18,6 +18,7 @@ import base64
 import io
 import os
 from typing import Dict, List
+import zipfile
 
 from django.http import HttpResponse
 from django.views.generic.list import ListView
@@ -114,6 +115,19 @@ def convert_bytes_buffer_to_bytes_string(bytes_buffer: io.BytesIO) -> str:
     return base64.b64encode(bytes_buffer.getvalue()).decode('utf-8')
 
 
+def make_qr_code_byte_buffers_into_zipped_bytes(qr_codes: Dict[str, io.BytesIO]):
+    """
+    Takes a dict of the form name : qr_code as byte buffer and turns it into a ZIP file
+    with the names as filenames and returns that ZIP file as bytes
+    """
+    mem_zip = io.BytesIO()
+    with zipfile.ZipFile(mem_zip, "w", compression=zipfile.ZIP_DEFLATED) as zip_file:
+        for image_name, bytes_stream in qr_codes.items():
+            zip_file.writestr(image_name + ".png", bytes_stream.getvalue())
+
+    return mem_zip.getvalue()
+
+
 def generate_qr_codes_as_byte_strings(url_dict: Dict[str, str]) -> List[str]:
     """
     Takes a dict of the form {name:url} and returns a list of generated QR codes as
@@ -126,3 +140,15 @@ def generate_qr_codes_as_byte_strings(url_dict: Dict[str, str]) -> List[str]:
             convert_bytes_buffer_to_bytes_string(bytes_buffer=qr_code_byte_buffer)
         )
     return qr_code_byte_strings
+
+
+def generate_qr_codes_as_zip_file(url_dict: Dict[str, str]) -> bytes:
+    """
+    Takes a dict of the form {name:url} and optionally a file name and returns a ZIP
+    file containing QR codes as PNGs with the given file name as name
+    """
+    qr_codes_dict = dict()
+    for caption, url in url_dict.items():
+        qr_codes_dict[caption] = generate_qr_code(url=url, caption=caption)
+
+    return make_qr_code_byte_buffers_into_zipped_bytes(qr_codes=qr_codes_dict)

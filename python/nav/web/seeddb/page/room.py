@@ -17,12 +17,14 @@
 #
 """Forms and view functions for SeedDB's Room view"""
 
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 
 from nav.models.manage import Room
 from nav.bulkparse import RoomBulkParser
 from nav.bulkimport import RoomImporter
 
+from nav.web.message import new_message, Messages
 from nav.web.seeddb import SeeddbInfo, reverse_lazy
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
@@ -31,6 +33,10 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
+from nav.web.utils import (
+    generate_qr_codes_as_byte_strings,
+    generate_qr_codes_as_zip_file,
+)
 
 from ..forms import RoomForm, RoomFilterForm, RoomMoveForm
 
@@ -50,12 +56,17 @@ class RoomInfo(SeeddbInfo):
     add_url = reverse_lazy('seeddb-room-edit')
     bulk_url = reverse_lazy('seeddb-room-bulk')
     copy_url_name = 'seeddb-room-copy'
+    hide_qr_code = False
 
 
 def room(request):
     """Controller for listing, moving and deleting rooms"""
     return view_switcher(
-        request, list_view=room_list, move_view=room_move, delete_view=room_delete
+        request,
+        list_view=room_list,
+        move_view=room_move,
+        delete_view=room_delete,
+        generate_qr_codes_view=room_generate_qr_codes,
     )
 
 
@@ -80,6 +91,43 @@ def room_move(request):
     info = RoomInfo()
     return move(
         request, Room, RoomMoveForm, 'seeddb-room', extra_context=info.template_context
+    )
+
+
+def room_generate_qr_codes(request):
+    """Controller for generating qr codes for rooms"""
+    if not request.POST.getlist('object'):
+        new_message(
+            request,
+            "You need to select at least one object to generate qr codes for",
+            Messages.ERROR,
+        )
+        return HttpResponseRedirect(reverse('seeddb-room'))
+
+    url_dict = dict()
+    ids = request.POST.getlist('object')
+
+    for id in ids:
+        url = request.build_absolute_uri(reverse('room-info', kwargs={'roomid': id}))
+        url_dict[id] = url
+
+    qr_codes_zip_file = generate_qr_codes_as_zip_file(url_dict=url_dict)
+
+    info = RoomInfo()
+    value_list = ('id', 'location', 'description', 'position', 'data')
+    query = Room.objects.select_related("location").all()
+    filter_form = RoomFilterForm(request.GET)
+    # When we drop Python 3.7 we can use extra_context = info.template_context | {"qr_codes": qr_codes}
+    return render_list(
+        request,
+        query,
+        value_list,
+        'seeddb-room-edit',
+        filter_form=filter_form,
+        extra_context={
+            **info.template_context,
+            **{"qr_codes_zip_file": qr_codes_zip_file},
+        },
     )
 
 
