@@ -8,7 +8,6 @@ from itertools import cycle
 from shutil import which
 import subprocess
 import time
-from typing import Dict
 
 import toml
 import pytest
@@ -120,7 +119,7 @@ def _nav_script_tests():
                 yield [script] + args[1:]
 
 
-def _nav_scripts_map() -> Dict[str, str]:
+def _nav_scripts_map() -> dict[str, str]:
     """Returns a map of installable script names to NAV module names from
     pyproject.toml.
     """

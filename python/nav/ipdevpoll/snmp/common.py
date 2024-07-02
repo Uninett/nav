@@ -18,7 +18,7 @@ import time
 import logging
 from dataclasses import dataclass
 from functools import wraps
-from typing import Optional, Any, Dict
+from typing import Any, Optional
 
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
@@ -218,7 +218,7 @@ class SNMPParameters:
         return cls(**kwargs_out)
 
     @classmethod
-    def get_params_from_ipdevpoll_config(cls, section: str = "snmp") -> Dict[str, Any]:
+    def get_params_from_ipdevpoll_config(cls, section: str = "snmp") -> dict[str, Any]:
         """Reads and returns global SNMP parameters from ipdevpoll configuration as a
         simple dict.
         """
@@ -236,7 +236,7 @@ class SNMPParameters:
 
         return params
 
-    def as_agentproxy_args(self) -> Dict[str, Any]:
+    def as_agentproxy_args(self) -> dict[str, Any]:
         """Returns the SNMP session parameters in a dict format compatible with
         pynetsnmp.twistedsnmp.AgentProxy() keyword arguments.
         """

@@ -15,7 +15,7 @@
 #
 """Util functions for the PortAdmin"""
 from __future__ import unicode_literals
-from typing import List, Sequence, Dict, Any, Optional
+from typing import Any, Optional, Sequence
 import re
 import logging
 from operator import attrgetter
@@ -45,7 +45,7 @@ def get_and_populate_livedata(netbox, interfaces):
 
 
 def update_interfaces_with_collected_data(
-    interfaces: Sequence[manage.Interface], livedata: Sequence[Dict[str, Any]]
+    interfaces: Sequence[manage.Interface], livedata: Sequence[dict[str, Any]]
 ):
     """Updates the list of Interface objects with data gathered via
     ManagementHandler.get_interfaces().
@@ -83,7 +83,7 @@ def find_and_populate_allowed_vlans(
 
 def find_allowed_vlans_for_user_on_netbox(
     account: profiles.Account, netbox: manage.Netbox, handler: ManagementHandler = None
-) -> List[FantasyVlan]:
+) -> list[FantasyVlan]:
     """Finds allowed vlans for this user on this netbox"""
     netbox_vlans = find_vlans_on_netbox(netbox, handler=handler)
 
@@ -101,7 +101,7 @@ def find_allowed_vlans_for_user_on_netbox(
 
 def find_vlans_on_netbox(
     netbox: manage.Netbox, handler: ManagementHandler = None
-) -> List[FantasyVlan]:
+) -> list[FantasyVlan]:
     """Find all the available vlans on this netbox
 
     :param netbox: The Netbox whose available VLANs you want to find.
