@@ -7,7 +7,7 @@ name = "nav"
 description = "Network Administration Visualized - A comprehensive, free Network Management System"
 authors = [{name="Sikt - Norwegian agency for shared services in education and research", email="nav-support@uninett.no"}]
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 license = {text = "GPLv3"}
 keywords = ["nms", "snmp"]
 classifiers = [
@@ -16,10 +16,6 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
 dynamic = ["version"]
-dependencies = [
-    "importlib_metadata; python_version < '3.8'",
-    "importlib_resources; python_version < '3.9'",
-]
 
 
 [project.urls]

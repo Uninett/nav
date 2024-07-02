@@ -20,7 +20,6 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get -y install --no-install-recommends \
       curl git build-essential \
-      python3.7-dbg python3.7-dev python3.7-distutils \
       python3.9-dbg python3.9-dev \
       python3.10-dbg python3.10-dev \
       python3-pip
@@ -68,7 +67,7 @@ RUN cd /tmp && \
     mv chromedriver /usr/local/bin/
 
 # Install our primary test runner
-RUN python3.7 -m pip install 'tox<4' snmpsim 'pyasn1<0.5.0' virtualenv
+RUN python3.9 -m pip install 'tox<4' snmpsim 'pyasn1<0.5.0' virtualenv
 
 # Add a build user
 ENV USER build
