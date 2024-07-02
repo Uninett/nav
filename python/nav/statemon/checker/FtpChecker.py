@@ -51,7 +51,7 @@ class FtpChecker(AbstractChecker):
             version = ''
             for line in welcome.split('\n'):
                 if line.startswith('220 '):
-                    version = line[4:].strip()
+                    version = line.removeprefix('220 ').strip()
             self.version = version
 
             username = self.args.get('username', '')

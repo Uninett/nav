@@ -63,6 +63,6 @@ def parsedir():
     fnames = os.listdir(CHECKER_DIR)
     for fname in fnames:
         if fname.endswith(HANDLER_PATTERN):
-            key = fname[: -len(HANDLER_PATTERN)].lower()
+            key = fname.removesuffix(HANDLER_PATTERN).lower()
             handler = fname[:-3]
             register(key, handler)

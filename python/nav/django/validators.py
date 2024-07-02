@@ -26,8 +26,7 @@ from django.core.exceptions import ValidationError
 
 def is_valid_point_string(point_string):
     if len(point_string.split(',')) == 2:
-        if point_string.startswith('(') and point_string.endswith(')'):
-            point_string = point_string[1:-1]
+        point_string = point_string.removeprefix("(").removesuffix(")")
         x_point, y_point = point_string.split(',')
         try:
             Decimal(x_point.strip())

@@ -264,7 +264,7 @@ class IgnoredPrefix(IP):
         for oper in self.OPERATORS:
             if string.startswith(oper):
                 self.match_operator = oper
-                string = string[len(oper) :]
+                string = string.removeprefix(oper)
                 break
 
         IP.__init__(self, string)  # stupid old-style class implementation!

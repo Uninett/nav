@@ -128,14 +128,10 @@ class PointField(models.CharField):
     def to_python(self, value):
         if not value or isinstance(value, tuple):
             return value
-        if isinstance(value, str):
-            if validators.is_valid_point_string(value):
-                if value.startswith('(') and value.endswith(')'):
-                    noparens = value[1:-1]
-                else:
-                    noparens = value
-                latitude, longitude = noparens.split(',')
-                return (Decimal(latitude.strip()), Decimal(longitude.strip()))
+        if isinstance(value, str) and validators.is_valid_point_string(value):
+            noparens = value.removeprefix("(").removesuffix(")")
+            latitude, longitude = noparens.split(',')
+            return (Decimal(latitude.strip()), Decimal(longitude.strip()))
         raise exceptions.ValidationError("This value must be a point-string.")
 
     def get_db_prep_value(self, value, connection, prepared=False):

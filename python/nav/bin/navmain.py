@@ -214,7 +214,7 @@ def c_info(args):
 
         kind = service.__class__.__name__
         if kind.endswith("Service"):
-            kind = kind[:-7].lower()
+            kind = kind.removesuffix("Service").lower()
         kind = "({})".format(kind)
         kind = "{:>8}".format(kind)
         colors.print_color(kind, colors.COLOR_YELLOW, newline=False)
