@@ -1,0 +1,1 @@
+Removed Python 3.7 from default test matrix
