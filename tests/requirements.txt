@@ -1,5 +1,5 @@
 astroid==2.2.4
-gunicorn==19.7.1
+gunicorn==22.0.0
 lxml==4.9.1
 mock==2.0.0
 pylint==2.3.1
