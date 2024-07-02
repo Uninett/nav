@@ -19,19 +19,16 @@ class AuditlogModelTestCase(TestCase):
         l.delete()
 
     def test_add_log_entry_bad_template(self):
-        LogEntry.add_log_entry(
-            self.justification, u'bad template test', u'this is a {bad} template'
-        )
-        l = LogEntry.objects.filter(verb='bad template test').get()
-        self.assertEqual(l.summary, u'Error creating summary - see error log')
-        l.delete()
-
-    #         # When on python3:
-    #         with self.assertLogs(level='ERROR') as log:
-    #             # run body
-    #             self.assertEqual(len(log.output), 1)
-    #             self.assertEqual(len(log.records), 1)
-    #             self.assertIn('KeyError when creating summary:', log.output[0])
+        with self.assertLogs(level='ERROR') as log:
+            LogEntry.add_log_entry(
+                self.justification, u'bad template test', u'this is a {bad} template'
+            )
+            l = LogEntry.objects.filter(verb='bad template test').get()
+            self.assertEqual(l.summary, u'Error creating summary - see error log')
+            l.delete()
+            self.assertEqual(len(log.output), 1)
+            self.assertEqual(len(log.records), 1)
+            self.assertIn('KeyError when creating summary:', log.output[0])
 
     def test_add_log_entry_actor_only(self):
         LogEntry.add_log_entry(
