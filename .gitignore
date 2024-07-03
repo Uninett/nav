@@ -6,6 +6,7 @@
 .*
 !.gitkeep
 !.github/
+!.mega-linter.yml
 *.bak
 *.iml # JetBrains (PyCharm/IDEA) project files
 *.rrd
