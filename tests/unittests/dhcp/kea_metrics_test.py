@@ -4,7 +4,45 @@ import pytest
 import requests
 from IPy import IP
 import json
+import logging
+import re
 from requests.exceptions import JSONDecodeError
+
+
+class LogChecker:
+    def __init__(self, caplog):
+        self.caplog = caplog
+
+    def clear(self):
+        self.caplog.clear()
+
+    def has_entries(self, level, exception=None, regex=None, n=None):
+        """
+        Check if there is any log entries of logging level `level`, optionally
+        made for an exception `exception`, optionally with message fully
+        matching regex `regex`, and optionally requiring that there is exactly
+        `n` such records logged.
+        """
+        def causes(e: BaseException):
+            while e:
+                yield type(e)
+                e = e.__cause__
+
+        entries = [entry for entry in self.caplog.records
+                   if entry.levelno == level
+                   and (exception is None
+                        and entry.exc_info is None
+                        or entry.exc_info is not None
+                        and exception in causes(entry.exc_info[1]))
+                   and (regex is None or re.fullmatch(regex, entry.message.lower(), re.DOTALL))]
+        return n is None and len(entries) > 0 or len(entries) == n
+
+
+@pytest.fixture
+def testlog(caplog):
+    caplog.clear()
+    caplog.set_level(logging.DEBUG)
+    return LogChecker(caplog)
 
 
 @pytest.fixture
@@ -293,14 +331,48 @@ def test_error_responses_does_not_succeed(error_response, enqueue_post_response)
         assert isinstance(response.arguments, dict)
         assert isinstance(response.service, str)
 
+################################################################################
+# Testing correct error handling if Kea server returns invalid JSON            #
+################################################################################
 
-def test_invalid_json_responses_raises_jsonerror(
-    invalid_json_response, enqueue_post_response
+def test_invalid_json_response(
+    testlog, invalid_json_response, enqueue_post_response
 ):
     enqueue_post_response("command", invalid_json_response)
-    with pytest.raises(JSONDecodeError):
+    testlog.clear()
+    with pytest.raises(KeaError):
         responses = send_dummy_query("command")
+    assert testlog.has_entries(logging.DEBUG, regex=".*invalid.*json.*")
 
+    enqueue_post_response("config-get", lambda **_: invalid_json_response)
+    enqueue_post_response("statistic-get", lambda **_: invalid_json_response)
+    testlog.clear()
+    source = KeaDhcpMetricSource(address="192.0.2.1", port=80)
+    with pytest.raises(KeaError):
+        source.fetch_and_set_dhcp_config()
+    assert testlog.has_entries(logging.DEBUG, regex=".*invalid.*json.*")
+
+    # fetch_dhcp_config_hash should not raise when the server does not support
+    # config-hash-get command
+    testlog.clear()
+    h = source.fetch_dhcp_config_hash()
+    assert h == None
+    assert testlog.has_entries(logging.DEBUG, regex=".*no.*support.*hash.*|.*hash.*no.*support.*")
+
+    # fetch_dhcp_config_hash should raise when the server returns invalid
+    # json
+    enqueue_post_response("config-hash-get", lambda **_: invalid_json_response)
+    testlog.clear()
+    with pytest.raises(KeaError):
+        source.fetch_and_set_dhcp_config()
+    assert testlog.has_entries(logging.DEBUG, regex=".*invalid.*json.*")
+
+    # FUNCTIONS USED EXTERNALLY SHOULD CATCH EXCEPTIONS AND LOG WARNINGS
+    # fetch_metrics is a method also used external to the module, and thus
+    # instead of raising it should log when the server returns invalid json
+    testlog.clear()
+    source.fetch_metrics()
+    assert testlog.has_entries(logging.WARNING, JSONDecodeError, n=1)
 
 ################################################################################
 # Testing KeaDhcpSubnet and KeaDhcpConfig instantiation from json              #

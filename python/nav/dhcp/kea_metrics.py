@@ -4,7 +4,7 @@ servers.
 
      RESTful-queries                      IPC
 nav <---------------> Kea Control Agent <=====> Kea DHCP4 server / Kea DHCP6 server
-        (json)
+       send_query()
 
 No additional hook libraries are assumed to be included with the Kea Control
 Agent that is queried, meaning this module will be able to gather DHCP
@@ -15,7 +15,6 @@ implementation for interacting with the Kea Control Agent.
 * See also the Kea Control Agent documentation. This script assumes Kea versions
 >= 2.2.0 are used.  (https://kea.readthedocs.io/en/kea-2.2.0/arm/agent.html).
 """
-
 from __future__ import annotations
 import calendar
 import json
@@ -30,7 +29,7 @@ from nav.errors import GeneralException
 from requests.exceptions import JSONDecodeError, HTTPError, Timeout
 from typing import Optional
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class KeaDhcpMetricSource(DhcpMetricSource):
@@ -51,7 +50,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     rest_https: bool  # If true, communicate with Kea Control Agent using https. If false, use http.
 
     dhcp_version: int  # The IP version of the Kea DHCP server. The Kea Control Agent uses this to tell if we want information from its IPv6 or IPv4 Kea DHCP server
-    kea_dhcp_config: dict  # The configuration, i.e. most static pieces of information, of the Kea DHCP server.
+    kea_dhcp_config: KeaDhcpConfig  # The configuration, i.e. most static pieces of information, of the Kea DHCP server.
 
     def __init__(
         self,
@@ -69,6 +68,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         self.dchp_version = dhcp_version
         self.kea_dhcp_config = None
 
+
     def fetch_metrics(self) -> list[DhcpMetric]:
         """
         Implementation of the superclass method for fetching
@@ -80,12 +80,12 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             s = requests.Session()
             self.fetch_and_set_dhcp_config(s)
             for subnet in self.kea_dhcp_config.subnets:
-                for statistic_key, metric_key in (
+                for kea_key, nav_key in (
                     ("total-addresses", DhcpMetricKey.MAX),
                     ("assigned-addresses", DhcpMetricKey.CUR),
                     ("declined-addresses", DhcpMetricKey.TOUCH),
-                ):  # `statistic_key` is the name of the statistic used by Kea. `metric_key` is the name of the statistic used by NAV.
-                    kea_statistic_name = f"subnet[{subnet.id}].{statistic_key}"
+                ):
+                    kea_statistic_name = f"subnet[{subnet.id}].{kea_key}"
                     query = KeaQuery(
                         command="statistic-get",
                         service=[f"dhcp{self.dchp_version}"],
@@ -105,31 +105,23 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
                     datapoints = response["arguments"].get(kea_statistic_name, [])
                     for value, timestamp in datapoints:
-                        epochseconds = calendar.timegm(
-                            time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
-                        )  # Assumes for now that UTC timestamps are returned by Kea Control Agent; I'll need to read the documentation closer!
+                        # Assumes for now that UTC timestamps are returned by Kea Control Agent; I'll need to read the documentation closer!
+                        epochseconds = calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f"))
                         metrics.append(
-                            DhcpMetric(epochseconds, subnet.prefix, metric_key, value)
+                            DhcpMetric(epochseconds, subnet.prefix, nav_key, value)
                         )
 
             used_config = self.kea_dhcp_config
             self.fetch_and_set_dhcp_config(s)
             if sorted(used_config.subnets) != sorted(self.kea_dhcp_config.subnets):
-                logger.warning(
+                _logger.warning(
                     "Subnet configuration was modified during metric fetching, "
                     "this may cause metric data being associated with wrong "
                     "subnet."
                 )
-        except Timeout as err:
-            logger.warning(
-                "Connection to Kea Control Agent timed before or during metric "
-                "fetching. Some metrics may be missing.",
-                exc_info=err,
-            )
-        except Exception as err:
-            # More detailed information should be logged by deeper exception handlers at the logging.DEBUG level.
-            logger.warning(
-                "Exception while fetching metrics from Kea Control Agent. Some "
+        except KeaError as err:
+            _logger.warning(
+                "Error while fetching metrics from Kea Control Agent. Some "
                 "metrics may be missing.",
                 exc_info=err,
             )
@@ -138,7 +130,8 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
         return metrics
 
-    def fetch_and_set_dhcp_config(self, session=None):
+
+    def fetch_and_set_dhcp_config(self, session=None) -> KeaDhcpConfig:
         """
         Fetch the current config used by the Kea DHCP server that
         manages addresses of IP version `self.dhcp_version` from the Kea
@@ -173,6 +166,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         self.kea_dhcp_config = KeaDhcpConfig.from_json(response.arguments)
         return self.kea_dhcp_config
 
+
     def fetch_dhcp_config_hash(self, session=None):
         """
         For Kea versions >= 2.4.0, fetch and return a hash of the
@@ -195,75 +189,19 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             require_success=False,
         )
 
-        if response.result == KeaStatus.UNSUPPORTED:
-            logger.debug(
-                "Kea DHCP%d server does not support quering for the hash of its config",
-                self.dchp_version,
+        if response.success:
+            return response.arguments.get("hash", None)
+        elif response.result == KeaStatus.UNSUPPORTED:
+            _logger.debug("Kea server does not support command 'config-hash-get'")
+            return None
+        else:
+            _logger.debug(
+                "Unexpected response (%s) after querying the hash of config file from Kea "
+                "DHCP%d server",
+                repr(response),
+                self.dhcp_version,
             )
             return None
-        elif response.success:
-            return response.arguments.get("hash", None)
-        else:
-            raise KeaError(
-                "Unexpected error while querying the hash of config file from DHCP server"
-            )
-
-
-@dataclass
-class KeaDhcpSubnet:
-    """Class representing information about a subnet managed by a Kea DHCP server."""
-
-    id: int  # either specified in the server config or assigned automatically by the dhcp server
-    prefix: IP  # e.g. 192.0.2.1/24
-    pools: list[tuple[IP]]  # e.g. [(192.0.2.10, 192.0.2.20), (192.0.2.64, 192.0.2.128)]
-
-    @classmethod
-    def from_json(cls, subnet_json: dict):
-        """
-        Initialize and return a Subnet instance based on json
-
-        :param json: python dictionary that is structured the same way as the
-        json object representing a subnet in the Kea DHCP config file.
-        Example:
-            {
-                "id": 0
-                "subnet": "192.0.2.0/24",
-                "pools": [
-                    {
-                        "pool": "192.0.2.1 - 192.0.2.100"
-                    },
-                    {
-                        "pool": "192.0.2.128/26"
-                    }
-                ]
-            }
-        """
-        if "id" not in subnet_json:
-            raise KeaError("Expected subnetjson['id'] to exist")
-        id = subnet_json["id"]
-
-        if "subnet" not in subnet_json:
-            raise KeaError("Expected subnetjson['subnet'] to exist")
-        prefix = IP(subnet_json["subnet"])
-
-        pools = []
-        for obj in subnet_json.get("pools", []):
-            pool = obj["pool"]
-            if "-" in pool:  # TODO: Error checking?
-                # pool == "x.x.x.x - y.y.y.y"
-                start, end = (IP(ip) for ip in pool.split("-"))
-            else:
-                # pool == "x.x.x.x/nn"
-                pool = IP(pool)
-                start, end = pool[0], pool[-1]
-            pools.append((start, end))
-
-        return cls(
-            id=id,
-            prefix=prefix,
-            pools=pools,
-        )
-
 
 @dataclass
 class KeaDhcpConfig:
@@ -323,16 +261,24 @@ class KeaDhcpConfig:
         :param hash: hash of the Kea DHCP config file as returned by a
         `config-hash-get` query on the kea-ctrl-agent REST server.
         """
-        if len(config_json) > 1:
-            raise KeaError("Did not expect len(configjson) > 1")
+        if len(config_json) != 1:
+            _logger.debug(
+                "KeaDhcpConfig.from_json: expected outermost object to have one key, got: %r",
+                config_json
+            )
+            raise KeaError("Invalid DHCP config JSON")
 
-        dhcp_version, config_json = config_json.popitem()
-        if dhcp_version == "Dhcp4":
+        service, config_json = config_json.popitem()
+        if service == "Dhcp4":
             dhcp_version = 4
-        elif dhcp_version == "Dhcp6":
+        elif service == "Dhcp6":
             dhcp_version = 6
         else:
-            raise KeaError(f"Unsupported DHCP IP version '{dhcp_version}'")
+            _logger.debug(
+                "KeaDhcpConfig.from_json: config JSON from unknown Kea service: %s",
+                service
+            )
+            raise KeaError(f"Unsupported Kea service '{service}'")
 
         subnets = []
         for obj in config_json.get(f"subnet{dhcp_version}", []):
@@ -347,6 +293,70 @@ class KeaDhcpConfig:
             config_hash=config_hash,
             dhcp_version=dhcp_version,
             subnets=subnets,
+        )
+
+
+@dataclass
+class KeaDhcpSubnet:
+    """Class representing information about a subnet managed by a Kea DHCP server."""
+
+    id: int  # either specified in the server config or assigned automatically by the dhcp server
+    prefix: IP  # e.g. 192.0.2.1/24
+    pools: list[tuple[IP]]  # e.g. [(192.0.2.10, 192.0.2.20), (192.0.2.64, 192.0.2.128)]
+
+    @classmethod
+    def from_json(cls, subnet_json: dict):
+        """
+        Initialize and return a Subnet instance based on json
+
+        :param json: python dictionary that is structured the same way as the
+        json object representing a subnet in the Kea DHCP config file.
+        Example:
+            {
+                "id": 0
+                "subnet": "192.0.2.0/24",
+                "pools": [
+                    {
+                        "pool": "192.0.2.1 - 192.0.2.100"
+                    },
+                    {
+                        "pool": "192.0.2.128/26"
+                    }
+                ]
+            }
+        """
+        if "id" not in subnet_json:
+            _logger.debug(
+                "KeaDhcpSubnet.from_json: subnet JSON missing key 'id': %r",
+                subnet_json
+            )
+            raise KeaError("Expected subnetjson['id'] to exist")
+        id = subnet_json["id"]
+
+        if "subnet" not in subnet_json:
+            _logger.debug(
+                "KeaDhcpSubnet.from_json: subnet JSON missing key 'subnet': %r",
+                subnet_json
+            )
+            raise KeaError("Expected subnetjson['subnet'] to exist")
+        prefix = IP(subnet_json["subnet"])
+
+        pools = []
+        for obj in subnet_json.get("pools", []):
+            pool = obj["pool"]
+            if "-" in pool:  # TODO: Error checking?
+                # pool == "x.x.x.x - y.y.y.y"
+                start, end = (IP(ip) for ip in pool.split("-"))
+            else:
+                # pool == "x.x.x.x/nn"
+                pool = IP(pool)
+                start, end = pool[0], pool[-1]
+            pools.append((start, end))
+
+        return cls(
+            id=id,
+            prefix=prefix,
+            pools=pools,
         )
 
 
@@ -371,7 +381,7 @@ def send_query(
     """
     scheme = "https" if https else "http"
     location = f"{scheme}://{address}:{port}/"
-    logger.debug("send_query: sending request to %s with query %r", location, query)
+    _logger.debug("send_query: sending request to %s with query %r", location, query)
     try:
         if session is None:
             r = requests.post(
@@ -387,38 +397,31 @@ def send_query(
                 headers={"Content-Type": "application/json"},
                 timeout=timeout,
             )
-    except HTTPError as err:
-        logger.debug(
-            "send_query: request to %s yielded an error: %d %s",
-            err.request.url,
-            err.response.status_code,
-            err.response.reason,
-            exc_info=err,
+    except RequestException as err:
+        _logger.debug(
+            "send_query: Requests failed to complete request to %s with query %r",
+            location,
+            query,
         )
-        raise err
-    except Timeout as err:
-        logger.debug(
-            "send_query: request to %s timed out", err.request.url, exc_info=err
-        )
-        raise err
+        raise KeaError() from err
 
     try:
         response_json = r.json()
     except JSONDecodeError as err:
-        logger.debug(
-            "send_query: expected json from %s, got %s", address, r.text, exc_info=err
+        _logger.debug(
+            "send_query: invalid json from %s, got: %s",
+            address,
+            r.text,
         )
-        raise err
+        raise KeaError() from err
 
     if isinstance(response_json, dict):
-        err = KeaError(f"bad response from {address}: {response_json!r}")
-        logger.debug(
-            "send_query: expected a json list of objects from %s, got %r",
+        _logger.debug(
+            "send_query: expected a json list of objects from %s, got: %r",
             address,
             response_json,
-            exc_info=err,
         )
-        raise err
+        raise KeaError(f"bad response from {address}: {response_json!r}")
 
     responses = []
     for obj in response_json:
@@ -438,31 +441,14 @@ def unwrap(responses: list[KeaQuery], require_success=True) -> KeaQuery:
     on the list of responses returned by `send_query()`
     """
     if len(responses) != 1:
+        _logger.debug("unwrap: received %d responses, expected 1 (%r)", responses)
         raise KeaError("Received invalid amount of responses")
 
     response = responses[0]
     if require_success and not response.success:
+        _logger.debug("unwrap: received an unsuccessful response (%r)", response)
         raise KeaError("Did not receive a successful response")
     return response
-
-
-class KeaError(GeneralException):
-    """Error related to interaction with a Kea Control Agent"""
-
-
-class KeaStatus(IntEnum):
-    """Status of a response sent from a Kea Control Agent."""
-
-    # Successful operation.
-    SUCCESS = 0
-    # General failure.
-    ERROR = 1
-    # Command is not supported.
-    UNSUPPORTED = 2
-    # Successful operation, but failed to produce any results.
-    EMPTY = 3
-    # Unsuccessful operation due to a conflict between the command arguments and the server state.
-    CONFLICT = 4
 
 
 @dataclass
@@ -481,7 +467,6 @@ class KeaResponse:
     def success(self) -> bool:
         return self.result == KeaStatus.SUCCESS
 
-
 @dataclass
 class KeaQuery:
     """Class representing a REST query to be sent to a Kea Control Agent."""
@@ -491,3 +476,22 @@ class KeaQuery:
 
     # The server(s) at which the command is targeted. Usually ["dhcp4", "dhcp6"] or ["dhcp4"] or ["dhcp6"].
     service: list[str]
+
+class KeaError(GeneralException):
+    """Error related to interaction with a Kea Control Agent"""
+
+class KeaStatus(IntEnum):
+    """Status of a response sent from a Kea Control Agent."""
+
+    # Successful operation.
+    SUCCESS = 0
+    # General failure.
+    ERROR = 1
+    # Command is not supported.
+    UNSUPPORTED = 2
+    # Successful operation, but failed to produce any results.
+    EMPTY = 3
+    # Unsuccessful operation due to a conflict between the command arguments and the server state.
+    CONFLICT = 4
+
+
