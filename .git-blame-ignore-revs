@@ -6,3 +6,5 @@ e6634e512c8ecf283c85a701366620e724806ab7
 5d49efe59059c19da2d09d0ae695d498872cdb72
 # Re-ran black on everything due to apparent disagreements on config? @lunkwill42 22/02/2022
 e0496b75789656f5abca770e928988fd09bf7803
+# Rerun black after upgrade to version 22.4.2 @johannaengland 03/07/2024
+f0f9f499e1296f6e1d2cb00e4a90ead8b8a902cf
