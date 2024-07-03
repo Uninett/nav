@@ -1,4 +1,5 @@
 """Models for uploaded image information"""
+
 import os
 from os.path import exists, join
 

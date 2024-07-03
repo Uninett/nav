@@ -1,4 +1,5 @@
 """Template tags used in report subsystem"""
+
 from django import template
 from django.template.defaultfilters import stringfilter
 from django.urls import reverse

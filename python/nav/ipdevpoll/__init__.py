@@ -26,7 +26,6 @@ from .log import ContextLogger, ContextFormatter
 
 
 class Plugin(object):
-
     """Abstract class providing common functionality for all polling plugins.
 
     Do *NOT* create instances of the base class.

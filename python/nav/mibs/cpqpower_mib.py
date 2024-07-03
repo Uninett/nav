@@ -43,9 +43,11 @@ SENSORS = [
                 'precision': 2,
                 'name': 'Group {pdu3GroupName} Current',
                 'minimum': 0,
-                'maximum': lambda x: x.get('pdu3groupCurrentRating') / 100
-                if x.get('pdu3groupCurrentRating') > 0
-                else None,
+                'maximum': lambda x: (
+                    x.get('pdu3groupCurrentRating') / 100
+                    if x.get('pdu3groupCurrentRating') > 0
+                    else None
+                ),
             },
             'pdu3GroupPowerVA': {
                 'unit_of_measurement': Sensor.UNIT_VOLTAMPERES,
@@ -88,9 +90,11 @@ SENSORS = [
                 'precision': 2,
                 'name': 'Input {pdu3InputPhaseCurrentMeasType} Current',
                 'minimum': 0,
-                'maximum': lambda x: x.get('pdu3InputPhaseCurrentRating') / 100
-                if x.get('pdu3InputPhaseCurrentRating') > 0
-                else None,
+                'maximum': lambda x: (
+                    x.get('pdu3InputPhaseCurrentRating') / 100
+                    if x.get('pdu3InputPhaseCurrentRating') > 0
+                    else None
+                ),
             },
             'pdu3InputPhasePowerVA': {
                 'unit_of_measurement': Sensor.UNIT_VOLTAMPERES,
