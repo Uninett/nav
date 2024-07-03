@@ -1,19 +1,7 @@
 ---
-#################################
-#################################
-## Super Linter GitHub Actions ##
-#################################
-#################################
+# MegaLinter GitHub Action configuration file
+# More info at https://megalinter.io
 name: Lint Code Base
-
-#
-# Documentation:
-# https://help.github.com/en/articles/workflow-syntax-for-github-actions
-#
-
-#############################
-# Start the job on all push #
-#############################
 on:
   push:
     #branches-ignore: [master, main]
@@ -21,41 +9,47 @@ on:
   pull_request:
     branches: [master, main]
 
-###############
-# Set the Job #
-###############
 jobs:
-  build:
-    # Name the Job
-    name: Lint Code Base
-    # Set the agent to run on
+  megalinter:
+    name: MegaLinter
     runs-on: ubuntu-latest
-
-    ##################
-    # Load all steps #
-    ##################
+    permissions:
+      # Give the linter write permission to comment on PRs (if PR is not from fork)
+      issues: write
+      pull-requests: write
     steps:
-      ##########################
-      # Checkout the code base #
-      ##########################
+      # Git Checkout
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
-      ################################
-      # Run Linter against code base #
-      ################################
-      - name: Lint Code Base
-        uses: github/super-linter/slim@v6
+      # MegaLinter
+      - name: MegaLinter
+        id: ml
+        # You can override MegaLinter flavor used to have faster performances
+        # More info at https://megalinter.io/flavors/
+        uses: oxsecurity/megalinter/flavors/python@v7
         env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: master
+          # All available variables are described in documentation
+          # https://megalinter.io/configuration/
+          ENABLE_LINTERS: PYTHON_BLACK,PYTHON_FLAKE8
+          # Make workflow fail even on non blocking errors
+          FORMATTERS_DISABLE_ERRORS: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATE_PYTHON_BLACK: true
-          VALIDATE_PYTHON_FLAKE8: true
+          # Validate whole codebase on pushes and only changes on pull requests
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' }}
+          # Tell the linter the location of the configuration file (pyproject.toml)
           LINTER_RULES_PATH: /
           PYTHON_BLACK_CONFIG_FILE: pyproject.toml
           PYTHON_FLAKE8_CONFIG_FILE: tox.ini
           FILTER_REGEX_EXCLUDE: .*python/nav/smidumps/.*
+      # Upload MegaLinter artifacts
+      - name: Archive production artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MegaLinter reports
+          path: |
+            megalinter-reports
+            mega-linter.log
