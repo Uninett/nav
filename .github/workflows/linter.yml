@@ -1,61 +1,45 @@
 ---
-#################################
-#################################
-## Super Linter GitHub Actions ##
-#################################
-#################################
-name: Lint Code Base
-
-#
-# Documentation:
-# https://help.github.com/en/articles/workflow-syntax-for-github-actions
-#
-
-#############################
-# Start the job on all push #
-#############################
+# MegaLinter GitHub Action configuration file
+# More info at https://megalinter.io
+name: MegaLinter
 on:
   push:
-    #branches-ignore: [master, main]
-    # Remove the line above to run when pushing to master
+    branches: master
   pull_request:
-    branches: [master, main]
 
-###############
-# Set the Job #
-###############
 jobs:
-  build:
-    # Name the Job
-    name: Lint Code Base
-    # Set the agent to run on
+  megalinter:
+    name: MegaLinter
     runs-on: ubuntu-latest
-
-    ##################
-    # Load all steps #
-    ##################
+    permissions:
+      # Give the linter write permission to comment on PRs (if PR is not from fork)
+      issues: write
+      pull-requests: write
     steps:
-      ##########################
-      # Checkout the code base #
-      ##########################
+      # Git Checkout
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
-      ################################
-      # Run Linter against code base #
-      ################################
-      - name: Lint Code Base
-        uses: github/super-linter/slim@v6
+      # MegaLinter
+      - name: MegaLinter
+        id: ml
+        # You can override MegaLinter flavor used to have faster performances
+        # More info at https://megalinter.io/flavors/
+        uses: oxsecurity/megalinter/flavors/python@v8
         env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATE_PYTHON_BLACK: true
-          VALIDATE_PYTHON_FLAKE8: true
-          LINTER_RULES_PATH: /
-          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
-          PYTHON_FLAKE8_CONFIG_FILE: tox.ini
-          FILTER_REGEX_EXCLUDE: .*python/nav/smidumps/.*
+          # Validate whole codebase on pushes and only changes on pull requests
+          # Change this to VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' }}
+          VALIDATE_ALL_CODEBASE: true
+
+      # Upload MegaLinter artifacts
+      - name: Archive production artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MegaLinter reports
+          path: |
+            megalinter-reports
+            mega-linter.log

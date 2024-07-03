@@ -71,7 +71,8 @@ where = ["python"]
 [tool.black]
 skip-string-normalization=true
 line-length = 88
-exclude = '''
+# Exclude files even when passed directly as argument (for MegaLinter)
+force-exclude = '''
 (
   /(
       \.eggs         # exclude a few common directories in the
