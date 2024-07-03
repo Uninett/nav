@@ -68,7 +68,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         self.dchp_version = dhcp_version
         self.kea_dhcp_config = None
 
-
     def fetch_metrics(self) -> list[DhcpMetric]:
         """
         Implementation of the superclass method for fetching
@@ -106,7 +105,9 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                     datapoints = response["arguments"].get(kea_statistic_name, [])
                     for value, timestamp in datapoints:
                         # Assumes for now that UTC timestamps are returned by Kea Control Agent; I'll need to read the documentation closer!
-                        epochseconds = calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f"))
+                        epochseconds = calendar.timegm(
+                            time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
+                        )
                         metrics.append(
                             DhcpMetric(epochseconds, subnet.prefix, nav_key, value)
                         )
@@ -129,7 +130,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             s.close()
 
         return metrics
-
 
     def fetch_and_set_dhcp_config(self, session=None) -> KeaDhcpConfig:
         """
@@ -166,7 +166,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         self.kea_dhcp_config = KeaDhcpConfig.from_json(response.arguments)
         return self.kea_dhcp_config
 
-
     def fetch_dhcp_config_hash(self, session=None):
         """
         For Kea versions >= 2.4.0, fetch and return a hash of the
@@ -202,6 +201,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 self.dhcp_version,
             )
             return None
+
 
 @dataclass
 class KeaDhcpConfig:
@@ -264,7 +264,7 @@ class KeaDhcpConfig:
         if len(config_json) != 1:
             _logger.debug(
                 "KeaDhcpConfig.from_json: expected outermost object to have one key, got: %r",
-                config_json
+                config_json,
             )
             raise KeaError("Invalid DHCP config JSON")
 
@@ -276,7 +276,7 @@ class KeaDhcpConfig:
         else:
             _logger.debug(
                 "KeaDhcpConfig.from_json: config JSON from unknown Kea service: %s",
-                service
+                service,
             )
             raise KeaError(f"Unsupported Kea service '{service}'")
 
@@ -327,8 +327,7 @@ class KeaDhcpSubnet:
         """
         if "id" not in subnet_json:
             _logger.debug(
-                "KeaDhcpSubnet.from_json: subnet JSON missing key 'id': %r",
-                subnet_json
+                "KeaDhcpSubnet.from_json: subnet JSON missing key 'id': %r", subnet_json
             )
             raise KeaError("Expected subnetjson['id'] to exist")
         id = subnet_json["id"]
@@ -336,7 +335,7 @@ class KeaDhcpSubnet:
         if "subnet" not in subnet_json:
             _logger.debug(
                 "KeaDhcpSubnet.from_json: subnet JSON missing key 'subnet': %r",
-                subnet_json
+                subnet_json,
             )
             raise KeaError("Expected subnetjson['subnet'] to exist")
         prefix = IP(subnet_json["subnet"])
@@ -467,6 +466,7 @@ class KeaResponse:
     def success(self) -> bool:
         return self.result == KeaStatus.SUCCESS
 
+
 @dataclass
 class KeaQuery:
     """Class representing a REST query to be sent to a Kea Control Agent."""
@@ -477,8 +477,10 @@ class KeaQuery:
     # The server(s) at which the command is targeted. Usually ["dhcp4", "dhcp6"] or ["dhcp4"] or ["dhcp6"].
     service: list[str]
 
+
 class KeaError(GeneralException):
     """Error related to interaction with a Kea Control Agent"""
+
 
 class KeaStatus(IntEnum):
     """Status of a response sent from a Kea Control Agent."""
@@ -493,5 +495,3 @@ class KeaStatus(IntEnum):
     EMPTY = 3
     # Unsuccessful operation due to a conflict between the command arguments and the server state.
     CONFLICT = 4
-
-

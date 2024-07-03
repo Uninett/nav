@@ -23,18 +23,24 @@ class LogChecker:
         matching regex `regex`, and optionally requiring that there is exactly
         `n` such records logged.
         """
+
         def causes(e: BaseException):
             while e:
                 yield type(e)
                 e = e.__cause__
 
-        entries = [entry for entry in self.caplog.records
-                   if entry.levelno == level
-                   and (exception is None
-                        and entry.exc_info is None
-                        or entry.exc_info is not None
-                        and exception in causes(entry.exc_info[1]))
-                   and (regex is None or re.fullmatch(regex, entry.message.lower(), re.DOTALL))]
+        entries = [
+            entry
+            for entry in self.caplog.records
+            if entry.levelno == level
+            and (
+                exception is None
+                and entry.exc_info is None
+                or entry.exc_info is not None
+                and exception in causes(entry.exc_info[1])
+            )
+            and (regex is None or re.fullmatch(regex, entry.message.lower(), re.DOTALL))
+        ]
         return n is None and len(entries) > 0 or len(entries) == n
 
 
@@ -44,6 +50,51 @@ def testlog(caplog):
     caplog.set_level(logging.DEBUG)
     return LogChecker(caplog)
 
+
+@pytest.fixture
+def dhcp6_config():
+    return '''{
+"Dhcp6": {
+    "valid-lifetime": 4000,
+    "renew-timer": 1000,
+    "rebind-timer": 2000,
+    "preferred-lifetime": 3000,
+
+    "interfaces-config": {
+        "interfaces": [ "eth0" ]
+    },
+
+    "lease-database": {
+        "type": "memfile",
+        "persist": true,
+        "name": "/var/lib/kea/dhcp6.leases"
+    },
+
+    "subnet6": [
+        {
+            "id": 1,
+            "subnet": "2001:db8:1:1::/64",
+            "pools": [
+                {
+                    "pool": "2001:db8:1:1::1-2001:db8:1:1::ffff"
+                }
+             ]
+        },
+        {
+            "id": 2,
+            "subnet": "2001:db8:1:2::/64",
+            "pools": [
+                {
+                    "pool": "2001:db8:1:2::1-2001:db8:1:2::ffff"
+                },
+                {
+                    "pool": "2001:db8:1:2::1:0/112"
+                }
+             ]
+        }
+    ]
+}
+}'''
 
 @pytest.fixture
 def dhcp4_config():
@@ -197,10 +248,10 @@ def enqueue_post_response(monkeypatch):
         {}
     )  # Dictonary of fifo queues, keyed by command name. A queue stored with key K has the textual content of the responses we want to return (in fifo order, one per call) on a call to requests.post with data that represents a Kea Control Agent command K
     unknown_command_response = """[
-  {
+  {{
     "result": 2,
     "text": "'{0}' command not supported."
-  }
+  }}
 ]"""
 
     def new_post_function(url, *args, data="{}", **kwargs):
@@ -227,7 +278,7 @@ def enqueue_post_response(monkeypatch):
         if fifo:
             first = fifo[0]
             if callable(first):
-                text = first()
+                text = first(arguments=data.get("arguments", {}), service=data.get("service", []))
             else:
                 text = str(first)
                 fifo.popleft()
@@ -331,13 +382,13 @@ def test_error_responses_does_not_succeed(error_response, enqueue_post_response)
         assert isinstance(response.arguments, dict)
         assert isinstance(response.service, str)
 
+
 ################################################################################
 # Testing correct error handling if Kea server returns invalid JSON            #
 ################################################################################
 
-def test_invalid_json_response(
-    testlog, invalid_json_response, enqueue_post_response
-):
+
+def test_invalid_json_response(testlog, invalid_json_response, enqueue_post_response):
     enqueue_post_response("command", invalid_json_response)
     testlog.clear()
     with pytest.raises(KeaError):
@@ -357,7 +408,9 @@ def test_invalid_json_response(
     testlog.clear()
     h = source.fetch_dhcp_config_hash()
     assert h == None
-    assert testlog.has_entries(logging.DEBUG, regex=".*no.*support.*hash.*|.*hash.*no.*support.*")
+    assert testlog.has_entries(
+        logging.DEBUG, regex=".*no.*support.*hash.*|.*hash.*no.*support.*"
+    )
 
     # fetch_dhcp_config_hash should raise when the server returns invalid
     # json
@@ -373,6 +426,7 @@ def test_invalid_json_response(
     testlog.clear()
     source.fetch_metrics()
     assert testlog.has_entries(logging.WARNING, JSONDecodeError, n=1)
+
 
 ################################################################################
 # Testing KeaDhcpSubnet and KeaDhcpConfig instantiation from json              #
@@ -400,6 +454,28 @@ def test_correct_config_from_dhcp4_config_json(dhcp4_config):
     assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
     assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
     assert config.dhcp_version == 4
+    assert config.config_hash is None
+
+
+def test_correct_config_from_dhcp6_config_json(dhcp6_config):
+    j = json.loads(dhcp6_config)
+    config = KeaDhcpConfig.from_json(j)
+    assert len(config.subnets) == 2
+    subnet1 = config.subnets[0]
+    assert subnet1.id == 1
+    assert subnet1.prefix == IP("2001:db8:1:1::/64")
+    assert len(subnet1.pools) == 1
+    assert subnet1.pools[0] == (IP("2001:db8:1:1::1"), IP("2001:db8:1:1::ffff"))
+    assert config.dhcp_version == 6
+    assert config.config_hash is None
+
+    subnet2 = config.subnets[1]
+    assert subnet2.id == 2
+    assert subnet2.prefix == IP("2001:db8:1:2::/64")
+    assert len(subnet2.pools) == 2
+    assert subnet2.pools[0] == (IP("2001:db8:1:2::1"), IP("2001:db8:1:2::ffff"))
+    assert subnet2.pools[1] == (IP("2001:db8:1:2::1:0"), IP("2001:db8:1:2::1:ffff"))
+    assert config.dhcp_version == 6
     assert config.config_hash is None
 
 
@@ -442,7 +518,6 @@ def test_correct_config_from_dhcp4_config_w_shared_networks_json(
     assert subnet4.pools[0] == (IP("10.0.0.1"), IP("10.0.0.99"))
     assert config.dhcp_version == 4
     assert config.config_hash is None
-
 
 def response_json(dhcp4_config):
     return f'''
