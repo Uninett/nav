@@ -38,7 +38,8 @@ jobs:
           FORMATTERS_DISABLE_ERRORS: false
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Validate whole codebase on pushes and only changes on pull requests
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' }}
+          # Change this to VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' }}
+          VALIDATE_ALL_CODEBASE: true
           # Tell the linter the location of the configuration file (pyproject.toml)
           LINTER_RULES_PATH: /
           PYTHON_BLACK_CONFIG_FILE: pyproject.toml
