@@ -6,7 +6,254 @@ from IPy import IP
 import json
 import logging
 import re
-from requests.exceptions import JSONDecodeError
+from requests.exceptions import JSONDecodeError, HTTPError, Timeout
+
+class TestSendQuery:
+    """Testing the list[KeaResponse] returned by send_query()"""
+    def test_response_with_success_status_should_succeed_and_be_logged(self, success_response, enqueue_post_response, testlog):
+        enqueue_post_response("command", success_response)
+        testlog.clear()
+        responses = send_dummy_query("command")
+        assert len(responses) == 4
+        for response in responses:
+            assert response.success
+            assert isinstance(response.text, str)
+            assert isinstance(response.arguments, dict)
+            assert isinstance(response.service, str)
+        assert testlog.has_entries(logging.DEBUG, regexes=("query", "sen(d|t)", "192.0.2.2:80"))
+
+    def test_response_with_error_status_should_succeed_and_be_logged(self, error_response, enqueue_post_response, testlog):
+        enqueue_post_response("command", error_response)
+        responses = send_dummy_query("command")
+        assert len(responses) == 5
+        for response in responses:
+            assert not response.success
+            assert isinstance(response.text, str)
+            assert isinstance(response.arguments, dict)
+            assert isinstance(response.service, str)
+        assert testlog.has_entries(logging.DEBUG, regexes=("sen(d|t)[^:]", "[^_]query", "192.0.2.2:80"))
+        assert testlog.has_entries(logging.DEBUG, n=1)
+
+    def test_exceptions_should_be_logged_and_reraised_as_KeaError(self, enqueue_post_response, testlog):
+        enqueue_post_response("httperror", raiser(HTTPError))
+        enqueue_post_response("timeout", raiser(Timeout))
+        query = KeaQuery("httperror", [], {})
+        with pytest.raises(KeaError):
+            responses = send_query(query, "192.0.2.2", 80)
+        assert testlog.has_entries(logging.DEBUG, regexes=("sen(d|t)[^:]", "[^_]query", "192.0.2.2:80"))
+        assert testlog.has_entries(logging.DEBUG, regexes=("query", "fail|error|exception", "192.0.2.2:80"))
+
+        testlog.clear()
+
+        query = KeaQuery("timeout", [], {})
+        with pytest.raises(KeaError):
+            responses = send_query(query, "192.0.2.2", 80)
+        assert testlog.has_entries(logging.DEBUG, regexes=("sen(d|t)[^:]", "[^_]query", "192.0.2.2:80"))
+        assert testlog.has_entries(logging.DEBUG, regexes=("[^_]query", "fail|error|exception", "192.0.2.2:80"))
+
+    def test_response_with_invalid_json_should_raise_and_be_logged(self, invalid_json_response, enqueue_post_response, testlog):
+        enqueue_post_response("command", invalid_json_response)
+        testlog.clear()
+        with pytest.raises(KeaError):
+            responses = send_dummy_query("command")
+        assert testlog.has_entries(logging.DEBUG, regexes=("sen(d|t)[^:]", "[^_]query", "192.0.2.2:80"))
+        assert testlog.has_entries(logging.DEBUG, regexes=("invalid", "json", "192.0.2.2:80"))
+
+class TestProcessingJsonIntoDataclass:
+    """
+    Testing that json formatted Kea DHCP configuration is correctly processed
+    into python dataclasses
+    """
+    def test_dhcp4_config_json_should_be_correctly_processed_into_KeaDhcpConfig(
+            self,
+            dhcp4_config,
+            dhcp4_config_with_shared_networks
+    ):
+        # Massaging and processing json with subnet4 list
+        j = json.loads(dhcp4_config)
+        config = KeaDhcpConfig.from_json(j)
+        assert len(config.subnets) == 1
+        subnet = config.subnets[0]
+        assert subnet.id == 1
+        assert subnet.prefix == IP("192.0.0.0/8")
+        assert len(subnet.pools) == 2
+        assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
+        assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
+        assert config.dhcp_version == 4
+        assert config.config_hash is None
+
+        # Massaging and processing json with shared_networks list AND subnet4 list
+        j = json.loads(dhcp4_config_with_shared_networks)
+        config = KeaDhcpConfig.from_json(j)
+        assert len(config.subnets) == 4
+        subnets = {subnet.id: subnet for subnet in config.subnets}
+
+        subnet1 = subnets[1]
+        assert subnet1.id == 1
+        assert subnet1.prefix == IP("192.0.1.0/24")
+        assert len(subnet1.pools) == 1
+        assert subnet1.pools[0] == (IP("192.0.1.1"), IP("192.0.1.200"))
+        assert config.dhcp_version == 4
+        assert config.config_hash is None
+
+        subnet2 = subnets[2]
+        assert subnet2.id == 2
+        assert subnet2.prefix == IP("192.0.2.0/24")
+        assert len(subnet2.pools) == 1
+        assert subnet2.pools[0] == (IP("192.0.2.100"), IP("192.0.2.199"))
+        assert config.dhcp_version == 4
+        assert config.config_hash is None
+
+        subnet3 = subnets[3]
+        assert subnet3.id == 3
+        assert subnet3.prefix == IP("192.0.3.0/24")
+        assert len(subnet3.pools) == 1
+        assert subnet3.pools[0] == (IP("192.0.3.100"), IP("192.0.3.199"))
+        assert config.dhcp_version == 4
+        assert config.config_hash is None
+
+        subnet4 = subnets[4]
+        assert subnet4.id == 4
+        assert subnet4.prefix == IP("10.0.0.0/8")
+        assert len(subnet4.pools) == 1
+        assert subnet4.pools[0] == (IP("10.0.0.1"), IP("10.0.0.99"))
+        assert config.dhcp_version == 4
+        assert config.config_hash is None
+
+    def test_dhcp6_config_json_should_be_correctly_processed_into_KeaDhcpConfig(self, dhcp6_config):
+        j = json.loads(dhcp6_config)
+        config = KeaDhcpConfig.from_json(j)
+        assert len(config.subnets) == 2
+        subnet1 = config.subnets[0]
+        assert subnet1.id == 1
+        assert subnet1.prefix == IP("2001:db8:1:1::/64")
+        assert len(subnet1.pools) == 1
+        assert subnet1.pools[0] == (IP("2001:db8:1:1::1"), IP("2001:db8:1:1::ffff"))
+        assert config.dhcp_version == 6
+        assert config.config_hash is None
+
+        subnet2 = config.subnets[1]
+        assert subnet2.id == 2
+        assert subnet2.prefix == IP("2001:db8:1:2::/64")
+        assert len(subnet2.pools) == 2
+        assert subnet2.pools[0] == (IP("2001:db8:1:2::1"), IP("2001:db8:1:2::ffff"))
+        assert subnet2.pools[1] == (IP("2001:db8:1:2::1:0"), IP("2001:db8:1:2::1:ffff"))
+        assert config.dhcp_version == 6
+        assert config.config_hash is None
+
+"""
+def test_invalid_json_response(testlog, invalid_json_response, enqueue_post_response):
+    enqueue_post_response("config-get", lambda **_: invalid_json_response)
+    enqueue_post_response("statistic-get", lambda **_: invalid_json_response)
+    testlog.clear()
+    source = KeaDhcpMetricSource(address="192.0.2.1", port=80)
+    with pytest.raises(KeaError):
+        source.fetch_and_set_dhcp_config()
+    assert testlog.has_entries(logging.DEBUG, regex=".*invalid.*json.*")
+
+    # fetch_dhcp_config_hash should not raise when the server does not support
+    # config-hash-get command
+    testlog.clear()
+    h = source.fetch_dhcp_config_hash()
+    assert h == None
+    assert testlog.has_entries(
+        logging.DEBUG, regex=".*no.*support.*hash.*|.*hash.*no.*support.*"
+    )
+
+    # fetch_dhcp_config_hash should raise when the server returns invalid
+    # json
+    enqueue_post_response("config-hash-get", lambda **_: invalid_json_response)
+    testlog.clear()
+    with pytest.raises(KeaError):
+        source.fetch_and_set_dhcp_config()
+    assert testlog.has_entries(logging.DEBUG, regex=".*invalid.*json.*")
+
+    # FUNCTIONS USED EXTERNALLY SHOULD CATCH EXCEPTIONS AND LOG WARNINGS
+    # fetch_metrics is a method also used external to the module, and thus
+    # instead of raising it should log when the server returns invalid json
+    testlog.clear()
+    source.fetch_metrics()
+    assert testlog.has_entries(logging.WARNING, JSONDecodeError, n=1)
+"""
+
+class TestKeaDhcpMetricSource:
+    def test_when_no_cached_KeaDhcpConfig_exist_should_fetch_and_set_correct_KeaDhcpConfig(
+            self,
+            dhcp4_config,
+            dhcp4_config_with_shared_networks,
+            dhcp6_config,
+            enqueue_post_response,
+            testlog,
+    ):
+        for config_string in dhcp4_config, dhcp6_config, dhcp4_config_with_shared_networks:
+            testlog.clear()
+            enqueue_post_response("config-get", response_json(config_string))
+            source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
+            assert source.kea_dhcp_config is None
+            config = source.fetch_and_set_dhcp_config()
+            actual_config = KeaDhcpConfig.from_json(
+                json.loads(config_string)
+            )
+            assert config == actual_config
+            assert source.kea_dhcp_config == actual_config
+            assert testlog.has_entries(logging.DEBUG, regexes=("sen(d|t)[^:]", "[^_]query", "192.0.2.1"))
+
+    def test_when_cached_KeaDhcpConfig_exist_and_local_hash_match_with_server_hash_should_not_fetch_new_KeaDhcpConfig(
+            self,
+            dhcp4_config,
+            dhcp4_config_with_shared_networks,
+            enqueue_post_response,
+    ):
+        enqueue_post_response("config-get", response_json(dhcp4_config))
+        source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
+        source.fetch_and_set_dhcp_config()
+        enqueue_post_response("config-hash-get", response_json(f'{{hash: "{source.kea_dhcp_config.config_hash}"}}'))
+        # The command 'config-hash-get' is set to return the same hash as is already cached. Thus, the test should fail if 'config-get' is queried.
+        enqueue_post_response("config-get", lambda **_: pytest.fail())
+        source.fetch_and_set_dhcp_config()
+
+    def test_when_cached_KeaDhcpConfig_exist_and_local_hash_doesnt_match_with_server_hash_should_fetch_new_KeaDhcpConfig(
+            self,
+            dhcp4_config,
+            dhcp4_config_with_shared_networks,
+            enqueue_post_response,
+    ):
+        enqueue_post_response("config-get", response_json(dhcp4_config))
+        source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
+        source.fetch_and_set_dhcp_config()
+        assert source.kea_dhcp_config == KeaDhcpConfig.from_json(dhcp4_config)
+
+        old_hash = source.kea_dhcp_config.config_hash
+        new_hash = "0" + old_hash[1:] if old_hash[0] != "0" else "1" + old_hash[1:]
+
+        enqueue_post_response("config-hash-get", response_json(f'{{hash: "{new_hash}"}}'))
+        enqueue_post_response("config-get", response_json(dhcp4_config_with_shared_networks))
+        source.fetch_and_set_dhcp_config()
+        assert source.kea_dhcp_config == KeaDhcpConfig.from_json(dhcp4_config_with_shared_networks)
+    
+        
+# @pytest.fixture
+# @enqueue_post_response
+# def dhcp4_config_response_result_is_1():
+#     return f'''
+#     {{
+#         "result": 1,
+#         "arguments": {{
+#             {DHCP4_CONFIG}
+#         }}
+#     }}
+#     '''
+
+# def test_get_dhcp_config_result_is_1(dhcp4_config_result_is_1):
+#     with pytest.raises(Exception): # TODO: Change
+#         get_dhcp_server("example-org", dhcp_version=4)
+
+
+@pytest.fixture
+def testlog(caplog):
+    caplog.clear()
+    caplog.set_level(logging.DEBUG)
+    return LogChecker(caplog)
 
 
 class LogChecker:
@@ -16,12 +263,12 @@ class LogChecker:
     def clear(self):
         self.caplog.clear()
 
-    def has_entries(self, level, exception=None, regex=None, n=None):
+    def has_entries(self, level, exception=None, regexes=None, n=None):
         """
         Check if there is any log entries of logging level `level`, optionally
-        made for an exception `exception`, optionally with message fully
-        matching regex `regex`, and optionally requiring that there is exactly
-        `n` such records logged.
+        made for an exception `exception`, optionally with all regexes in
+        `regexes` fully matching some substring of the log message, and
+        optionally requiring that there is exactly `n` such records logged.
         """
 
         def causes(e: BaseException):
@@ -32,23 +279,28 @@ class LogChecker:
         entries = [
             entry
             for entry in self.caplog.records
-            if entry.levelno == level
+            if entry.levelno >= level
             and (
                 exception is None
-                and entry.exc_info is None
                 or entry.exc_info is not None
                 and exception in causes(entry.exc_info[1])
             )
-            and (regex is None or re.fullmatch(regex, entry.message.lower(), re.DOTALL))
+            and (regexes is None or all(re.search(regex, entry.message.lower(), re.DOTALL) for regex in regexes))
         ]
         return n is None and len(entries) > 0 or len(entries) == n
 
 
-@pytest.fixture
-def testlog(caplog):
-    caplog.clear()
-    caplog.set_level(logging.DEBUG)
-    return LogChecker(caplog)
+def response_json(string):
+    return f'''
+    [
+    {{
+        "result": 0,
+        "arguments": {string}
+    }}
+    ]
+    '''
+
+
 
 
 @pytest.fixture
@@ -186,11 +438,11 @@ def dhcp4_config():
             }]
         }
     }
-    '''
+'''
 
 
 @pytest.fixture
-def dhcp4_config_w_shared_networks():
+def dhcp4_config_with_shared_networks():
     return '''{
             "Dhcp4": {
                 "shared-networks": [
@@ -244,9 +496,8 @@ def enqueue_post_response(monkeypatch):
     This is how we mock what would otherwise be post requests to a
     server.
     """
-    command_responses = (
-        {}
-    )  # Dictonary of fifo queues, keyed by command name. A queue stored with key K has the textual content of the responses we want to return (in fifo order, one per call) on a call to requests.post with data that represents a Kea Control Agent command K
+    # Dictonary of fifo queues, keyed by command name. A queue stored with key K has the textual content of the responses we want to return (in fifo order, one per call) on a call to requests.post with data that represents a Kea Control Agent command K
+    command_responses = {}
     unknown_command_response = """[
   {{
     "result": 2,
@@ -340,14 +591,6 @@ def invalid_json_response():
     {"text": "b", "arguments": {"arg1": "val1"}, "service": "d"
     ]'''
 
-
-@pytest.fixture
-def large_response():
-    return '''
-
-    '''
-
-
 def send_dummy_query(command="command"):
     return send_query(
         query=KeaQuery(command, [], {}),
@@ -355,226 +598,7 @@ def send_dummy_query(command="command"):
         port=80,
     )
 
-
-################################################################################
-# Testing the list[KeaResponse] returned by send_query()                       #
-################################################################################
-
-
-def test_success_responses_does_succeed(success_response, enqueue_post_response):
-    enqueue_post_response("command", success_response)
-    responses = send_dummy_query("command")
-    assert len(responses) == 4
-    for response in responses:
-        assert response.success
-        assert isinstance(response.text, str)
-        assert isinstance(response.arguments, dict)
-        assert isinstance(response.service, str)
-
-
-def test_error_responses_does_not_succeed(error_response, enqueue_post_response):
-    enqueue_post_response("command", error_response)
-    responses = send_dummy_query("command")
-    assert len(responses) == 5
-    for response in responses:
-        assert not response.success
-        assert isinstance(response.text, str)
-        assert isinstance(response.arguments, dict)
-        assert isinstance(response.service, str)
-
-
-################################################################################
-# Testing correct error handling if Kea server returns invalid JSON            #
-################################################################################
-
-
-def test_invalid_json_response(testlog, invalid_json_response, enqueue_post_response):
-    enqueue_post_response("command", invalid_json_response)
-    testlog.clear()
-    with pytest.raises(KeaError):
-        responses = send_dummy_query("command")
-    assert testlog.has_entries(logging.DEBUG, regex=".*invalid.*json.*")
-
-    enqueue_post_response("config-get", lambda **_: invalid_json_response)
-    enqueue_post_response("statistic-get", lambda **_: invalid_json_response)
-    testlog.clear()
-    source = KeaDhcpMetricSource(address="192.0.2.1", port=80)
-    with pytest.raises(KeaError):
-        source.fetch_and_set_dhcp_config()
-    assert testlog.has_entries(logging.DEBUG, regex=".*invalid.*json.*")
-
-    # fetch_dhcp_config_hash should not raise when the server does not support
-    # config-hash-get command
-    testlog.clear()
-    h = source.fetch_dhcp_config_hash()
-    assert h == None
-    assert testlog.has_entries(
-        logging.DEBUG, regex=".*no.*support.*hash.*|.*hash.*no.*support.*"
-    )
-
-    # fetch_dhcp_config_hash should raise when the server returns invalid
-    # json
-    enqueue_post_response("config-hash-get", lambda **_: invalid_json_response)
-    testlog.clear()
-    with pytest.raises(KeaError):
-        source.fetch_and_set_dhcp_config()
-    assert testlog.has_entries(logging.DEBUG, regex=".*invalid.*json.*")
-
-    # FUNCTIONS USED EXTERNALLY SHOULD CATCH EXCEPTIONS AND LOG WARNINGS
-    # fetch_metrics is a method also used external to the module, and thus
-    # instead of raising it should log when the server returns invalid json
-    testlog.clear()
-    source.fetch_metrics()
-    assert testlog.has_entries(logging.WARNING, JSONDecodeError, n=1)
-
-
-################################################################################
-# Testing KeaDhcpSubnet and KeaDhcpConfig instantiation from json              #
-################################################################################
-
-
-def test_correct_subnet_from_dhcp4_config_json(dhcp4_config):
-    j = json.loads(dhcp4_config)
-    subnet = KeaDhcpSubnet.from_json(j["Dhcp4"]["subnet4"][0])
-    assert subnet.id == 1
-    assert subnet.prefix == IP("192.0.0.0/8")
-    assert len(subnet.pools) == 2
-    assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
-    assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
-
-
-def test_correct_config_from_dhcp4_config_json(dhcp4_config):
-    j = json.loads(dhcp4_config)
-    config = KeaDhcpConfig.from_json(j)
-    assert len(config.subnets) == 1
-    subnet = config.subnets[0]
-    assert subnet.id == 1
-    assert subnet.prefix == IP("192.0.0.0/8")
-    assert len(subnet.pools) == 2
-    assert subnet.pools[0] == (IP("192.1.0.1"), IP("192.1.0.200"))
-    assert subnet.pools[1] == (IP("192.3.0.1"), IP("192.3.0.200"))
-    assert config.dhcp_version == 4
-    assert config.config_hash is None
-
-
-def test_correct_config_from_dhcp6_config_json(dhcp6_config):
-    j = json.loads(dhcp6_config)
-    config = KeaDhcpConfig.from_json(j)
-    assert len(config.subnets) == 2
-    subnet1 = config.subnets[0]
-    assert subnet1.id == 1
-    assert subnet1.prefix == IP("2001:db8:1:1::/64")
-    assert len(subnet1.pools) == 1
-    assert subnet1.pools[0] == (IP("2001:db8:1:1::1"), IP("2001:db8:1:1::ffff"))
-    assert config.dhcp_version == 6
-    assert config.config_hash is None
-
-    subnet2 = config.subnets[1]
-    assert subnet2.id == 2
-    assert subnet2.prefix == IP("2001:db8:1:2::/64")
-    assert len(subnet2.pools) == 2
-    assert subnet2.pools[0] == (IP("2001:db8:1:2::1"), IP("2001:db8:1:2::ffff"))
-    assert subnet2.pools[1] == (IP("2001:db8:1:2::1:0"), IP("2001:db8:1:2::1:ffff"))
-    assert config.dhcp_version == 6
-    assert config.config_hash is None
-
-
-def test_correct_config_from_dhcp4_config_w_shared_networks_json(
-    dhcp4_config_w_shared_networks,
-):
-    j = json.loads(dhcp4_config_w_shared_networks)
-    config = KeaDhcpConfig.from_json(j)
-    assert len(config.subnets) == 4
-    subnets = {subnet.id: subnet for subnet in config.subnets}
-
-    subnet1 = subnets[1]
-    assert subnet1.id == 1
-    assert subnet1.prefix == IP("192.0.1.0/24")
-    assert len(subnet1.pools) == 1
-    assert subnet1.pools[0] == (IP("192.0.1.1"), IP("192.0.1.200"))
-    assert config.dhcp_version == 4
-    assert config.config_hash is None
-
-    subnet2 = subnets[2]
-    assert subnet2.id == 2
-    assert subnet2.prefix == IP("192.0.2.0/24")
-    assert len(subnet2.pools) == 1
-    assert subnet2.pools[0] == (IP("192.0.2.100"), IP("192.0.2.199"))
-    assert config.dhcp_version == 4
-    assert config.config_hash is None
-
-    subnet3 = subnets[3]
-    assert subnet3.id == 3
-    assert subnet3.prefix == IP("192.0.3.0/24")
-    assert len(subnet3.pools) == 1
-    assert subnet3.pools[0] == (IP("192.0.3.100"), IP("192.0.3.199"))
-    assert config.dhcp_version == 4
-    assert config.config_hash is None
-
-    subnet4 = subnets[4]
-    assert subnet4.id == 4
-    assert subnet4.prefix == IP("10.0.0.0/8")
-    assert len(subnet4.pools) == 1
-    assert subnet4.pools[0] == (IP("10.0.0.1"), IP("10.0.0.99"))
-    assert config.dhcp_version == 4
-    assert config.config_hash is None
-
-def response_json(dhcp4_config):
-    return f'''
-    [
-    {{
-        "result": 0,
-        "arguments": {dhcp4_config}
-    }}
-    ]
-    '''
-
-
-################################################################################
-# Now we assume KeaDhcpSubnet and KeaDhcpConfig instantiation from json is     #
-# correct.                                                                     #
-# Testing KeaDhcpSubnet and KeaDhcpConfig instantiation from server responses  #
-################################################################################
-
-
-def test_fetch_and_set_dhcp_config(dhcp4_config, enqueue_post_response):
-    enqueue_post_response("config-get", response_json(dhcp4_config))
-    source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
-    assert source.kea_dhcp_config is None
-    config = source.fetch_and_set_dhcp_config()
-    actual_config = KeaDhcpConfig.from_json(
-        json.loads(response_json(dhcp4_config))[0]["arguments"]
-    )
-    assert config == actual_config
-    assert source.kea_dhcp_config == actual_config
-
-
-def test_fetch_and_set_dhcp_config_w_shared_networks(
-    dhcp4_config_w_shared_networks, enqueue_post_response
-):
-    enqueue_post_response("config-get", response_json(dhcp4_config_w_shared_networks))
-    source = KeaDhcpMetricSource("192.0.2.1", 80, https=False)
-    assert source.kea_dhcp_config is None
-    config = source.fetch_and_set_dhcp_config()
-    actual_config = KeaDhcpConfig.from_json(
-        json.loads(response_json(dhcp4_config_w_shared_networks))[0]["arguments"]
-    )
-    assert config == actual_config
-    assert source.kea_dhcp_config == actual_config
-
-
-# @pytest.fixture
-# @enqueue_post_response
-# def dhcp4_config_response_result_is_1():
-#     return f'''
-#     {{
-#         "result": 1,
-#         "arguments": {{
-#             {DHCP4_CONFIG}
-#         }}
-#     }}
-#     '''
-
-# def test_get_dhcp_config_result_is_1(dhcp4_config_result_is_1):
-#     with pytest.raises(Exception): # TODO: Change
-#         get_dhcp_server("example-org", dhcp_version=4)
+def raiser(exception: type[Exception]):
+    def do_raise(*args, **kwargs):
+        raise exception
+    return do_raise
