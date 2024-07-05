@@ -100,6 +100,10 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
 
     def fetch_config_hash(self, session: requests.Session):
+        """
+        Fetch the hash of the current config of the Kea DHCP server serving ip
+        version `dhcp_version`
+        """
         return self.send_query(session, "config-hash-get").get("arguments", {}).get("hash", None)
 
 
@@ -165,9 +169,14 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             return {}
 
 def parsetime(timestamp: str) -> int:
+    """Parse the timestamp string used in Kea's timeseries into unix time"""
     return calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f"))
 
 def subnets_of_config(config: dict, ip_version: int) -> Iterator[tuple[int, IP]]:
+    """
+    List the id and prefix of subnets listed in the Kea DHCP configuration
+    `config`
+    """
     subnetkey = f"subnet{ip_version}"
     for subnet in chain.from_iterable(
             [config.get(subnetkey, [])]
