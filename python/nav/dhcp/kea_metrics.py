@@ -5,7 +5,7 @@ from nav.dhcp.generic_metrics import DhcpMetricSource
 from nav.errors import GeneralException
 import logging
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 class KeaDhcpMetricSource(DhcpMetricSource):
     """
@@ -14,7 +14,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     `dhcp_version` addresses) that the Kea Control Agent controls.
     """
     dhcp_config: dict
-    dhcp_confighash: Optional[str]
     dhcp_version: int
     rest_uri: str
 
@@ -36,15 +35,14 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         scheme = "https" if https else "http"
         self.rest_uri = f"{scheme}://{address}:{port}/"
         self.dhcp_version = dhcp_version
-        self.dchp_confighash = None
+        self.dchp_config = None
 
     def fetch_metrics(self) -> Iterator[DhcpMetric]:
         """
         Fetch total addresses, assigned addresses, and declined addresses of all
         subnets the Kea DHCP server serving ip version `dhcp_version` maintains.
         """
-        config = self.fetch_config()
-        subnets = subnets_of_config(config)
+
         metric_keys = (
             ("total-addresses", DhcpMetricKey.MAX),
             ("assigned-addresses", DhcpMetricKey.CUR),
@@ -53,13 +51,15 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         metrics = []
 
         with requests.Session as s:
+            config = self.fetch_config(s)
+            subnets = subnets_of_config(config, self.dhcp_version)
             for subnetid, prefix in subnets:
                 for kea_key, nav_key in metric_keys:
                     kea_statisticname = f"subnet[{subnetid}].{kea_key}"
                     response = self.send_query(s, "statistic-get", name=kea_statisticname)
                     timeseries = response.get("arguments", {}).get(kea_statisticname, [])
                     if len(timeseries) == 0:
-                        logger.error(
+                        _logger.error(
                             "fetch_metrics: Could not fetch metric '%r' for subnet "
                             "'%s' from Kea: '%s' from Kea is an empty list.",
                             nav_key, prefix, kea_statisticname,
@@ -70,7 +70,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                         )
 
         if sorted(subnets) != sorted(subnets_of_config(self.fetch_config())):
-            logger.error(
+            _logger.error(
                 "Subnet configuration was modified during metric fetching, "
                 "this may cause metric data being associated with wrong "
                 "subnet in some rare cases."
@@ -79,8 +79,28 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         return metrics
 
 
-    def fetch_config(self):
-        raise NotImplementedError
+    def fetch_config(self, session: requests.Session):
+        """
+        Fetch the current config of the Kea DHCP server serving ip version
+        `dhcp_version`
+        """
+        if (
+                self.dhcp_config is None
+                or (dhcp_confighash := self.dhcp_config.get("hash", None)) is None
+                or self.fetch_config_hash(session) != dchp_confighash
+        ):
+            self.dhcp_config = self.send_query(session, "config-get").get("arguments", {}).get(f"Dhcp{self.dhcp_version}", None)
+            if self.dhcp_config is None:
+                raise KeaError(
+                    "Could not fetch configuration of Kea DHCP server from Kea Control "
+                    f"Agent at {self.rest_uri}"
+                )
+
+        return self.dhcp_config
+
+
+    def fetch_config_hash(self, session: requests.Session):
+        return self.send_query(session, "config-hash-get").get("arguments", {}).get("hash", None)
 
 
     def send_query(self, session: requests.Session, command: str, **kwargs) -> dict:
@@ -96,7 +116,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             "arguments": **kwargs,
             "service": [f"dhcp{self.dhcp_version}"]
         })
-        logger.info(
+        _logger.info(
             "send_query: Post request to Kea Control Agent at %s with data %s",
             self.rest_uri,
             postdata,
@@ -135,7 +155,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         if response["result"] == KeaStatus.SUCCESS
             return response
         else:
-            logger.error(
+            _logger.error(
                 "send_query: Kea at %s did not succeed fulfilling query %s "
                 "(responded with: %r) ",
                 self.rest_uri,
@@ -146,20 +166,9 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
 def parsetime(timestamp: str) -> int:
     return calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f"))
-                    
-def subnets_of_config(config: dict) -> Iterator[tuple[int, IP]]:
-    if "Dhcp4" in config:
-        dhcpversion = 4
-        config = config["Dhcp4"]
-        subnetkey = "subnet4"
-    elif "Dhcp6" in config:
-        dhcpversion = 6
-        config = config["Dhcp6"]
-        subnetkey = "subnet6"
-    else:
-        logger.warning("subnets: expected a Kea Dhcp4 or Kea Dhcp6 config, got: ", config)
-        return
 
+def subnets_of_config(config: dict, ip_version: int) -> Iterator[tuple[int, IP]]:
+    subnetkey = f"subnet{ip_version}"
     for subnet in chain.from_iterable(
             [config.get(subnetkey, [])]
             + [network.get(subnetkey, []) for network in config.get("shared-networks", [])]
@@ -167,28 +176,10 @@ def subnets_of_config(config: dict) -> Iterator[tuple[int, IP]]:
         id = subnet.get("id", None)
         prefix = subnet.get("subnet", None)
         if id is None or prefix is None:
-            logger.warning("subnets: id or prefix missing from a subnet's configuration: %r", subnet)
+            _logger.warning("subnets: id or prefix missing from a subnet's configuration: %r", subnet)
             continue
         yield id, IP(prefix)
 
-###>
-d = {"Dhcp4": {}}
-d = {"Dhcp4": {"subnet4": []}}
-d = {"Dhcp4": {"subnet4": [{"subnet": "192.0.2.0/24", "id": 1}]}}
-d = {"Dhcp4": {"subnet4": [{"subnet": "192.0.2.0/24", "id": 1}, {"subnet": "10.1.0.0/16", "id": 2}]}}
-d = {"Dhcp4": {"subnet4": [{"subnet": "192.0.2.0/24", "id": 1}, {"subnet": "10.1.0.0/16", "id": 2}, {"subnet": "10.2.0.0/17", "id": 3}]}}
-d = {"Dhcp4": {
-    "subnet4": [{"subnet": "192.0.2.0/24", "id": 1}, {"subnet": "10.1.0.0/16", "id": 2}, {"subnet": "10.2.0.0/17", "id": 3}],
-    "shared-networks": []}}
-d = {"Dhcp4": {
-    "shared-networks": [{"subnet4": [{"subnet": "192.0.3.0/25", "id": 4}, {"subnet": "192.0.4.0/29", "id": 5}]}]}}
-d = {"Dhcp4": {
-    "subnet4": [{"subnet": "192.0.2.0/24", "id": 1}, {"subnet": "10.1.0.0/16", "id": 2}, {"subnet": "10.2.0.0/17", "id": 3}],
-    "shared-networks": [{"subnet4": [{"subnet": "192.0.3.0/25", "id": 4}, {"subnet": "192.0.4.0/29", "id": 5}]}]}}
-
-for subnet in subnets_of_config(d):
-    print(repr(subnet))
-###<
 
 class KeaError(GeneralException):
     """Error related to interaction with a Kea Control Agent"""
