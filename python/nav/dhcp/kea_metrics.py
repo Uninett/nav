@@ -64,31 +64,70 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             
         return metrics
 
-    def self.send_query(self, session, command, **kwargs) -> dict:
+
+    def fetch_config(self):
+        raise NotImplementedError
+
+
+    def send_query(self, session: requests.Session, command: str, **kwargs) -> dict:
+        """
+        Send `command` to the Kea Control Agent. An exception is raised iff
+        there was an HTTP related error while sending `command` or a response
+        does not look like it is coming from a Kea Control Agent. All raised
+        exceptions are of type `KeaError`. Proper error responses as documented
+        in the API are logged but results in an empty dictionary being returned.
+        """
         postdata = json.dumps({
             "command": command,
             "arguments": **kwargs,
-            "service": [f"dhcp{dhcp_version}"]
+            "service": [f"dhcp{self.dhcp_version}"]
         })
-        logger.info("send_query: Post request to Kea with data %s", postdata)
-        r = session.post(
-            self.rest_url,
-            data=postdata,
-            headers=self.rest_headers,
-            timeout=timeout,
+        logger.info(
+            "send_query: Post request to Kea Control Agent at %s with data %s",
+            self.rest_uri,
+            postdata,
         )
-        rjson = r.json()
-        if not isinstance(rjson, list):
+        try:
+            responses = session.post(
+                self.rest_uri,
+                data=postdata,
+                headers=self.rest_headers,
+                timeout=self.timeout,
+            )
+            responses = responses.json()
+        except RequestException as err:
+            raise KeaError(
+                f"HTTP related error when requesting Kea Control Agent at {self.rest_uri}",
+            ) from err
+        except JSONDecodeError as err:
+            raise KeaError(
+                f"Uri {self.rest_uri} most likely not pointing at a Kea "
+                f"Control Agent (expected json, responded with: {responses!r})",
+            ) from err
+        if not isinstance(responses, list):
             # See https://kea.readthedocs.io/en/kea-2.6.0/arm/ctrl-channel.html#control-agent-command-response-format
             raise KeaError(
-                "send_query: Kea have likely rejected a query (responsed with: {rjson!r})"
+                f"Kea Control Agent at {self.rest_uri} have likely rejected "
+                f"a query (responded with: {rjson!r})"
             )
-        assert len(rjson) == 1
-        response = rjson.pop()
-        if response.get("result", KeaStatus.ERROR) == KeaStatus.SUCCESS
+        if not (len(responses) == 1 and "result" in responses[0]):
+            # "We've only sent the command to *one* service. Thus responses should contain *one* response."
+            raise KeaError(
+                f"Uri {self.rest_uri} most likely not pointing at a Kea "
+                "Control Agent (expected json list with one object having "
+                f"key 'result', responded with: {responses!r})",
+            )
+        response = responses[0]
+        if response["result"] == KeaStatus.SUCCESS
             return response
         else:
-            logger.error("send_query: Kea did not succeed fulfilling a query (responded with: {rjson!r}) ")
+            logger.error(
+                "send_query: Kea at %s did not succeed fulfilling query %s "
+                "(responded with: %r) ",
+                self.rest_uri,
+                postdata,
+                responses
+            )
             return {}
 
 def parsetime(timestamp: str) -> int:
