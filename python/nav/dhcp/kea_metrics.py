@@ -3,7 +3,14 @@ from typing import Iterator, Optional
 from itertools import chain
 from nav.dhcp.generic_metrics import DhcpMetricSource
 from nav.errors import GeneralException
+from nav.dhcp.generic_metrics import DhcpMetric, DhcpMetricKey, DhcpMetricSource
 import logging
+from requests import RequestException, JSONDecodeError
+import requests
+import calendar
+import time
+import json
+from enum import IntEnum
 
 _logger = logging.getLogger(__name__)
 
