@@ -13,10 +13,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     from all subnets managed by the Kea DHCP server (serving ip version
     `dhcp_version` addresses) that the Kea Control Agent controls.
     """
-    dhcp_config: dict
-    dhcp_version: int
-    rest_uri: str
-
     def __init__(
             self,
             address: str,
