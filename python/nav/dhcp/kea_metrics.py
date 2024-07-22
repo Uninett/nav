@@ -38,7 +38,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         scheme = "https" if https else "http"
         self.rest_uri = f"{scheme}://{address}:{port}/"
         self.dhcp_version = dhcp_version
-        self.dchp_config: Optional[dict] = None
+        self.dhcp_config: Optional[dict] = None
 
     def fetch_metrics(self) -> Iterator[DhcpMetric]:
         """
@@ -88,9 +88,9 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         `dhcp_version`
         """
         if (
-                self.dhcp_config is None
-                or (dhcp_confighash := self.dhcp_config.get("hash", None)) is None
-                or self._fetch_config_hash(session) != dchp_confighash
+            self.dhcp_config is None
+            or (dhcp_confighash := self.dhcp_config.get("hash", None)) is None
+            or self._fetch_config_hash(session) != dhcp_confighash
         ):
             self.dhcp_config = self._send_query(session, "config-get").get("arguments", {}).get(f"Dhcp{self.dhcp_version}", None)
             if self.dhcp_config is None:
@@ -149,7 +149,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             # See https://kea.readthedocs.io/en/kea-2.6.0/arm/ctrl-channel.html#control-agent-command-response-format
             raise KeaError(
                 f"Kea Control Agent at {self.rest_uri} have likely rejected "
-                f"a query (responded with: {rjson!r})"
+                f"a query (responded with: {responses!r})"
             )
         if not (len(responses) == 1 and "result" in responses[0]):
             # "We've only sent the command to *one* service. Thus responses should contain *one* response."
@@ -159,7 +159,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 f"key 'result', responded with: {responses!r})",
             )
         response = responses[0]
-        if response["result"] == KeaStatus.SUCCESS
+        if response["result"] == KeaStatus.SUCCESS:
             return response
         else:
             _logger.error(
