@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from IPy import IP
 from nav.metrics import carbon
+from nav.metrics.names import escape_metric_name
 from typing import Iterator
 
 
@@ -42,10 +43,9 @@ class DhcpMetricSource:
         raise NotImplementedError
 
     def fetch_metrics_to_graphite(self, host, port):
-        fmt = str.maketrans({".": "_", "/": "_"})  # 192.0.2.0/24 --> 192_0_0_0_24
         graphite_metrics = []
         for metric in self.fetch_metrics():
-            graphite_path = f"{self.graphite_prefix}.{str(metric.subnet_prefix).translate(fmt)}.{metric.key}"
+            graphite_path = f"{self.graphite_prefix}.{escape_metric_name(str(metric.subnet_prefix))}.{metric.key}"
             datapoint = (metric.timestamp, metric.value)
             graphite_metrics.append((graphite_path, datapoint))
         carbon.send_metrics_to(graphite_metrics, host, port)
