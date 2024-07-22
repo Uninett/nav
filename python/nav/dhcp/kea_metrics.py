@@ -14,21 +14,23 @@ from enum import IntEnum
 
 _logger = logging.getLogger(__name__)
 
+
 class KeaDhcpMetricSource(DhcpMetricSource):
     """
     Sends http requests to Kea Control Agent on `self.rest_uri` to fetch metrics
     from all subnets managed by the Kea DHCP server (serving ip version
     `dhcp_version` addresses) that the Kea Control Agent controls.
     """
+
     def __init__(
-            self,
-            address: str,
-            port: int,
-            *args,
-            https: bool = True,
-            dhcp_version: int = 4,
-            timeout = 10,
-            **kwargs,
+        self,
+        address: str,
+        port: int,
+        *args,
+        https: bool = True,
+        dhcp_version: int = 4,
+        timeout=10,
+        **kwargs,
     ):
         """
         Instantiate a KeaDhcpMetricSource that fetches information via the Kea
@@ -58,14 +60,16 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             subnets = _subnets_of_config(config, self.dhcp_version)
             for subnetid, prefix in subnets:
                 for kea_key, nav_key in metric_keys:
-                    kea_statisticname = f"subnet[{subnetid}].{kea_key}"
-                    response = self._send_query(s, "statistic-get", name=kea_statisticname)
-                    timeseries = response.get("arguments", {}).get(kea_statisticname, [])
+                    kea_name = f"subnet[{subnetid}].{kea_key}"
+                    response = self._send_query(s, "statistic-get", name=kea_name)
+                    timeseries = response.get("arguments", {}).get(kea_name, [])
                     if len(timeseries) == 0:
                         _logger.error(
                             "fetch_metrics: Could not fetch metric '%r' for subnet "
                             "'%s' from Kea: '%s' from Kea is an empty list.",
-                            nav_key, prefix, kea_statisticname,
+                            nav_key,
+                            prefix,
+                            kea_name,
                         )
                     for value, timestamp in timeseries:
                         metrics.append(
@@ -81,7 +85,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
         return metrics
 
-
     def _fetch_config(self, session: requests.Session) -> dict:
         """
         Fetch the current config of the Kea DHCP server serving ip version
@@ -92,7 +95,11 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             or (dhcp_confighash := self.dhcp_config.get("hash", None)) is None
             or self._fetch_config_hash(session) != dhcp_confighash
         ):
-            self.dhcp_config = self._send_query(session, "config-get").get("arguments", {}).get(f"Dhcp{self.dhcp_version}", None)
+            self.dhcp_config = (
+                self._send_query(session, "config-get")
+                .get("arguments", {})
+                .get(f"Dhcp{self.dhcp_version}", None)
+            )
             if self.dhcp_config is None:
                 raise KeaError(
                     "Could not fetch configuration of Kea DHCP server from Kea Control "
@@ -101,14 +108,16 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
         return self.dhcp_config
 
-
     def _fetch_config_hash(self, session: requests.Session) -> Optional[str]:
         """
         Fetch the hash of the current config of the Kea DHCP server serving ip
         version `dhcp_version`
         """
-        return self._send_query(session, "config-hash-get").get("arguments", {}).get("hash", None)
-
+        return (
+            self._send_query(session, "config-hash-get")
+            .get("arguments", {})
+            .get("hash", None)
+        )
 
     def _send_query(self, session: requests.Session, command: str, **kwargs) -> dict:
         """
@@ -118,11 +127,13 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         exceptions are of type `KeaError`. Proper error responses as documented
         in the API are logged but results in an empty dictionary being returned.
         """
-        postdata = json.dumps({
-            "command": command,
-            "arguments": **kwargs,
-            "service": [f"dhcp{self.dhcp_version}"]
-        })
+        postdata = json.dumps(
+            {
+                "command": command,
+                "arguments": {**kwargs},
+                "service": [f"dhcp{self.dhcp_version}"],
+            }
+        )
         _logger.info(
             "send_query: Post request to Kea Control Agent at %s with data %s",
             self.rest_uri,
@@ -167,13 +178,15 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 "(responded with: %r) ",
                 self.rest_uri,
                 postdata,
-                responses
+                responses,
             )
             return {}
+
 
 def _parsetime(timestamp: str) -> int:
     """Parse the timestamp string used in Kea's timeseries into unix time"""
     return calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f"))
+
 
 def _subnets_of_config(config: dict, ip_version: int) -> Iterator[tuple[int, IP]]:
     """
@@ -182,13 +195,14 @@ def _subnets_of_config(config: dict, ip_version: int) -> Iterator[tuple[int, IP]
     """
     subnetkey = f"subnet{ip_version}"
     for subnet in chain.from_iterable(
-            [config.get(subnetkey, [])]
-            + [network.get(subnetkey, []) for network in config.get("shared-networks", [])]
+        [config.get(subnetkey, [])]
+        + [network.get(subnetkey, []) for network in config.get("shared-networks", [])]
     ):
         id = subnet.get("id", None)
         prefix = subnet.get("subnet", None)
         if id is None or prefix is None:
-            _logger.warning("subnets: id or prefix missing from a subnet's configuration: %r", subnet)
+            msg = "subnets: id or prefix missing from a subnet's configuration: %r"
+            _logger.warning(msg, subnet)
             continue
         yield id, IP(prefix)
 
@@ -196,8 +210,10 @@ def _subnets_of_config(config: dict, ip_version: int) -> Iterator[tuple[int, IP]
 class KeaError(GeneralException):
     """Error related to interaction with a Kea Control Agent"""
 
+
 class KeaStatus(IntEnum):
     """Status of a response sent from a Kea Control Agent."""
+
     # Successful operation.
     SUCCESS = 0
     # General failure.
