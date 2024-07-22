@@ -31,7 +31,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         scheme = "https" if https else "http"
         self.rest_uri = f"{scheme}://{address}:{port}/"
         self.dhcp_version = dhcp_version
-        self.dchp_config = None
+        self.dchp_config: Optional[dict] = None
 
     def fetch_metrics(self) -> Iterator[DhcpMetric]:
         """
@@ -47,12 +47,12 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         metrics = []
 
         with requests.Session as s:
-            config = self.fetch_config(s)
-            subnets = subnets_of_config(config, self.dhcp_version)
+            config = self._fetch_config(s)
+            subnets = _subnets_of_config(config, self.dhcp_version)
             for subnetid, prefix in subnets:
                 for kea_key, nav_key in metric_keys:
                     kea_statisticname = f"subnet[{subnetid}].{kea_key}"
-                    response = self.send_query(s, "statistic-get", name=kea_statisticname)
+                    response = self._send_query(s, "statistic-get", name=kea_statisticname)
                     timeseries = response.get("arguments", {}).get(kea_statisticname, [])
                     if len(timeseries) == 0:
                         _logger.error(
@@ -62,10 +62,10 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                         )
                     for value, timestamp in timeseries:
                         metrics.append(
-                            DhcpMetric(parsetime(timestamp), prefix, nav_key, value)
+                            DhcpMetric(_parsetime(timestamp), prefix, nav_key, value)
                         )
 
-        if sorted(subnets) != sorted(subnets_of_config(self.fetch_config())):
+        if sorted(subnets) != sorted(_subnets_of_config(self._fetch_config())):
             _logger.error(
                 "Subnet configuration was modified during metric fetching, "
                 "this may cause metric data being associated with wrong "
@@ -75,7 +75,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         return metrics
 
 
-    def fetch_config(self, session: requests.Session):
+    def _fetch_config(self, session: requests.Session) -> dict:
         """
         Fetch the current config of the Kea DHCP server serving ip version
         `dhcp_version`
@@ -83,9 +83,9 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         if (
                 self.dhcp_config is None
                 or (dhcp_confighash := self.dhcp_config.get("hash", None)) is None
-                or self.fetch_config_hash(session) != dchp_confighash
+                or self._fetch_config_hash(session) != dchp_confighash
         ):
-            self.dhcp_config = self.send_query(session, "config-get").get("arguments", {}).get(f"Dhcp{self.dhcp_version}", None)
+            self.dhcp_config = self._send_query(session, "config-get").get("arguments", {}).get(f"Dhcp{self.dhcp_version}", None)
             if self.dhcp_config is None:
                 raise KeaError(
                     "Could not fetch configuration of Kea DHCP server from Kea Control "
@@ -95,15 +95,15 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         return self.dhcp_config
 
 
-    def fetch_config_hash(self, session: requests.Session):
+    def _fetch_config_hash(self, session: requests.Session) -> Optional[str]:
         """
         Fetch the hash of the current config of the Kea DHCP server serving ip
         version `dhcp_version`
         """
-        return self.send_query(session, "config-hash-get").get("arguments", {}).get("hash", None)
+        return self._send_query(session, "config-hash-get").get("arguments", {}).get("hash", None)
 
 
-    def send_query(self, session: requests.Session, command: str, **kwargs) -> dict:
+    def _send_query(self, session: requests.Session, command: str, **kwargs) -> dict:
         """
         Send `command` to the Kea Control Agent. An exception is raised iff
         there was an HTTP related error while sending `command` or a response
@@ -164,11 +164,11 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             )
             return {}
 
-def parsetime(timestamp: str) -> int:
+def _parsetime(timestamp: str) -> int:
     """Parse the timestamp string used in Kea's timeseries into unix time"""
     return calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f"))
 
-def subnets_of_config(config: dict, ip_version: int) -> Iterator[tuple[int, IP]]:
+def _subnets_of_config(config: dict, ip_version: int) -> Iterator[tuple[int, IP]]:
     """
     List the id and prefix of subnets listed in the Kea DHCP configuration
     `config`
