@@ -15,7 +15,7 @@ class DhcpMetricKey(Enum):
         return self.name.lower()  # For use in graphite path
 
 
-@dataclass
+@dataclass(frozen=True)
 class DhcpMetric:
     timestamp: int
     subnet_prefix: IP
