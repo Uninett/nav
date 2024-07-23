@@ -108,7 +108,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 .get("arguments", {})
                 .get(f"Dhcp{self.dhcp_version}", None)
             )
-            if self.dhcp_config is None:
+            if self.dhcp_config is None or status != KeaStatus.SUCCESS:
                 raise KeaError(
                     "Could not fetch configuration of Kea DHCP server from Kea Control "
                     f"Agent at {self.rest_uri}"
