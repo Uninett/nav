@@ -29,18 +29,26 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         *args,
         https: bool = True,
         dhcp_version: int = 4,
-        timeout=10,
+        timeout: int = 10,
+        tzinfo: datetime.tzinfo = datetime.now().astimezone().tzinfo,
         **kwargs,
     ):
         """
         Instantiate a KeaDhcpMetricSource that fetches information via the Kea
         Control Agent listening to `port` on `address`.
+
+        :param https: if True, use https. Otherwise, use http
+        :param dhcp_version: ip version served by Kea DHCP server
+        :param timeout: how long to wait for http response from Kea Control Agent before timing out
+        :param tzinfo: the timezone of the Kea Control Agent. We must specify its timezone explicitly because timestamps it responds with bear no timezone information. If this parameter is not given, we assume that the the Kea Control Agent and this machine is configured to use the same timezone.
         """
         super(*args, **kwargs)
         scheme = "https" if https else "http"
         self.rest_uri = f"{scheme}://{address}:{port}/"
         self.dhcp_version = dhcp_version
         self.dhcp_config: Optional[dict] = None
+        self.timeout = timeout
+        self.tzinfo = tzinfo
 
     def fetch_metrics(self) -> Iterator[DhcpMetric]:
         """
@@ -182,10 +190,9 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             )
             return {}
 
-
-def _parsetime(timestamp: str) -> int:
-    """Parse the timestamp string used in Kea's timeseries into unix time"""
-    return calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f"))
+    def _parsetime(self, timestamp: str) -> int:
+        """Parse the timestamp string used in Kea's timeseries into unix time"""
+        return datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f").replace(tzinfo=self.tzinfo)
 
 
 def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
