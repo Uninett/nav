@@ -41,7 +41,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         :param https: if True, use https. Otherwise, use http
         :param dhcp_version: ip version served by Kea DHCP server
         :param timeout: how long to wait for http response from Kea Control Agent before timing out
-        :param tzinfo: the timezone of the Kea Control Agent. We must specify its timezone explicitly because timestamps it responds with bear no timezone information. If this parameter is not given, we assume that the the Kea Control Agent and this machine is configured to use the same timezone.
+        :param tzinfo: the timezone of the Kea Control Agent.
         """
         super(*args, **kwargs)
         scheme = "https" if https else "http"
@@ -133,9 +133,11 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         """
         Send `command` to the Kea Control Agent. An exception is raised iff
         there was an HTTP related error while sending `command` or a response
-        does not look like it is coming from a Kea Control Agent. All raised
-        exceptions are of type `KeaError`. Proper error responses as documented
-        in the API are logged but results in an empty dictionary being returned.
+        does not look like it is coming from a Kea Control Agent or if the
+        request likely was rejected by the Kea Control Agent. All raised
+        exceptions are of type `KeaError`. Valid Kea error responses such as
+        those with result == KeaStatus.ERROR are only logged as an error, and
+        result in an empty dictionary being returned.
         """
         postdata = json.dumps(
             {

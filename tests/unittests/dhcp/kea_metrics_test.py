@@ -26,7 +26,7 @@ def test_dhcp4_config_and_statistic_response_that_is_valid_should_return_every_m
 def test_config_response_with_error_status_should_raise_KeaError(valid_dhcp4, responsequeue, status):
     """
     If Kea responds with an error while fetching the Kea DHCP's config during
-    fetch_metrics(), we cannot continue
+    fetch_metrics(), we cannot continue further, so we fail.
     """
     config, statistics, _ = valid_dhcp4
     responsequeue.prefill("dhcp4", None, statistics)
@@ -38,8 +38,8 @@ def test_config_response_with_error_status_should_raise_KeaError(valid_dhcp4, re
 def test_any_response_with_invalid_format_should_raise_KeaError(valid_dhcp4, responsequeue):
     """
     If Kea responds with an invalid format (i.e. in an unrecognizable way), we
-    should fail loudly, because proboably either the location we're re
-    requesting is not a Kea Control Agent, or there's a part of the API that
+    should fail loudly, because chances are either the host we're sending
+    requests to is not a Kea Control Agent, or there's a part of the API that
     we've not covered.
     """
     config, statistics, _ = valid_dhcp4
