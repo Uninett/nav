@@ -45,7 +45,7 @@ class DhcpMetricSource:
     def fetch_metrics_to_graphite(self, host, port):
         graphite_metrics = []
         for metric in self.fetch_metrics():
-            graphite_path = f"{self.graphite_prefix}.{escape_metric_name(str(metric.subnet_prefix))}.{metric.key}"
+            graphite_path = f"{self.graphite_prefix}.{escape_metric_name(metric.subnet_prefix.strNormal())}.{metric.key}"
             datapoint = (metric.timestamp, metric.value)
             graphite_metrics.append((graphite_path, datapoint))
         carbon.send_metrics_to(graphite_metrics, host, port)
