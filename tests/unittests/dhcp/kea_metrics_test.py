@@ -10,20 +10,31 @@ import re
 from requests.exceptions import JSONDecodeError, HTTPError, Timeout
 from datetime import timezone
 
-def test_dhcp6_config_and_statistic_response_that_is_valid_should_return_every_metric(valid_dhcp6, responsequeue):
+
+def test_dhcp6_config_and_statistic_response_that_is_valid_should_return_every_metric(
+    valid_dhcp6, responsequeue
+):
     config, statistics, expected_metrics = valid_dhcp6
     responsequeue.prefill("dhcp6", config, statistics)
     source = KeaDhcpMetricSource("192.0.1.2", 80, dhcp_version=6, tzinfo=timezone.utc)
     assert set(source.fetch_metrics()) == set(expected_metrics)
 
-def test_dhcp4_config_and_statistic_response_that_is_valid_should_return_every_metric(valid_dhcp4, responsequeue):
+
+def test_dhcp4_config_and_statistic_response_that_is_valid_should_return_every_metric(
+    valid_dhcp4, responsequeue
+):
     config, statistics, expected_metrics = valid_dhcp4
     responsequeue.prefill("dhcp4", config, statistics)
     source = KeaDhcpMetricSource("192.0.1.2", 80, dhcp_version=4, tzinfo=timezone.utc)
     assert set(source.fetch_metrics()) == set(expected_metrics)
 
-@pytest.mark.parametrize("status", [status for status in KeaStatus if status != KeaStatus.SUCCESS])
-def test_config_response_with_error_status_should_raise_KeaError(valid_dhcp4, responsequeue, status):
+
+@pytest.mark.parametrize(
+    "status", [status for status in KeaStatus if status != KeaStatus.SUCCESS]
+)
+def test_config_response_with_error_status_should_raise_KeaError(
+    valid_dhcp4, responsequeue, status
+):
     """
     If Kea responds with an error while fetching the Kea DHCP's config during
     fetch_metrics(), we cannot continue further, so we fail.
@@ -35,7 +46,10 @@ def test_config_response_with_error_status_should_raise_KeaError(valid_dhcp4, re
     with pytest.raises(KeaError):
         source.fetch_metrics()
 
-def test_any_response_with_invalid_format_should_raise_KeaError(valid_dhcp4, responsequeue):
+
+def test_any_response_with_invalid_format_should_raise_KeaError(
+    valid_dhcp4, responsequeue
+):
     """
     If Kea responds with an invalid format (i.e. in an unrecognizable way), we
     should fail loudly, because chances are either the host we're sending
@@ -74,7 +88,9 @@ def test_any_response_with_invalid_format_should_raise_KeaError(valid_dhcp4, res
         source.fetch_metrics()
 
 
-def test_all_responses_is_empty_but_valid_should_yield_no_metrics(valid_dhcp4, responsequeue):
+def test_all_responses_is_empty_but_valid_should_yield_no_metrics(
+    valid_dhcp4, responsequeue
+):
     """
     If the Kea DHCP server we query does not have any subnets configured, the
     correct thing to do is to return an empty iterable, (as opposed to failing).
@@ -91,7 +107,9 @@ def test_all_responses_is_empty_but_valid_should_yield_no_metrics(valid_dhcp4, r
     responsequeue.clear()
 
     responsequeue.prefill("dhcp4", config, None)
-    responsequeue.add("statistic-get", lambda arguments, **_: kearesponse({arguments["name"]: []}))
+    responsequeue.add(
+        "statistic-get", lambda arguments, **_: kearesponse({arguments["name"]: []})
+    )
     assert list(source.fetch_metrics()) == []
 
     responsequeue.clear()
@@ -109,214 +127,225 @@ def valid_dhcp6():
             "renew-timer": 1000,
             "rebind-timer": 2000,
             "preferred-lifetime": 3000,
-
-    "interfaces-config": {
-        "interfaces": [ "eth0" ]
-    },
-
-    "lease-database": {
-        "type": "memfile",
-        "persist": True,
-        "name": "/var/lib/kea/dhcp6.leases"
-    },
-
-    "subnet6": [
-        {
-            "id": 1,
-            "subnet": "2001:db8:1:1::/64",
-            "pools": [
-                {
-                    "pool": "2001:db8:1:1::1-2001:db8:1:1::ffff"
-                }
-            ]
-        },
-        {
-            "id": 2,
-            "subnet": "2001:db8:1:2::/64",
-            "pools": [
-                {
-                    "pool": "2001:db8:1:2::1-2001:db8:1:2::ffff"
-                },
-                {
-                    "pool": "2001:db8:1:2::1:0/112"
-                }
-            ]
-        }
-    ],
-    "shared-networks": [
-        {
-            "name": "shared-network-1",
+            "interfaces-config": {"interfaces": ["eth0"]},
+            "lease-database": {
+                "type": "memfile",
+                "persist": True,
+                "name": "/var/lib/kea/dhcp6.leases",
+            },
             "subnet6": [
                 {
-                    "id": 3,
-                    "subnet": "2001:db8:1:3::/64",
+                    "id": 1,
+                    "subnet": "2001:db8:1:1::/64",
+                    "pools": [{"pool": "2001:db8:1:1::1-2001:db8:1:1::ffff"}],
                 },
                 {
-                    "id": 4,
-                    "subnet": "2001:db8:1:4::/64",
-                }
-            ]
-        },
-        {
-            "name": "shared-network-2",
-            "subnet6": [
+                    "id": 2,
+                    "subnet": "2001:db8:1:2::/64",
+                    "pools": [
+                        {"pool": "2001:db8:1:2::1-2001:db8:1:2::ffff"},
+                        {"pool": "2001:db8:1:2::1:0/112"},
+                    ],
+                },
+            ],
+            "shared-networks": [
                 {
-                    "id": 5,
-                    "subnet": "2001:db8:1:5::/64",
-                }
-            ]
+                    "name": "shared-network-1",
+                    "subnet6": [
+                        {
+                            "id": 3,
+                            "subnet": "2001:db8:1:3::/64",
+                        },
+                        {
+                            "id": 4,
+                            "subnet": "2001:db8:1:4::/64",
+                        },
+                    ],
+                },
+                {
+                    "name": "shared-network-2",
+                    "subnet6": [
+                        {
+                            "id": 5,
+                            "subnet": "2001:db8:1:5::/64",
+                        }
+                    ],
+                },
+            ],
         }
-    ],
-    }
     }
     statistics = {
         "subnet[1].assigned-addresses": [
-            [
-                1,
-                "2024-07-22 09:06:58.140438"
-            ],
-            [
-                0,
-                "2024-07-05 20:44:54.230608"
-            ],
-            [
-                1,
-                "2024-07-05 09:15:05.626594"
-            ],
+            [1, "2024-07-22 09:06:58.140438"],
+            [0, "2024-07-05 20:44:54.230608"],
+            [1, "2024-07-05 09:15:05.626594"],
         ],
-        "subnet[1].declined-addresses": [
-            [
-                0,
-                "2024-07-03 16:13:59.401071"
-            ]
-        ],
-        "subnet[1].total-addresses": [
-            [
-                239,
-                "2024-07-03 16:13:59.401058"
-            ]
-        ],
+        "subnet[1].declined-addresses": [[0, "2024-07-03 16:13:59.401071"]],
+        "subnet[1].total-addresses": [[239, "2024-07-03 16:13:59.401058"]],
         "subnet[2].assigned-addresses": [
-            [
-                1,
-                "2024-07-22 09:06:58.140439"
-            ],
-            [
-                1,
-                "2024-07-05 20:44:54.230609"
-            ],
-            [
-                2,
-                "2024-07-05 09:15:05.626595"
-            ],
+            [1, "2024-07-22 09:06:58.140439"],
+            [1, "2024-07-05 20:44:54.230609"],
+            [2, "2024-07-05 09:15:05.626595"],
         ],
-        "subnet[2].declined-addresses": [
-            [
-                1,
-                "2024-07-03 16:13:59.401072"
-            ]
-        ],
-        "subnet[2].total-addresses": [
-            [
-                240,
-                "2024-07-03 16:13:59.401059"
-            ]
-        ],
+        "subnet[2].declined-addresses": [[1, "2024-07-03 16:13:59.401072"]],
+        "subnet[2].total-addresses": [[240, "2024-07-03 16:13:59.401059"]],
         "subnet[3].assigned-addresses": [
-            [
-                4,
-                "2024-07-22 09:06:58.140439"
-            ],
-            [
-                5,
-                "2024-07-05 20:44:54.230609"
-            ],
+            [4, "2024-07-22 09:06:58.140439"],
+            [5, "2024-07-05 20:44:54.230609"],
         ],
-        "subnet[3].declined-addresses": [
-            [
-                0,
-                "2024-07-03 16:13:59.401072"
-            ]
-        ],
-        "subnet[3].total-addresses": [
-            [
-                241,
-                "2024-07-03 16:13:59.401059"
-            ]
-        ],
+        "subnet[3].declined-addresses": [[0, "2024-07-03 16:13:59.401072"]],
+        "subnet[3].total-addresses": [[241, "2024-07-03 16:13:59.401059"]],
         "subnet[4].assigned-addresses": [
-            [
-                1,
-                "2024-07-22 09:06:58.140439"
-            ],
-            [
-                1,
-                "2024-07-05 20:44:54.230609"
-            ],
+            [1, "2024-07-22 09:06:58.140439"],
+            [1, "2024-07-05 20:44:54.230609"],
         ],
-        "subnet[4].declined-addresses": [
-            [
-                1,
-                "2024-07-03 16:13:59.401072"
-            ]
-        ],
-        "subnet[4].total-addresses": [
-            [
-                242,
-                "2024-07-03 16:13:59.401059"
-            ]
-        ],
+        "subnet[4].declined-addresses": [[1, "2024-07-03 16:13:59.401072"]],
+        "subnet[4].total-addresses": [[242, "2024-07-03 16:13:59.401059"]],
         "subnet[5].assigned-addresses": [
-            [
-                1,
-                "2024-07-22 09:06:58.140439"
-            ],
-            [
-                1,
-                "2024-07-05 20:44:54.230609"
-            ],
+            [1, "2024-07-22 09:06:58.140439"],
+            [1, "2024-07-05 20:44:54.230609"],
         ],
-        "subnet[5].declined-addresses": [
-            [
-                1,
-                "2024-07-03 16:13:59.401072"
-            ]
-        ],
-        "subnet[5].total-addresses": [
-            [
-                243,
-                "2024-07-03 16:13:59.401059"
-            ]
-        ],
-
+        "subnet[5].declined-addresses": [[1, "2024-07-03 16:13:59.401072"]],
+        "subnet[5].total-addresses": [[243, "2024-07-03 16:13:59.401059"]],
     }
 
     expected_metrics = [
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140438+00:00"), IP("2001:db8:1:1::/64"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230608+00:00"), IP("2001:db8:1:1::/64"), DhcpMetricKey.CUR, 0),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T09:15:05.626594+00:00"), IP("2001:db8:1:1::/64"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401071+00:00"), IP("2001:db8:1:1::/64"), DhcpMetricKey.TOUCH, 0),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401058+00:00"), IP("2001:db8:1:1::/64"), DhcpMetricKey.MAX, 239),
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"), IP("2001:db8:1:2::/64"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"), IP("2001:db8:1:2::/64"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T09:15:05.626595+00:00"), IP("2001:db8:1:2::/64"), DhcpMetricKey.CUR, 2),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"), IP("2001:db8:1:2::/64"), DhcpMetricKey.TOUCH, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"), IP("2001:db8:1:2::/64"), DhcpMetricKey.MAX, 240),
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"), IP("2001:db8:1:3::/64"), DhcpMetricKey.CUR, 4),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"), IP("2001:db8:1:3::/64"), DhcpMetricKey.CUR, 5),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"), IP("2001:db8:1:3::/64"), DhcpMetricKey.TOUCH, 0),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"), IP("2001:db8:1:3::/64"), DhcpMetricKey.MAX, 241),
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"), IP("2001:db8:1:4::/64"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"), IP("2001:db8:1:4::/64"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"), IP("2001:db8:1:4::/64"), DhcpMetricKey.TOUCH, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"), IP("2001:db8:1:4::/64"), DhcpMetricKey.MAX, 242),
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"), IP("2001:db8:1:5::/64"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"), IP("2001:db8:1:5::/64"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"), IP("2001:db8:1:5::/64"), DhcpMetricKey.TOUCH, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"), IP("2001:db8:1:5::/64"), DhcpMetricKey.MAX, 243),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140438+00:00"),
+            IP("2001:db8:1:1::/64"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230608+00:00"),
+            IP("2001:db8:1:1::/64"),
+            DhcpMetricKey.CUR,
+            0,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T09:15:05.626594+00:00"),
+            IP("2001:db8:1:1::/64"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401071+00:00"),
+            IP("2001:db8:1:1::/64"),
+            DhcpMetricKey.TOUCH,
+            0,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401058+00:00"),
+            IP("2001:db8:1:1::/64"),
+            DhcpMetricKey.MAX,
+            239,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"),
+            IP("2001:db8:1:2::/64"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"),
+            IP("2001:db8:1:2::/64"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T09:15:05.626595+00:00"),
+            IP("2001:db8:1:2::/64"),
+            DhcpMetricKey.CUR,
+            2,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"),
+            IP("2001:db8:1:2::/64"),
+            DhcpMetricKey.TOUCH,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"),
+            IP("2001:db8:1:2::/64"),
+            DhcpMetricKey.MAX,
+            240,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"),
+            IP("2001:db8:1:3::/64"),
+            DhcpMetricKey.CUR,
+            4,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"),
+            IP("2001:db8:1:3::/64"),
+            DhcpMetricKey.CUR,
+            5,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"),
+            IP("2001:db8:1:3::/64"),
+            DhcpMetricKey.TOUCH,
+            0,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"),
+            IP("2001:db8:1:3::/64"),
+            DhcpMetricKey.MAX,
+            241,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"),
+            IP("2001:db8:1:4::/64"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"),
+            IP("2001:db8:1:4::/64"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"),
+            IP("2001:db8:1:4::/64"),
+            DhcpMetricKey.TOUCH,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"),
+            IP("2001:db8:1:4::/64"),
+            DhcpMetricKey.MAX,
+            242,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"),
+            IP("2001:db8:1:5::/64"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"),
+            IP("2001:db8:1:5::/64"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"),
+            IP("2001:db8:1:5::/64"),
+            DhcpMetricKey.TOUCH,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"),
+            IP("2001:db8:1:5::/64"),
+            DhcpMetricKey.MAX,
+            243,
+        ),
     ]
 
     return config, statistics, expected_metrics
+
 
 @pytest.fixture
 def valid_dhcp4():
@@ -326,214 +355,225 @@ def valid_dhcp4():
             "renew-timer": 1000,
             "rebind-timer": 2000,
             "preferred-lifetime": 3000,
-
-    "interfaces-config": {
-        "interfaces": [ "eth0" ]
-    },
-
-    "lease-database": {
-        "type": "memfile",
-        "persist": True,
-        "name": "/var/lib/kea/dhcp6.leases"
-    },
-
-    "subnet4": [
-        {
-            "id": 1,
-            "subnet": "192.0.1.0/24",
-            "pools": [
-                {
-                    "pool": "192.0.1.1-192.0.1.10"
-                }
-            ]
-        },
-        {
-            "id": 2,
-            "subnet": "192.0.2.0/24",
-            "pools": [
-                {
-                    "pool": "192.0.2.1-192.0.2.10"
-                },
-                {
-                    "pool": "192.0.2.128/25"
-                }
-            ]
-        }
-    ],
-    "shared-networks": [
-        {
-            "name": "shared-network-1",
+            "interfaces-config": {"interfaces": ["eth0"]},
+            "lease-database": {
+                "type": "memfile",
+                "persist": True,
+                "name": "/var/lib/kea/dhcp6.leases",
+            },
             "subnet4": [
                 {
-                    "id": 3,
-                    "subnet": "192.0.3.0/24",
+                    "id": 1,
+                    "subnet": "192.0.1.0/24",
+                    "pools": [{"pool": "192.0.1.1-192.0.1.10"}],
                 },
                 {
-                    "id": 4,
-                    "subnet": "192.0.4.0/24",
-                }
-            ]
-        },
-        {
-            "name": "shared-network-2",
-            "subnet4": [
+                    "id": 2,
+                    "subnet": "192.0.2.0/24",
+                    "pools": [
+                        {"pool": "192.0.2.1-192.0.2.10"},
+                        {"pool": "192.0.2.128/25"},
+                    ],
+                },
+            ],
+            "shared-networks": [
                 {
-                    "id": 5,
-                    "subnet": "192.0.5.0/24",
-                }
-            ]
+                    "name": "shared-network-1",
+                    "subnet4": [
+                        {
+                            "id": 3,
+                            "subnet": "192.0.3.0/24",
+                        },
+                        {
+                            "id": 4,
+                            "subnet": "192.0.4.0/24",
+                        },
+                    ],
+                },
+                {
+                    "name": "shared-network-2",
+                    "subnet4": [
+                        {
+                            "id": 5,
+                            "subnet": "192.0.5.0/24",
+                        }
+                    ],
+                },
+            ],
         }
-    ],
-    }
     }
     statistics = {
         "subnet[1].assigned-addresses": [
-            [
-                1,
-                "2024-07-22 09:06:58.140438"
-            ],
-            [
-                0,
-                "2024-07-05 20:44:54.230608"
-            ],
-            [
-                1,
-                "2024-07-05 09:15:05.626594"
-            ],
+            [1, "2024-07-22 09:06:58.140438"],
+            [0, "2024-07-05 20:44:54.230608"],
+            [1, "2024-07-05 09:15:05.626594"],
         ],
-        "subnet[1].declined-addresses": [
-            [
-                0,
-                "2024-07-03 16:13:59.401071"
-            ]
-        ],
-        "subnet[1].total-addresses": [
-            [
-                239,
-                "2024-07-03 16:13:59.401058"
-            ]
-        ],
+        "subnet[1].declined-addresses": [[0, "2024-07-03 16:13:59.401071"]],
+        "subnet[1].total-addresses": [[239, "2024-07-03 16:13:59.401058"]],
         "subnet[2].assigned-addresses": [
-            [
-                1,
-                "2024-07-22 09:06:58.140439"
-            ],
-            [
-                1,
-                "2024-07-05 20:44:54.230609"
-            ],
-            [
-                2,
-                "2024-07-05 09:15:05.626595"
-            ],
+            [1, "2024-07-22 09:06:58.140439"],
+            [1, "2024-07-05 20:44:54.230609"],
+            [2, "2024-07-05 09:15:05.626595"],
         ],
-        "subnet[2].declined-addresses": [
-            [
-                1,
-                "2024-07-03 16:13:59.401072"
-            ]
-        ],
-        "subnet[2].total-addresses": [
-            [
-                240,
-                "2024-07-03 16:13:59.401059"
-            ]
-        ],
+        "subnet[2].declined-addresses": [[1, "2024-07-03 16:13:59.401072"]],
+        "subnet[2].total-addresses": [[240, "2024-07-03 16:13:59.401059"]],
         "subnet[3].assigned-addresses": [
-            [
-                4,
-                "2024-07-22 09:06:58.140439"
-            ],
-            [
-                5,
-                "2024-07-05 20:44:54.230609"
-            ],
+            [4, "2024-07-22 09:06:58.140439"],
+            [5, "2024-07-05 20:44:54.230609"],
         ],
-        "subnet[3].declined-addresses": [
-            [
-                0,
-                "2024-07-03 16:13:59.401072"
-            ]
-        ],
-        "subnet[3].total-addresses": [
-            [
-                241,
-                "2024-07-03 16:13:59.401059"
-            ]
-        ],
+        "subnet[3].declined-addresses": [[0, "2024-07-03 16:13:59.401072"]],
+        "subnet[3].total-addresses": [[241, "2024-07-03 16:13:59.401059"]],
         "subnet[4].assigned-addresses": [
-            [
-                1,
-                "2024-07-22 09:06:58.140439"
-            ],
-            [
-                1,
-                "2024-07-05 20:44:54.230609"
-            ],
+            [1, "2024-07-22 09:06:58.140439"],
+            [1, "2024-07-05 20:44:54.230609"],
         ],
-        "subnet[4].declined-addresses": [
-            [
-                1,
-                "2024-07-03 16:13:59.401072"
-            ]
-        ],
-        "subnet[4].total-addresses": [
-            [
-                242,
-                "2024-07-03 16:13:59.401059"
-            ]
-        ],
+        "subnet[4].declined-addresses": [[1, "2024-07-03 16:13:59.401072"]],
+        "subnet[4].total-addresses": [[242, "2024-07-03 16:13:59.401059"]],
         "subnet[5].assigned-addresses": [
-            [
-                1,
-                "2024-07-22 09:06:58.140439"
-            ],
-            [
-                1,
-                "2024-07-05 20:44:54.230609"
-            ],
+            [1, "2024-07-22 09:06:58.140439"],
+            [1, "2024-07-05 20:44:54.230609"],
         ],
-        "subnet[5].declined-addresses": [
-            [
-                1,
-                "2024-07-03 16:13:59.401072"
-            ]
-        ],
-        "subnet[5].total-addresses": [
-            [
-                243,
-                "2024-07-03 16:13:59.401059"
-            ]
-        ],
-
+        "subnet[5].declined-addresses": [[1, "2024-07-03 16:13:59.401072"]],
+        "subnet[5].total-addresses": [[243, "2024-07-03 16:13:59.401059"]],
     }
 
     expected_metrics = [
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140438+00:00"), IP("192.0.1.0/24"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230608+00:00"), IP("192.0.1.0/24"), DhcpMetricKey.CUR, 0),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T09:15:05.626594+00:00"), IP("192.0.1.0/24"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401071+00:00"), IP("192.0.1.0/24"), DhcpMetricKey.TOUCH, 0),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401058+00:00"), IP("192.0.1.0/24"), DhcpMetricKey.MAX, 239),
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"), IP("192.0.2.0/24"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"), IP("192.0.2.0/24"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T09:15:05.626595+00:00"), IP("192.0.2.0/24"), DhcpMetricKey.CUR, 2),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"), IP("192.0.2.0/24"), DhcpMetricKey.TOUCH, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"), IP("192.0.2.0/24"), DhcpMetricKey.MAX, 240),
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"), IP("192.0.3.0/24"), DhcpMetricKey.CUR, 4),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"), IP("192.0.3.0/24"), DhcpMetricKey.CUR, 5),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"), IP("192.0.3.0/24"), DhcpMetricKey.TOUCH, 0),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"), IP("192.0.3.0/24"), DhcpMetricKey.MAX, 241),
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"), IP("192.0.4.0/24"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"), IP("192.0.4.0/24"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"), IP("192.0.4.0/24"), DhcpMetricKey.TOUCH, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"), IP("192.0.4.0/24"), DhcpMetricKey.MAX, 242),
-        DhcpMetric(datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"), IP("192.0.5.0/24"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"), IP("192.0.5.0/24"), DhcpMetricKey.CUR, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"), IP("192.0.5.0/24"), DhcpMetricKey.TOUCH, 1),
-        DhcpMetric(datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"), IP("192.0.5.0/24"), DhcpMetricKey.MAX, 243),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140438+00:00"),
+            IP("192.0.1.0/24"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230608+00:00"),
+            IP("192.0.1.0/24"),
+            DhcpMetricKey.CUR,
+            0,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T09:15:05.626594+00:00"),
+            IP("192.0.1.0/24"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401071+00:00"),
+            IP("192.0.1.0/24"),
+            DhcpMetricKey.TOUCH,
+            0,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401058+00:00"),
+            IP("192.0.1.0/24"),
+            DhcpMetricKey.MAX,
+            239,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"),
+            IP("192.0.2.0/24"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"),
+            IP("192.0.2.0/24"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T09:15:05.626595+00:00"),
+            IP("192.0.2.0/24"),
+            DhcpMetricKey.CUR,
+            2,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"),
+            IP("192.0.2.0/24"),
+            DhcpMetricKey.TOUCH,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"),
+            IP("192.0.2.0/24"),
+            DhcpMetricKey.MAX,
+            240,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"),
+            IP("192.0.3.0/24"),
+            DhcpMetricKey.CUR,
+            4,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"),
+            IP("192.0.3.0/24"),
+            DhcpMetricKey.CUR,
+            5,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"),
+            IP("192.0.3.0/24"),
+            DhcpMetricKey.TOUCH,
+            0,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"),
+            IP("192.0.3.0/24"),
+            DhcpMetricKey.MAX,
+            241,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"),
+            IP("192.0.4.0/24"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"),
+            IP("192.0.4.0/24"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"),
+            IP("192.0.4.0/24"),
+            DhcpMetricKey.TOUCH,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"),
+            IP("192.0.4.0/24"),
+            DhcpMetricKey.MAX,
+            242,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-22T09:06:58.140439+00:00"),
+            IP("192.0.5.0/24"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-05T20:44:54.230609+00:00"),
+            IP("192.0.5.0/24"),
+            DhcpMetricKey.CUR,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401072+00:00"),
+            IP("192.0.5.0/24"),
+            DhcpMetricKey.TOUCH,
+            1,
+        ),
+        DhcpMetric(
+            datetime.fromisoformat("2024-07-03T16:13:59.401059+00:00"),
+            IP("192.0.5.0/24"),
+            DhcpMetricKey.MAX,
+            243,
+        ),
     ]
 
     return config, statistics, expected_metrics
+
 
 def kearesponse(val, status=KeaStatus.SUCCESS):
     return f'''
@@ -595,7 +635,9 @@ def responsequeue(monkeypatch):
         if fifo:
             first = fifo[0]
             if callable(first):
-                text = first(arguments=data.get("arguments", {}), service=data.get("service", []))
+                text = first(
+                    arguments=data.get("arguments", {}), service=data.get("service", [])
+                )
             else:
                 text = str(first)
                 fifo.popleft()
@@ -628,10 +670,15 @@ def responsequeue(monkeypatch):
 
     def prefill_command_responses(expected_service, config=None, statistics=None):
         def config_get_response(arguments, service):
-            assert service == [expected_service], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
+            assert service == [
+                expected_service
+            ], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
             return kearesponse(config)
+
         def statistic_get_response(arguments, service):
-            assert service == [expected_service], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
+            assert service == [
+                expected_service
+            ], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
             return kearesponse({arguments["name"]: statistics[arguments["name"]]})
 
         if config is not None:
