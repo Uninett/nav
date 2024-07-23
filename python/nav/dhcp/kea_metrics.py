@@ -4,6 +4,7 @@ from itertools import chain
 from nav.dhcp.generic_metrics import DhcpMetricSource
 from nav.errors import GeneralException
 from nav.dhcp.generic_metrics import DhcpMetric, DhcpMetricKey, DhcpMetricSource
+from datetime import datetime
 import logging
 from requests import RequestException, JSONDecodeError
 import requests
@@ -63,7 +64,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         )
         metrics = []
 
-        with requests.Session as s:
+        with requests.Session() as s:
             config = self._fetch_config(s)
             subnets = _subnets_of_config(config, self.dhcp_version)
             for subnetid, prefix in subnets:
@@ -81,10 +82,11 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                         )
                     for value, timestamp in timeseries:
                         metrics.append(
-                            DhcpMetric(_parsetime(timestamp), prefix, nav_key, value)
+                            DhcpMetric(self._parsetime(timestamp), prefix, nav_key, value)
                         )
 
-        if sorted(subnets) != sorted(_subnets_of_config(self._fetch_config())):
+        newsubnets = _subnets_of_config(self._fetch_config(s), self.dhcp_version)
+        if sorted(subnets) != sorted(newsubnets):
             _logger.error(
                 "Subnet configuration was modified during metric fetching, "
                 "this may cause metric data being associated with wrong "
@@ -103,10 +105,10 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             or (dhcp_confighash := self.dhcp_config.get("hash", None)) is None
             or self._fetch_config_hash(session) != dhcp_confighash
         ):
+            response = self._send_query(session, "config-get")
+            status = response.get("result", KeaStatus.ERROR)
             self.dhcp_config = (
-                self._send_query(session, "config-get")
-                .get("arguments", {})
-                .get(f"Dhcp{self.dhcp_version}", None)
+                response.get("arguments", {}).get(f"Dhcp{self.dhcp_version}", None)
             )
             if self.dhcp_config is None or status != KeaStatus.SUCCESS:
                 raise KeaError(
@@ -151,7 +153,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             responses = session.post(
                 self.rest_uri,
                 data=postdata,
-                headers=self.rest_headers,
                 timeout=self.timeout,
             )
             responses = responses.json()
@@ -164,6 +165,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 f"Uri {self.rest_uri} most likely not pointing at a Kea "
                 f"Control Agent (expected json, responded with: {responses!r})",
             ) from err
+
         if not isinstance(responses, list):
             # See https://kea.readthedocs.io/en/kea-2.6.0/arm/ctrl-channel.html#control-agent-command-response-format
             raise KeaError(
