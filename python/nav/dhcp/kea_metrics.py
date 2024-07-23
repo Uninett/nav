@@ -188,11 +188,12 @@ def _parsetime(timestamp: str) -> int:
     return calendar.timegm(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f"))
 
 
-def _subnets_of_config(config: dict, ip_version: int) -> Iterator[tuple[int, IP]]:
+def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
     """
     List the id and prefix of subnets listed in the Kea DHCP configuration
     `config`
     """
+    subnets = []
     subnetkey = f"subnet{ip_version}"
     for subnet in chain.from_iterable(
         [config.get(subnetkey, [])]
@@ -204,7 +205,8 @@ def _subnets_of_config(config: dict, ip_version: int) -> Iterator[tuple[int, IP]
             msg = "subnets: id or prefix missing from a subnet's configuration: %r"
             _logger.warning(msg, subnet)
             continue
-        yield id, IP(prefix)
+        subnets.append((id, IP(prefix)))
+    return subnets
 
 
 class KeaError(GeneralException):
