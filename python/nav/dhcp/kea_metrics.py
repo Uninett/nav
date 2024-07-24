@@ -1,5 +1,5 @@
 from IPy import IP
-from typing import Iterator, Optional
+from typing import Optional
 from itertools import chain
 from nav.dhcp.generic_metrics import DhcpMetricSource
 from nav.errors import GeneralException
@@ -49,7 +49,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         self.timeout = timeout
         self.tzinfo = tzinfo
 
-    def fetch_metrics(self) -> Iterator[DhcpMetric]:
+    def fetch_metrics(self) -> list[DhcpMetric]:
         """
         Fetch total addresses, assigned addresses, and declined addresses of all
         subnets the Kea DHCP server serving ip version `dhcp_version` maintains.
