@@ -43,7 +43,7 @@ def test_config_response_with_error_status_should_raise_KeaError(
     responsequeue.prefill("dhcp4", None, statistics)
     responsequeue.add("config-get", kearesponse(config, status=status))
     source = KeaDhcpMetricSource("192.0.1.2", 80, dhcp_version=4)
-    with pytest.raises(KeaError):
+    with pytest.raises(KeaException):
         source.fetch_metrics()
 
 
@@ -60,21 +60,21 @@ def test_any_response_with_invalid_format_should_raise_KeaError(
     source = KeaDhcpMetricSource("192.0.1.2", 80, dhcp_version=4)
 
     responsequeue.add("config-get", "{}")
-    with pytest.raises(KeaError):
+    with pytest.raises(KeaException):
         source.fetch_metrics()
 
     responsequeue.clear()
 
     responsequeue.prefill("dhcp4", config, None)
     responsequeue.add("statistic-get", "{}")
-    with pytest.raises(KeaError):
+    with pytest.raises(KeaException):
         source.fetch_metrics()
 
     responsequeue.clear()
 
     responsequeue.prefill("dhcp4", None, statistics)
     responsequeue.add("config-get", "{}")
-    with pytest.raises(KeaError):
+    with pytest.raises(KeaException):
         source.fetch_metrics()
 
     responsequeue.clear()
@@ -84,7 +84,7 @@ def test_any_response_with_invalid_format_should_raise_KeaError(
     config["Dhcp4"]["hash"] = "foo"
     responsequeue.prefill("dhcp4", config, statistics)
     responsequeue.add("config-hash-get", "{}")
-    with pytest.raises(KeaError):
+    with pytest.raises(KeaException):
         source.fetch_metrics()
 
 

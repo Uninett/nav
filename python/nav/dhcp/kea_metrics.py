@@ -116,14 +116,13 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             or self._fetch_config_hash(session) != dhcp_confighash
         ):
             response = self._send_query(session, "config-get")
-            status = response.get("result", KeaStatus.ERROR)
-            arguments = response.get("arguments", {})
-            self.dhcp_config = arguments.get(f"Dhcp{self.dhcp_version}", None)
-            if self.dhcp_config is None or status != KeaStatus.SUCCESS:
-                raise KeaError(
-                    "Could not fetch configuration of Kea DHCP server from Kea Control "
-                    f"Agent at {self.rest_uri}"
-                )
+            try:
+                self.dhcp_config = response["arguments"][f"Dhcp{self.dhcp_version}"]
+            except KeyError as err:
+                raise KeaException(
+                    "Unrecognizable response to the 'config-get' request",
+                    {"Response": response}
+                ) from err
         return self.dhcp_config
 
     def _fetch_config_hash(self, session: requests.Session) -> Optional[str]:
@@ -131,11 +130,16 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         Returns the hash of the current config of the Kea DHCP server
         that the Kea Control Agent controls
         """
-        return (
-            self._send_query(session, "config-hash-get")
-            .get("arguments", {})
-            .get("hash", None)
-        )
+        try:
+            return (
+                self._send_query(session, "config-hash-get")
+                .get("arguments", {})
+                .get("hash", None)
+            )
+        except KeaUnsupported as err:
+            _logger.debug(str(err))
+            return None
+
 
     def _send_query(self, session: requests.Session, command: str, **kwargs) -> dict:
         """
@@ -152,60 +156,93 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         the server-end causes a descriptive subclass of KeaException
         to be raised.
         """
-        postdata = json.dumps(
+        post_data = json.dumps(
             {
                 "command": command,
                 "arguments": {**kwargs},
                 "service": [f"dhcp{self.dhcp_version}"],
             }
         )
-        _logger.info(
-            "send_query: Post request to Kea Control Agent at %s with data %s",
-            self.rest_uri,
-            postdata,
-        )
+        request_summary = {
+            "Description": f"Sending request to Kea Control Agent at {self.rest_uri}",
+            "Status": "sending",
+            "Location": self.rest_uri,
+            "Request": post_data,
+        }
+
+        _logger.debug(request_summary)
+
+        request_summary["Validity"] = "Invalid Kea response"
         try:
             responses = session.post(
                 self.rest_uri,
-                data=postdata,
+                data=post_data,
                 timeout=self.timeout,
             )
+            request_summary["Status"] = "complete"
+            request_summary["Response"] = responses.text
+            request_summary["HTTP Status"] = responses.status_code
             responses = responses.json()
-        except RequestException as err:
-            raise KeaError(
-                f"HTTP related error when requesting Kea Control Agent at {self.rest_uri}",
-            ) from err
         except JSONDecodeError as err:
-            raise KeaError(
-                f"Uri {self.rest_uri} most likely not pointing at a Kea "
-                f"Control Agent (expected json, responded with: {responses!r})",
+            raise KeaException(
+                "Server does not look like a Kea Control Agent; "
+                "expected response content to be JSON",
+                request_summary
+            ) from err
+        except RequestException as err:
+            raise KeaException(
+                "HTTP-related error during request to server",
+                request_summary
             ) from err
 
         if not isinstance(responses, list):
             # See https://kea.readthedocs.io/en/kea-2.6.0/arm/ctrl-channel.html#control-agent-command-response-format
-            raise KeaError(
-                f"Kea Control Agent at {self.rest_uri} have likely rejected "
-                f"a query (responded with: {responses!r})"
+            raise KeaException(
+                "Invalid response; server has likely rejected a query",
+                request_summary
             )
         if not (len(responses) == 1 and "result" in responses[0]):
-            # "We've only sent the command to *one* service. Thus responses should contain *one* response."
-            raise KeaError(
-                f"Uri {self.rest_uri} most likely not pointing at a Kea "
-                "Control Agent (expected json list with one object having "
-                f"key 'result', responded with: {responses!r})",
+            # We've only sent the command to *one* service. Thus responses should contain *one* response.
+            raise KeaException(
+                "Server does not look like a Kea Control Agent; "
+                "expected response content to be a JSON list "
+                "of a single object that has 'result' as one of its keys. ",
+                request_summary
             )
+        request_summary["Validity"] = "Valid Kea response"
+
+        _logger.debug(request_summary)
+
         response = responses[0]
-        if response["result"] == KeaStatus.SUCCESS:
+        status = response["result"]
+
+        if status == KeaStatus.SUCCESS:
             return response
-        else:
-            _logger.error(
-                "send_query: Kea at %s did not succeed fulfilling query %s "
-                "(responded with: %r) ",
-                self.rest_uri,
-                postdata,
-                responses,
+        elif status == KeaStatus.UNSUPPORTED:
+            raise KeaUnsupported(
+                "Command '{command}' not supported by Kea",
+                request_summary
             )
-            return {}
+        elif status == KeaStatus.EMPTY:
+            raise KeaEmpty(
+                "Requested resource not found",
+                request_summary
+            )
+        elif status == KeaStatus.ERROR:
+            raise KeaError(
+                "Kea failed during command processing",
+                request_summary
+            )
+        elif status == KeaStatus.CONFLICT:
+            raise KeaConflict(
+                "Kea failed apply requested changes",
+                request_summary
+            )
+        raise KeaError(
+            "Kea returned an unkown status response",
+            request_summary
+        )
+        
 
     def _parsetime(self, timestamp: str) -> int:
         """Parse the timestamp string used in Kea's timeseries into unix time"""
@@ -227,16 +264,39 @@ def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
         id = subnet.get("id", None)
         prefix = subnet.get("subnet", None)
         if id is None or prefix is None:
-            msg = "subnets: id or prefix missing from a subnet's configuration: %r"
-            _logger.warning(msg, subnet)
+            _logger.warning(
+                "id or prefix missing from a subnet's configuration: %r",
+                subnet
+            )
             continue
         subnets.append((id, IP(prefix)))
     return subnets
 
 
-class KeaError(GeneralException):
+class KeaException(GeneralException):
     """Error related to interaction with a Kea Control Agent"""
+    def __init__(self, message: str = "", details: dict[str, str] = {}):
+        self.message = message
+        self.details = details
 
+    def __str__(self) -> str:
+        doc = self.__doc__
+        message = ""
+        details = ""
+        if self.message:
+            message = f": {self.message}"
+        if self.details:
+            details = "".join(f"\n{label}: {info}" for label, info in self.details)
+        return "".join(doc, message, details)
+
+class KeaError(KeaException):
+    """General error or failure occurred during command processing on server""" 
+class KeaUnsupported(KeaException):
+    """Unsupported command"""
+class KeaEmpty(KeaException):
+    """Completed command but requested resource not found"""
+class KeaConflict(KeaException):
+    """The requested change conflicts with the server's state"""
 
 class KeaStatus(IntEnum):
     """Status of a response sent from a Kea Control Agent."""
