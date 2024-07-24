@@ -4,6 +4,7 @@ from IPy import IP
 from nav.metrics import carbon
 from nav.metrics.names import escape_metric_name
 from typing import Iterator
+from datetime import datetime
 
 
 class DhcpMetricKey(Enum):
@@ -17,7 +18,7 @@ class DhcpMetricKey(Enum):
 
 @dataclass(frozen=True)
 class DhcpMetric:
-    timestamp: int
+    timestamp: datetime
     subnet_prefix: IP
     key: DhcpMetricKey
     value: int

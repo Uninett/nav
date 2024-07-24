@@ -8,8 +8,6 @@ from datetime import datetime
 import logging
 from requests import RequestException, JSONDecodeError
 import requests
-import calendar
-import time
 import json
 from enum import IntEnum
 
