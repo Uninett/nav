@@ -16,9 +16,9 @@ _logger = logging.getLogger(__name__)
 
 class KeaDhcpMetricSource(DhcpMetricSource):
     """
-    Sends http requests to Kea Control Agent on `self.rest_uri` to fetch metrics
-    from all subnets managed by the Kea DHCP server (serving ip version
-    `dhcp_version` addresses) that the Kea Control Agent controls.
+    Communicates with a Kea Control Agent and fetches metrics from all
+    subnets managed by the Kea DHCP server serving a specific ip
+    version that is controlled the Kea Control Agent.
     """
 
     def __init__(
@@ -33,13 +33,14 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         **kwargs,
     ):
         """
-        Instantiate a KeaDhcpMetricSource that fetches information via the Kea
-        Control Agent listening to `port` on `address`.
+        Returns a KeaDhcpMetricSource that fetches DHCP metrics via
+        the Kea Control Agent listening to `port` on `address`.
 
-        :param https: if True, use https. Otherwise, use http
+        :param https:        if True, use https. Otherwise, use http
         :param dhcp_version: ip version served by Kea DHCP server
-        :param timeout: how long to wait for http response from Kea Control Agent before timing out
-        :param tzinfo: the timezone of the Kea Control Agent.
+        :param timeout:      how long to wait for a http response from
+                             the Kea Control Agent before timing out
+        :param tzinfo:       the timezone of the Kea Control Agent.
         """
         super(*args, **kwargs)
         scheme = "https" if https else "http"
@@ -51,15 +52,27 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
     def fetch_metrics(self) -> list[DhcpMetric]:
         """
-        Fetch total addresses, assigned addresses, and declined addresses of all
-        subnets the Kea DHCP server serving ip version `dhcp_version` maintains.
-        """
+        Returns a list of DHCP metrics. For each subnet and
+        DhcpMetric-key combination, there is at least one
+        corresponding metric in the returned list if no errors occur.
 
-        metric_keys = (
-            ("total-addresses", DhcpMetricKey.MAX),
-            ("assigned-addresses", DhcpMetricKey.CUR),
-            ("declined-addresses", DhcpMetricKey.TOUCH),
-        )
+        If the Kea Control Agent responds with an empty response to
+        one or more of the requests for some metric(s), these metrics
+        will be missing in the returned list, but a list is still
+        succesfully returned. Other errors while requesting metrics
+        will cause a fitting subclass of KeaException to be raised:
+
+        Communication errors (HTTP errors, JSON errors, access control
+        errors) causes a KeaException that is reraised from the
+        specific communication error to be raised.
+
+        If the Kea Control Agent doesn't support the 'config-get' and
+        'statistic-get' commands, then a KeaUnsupported exception is
+        raised.
+
+        General errors reported by the Kea Control Agent causes a
+        KeaError to be raised.
+        """
         metrics = []
 
         with requests.Session() as s:
@@ -94,8 +107,8 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
     def _fetch_config(self, session: requests.Session) -> dict:
         """
-        Fetch the current config of the Kea DHCP server serving ip version
-        `dhcp_version`
+        Returns the current config of the Kea DHCP server that the Kea
+        Control Agent controls
         """
         if (
             self.dhcp_config is None
@@ -115,8 +128,8 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
     def _fetch_config_hash(self, session: requests.Session) -> Optional[str]:
         """
-        Fetch the hash of the current config of the Kea DHCP server serving ip
-        version `dhcp_version`
+        Returns the hash of the current config of the Kea DHCP server
+        that the Kea Control Agent controls
         """
         return (
             self._send_query(session, "config-hash-get")
@@ -126,13 +139,18 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
     def _send_query(self, session: requests.Session, command: str, **kwargs) -> dict:
         """
-        Send `command` to the Kea Control Agent. An exception is raised iff
-        there was an HTTP related error while sending `command` or a response
-        does not look like it is coming from a Kea Control Agent or if the
-        request likely was rejected by the Kea Control Agent. All raised
-        exceptions are of type `KeaError`. Occurrences of valid Kea error
-        responses such as those with result == KeaStatus.ERROR are logged as an
-        error, and result in an empty dictionary being returned.
+        Returns the response from the Kea Control Agent to the query
+        with command `command`. Additional keyword arguments to this
+        function will be passed as arguments to the command.
+
+        Communication errors (HTTP errors, JSON errors, access control
+        errors, unrecognized json response formats) causes a
+        KeaException to be raised. If possible, it is reraised from a
+        more descriptive error such as a HTTPError.
+
+        Valid Kea Control Agent responses that indicate a failure on
+        the server-end causes a descriptive subclass of KeaException
+        to be raised.
         """
         postdata = json.dumps(
             {
@@ -197,8 +215,8 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
 def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
     """
-    List the id and prefix of subnets listed in the Kea DHCP configuration
-    `config`
+    List the id and prefix of subnets listed in the Kea DHCP
+    configuration `config`
     """
     subnets = []
     subnetkey = f"subnet{ip_version}"
@@ -222,14 +240,8 @@ class KeaError(GeneralException):
 
 class KeaStatus(IntEnum):
     """Status of a response sent from a Kea Control Agent."""
-
-    # Successful operation.
     SUCCESS = 0
-    # General failure.
     ERROR = 1
-    # Command is not supported.
     UNSUPPORTED = 2
-    # Successful operation, but failed to produce any results.
     EMPTY = 3
-    # Unsuccessful operation due to a conflict between the command arguments and the server state.
     CONFLICT = 4
