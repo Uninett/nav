@@ -179,7 +179,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             "Description": f"Sending request to Kea Control Agent at {self.rest_uri}",
             "Status": "sending",
             "Location": self.rest_uri,
-            "Request": post_data,
+            "Command": command,
         }
 
         _logger.debug(request_summary)
@@ -192,7 +192,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 timeout=self.timeout,
             )
             request_summary["Status"] = "complete"
-            request_summary["Response"] = responses.text
             request_summary["HTTP Status"] = responses.status_code
             responses = responses.json()
         except JSONDecodeError as err:
