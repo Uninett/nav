@@ -283,8 +283,9 @@ class KeaException(GeneralException):
         if self.message:
             message = f": {self.message}"
         if self.details:
-            details = "".join(f"\n{label}: {info}" for label, info in self.details)
-        return "".join(doc, message, details)
+            details = "\nDetails:\n"
+            details += "\n".join(f"{label}: {info}" for label, info in self.details.items())
+        return "".join([doc, message, details])
 
 class KeaError(KeaException):
     """Kea failed during command processing"""
