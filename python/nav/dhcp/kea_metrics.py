@@ -156,18 +156,27 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     def _send_query(self, session: requests.Session, command: str, **kwargs) -> dict:
         """
         Returns the response from the Kea Control Agent to the query
-        with command `command`. Additional keyword arguments to this
-        function will be passed as arguments to the command.
+        with command `command` instructed towards the Kea DHCP server.
+        Additional keyword arguments to this function will be passed
+        as arguments to the command.
 
         Communication errors (HTTP errors, JSON errors, access control
         errors, unrecognized json response formats) causes a
         KeaException to be raised. If possible, it is reraised from a
-        more descriptive error such as a HTTPError.
+        more descriptive error such as an HTTPError.
 
         Valid Kea Control Agent responses that indicate a failure on
         the server-end causes a descriptive subclass of KeaException
         to be raised.
         """
+        request_summary = {
+            "Description": f"Sending request to Kea Control Agent at {self.rest_uri}",
+            "Status": "sending",
+            "Location": self.rest_uri,
+            "Command": command,
+        }
+        _logger.debug(request_summary)
+
         post_data = json.dumps(
             {
                 "command": command,
@@ -175,15 +184,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 "service": [f"dhcp{self.dhcp_version}"],
             }
         )
-        request_summary = {
-            "Description": f"Sending request to Kea Control Agent at {self.rest_uri}",
-            "Status": "sending",
-            "Location": self.rest_uri,
-            "Command": command,
-        }
-
-        _logger.debug(request_summary)
-
         request_summary["Validity"] = "Invalid Kea response"
         try:
             responses = session.post(
@@ -193,6 +193,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             )
             request_summary["Status"] = "complete"
             request_summary["HTTP Status"] = responses.status_code
+            responses.raise_for_status()
             responses = responses.json()
         except JSONDecodeError as err:
             raise KeaException(
@@ -213,7 +214,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 request_summary
             )
         if not (len(responses) == 1 and "result" in responses[0]):
-            # We've only sent the command to *one* service. Thus responses should contain *one* response.
+            # `post-data` queries *one* service. Thus `responses` should contain *one* response.
             raise KeaException(
                 "Server does not look like a Kea Control Agent; "
                 "expected response content to be a JSON list "
@@ -230,30 +231,15 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         if status == KeaStatus.SUCCESS:
             return response
         elif status == KeaStatus.UNSUPPORTED:
-            raise KeaUnsupported(
-                "Command '{command}' not supported by Kea",
-                request_summary
-            )
+            raise KeaUnsupported(details=request_summary)
         elif status == KeaStatus.EMPTY:
-            raise KeaEmpty(
-                "Requested resource not found",
-                request_summary
-            )
+            raise KeaEmpty(details=request_summary)
         elif status == KeaStatus.ERROR:
-            raise KeaError(
-                "Kea failed during command processing",
-                request_summary
-            )
+            raise KeaError(details=request_summary)
         elif status == KeaStatus.CONFLICT:
-            raise KeaConflict(
-                "Kea failed apply requested changes",
-                request_summary
-            )
-        raise KeaError(
-            "Kea returned an unkown status response",
-            request_summary
-        )
-        
+            raise KeaConflict(details=request_summary)
+        raise KeaException("Kea returned an unkown status response", request_summary)
+
 
     def _parsetime(self, timestamp: str) -> int:
         """Parse the timestamp string used in Kea's timeseries into unix time"""
