@@ -8,12 +8,10 @@ from datetime import datetime
 
 
 class DhcpMetricKey(Enum):
-    MAX = "max"  # total addresses
-    CUR = "cur"  # assigned addresses
-    TOUCH = "touch"  # touched addresses
-
+    TOTAL = "total"  # total addresses managed by dhcp
+    ASSIGNED = "assigned"  # assigned addresses
     def __str__(self):
-        return self.name.lower()  # For use in graphite path
+        return self.value # graphite key
 
 
 @dataclass(frozen=True)

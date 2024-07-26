@@ -73,15 +73,22 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         General errors reported by the Kea Control Agent causes a
         KeaError to be raised.
         """
+        metric_keys = (
+            ("total-addresses", DhcpMetricKey.TOTAL),
+            ("assigned-addresses", DhcpMetricKey.ASSIGNED),
+        )
         metrics = []
 
         with requests.Session() as s:
             config = self._fetch_config(s)
             subnets = _subnets_of_config(config, self.dhcp_version)
-            for subnetid, netprefix in subnets:
+            for subnet_id, netprefix in subnets:
                 for kea_key, nav_key in metric_keys:
-                    kea_name = f"subnet[{subnetid}].{kea_key}"
-                    response = self._send_query(s, "statistic-get", name=kea_name)
+                    kea_name = f"subnet[{subnet_id}].{kea_key}"
+                    try:
+                        response = self._send_query(s, "statistic-get", name=kea_name)
+                    except KeaEmpty:
+                        continue
                     timeseries = response.get("arguments", {}).get(kea_name, [])
                     if len(timeseries) == 0:
                         _logger.error(
@@ -91,9 +98,12 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                             netprefix,
                             kea_name,
                         )
-                    for val, t in timeseries:
-                        metric = DhcpMetric(self._parsetime(t), netprefix, nav_key, val)
+                    for value, timestring in timeseries:
+                        metric = DhcpMetric(
+                            self._parsetime(timestring), netprefix, nav_key, value
+                        )
                         metrics.append(metric)
+
 
         newsubnets = _subnets_of_config(self._fetch_config(s), self.dhcp_version)
         if sorted(subnets) != sorted(newsubnets):
