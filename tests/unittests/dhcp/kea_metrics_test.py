@@ -120,7 +120,7 @@ def test_all_responses_is_empty_but_valid_should_yield_no_metrics(
 
 
 def test_response_with_http_error_status_code_should_cause_KeaException_to_be_raised(
-        valid_dhcp4, responsequeue
+    valid_dhcp4, responsequeue
 ):
     config, statistics, _ = valid_dhcp4
     responsequeue.autofill("dhcp4", config, statistics, attrs={"status_code": 403})
@@ -537,6 +537,7 @@ def kearesponse(val, status=KeaStatus.SUCCESS):
 ]
     '''
 
+
 @pytest.fixture(autouse=True)
 def responsequeue(monkeypatch):
     """
@@ -645,12 +646,19 @@ def responsequeue(monkeypatch):
     def clear_command_responses():
         command_responses.clear()
 
-    def autofill_command_responses(expected_service, config=None, statistics=None, attrs={}):
+    def autofill_command_responses(
+        expected_service, config=None, statistics=None, attrs={}
+    ):
         def config_get_response(arguments, service):
-            assert service == [expected_service], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
+            assert service == [
+                expected_service
+            ], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
             return kearesponse(config)
+
         def statistic_get_response(arguments, service):
-            assert service == [expected_service], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
+            assert service == [
+                expected_service
+            ], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
             return kearesponse({arguments["name"]: statistics[arguments["name"]]})
 
         if config is not None:

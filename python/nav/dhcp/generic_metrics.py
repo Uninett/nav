@@ -10,8 +10,9 @@ from datetime import datetime
 class DhcpMetricKey(Enum):
     TOTAL = "total"  # total addresses managed by dhcp
     ASSIGNED = "assigned"  # assigned addresses
+
     def __str__(self):
-        return self.value # graphite key
+        return self.value  # graphite key
 
 
 @dataclass(frozen=True)
@@ -42,9 +43,7 @@ class DhcpMetricSource:
         raise NotImplementedError
 
     def fetch_metrics_to_graphite(
-            self,
-            host=CONFIG.get("carbon", "host"),
-            port=CONFIG.getint("carbon", "port")
+        self, host=CONFIG.get("carbon", "host"), port=CONFIG.getint("carbon", "port")
     ):
         """
         Fetch metrics describing total amount of addresses

@@ -13,6 +13,7 @@ from enum import IntEnum
 
 _logger = logging.getLogger(__name__)
 
+
 class KeaDhcpMetricSource(DhcpMetricSource):
     """
     Communicates with a Kea Control Agent and fetches metrics for each
@@ -105,7 +106,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                         )
                         metrics.append(metric)
 
-
         newsubnets = _subnets_of_config(self._fetch_config(s), self.dhcp_version)
         if sorted(subnets) != sorted(newsubnets):
             _logger.error(
@@ -115,7 +115,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             )
 
         return metrics
-
 
     def _fetch_config(self, session: requests.Session) -> dict:
         """
@@ -133,7 +132,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             except KeyError as err:
                 raise KeaException(
                     "Unrecognizable response to the 'config-get' request",
-                    {"Response": response}
+                    {"Response": response},
                 ) from err
         return self.dhcp_config
 
@@ -151,7 +150,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         except KeaUnsupported as err:
             _logger.debug(str(err))
             return None
-
 
     def _send_query(self, session: requests.Session, command: str, **kwargs) -> dict:
         """
@@ -199,19 +197,17 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             raise KeaException(
                 "Server does not look like a Kea Control Agent; "
                 "expected response content to be JSON",
-                request_summary
+                request_summary,
             ) from err
         except RequestException as err:
             raise KeaException(
-                "HTTP-related error during request to server",
-                request_summary
+                "HTTP-related error during request to server", request_summary
             ) from err
 
         if not isinstance(responses, list):
             # See https://kea.readthedocs.io/en/kea-2.6.0/arm/ctrl-channel.html#control-agent-command-response-format
             raise KeaException(
-                "Invalid response; server has likely rejected a query",
-                request_summary
+                "Invalid response; server has likely rejected a query", request_summary
             )
         if not (len(responses) == 1 and "result" in responses[0]):
             # `post-data` queries *one* service. Thus `responses` should contain *one* response.
@@ -219,7 +215,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 "Server does not look like a Kea Control Agent; "
                 "expected response content to be a JSON list "
                 "of a single object that has 'result' as one of its keys. ",
-                request_summary
+                request_summary,
             )
         request_summary["Validity"] = "Valid Kea response"
 
@@ -239,7 +235,6 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         elif status == KeaStatus.CONFLICT:
             raise KeaConflict(details=request_summary)
         raise KeaException("Kea returned an unkown status response", request_summary)
-
 
     def _parsetime(self, timestamp: str) -> int:
         """Parse the timestamp string used in Kea's timeseries into unix time"""
@@ -262,8 +257,7 @@ def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
         prefix = subnet.get("subnet", None)
         if id is None or prefix is None:
             _logger.warning(
-                "id or prefix missing from a subnet's configuration: %r",
-                subnet
+                "id or prefix missing from a subnet's configuration: %r", subnet
             )
             continue
         subnets.append((id, IP(prefix)))
@@ -272,6 +266,7 @@ def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
 
 class KeaException(GeneralException):
     """Error related to interaction with a Kea Control Agent"""
+
     def __init__(self, message: str = "", details: dict[str, str] = {}):
         self.message = message
         self.details = details
@@ -284,20 +279,31 @@ class KeaException(GeneralException):
             message = f": {self.message}"
         if self.details:
             details = "\nDetails:\n"
-            details += "\n".join(f"{label}: {info}" for label, info in self.details.items())
+            details += "\n".join(
+                f"{label}: {info}" for label, info in self.details.items()
+            )
         return "".join([doc, message, details])
+
 
 class KeaError(KeaException):
     """Kea failed during command processing"""
+
+
 class KeaUnsupported(KeaException):
     """Unsupported command"""
+
+
 class KeaEmpty(KeaException):
     """Requested resource not found"""
+
+
 class KeaConflict(KeaException):
     """Kea failed to apply requested changes due to conflicts with its server state"""
 
+
 class KeaStatus(IntEnum):
     """Status of a response sent from a Kea Control Agent"""
+
     SUCCESS = 0
     ERROR = 1
     UNSUPPORTED = 2
