@@ -15,7 +15,7 @@ def test_dhcp6_config_and_statistic_response_that_is_valid_should_return_every_m
     valid_dhcp6, responsequeue
 ):
     config, statistics, expected_metrics = valid_dhcp6
-    responsequeue.prefill("dhcp6", config, statistics)
+    responsequeue.autofill("dhcp6", config, statistics)
     source = KeaDhcpMetricSource("192.0.1.2", 80, dhcp_version=6, tzinfo=timezone.utc)
     assert set(source.fetch_metrics()) == set(expected_metrics)
 
@@ -24,7 +24,7 @@ def test_dhcp4_config_and_statistic_response_that_is_valid_should_return_every_m
     valid_dhcp4, responsequeue
 ):
     config, statistics, expected_metrics = valid_dhcp4
-    responsequeue.prefill("dhcp4", config, statistics)
+    responsequeue.autofill("dhcp4", config, statistics)
     source = KeaDhcpMetricSource("192.0.1.2", 80, dhcp_version=4, tzinfo=timezone.utc)
     assert set(source.fetch_metrics()) == set(expected_metrics)
 
@@ -40,7 +40,7 @@ def test_config_response_with_error_status_should_raise_KeaError(
     fetch_metrics(), we cannot continue further, so we fail.
     """
     config, statistics, _ = valid_dhcp4
-    responsequeue.prefill("dhcp4", None, statistics)
+    responsequeue.autofill("dhcp4", None, statistics)
     responsequeue.add("config-get", kearesponse(config, status=status))
     source = KeaDhcpMetricSource("192.0.1.2", 80, dhcp_version=4)
     with pytest.raises(KeaException):
@@ -65,14 +65,14 @@ def test_any_response_with_invalid_format_should_raise_KeaError(
 
     responsequeue.clear()
 
-    responsequeue.prefill("dhcp4", config, None)
+    responsequeue.autofill("dhcp4", config, None)
     responsequeue.add("statistic-get", "{}")
     with pytest.raises(KeaException):
         source.fetch_metrics()
 
     responsequeue.clear()
 
-    responsequeue.prefill("dhcp4", None, statistics)
+    responsequeue.autofill("dhcp4", None, statistics)
     responsequeue.add("config-get", "{}")
     with pytest.raises(KeaException):
         source.fetch_metrics()
@@ -82,7 +82,7 @@ def test_any_response_with_invalid_format_should_raise_KeaError(
     # config-hash-get is only called if some config-get includes a hash we can compare
     # with the next time we're attempting to fetch a config:
     config["Dhcp4"]["hash"] = "foo"
-    responsequeue.prefill("dhcp4", config, statistics)
+    responsequeue.autofill("dhcp4", config, statistics)
     responsequeue.add("config-hash-get", "{}")
     with pytest.raises(KeaException):
         source.fetch_metrics()
@@ -99,14 +99,14 @@ def test_all_responses_is_empty_but_valid_should_yield_no_metrics(
     correct thing to do is to return an empty iterable.
     """
     config, statistics, _ = valid_dhcp4
-    responsequeue.prefill("dhcp4", None, statistics)
+    responsequeue.autofill("dhcp4", None, statistics)
     responsequeue.add("config-get", lambda **_: kearesponse({"Dhcp4": {}}))
     source = KeaDhcpMetricSource("192.0.1.2", 80, dhcp_version=4, tzinfo=timezone.utc)
     assert list(source.fetch_metrics()) == []
 
     responsequeue.clear()
 
-    responsequeue.prefill("dhcp4", config, None)
+    responsequeue.autofill("dhcp4", config, None)
     responsequeue.add(
         "statistic-get", lambda arguments, **_: kearesponse({arguments["name"]: []})
     )
@@ -114,7 +114,7 @@ def test_all_responses_is_empty_but_valid_should_yield_no_metrics(
 
     responsequeue.clear()
 
-    responsequeue.prefill("dhcp4", config, None)
+    responsequeue.autofill("dhcp4", config, None)
     responsequeue.add("statistic-get", lambda **_: kearesponse({}))
     assert list(source.fetch_metrics()) == []
 
@@ -525,7 +525,6 @@ def kearesponse(val, status=KeaStatus.SUCCESS):
 ]
     '''
 
-
 @pytest.fixture(autouse=True)
 def responsequeue(monkeypatch):
     """
@@ -541,6 +540,31 @@ def responsequeue(monkeypatch):
     responsequeue.remove() removes a specific fifo queue.
 
     responsequeue.clear() can be used to clear the all fifo queues.
+    """
+    """
+    Any test that include this fixture, will automatically mock
+    `requests.Session.post()` and `requests.post()` (it uses the
+    set_response_handler fixture to set the response handler for
+    these mocked post() functions, so don't set this manually if this
+    fixture is used).
+
+    This fixture returns a namespace with three functions:
+
+    `responsequeue.add(command, text_or_func)`: add `text_or_func` to
+    the queue of text values to be set on the Response objects returned
+    by a post() call for the Kea command `command`. Any queue for a command `command` that is empty (the default) returns a Kea "command not supported" response.
+    if `text_or_func` is a string, it is added to the back of this queue and
+    becomes the text value of the response when it reaches the front of queue Then it gets popped off the queue.
+    if `text_or_func` is a callable, it is
+    added to the back of this queue. When it reaches the front of the queue, it is called
+    with the arguments that is post()'ed along with the Kea command `command`, and the return value becomes the
+    text value of the response. It is never be popped off the queue.
+
+    `responsequeue.clear()`: Empty the queue for all commands.
+
+    `responsequeue.autofill(service, config, statistics)`: fill the queue for the "config-get" and "statistic-get"
+    commands to mimic the response texts actually sent by a Kea Control Agent for a Kea DHCP server named `service` ("dhcp4" for ipv4 DHCP "dhcp6" for ipv6 DHCP)
+    that returns `config` on a "config-get" command and `statistics` on a "statistic-get-all" command.
     """
     # Dictonary of fifo queues, keyed by command name. A queue stored with key K has the textual content of the responses we want to return (in fifo order, one per call) on a call to requests.post with data that represents a Kea Control Agent command K
     command_responses = {}
@@ -573,64 +597,59 @@ def responsequeue(monkeypatch):
 
         fifo = command_responses.get(command, deque())
         if fifo:
-            first = fifo[0]
-            if callable(first):
-                text = first(
-                    arguments=data.get("arguments", {}), service=data.get("service", [])
-                )
+            next_text, attrs = fifo[0]
+            if callable(next_text):
+                arguments = data.get("arguments", {})
+                service = data.get("service", [])
+                next_text = next_text(arguments=arguments, service=service)
             else:
-                text = str(first)
+                next_text = str(next_text)
                 fifo.popleft()
         else:
-            text = unknown_command_response.format(command)
+            next_text = unknown_command_response.format(command)
 
         response = requests.Response()
-        response._content = text.encode("utf8")
+        response._content = next_text.encode("utf8")
         response.encoding = "utf8"
-        response.status_code = 400
+        response.status_code = 200
         response.reason = "OK"
         response.headers = kwargs.get("headers", {})
         response.cookies = kwargs.get("cookies", {})
         response.url = url
         response.close = lambda: True
+
+        for attr, value in attrs.items():
+            setattr(response, attr, value)
+
         return response
 
     def new_post_method(self, url, *args, **kwargs):
         return new_post_function(url, *args, **kwargs)
 
-    def add_command_response(command_name, text):
+    def add_command_response(command_name, text, attrs={}):
         command_responses.setdefault(command_name, deque())
-        command_responses[command_name].append(text)
-
-    def remove_command_responses(command_name):
-        command_responses.pop(command_name, None)
+        command_responses[command_name].append((text, attrs))
 
     def clear_command_responses():
         command_responses.clear()
 
-    def prefill_command_responses(expected_service, config=None, statistics=None):
+    def autofill_command_responses(expected_service, config=None, statistics=None, attrs={}):
         def config_get_response(arguments, service):
-            assert service == [
-                expected_service
-            ], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
+            assert service == [expected_service], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
             return kearesponse(config)
-
         def statistic_get_response(arguments, service):
-            assert service == [
-                expected_service
-            ], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
+            assert service == [expected_service], f"KeaDhcpSource for service [{expected_service}] should not send requests to {service}"
             return kearesponse({arguments["name"]: statistics[arguments["name"]]})
 
         if config is not None:
-            add_command_response("config-get", config_get_response)
+            add_command_response("config-get", config_get_response, attrs)
         if statistics is not None:
-            add_command_response("statistic-get", statistic_get_response)
+            add_command_response("statistic-get", statistic_get_response, attrs)
 
     class ResponseQueue:
         add = add_command_response
-        remove = remove_command_responses
         clear = clear_command_responses
-        prefill = prefill_command_responses
+        autofill = autofill_command_responses
 
     monkeypatch.setattr(requests, 'post', new_post_function)
     monkeypatch.setattr(requests.Session, 'post', new_post_method)
