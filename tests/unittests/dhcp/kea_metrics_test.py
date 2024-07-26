@@ -119,6 +119,18 @@ def test_all_responses_is_empty_but_valid_should_yield_no_metrics(
     assert list(source.fetch_metrics()) == []
 
 
+def test_response_with_http_error_status_code_should_cause_KeaException_to_be_raised(
+        valid_dhcp4, responsequeue
+):
+    config, statistics, _ = valid_dhcp4
+    responsequeue.autofill("dhcp4", config, statistics, attrs={"status_code": 403})
+
+    source = KeaDhcpMetricSource("192.0.1.2", 80, dhcp_version=4, tzinfo=timezone.utc)
+
+    with pytest.raises(KeaException):
+        source.fetch_metrics()
+
+
 @pytest.fixture
 def valid_dhcp6():
     config = {
