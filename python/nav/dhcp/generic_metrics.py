@@ -36,8 +36,8 @@ class DhcpMetricSource:
 
     def fetch_metrics(self) -> Iterator[DhcpMetric]:
         """
-        Fetch DhcpMetrics having keys `MAX`, `CUR`, `TOUCH` and `FREE`
-        for each subnet of the DHCP server at current point of time.
+        Fetch DhcpMetrics having keys `TOTAL` and `ASSIGNED` for each subnet of the
+        DHCP server at current point of time.
         """
         raise NotImplementedError
 
@@ -46,6 +46,13 @@ class DhcpMetricSource:
             host=CONFIG.get("carbon", "host"),
             port=CONFIG.getint("carbon", "port")
     ):
+        """
+        Fetch metrics describing total amount of addresses
+        (DhcpMetricKey.TOTAL) and amount of addresses that have been
+        assigned to a client (DhcpMetricKey.ASSIGNED) for each subnet
+        of the DHCP server at current point of time and send the
+        metrics to the graphite server at `host` on `port`.
+        """
         graphite_metrics = []
         for metric in self.fetch_metrics():
             graphite_path = f"{self.graphite_prefix}.{escape_metric_name(metric.subnet_prefix.strNormal())}.{metric.key}"

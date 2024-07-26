@@ -13,12 +13,12 @@ from enum import IntEnum
 
 _logger = logging.getLogger(__name__)
 
-
 class KeaDhcpMetricSource(DhcpMetricSource):
     """
-    Communicates with a Kea Control Agent and fetches metrics from all
-    subnets managed by the Kea DHCP server serving a specific ip
-    version that is controlled the Kea Control Agent.
+    Communicates with a Kea Control Agent and fetches metrics for each
+    subnet managed by the Kea DHCP server serving a specific ip
+    version that is controlled by the Kea Control Agent (see
+    `KeaDhcpMetricSource.fetch_metrics`).
     """
 
     def __init__(
@@ -52,8 +52,9 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
     def fetch_metrics(self) -> list[DhcpMetric]:
         """
-        Returns a list of DHCP metrics. For each subnet and
-        DhcpMetric-key combination, there is at least one
+        Returns a list containing the most recent DHCP metrics for
+        each subnet managed by the Kea DHCP server. For each subnet
+        and DhcpMetric-key combination, there is at least one
         corresponding metric in the returned list if no errors occur.
 
         If the Kea Control Agent responds with an empty response to
@@ -115,10 +116,11 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
         return metrics
 
+
     def _fetch_config(self, session: requests.Session) -> dict:
         """
         Returns the current config of the Kea DHCP server that the Kea
-        Control Agent controls
+        Control Agent controls.
         """
         if (
             self.dhcp_config is None
@@ -138,7 +140,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     def _fetch_config_hash(self, session: requests.Session) -> Optional[str]:
         """
         Returns the hash of the current config of the Kea DHCP server
-        that the Kea Control Agent controls
+        that the Kea Control Agent controls.
         """
         try:
             return (
@@ -262,8 +264,8 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
 def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
     """
-    List the id and prefix of subnets listed in the Kea DHCP
-    configuration `config`
+    Returns a list containing one (subnet-id, subnet-prefix) tuple per
+    subnet listed in the Kea DHCP configuration `config`.
     """
     subnets = []
     subnetkey = f"subnet{ip_version}"
@@ -300,16 +302,16 @@ class KeaException(GeneralException):
         return "".join(doc, message, details)
 
 class KeaError(KeaException):
-    """General error or failure occurred during command processing on server""" 
+    """Kea failed during command processing"""
 class KeaUnsupported(KeaException):
     """Unsupported command"""
 class KeaEmpty(KeaException):
-    """Completed command but requested resource not found"""
+    """Requested resource not found"""
 class KeaConflict(KeaException):
-    """The requested change conflicts with the server's state"""
+    """Kea failed to apply requested changes due to conflicts with its server state"""
 
 class KeaStatus(IntEnum):
-    """Status of a response sent from a Kea Control Agent."""
+    """Status of a response sent from a Kea Control Agent"""
     SUCCESS = 0
     ERROR = 1
     UNSUPPORTED = 2
