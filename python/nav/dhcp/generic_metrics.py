@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from IPy import IP
-from nav.metrics import carbon
+from nav.metrics import carbon, CONFIG
 from nav.metrics.names import escape_metric_name
 from typing import Iterator
 from datetime import datetime
@@ -41,7 +41,11 @@ class DhcpMetricSource:
         """
         raise NotImplementedError
 
-    def fetch_metrics_to_graphite(self, host, port):
+    def fetch_metrics_to_graphite(
+            self,
+            host=CONFIG.get("carbon", "host"),
+            port=CONFIG.getint("carbon", "port")
+    ):
         graphite_metrics = []
         for metric in self.fetch_metrics():
             graphite_path = f"{self.graphite_prefix}.{escape_metric_name(metric.subnet_prefix.strNormal())}.{metric.key}"
