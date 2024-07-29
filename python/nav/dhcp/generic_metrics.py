@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from IPy import IP
 from nav.metrics import carbon, CONFIG
-from nav.metrics.names import escape_metric_name
+from nav.metrics.templates import metric_path_for_subnet_dhcp
 from typing import Iterator
 from datetime import datetime
 
@@ -29,12 +29,6 @@ class DhcpMetricSource:
     specific line of DHCP servers and import the metrics into NAV's
     graphite server. Subclasses need to implement `fetch_metrics`.
     """
-
-    graphite_prefix: str
-
-    def __init__(self, graphite_prefix="nav.dhcp"):
-        self.graphite_prefix = graphite_prefix
-
     def fetch_metrics(self) -> Iterator[DhcpMetric]:
         """
         Fetch DhcpMetrics having keys `TOTAL` and `ASSIGNED` for each subnet of the
@@ -54,7 +48,9 @@ class DhcpMetricSource:
         """
         graphite_metrics = []
         for metric in self.fetch_metrics():
-            graphite_path = f"{self.graphite_prefix}.{escape_metric_name(metric.subnet_prefix.strNormal())}.{metric.key}"
+            metric_path = metric_path_for_subnet_dhcp(
+                metric.subnet_prefix, str(metric.key)
+            )
             datapoint = (metric.timestamp, metric.value)
-            graphite_metrics.append((graphite_path, datapoint))
+            graphite_metrics.append((metric_path, datapoint))
         carbon.send_metrics_to(graphite_metrics, host, port)
