@@ -9,7 +9,7 @@ pyaml
 twisted>=23.8.0
 
 networkx==2.6.3
-# Cannot be removed as long as qrcode is included 
+# Cannot be removed as long as qrcode is included
 Pillow>3.3.2
 qrcode>7.4
 pyrad==2.1
@@ -47,3 +47,5 @@ git+https://github.com/Uninett/drf-oidc-auth@v4.0#egg=drf-oidc-auth
 PyOpenSSL==23.3.0
 # service-identity is required to make TLS communication libraries shut up about potential MITM attacks
 service-identity==21.1.0
+
+requests
