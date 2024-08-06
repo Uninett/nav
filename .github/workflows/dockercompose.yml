@@ -1,4 +1,4 @@
-name: Build docker-compose dev environment
+name: Build docker compose dev environment
 on:
   schedule:
     - cron: '6 6 * * *'
@@ -14,25 +14,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: docker-compose build
+      - name: docker compose build
         run: |
           echo "UID=$(id -u)" >> .env
           echo "GID=$(id -g)" >> .env
-          docker-compose build
+          docker compose build
 
       - name: Verify containers stay running at least 1 minute
         run: |
-          docker-compose up -d
+          docker compose up -d
           sleep 60
-          docker-compose ps
+          docker compose ps
           echo "Verifying service states"
-          docker-compose ps -q | xargs docker inspect -f '{{.State.Running}}' | grep -q false && exit 1
+          docker compose ps -q | xargs docker inspect -f '{{.State.Running}}' | grep -q false && exit 1
           echo "Looks ok"
 
-      - name: Print docker-compose logs
+      - name: Print docker compose logs
         if: failure()
         run: |
-          docker-compose logs
+          docker compose logs
 
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
