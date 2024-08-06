@@ -21,7 +21,7 @@ Course of action - with docker
 ==============================
 
 1. Copy the content of :file:`docker-compose.snmp.yml` into
-   :file:`docker-compose.override.yml` or later run docker-compose like this:
+   :file:`docker-compose.override.yml` or later run docker compose like this:
    ``docker compose -f docker-compose.yml -f docker-compose.snmp.yml up``.
 
 2. Change the line ``command: 192.168.0.1 user@my-hop-host 10000`` to the ip
@@ -61,7 +61,7 @@ When starting docker:
 When adding IP device in SeedDB:
 
 - if an error message appears go into the docker container using
-  ``docker-compose exec nav /bin/bash`` and do ``ping mydevice.mydomain``. If that
+  ``docker compose exec nav /bin/bash`` and do ``ping mydevice.mydomain``. If that
   works, then make sure you're using the right management profile, because
   tunneling works.
 

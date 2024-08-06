@@ -8,7 +8,7 @@ Docker is a lightweight "virtualization" framework for creating isolated
 environments, useful both in development and production.
 For more information on Docker visit their homepage_ or read the documentation_.
 
-Installing Docker and docker-compose
+Installing Docker and docker compose
 ------------------------------------
 
 Docker provides up-to-date documentation on how to install it for most popular
@@ -202,7 +202,7 @@ The ``nav`` and ``web`` containers share a common configuration volume named
 ``nav_config``. This volume should persist even between rebuilds of the
 containers themselves. If you want NAV to install a completely new set of
 config files from scratch, you may need to manually trash this volume using the
-``-v`` option to the :kbd:`docker-compose down` command.
+``-v`` option to the :kbd:`docker compose down` command.
 
 
 Overriding the compose services
