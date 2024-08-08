@@ -43,7 +43,7 @@ class PostgresqlChecker(AbstractChecker):
         kwargs = {}
 
         # Build keywords from arguments
-        for (name, value) in self.args.items():
+        for name, value in self.args.items():
             if name in ('user', 'password', 'database'):
                 # Must convert to str here because psycopg2 complains
                 # if keywords are unicode. ("Keywords must be strings")

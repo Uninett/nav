@@ -1,4 +1,5 @@
 """NAV build configuration variables."""
+
 # pylint: disable=invalid-name
 import os
 import sysconfig

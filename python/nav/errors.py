@@ -18,6 +18,7 @@
 
 class GeneralException(Exception):
     "General exception"
+
     # Just subclass this with a new doc-string
     def __str__(self):
         # Returns a nice version of the docstring
