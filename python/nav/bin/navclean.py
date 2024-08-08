@@ -21,7 +21,6 @@
 """Cleans old data from the NAV database"""
 import argparse
 import sys
-from typing import List
 
 from nav.bootstrap import bootstrap_django
 
@@ -171,7 +170,7 @@ def postgresql_interval(value):
 
 def get_selected_cleaners(
     args: argparse.Namespace, connection
-) -> List["RecordCleaner"]:
+) -> list["RecordCleaner"]:
     """Returns a list of RecordCleaner instances for each of the tables
     selected in the supplied ArgumentParser.
     """

@@ -67,7 +67,6 @@ class SuggestedReschedule(AbortedJobError):
 
 
 class JobHandler(object):
-
     """Handles a single polling job against a single netbox.
 
     An instance of this class performs a polling job, as described by
@@ -191,7 +190,7 @@ class JobHandler(object):
             else:
                 unwilling_plugins.append(cls)
 
-        for (willingness, plugins) in [
+        for willingness, plugins in [
             ('unwilling', unwilling_plugins),
             ('willing', willing_plugins),
         ]:

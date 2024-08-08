@@ -17,7 +17,7 @@
 from functools import wraps
 from operator import attrgetter
 import logging
-from typing import Dict, Sequence, List, Any
+from typing import Any, Sequence
 
 from nav.Snmp.profile import get_snmp_session_for_profile
 from nav.Snmp import safestring, OID
@@ -250,7 +250,7 @@ class SNMPHandler(ManagementHandler):
     @translate_protocol_errors
     def get_interfaces(
         self, interfaces: Sequence[manage.Interface] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         names = self._get_interface_names()
         aliases = self._get_all_ifaliases()
         oper = dict(self._get_all_interfaces_oper_status())
@@ -270,7 +270,7 @@ class SNMPHandler(ManagementHandler):
         ]
         return result
 
-    def _get_interface_names(self) -> Dict[int, str]:
+    def _get_interface_names(self) -> dict[int, str]:
         """Returns a mapping of interface indexes to ifName values"""
         return {
             OID(index)[-1]: safestring(value)
@@ -372,7 +372,7 @@ class SNMPHandler(ManagementHandler):
         """Make a list with tuples.  Each tuple contain
         interface-index and corresponding status-value"""
         available_stats = []
-        for (if_index, stat) in stats:
+        for if_index, stat in stats:
             if_index = OID(if_index)[-1]
             if isinstance(if_index, int):
                 available_stats.append((if_index, stat))

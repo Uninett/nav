@@ -206,7 +206,7 @@ class Arp(Plugin):
         timestamp = datetime.now()
         infinity = datetime.max
 
-        for (ip, mac) in mappings:
+        for ip, mac in mappings:
             if not ip or not mac:
                 continue  # Some devices seem to return empty results!
             arp = self.containers.factory((ip, mac), shadows.Arp)
