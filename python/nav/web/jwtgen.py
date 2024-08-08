@@ -1,32 +1,39 @@
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Any, Optional
+
 import jwt
-from nav.jwtconf import JWTConf
+
+from nav.jwtconf import JWTConf, ACCESS_TOKEN_EXPIRE_DELTA, REFRESH_TOKEN_EXPIRE_DELTA
 
 
-def generate_access_token(token_data: Dict[str, Any] = {}) -> str:
+def generate_access_token(token_data: Optional[dict[str, Any]] = None) -> str:
     """Generates and returns an access token in JWT format.
-    Will use `token_data` as a basis for the new token,
-    but certain claims will be overridden.
+    Will use `token_data` as a basis for claims in the the new token,
+    but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`, `token_type`
     """
-    return _generate_token(token_data, JWTConf.ACCESS_EXPIRE_DELTA, "access_token")
+    return _generate_token(token_data, ACCESS_TOKEN_EXPIRE_DELTA, "access_token")
 
 
-def generate_refresh_token(token_data: Dict[str, Any] = {}) -> str:
+def generate_refresh_token(token_data: Optional[dict[str, Any]] = None) -> str:
     """Generates and returns a refresh token in JWT format.
-    Will use `token_data` as a basis for the new token,
-    but certain claims will be overridden.
+    Will use `token_data` as a basis for claims in the the new token,
+    but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`, `token_type`
     """
-    return _generate_token(token_data, JWTConf.REFRESH_EXPIRE_DELTA, "refresh_token")
+    return _generate_token(token_data, REFRESH_TOKEN_EXPIRE_DELTA, "refresh_token")
 
 
 def _generate_token(
-    token_data: Dict[str, Any], expiry_delta: timedelta, token_type: str
+    token_data: Optional[dict[str, Any]], expiry_delta: timedelta, token_type: str
 ) -> str:
-    """Generates and returns a token in JWT format. Will use `token_data` as a basis
-    for the new token, but certain claims will be overridden
+    """Generates and returns a token in JWT format.
+    Will use `token_data` as a basis for claims in the the new token,
+    but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`, `token_type`
     """
-    new_token = dict(token_data)
+    if token_data is None:
+        new_token = dict()
+    else:
+        new_token = dict(token_data)
+
     now = datetime.now()
     name = JWTConf().get_nav_name()
     updated_claims = {
