@@ -1,4 +1,5 @@
 """Forms and view functions for editing services in SeedDB"""
+
 #
 # Copyright (C) 2011, 2013-2015 Uninett AS
 #
@@ -212,7 +213,7 @@ def service_save(request, service_form, property_form):
         service = Service.objects.create(
             netbox=netbox, handler=service_form.cleaned_data['handler']
         )
-    for (prop, value) in property_form.cleaned_data.items():
+    for prop, value in property_form.cleaned_data.items():
         if value:
             ServiceProperty.objects.create(service=service, property=prop, value=value)
     new_message(

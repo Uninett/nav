@@ -181,9 +181,9 @@ class ExpandGWPortMixin(object):
                         'type': 'swport',
                         'interface': model_to_dict(interface),
                         'netbox_sysname': interface.netbox.sysname,
-                        'module_netbox_sysname': interface.module.netbox.sysname
-                        if interface.module
-                        else '',
+                        'module_netbox_sysname': (
+                            interface.module.netbox.sysname if interface.module else ''
+                        ),
                         'subheader_vlan': str(vlan.vlan.vlan),
                         'subheader_netbox': str(interface.netbox),
                     }
