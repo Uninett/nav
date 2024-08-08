@@ -3,10 +3,14 @@ from os.path import join
 from functools import partial
 import configparser
 from typing import Any
+from datetime import timedelta
 
 from nav.config import ConfigurationError, NAVConfigParser
 
 _logger = logging.getLogger('nav.jwtconf')
+
+ACCESS_TOKEN_EXPIRE_DELTA = timedelta(hours=1)
+REFRESH_TOKEN_EXPIRE_DELTA = timedelta(days=1)
 
 
 class JWTConf(NAVConfigParser):
