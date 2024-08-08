@@ -1,5 +1,5 @@
-@import '../navsettings';
-$image-path: '../../images';
+@import 'settings';
+$image-path: '#{$assets-url}/images';
 
 #graph-view {
   background: #ffffff;
