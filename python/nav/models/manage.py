@@ -32,6 +32,7 @@ from typing import Set, Optional
 
 import IPy
 from django.conf import settings
+from django.contrib.postgres.fields import HStoreField
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import JSONField, Q
@@ -39,7 +40,6 @@ from django.db.models.expressions import RawSQL
 from django.urls import reverse
 
 from nav import util
-from nav.adapters import HStoreField
 from nav.bitvector import BitVector
 from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url, Graph

@@ -1,16 +1,12 @@
 """
 smsd integration tests
 """
+
 import os
 import os.path
-
-try:
-    from subprocess32 import STDOUT, check_output, TimeoutExpired, CalledProcessError
-except ImportError:
-    from subprocess import STDOUT, check_output, TimeoutExpired, CalledProcessError
+from subprocess import STDOUT, check_output, TimeoutExpired, CalledProcessError
 
 import pytest
-from mock import Mock, patch
 
 from nav.config import find_config_file, find_config_dir
 
