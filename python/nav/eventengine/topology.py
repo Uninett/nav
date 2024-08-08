@@ -280,8 +280,6 @@ def _get_target_dgram_addr(target):
     a SOCK_DGRAM socket type.
 
     """
-    for (family, socktype, _proto, _canonname, sockaddr) in socket.getaddrinfo(
-        target, 1
-    ):
+    for family, socktype, _proto, _canonname, sockaddr in socket.getaddrinfo(target, 1):
         if socktype == socket.SOCK_DGRAM:
             return family, sockaddr

@@ -253,9 +253,9 @@ def _fru_row_to_powersupply_or_fan(fru_row):
     model = fru_row.get("jnxContentsModel")
     psu_or_fan = PowerSupplyOrFan(
         name=fru_row.get("jnxFruName"),
-        physical_class="powerSupply"
-        if fru_row.get("jnxFruType") == "powerEntryModule"
-        else "fan",
+        physical_class=(
+            "powerSupply" if fru_row.get("jnxFruType") == "powerEntryModule" else "fan"
+        ),
         descr=model,
         internal_id=fru_row.get(0),
     )

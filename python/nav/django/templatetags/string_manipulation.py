@@ -1,4 +1,5 @@
 """Template filters for string manipulation"""
+
 import re
 
 from django import template

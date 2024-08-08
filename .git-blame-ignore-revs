@@ -6,3 +6,5 @@ e6634e512c8ecf283c85a701366620e724806ab7
 5d49efe59059c19da2d09d0ae695d498872cdb72
 # Re-ran black on everything due to apparent disagreements on config? @lunkwill42 22/02/2022
 e0496b75789656f5abca770e928988fd09bf7803
+# Re-ran black due to new version 24.4.2
+18245ec1a042aac23c4c85637d3454e8d1b5a1bb
