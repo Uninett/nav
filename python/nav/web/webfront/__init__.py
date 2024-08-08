@@ -1,4 +1,5 @@
 """NAV web common package."""
+
 import os
 
 from django.db.models import Count

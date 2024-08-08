@@ -64,7 +64,7 @@ def log_stacktrace(logger, stacktrace):
         return
 
     dump = []
-    for (frame, filename, line_no, func, source, _) in stacktrace:
+    for frame, filename, line_no, func, source, _ in stacktrace:
         dump.append("  File %r, line %s, in %s" % (filename, line_no, func))
         for line in source:
             dump.append("  %s" % line.rstrip())

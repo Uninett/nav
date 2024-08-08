@@ -140,7 +140,7 @@ class Pinger(object):
 
         down_now = []
         # Find out which netboxes to consider down
-        for (netboxid, replies) in self.replies.items():
+        for netboxid, replies in self.replies.items():
             if replies[: self._nrping] == [-1] * self._nrping:
                 down_now.append(netboxid)
 

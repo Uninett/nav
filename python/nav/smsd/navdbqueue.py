@@ -158,7 +158,7 @@ class NAVDBQueue(object):
         db.execute(sql, data)
 
         result = []
-        for (smsqid, name, msg, time) in db.fetchall():
+        for smsqid, name, msg, time in db.fetchall():
             result.append(
                 dict(
                     id=smsqid, name=name, msg=msg, time=time.strftime("%Y-%m-%d %H:%M")

@@ -170,7 +170,7 @@ def switchuser(username):
 
                 # Set non-primary groups
                 gids = []
-                for (_name, _passwd, gid, members) in grp.getgrall():
+                for _name, _passwd, gid, members in grp.getgrall():
                     if username in members:
                         gids.append(gid)
                 if gids:
