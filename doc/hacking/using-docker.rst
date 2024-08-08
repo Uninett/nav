@@ -135,7 +135,7 @@ A complete rebuild of the NAV code can be initiated by::
 Rebuilding the containers
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Running :kdb:`docker compose up` will normally build the container images,
+Running :kbd:`docker compose up` will normally build the container images,
 before starting them, if they don't exist already.  However, if the image
 definitions have changed (e.g. when you are switching between development
 branches or changed the :file:`Dockerfile` definitions, or any of the files
