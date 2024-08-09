@@ -6,7 +6,7 @@ from nav.models.oui import OUI
 
 
 class TestOUI:
-    def test_string_representation_should_match_oid(self, valid_oui):
+    def test_string_representation_should_match_oui(self, valid_oui):
         assert str(valid_oui) == valid_oui.oui
 
     def test_save_should_raise_error_if_last_3_bytes_are_not_zero(self, invalid_oui):
