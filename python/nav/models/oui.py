@@ -7,7 +7,7 @@ class OUI(models.Model):
     """Defines an OUI and the name of the vendor the OUI belongs to"""
 
     vendor = VarcharField()
-    oui = models.CharField(max_length=17)
+    oui = models.CharField(max_length=17, unique=True)
 
     def __str__(self):
         return self.oui
