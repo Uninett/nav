@@ -14,7 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 from twisted.internet import defer
-from twisted.internet.defer import returnValue
 
 from nav.bitvector import BitVector
 from nav.smidumps import get_mib
@@ -38,7 +37,7 @@ class CiscoVTPMib(mibretriever.MibRetriever):
             for index, row in trunkports.items()
             if row['vlanTrunkPortDynamicState'] in ('on', 'onNoNegotiate')
         }
-        returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def get_trunk_enabled_vlans(self, as_bitvector=False):
@@ -77,7 +76,7 @@ class CiscoVTPMib(mibretriever.MibRetriever):
             for index, row in trunkports.items()
             if row['vlanTrunkPortDynamicState'] in ('on', 'onNoNegotiate')
         }
-        returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def get_ethernet_vlan_states(self):
@@ -91,15 +90,13 @@ class CiscoVTPMib(mibretriever.MibRetriever):
             for (_domain, vlan), row in states.items()
             if row['vtpVlanType'] == 'ethernet'
         }
-        defer.returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def get_operational_vlans(self):
         """Retrieves a set of operational ethernet VLANs on this device"""
         states = yield self.get_ethernet_vlan_states()
-        defer.returnValue(
-            set(vlan for vlan, state in states.items() if state == 'operational')
-        )
+        return set(vlan for vlan, state in states.items() if state == 'operational')
 
     @defer.inlineCallbacks
     def retrieve_alternate_bridge_mibs(self):
@@ -111,6 +108,4 @@ class CiscoVTPMib(mibretriever.MibRetriever):
         """
         vlans = yield self.get_operational_vlans()
         community = self.agent_proxy.community
-        defer.returnValue(
-            [("vlan%s" % vlan, "%s@%s" % (community, vlan)) for vlan in vlans]
-        )
+        return [("vlan%s" % vlan, "%s@%s" % (community, vlan)) for vlan in vlans]

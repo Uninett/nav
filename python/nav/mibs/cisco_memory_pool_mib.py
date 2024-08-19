@@ -38,4 +38,4 @@ class CiscoMemoryPoolMib(mibretriever.MibRetriever):
         result = dict(
             (row[NAME], (row[USED], row[FREE])) for row in pools.values() if row[VALID]
         )
-        defer.returnValue(result)
+        return result

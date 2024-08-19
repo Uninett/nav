@@ -21,7 +21,6 @@ from pprint import pformat
 import logging
 
 from twisted.internet import defer
-from twisted.internet.defer import returnValue
 
 from nav.oidparsers import oid_to_ipv4
 from nav.smidumps import get_mib
@@ -49,7 +48,7 @@ class BGP4Mib(mibretriever.MibRetriever):
 
         """
         reply = yield self.get_next(self.SUPPORTED_ROOT)
-        returnValue(bool(reply))
+        return bool(reply)
 
     @defer.inlineCallbacks
     def get_bgp_peer_states(self):
@@ -90,7 +89,7 @@ class BGP4Mib(mibretriever.MibRetriever):
 
         if self._logger.isEnabledFor(logging.DEBUG):
             self._logger.debug("Found BGP peers:\n%s", pformat(result))
-        returnValue(result)
+        return result
 
     @staticmethod
     def _bgp_row_to_remote_ip(row_index):

@@ -15,7 +15,7 @@
 #
 """MibRetriever implementation for IBM-PDU-MIB"""
 
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from nav.mibs import reduce_index
 from nav.smidumps import get_mib
@@ -46,7 +46,7 @@ class IbmPduMib(MibRetriever):
         """
         phases = yield self._get_phase_sensors()
         outlets = yield self._get_outlet_sensors()
-        returnValue(phases + outlets)
+        return phases + outlets
 
     @inlineCallbacks
     def _get_phase_sensors(self):
@@ -78,7 +78,7 @@ class IbmPduMib(MibRetriever):
                 )
             )
 
-        returnValue(result)
+        return result
 
     @inlineCallbacks
     def _get_outlet_sensors(self):
@@ -99,7 +99,7 @@ class IbmPduMib(MibRetriever):
         for index, row in outlets.items():
             result.extend(self._outlet_row_to_sensors(index, row))
 
-        returnValue(result)
+        return result
 
     def _outlet_row_to_sensors(self, index, row):
         name = row.get(OUTLET_NAME)

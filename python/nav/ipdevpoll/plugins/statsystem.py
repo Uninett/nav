@@ -75,7 +75,7 @@ class StatSystem(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         if self.netbox.master:
-            defer.returnValue(None)
+            return None
         netboxes = yield db.run_in_thread(self._get_netbox_list)
         bandwidth = yield self._collect_bandwidth(netboxes)
         cpu = yield self._collect_cpu(netboxes)
@@ -98,8 +98,8 @@ class StatSystem(Plugin):
                 )
             else:
                 if metrics:
-                    defer.returnValue(metrics)
-        defer.returnValue([])
+                    return metrics
+        return []
 
     @defer.inlineCallbacks
     def _collect_bandwidth_from_mib(self, mib, netboxes):
@@ -129,7 +129,7 @@ class StatSystem(Plugin):
                         (timestamp, bandwidth_peak),
                     ),
                 ]
-            defer.returnValue(metrics)
+            return metrics
 
     @defer.inlineCallbacks
     def _collect_cpu(self, netboxes):
@@ -142,8 +142,8 @@ class StatSystem(Plugin):
                     "collect_cpu: ignoring timeout in %s", mib.mib['moduleName']
                 )
             else:
-                defer.returnValue(load + utilization)
-        defer.returnValue([])
+                return load + utilization
+        return []
 
     @defer.inlineCallbacks
     def _get_cpu_loadavg(self, mib, netboxes):
@@ -160,7 +160,7 @@ class StatSystem(Plugin):
                     for netbox in netboxes:
                         path = metric_path_for_cpu_load(netbox, cpuname, interval)
                         metrics.append((path, (timestamp, value)))
-        defer.returnValue(metrics)
+        return metrics
 
     @defer.inlineCallbacks
     def _get_cpu_utilization(self, mib, netboxes):
@@ -176,7 +176,7 @@ class StatSystem(Plugin):
                 for netbox in netboxes:
                     path = metric_path_for_cpu_utilization(netbox, cpuname)
                     metrics.append((path, (timestamp, value)))
-        defer.returnValue(metrics)
+        return metrics
 
     def _mibs_for_me(self, mib_class_dict):
         vendor = self.netbox.type.get_enterprise_id() if self.netbox.type else None
@@ -196,9 +196,9 @@ class StatSystem(Plugin):
             for netbox in netboxes:
                 path = metric_path_for_sysuptime(netbox)
                 metrics.append((path, (timestamp, uptime)))
-            defer.returnValue(metrics)
+            return metrics
         else:
-            defer.returnValue([])
+            return []
 
     @defer.inlineCallbacks
     def _collect_power(self, netboxes):
@@ -218,9 +218,9 @@ class StatSystem(Plugin):
                 for index, value in power.items():
                     path = metric_path_for_power(netbox, index)
                     metrics.append((path, (timestamp, value)))
-            defer.returnValue(metrics)
+            return metrics
         else:
-            defer.returnValue([])
+            return []
 
     @defer.inlineCallbacks
     def _collect_memory(self, netboxes):
@@ -250,4 +250,4 @@ class StatSystem(Plugin):
                         (prefix + '.free', (timestamp, free)),
                     ]
                 )
-        defer.returnValue(result)
+        return result

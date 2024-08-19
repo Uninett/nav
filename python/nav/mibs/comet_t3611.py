@@ -17,7 +17,6 @@
 """A class for retrieving temperature and humidity data from a Comet T3611"""
 
 from twisted.internet import defer
-from twisted.internet.defer import returnValue
 
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
@@ -42,7 +41,7 @@ class CometT3611(mibretriever.MibRetriever):
             .addCallback(reduce_index)
         )
 
-        returnValue(self._data_to_sensor(result))
+        return self._data_to_sensor(result)
 
     def _data_to_sensor(self, result):
         """Processes MIB data and returns a humidity and temperature sensor pair"""
@@ -57,27 +56,25 @@ class CometT3611(mibretriever.MibRetriever):
         hum_mibobject = self.nodes.get("hum")
         hum_readout_oid = str(hum_mibobject.oid + str(0))
 
-        returnValue(
-            [
-                dict(
-                    oid=temp_readout_oid,
-                    unit_of_measurement=temp_unit,
-                    precision=0,
-                    scale=None,
-                    description=temp_name,
-                    name=temp_name,
-                    internal_name=temp_internal_name,
-                    mib="T3611-MIB",
-                ),
-                dict(
-                    oid=hum_readout_oid,
-                    unit_of_measurement=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
-                    precision=0,
-                    scale=None,
-                    description=hum_name,
-                    name=hum_name,
-                    internal_name=hum_internal_name,
-                    mib="T3611-MIB",
-                ),
-            ]
-        )
+        return [
+            dict(
+                oid=temp_readout_oid,
+                unit_of_measurement=temp_unit,
+                precision=0,
+                scale=None,
+                description=temp_name,
+                name=temp_name,
+                internal_name=temp_internal_name,
+                mib="T3611-MIB",
+            ),
+            dict(
+                oid=hum_readout_oid,
+                unit_of_measurement=Sensor.UNIT_PERCENT_RELATIVE_HUMIDITY,
+                precision=0,
+                scale=None,
+                description=hum_name,
+                name=hum_name,
+                internal_name=hum_internal_name,
+                mib="T3611-MIB",
+            ),
+        ]

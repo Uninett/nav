@@ -516,4 +516,4 @@ class ItWatchDogsMibV3(BaseITWatchDogsMib):
             self._logger.debug('get_all_sensors: %s = %s', table, sensors)
             result.extend(handler(sensors))
 
-        defer.returnValue(result)
+        return result

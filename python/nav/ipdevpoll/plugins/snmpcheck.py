@@ -16,7 +16,6 @@
 """snmp check plugin"""
 from pynetsnmp.netsnmp import SnmpTimeoutError
 from twisted.internet import error, defer
-from twisted.internet.defer import returnValue
 
 from django.db import transaction
 
@@ -71,10 +70,10 @@ class SnmpCheck(Plugin):
             result = yield self.agent.walk(SYSTEM_OID)
         except (defer.TimeoutError, error.TimeoutError, SnmpTimeoutError):
             self._logger.debug("SNMP v%s timed out", self.agent.snmpVersion)
-            returnValue(False)
+            return False
 
         self._logger.debug("SNMP response: %r", result)
-        returnValue(bool(result))
+        return bool(result)
 
     @defer.inlineCallbacks
     def _mark_as_down(self):

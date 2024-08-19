@@ -16,7 +16,6 @@
 """A class for getting DOM values from Coriant Groove equipment"""
 
 from twisted.internet import defer
-from twisted.internet.defer import returnValue
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
@@ -153,7 +152,7 @@ class CoriantGrooveMib(MibRetriever):
                 filter_columns=group.get("filter_columns"),
             )
             sensors.extend(response)
-        returnValue(sensors)
+        return sensors
 
     @defer.inlineCallbacks
     def _discover_sensors(
@@ -226,7 +225,7 @@ class CoriantGrooveMib(MibRetriever):
                 ]
             )
         self._logger.debug("Returning sensor list: %r", sensors)
-        returnValue(sensors)
+        return sensors
 
     def _make_sensor(self, index, name, alias, column, config):
         value_oid = self.nodes[column].oid

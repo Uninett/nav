@@ -27,7 +27,7 @@ interfaces, as well as set the list of enabled VLANs on trunks.
 
 from collections import defaultdict
 
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from nav.util import mergedicts
 from nav.mibs.bridge_mib import BridgeMib
@@ -122,7 +122,7 @@ class Dot1q(Plugin):
             egress = yield query.get_vlan_static_egress_ports()
             untagged = yield query.get_vlan_static_untagged_ports()
 
-        returnValue((egress, untagged))
+        return (egress, untagged)
 
     def _find_trunkports(self, egress, untagged):
         trunkports = defaultdict(list)

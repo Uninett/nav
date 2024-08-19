@@ -96,7 +96,7 @@ class Sensors(Plugin):
 
         classes = self.mib_map.get(vendor_id, ()) or self.mib_map.get('*', ())
         mibs = [cls(self.agent) for cls in classes]
-        defer.returnValue(mibs)
+        return mibs
 
     def _store_sensors(self, result):
         """Stores sensor records in the current job's container dictionary, so

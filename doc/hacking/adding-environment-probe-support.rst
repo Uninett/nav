@@ -219,7 +219,7 @@ Let's hardcode an example result for a single temperature sensor, based on the
 		    'mib': 'SPAGENT-MIB',
 		}
 	    ]
-	    defer.returnValue(result)
+	    return result
 
 This returns a list of a single item: A dictionary describing the first
 temperature sensor from the snmpwalk from above. The dictionary should contain
@@ -284,8 +284,8 @@ Let's rewrite ``SPAgentMib`` to collect actual temperature sensors:
    :emphasize-lines: 9, 20
 
     from nav.models.manage import Sensor
-    
-		     
+
+
     class SPAgentMib(MibRetriever):
 	mib = get_mib('SPAGENT-MIB')
 
@@ -300,7 +300,7 @@ Let's rewrite ``SPAgentMib`` to collect actual temperature sensors:
 	    sensors = (self._temp_row_to_sensor(index, row)
 		       for index, row in result.iteritems())
 
-	    defer.returnValue([s for s in sensors if s])
+	    return [s for s in sensors if s]
 
 	def _temp_row_to_sensor(self, index, row):
 	    online = row.get('sensorProbeTempOnline', 'offline')

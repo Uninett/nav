@@ -46,8 +46,8 @@ class StatSensors(Plugin):
         )
         if base_can_handle:
             i_can_handle = yield run_in_thread(cls._has_sensors, netbox)
-            defer.returnValue(i_can_handle)
-        defer.returnValue(base_can_handle)
+            return i_can_handle
+        return base_can_handle
 
     @classmethod
     def _has_sensors(cls, netbox):
@@ -56,7 +56,7 @@ class StatSensors(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         if self.netbox.master:
-            defer.returnValue(None)
+            return None
         netboxes = yield db.run_in_thread(self._get_netbox_list)
         sensors = yield run_in_thread(self._get_sensors)
         self._logger.debug("retrieving data from %d sensors", len(sensors))
