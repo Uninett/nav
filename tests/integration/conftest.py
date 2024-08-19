@@ -313,7 +313,7 @@ def snmpsim():
     by the test that declares a dependency to this fixture. Data fixtures are loaded
     from the snmp_fixtures subdirectory.
     """
-    snmpsimd = which('snmpsimd.py')
+    snmpsimd = which('snmpsim-command-responder')
     assert snmpsimd, "Could not find snmpsimd.py"
     workspace = os.getenv('WORKSPACE', os.getenv('HOME', '/source'))
     proc = subprocess.Popen(
