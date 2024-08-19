@@ -84,7 +84,7 @@ class PowerNetMib(UpsMib):
         ups_sensors = yield super(PowerNetMib, self).get_all_sensors()
         pdu_sensors = yield self._get_pdu_bank_load_sensors()
         result = ups_sensors + pdu_sensors
-        defer.returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def _get_pdu_bank_load_sensors(self):
@@ -123,7 +123,7 @@ class PowerNetMib(UpsMib):
                     mib=self.get_module_name(),
                 )
             )
-        defer.returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def get_serial_number(self):
@@ -134,4 +134,4 @@ class PowerNetMib(UpsMib):
             if serial:
                 if isinstance(serial, bytes):
                     serial = serial.decode("utf-8")
-                defer.returnValue(serial)
+                return serial

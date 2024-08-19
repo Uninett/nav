@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Collects interface link states and dispatches NAV events on changes"""
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from nav.mibs import reduce_index
 from nav.mibs.if_mib import IfMib
@@ -32,7 +32,7 @@ class LinkState(Plugin):
             self._logger.debug(
                 "this is a virtual instance of %s, not polling", self.netbox.master
             )
-            returnValue(None)
+            return None
 
         ifmib = IfMib(self.agent)
         result = yield ifmib.retrieve_columns(

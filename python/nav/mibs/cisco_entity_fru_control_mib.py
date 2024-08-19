@@ -101,7 +101,7 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
             "cefcFanTrayOperStatus", (int(internal_id),)
         )
         self._logger.debug("cefcFanTrayOperStatus.%s = %r", internal_id, oper_status)
-        defer.returnValue(self._translate_fan_status(oper_status))
+        return self._translate_fan_status(oper_status)
 
     @defer.inlineCallbacks
     def get_power_supply_status(self, internal_id):
@@ -110,21 +110,21 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
             "cefcFRUPowerOperStatus", (int(internal_id),)
         )
         self._logger.debug("cefcFRUPowerOperStatus.%s = %r", internal_id, oper_status)
-        defer.returnValue(self._translate_power_supply_status_value(oper_status))
+        return self._translate_power_supply_status_value(oper_status)
 
     @defer.inlineCallbacks
     def get_fan_status_table(self):
         """Retrieve the whole table of fan-sensors and cache the result."""
         if not self.fan_status_table:
             self.fan_status_table = yield self._get_fantray_status_table()
-        defer.returnValue(self.fan_status_table)
+        return self.fan_status_table
 
     @defer.inlineCallbacks
     def get_psu_status_table(self):
         """Retrieve the whole table of PSU-sensors and cache the result."""
         if not self.psu_status_table:
             self.psu_status_table = yield self._get_power_status_table()
-        defer.returnValue(self.psu_status_table)
+        return self.psu_status_table
 
     def get_power_supplies(self):
         """Retrieves a list of power supply objects"""
@@ -144,4 +144,4 @@ class CiscoEntityFruControlMib(mibretriever.MibRetriever):
             "found %d/%d field-replaceable fan entities", len(status), len(fans)
         )
         fans = [fan for fan in fans if fan.internal_id in status]
-        defer.returnValue(fans)
+        return fans

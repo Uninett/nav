@@ -209,4 +209,4 @@ class CiscoEnvMonMib(mibretriever.MibRetriever):
         result.extend(self._get_powersupply_sensor_params(powersupply_sensors))
 
         self._logger.debug('get_all_sensors: result=%s', result)
-        defer.returnValue(result)
+        return result

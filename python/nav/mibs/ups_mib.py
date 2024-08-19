@@ -115,7 +115,7 @@ class UpsMib(mibretriever.MibRetriever):
             sensor_params = yield self._get_named_column(sensor)
             result.extend(self._get_sensors(sensor, sensor_params))
 
-        defer.returnValue(result)
+        return result
 
     def _get_sensors(self, object_name, sensor_params):
         result = []

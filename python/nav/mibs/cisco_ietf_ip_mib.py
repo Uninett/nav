@@ -72,7 +72,7 @@ class CiscoIetfIpMib(IpMib):
             column='cInetNetToMediaPhysAddress'
         )
 
-        defer.returnValue(mappings)
+        return mappings
 
     @defer.inlineCallbacks
     def get_interface_addresses(self):
@@ -90,7 +90,7 @@ class CiscoIetfIpMib(IpMib):
             prefix_entry='cIpAddressPfxOrigin',
         )
 
-        defer.returnValue(addresses)
+        return addresses
 
     @staticmethod
     def _binary_mac_to_hex(mac):

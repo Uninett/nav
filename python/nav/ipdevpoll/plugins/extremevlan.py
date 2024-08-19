@@ -19,7 +19,7 @@ Uses information from EXTREME-VLAN-MIB and BRIDGE-MIB.
 
 """
 
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from nav.enterprise.ids import VENDOR_ID_EXTREME_NETWORKS
 from nav.mibs.extreme_vlan_mib import ExtremeVlanMib
@@ -60,7 +60,7 @@ class ExtremeVlan(Plugin):
         vlan_ports = yield self.extremevlan.get_vlan_ports()
         if not vlan_ports:
             # Doesn't appear to have VLAN data in EXTREME MIBs, get out now.
-            returnValue(None)
+            return None
         ifindex_vlan = yield self.extremevlan.get_ifindex_vlan_map()
         self.baseport_ifindex = yield self.bridge.get_baseport_ifindex_map()
 

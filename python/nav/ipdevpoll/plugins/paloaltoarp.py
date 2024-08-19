@@ -30,7 +30,6 @@ from typing import Dict
 
 from IPy import IP
 from twisted.internet import defer, reactor, ssl
-from twisted.internet.defer import returnValue
 from twisted.web import client
 from twisted.web.client import Agent
 from twisted.web.http_headers import Headers
@@ -77,11 +76,11 @@ class PaloaltoArp(Arp):
         mappings = yield self._get_paloalto_arp_mappings(self.netbox.ip, api_key)
         if mappings is None:
             self._logger.info("No mappings found for Paloalto device")
-            returnValue(None)
+            return None
 
         yield self._process_data(mappings)
 
-        returnValue(None)
+        return None
 
     @defer.inlineCallbacks
     def _get_paloalto_arp_mappings(self, address: str, key: str):
@@ -89,11 +88,11 @@ class PaloaltoArp(Arp):
 
         arptable = yield self._do_request(address, key)
         if arptable is None:
-            returnValue(None)
+            return None
 
         # process arpdata into an array of mappings
         mappings = parse_arp(arptable.decode('utf-8'))
-        returnValue(mappings)
+        return mappings
 
     @defer.inlineCallbacks
     def _do_request(self, address: str, key: str):
@@ -122,10 +121,10 @@ class PaloaltoArp(Arp):
                 "Error when talking to PaloAlto API. "
                 "Make sure the device is reachable and the API key is correct."
             )
-            returnValue(None)
+            return None
 
         response = yield client.readBody(response)
-        returnValue(response)
+        return response
 
 
 def parse_arp(arp):

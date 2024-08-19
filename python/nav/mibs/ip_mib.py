@@ -18,7 +18,7 @@
 """MibRetriever implementation for IP-MIB"""
 from __future__ import absolute_import
 
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from nav.oids import OID
 from nav.oidparsers import IPV4_ID, IPV6_ID, oid_to_ipv6, oid_to_ipv4
@@ -161,7 +161,7 @@ class IpMib(mibretriever.MibRetriever):
         self._logger.debug(
             "ip/mac pairs: Got %d rows from %s", len(all_phys_addrs), column
         )
-        returnValue(mappings)
+        return mappings
 
     @inlineCallbacks
     def _get_ifindex_ipv4_mac_mappings(self, column='ipNetToMediaPhysAddress'):
@@ -194,7 +194,7 @@ class IpMib(mibretriever.MibRetriever):
         self._logger.debug(
             "ip/mac pairs: Got %d rows from %s", len(ipv4_phys_addrs), column
         )
-        returnValue(mappings)
+        return mappings
 
     @staticmethod
     def _binary_mac_to_hex(mac):
@@ -219,7 +219,7 @@ class IpMib(mibretriever.MibRetriever):
         mappings_new = yield self._get_ifindex_ip_mac_mappings()
         mappings_deprecated = yield self._get_ifindex_ipv4_mac_mappings()
 
-        returnValue(mappings_new | mappings_deprecated)
+        return mappings_new | mappings_deprecated
 
     @inlineCallbacks
     def _get_interface_ipv4_addresses(
@@ -267,7 +267,7 @@ class IpMib(mibretriever.MibRetriever):
             len(address_rows),
             ifindex_column,
         )
-        returnValue(addresses)
+        return addresses
 
     @inlineCallbacks
     def _get_interface_addresses(
@@ -311,7 +311,7 @@ class IpMib(mibretriever.MibRetriever):
             len(address_rows),
             ifindex_column,
         )
-        returnValue(addresses)
+        return addresses
 
     @inlineCallbacks
     def get_interface_addresses(self):
@@ -329,7 +329,7 @@ class IpMib(mibretriever.MibRetriever):
         addrs_from_new_table = yield self._get_interface_addresses()
         addrs_from_deprecated_table = yield self._get_interface_ipv4_addresses()
 
-        returnValue(addrs_from_new_table | addrs_from_deprecated_table)
+        return addrs_from_new_table | addrs_from_deprecated_table
 
     @inlineCallbacks
     def get_ipv6_octet_counters(self):
@@ -344,7 +344,7 @@ class IpMib(mibretriever.MibRetriever):
             for index, row in octets.items()
             if index[-2] == IPV6_ID
         )
-        returnValue(result)
+        return result
 
 
 class MultiIpMib(IpMib, mibretriever.MultiMibMixIn):

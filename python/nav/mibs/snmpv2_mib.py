@@ -43,13 +43,13 @@ class Snmpv2Mib(mibretriever.MibRetriever):
         oid = self.nodes[var].oid
         result = yield self.get_next(var)
         if result:
-            defer.returnValue(result)
+            return result
         else:
             oid = oid + OID('0')
             result = yield self.agent_proxy.get([str(oid)])
             for key, value in result.items():
                 if oid == OID(key):
-                    defer.returnValue(value)
+                    return value
 
     # pylint: disable=C0103
 
@@ -77,7 +77,7 @@ class Snmpv2Mib(mibretriever.MibRetriever):
         """
         sysuptime = yield self._get_sysvariable('sysUpTime')
         timestamp = time.mktime(time.localtime())
-        defer.returnValue((timestamp, sysuptime))
+        return (timestamp, sysuptime)
 
     @staticmethod
     def get_uptime_deviation(first_uptime, second_uptime):
