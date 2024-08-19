@@ -165,7 +165,7 @@ class Interfaces(Plugin):
         stack = yield self.ifmib.get_stack_status().addCallback(_stackify)
         self._get_ifalias_from_lower_layers(stack)
         self._create_stack_containers(stack)
-        defer.returnValue(interfaces)
+        return interfaces
 
     def _get_ifalias_from_lower_layers(self, stack):
         """For each interface without an ifAlias value, attempts to find

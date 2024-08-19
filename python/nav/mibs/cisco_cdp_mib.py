@@ -49,7 +49,7 @@ class CiscoCDPMib(mibretriever.MibRetriever):
             neighbor = self._make_cache_tuple(index, row)
             if neighbor:
                 neighbors.append(neighbor)
-        defer.returnValue(neighbors)
+        return neighbors
 
     @defer.inlineCallbacks
     def _get_cdp_cache_table(self):
@@ -61,7 +61,7 @@ class CiscoCDPMib(mibretriever.MibRetriever):
                 'cdpCacheDevicePort',
             ]
         )
-        defer.returnValue(reduce_index(cache))
+        return reduce_index(cache)
 
     @staticmethod
     def _make_cache_tuple(index, row):

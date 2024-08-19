@@ -33,4 +33,4 @@ class CiscoHSRPMib(mibretriever.MibRetriever):
         addr_map = dict(
             (IP(ip), ifindex) for (ifindex, group), ip in index_addrs.items()
         )
-        defer.returnValue(addr_map)
+        return addr_map

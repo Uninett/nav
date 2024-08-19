@@ -78,7 +78,7 @@ class StatPorts(Plugin):
     def handle(self):
         if self.netbox.master:
             yield self._log_instance_details()
-            defer.returnValue(None)
+            return None
 
         timestamp = time.time()
         stats = yield self._get_stats()
@@ -105,7 +105,7 @@ class StatPorts(Plugin):
                 stats[ifindex][IF_IN_OCTETS_IPV6] = in_octets
                 stats[ifindex][IF_OUT_OCTETS_IPV6] = out_octets
 
-        defer.returnValue(stats)
+        return stats
 
     def _make_metrics(self, stats, netboxes, timestamp=None):
         timestamp = timestamp or time.time()

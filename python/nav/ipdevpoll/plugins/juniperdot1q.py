@@ -37,7 +37,7 @@ https://www.juniper.net/documentation/en_US/junos12.3/topics/reference/general/s
 
 """
 
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 from nav.enterprise.ids import VENDOR_ID_JUNIPER_NETWORKS_INC
 from nav.oids import OID
 from . import dot1q
@@ -84,12 +84,12 @@ class JuniperDot1q(dot1q.Dot1q):
         """
         (egress, untagged) = yield super(JuniperDot1q, self)._retrieve_vlan_ports()
         if not self.jnx_vlan_map:
-            returnValue((egress, untagged))
+            return (egress, untagged)
 
         new_egress = {self._remap_vlan(key): value for key, value in egress.items()}
         new_untagged = {self._remap_vlan(key): value for key, value in untagged.items()}
 
-        returnValue((new_egress, new_untagged))
+        return (new_egress, new_untagged)
 
     def __is_a_moronic_juniper_device(self):
         if self.netbox.type:
@@ -103,4 +103,4 @@ class JuniperDot1q(dot1q.Dot1q):
         mappings = result.get(_jnxExVlanTag, {})
         mappings = {OID(key)[-1]: value for key, value in mappings.items()}
         self._logger.debug("got jnxExVlanTag map: %r", mappings)
-        returnValue(mappings)
+        return mappings

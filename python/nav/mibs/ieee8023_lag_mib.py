@@ -15,7 +15,7 @@
 #
 """ "A MibRetriever to retrieve IEEE 802.3ad info from the IEEE8023-LAG-MIB"""
 from collections import defaultdict
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
 
@@ -36,9 +36,9 @@ class IEEE8023LagMib(mibretriever.MibRetriever):
         result = yield self.retrieve_column('dot3adAggPortSelectedAggID').addCallback(
             reduce_index
         )
-        returnValue(
-            {port: aggregator for port, aggregator in result.items() if aggregator != 0}
-        )
+        return {
+            port: aggregator for port, aggregator in result.items() if aggregator != 0
+        }
 
     @inlineCallbacks
     def retrieve_attached_aggregators(self):
@@ -51,9 +51,9 @@ class IEEE8023LagMib(mibretriever.MibRetriever):
         result = yield self.retrieve_column('dot3adAggPortAttachedAggID').addCallback(
             reduce_index
         )
-        returnValue(
-            {port: aggregator for port, aggregator in result.items() if aggregator != 0}
-        )
+        return {
+            port: aggregator for port, aggregator in result.items() if aggregator != 0
+        }
 
     @inlineCallbacks
     def retrieve_aggregations_by_operational_key(self):
@@ -81,4 +81,4 @@ class IEEE8023LagMib(mibretriever.MibRetriever):
             if opervalue in by_opervalue
         }
 
-        returnValue(result)
+        return result

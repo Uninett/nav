@@ -30,4 +30,4 @@ class CiscoVlanMembershipMib(mibretriever.MibRetriever):
         vlans = yield self.retrieve_column('vmVlan')
 
         result = {index[0]: vlan for index, vlan in vlans.items()}
-        defer.returnValue(result)
+        return result

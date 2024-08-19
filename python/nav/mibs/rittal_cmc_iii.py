@@ -19,7 +19,6 @@ from collections import defaultdict
 import math
 
 from twisted.internet import defer
-from twisted.internet.defer import returnValue
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
@@ -79,7 +78,7 @@ class RittalCMCIIIMib(MibRetriever):
         """Discovers and returns all eligible sensors from the device."""
         devices = yield self.get_devices()
         sensors = yield self.get_sensors(devices)
-        returnValue(sensors)
+        return sensors
 
     @defer.inlineCallbacks
     def get_devices(self):
@@ -87,7 +86,7 @@ class RittalCMCIIIMib(MibRetriever):
             ['cmcIIIDevName', 'cmcIIIDevAlias', 'cmcIIIDevNumberOfVars']
         )
         devices = self.translate_result(devices)
-        returnValue(devices)
+        return devices
 
     @defer.inlineCallbacks
     def get_sensors(self, devices):
@@ -147,4 +146,4 @@ class RittalCMCIIIMib(MibRetriever):
                     mib=self.get_module_name(),
                 )
                 result.append(sensor)
-        returnValue(result)
+        return result

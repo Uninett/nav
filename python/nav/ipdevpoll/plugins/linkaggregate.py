@@ -15,7 +15,7 @@
 #
 import logging
 from collections import defaultdict
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from nav.ipdevpoll import Plugin
 from nav.ipdevpoll import shadows
@@ -47,7 +47,7 @@ class LinkAggregate(Plugin):
             for if_idx in aggregates:
                 interface = yield self._get_interface(if_idx)
                 result.append((interface, aggregator))
-        returnValue(result)
+        return result
 
     @inlineCallbacks
     def _get_interface(self, ifindex):
@@ -56,7 +56,7 @@ class LinkAggregate(Plugin):
             # In case no other plugins ran before us to collect this:
             self._logger.debug("retrieving ifName.%s", ifindex)
             ifc.ifname = yield self.ifmib.retrieve_column_by_index('ifName', (ifindex,))
-        returnValue(ifc)
+        return ifc
 
     def _log_aggregates(self, aggregates):
         if not self._logger.isEnabledFor(logging.DEBUG):

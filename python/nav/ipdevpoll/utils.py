@@ -139,7 +139,7 @@ def get_multibridgemib(agentproxy):
     from nav.mibs.bridge_mib import MultiBridgeMib
 
     instances = yield get_dot1d_instances(agentproxy)
-    defer.returnValue(MultiBridgeMib(agentproxy, instances))
+    return MultiBridgeMib(agentproxy, instances)
 
 
 @defer.inlineCallbacks
@@ -182,9 +182,9 @@ def get_dot1d_instances(agentproxy):
                 modified_by,
                 result,
             )
-            defer.returnValue(result)
+            return result
 
-    defer.returnValue([])
+    return []
 
 
 @defer.inlineCallbacks
@@ -202,7 +202,7 @@ def get_arista_vrf_instances(agentproxy) -> Deferred:
     states = yield vrf_mib.get_vrf_states(only='active')
     vrfs = [('', agentproxy.community)]
     vrfs.extend((vrf, f"{agentproxy.community}@{vrf}") for vrf in states)
-    defer.returnValue(vrfs)
+    return vrfs
 
 
 _VLAN_RE = re.compile('^vlan([0-9]+)', re.IGNORECASE)

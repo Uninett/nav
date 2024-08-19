@@ -50,12 +50,12 @@ class CiscoProcessMib(mibretriever.MibRetriever):
         for index, row in load.items():
             name = names.get(row[PHYSICAL_INDEX], str(index[-1]))
             result[name] = [(5, row[TOTAL_5_MIN_REV]), (1, row[TOTAL_1_MIN_REV])]
-        defer.returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def _get_cpu_names(self, indexes):
         if not indexes:
-            defer.returnValue({})
+            return {}
         self._logger.debug("getting cpu names from ENTITY-MIB")
         base_oid = EntityMib.nodes['entPhysicalName'].oid
         oids = [str(base_oid + (index,)) for index in indexes]
@@ -64,7 +64,7 @@ class CiscoProcessMib(mibretriever.MibRetriever):
         names = {
             OID(oid)[-1]: smart_str(value) for oid, value in names.items() if value
         }
-        defer.returnValue(names)
+        return names
 
     def get_cpu_utilization(self):
         return defer.succeed(None)

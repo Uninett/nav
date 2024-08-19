@@ -397,7 +397,7 @@ class BaseITWatchDogsMib(mibretriever.MibRetriever):
             for sensor_group in sensor_groups:
                 result.extend(self._handle_sensor_group(sensor_group, sensors))
 
-        defer.returnValue(result)
+        return result
 
 
 UNITS = {

@@ -57,7 +57,7 @@ class Cam(Plugin):
     def can_handle(cls, netbox):
         daddy_says_ok = super(Cam, cls).can_handle(netbox)
         has_ifcs = yield db.run_in_thread(cls._has_interfaces, netbox)
-        defer.returnValue(has_ifcs and daddy_says_ok)
+        return has_ifcs and daddy_says_ok
 
     @classmethod
     def _has_interfaces(cls, netbox):
@@ -102,7 +102,7 @@ class Cam(Plugin):
                 ifindex = baseports[port]
                 mapping[ifindex].add(mac)
 
-        defer.returnValue(dict(mapping))
+        return dict(mapping)
 
     @defer.inlineCallbacks
     def _get_dot1q_mac_port_mapping(self):
@@ -116,27 +116,27 @@ class Cam(Plugin):
                 ifindex = baseports[port]
                 mapping[ifindex].add(mac)
 
-        defer.returnValue(dict(mapping))
+        return dict(mapping)
 
     @defer.inlineCallbacks
     def _get_baseports(self):
         if not self.baseports:
             bridge = yield self._get_bridge()
             self.baseports = yield bridge.get_baseport_ifindex_map()
-        defer.returnValue(self.baseports)
+        return self.baseports
 
     @defer.inlineCallbacks
     def _get_bridge(self):
         if not self.bridge:
             instances = yield self._get_dot1d_instances()
             self.bridge = MultiBridgeMib(self.agent, instances)
-        defer.returnValue(self.bridge)
+        return self.bridge
 
     @defer.inlineCallbacks
     def _get_dot1d_instances(self):
         if not self.dot1d_instances:
             self.dot1d_instances = yield utils.get_dot1d_instances(self.agent)
-        defer.returnValue(self.dot1d_instances)
+        return self.dot1d_instances
 
     def _log_fdb_stats(self, prefix, fdb):
         mac_count = sum(len(v) for v in fdb.values())
@@ -230,7 +230,7 @@ class Cam(Plugin):
         if translated:
             self._log_blocking_ports(translated)
             self._store_blocking_ports(translated)
-        defer.returnValue(translated)
+        return translated
 
     def _log_blocking_ports(self, blocking):
         ifc_count = len(set(ifc for ifc, vlan in blocking))

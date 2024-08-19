@@ -40,4 +40,4 @@ class JuniperAlarmMib(MibRetriever):
             count = int(count) or 0
         except (ValueError, TypeError):
             count = 0
-        defer.returnValue(count)
+        return count

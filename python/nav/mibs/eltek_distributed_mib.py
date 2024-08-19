@@ -14,7 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """MibRetriever implementation for Eltek 48V rectifier devices"""
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
@@ -54,7 +54,7 @@ class EltekDistributedMib(MibRetriever):
             if sensor:
                 sensors.append(sensor)
 
-        returnValue(sensors)
+        return sensors
 
     @inlineCallbacks
     def _verify_sensor(self, object_name):
@@ -81,4 +81,4 @@ class EltekDistributedMib(MibRetriever):
                 sensor['on_state'] = 1
                 sensor['on_message'] = "{} alarm".format(description)
                 sensor['off_message'] = "{} normal".format(description)
-            returnValue(sensor)
+            return sensor
