@@ -1,4 +1,5 @@
 """Tests for report view utility functions"""
+
 from nav.web.report.views import find_page_range
 
 

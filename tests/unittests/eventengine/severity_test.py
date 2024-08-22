@@ -161,7 +161,7 @@ class TestThatSeverityRules:
     def test_should_evaluate_to_single_rule_on_empty_rulesets(
         self, empty_ruleset_source
     ):
-        """Tests that an empty ruleset is parsed into a single default-value rule """
+        """Tests that an empty ruleset is parsed into a single default-value rule"""
         rules = SeverityRules.load(empty_ruleset_source)
         assert len(rules) == 1
 

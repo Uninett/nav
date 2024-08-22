@@ -1,4 +1,5 @@
 """Basic tests for nav.arnold"""
+
 # pylint: disable=C0111
 import unittest
 from datetime import datetime, timedelta

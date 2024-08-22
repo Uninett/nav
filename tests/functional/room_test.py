@@ -1,4 +1,5 @@
 """Selenium tests for room views"""
+
 import os
 
 from selenium.webdriver.common.by import By

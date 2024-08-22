@@ -1,4 +1,5 @@
 """Tests for ipdevpoll's TimestampChecker utility class"""
+
 from mock import Mock, patch
 
 import pytest

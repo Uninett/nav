@@ -1,4 +1,5 @@
 """Testing"""
+
 import unittest
 from mock import Mock
 from nav.web.portadmin.utils import (

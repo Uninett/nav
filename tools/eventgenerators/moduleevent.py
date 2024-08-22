@@ -24,7 +24,7 @@ from nav import db
 
 def handler(cursor, boxlist, state):
 
-    for (deviceid, netboxid, subid) in boxlist:
+    for deviceid, netboxid, subid in boxlist:
         sql = """INSERT INTO eventq
                    (source, target, deviceid, netboxid, subid, eventtypeid,
                     state,severity)
@@ -65,7 +65,7 @@ def main():
 
         box, module = spec.split(":")
         cursor.execute(sql, (box, module))
-        for (deviceid, netboxid, moduleid, sysname, modulename) in cursor.fetchall():
+        for deviceid, netboxid, moduleid, sysname, modulename in cursor.fetchall():
             if not deviceid in device_dupes:
                 netboxes.append((deviceid, netboxid, moduleid))
                 sysnames.append((sysname, modulename))

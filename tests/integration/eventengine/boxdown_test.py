@@ -1,4 +1,5 @@
 """Black-box integration tests for the apparent proper processing of boxState events"""
+
 import os
 
 import pytest
