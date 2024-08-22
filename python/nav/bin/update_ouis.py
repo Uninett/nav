@@ -37,6 +37,8 @@ _logger = logging.getLogger(__name__)
 
 FILE_URL = "https://standards-oui.ieee.org/oui/oui.txt"
 
+MAX_ERRORS = 100
+
 
 def main():
     init_stderr_logging()
@@ -65,15 +67,17 @@ def _parse_ouis(oui_data: str) -> Generator[OUI, None, None]:
     """Returns lists of tuples containing OUI and vendor name for
     each vendor
     """
+    error_count = 0
     for line in oui_data.split('\n'):
         if "(hex)" not in line:
             continue
         try:
             yield _parse_line(line)
-        except ValueError as error:
-            _logger.error(
-                "Attempting to parse the line '%s' gave error: %s", line, error
-            )
+        except ValueError:
+            error_count += 1
+            if error_count >= MAX_ERRORS:
+                _logger.error("Reached max amount of errors (%d), exiting", MAX_ERRORS)
+                sys.exit(1)
 
 
 def _parse_line(line: str) -> OUI:
