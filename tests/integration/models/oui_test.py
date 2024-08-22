@@ -22,8 +22,7 @@ def valid_oui():
     oui = "aa:bb:cc:00:00:00"
     instance = OUI(oui=oui, vendor="myvendor")
     yield instance
-    if instance.id:
-        instance.delete()
+    instance.delete()
 
 
 @pytest.fixture()
@@ -31,5 +30,4 @@ def invalid_oui():
     oui = "aa:bb:cc:dd:ee:ff"
     instance = OUI(oui=oui, vendor="myvendor")
     yield instance
-    if instance.id:
-        instance.delete()
+    instance.delete()
