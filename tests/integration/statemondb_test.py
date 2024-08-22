@@ -1,4 +1,5 @@
 """Some simple integration tests for the legacy statemon system"""
+
 from nav.statemon import db
 
 

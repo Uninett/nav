@@ -1,4 +1,5 @@
 """Tests for nav.logs module"""
+
 import os
 from unittest import mock
 

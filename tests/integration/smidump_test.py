@@ -1,4 +1,5 @@
 """Regression tests to validate smidump file contents"""
+
 import os
 
 import pynetsnmp.netsnmp

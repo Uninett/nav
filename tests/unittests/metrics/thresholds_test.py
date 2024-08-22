@@ -1,4 +1,5 @@
 """Unit tests for nav.metrics.thresholds"""
+
 from nav.metrics.thresholds import ThresholdEvaluator
 
 

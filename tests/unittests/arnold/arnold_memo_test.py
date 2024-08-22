@@ -1,4 +1,5 @@
 """Testcase for Arnold's memoisation class used for fetching info from files"""
+
 import unittest
 from mock import Mock, patch
 from nav.arnold import Memo

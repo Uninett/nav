@@ -88,9 +88,10 @@ def test_do_request():
     mock_agent = Mock(spec=Agent)
     mock_agent.request.return_value = succeed(mock_response)
 
-    with patch(
-        'nav.ipdevpoll.plugins.paloaltoarp.Agent', return_value=mock_agent
-    ), patch('twisted.web.client.readBody', return_value="test content"):
+    with (
+        patch('nav.ipdevpoll.plugins.paloaltoarp.Agent', return_value=mock_agent),
+        patch('twisted.web.client.readBody', return_value="test content"),
+    ):
         mock_address = "paloalto.example.org"
         mock_key = "secret"
 

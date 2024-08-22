@@ -1,4 +1,5 @@
 """Basic tests for nav.arnold"""
+
 import unittest
 from nav.arnold import find_input_type
 
