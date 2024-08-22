@@ -18,7 +18,7 @@
 import sys
 import logging
 
-from typing import Iterable, Generator
+from typing import Iterable, Generator, Tuple
 
 import requests
 from requests.exceptions import RequestException
@@ -27,9 +27,8 @@ from nav.bootstrap import bootstrap_django
 
 bootstrap_django(__file__)
 
-from django.db import transaction
+import django.db
 
-from nav.models.oui import OUI
 from nav.macaddress import MacPrefix
 from nav.logs import init_stderr_logging
 
@@ -63,7 +62,7 @@ def _download_oui_file(url: str) -> str:
     return response.text
 
 
-def _parse_ouis(oui_data: str) -> Generator[OUI, None, None]:
+def _parse_ouis(oui_data: str) -> Generator[Tuple[str, str], None, None]:
     """Returns lists of tuples containing OUI and vendor name for
     each vendor
     """
@@ -80,18 +79,52 @@ def _parse_ouis(oui_data: str) -> Generator[OUI, None, None]:
                 sys.exit(1)
 
 
-def _parse_line(line: str) -> OUI:
+def _parse_line(line: str) -> Tuple[str, str]:
     prefix, _, vendor = line.strip().split(None, 2)
     oui = str(MacPrefix(prefix)[0])
-    return OUI(oui=oui, vendor=vendor)
+    return oui, vendor
 
 
-@transaction.atomic
-def _update_database(ouis: Iterable[OUI]):
-    _logger.info("Deleting existing records")
-    OUI.objects.all().delete()
-    _logger.info("Creating new records")
-    OUI.objects.bulk_create(ouis, ignore_conflicts=True)
+@django.db.transaction.atomic
+def _update_database(ouis: Iterable[Tuple[str, str]]):
+    # Begin by dumping everything into a PostgreSQL temporary table
+    _logger.debug("Updating database")
+    cursor = django.db.connection.cursor()
+    cursor.execute(
+        """
+        CREATE TEMPORARY TABLE new_oui (
+            oui macaddr PRIMARY KEY,
+            vendor varchar,
+            CHECK (oui = trunc(oui)))
+        """
+    )
+    cursor.executemany(
+        """
+        INSERT INTO new_oui (oui, vendor)
+            VALUES (%s, %s)
+        ON CONFLICT (oui)
+            DO NOTHING
+        """,
+        ouis,
+    )
+    # Then make the necessary updates to the live OUI table, letting PostgreSQL do the
+    # heavy lifting of resolving conflicts and changes
+    cursor.execute(
+        """
+        INSERT INTO oui (oui, vendor)
+        SELECT
+            oui,
+            vendor
+        FROM
+            new_oui
+        ON CONFLICT (oui)
+            DO UPDATE SET
+                vendor = EXCLUDED.vendor
+            WHERE
+                oui.vendor IS DISTINCT FROM EXCLUDED.vendor
+        """
+    )
+    cursor.execute("DELETE FROM oui WHERE oui NOT IN (SELECT oui FROM new_oui)")
 
 
 if __name__ == '__main__':
