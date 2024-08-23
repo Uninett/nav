@@ -291,12 +291,7 @@ def netbox_do_save(form):
             func.value = function
         func.save()
     elif function == '':
-        try:
-            func = NetboxInfo.objects.get(netbox=netbox, variable='function')
-        except NetboxInfo.DoesNotExist:
-            pass
-        else:
-            func.delete()
+        NetboxInfo.objects.filter(netbox=netbox, variable='function').delete()
 
     # Save the groups
     netboxgroups = form.cleaned_data['groups']
