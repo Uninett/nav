@@ -112,7 +112,9 @@ def test_log_netbox_change_should_not_crash(admin_account, netbox):
     assert log_netbox_change(admin_account, old, new) is None
 
 
-def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netboxinfo_instance(netbox, db, client):
+def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netboxinfo_instance(
+    netbox, db, client
+):
     """
     Empty function fields in the webform should cause the function's
     corresponding NetboxInfo to be deleted; This is the correct thing
@@ -122,6 +124,7 @@ def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netbo
     string.
     """
     url = reverse('seeddb-netbox-edit', args=(netbox.id,))
+
     def post(func):
         return client.post(
             url,
@@ -139,6 +142,9 @@ def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netbo
     post("")
     assert len(NetboxInfo.objects.filter(netbox=netbox, variable='function')) == 0
     post("foo")
-    assert NetboxInfo.objects.filter(netbox=netbox, variable='function').get().value == 'foo'
+    assert (
+        NetboxInfo.objects.filter(netbox=netbox, variable='function').get().value
+        == 'foo'
+    )
     post("")
     assert len(NetboxInfo.objects.filter(netbox=netbox, variable='function')) == 0
