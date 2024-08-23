@@ -17,13 +17,10 @@
 """Alert stream export functionality"""
 import logging
 import json
+import subprocess
 
 from django.core.serializers.json import DjangoJSONEncoder
 
-try:
-    import subprocess32 as subprocess
-except ImportError:
-    import subprocess
 
 from nav.web.api.v1.alert_serializers import AlertQueueSerializer
 

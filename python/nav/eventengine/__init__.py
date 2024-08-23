@@ -15,10 +15,7 @@
 #
 """NAV eventengine"""
 
-try:
-    from subprocess32 import STDOUT, check_output, TimeoutExpired, CalledProcessError
-except ImportError:
-    from subprocess import STDOUT, check_output, TimeoutExpired, CalledProcessError
+from subprocess import STDOUT, check_output, TimeoutExpired, CalledProcessError
 
 
 def get_eventengine_output(timeout=10):
