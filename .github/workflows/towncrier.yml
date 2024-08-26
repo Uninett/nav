@@ -4,6 +4,7 @@ on: [pull_request]
 
 jobs:
   towncrier:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     name: Towncrier check
     steps:
