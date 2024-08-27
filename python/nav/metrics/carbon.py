@@ -102,10 +102,10 @@ def _reset_warning_registry():
     except NameError:
         pass
     else:
-        for key in __warningregistry__.keys():
+        for key in __warningregistry__.keys():  # noqa
             _, cls, _ = key
             if cls is CarbonWarning:
-                del __warningregistry__[key]
+                del __warningregistry__[key]  # noqa
 
 
 def send_metrics(metric_tuples):
