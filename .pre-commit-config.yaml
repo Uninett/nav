@@ -19,7 +19,7 @@ repos:
     hooks:
     -   id: black
 -   repo: https://github.com/twisted/towncrier
-    rev: 24.7.1
+    rev: 24.8.0
     hooks:
       - id: towncrier-check
         files: $changelog\.d/
