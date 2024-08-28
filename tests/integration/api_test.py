@@ -170,7 +170,7 @@ def test_delete_netbox(db, api_client, token):
     print(json_get['deleted_at'])
 
     assert response_delete.status_code == 204
-    assert json_get['deleted_at'] != None
+    assert json_get['deleted_at'] is not None
 
 
 # Room specific tests

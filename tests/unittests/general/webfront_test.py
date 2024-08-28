@@ -65,7 +65,7 @@ class TestRemoteUserAuthenticate(object):
         r = RequestFactory()
         request = r.get('/')
         with patch("nav.web.auth.remote_user._config.getboolean", return_value=True):
-            assert remote_user.authenticate(request) == None
+            assert remote_user.authenticate(request) is None
 
     def test_authenticate_remote_user_should_return_false_if_account_locked(self):
         r = RequestFactory()

@@ -174,7 +174,7 @@ class TestLogout(object):
         fake_request = r.get('/anyurl')
         with patch('nav.web.auth.LogEntry.add_log_entry'):
             result = logout(fake_request)
-            assert result == None
+            assert result is None
 
     def test_sudo_logout(self, fake_session):
         r = RequestFactory()

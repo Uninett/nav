@@ -142,7 +142,7 @@ class Controller:
 def main(args=None):
     """Daemon main entry point"""
     os.umask(0o0002)
-    if args == None:
+    if args is None:
         args = parse_args()
     foreground = args.foreground
     conf = config.serviceconf()
