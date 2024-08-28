@@ -111,7 +111,7 @@ exclude = [
 force-exclude = true
 
 [tool.ruff.lint]
-select = ["E711", "E721", "E9", "F63", "F7", "F81", "F82"]
+select = ["E711", "E721", "E9", "F541", "F63", "F7", "F81", "F82"]
 
 [tool.towncrier]
 directory = "changelog.d"

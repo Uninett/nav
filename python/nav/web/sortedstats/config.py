@@ -49,5 +49,5 @@ class SortedStatsConfig(NAVConfigParser):
     def validate_rows(self, rows):
         rows = int(rows)
         if rows < 1:
-            raise ValueError(f"Rows must be 1 or higher")
+            raise ValueError("Rows must be 1 or higher")
         return rows
