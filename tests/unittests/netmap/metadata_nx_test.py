@@ -31,8 +31,7 @@ class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
     def test_metadata_contains_edge_objects(self):
         for node_a, node_b, metadata in self.netmap_graph.edges(data=True):
             for pair in metadata.get('metadata'):
-                assert type(pair) == Edge
-                assert type(pair) == Edge
+                assert isinstance(pair, Edge)
 
     def test_node_a1_and_b1_contains_vlan_metadata(self):
         vlans = self.netmap_graph.nodes[self.a]['metadata']['vlans']
