@@ -80,7 +80,7 @@ for ii in range(1, len(sys.argv) - 1):
 
     database.execute(sql)
     for netboxid, sysname, typeid in database.fetchall():
-        if not netboxid in nbdup:
+        if netboxid not in nbdup:
             nb.append(netboxid)
             sysnames.append(sysname)
         nbdup.add(netboxid)

@@ -75,8 +75,8 @@ def build_graph(db_results):
     # create Edge objects:
     for connection in connections.values():
         if (
-            not connection['forward']['local_netboxid'] in graph.nodes
-            or not connection['reverse']['local_netboxid'] in graph.nodes
+            connection['forward']['local_netboxid'] not in graph.nodes
+            or connection['reverse']['local_netboxid'] not in graph.nodes
         ):
             continue
         graph.add_edge(
