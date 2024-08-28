@@ -189,7 +189,7 @@ def xml_bulk(interface1_mock, interface2_mock):
 @pytest.fixture()
 def xml_empty():
     """Creates a ElementTree containing no poe state for any interface"""
-    tree_string = f"""
+    tree_string = """
         <poe>
         </poe>"""
     tree = etree.fromstring(tree_string)
