@@ -15,11 +15,13 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from django.urls import reverse_lazy
+
 from nav.models.service import Service
 from nav.bulkparse import ServiceBulkParser
 from nav.bulkimport import ServiceImporter
 
-from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher, not_implemented
 from nav.web.seeddb.utils.list import render_list

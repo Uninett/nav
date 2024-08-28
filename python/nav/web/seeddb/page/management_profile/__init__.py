@@ -26,7 +26,7 @@ from nav.bulkparse import ManagementProfileBulkParser
 from nav.bulkimport import ManagementProfileImporter
 from nav.web.message import new_message, Messages
 
-from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
 from nav.web.seeddb.utils.list import render_list

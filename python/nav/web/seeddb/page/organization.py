@@ -16,12 +16,13 @@
 #
 
 from django.shortcuts import render
+from django.urls import reverse_lazy
 
 from nav.models.manage import Organization
 from nav.bulkparse import OrgBulkParser
 from nav.bulkimport import OrgImporter
 
-from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
 from nav.web.seeddb.utils.edit import render_edit

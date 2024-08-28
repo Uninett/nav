@@ -17,12 +17,13 @@
 """Module containing all things regarding usages in seeddb"""
 
 from django import forms
+from django.urls import reverse_lazy
 
 from nav.models.manage import Usage
 from nav.bulkparse import UsageBulkParser
 from nav.bulkimport import UsageImporter
 
-from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher, not_implemented
 from nav.web.seeddb.utils.list import render_list

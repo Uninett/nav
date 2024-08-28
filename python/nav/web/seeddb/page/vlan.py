@@ -17,10 +17,11 @@
 #
 
 from django import forms
+from django.urls import reverse_lazy
 
 from nav.models.manage import Vlan, NetType, Organization, Usage
 
-from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.forms import set_filter_form_attributes
 from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
