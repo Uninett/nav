@@ -105,7 +105,7 @@ class JuniperChassisAlarm(Plugin):
             "value",
             None,
         )
-        if count != None and count.isdigit():
+        if count is not None and count.isdigit():
             return int(count)
 
     def _post_yellow_alarm_count_non_zero(self, count: int):

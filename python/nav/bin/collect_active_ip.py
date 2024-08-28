@@ -38,7 +38,7 @@ _logger = logging.getLogger('nav.ipcollector')
 
 def main(args=None):
     """Controller"""
-    if args == None:
+    if args is None:
         args = get_parser().parse_args()
     days = args.days or None
     exit_if_already_running()

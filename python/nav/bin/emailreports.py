@@ -35,7 +35,7 @@ _logger = logging.getLogger('emailreports')
 
 def main(args=None):
     """Send all reports"""
-    if args == None:
+    if args is None:
         args = get_parser().parse_args()
     init_generic_logging(logfile=LOGFILE, stderr=False)
     send_reports(args.period)
