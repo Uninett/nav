@@ -34,7 +34,7 @@ def test_plugin_loader_reading_in_modules_from_config_file():
     config.read(configfile)
     list_from_config = config.get('snmptrapd', 'handlermodules').split(',')
 
-    assert type(list_from_config) == list
+    assert isinstance(list_from_config, list)
     if len(list_from_config) <= 0:
         pytest.skip(
             "Requires at least one plugin in snmptrapd.conf to run"
