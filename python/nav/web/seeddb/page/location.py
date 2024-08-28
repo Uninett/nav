@@ -17,12 +17,13 @@
 #
 
 from django.shortcuts import render
+from django.urls import reverse_lazy
 
 from nav.models.manage import Location
 from nav.bulkparse import LocationBulkParser
 from nav.bulkimport import LocationImporter
 
-from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.forms import LocationForm
 from nav.web.seeddb.page import view_switcher, not_implemented
