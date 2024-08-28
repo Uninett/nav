@@ -75,7 +75,7 @@ def move(request, model, form_model, redirect, title_attr='id', extra_context=No
 
             # If nothing is selected, don't update
             for key in foreign_keys:
-                if not form.cleaned_data[key] is None:
+                if form.cleaned_data[key] is not None:
                     data[key] = form.cleaned_data[key]
 
             # Update
@@ -139,7 +139,7 @@ def _parse_value_differences(values, data, title_attr, fields):
         if data:
             new_values = []
             for attr in fields:
-                if not data[attr] is None:
+                if data[attr] is not None:
                     new_values.append(("New %s" % attr, data[attr]))
                 else:
                     new_values.append(("New %s" % attr, obj[attr]))

@@ -58,7 +58,7 @@ def prioritize_location(cam_objects):
     # that we ignore it for the time.
     prioritized_cams = {0: []}
     for value in LOCATION_PRIORITY.values():
-        if not value in prioritized_cams:
+        if value not in prioritized_cams:
             prioritized_cams[value] = []
     for curr_cam in cam_objects:
         category = curr_cam.netbox.category_id

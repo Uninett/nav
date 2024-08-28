@@ -204,7 +204,7 @@ def _find_submodules(name):
     pyfiles = (
         n
         for n in os.listdir(directory)
-        if (n.endswith('.py') or n.endswith('.pyc')) and not n[0] in '_.'
+        if (n.endswith('.py') or n.endswith('.pyc')) and n[0] not in '_.'
     )
     names = (os.path.splitext(n)[0] for n in pyfiles)
     return ["{}.{}".format(name, n) for n in names]
