@@ -47,7 +47,7 @@ RUN apt-get update && \
 
 
 # Now install NodeJS and NPM for Javascript testing needs -
-RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash - && \
+RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - && \
     apt-get install -y --no-install-recommends nodejs
 
 # Install geckodriver to properly run Selenium tests in Firefox versions>=47
