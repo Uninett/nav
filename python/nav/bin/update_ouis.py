@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import argparse
 import sys
 import logging
 
@@ -41,6 +42,9 @@ MAX_ERRORS = 100
 
 def main():
     init_stderr_logging()
+    argparse.ArgumentParser(
+        description="Updates the database with OUIs and their related organizations"
+    ).parse_args()
     run()
 
 
