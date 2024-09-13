@@ -17,7 +17,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """The NAV SMS daemon"""
-from __future__ import print_function
 
 import argparse
 import logging

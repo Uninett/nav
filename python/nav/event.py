@@ -16,7 +16,6 @@
 #
 """Simple API to interface with NAVs event queue."""
 
-from __future__ import absolute_import
 
 from django.db import transaction
 

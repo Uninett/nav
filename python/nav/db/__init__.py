@@ -17,7 +17,6 @@
 """
 Provides common database functionality for NAV.
 """
-from __future__ import absolute_import
 import atexit
 from functools import wraps
 import logging

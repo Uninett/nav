@@ -15,7 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This package encompasses modules with web functionality for NAV"""
-from __future__ import unicode_literals
 
 import logging
 import sys

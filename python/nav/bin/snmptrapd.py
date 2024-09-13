@@ -17,7 +17,6 @@
 #
 """NAV daemon to receive and act upon SNMP traps."""
 
-from __future__ import print_function
 
 import logging
 import os

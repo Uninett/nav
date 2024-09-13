@@ -20,7 +20,6 @@ A command line program to output an entity hierarchy graph from a device's
 ENTITY-MIB::entPhysicalTable.
 """
 
-from __future__ import print_function
 
 import sys
 import argparse

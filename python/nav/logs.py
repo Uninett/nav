@@ -17,7 +17,6 @@
 #
 """NAV related logging functionality."""
 
-from __future__ import unicode_literals
 import sys
 import os
 import logging

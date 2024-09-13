@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
 from django.utils.encoding import force_str
 
 from datetime import datetime, timedelta

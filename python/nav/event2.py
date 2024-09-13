@@ -18,7 +18,6 @@
 Next generation event factory functionality for NAV, based on the Django ORM
 models from nav.models.event.
 """
-from __future__ import absolute_import
 
 from nav.models.event import EventQueue
 

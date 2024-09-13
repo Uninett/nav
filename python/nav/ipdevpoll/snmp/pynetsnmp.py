@@ -17,7 +17,6 @@
 """pynetsnmp compatibility"""
 # pylint: disable=C0103,C0111,W0703,R0903,W0611
 
-from __future__ import absolute_import
 import inspect
 import os
 

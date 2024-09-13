@@ -15,7 +15,6 @@
 #
 """Module for emailing status reports"""
 
-from __future__ import print_function
 
 import logging
 from collections import namedtuple

@@ -15,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """OID manipulation"""
-from __future__ import absolute_import
 
 SEPARATOR = '.'
 SEPARATOR_B = b'.'

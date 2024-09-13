@@ -19,7 +19,6 @@ Although IPV6-MIB has been obsoleted by a revised version of IP-MIB,
 some vendors still only provide IPv6 data in this MIB.
 
 """
-from __future__ import absolute_import
 
 from twisted.internet import defer
 

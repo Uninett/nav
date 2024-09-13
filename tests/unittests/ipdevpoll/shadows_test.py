@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from unittest import TestCase
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.shadows import Vlan, Prefix, Netbox, Interface

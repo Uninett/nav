@@ -20,7 +20,6 @@ This interface only supports pynetsnmp, but is designed to allow
 multiple implementations
 
 """
-from __future__ import absolute_import
 
 BACKEND = None
 

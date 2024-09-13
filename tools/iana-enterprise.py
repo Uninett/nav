@@ -19,7 +19,6 @@
 Retrieves IANAs current list of assigned enterprise numbers, and outputs
 the data NAV wants, as Python code.
 """
-from __future__ import print_function
 import sys
 import os
 from collections import namedtuple, Counter

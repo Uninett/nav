@@ -17,7 +17,6 @@
 Contains ldap authentication functionality for NAV web.
 """
 
-from __future__ import print_function, unicode_literals
 
 import logging
 from os.path import join

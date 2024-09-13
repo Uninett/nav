@@ -15,7 +15,6 @@
 #
 """Oracle database service checker"""
 
-from __future__ import print_function
 
 from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event

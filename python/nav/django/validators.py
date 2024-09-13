@@ -15,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import unicode_literals, absolute_import
 
 import json
 from decimal import Decimal, InvalidOperation

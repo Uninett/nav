@@ -15,7 +15,6 @@
 #
 """This module provides some useful debugging tools for NAV developers"""
 
-from __future__ import absolute_import, print_function
 import logging
 import pprint
 from traceback import print_stack

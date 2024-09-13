@@ -14,8 +14,6 @@ URLs that report a Content-Type of text/html.
 
 """
 
-from __future__ import print_function
-
 from collections import namedtuple
 from http.client import BadStatusLine
 from lxml.html import fromstring

@@ -17,7 +17,6 @@
 #
 """A wrapper for prefix_ip_collector"""
 
-from __future__ import print_function
 
 import argparse
 import logging

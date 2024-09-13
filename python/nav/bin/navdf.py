@@ -18,7 +18,6 @@
 A command line interface to list and filter IP devices monitored by NAV
 """
 
-from __future__ import print_function
 
 import argparse
 

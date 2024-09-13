@@ -14,7 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """VRRP-MIB handling"""
-from __future__ import absolute_import
 
 from IPy import IP
 from twisted.internet import defer

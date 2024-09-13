@@ -21,7 +21,6 @@ by the service monitor.
 It implements the singleton pattern, ensuring only one instance
 is used at a time.
 """
-from __future__ import absolute_import
 
 import atexit
 from collections import defaultdict

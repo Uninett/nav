@@ -15,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """eventengine config"""
-from __future__ import unicode_literals
 from configparser import NoSectionError, NoOptionError
 
 from nav.config import NAVConfigParser

@@ -14,7 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """"handling of CISCO-VLAN-IFTABLE-RELATIONSHIP-MIB"""
-from __future__ import absolute_import
 
 from collections import namedtuple
 

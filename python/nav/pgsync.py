@@ -16,7 +16,6 @@
 #
 """Program to synchronize NAV database schema changes"""
 
-from __future__ import print_function
 
 import sys
 import os

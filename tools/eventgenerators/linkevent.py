@@ -16,7 +16,6 @@
 #
 """Script to simulate link up/down events from snmptrapd / ipdevpoll"""
 
-from __future__ import print_function
 import argparse
 
 from nav.bootstrap import bootstrap_django

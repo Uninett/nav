@@ -16,7 +16,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Command line program to control NAV processes"""
-from __future__ import print_function
 import sys
 import os
 import os.path
