@@ -1,4 +1,5 @@
 """Selenium tests for room views"""
+
 import os
 
 from selenium.webdriver.common.by import By
@@ -14,11 +15,11 @@ def test_room_image_upload(selenium, base_url):
     filepath = os.path.join(filedir, filename)
 
     selenium.get("{}/search/room/myroom/upload/".format(base_url))
-    upload = selenium.find_element_by_id("file")
+    upload = selenium.find_element(By.ID, "file")
     upload.send_keys(filepath)
 
-    submit = selenium.find_element_by_xpath(
-        "//input[@type='submit' and @value='Upload selected images']"
+    submit = selenium.find_element(
+        By.XPATH, "//input[@type='submit' and @value='Upload selected images']"
     )
     submit.click()
 

@@ -24,8 +24,8 @@ from selenium.webdriver.support import expected_conditions
 @pytest.fixture
 def statuspage(selenium, base_url):
     selenium.get('{}/status/'.format(base_url))
-    panel = selenium.find_element_by_id('status-panel')
-    filter_toggle = selenium.find_element_by_class_name('toggle-panel')
+    panel = selenium.find_element(By.ID, 'status-panel')
+    filter_toggle = selenium.find_element(By.CLASS_NAME, 'toggle-panel')
     return panel, filter_toggle
 
 
@@ -51,5 +51,5 @@ def test_remember_last_panel_state(selenium, statuspage):
         expected_conditions.visibility_of_element_located((By.ID, 'status-page'))
     )
     # We need to fetch panel element again after a refresh
-    panel = selenium.find_element_by_id('status-panel')
+    panel = selenium.find_element(By.ID, 'status-panel')
     assert panel.is_displayed(), 'Panel did not stay in same state after page refresh'

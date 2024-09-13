@@ -22,8 +22,10 @@ from selenium.webdriver.support import expected_conditions as EC
 def test_simple_ip_search_should_return_result(selenium, base_url):
     """Tests a search for an IP address"""
     selenium.get('{}/'.format(base_url))
-    query = selenium.find_element_by_id('query')
-    search_button = selenium.find_element_by_css_selector("input.button[type='submit']")
+    query = selenium.find_element(By.ID, 'query')
+    search_button = selenium.find_element(
+        By.CSS_SELECTOR, "input.button[type='submit']"
+    )
 
     ipaddr = "192.168.42.42"
     query.send_keys(ipaddr)
@@ -33,5 +35,5 @@ def test_simple_ip_search_should_return_result(selenium, base_url):
         EC.text_to_be_present_in_element((By.TAG_NAME, "caption"), ipaddr)
     )
 
-    caption = selenium.find_element_by_tag_name('caption')
+    caption = selenium.find_element(By.TAG_NAME, 'caption')
     assert ipaddr in caption.text
