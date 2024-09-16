@@ -62,36 +62,27 @@ def stop_gunicorn():
 
 
 @pytest.fixture
-def selenium(selenium, base_url):
+def selenium(selenium, base_url, admin_username, admin_password):
     """Fixture to initialize the selenium web driver with a NAV session logged
     in as the admin user.
 
     """
-    from nav.web.auth.utils import create_session_cookie
-
     selenium.implicitly_wait(10)
     wait = WebDriverWait(selenium, 10)
 
-    cookie = create_session_cookie(USERNAME)
-    # visit a non-existent URL just to set the site context for cookies
-    selenium.get('{}/images/400'.format(base_url))
-    wait.until(EC.text_to_be_present_in_element((By.TAG_NAME, "h1"), "Not found"))
+    # visit the login page and submit the login form
+    selenium.get(f"{base_url}/index/login")
+    wait.until(EC.text_to_be_present_in_element((By.TAG_NAME, "label"), "Username"))
 
-    print("Cookies after first fetch: {!r}".format(selenium.get_cookies()))
-    selenium.delete_all_cookies()
-    print("Setting session cookie for {}: {!r}".format(USERNAME, cookie))
-    selenium.add_cookie(cookie)
-    # Cookie modification is also _non-blocking_ in Selenium, so we need to
-    # wait for the cookie to become present in the browser before we continue!
-    wait.until(_session_cookie_is_present(cookie))
+    username = selenium.find_element(By.ID, "id_username")
+    password = selenium.find_element(By.ID, "id_password")
+    username.send_keys(admin_username)
+    password.send_keys(admin_password)
+    selenium.find_element(By.NAME, "submit").click()
+    wait.until(EC.url_changes("/"))
 
-    print("Cookies after set, before refresh: {!r}".format(selenium.get_cookies()))
-    selenium.refresh()
-
-    print("Cookies after refresh: {!r}".format(selenium.get_cookies()))
-
+    # Yield logged-in session to the test
     yield selenium
-    print("Cookies after test: {!r}".format(selenium.get_cookies()))
 
 
 class _session_cookie_is_present(object):
