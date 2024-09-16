@@ -29,6 +29,11 @@ def pytest_configure(config):
     subprocess.check_call([SCRIPT_CREATE_DB])
     start_gunicorn()
 
+    # Bootstrap Django config
+    from nav.bootstrap import bootstrap_django
+
+    bootstrap_django('pytest')
+
 
 def pytest_unconfigure(config):
     stop_gunicorn()
@@ -62,10 +67,6 @@ def selenium(selenium, base_url):
     in as the admin user.
 
     """
-    from nav.bootstrap import bootstrap_django
-
-    bootstrap_django(__file__)
-
     from nav.web.auth.utils import create_session_cookie
 
     selenium.implicitly_wait(10)
