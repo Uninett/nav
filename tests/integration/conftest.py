@@ -382,13 +382,3 @@ def admin_account(db):
     from nav.models.profiles import Account
 
     yield Account.objects.get(id=Account.ADMIN_ACCOUNT)
-
-
-@pytest.fixture(scope='session')
-def admin_username():
-    return os.environ.get('ADMINUSERNAME', 'admin')
-
-
-@pytest.fixture(scope='session')
-def admin_password():
-    return os.environ.get('ADMINPASSWORD', 'admin')
