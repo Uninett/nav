@@ -41,6 +41,10 @@ the first time is by running these commands::
          coffee (and maybe redecorate your living room), as the initial build
          may take a while.
 
+.. warning:: Running ``docker compose up`` will take over the local ports 80
+             (for the website) and 8000 (for graphite). You can override this
+             with a ``docker-compose.override.yml`` file.
+
 Troubleshooting
 ~~~~~~~~~~~~~~~
 
