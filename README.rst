@@ -53,6 +53,10 @@ For detailed instructions on how to install NAV, see
 `<doc/intro/install.rst>`_. See the file `<NOTES.rst>`_ for release notes and
 upgrade instructions.
 
+Take it for a quick spin
+------------------------
+For instruction on how to use docker to run code straight from the repo, see
+`<doc/hacking/using-docker.rst>`_.  Please be aware, though, that this is a highly developer-oriented environment, and is not suitable for production use. 
 
 Contributing
 ------------
