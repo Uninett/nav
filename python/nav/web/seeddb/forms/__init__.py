@@ -123,6 +123,31 @@ def cut_branch(field, klass, pk):
     return [c for c in field.choices if c[0] not in descendant_ids]
 
 
+# non-crispy helpers
+
+
+def set_filter_form_attributes(
+    legend,
+    submit_value='Filter',
+    form_action='',
+    form_method='get',
+    form_class='custom',
+):
+    class Obj:
+        pass
+
+    obj = Obj()
+    obj.legend = legend
+    obj.submit_value = submit_value
+    obj.action = form_action
+    obj.method = form_method
+    obj.form_class = form_class
+    return obj
+
+
+# crispy helpers
+
+
 def get_formhelper():
     """Get the default formhelper for seeddb forms"""
     helper = FormHelper()
@@ -157,17 +182,17 @@ def get_submit_button(value='Filter'):
     return LabelSubmit('submit', value, css_class='postfix')
 
 
+# forms
+
+
 class RoomFilterForm(forms.Form):
     """Form for filtering rooms"""
 
     location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False
+        Location.objects.order_by('id').all(), required=False, label_suffix=''
     )
-
-    def __init__(self, *args, **kwargs):
-        super(RoomFilterForm, self).__init__(*args, **kwargs)
-        self.helper = get_formhelper()
-        self.helper.layout = get_single_layout('Filter rooms', 'location')
+    location.widget.attrs.update({"class": "select"})
+    no_crispy = set_filter_form_attributes('Filter rooms')
 
 
 class RoomForm(forms.ModelForm):
