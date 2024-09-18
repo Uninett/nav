@@ -847,9 +847,11 @@ class PowerSupplyOrFan(Shadow):
                     device_event.notify(
                         device=psufan.device,
                         netbox=psufan.netbox,
-                        alert_type="deviceDeletedPsu"
-                        if psufan.is_psu()
-                        else "deviceDeletedFan",
+                        alert_type=(
+                            "deviceDeletedPsu"
+                            if psufan.is_psu()
+                            else "deviceDeletedFan"
+                        ),
                     ).save()
             except manage.Device.DoesNotExist:
                 pass
