@@ -123,6 +123,9 @@ def cut_branch(field, klass, pk):
     return [c for c in field.choices if c[0] not in descendant_ids]
 
 
+# crispy helpers
+
+
 def get_formhelper():
     """Get the default formhelper for seeddb forms"""
     helper = FormHelper()
@@ -157,6 +160,9 @@ def get_submit_button(value='Filter'):
     return LabelSubmit('submit', value, css_class='postfix')
 
 
+# forms
+
+
 class RoomFilterForm(forms.Form):
     """Form for filtering rooms"""
 
@@ -166,6 +172,7 @@ class RoomFilterForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(RoomFilterForm, self).__init__(*args, **kwargs)
+        self.no_crispy = True
         self.helper = get_formhelper()
         self.helper.layout = get_single_layout('Filter rooms', 'location')
 
