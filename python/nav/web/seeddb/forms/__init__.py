@@ -260,24 +260,6 @@ class LocationForm(forms.ModelForm):
             return None
 
 
-class OrganizationFilterForm(forms.Form):
-    """Form for filtering organizations by parent"""
-
-    parent = forms.ModelChoiceField(
-        Organization.objects.filter(
-            pk__in=Organization.objects.filter(parent__isnull=False).values_list(
-                'parent', flat=True
-            )
-        ).order_by('id'),
-        required=False,
-    )
-
-    def __init__(self, *args, **kwargs):
-        super(OrganizationFilterForm, self).__init__(*args, **kwargs)
-        self.helper = get_formhelper()
-        self.helper.layout = get_single_layout('Filter organizations', 'parent')
-
-
 class OrganizationForm(forms.ModelForm):
     """Form for editing an organization"""
 
