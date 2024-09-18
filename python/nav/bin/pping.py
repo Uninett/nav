@@ -21,7 +21,6 @@
 Pings multiple hosts in parallel
 """
 
-from __future__ import print_function
 
 import os
 import sys

@@ -22,7 +22,6 @@ This background process polls the alert queue for new alerts from the
 eventengine and sends put alerts to users based on user defined profiles.
 """
 
-from __future__ import print_function
 
 # FIXME missing detailed usage
 

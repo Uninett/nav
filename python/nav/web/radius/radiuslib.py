@@ -20,7 +20,6 @@
 #
 """Helper functions and classes for radius accounting in NAV"""
 
-from __future__ import division, absolute_import
 from socket import gethostbyaddr, herror, gaierror
 from re import match, sub
 import time

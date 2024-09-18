@@ -18,7 +18,6 @@
 """
 A command line interface to list and modify NAV web user accounts
 """
-from __future__ import print_function
 import sys
 import argparse
 from getpass import getpass

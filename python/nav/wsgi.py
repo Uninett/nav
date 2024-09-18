@@ -14,7 +14,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A NAV wsgi application"""
-from __future__ import absolute_import
 
 from nav.bootstrap import bootstrap_django
 from nav.web import loginit

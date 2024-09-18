@@ -14,7 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a MibRetriever for the SNMPV2-MIB"""
-from __future__ import absolute_import
 import time
 
 from twisted.internet import defer

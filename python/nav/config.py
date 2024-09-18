@@ -15,7 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utility functions for NAV configuration file discovery and parsing."""
-from __future__ import absolute_import
 
 import errno
 import grp

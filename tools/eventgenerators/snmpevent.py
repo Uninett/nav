@@ -16,7 +16,6 @@
 #
 "Script to simulate snmpAgentState events from ipdevpoll"
 
-from __future__ import print_function
 
 import sys
 from nav import db

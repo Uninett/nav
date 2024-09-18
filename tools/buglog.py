@@ -18,7 +18,6 @@
 Extracts closed issues from a NAV milestone on GitHub to produce a list of
 fixed issues for a release changelog entry.
 """
-from __future__ import print_function, unicode_literals
 
 import re
 import sys

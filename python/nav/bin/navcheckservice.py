@@ -22,7 +22,6 @@ host. Useful for testing or debugging individual servicemon plugins.
 
 """
 
-from __future__ import print_function
 
 import argparse
 import sys

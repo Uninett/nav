@@ -3,7 +3,6 @@
 As dumped by smidump dump using the python format option.
 
 """
-from __future__ import absolute_import
 
 from itertools import chain
 import importlib

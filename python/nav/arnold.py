@@ -19,7 +19,6 @@
 Provides helpfunctions for Arnold web and script
 """
 
-from __future__ import absolute_import
 
 import re
 import os

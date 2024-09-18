@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import unittest
 
 from nav.django.templatetags.string_manipulation import deep_urlize

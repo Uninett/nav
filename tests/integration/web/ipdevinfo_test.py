@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
 
 from django.urls import reverse
 from django.utils.encoding import smart_str

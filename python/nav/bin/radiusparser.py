@@ -29,7 +29,6 @@ server.  It has been written to not require any NAV libraries.
 It will require psycopg, a PostgreSQL driver for Python.
 """
 
-from __future__ import print_function
 
 import psycopg2
 import sys

@@ -15,8 +15,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-
 
 def find_modelname(obj):
     return obj._meta.db_table

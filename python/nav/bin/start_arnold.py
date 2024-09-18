@@ -32,7 +32,6 @@ Always uses the last interface the ip was seen on whether the ip is active
 there or not.
 
 """
-from __future__ import print_function
 
 import getpass
 import logging

@@ -20,7 +20,6 @@ This is the daemon program that runs the IP device poller.
 
 """
 
-from __future__ import print_function
 
 import sys
 import os

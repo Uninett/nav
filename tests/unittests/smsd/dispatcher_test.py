@@ -16,7 +16,6 @@
 #
 """Unit tests for the dispatcher module."""
 
-from __future__ import print_function
 
 import types
 

@@ -15,7 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """NAV Service start/stop library."""
-from __future__ import absolute_import, print_function
 
 import errno
 import os

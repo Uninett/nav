@@ -21,7 +21,6 @@ A command line program to verify support for SNMP subtrees in sets of
 NAV-monitored devices.
 """
 
-from __future__ import print_function
 
 import platform
 import sys

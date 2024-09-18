@@ -15,7 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Formatting of table data to readable text."""
-from __future__ import absolute_import
 
 
 class SimpleTableFormatter(object):

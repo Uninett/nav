@@ -16,7 +16,6 @@
 #
 """NetboxEntity shadow and manager classes for ipdevpoll"""
 
-from __future__ import absolute_import
 from collections import defaultdict
 from datetime import datetime
 

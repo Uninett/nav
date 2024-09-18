@@ -20,7 +20,6 @@ contains ad-hoc serializer methods (self.fields) for API purposes.
 
 """
 
-from __future__ import unicode_literals, absolute_import
 import bisect
 import json
 import functools

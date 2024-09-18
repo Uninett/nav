@@ -16,7 +16,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """MibRetriever implementation for IP-MIB"""
-from __future__ import absolute_import
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 

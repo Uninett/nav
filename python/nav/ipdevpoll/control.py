@@ -15,7 +15,6 @@
 #
 "Process control for multi-process invocation of ipdevpoll"
 
-from __future__ import print_function
 
 import sys
 

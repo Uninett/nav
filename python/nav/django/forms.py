@@ -16,7 +16,6 @@
 #
 """Django form field types for NAV"""
 
-from __future__ import unicode_literals, absolute_import
 
 import json
 

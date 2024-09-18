@@ -15,7 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """General utility functions for Network Administration Visualized"""
-from __future__ import absolute_import
 import os
 import re
 import stat

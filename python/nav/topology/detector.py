@@ -15,7 +15,6 @@
 #
 """NAV network topology detection program"""
 
-from __future__ import print_function
 
 from argparse import ArgumentParser
 from functools import wraps

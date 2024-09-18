@@ -14,7 +14,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """"CISCO-CDP-MIB handling"""
-from __future__ import absolute_import
 import socket
 from collections import namedtuple
 

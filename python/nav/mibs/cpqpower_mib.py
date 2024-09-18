@@ -15,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A class for extracting information from HPE power devices devices"""
-from __future__ import unicode_literals
 from twisted.internet import defer
 from nav.smidumps import get_mib
 from nav.mibs import reduce_index

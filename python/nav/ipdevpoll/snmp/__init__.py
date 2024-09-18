@@ -15,7 +15,6 @@
 #
 """selects a proper SNMP backend for ipdevpoll"""
 
-from __future__ import absolute_import
 
 try:
     import pynetsnmp.twistedsnmp

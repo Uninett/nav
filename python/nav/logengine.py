@@ -42,7 +42,6 @@ files, one of which this program will have exclusive access to.
 # TODO: Possible future enhancement is the ability to tail a log file
 # continually, instead of reading and truncating as a cron job.
 
-from __future__ import absolute_import, print_function
 
 import re
 import fcntl

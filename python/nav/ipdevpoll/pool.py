@@ -15,7 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Handle sending jobs to worker processes."""
-from __future__ import print_function
 
 import datetime
 import os

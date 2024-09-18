@@ -15,7 +15,6 @@
 #
 # pylint:  disable=C0111
 """Tests for config module"""
-from __future__ import unicode_literals
 
 import unittest
 from configparser import NoOptionError

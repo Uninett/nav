@@ -15,7 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Bit vector manipulation."""
-from __future__ import absolute_import
 import array
 import re
 

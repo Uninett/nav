@@ -16,7 +16,6 @@
 #
 """Implements a CISCO-BGP4-MIB MibRetriever w/associated functionality."""
 
-from __future__ import absolute_import
 
 from nav.oidparsers import consume, TypedInetAddress
 from nav.smidumps import get_mib
