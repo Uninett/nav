@@ -196,8 +196,6 @@ class RoomFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(RoomFilterForm, self).__init__(*args, **kwargs)
         self.no_crispy = set_filter_form_attributes('Filter rooms')
-        self.helper = get_formhelper()
-        self.helper.layout = get_single_layout('Filter rooms', 'location')
 
 
 class RoomForm(forms.ModelForm):
