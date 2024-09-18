@@ -189,7 +189,7 @@ class RoomFilterForm(forms.Form):
     """Form for filtering rooms"""
 
     location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False
+        Location.objects.order_by('id').all(), required=False, label_suffix=''
     )
 
     def __init__(self, *args, **kwargs):
