@@ -325,12 +325,10 @@ class OrganizationMoveForm(forms.Form):
 class NetboxTypeFilterForm(forms.Form):
     """Form for filtering a netbox type by vendor"""
 
-    vendor = forms.ModelChoiceField(Vendor.objects.order_by('id').all(), required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(NetboxTypeFilterForm, self).__init__(*args, **kwargs)
-        self.helper = get_formhelper()
-        self.helper.layout = get_single_layout('Filter types', 'vendor')
+    vendor = forms.ModelChoiceField(
+        Vendor.objects.order_by('id').all(), required=False, label_suffix=''
+    )
+    no_crispy = set_filter_form_attributes('Filter types')
 
 
 class NetboxTypeForm(forms.ModelForm):
