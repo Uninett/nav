@@ -9,11 +9,11 @@
     {% else %}
       <div class="row">
         <div class="medium-6 column">
-        {# {% if filter_form.no_crispy %} #}
+        {% if filter_form.no_crispy %}
           {% include "seeddb/_filter_form.html" with attrs=filter_form.no_crispy %}
-        {# {% else %} #}
+        {% else %}
           {% crispy filter_form %}
-        {# {% endif %} #}
+        {% endif %}
         </div>
       </div>
     {% endif %}
