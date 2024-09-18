@@ -192,10 +192,7 @@ class RoomFilterForm(forms.Form):
         Location.objects.order_by('id').all(), required=False, label_suffix=''
     )
     location.widget.attrs.update({"class": "select"})
-
-    def __init__(self, *args, **kwargs):
-        super(RoomFilterForm, self).__init__(*args, **kwargs)
-        self.no_crispy = set_filter_form_attributes('Filter rooms')
+    no_crispy = set_filter_form_attributes('Filter rooms')
 
 
 class RoomForm(forms.ModelForm):
