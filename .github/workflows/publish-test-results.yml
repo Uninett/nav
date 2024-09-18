@@ -25,7 +25,7 @@ jobs:
            do
              IFS=$'\t' read name url <<< "$artifact"
              gh api $url > "$name.zip"
-             unzip -d "$name" "$name.zip"
+             unzip -o -d "$name" "$name.zip"
            done
 
       - name: "Publish test results"
