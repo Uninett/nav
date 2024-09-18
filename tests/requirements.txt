@@ -12,8 +12,7 @@ pytest-timeout
 pytest-twisted~=1.13.0
 pytidylib==0.3.2
 selenium==3.141.0
-snmpsim>=1.0
-pyasn1<0.6.0  # Really just a constraint because of incompatibility with snmpsim
+snmpsim>=1.0,!=1.1.6
 toml
 whisper>=0.9.9
 whitenoise==4.1.4
