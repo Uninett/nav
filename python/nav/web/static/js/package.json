@@ -17,7 +17,7 @@
         "karma-requirejs": "~1.1.0",
         "mocha": "~5.2.0",
         "phantomjs-prebuilt2": "~2.1.13",
-        "requirejs": "~2.1.22"
+        "requirejs": "~2.3.7"
     },
     "scripts": {
         "test": "karma start test/karma.conf.buildserver.js"
