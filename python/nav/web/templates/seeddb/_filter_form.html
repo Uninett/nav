@@ -4,7 +4,7 @@
                 <div class="row">
                   <div class="columns medium-8">
                     {% for field in filter_form %}
-                    <div id="div_id_{{ field.name }}" class="ctrlHolder {% if field.errors %}error {% endif %}">
+                    <div id="div_id_{{ field.name }}" class="ctrlHolder{% if field.errors %} error {% endif %}">
                       {{ field.label_tag }}
                       {{ field }}
                       {% for error in field.errors %}
