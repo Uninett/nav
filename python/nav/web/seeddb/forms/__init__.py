@@ -22,7 +22,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Field, Fieldset, Row, Column
+from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import LabelSubmit
@@ -372,6 +372,8 @@ class DeviceGroupForm(forms.ModelForm):
     netboxes = forms.ModelMultipleChoiceField(
         queryset=Netbox.objects.all(), required=False
     )
+    netboxes.widget.attrs.update({"class": "select2"})
+    no_crispy = True
 
     def __init__(self, *args, **kwargs):
         # If the form is based on an existing model instance, populate the
@@ -380,13 +382,6 @@ class DeviceGroupForm(forms.ModelForm):
             initial = kwargs.setdefault('initial', {})
             initial['netboxes'] = [n.pk for n in kwargs['instance'].netboxes.all()]
         forms.ModelForm.__init__(self, *args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            'id',
-            'description',
-            Field('netboxes', css_class='select2'),
-        )
 
     class Meta(object):
         model = NetboxGroup

@@ -118,7 +118,6 @@ def netboxgroup_edit(request, netboxgroup_id=None):
         DeviceGroupForm,
         netboxgroup_id,
         'seeddb-netboxgroup-edit',
-        template='seeddb/edit_device_group.html',
         extra_context=extra_context,
     )
 
