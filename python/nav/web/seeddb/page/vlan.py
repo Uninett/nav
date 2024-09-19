@@ -18,13 +18,10 @@
 
 from django import forms
 
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Fieldset
-from nav.web.crispyforms import LabelSubmit
-
 from nav.models.manage import Vlan, NetType, Organization, Usage
 
 from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb.forms import set_filter_form_attributes
 from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
 
@@ -42,34 +39,18 @@ class VlanInfo(SeeddbInfo):
 
 class VlanFilterForm(forms.Form):
     net_type = forms.ModelChoiceField(
-        NetType.objects.order_by('id').all(), required=False
+        NetType.objects.order_by('id').all(), required=False, label_suffix=""
     )
     organization = forms.ModelChoiceField(
-        Organization.objects.order_by('id').all(), required=False
+        Organization.objects.order_by('id').all(), required=False, label_suffix=""
     )
-    usage = forms.ModelChoiceField(Usage.objects.order_by('id').all(), required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(VlanFilterForm, self).__init__(*args, **kwargs)
-        col_class = 'medium-3'
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'GET'
-        self.helper.form_class = 'custom'
-        self.helper.layout = Layout(
-            Fieldset(
-                'Filter vlans',
-                Row(
-                    Column('net_type', css_class=col_class),
-                    Column('organization', css_class=col_class),
-                    Column('usage', css_class=col_class),
-                    Column(
-                        LabelSubmit('submit', 'Filter', css_class='postfix'),
-                        css_class=col_class,
-                    ),
-                ),
-            )
-        )
+    usage = forms.ModelChoiceField(
+        Usage.objects.order_by('id').all(), required=False, label_suffix=""
+    )
+    net_type.widget.attrs.update({"class": "select"})
+    organization.widget.attrs.update({"class": "select"})
+    usage.widget.attrs.update({"class": "select"})
+    no_crispy = set_filter_form_attributes('Filter vlans')
 
 
 class VlanForm(forms.ModelForm):
