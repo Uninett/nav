@@ -188,6 +188,7 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                 self.rest_uri,
                 data=post_data,
                 timeout=self.timeout,
+                headers={"Content-Type": "application/json"},
             )
             request_summary["Status"] = "complete"
             request_summary["HTTP Status"] = responses.status_code
