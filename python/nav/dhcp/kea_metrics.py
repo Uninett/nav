@@ -237,10 +237,10 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             raise KeaConflict(details=request_summary)
         raise KeaException("Kea returned an unkown status response", request_summary)
 
-    def _parsetime(self, timestamp: str) -> int:
+    def _parsetime(self, timestamp: str) -> float:
         """Parse the timestamp string used in Kea's timeseries into unix time"""
         fmt = "%Y-%m-%d %H:%M:%S.%f"
-        return datetime.strptime(timestamp, fmt).replace(tzinfo=self.tzinfo)
+        return datetime.strptime(timestamp, fmt).replace(tzinfo=self.tzinfo).timestamp()
 
 
 def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
