@@ -197,7 +197,8 @@ def metric_path_for_subnet_dhcp(subnet_prefix, metric_name):
 
 def metric_path_for_ipdev_subnet_dhcp(subnet_prefix, metric_name, address, port):
     """
-    Metric path that is automatically shown in a netbox's system info tab
+    Metric path for dhcp metrics that will be automatically shown in a
+    netbox's 'System metrics' tab
     """
     tmpl = "nav.devices.{address}.dhcp.{port}.subnet.{subnet_prefix}.{metric_name}"
     if hasattr(subnet_prefix, 'strNormal') and callable(subnet_prefix.strNormal):
