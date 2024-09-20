@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from IPy import IP
 from nav.metrics import carbon, CONFIG
-from nav.metrics.templates import metric_path_for_subnet_dhcp
+from nav.metrics.templates import metric_path_for_subnet_dhcp, metric_path_for_ipdev_subnet_dhcp
 from typing import Iterator
 from datetime import datetime
 
@@ -28,7 +28,23 @@ class DhcpMetricSource:
     Superclass for all classes that wish to collect metrics from a
     specific line of DHCP servers and import the metrics into NAV's
     graphite server. Subclasses need to implement `fetch_metrics`.
+
+    The `fetch_metrics` docstring specifies which metrics are
+    collected.
     """
+    def __init__(self, address, port):
+        """
+        All subclasses that collect metrics from a DHCP server must
+        specify the address and port of the server it collects metrics
+        from so that we can reliably discern the metrics collected
+        from different servers (it is for example possible that two
+        servers serve the same subnet and hence it is not viable to
+        discern the metrics collected solely based on the subnet it is
+        for).
+        """
+        self.address = address
+        self.port = port
+
     def fetch_metrics(self) -> Iterator[DhcpMetric]:
         """
         Fetch DhcpMetrics having keys `TOTAL` and `ASSIGNED` for each subnet of the
@@ -48,8 +64,8 @@ class DhcpMetricSource:
         """
         graphite_metrics = []
         for metric in self.fetch_metrics():
-            metric_path = metric_path_for_subnet_dhcp(
-                metric.subnet_prefix, str(metric.key)
+            metric_path = metric_path_for_ipdev_subnet_dhcp(
+                metric.subnet_prefix, str(metric.key), self.address, self.port
             )
             datapoint = (metric.timestamp, metric.value)
             graphite_metrics.append((metric_path, datapoint))
