@@ -1,0 +1,18 @@
+{% for field in form %}
+	<div id="div_id_{{ field.name }}"
+	     class="ctrlHolder{% if field.errors %} error{% endif %}"
+	>
+		<label for="id_{{ field.name }}"
+		       class="{% if field.field.required %}requiredField{% endif %}"
+		>
+			{{ field.label.title }}
+			{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}
+		</label>
+		{{ field }}
+		{% for error in field.errors %}
+			<small id="error_{{ forloop.counter }}_id_{{ field.name }}" class="error">
+				{{ error }}
+			</small>
+		{% endfor %}
+	</div>
+{% endfor %}

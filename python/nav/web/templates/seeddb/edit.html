@@ -41,9 +41,15 @@
       <form class="seeddb-edit" action="" method="post">
         <fieldset>
           <legend>Attributes</legend>
-          {% block crispyfields %}
-          {{ form|crispy }}
-          {% endblock %}
+	        {% if form.no_crispy %}
+		        {% block formfields %}
+			        {% include "seeddb/_form_fields.html" %}
+		        {% endblock %}
+	        {% else %}
+		        {% block crispyfields %}
+			        {{ form|crispy }}
+		        {% endblock %}
+	        {% endif %}
         </fieldset>
         <input type="submit" name="submit" value="Save {{ verbose_name }}" class="submit button small left" id="submit-id-submit">
       </form>
