@@ -9,7 +9,7 @@
 			{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}
 		</label>
 		{{ field }}
-		{% for error in field.field.errors %}
+		{% for error in field.errors %}
 			<small id="error_{{ forloop.counter }}_id_{{ field.name }}" class="error">
 				{{ error }}
 			</small>
