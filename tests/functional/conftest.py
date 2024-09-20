@@ -72,8 +72,11 @@ class _session_cookie_is_present(object):
 
 
 @pytest.fixture(scope="session")
-def base_url():
-    return os.environ.get('TARGETURL', 'http://localhost:8000')
+def base_url(gunicorn):
+    """Used as shorthand for the base URL of the test web server, but really just
+    invokes the gunicorn fixture.
+    """
+    yield gunicorn
 
 
 @pytest.fixture
