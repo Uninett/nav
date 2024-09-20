@@ -1,3 +1,14 @@
+"""
+Exports the KeaDhcpMetricSource class for fetching DHCP metrics from
+Kea DHCP servers
+                            |
+             Managed by NAV | Managed externally
+                            |
+                       HTTP |                       IPC
+KeaDhcpMetricSource <---------> Kea Control Agent <=====> Kea DHCP4 server/Kea DHCP6 server
+                            |
+                            |
+"""
 from IPy import IP
 from typing import Optional
 from itertools import chain
@@ -16,10 +27,18 @@ _logger = logging.getLogger(__name__)
 
 class KeaDhcpMetricSource(DhcpMetricSource):
     """
-    Communicates with a Kea Control Agent and fetches metrics for each
-    subnet managed by the Kea DHCP server serving a specific ip
-    version that is controlled by the Kea Control Agent (see
-    `KeaDhcpMetricSource.fetch_metrics`).
+    Communicates with a Kea Control Agent to enable fetching of DHCP
+    metrics for each subnet managed by some specific underlying Kea
+    DHCP4 or Kea DHCP6 server.
+
+    The sole purpose of this class is to implement the superclass's
+    fetch_metrics() method. Public methods are:
+
+    * fetch_metrics(): Fetches DHCP metrics for each subnet managed by
+      the Kea DHCP server. Metrics are returned as a list.
+
+    * fetch_metrics_to_graphite(): Inherited from superclass. Fetches
+    DHCP metrics as above and sends these to a graphite server.
     """
 
     def __init__(
@@ -34,9 +53,13 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         **kwargs,
     ):
         """
-        Returns a KeaDhcpMetricSource that fetches DHCP metrics via
-        the Kea Control Agent listening to `port` on `address`.
+        Instantiate a KeaDhcpMetricSource that fetches DHCP metrics
+        from the Kea DHCP server managing IP version `dhcp_version`
+        addresses, whose metrics is reachable via the Kea Control
+        Agent listening to `port` on `address`.
 
+        :param address:      IP address of the Kea Control Agent
+        :param port:         TCP port of the Kea Control Agent
         :param https:        if True, use https. Otherwise, use http
         :param dhcp_version: ip version served by Kea DHCP server
         :param timeout:      how long to wait for a http response from
@@ -53,10 +76,11 @@ class KeaDhcpMetricSource(DhcpMetricSource):
 
     def fetch_metrics(self) -> list[DhcpMetric]:
         """
-        Returns a list containing the most recent DHCP metrics for
-        each subnet managed by the Kea DHCP server. For each subnet
-        and DhcpMetric-key combination, there is at least one
-        corresponding metric in the returned list if no errors occur.
+        Fetches and returns a list containing the most recent DHCP
+        metrics for each subnet managed by the Kea DHCP server. For
+        each subnet and DhcpMetric-key combination, there is at least
+        one corresponding metric in the returned list if no errors
+        occur.
 
         If the Kea Control Agent responds with an empty response to
         one or more of the requests for some metric(s), these metrics
