@@ -45,12 +45,10 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         self,
         address: str,
         port: int,
-        *args,
         https: bool = True,
         dhcp_version: int = 4,
         timeout: int = 10,
-        tzinfo: datetime.tzinfo = datetime.now().astimezone().tzinfo,
-        **kwargs,
+        tzinfo: datetime.tzinfo = None,
     ):
         """
         Instantiate a KeaDhcpMetricSource that fetches DHCP metrics
@@ -66,13 +64,13 @@ class KeaDhcpMetricSource(DhcpMetricSource):
                              the Kea Control Agent before timing out
         :param tzinfo:       the timezone of the Kea Control Agent.
         """
-        super(*args, **kwargs)
+        super()
         scheme = "https" if https else "http"
-        self.rest_uri = f"{scheme}://{address}:{port}/"
-        self.dhcp_version = dhcp_version
-        self.dhcp_config: Optional[dict] = None
-        self.timeout = timeout
-        self.tzinfo = tzinfo
+        self._rest_uri = f"{scheme}://{address}:{port}/"
+        self._dhcp_version = dhcp_version
+        self._dhcp_config: Optional[dict] = None
+        self._timeout = timeout
+        self._tzinfo = tzinfo or datetime.now().astimezone().tzinfo
 
     def fetch_metrics(self) -> list[DhcpMetric]:
         """
