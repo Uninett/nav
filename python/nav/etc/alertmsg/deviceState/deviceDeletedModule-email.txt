@@ -1,0 +1,2 @@
+Subject: Device has been removed as a module
+Device {{device}} has been removed from {{netbox}} as a module
