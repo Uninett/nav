@@ -17,12 +17,13 @@
 """Selenium tests for geomap"""
 
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
 
 
 def test_geomap_loaded(selenium, base_url):
     """Test if map is loaded"""
     selenium.get('{}/geomap/'.format(base_url))
     try:
-        selenium.find_element_by_class_name('olMapViewport')
+        selenium.find_element(By.CLASS_NAME, 'olMapViewport')
     except NoSuchElementException:
         assert False, 'GeoMap seems to not have loaded'
