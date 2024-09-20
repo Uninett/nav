@@ -1,11 +1,30 @@
 """pytest setup and fixtures common for all tests, regardless of suite"""
 
 import os
+import platform
 import subprocess
 
 import pytest
 import requests
 from requests.adapters import HTTPAdapter, Retry
+
+
+def pytest_configure(config):
+    # Bootstrap Django config
+    from nav.bootstrap import bootstrap_django
+
+    bootstrap_django('pytest')
+
+    # Setup test environment for Django
+    from django.test.utils import setup_test_environment
+
+    setup_test_environment()
+
+    if platform.system() == 'Linux':
+        # Install custom reactor for Twisted tests
+        from nav.ipdevpoll.epollreactor2 import install
+
+        install()
 
 
 @pytest.fixture(scope='session')

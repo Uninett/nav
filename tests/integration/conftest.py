@@ -1,7 +1,6 @@
 import os
 import importlib.util
 import io
-import platform
 import re
 import shlex
 from itertools import cycle
@@ -32,23 +31,6 @@ SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
 
 def pytest_configure(config):
     subprocess.check_call([SCRIPT_CREATE_DB])
-    os.environ['TARGETURL'] = "http://localhost:8000/"
-
-    # Bootstrap Django config
-    from nav.bootstrap import bootstrap_django
-
-    bootstrap_django('pytest')
-
-    if platform.system() == 'Linux':
-        # Install custom reactor for Twisted tests
-        from nav.ipdevpoll.epollreactor2 import install
-
-        install()
-
-    # Setup test environment for Django
-    from django.test.utils import setup_test_environment
-
-    setup_test_environment()
 
 
 ########################################################################

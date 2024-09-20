@@ -27,11 +27,6 @@ SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
 def pytest_configure(config):
     subprocess.check_call([SCRIPT_CREATE_DB])
 
-    # Bootstrap Django config
-    from nav.bootstrap import bootstrap_django
-
-    bootstrap_django('pytest')
-
 
 ############
 #          #
