@@ -165,7 +165,7 @@ class WebCrawler(object):
                 self.queue.append('%s://%s%s' % (url.scheme, url.netloc, url.path))
 
     def login(self):
-        login_url = '%sindex/login/' % self.base_url
+        login_url = urljoin(self.base_url, '/index/login/')
         opener = build_opener(HTTPCookieProcessor())
         data = urlencode({'username': self.username, 'password': self.password})
         opener.open(login_url, data.encode('utf-8'), TIMEOUT)
