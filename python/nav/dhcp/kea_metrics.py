@@ -24,6 +24,7 @@ from enum import IntEnum
 
 _logger = logging.getLogger(__name__)
 
+_SubnetTuple = tuple[int, IP]  # (subnet_id, netprefix)
 
 class KeaDhcpMetricSource(DhcpMetricSource):
     """
@@ -97,46 +98,58 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         General errors reported by the Kea Control Agent causes a
         KeaError to be raised.
         """
+        metrics = []
+
+        with requests.Session() as session:
+            config = self._fetch_config(session)
+            subnets = _subnets_of_config(config, self._dhcp_version)
+
+            for subnet in subnets:
+                subnet_metrics = self._fetch_subnet_metrics(subnet, session)
+                metrics.extend(subnet_metrics)
+
+            newest_subnets = _subnets_of_config(self._fetch_config(session), self._dhcp_version)
+            if sorted(subnets) != sorted(newest_subnets):
+                _logger.warning(
+                    "Subnet configuration was modified during DHCP metric fetching, "
+                    "this may cause metric data being associated with wrong subnet."
+                )
+
+        return metrics
+
+
+    def _fetch_subnet_metrics(
+            self, subnet: _SubnetTuple, session: requests.Session
+    ) -> list[DhcpMetric]:
         metric_keys = (
             ("total-addresses", DhcpMetricKey.TOTAL),
             ("assigned-addresses", DhcpMetricKey.ASSIGNED),
         )
         metrics = []
 
-        with requests.Session() as s:
-            config = self._fetch_config(s)
-            subnets = _subnets_of_config(config, self.dhcp_version)
-            for subnet_id, netprefix in subnets:
-                for kea_key, nav_key in metric_keys:
-                    kea_name = f"subnet[{subnet_id}].{kea_key}"
-                    try:
-                        response = self._send_query(s, "statistic-get", name=kea_name)
-                    except KeaEmpty:
-                        continue
-                    timeseries = response.get("arguments", {}).get(kea_name, [])
-                    if len(timeseries) == 0:
-                        _logger.error(
-                            "fetch_metrics: Could not fetch metric '%r' for subnet "
-                            "'%s' from Kea: '%s' from Kea is an empty list.",
-                            nav_key,
-                            netprefix,
-                            kea_name,
-                        )
-                    for value, timestring in timeseries:
-                        metric = DhcpMetric(
-                            self._parsetime(timestring), netprefix, nav_key, value
-                        )
-                        metrics.append(metric)
-
-        newsubnets = _subnets_of_config(self._fetch_config(s), self.dhcp_version)
-        if sorted(subnets) != sorted(newsubnets):
-            _logger.error(
-                "Subnet configuration was modified during metric fetching, "
-                "this may cause metric data being associated with wrong "
-                "subnet in some rare cases."
-            )
+        for kea_key, nav_key in metric_keys:
+            kea_name = f"subnet[{subnet_id}].{kea_key}"
+            try:
+                response = self._send_query(session, "statistic-get", name=kea_name)
+            except KeaEmpty:
+                continue
+            timeseries = response.get("arguments", {}).get(kea_name, [])
+            if len(timeseries) == 0:
+                _logger.warning(
+                    "Could not fetch metric '%r' for subnet '%s' from Kea: '%s' from Kea "
+                    "is an empty list.",
+                    nav_key,
+                    netprefix,
+                    kea_name,
+                )
+            for value, timestring in timeseries:
+                metric = DhcpMetric(
+                    self._parsetime(timestring), netprefix, nav_key, value
+                )
+                metrics.append(metric)
 
         return metrics
+
 
     def _fetch_config(self, session: requests.Session) -> dict:
         """
@@ -144,19 +157,19 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         Control Agent controls.
         """
         if (
-            self.dhcp_config is None
-            or (dhcp_confighash := self.dhcp_config.get("hash", None)) is None
+            self._dhcp_config is None
+            or (dhcp_confighash := self._dhcp_config.get("hash", None)) is None
             or self._fetch_config_hash(session) != dhcp_confighash
         ):
             response = self._send_query(session, "config-get")
             try:
-                self.dhcp_config = response["arguments"][f"Dhcp{self.dhcp_version}"]
+                self._dhcp_config = response["arguments"][f"Dhcp{self._dhcp_version}"]
             except KeyError as err:
                 raise KeaException(
                     "Unrecognizable response to the 'config-get' request",
                     {"Response": response},
                 ) from err
-        return self.dhcp_config
+        return self._dhcp_config
 
     def _fetch_config_hash(self, session: requests.Session) -> Optional[str]:
         """
@@ -190,9 +203,9 @@ class KeaDhcpMetricSource(DhcpMetricSource):
         to be raised.
         """
         request_summary = {
-            "Description": f"Sending request to Kea Control Agent at {self.rest_uri}",
+            "Description": f"Sending request to Kea Control Agent at {self._rest_uri}",
             "Status": "sending",
-            "Location": self.rest_uri,
+            "Location": self._rest_uri,
             "Command": command,
         }
         _logger.debug(request_summary)
@@ -201,15 +214,15 @@ class KeaDhcpMetricSource(DhcpMetricSource):
             {
                 "command": command,
                 "arguments": {**kwargs},
-                "service": [f"dhcp{self.dhcp_version}"],
+                "service": [f"dhcp{self._dhcp_version}"],
             }
         )
         request_summary["Validity"] = "Invalid Kea response"
         try:
             responses = session.post(
-                self.rest_uri,
+                self._rest_uri,
                 data=post_data,
-                timeout=self.timeout,
+                timeout=self._timeout,
                 headers={"Content-Type": "application/json"},
             )
             request_summary["Status"] = "complete"
@@ -262,10 +275,10 @@ class KeaDhcpMetricSource(DhcpMetricSource):
     def _parsetime(self, timestamp: str) -> float:
         """Parse the timestamp string used in Kea's timeseries into unix time"""
         fmt = "%Y-%m-%d %H:%M:%S.%f"
-        return datetime.strptime(timestamp, fmt).replace(tzinfo=self.tzinfo).timestamp()
+        return datetime.strptime(timestamp, fmt).replace(tzinfo=self._tzinfo).timestamp()
 
 
-def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
+def _subnets_of_config(config: dict, ip_version: int) -> list[_SubnetTuple]:
     """
     Returns a list containing one (subnet-id, subnet-prefix) tuple per
     subnet listed in the Kea DHCP configuration `config`.
@@ -276,14 +289,14 @@ def _subnets_of_config(config: dict, ip_version: int) -> list[tuple[int, IP]]:
         [config.get(subnetkey, [])]
         + [network.get(subnetkey, []) for network in config.get("shared-networks", [])]
     ):
-        id = subnet.get("id", None)
-        prefix = subnet.get("subnet", None)
-        if id is None or prefix is None:
+        subnet_id = subnet.get("id", None)
+        netprefix = subnet.get("subnet", None)
+        if subnet_id is None or netprefix is None:
             _logger.warning(
                 "id or prefix missing from a subnet's configuration: %r", subnet
             )
             continue
-        subnets.append((id, IP(prefix)))
+        subnets.append((subnet_id, IP(netprefix)))
     return subnets
 
 
