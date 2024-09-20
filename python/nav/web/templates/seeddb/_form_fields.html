@@ -1,6 +1,6 @@
 {% for field in form %}
 	<div id="div_id_{{ field.name }}"
-	     class="ctrlHolder {% if field.errors %}error{% endif %}"
+	     class="ctrlHolder{% if field.errors %} error{% endif %}"
 	>
 		<label for="id_{{ field.name }}"
 		       class="{% if field.field.required %}requiredField{% endif %}"
