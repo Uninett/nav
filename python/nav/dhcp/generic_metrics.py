@@ -2,7 +2,10 @@ from dataclasses import dataclass
 from enum import Enum
 from IPy import IP
 from nav.metrics import carbon, CONFIG
-from nav.metrics.templates import metric_path_for_subnet_dhcp, metric_path_for_ipdev_subnet_dhcp
+from nav.metrics.templates import (
+    metric_path_for_subnet_dhcp,
+    metric_path_for_ipdev_subnet_dhcp,
+)
 from typing import Iterator
 from datetime import datetime
 
@@ -32,6 +35,7 @@ class DhcpMetricSource:
     The `fetch_metrics` docstring specifies which metrics are
     collected.
     """
+
     def __init__(self, address, port):
         """
         All subclasses that collect metrics from a DHCP server must
