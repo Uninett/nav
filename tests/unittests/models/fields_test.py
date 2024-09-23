@@ -4,8 +4,6 @@ from datetime import datetime as dt
 from decimal import Decimal
 import pickle
 
-from decimal import Decimal
-
 from django.core import exceptions
 from django.db import connection
 
