@@ -274,6 +274,7 @@ def should_validate(page: Page):
     if (
         page.response == 500
         or not page.content_type
+        or not isinstance(page.content_type, str)
         or 'html' not in page.content_type.lower()
     ):
         return False
