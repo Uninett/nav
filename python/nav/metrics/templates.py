@@ -184,3 +184,29 @@ def metric_path_for_multicast_usage(group, sysname):
         group=metric_prefix_for_multicast_group(group),
         sysname=escape_metric_name(sysname),
     )
+
+
+def metric_path_for_subnet_dhcp(subnet_prefix, metric_name):
+    tmpl = "nav.dhcp.{subnet_prefix}.{metric_name}"
+    if hasattr(subnet_prefix, 'strNormal') and callable(subnet_prefix.strNormal):
+        subnet_prefix = subnet_prefix.strNormal()
+    return tmpl.format(
+        subnet_prefix=escape_metric_name(subnet_prefix), metric_name=metric_name
+    )
+
+
+def metric_path_for_ipdev_subnet_dhcp(subnet_prefix, metric_name, address, port):
+    """
+    Metric path for dhcp metrics that will be automatically shown in a
+    netbox's 'System metrics' tab
+    """
+    tmpl = "nav.devices.{address}.dhcp.{port}.subnet.{subnet_prefix}.{metric_name}"
+    if hasattr(subnet_prefix, 'strNormal') and callable(subnet_prefix.strNormal):
+        subnet_prefix = subnet_prefix.strNormal()  # canonical name for IPy.IP instances
+    if hasattr(address, 'strNormal') and callable(address.strNormal):
+        address = address.strNormal()  # canonical name for IPy.IP instances
+    return tmpl.format(
+        address=escape_metric_name(address),
+        port=str(port),
+        subnet_prefix=escape_metric_name(subnet_prefix),
+    )
