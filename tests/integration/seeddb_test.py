@@ -4,7 +4,7 @@ from django.test.client import RequestFactory
 from mock import MagicMock
 
 from django.utils.encoding import smart_str
-from nav.models.manage import Netbox, Room
+from nav.models.manage import Netbox, Room, NetboxInfo
 from nav.web.seeddb.page.netbox.edit import netbox_edit, log_netbox_change
 from nav.web.seeddb.utils.delete import dependencies
 
@@ -108,3 +108,41 @@ def test_log_netbox_change_should_not_crash(admin_account, netbox):
     new.category_id = "OTHER"
 
     assert log_netbox_change(admin_account, old, new) is None
+
+
+def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netboxinfo_instance(
+    netbox, db, client
+):
+    """
+    Empty function fields in the webform should cause the function's
+    corresponding NetboxInfo to be deleted; This is the correct thing
+    to do because NAV prefills user forms with previously assigned
+    values. Hence, if NAV receives a form with an empty function
+    string, this means the user has explicitly cleared the function
+    string.
+    """
+    url = reverse('seeddb-netbox-edit', args=(netbox.id,))
+
+    def post(func):
+        return client.post(
+            url,
+            follow=True,
+            data={
+                "ip": netbox.ip,
+                "room": netbox.room_id,
+                "category": netbox.category_id,
+                "organization": netbox.organization_id,
+                "function": func,
+            },
+        )
+
+    assert len(NetboxInfo.objects.filter(netbox=netbox, variable='function')) == 0
+    post("")
+    assert len(NetboxInfo.objects.filter(netbox=netbox, variable='function')) == 0
+    post("foo")
+    assert (
+        NetboxInfo.objects.filter(netbox=netbox, variable='function').get().value
+        == 'foo'
+    )
+    post("")
+    assert len(NetboxInfo.objects.filter(netbox=netbox, variable='function')) == 0
