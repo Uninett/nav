@@ -237,11 +237,13 @@ def webcrawler():
 
 
 def test_all_links_should_be_reachable(webcrawler):
+    unreachable = []
     for page in webcrawler.crawl():
         if page.response != 200:
             # No need to fill up the test report files with contents of OK pages
             print(_content_as_string(page.content))
-        assert page.response == 200, "{} is not reachable".format(page.url)
+            unreachable.append(f"{page.url} ({page.response})")
+    assert not unreachable
 
 
 def _content_as_string(content):
@@ -252,6 +254,7 @@ def _content_as_string(content):
 
 
 def test_page_should_be_valid_html(webcrawler):
+    invalid = []
     for page in webcrawler.crawl_only_html():
         if page.response != 200 or not page.content:
             continue
@@ -259,9 +262,11 @@ def test_page_should_be_valid_html(webcrawler):
         document, errors = tidy_document(page.content, TIDY_OPTIONS)
         errors = filter_errors(errors)
         if errors:
+            print(f"{page.url} :")
             print(errors)
+            invalid.append(page.url)
 
-        assert not errors, "{} did not validate as HTML".format(page.url)
+    assert not invalid
 
 
 def should_validate(page: Page):
