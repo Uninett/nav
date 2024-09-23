@@ -35,7 +35,7 @@
         (Disabled by <a href="{% url 'arnold-details' detention.id %}" title="Link to detention">Arnold</a>)
       {% endif %}
       {% if port.is_degraded %}
-          <small class="label warning" title="One more of the interfaces aggregated under {{ port.ifname }} is down.">Degraded</small>
+          <small class="label warning" title="One or more of the interfaces aggregated under {{ port.ifname }} is down.">Degraded</small>
       {% endif %}
     </td>
   </tr>
