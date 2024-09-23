@@ -7,13 +7,6 @@ repos:
     -   id: mixed-line-ending
     -   id: end-of-file-fixer
         exclude: &exclude_pattern '^changelog.d/'
--   repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
-    hooks:
-    -   id: flake8
-        name: "Flake8: critical"
-        args: ['--count', '--select=E9,F63,F7,F82', '--show-source', '--statistics']
-        exclude: smidumps/
 -   repo: https://github.com/psf/black
     rev: 24.8.0
     hooks:
