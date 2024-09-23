@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 import jwt
@@ -34,7 +34,7 @@ def _generate_token(
     else:
         new_token = dict(token_data)
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     name = JWTConf().get_nav_name()
     updated_claims = {
         'exp': (now + expiry_delta).timestamp(),
