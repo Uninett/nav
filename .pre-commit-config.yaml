@@ -18,6 +18,10 @@ repos:
     rev: 24.8.0
     hooks:
     -   id: black
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.1
+    hooks:
+      - id: ruff
 -   repo: https://github.com/twisted/towncrier
     rev: 24.8.0
     hooks:
