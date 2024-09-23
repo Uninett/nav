@@ -2050,7 +2050,7 @@ def filter_group_addfilter(request):
 def filter_group_remove_or_move_filter(request):
     """Deletes or moves around a filter within a filter group"""
     post = request.POST.copy()
-    for name in post:
+    for name in request.POST:
         if name.find("=") != -1:
             attribute, value = name.split("=")
             del post[name]
