@@ -1,0 +1,1 @@
+Device {{device}} has been removed from {{netbox}} as a chassis

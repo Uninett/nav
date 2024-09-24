@@ -217,6 +217,10 @@ Registers the state of a device
      - The device has been removed as a fan.
    * - ``deviceDeletedPsu``
      - The device has been removed as a power supply.
+   * - ``deviceDeletedChassis``
+     - The device has been removed as a chassis.
+   * - ``deviceDeletedModule``
+     - The device has been removed as a module.
 
 
 
@@ -567,7 +571,3 @@ UPS running on battery or utility power
      - Ups running on battery power
    * - ``upsOnUtilityPower``
      - Ups running on utility power
-
-
-
-
