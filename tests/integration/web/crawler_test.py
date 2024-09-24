@@ -243,7 +243,9 @@ def test_all_links_should_be_reachable(webcrawler):
             # No need to fill up the test report files with contents of OK pages
             print(_content_as_string(page.content))
             unreachable.append(f"{page.url} ({page.response})")
-    assert not unreachable
+    assert not unreachable, f"{len(unreachable)} unreachable pages:\n" + '\n'.join(
+        unreachable
+    )
 
 
 def _content_as_string(content):
@@ -266,7 +268,7 @@ def test_page_should_be_valid_html(webcrawler):
             print(errors)
             invalid.append(page.url)
 
-    assert not invalid
+    assert not invalid, f"{len(invalid)} invalid HTML pages:\n" + '\n'.join(invalid)
 
 
 def should_validate(page: Page):
