@@ -3,15 +3,12 @@
 The crawler attempts to retrieve any NAV web UI page that can be reached with
 parameterless GET requests, while logged in as an administrator.
 
-We want one test for each such URL, but since generating more tests while
-running existing tests isn't easily supported under pytest (yield tests are
-becoming deprecated under pytest 4), the crawler is the de-facto reachability
-tester. A dummy test will be generated for each seen URL, and the dummy tests
-will assert that the response code of the URL was 200 OK.
-
-In addition, HTML validation tests (using libtidy) will be generated for all
-URLs that report a Content-Type of text/html.
-
+In some respects, it would be preferable to generate 1 named test for each
+reachable page, but the tests need to be generated during the test collection
+phase, which means that a full web server needs to be running before pytest
+runs - and it would also be preferable that the web server is started from a
+fixture. Instead, the webcrawler is itself a fixture that allows iteration over
+all reachable pages.
 """
 
 from collections import namedtuple
@@ -75,6 +72,14 @@ BLACKLISTED_PATHS = [
 #
 
 Page = namedtuple('Page', 'url response content_type content')
+
+if not HOST_URL:
+    pytest.skip(
+        msg="Missing environment variable TARGETURL "
+        "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
+        "tests!",
+        allow_module_level=True,
+    )
 
 
 def normalize_path(url):
@@ -216,32 +221,31 @@ def _quote_url(url):
 
 
 #
+# fixtures
+#
+
+
+@pytest.fixture(scope="session")
+def webcrawler():
+    crawler = WebCrawler(HOST_URL, USERNAME, PASSWORD)
+    yield crawler
+
+
+#
 # test functions
 #
 
-# just one big, global crawler instance to ensure it's results are cached
-# throughout all the tests in a single session
-if HOST_URL:
-    crawler = WebCrawler(HOST_URL, USERNAME, PASSWORD)
-else:
-    crawler = Mock()
-    crawler.crawl.return_value = []
 
-
-def page_id(page):
-    """Extracts a URL as a test id from a page"""
-    return normalize_path(page.url)
-
-
-@pytest.mark.skipif(
-    not HOST_URL,
-    reason="Missing environment variable TARGETURL "
-    "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
-    "tests!",
-)
-@pytest.mark.parametrize("page", crawler.crawl(), ids=page_id)
-def test_link_should_be_reachable(page):
-    assert page.response == 200, _content_as_string(page.content)
+def test_all_links_should_be_reachable(webcrawler):
+    unreachable = []
+    for page in webcrawler.crawl():
+        if page.response != 200:
+            # No need to fill up the test report files with contents of OK pages
+            print(_content_as_string(page.content))
+            unreachable.append(f"{page.url} ({page.response})")
+    assert not unreachable, f"{len(unreachable)} unreachable pages:\n" + '\n'.join(
+        unreachable
+    )
 
 
 def _content_as_string(content):
@@ -251,23 +255,20 @@ def _content_as_string(content):
         return content.decode('utf-8')
 
 
-@pytest.mark.skipif(
-    not HOST_URL,
-    reason="Missing environment variable TARGETURL "
-    "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
-    "tests!",
-)
-@pytest.mark.parametrize("page", crawler.crawl_only_html(), ids=page_id)
-def test_page_should_be_valid_html(page):
-    if page.response != 200:
-        pytest.skip("not validating non-reachable page")
-    if not page.content:
-        pytest.skip("page has no content")
+def test_page_should_be_valid_html(webcrawler):
+    invalid = []
+    for page in webcrawler.crawl_only_html():
+        if page.response != 200 or not page.content:
+            continue
 
-    document, errors = tidy_document(page.content, TIDY_OPTIONS)
-    errors = filter_errors(errors)
+        document, errors = tidy_document(page.content, TIDY_OPTIONS)
+        errors = filter_errors(errors)
+        if errors:
+            print(f"{page.url} :")
+            print(errors)
+            invalid.append(page.url)
 
-    assert not errors, "Found following validation errors:\n" + errors
+    assert not invalid, f"{len(invalid)} invalid HTML pages:\n" + '\n'.join(invalid)
 
 
 def should_validate(page: Page):
@@ -275,6 +276,7 @@ def should_validate(page: Page):
     if (
         page.response == 500
         or not page.content_type
+        or not isinstance(page.content_type, str)
         or 'html' not in page.content_type.lower()
     ):
         return False
