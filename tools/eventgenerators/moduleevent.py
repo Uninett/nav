@@ -38,7 +38,7 @@ def handler(cursor, boxlist, state):
                 subid,
                 'moduleState',
                 state,
-                100,
+                1,
             ),
         )
 
