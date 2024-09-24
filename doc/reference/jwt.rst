@@ -3,7 +3,7 @@
 Configuring JWT authentication
 -----------------------------
 
-NAV supports authentication with JSON Web Tokens (JWT). JWT issuers that your NAV instance should
+The NAV API supports authentication with JSON Web Tokens (JWT). JWT issuers that your NAV instance should
 accept tokens from can be configured in :file:`jwt.conf`. The public key for the issuer is required,
 and can be configured either directly as a PEM file or via a JWKS endpoint.
 
