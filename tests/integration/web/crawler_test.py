@@ -14,32 +14,28 @@ all reachable pages.
 from collections import namedtuple
 from http.client import BadStatusLine
 from lxml.html import fromstring
-import os
 
 import pytest
 
 from tidylib import tidy_document
 from urllib.request import (
-    urlopen,
-    build_opener,
-    install_opener,
     HTTPCookieProcessor,
     Request,
+    build_opener,
+    install_opener,
+    urlopen,
 )
 from urllib.error import HTTPError, URLError
 from urllib.parse import (
-    urlsplit,
-    urlencode,
-    urlunparse,
-    urlparse,
     quote,
+    urlencode,
+    urljoin,
+    urlparse,
+    urlsplit,
+    urlunparse,
 )
-from mock import Mock
 
 
-HOST_URL = os.environ.get('TARGETURL', None)
-USERNAME = os.environ.get('ADMINUSERNAME', 'admin')
-PASSWORD = os.environ.get('ADMINPASSWORD', 'admin')
 TIMEOUT = 90  # seconds?
 
 TIDY_OPTIONS = {
@@ -72,14 +68,6 @@ BLACKLISTED_PATHS = [
 #
 
 Page = namedtuple('Page', 'url response content_type content')
-
-if not HOST_URL:
-    pytest.skip(
-        msg="Missing environment variable TARGETURL "
-        "(ADMINUSERNAME, ADMINPASSWORD) , skipping crawler "
-        "tests!",
-        allow_module_level=True,
-    )
 
 
 def normalize_path(url):
@@ -177,7 +165,7 @@ class WebCrawler(object):
                 self.queue.append('%s://%s%s' % (url.scheme, url.netloc, url.path))
 
     def login(self):
-        login_url = '%sindex/login/' % self.base_url
+        login_url = urljoin(self.base_url, '/index/login/')
         opener = build_opener(HTTPCookieProcessor())
         data = urlencode({'username': self.username, 'password': self.password})
         opener.open(login_url, data.encode('utf-8'), TIMEOUT)
@@ -226,8 +214,8 @@ def _quote_url(url):
 
 
 @pytest.fixture(scope="session")
-def webcrawler():
-    crawler = WebCrawler(HOST_URL, USERNAME, PASSWORD)
+def webcrawler(gunicorn, admin_username, admin_password):
+    crawler = WebCrawler(gunicorn, admin_username, admin_password)
     yield crawler
 
 

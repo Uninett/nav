@@ -1,7 +1,6 @@
 import os
 import importlib.util
 import io
-import platform
 import re
 import shlex
 from itertools import cycle
@@ -13,7 +12,6 @@ import toml
 import pytest
 from django.test import Client
 
-gunicorn = None
 
 ########################################################################
 #                                                                      #
@@ -33,50 +31,6 @@ SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
 
 def pytest_configure(config):
     subprocess.check_call([SCRIPT_CREATE_DB])
-    os.environ['TARGETURL'] = "http://localhost:8000/"
-    start_gunicorn()
-
-    # Bootstrap Django config
-    from nav.bootstrap import bootstrap_django
-
-    bootstrap_django('pytest')
-
-    if platform.system() == 'Linux':
-        # Install custom reactor for Twisted tests
-        from nav.ipdevpoll.epollreactor2 import install
-
-        install()
-
-    # Setup test environment for Django
-    from django.test.utils import setup_test_environment
-
-    setup_test_environment()
-
-
-def pytest_unconfigure(config):
-    stop_gunicorn()
-
-
-def start_gunicorn():
-    global gunicorn
-    workspace = os.path.join(os.environ.get('WORKSPACE', ''), 'reports')
-    errorlog = os.path.join(workspace, 'gunicorn-error.log')
-    accesslog = os.path.join(workspace, 'gunicorn-access.log')
-    gunicorn = subprocess.Popen(
-        [
-            'gunicorn',
-            '--error-logfile',
-            errorlog,
-            '--access-logfile',
-            accesslog,
-            'navtest_wsgi:application',
-        ]
-    )
-
-
-def stop_gunicorn():
-    if gunicorn:
-        gunicorn.terminate()
 
 
 ########################################################################

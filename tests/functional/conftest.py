@@ -7,7 +7,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 USERNAME = 'admin'
-gunicorn = None
 
 ########################################################################
 #                                                                      #
@@ -27,31 +26,6 @@ SCRIPT_CREATE_DB = os.path.join(SCRIPT_PATH, 'create-db.sh')
 
 def pytest_configure(config):
     subprocess.check_call([SCRIPT_CREATE_DB])
-    start_gunicorn()
-
-    # Bootstrap Django config
-    from nav.bootstrap import bootstrap_django
-
-    bootstrap_django('pytest')
-
-
-def pytest_unconfigure(config):
-    stop_gunicorn()
-
-
-def start_gunicorn():
-    global gunicorn
-    gunicorn_log = open("reports/gunicorn.log", "ab")
-    gunicorn = subprocess.Popen(
-        ['gunicorn', 'navtest_wsgi:application'],
-        stdout=gunicorn_log,
-        stderr=subprocess.STDOUT,
-    )
-
-
-def stop_gunicorn():
-    if gunicorn:
-        gunicorn.terminate()
 
 
 ############
@@ -98,8 +72,11 @@ class _session_cookie_is_present(object):
 
 
 @pytest.fixture(scope="session")
-def base_url():
-    return os.environ.get('TARGETURL', 'http://localhost:8000')
+def base_url(gunicorn):
+    """Used as shorthand for the base URL of the test web server, but really just
+    invokes the gunicorn fixture.
+    """
+    yield gunicorn
 
 
 @pytest.fixture
