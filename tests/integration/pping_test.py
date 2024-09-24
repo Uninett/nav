@@ -19,18 +19,35 @@ TIMEOUT_COMMAND_LINE = "/usr/bin/timeout"
 BINDIR = './python/nav/bin'
 
 
+#
+# These helpers need to be defined first because they are used in test skip rules
+#
 def can_be_root():
     try:
         get_root_method()
         return True
-    except Exception:
+    except (OSError, AssertionError):
         return False
+
+
+def get_root_method():
+    if os.geteuid() == 0:
+        return []
+    elif os.system("sudo -nv") == 0:
+        return ["sudo", "-E"]
+    elif os.system("gosu root true") == 0:
+        return ["gosu", "root"]
+    else:
+        assert False, "cannot become root"
 
 
 def timeout_command_line_program_exists():
     return os.access(TIMEOUT_COMMAND_LINE, os.X_OK)
 
 
+#
+# Actual tests begin here
+#
 @pytest.mark.timeout(20)
 @pytest.mark.skipif(
     not timeout_command_line_program_exists(),
@@ -86,15 +103,6 @@ def test_pping_should_post_event_when_host_is_unreachable(
 # fixtures and helpers #
 #                      #
 ########################
-def get_root_method():
-    if os.geteuid() == 0:
-        return []
-    elif os.system("sudo -nv") == 0:
-        return ["sudo", "-E"]
-    elif os.system("gosu root true") == 0:
-        return ["gosu", "root"]
-    else:
-        assert False, "cannot become root"
 
 
 def get_pping_output(timeout=5):
