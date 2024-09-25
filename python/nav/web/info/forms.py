@@ -18,8 +18,6 @@
 from types import SimpleNamespace
 
 from django import forms
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Submit, Field
 
 
 class SearchForm(forms.Form):
@@ -37,7 +35,6 @@ class SearchForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.hints.form_action = kwargs.pop('form_action', '')
         self.hints.placeholder = kwargs.pop('placeholder', 'Search')
-        self.helper = get_formhelper(self.hints.form_action, self.hints.placeholder)
         super(SearchForm, self).__init__(*args, **kwargs)
         self.fields['query'].widget = forms.TextInput(
             attrs={'placeholder': self.hints.placeholder}
@@ -46,21 +43,3 @@ class SearchForm(forms.Form):
     def clean_query(self):
         """Remove whitespace from searchterm"""
         return self.cleaned_data['query'].strip()
-
-
-def get_formhelper(form_action, placeholder='Search'):
-    """Create a default form layout for a search form"""
-    helper = FormHelper()
-    helper.form_action = form_action
-    helper.form_method = 'GET'
-    helper.form_class = 'search-form'
-    helper.layout = Layout(
-        Row(
-            Column(Field('query', placeholder=placeholder), css_class='medium-9'),
-            Column(
-                Submit('submit', 'Search', css_class='postfix'), css_class='medium-3'
-            ),
-            css_class='collapse',
-        )
-    )
-    return helper

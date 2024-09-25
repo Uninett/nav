@@ -1,5 +1,4 @@
 {% extends "info/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   {{ block.super }}
@@ -31,7 +30,6 @@
 
     <h3>VLAN search</h3>
 
-    {% crispy form %}
     {% include "info/frag_form.html" %}
 
     {% if form.is_bound %}
