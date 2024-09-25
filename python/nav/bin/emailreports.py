@@ -19,7 +19,6 @@
 
 import argparse
 import logging
-import os
 
 from nav.bootstrap import bootstrap_django
 

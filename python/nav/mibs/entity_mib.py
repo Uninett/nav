@@ -21,7 +21,6 @@ from operator import itemgetter
 import logging
 from datetime import datetime
 import struct
-import sys
 
 from twisted.internet import defer
 

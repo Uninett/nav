@@ -27,7 +27,6 @@ some other port and detains that port.
 
 """
 
-import os
 import sys
 import logging
 import getpass

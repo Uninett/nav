@@ -17,7 +17,7 @@
 import logging
 
 import time
-from datetime import datetime, date
+from datetime import datetime
 
 from django.db import transaction, connection
 from django.db.models import Count, Q

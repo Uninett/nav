@@ -18,7 +18,6 @@
 addresses, if found.
 """
 
-from os.path import join
 from datetime import datetime
 
 import time

@@ -15,7 +15,6 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import sys
 import traceback
 
 from django.template import loader

@@ -20,8 +20,6 @@ import re
 import stat
 import socket
 import datetime
-import uuid
-import hashlib
 from functools import wraps
 from importlib.resources import as_file, files as resource_files
 from itertools import chain, tee, groupby, islice
