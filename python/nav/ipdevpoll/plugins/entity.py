@@ -28,7 +28,6 @@ from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.plugins.modules import get_ignored_serials
 from nav.ipdevpoll.timestamps import TimestampChecker
 from nav.models import manage
-from nav.oids import OID
 
 INFO_VAR_NAME = 'entityphysical'
 

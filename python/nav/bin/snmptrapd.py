@@ -32,7 +32,6 @@ from nav import daemon
 from nav.config import NAV_CONFIG, NAVConfigParser
 import nav.buildconf
 from nav.snmptrapd.plugin import load_handler_modules, ModuleLoadError
-from nav.snmptrapd.trap import SNMPTrap
 from nav.util import is_valid_ip, address_to_string
 from nav.db import getConnection
 from nav.bootstrap import bootstrap_django

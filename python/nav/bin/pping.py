@@ -29,7 +29,6 @@ import argparse
 import logging
 
 import nav.daemon
-from nav import buildconf
 from nav.config import NAV_CONFIG
 from nav.daemon import safesleep as sleep
 from nav.logs import init_generic_logging

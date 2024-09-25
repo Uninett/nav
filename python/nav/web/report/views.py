@@ -39,7 +39,7 @@ from django.urls import reverse
 from nav.models.manage import Prefix
 
 from nav.report.IPtree import get_max_leaf, build_tree
-from nav.report.generator import Generator, ReportList, ReportTuple
+from nav.report.generator import Generator, ReportList
 from nav.report.matrixIPv4 import MatrixIPv4
 from nav.report.matrixIPv6 import MatrixIPv6
 from nav.report.metaIP import MetaIP

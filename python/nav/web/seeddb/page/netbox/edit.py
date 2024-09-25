@@ -32,7 +32,7 @@ from django.urls import reverse, reverse_lazy
 from nav.auditlog.models import LogEntry
 from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
 from nav.models.manage import NetboxInfo, ManagementProfile
-from nav.Snmp import Snmp, safestring
+from nav.Snmp import safestring
 from nav.Snmp.errors import SnmpError
 from nav.Snmp.profile import get_snmp_session_for_profile
 from nav import napalm
