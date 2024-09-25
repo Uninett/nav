@@ -17,6 +17,7 @@
 
   <h3>Device Group search</h3>
   {% crispy searchform %}
+  {% include "info/frag_form.html" with form=searchform %}
 
   <table id="device-groups-table" class="listtable">
     <caption>Device Groups</caption>

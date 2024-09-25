@@ -14,6 +14,7 @@
 
     <h3>Room search</h3>
     {% crispy searchform %}
+    {% include "info/frag_form.html" with form=searchform %}
 
     {% if searchform.is_bound %}
 

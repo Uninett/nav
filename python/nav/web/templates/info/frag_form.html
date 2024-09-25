@@ -1,0 +1,19 @@
+<form class="{{ form.hints.form_class }}" method="{{ form.hints.method }}"{% if form.hints.form_action %}
+      action="{% url form.hints.form_action %}"{% endif %}>
+
+    <div class="row collapse">
+        {% for field in form %}
+            <div class="columns medium-9">
+                {% include "foundation-5/field.html" %}
+            </div>
+        {% endfor %}
+
+        <div class="columns medium-3">
+            <input type="submit" name="submit" value="Search" class="submit button postfix"
+                   id="submit-id-submit">
+
+        </div>
+    </div>
+
+
+</form>

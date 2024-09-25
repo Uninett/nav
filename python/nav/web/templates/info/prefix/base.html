@@ -16,6 +16,7 @@
   <h3>Prefix search</h3>
 
   {% crispy form %}
+  {% include "info/frag_form.html" %}
 
   {% if form.is_bound and form.is_valid %}
     <table id="prefix-search-results" class="listtable">
