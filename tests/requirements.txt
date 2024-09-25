@@ -10,6 +10,7 @@ pytest-cov==2.7.1
 pytest-selenium==4.1.0
 pytest-timeout
 pytest-twisted~=1.13.0
+pytest-xvfb
 pytidylib==0.3.2
 selenium<4.11.0
 snmpsim>=1.0,!=1.1.6
