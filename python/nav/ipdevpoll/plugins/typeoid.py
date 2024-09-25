@@ -67,7 +67,7 @@ class TypeOid(Plugin):
             )
         oid = OID(result)
         self._logger.debug("sysObjectID is %s", oid)
-        defer.returnValue(oid)
+        return oid
 
     def _is_sysobjectid_changed(self, oid):
         current_oid = OID(self.netbox.type.sysobjectid) if self.netbox.type else None
@@ -129,7 +129,7 @@ class TypeOid(Plugin):
             return type_
 
         new_type = yield db.run_in_thread(_create)
-        defer.returnValue(new_type)
+        return new_type
 
     @classmethod
     def _get_vendor(cls, sysobjectid):

@@ -30,4 +30,4 @@ class WLSXSystemextMib(MibRetriever):
         if serial:
             if isinstance(serial, bytes):
                 serial = serial.decode("utf-8")
-            defer.returnValue(serial)
+            return serial

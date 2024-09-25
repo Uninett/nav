@@ -18,7 +18,7 @@
 """Collects uptime ticks and interprets discontinuities as cold boots"""
 from datetime import timedelta, datetime
 
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from nav.ipdevpoll import Plugin, shadows
 from nav.ipdevpoll.timestamps import TimestampChecker
@@ -54,7 +54,7 @@ class Uptime(Plugin):
             "last sysuptime reset/rollover reported by device: %s", upsince
         )
         stampcheck.save()
-        returnValue((changed, upsince))
+        return (changed, upsince)
 
 
 def get_upsince(timestamp, ticks):

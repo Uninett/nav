@@ -17,7 +17,6 @@
 """
 
 from twisted.internet import defer
-from twisted.internet.defer import returnValue
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
@@ -75,7 +74,7 @@ class PDU2Mib(MibRetriever):
         result += sensors
         result += yield self.get_inlet_pole_sensors(inlets)
         result += yield self.get_over_current_protection_sensors()
-        returnValue(result)
+        return result
 
     def retrieve_sensor_columns(self, table):
         columns = [fmt.format(table=table) for fmt in SENSOR_COLUMNS]
@@ -128,7 +127,7 @@ class PDU2Mib(MibRetriever):
             )
             sensor = self.get_sensor(table, index, row, name, name, internal_name)
             result.append(sensor)
-        returnValue((result, inlets))
+        return (result, inlets)
 
     @defer.inlineCallbacks
     def get_inlet_pole_sensors(self, inlets):
@@ -155,7 +154,7 @@ class PDU2Mib(MibRetriever):
             )
             sensor = self.get_sensor(table, index, row, name, name, internal_name)
             result.append(sensor)
-        returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def get_over_current_protection_sensors(self):
@@ -183,4 +182,4 @@ class PDU2Mib(MibRetriever):
             if sensor_type == 'trip':
                 sensor['unit_of_measurement'] = Sensor.UNIT_TRUTHVALUE
             result.append(sensor)
-        returnValue(result)
+        return result

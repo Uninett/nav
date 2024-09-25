@@ -153,9 +153,9 @@ class JobHandler(object):
         ]
 
         if not plugins:
-            defer.returnValue(None)
+            return None
 
-        defer.returnValue(plugins)
+        return plugins
 
     def _get_valid_plugins(self):
         valid_plugins, invalid_plugins = splitby(
@@ -201,7 +201,7 @@ class JobHandler(object):
             else:
                 self._logger.debug("no %s plugins", willingness)
 
-        defer.returnValue(willing_plugins)
+        return willing_plugins
 
     def _iterate_plugins(self, plugins):
         """Iterates plugins."""
@@ -278,7 +278,7 @@ class JobHandler(object):
         self._reset_timers()
         if not plugins:
             self._destroy_agentproxy()
-            defer.returnValue(False)
+            return False
 
         self._logger.debug("Starting job %r for %s", self.name, self.netbox.sysname)
 
@@ -353,7 +353,7 @@ class JobHandler(object):
         df.addBoth(cleanup)
         df.addCallbacks(log_externally_success, log_externally_failure)
         yield df
-        defer.returnValue(True)
+        return True
 
     def cancel(self):
         """Cancels a running job.

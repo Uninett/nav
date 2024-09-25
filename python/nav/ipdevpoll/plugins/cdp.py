@@ -50,7 +50,7 @@ class CDP(Plugin):
     def can_handle(cls, netbox):
         daddy_says_ok = super(CDP, cls).can_handle(netbox)
         has_ifcs = yield run_in_thread(cls._has_interfaces, netbox)
-        defer.returnValue(has_ifcs and daddy_says_ok)
+        return has_ifcs and daddy_says_ok
 
     @classmethod
     def _has_interfaces(cls, netbox):
@@ -97,7 +97,7 @@ class CDP(Plugin):
         yield stampcheck.load()
         yield stampcheck.collect([mib.get_neighbors_last_change()])
 
-        defer.returnValue(stampcheck)
+        return stampcheck
 
     @defer.inlineCallbacks
     def _get_cached_neighbors(self):
@@ -108,7 +108,7 @@ class CDP(Plugin):
             INFO_KEY_NAME,
             INFO_VAR_NEIGHBORS_CACHE,
         )
-        defer.returnValue(value)
+        return value
 
     @defer.inlineCallbacks
     def _save_cached_neighbors(self, neighbors):

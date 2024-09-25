@@ -65,7 +65,7 @@ class Entity(Plugin):
         yield self.stampcheck.collect([self.entitymib.get_last_change_time()])
 
         result = yield self.stampcheck.is_changed()
-        defer.returnValue(result)
+        return result
 
     def _process_entities(self, result):
         """Process the list of collected entities."""

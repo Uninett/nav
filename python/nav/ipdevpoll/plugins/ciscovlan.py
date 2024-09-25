@@ -72,7 +72,7 @@ class CiscoVlan(Plugin):
     def _get_ifindexes(self):
         ifmib = IfMib(self.agent)
         indexes = yield ifmib.get_ifindexes()
-        defer.returnValue(set(indexes))
+        return set(indexes)
 
     def _store_access_ports(self, vlan_membership):
         """Store vlan memberships for all ports."""

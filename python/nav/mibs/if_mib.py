@@ -35,7 +35,7 @@ class IfMib(mibretriever.MibRetriever):
         df.addCallback(self.translate_result)
         df.addCallback(reduce_index)
         if_table = yield df
-        defer.returnValue(if_table)
+        return if_table
 
     @defer.inlineCallbacks
     def get_ifnames(self):
@@ -50,7 +50,7 @@ class IfMib(mibretriever.MibRetriever):
         result = dict(
             (index, (row['ifName'], row['ifDescr'])) for index, row in table.items()
         )
-        defer.returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def get_ifaliases(self):
@@ -60,13 +60,13 @@ class IfMib(mibretriever.MibRetriever):
 
         """
         aliases = yield self.retrieve_column('ifAlias').addCallback(reduce_index)
-        defer.returnValue(aliases)
+        return aliases
 
     @defer.inlineCallbacks
     def get_ifindexes(self):
         "Retrieves a list of current ifIndexes"
         indexes = yield self.retrieve_column('ifIndex')
-        defer.returnValue(indexes.values())
+        return indexes.values()
 
     @defer.inlineCallbacks
     def get_admin_status(self):
@@ -81,7 +81,7 @@ class IfMib(mibretriever.MibRetriever):
         status = yield df
 
         result = dict((index, row['ifAdminStatus']) for index, row in status.items())
-        defer.returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def get_stack_status(self):
@@ -94,4 +94,4 @@ class IfMib(mibretriever.MibRetriever):
         """
         status = yield self.retrieve_columns(['ifStackStatus'])
         result = [(h, l) for h, l in status.keys() if h > 0 and l > 0]
-        defer.returnValue(result)
+        return result

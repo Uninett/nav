@@ -57,7 +57,7 @@ class HpIcfFanMib(mibretriever.MibRetriever):
         df.addCallback(reduce_index)
         fan_table = yield df
         self._logger.debug("fan_table: %r", fan_table)
-        defer.returnValue(fan_table)
+        return fan_table
 
     @staticmethod
     def _translate_fan_status(psu_status):
@@ -79,7 +79,7 @@ class HpIcfFanMib(mibretriever.MibRetriever):
         fan_status = fan_status_row.get("hpicfFanState")
 
         self._logger.debug("hpicfFanState.%s = %r", index, fan_status)
-        defer.returnValue(self._translate_fan_status(fan_status))
+        return self._translate_fan_status(fan_status)
 
     @defer.inlineCallbacks
     def get_fans(self):
@@ -102,4 +102,4 @@ class HpIcfFanMib(mibretriever.MibRetriever):
         ):
             ent.internal_id = "{}:{}".format(ent.internal_id, index)
 
-        defer.returnValue(entities)
+        return entities

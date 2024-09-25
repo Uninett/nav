@@ -18,7 +18,6 @@
 """
 
 from twisted.internet import defer
-from twisted.internet.defer import returnValue
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 from nav.models.manage import Sensor
@@ -65,7 +64,7 @@ class JuniperDomMib(MibRetriever):
         sensors = []
         for column, config in COLUMNS.items():
             sensors += yield self.handle_column(column, config)
-        returnValue(sensors)
+        return sensors
 
     @defer.inlineCallbacks
     def handle_column(self, column, config):
@@ -83,4 +82,4 @@ class JuniperDomMib(MibRetriever):
             )
             sensor.update(config)
             result.append(sensor)
-        returnValue(result)
+        return result

@@ -72,7 +72,7 @@ def verify(netbox, oid):
     """Verifies a GETNEXT response from below the oid subtree"""
     agent = _create_agentproxy(netbox)
     if not agent:
-        defer.returnValue(False)
+        return False
 
     result = yield agent.walk(str(oid))
     agent.close()
@@ -82,8 +82,8 @@ def verify(netbox, oid):
     for key, _value in result:
         if oid.is_a_prefix_of(key):
             print(netbox.sysname)
-            defer.returnValue(True)
-    defer.returnValue(False)
+            return True
+    return False
 
 
 def endit(_result):

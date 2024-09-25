@@ -19,7 +19,7 @@ from collections import defaultdict
 from itertools import chain
 from collections import namedtuple
 
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from nav.smidumps import get_mib
 from nav.oidparsers import consume
@@ -77,9 +77,9 @@ class IpForwardMib(mibretriever.MibRetriever):
 
         if protocols:
             result = chain(*[by_proto.get(proto, []) for proto in protocols])
-            returnValue(list(result))
+            return list(result)
         else:
-            returnValue(dict(by_proto))
+            return dict(by_proto)
 
     @inlineCallbacks
     def get_decoded_routes(self, protocols=None):
@@ -114,7 +114,7 @@ class IpForwardMib(mibretriever.MibRetriever):
                     for entry in (decode_route_entry(r) for r in result[proto])
                     if entry
                 ]
-        returnValue(result)
+        return result
 
     def get_cidr_route_column(self, column, index):
         """Retrieves the value of a specific column for a given route index"""

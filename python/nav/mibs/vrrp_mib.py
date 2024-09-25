@@ -35,4 +35,4 @@ class VRRPMib(mibretriever.MibRetriever):
             ifindex, vrrp_id = index[:2]
             ipaddr = IP(".".join(str(o) for o in index[2:]))
             addr_map[ipaddr] = ifindex
-        defer.returnValue(addr_map)
+        return addr_map

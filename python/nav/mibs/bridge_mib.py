@@ -37,7 +37,7 @@ class BridgeMib(mibretriever.MibRetriever):
     @defer.inlineCallbacks
     def get_base_bridge_address(self):
         addr = yield self.get_next('dot1dBaseBridgeAddress')
-        defer.returnValue(addr)
+        return addr
 
     @defer.inlineCallbacks
     def get_forwarding_database(self):
@@ -55,14 +55,14 @@ class BridgeMib(mibretriever.MibRetriever):
             mac = ':'.join("%02x" % o for o in mac[-6:])
             port = row['dot1dTpFdbPort']
             result.append((mac, port))
-        defer.returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def get_stp_blocking_ports(self):
         """Retrieves a list of numbers of STP blocking ports"""
         states = yield self.__get_stp_port_states()
         blocked = [port for port, state in states if state == 'blocking']
-        defer.returnValue(blocked)
+        return blocked
 
     @defer.inlineCallbacks
     def get_stp_port_states(self):
@@ -70,7 +70,7 @@ class BridgeMib(mibretriever.MibRetriever):
         states = yield self.retrieve_columns(['dot1dStpPortState'])
         states = reduce_index(self.translate_result(states))
         result = [(k, v['dot1dStpPortState']) for k, v in states.items()]
-        defer.returnValue(result)
+        return result
 
     __get_stp_port_states = get_stp_port_states
 

@@ -84,7 +84,7 @@ class TimestampChecker(object):
             else:
                 value.raiseException()
         self.collected_times = tuple(tup)
-        defer.returnValue(self.collected_times)
+        return self.collected_times
 
     # We must ignore deserialization failures by catching the Exception base class
     # pylint: disable=W0703
@@ -107,7 +107,7 @@ class TimestampChecker(object):
                 return None
 
         self.loaded_times = yield db.run_in_thread(_deserialize)
-        defer.returnValue(self.loaded_times)
+        return self.loaded_times
 
     def save(self):
         """Saves timestamps to a ContainerRepository"""

@@ -88,7 +88,7 @@ class Ipv6Mib(mibretriever.MibRetriever):
         self._logger.debug(
             "ip/mac pairs: Got %d rows from %s", len(ipv6_phys_addrs), column
         )
-        defer.returnValue(mappings)
+        return mappings
 
     @defer.inlineCallbacks
     def get_interface_addresses(self):
@@ -120,4 +120,4 @@ class Ipv6Mib(mibretriever.MibRetriever):
             prefixlen_column,
         )
 
-        defer.returnValue(addresses)
+        return addresses

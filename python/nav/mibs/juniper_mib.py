@@ -70,7 +70,7 @@ class JuniperMib(MibRetriever):
         if serial:
             if isinstance(serial, bytes):
                 serial = serial.decode("utf-8")
-            defer.returnValue(serial)
+            return serial
 
     @defer.inlineCallbacks
     def get_cpu_loadavg(self):
@@ -98,7 +98,7 @@ class JuniperMib(MibRetriever):
                         (1, row[LOAD_AVG_1MIN]),
                     ]
                     result[name] = values
-            defer.returnValue(result)
+            return result
 
     @defer.inlineCallbacks
     def get_cpu_utilization(self):
@@ -119,7 +119,7 @@ class JuniperMib(MibRetriever):
                 if row[OPERATING_CPU]:
                     name = row[OPERATING_DESCR]
                     result[name] = row[OPERATING_CPU]
-            defer.returnValue(result)
+            return result
 
     def get_power_supplies(self):
         """Retrieves a list of field-replaceable power supply units"""
@@ -147,7 +147,7 @@ class JuniperMib(MibRetriever):
             for row in response.values()
             if row.get("jnxFruState") != "empty" and row.get("jnxFruType") == fru_type
         ]
-        defer.returnValue(units)
+        return units
 
     @defer.inlineCallbacks
     def get_fru_status(self, internal_id):
@@ -156,7 +156,7 @@ class JuniperMib(MibRetriever):
             "jnxFruState", OID(internal_id)
         )
         self._logger.debug("jnxFruState.%s = %r", internal_id, oper_status)
-        defer.returnValue(self._translate_fru_status_value(oper_status))
+        return self._translate_fru_status_value(oper_status)
 
     get_fan_status = get_fru_status
     get_power_supply_status = get_fru_status
@@ -168,7 +168,7 @@ class JuniperMib(MibRetriever):
         for table, config in SENSOR_TABLES.items():
             sensors = yield self._get_sensors(config)
             result.extend(sensors)
-        defer.returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def _get_sensors(self, config):
@@ -189,7 +189,7 @@ class JuniperMib(MibRetriever):
             self._row_to_sensor(config, index, row) for index, row in result.items()
         )
 
-        defer.returnValue([s for s in sensors if s])
+        return [s for s in sensors if s]
 
     def _row_to_sensor(self, config, index, row):
         """
@@ -246,7 +246,7 @@ class JuniperMib(MibRetriever):
                 used = (row[OPERATING_BUF] / 100) * total
                 free = total - used
                 result[row[OPERATING_DESCR]] = (used, free)
-        defer.returnValue(result)
+        return result
 
 
 def _fru_row_to_powersupply_or_fan(fru_row):

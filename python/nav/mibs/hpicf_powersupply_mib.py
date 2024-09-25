@@ -54,7 +54,7 @@ class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
         df.addCallback(reduce_index)
         psu_table = yield df
         self._logger.debug("psu_table: %r", psu_table)
-        defer.returnValue(psu_table)
+        return psu_table
 
     @staticmethod
     def _translate_psu_status(psu_status):
@@ -76,7 +76,7 @@ class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
         psu_status = psu_status_row.get("hpicfPsState")
 
         self._logger.debug("hpicfPsState.%s = %r", index, psu_status)
-        defer.returnValue(self._translate_psu_status(psu_status))
+        return self._translate_psu_status(psu_status)
 
     @defer.inlineCallbacks
     def get_power_supplies(self):
@@ -100,7 +100,7 @@ class HpIcfPowerSupplyMib(mibretriever.MibRetriever):
         ):
             ent.internal_id = "{}:{}".format(ent.internal_id, index)
 
-        defer.returnValue(entities)
+        return entities
 
 
 def _psu_index_from_internal_id(internal_id):

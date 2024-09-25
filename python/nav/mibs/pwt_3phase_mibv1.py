@@ -237,4 +237,4 @@ class Pwt3PhaseV1Mib(mibretriever.MibRetriever):
                 method = getattr(self, handler)
                 result.extend(method(sensors))
 
-        defer.returnValue(result)
+        return result

@@ -134,7 +134,7 @@ class Prefix(Plugin):
         ifmib = IfMib(self.agent)
         statuses = yield ifmib.get_admin_status()
         result = set(ifindex for ifindex, status in statuses.items() if status == 'up')
-        defer.returnValue(result)
+        return result
 
     def create_containers(
         self, netbox, ifindex, net_prefix, ip, vlan_interfaces, ifc_aliases=None
@@ -193,7 +193,7 @@ class Prefix(Plugin):
                 vlan = int(match.group('vlan'))
                 vlan_ifs[ifindex] = vlan
 
-        defer.returnValue(vlan_ifs)
+        return vlan_ifs
 
     def _ignore_timeout(self, failure, result=None):
         """Ignores a TimeoutError in an errback chain.

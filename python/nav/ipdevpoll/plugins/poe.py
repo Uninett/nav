@@ -15,7 +15,7 @@
 #
 """Collects power over ethernet information"""
 from collections import defaultdict
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 from nav.mibs.power_ethernet_mib import PowerEthernetMib
 from nav.mibs.cisco_power_ethernet_ext_mib import CiscoPowerEthernetExtMib
@@ -41,7 +41,7 @@ class Poe(Plugin):
             self._logger.debug(
                 "this is a virtual instance of %s, not polling", self.netbox.master
             )
-            returnValue(None)
+            return None
 
         poemib = PowerEthernetMib(self.agent)
         if self._is_cisco():
@@ -90,7 +90,7 @@ class Poe(Plugin):
         entity_mib = EntityMib(self.agent)
         alias_mapping = yield entity_mib.get_alias_mapping()
         port_ifindices = self._resolve_ifindex(port_phy_index, alias_mapping)
-        returnValue((group_phy_index, port_ifindices))
+        return (group_phy_index, port_ifindices)
 
     def _process_groups(self, groups, phy_indices):
         netbox = self.containers.factory(None, shadows.Netbox)
