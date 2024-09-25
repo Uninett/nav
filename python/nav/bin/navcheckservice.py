@@ -31,7 +31,7 @@ import logging
 
 from nav.logs import init_stderr_logging
 from nav.statemon import checkermap
-import nav.statemon.checker  # necessary for relative imports on python3
+import nav.statemon.checker  # noqa: F401 - necessary for relative imports
 
 
 _logger = logging.getLogger('nav.checkservice')

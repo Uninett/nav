@@ -24,6 +24,8 @@ support.
 
 """
 
+# ruff: noqa: F401
+
 
 import socket
 from itertools import cycle

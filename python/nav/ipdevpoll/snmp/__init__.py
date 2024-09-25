@@ -15,6 +15,7 @@
 #
 """selects a proper SNMP backend for ipdevpoll"""
 
+# ruff: noqa: F401
 
 try:
     import pynetsnmp.twistedsnmp
