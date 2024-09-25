@@ -234,7 +234,7 @@ class SNMPHandler(ManagementHandler):
         try:
             handle.get(self.SYSOBJECTID)
             return True
-        except SnmpError as error:
+        except SnmpError:
             return False
 
     def test_write(self):

@@ -145,7 +145,7 @@ def main():
             server.listen(opts.community, trap_handler)
         except SystemExit:
             raise
-        except Exception as why:
+        except Exception:
             _logger.critical("Fatal exception ocurred", exc_info=True)
 
     else:
@@ -154,7 +154,7 @@ def main():
         try:
             _logger.info("Listening on %s", addresses_text)
             server.listen(opts.community, trap_handler)
-        except KeyboardInterrupt as why:
+        except KeyboardInterrupt:
             _logger.error("Received keyboard interrupt, exiting.")
             server.close()
 

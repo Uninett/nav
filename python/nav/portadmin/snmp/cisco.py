@@ -148,7 +148,7 @@ class Cisco(SNMPHandler):
             )
         except SnmpError as error:
             _logger.error('Error setting voice vlan: %s', error)
-        except ValueError as error:
+        except ValueError:
             _logger.error('%s is not a valid voice vlan', voice_vlan)
             raise
 
@@ -159,7 +159,7 @@ class Cisco(SNMPHandler):
         """Enable CDP using Cisco specific oid"""
         try:
             return self._set_netbox_value(self.cdp_oid, interface.ifindex, 'i', 1)
-        except ValueError as error:
+        except ValueError:
             _logger.error('%s is not a valid option for cdp', 1)
             raise
 
@@ -173,7 +173,7 @@ class Cisco(SNMPHandler):
         """Disable CDP using Cisco specific oid"""
         try:
             return self._set_netbox_value(self.cdp_oid, interface.ifindex, 'i', 2)
-        except ValueError as error:
+        except ValueError:
             _logger.error('%s is not a valid option for cdp', 2)
             raise
 
@@ -339,7 +339,7 @@ class Cisco(SNMPHandler):
         except SnmpError as error:
             _logger.error('Error setting poe state: %s', error)
             raise
-        except ValueError as error:
+        except ValueError:
             _logger.error('%s is not a valid option for poe state', state)
             raise
 
