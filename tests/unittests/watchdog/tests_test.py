@@ -15,7 +15,6 @@
 #
 """Tests for the WatchDog tests..."""
 
-from unittest import TestCase
 from mock import Mock, patch
 from datetime import datetime, timedelta
 

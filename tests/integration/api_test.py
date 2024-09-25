@@ -385,7 +385,7 @@ def serializer_models(localhost, admin_account):
     - unrecognized_neighbor
     - auditlog
     """
-    from nav.models import cabling, event, manage, profiles, rack
+    from nav.models import cabling, event, manage, rack
     from nav.auditlog import models as auditlog
 
     netbox = localhost

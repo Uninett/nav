@@ -4,7 +4,6 @@ import os
 from os.path import join, relpath
 from django.conf import settings
 from django.template import loader
-from django.template.loaders import app_directories
 
 from nav.eventengine.alerts import (
     ensure_alert_templates_are_available,

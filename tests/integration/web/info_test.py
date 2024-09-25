@@ -7,7 +7,6 @@ from django.test import RequestFactory
 from django.urls import reverse
 from mock import MagicMock
 
-from nav.models.profiles import Account
 from nav.web.info.images.utils import save_thumbnail
 from nav.web.info.room.views import create_csv
 from nav.web.info.searchproviders import SearchProvider

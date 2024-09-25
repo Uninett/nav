@@ -1,5 +1,4 @@
 from mock import patch
-import mock
 from unittest import TestCase
 from nav.web.sortedstats.config import SortedStatsConfig
 

@@ -16,7 +16,6 @@
 # pylint:  disable=C0111
 """Tests for config module"""
 
-import unittest
 from configparser import NoOptionError
 
 import pytest
