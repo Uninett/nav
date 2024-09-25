@@ -1,4 +1,3 @@
-from mock import Mock
 from nav.web.webfront.utils import split_tools, Tool
 
 

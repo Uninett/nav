@@ -2,13 +2,10 @@
 
 from datetime import datetime as dt
 
-from django.db import models
 
 from nav.tests.cases import DjangoTransactionTestCase
 from nav.models.msgmaint import MaintenanceComponent, MaintenanceTask
-from nav.models.event import Subsystem
 from nav.models.logger import ErrorError
-from nav.models.fields import LegacyGenericForeignKey
 
 
 class LegacyGenericForeignKeyTest(DjangoTransactionTestCase):

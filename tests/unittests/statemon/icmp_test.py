@@ -1,5 +1,4 @@
 from nav.statemon.icmppacket import PacketV6, PacketV4, inet_checksum
-import os
 
 
 class TestICMPPacket:

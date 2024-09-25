@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from mock import Mock
 
 from nav.web.api.v1.auth import TokenPermission
 

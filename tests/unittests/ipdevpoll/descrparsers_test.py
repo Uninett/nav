@@ -15,7 +15,6 @@
 #
 """Unit tests for descrparser module."""
 
-import unittest
 
 from nav.ipdevpoll import descrparsers
 

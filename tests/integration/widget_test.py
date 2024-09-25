@@ -5,7 +5,7 @@ from django.urls import reverse
 from nav.web.navlets.roomstatus import RoomStatus
 from nav.web.navlets.feedreader import FeedReaderNavlet
 from nav.models.event import AlertHistory, AlertHistoryMessage
-from nav.models.profiles import AccountDashboard, AccountNavlet
+from nav.models.profiles import AccountNavlet
 from nav.models.fields import INFINITY
 
 import pytest

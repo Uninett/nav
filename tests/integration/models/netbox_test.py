@@ -1,8 +1,4 @@
-import pytest
-
 from nav.models.manage import (
-    ManagementProfile,
-    NetboxProfile,
     NetboxEntity,
     Netbox,
     Device,
