@@ -1,0 +1,7 @@
+<form method="{{ form.attrs.method }}"
+      {% if form.attrs.action %}action="{% url form.attrs.action %}"{% endif %}
+>
+  {% block form_content %}
+    {% include 'custom_crispy_templates/_form_content.html' %}
+  {% endblock %}
+</form>

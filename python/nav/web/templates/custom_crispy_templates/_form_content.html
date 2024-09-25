@@ -1,0 +1,12 @@
+{# NB! This template can be used directly (without form template wrapper) for cases where form.helper.form_tag is set to False. #}
+
+{% if form.attrs.form_fields %}
+  {% include 'custom_crispy_templates/_form_fields.html' with fields=form.attrs.form_fields %}
+{% else %}
+  {% for field in form %}
+    {% include 'foundation-5/field.html' %}
+  {% endfor %}
+{% endif %}
+{% if form.attrs.submit_field %}
+  {% include 'custom_crispy_templates/submit_field.html' with input=form.attrs.submit_field %}
+{% endif %}
