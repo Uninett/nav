@@ -25,7 +25,6 @@ import smtplib
 
 from django.core.mail import EmailMessage
 
-from nav import models as _  # noqa: F401 - ensure Django is setup for NAV
 from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 
