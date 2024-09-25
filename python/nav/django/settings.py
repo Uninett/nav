@@ -22,7 +22,6 @@ import sys
 import copy
 import warnings
 
-import django
 from django.utils.log import DEFAULT_LOGGING
 
 from nav.config import NAV_CONFIG, getconfig, find_config_dir

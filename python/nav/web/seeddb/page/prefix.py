@@ -21,7 +21,6 @@ Forms and controllers for the prefix functionality in SeedDB
 
 from django import forms
 from django.db import transaction
-from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 

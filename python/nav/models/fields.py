@@ -21,7 +21,6 @@ import json
 from datetime import datetime
 from decimal import Decimal
 
-import django
 from django import forms
 from django.db import models
 from django.db.models import signals
