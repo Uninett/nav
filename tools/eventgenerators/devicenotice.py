@@ -24,8 +24,6 @@ bootstrap_django()
 from nav.event2 import EventFactory
 from nav.models.manage import Device
 
-from django.db import transaction
-
 
 def main():
     """Main controller"""

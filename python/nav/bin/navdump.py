@@ -28,8 +28,6 @@ from nav.bootstrap import bootstrap_django
 
 bootstrap_django(__file__)
 
-import django
-
 from nav.models import manage
 import nav.models.service
 
