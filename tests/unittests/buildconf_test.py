@@ -1,3 +1,5 @@
+# ruff: noqa: F401 - importing to test availability
+
 from unittest import TestCase
 
 
