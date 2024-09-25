@@ -15,20 +15,22 @@
 #
 
 import logging
-
 import time
-from datetime import datetime, date
+from datetime import datetime
+from typing import List, Tuple
 
 from django.db import transaction, connection
-from django.db.models import Count, Q
+from django.db.models import Count, Model, Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.views.decorators.http import require_http_methods
 
 from nav.django.utils import get_account
-from nav.models.manage import Netbox
+from nav.models.manage import Location, Netbox, NetboxGroup, Room
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
+from nav.models.service import Service
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 
@@ -360,6 +362,30 @@ def edit(request, task_id=None, start_time=None, **_):
             'components': component_trail,
             'selected': component_keys,
         },
+    )
+
+
+@require_http_methods(["POST"])
+def component_search(request):
+    """HTMX endpoint for component searches from maintenance task form"""
+    search = request.POST.get("search")
+    results = {}
+    searches: List[Tuple[Model, Q]] = [
+        (Location, Q(id__icontains=search)),
+        (Room, Q(id__icontains=search)),
+        (Netbox, Q(sysname__icontains=search)),
+        (NetboxGroup, Q(id__icontains=search)),
+        (Service, Q(handler__icontains=search) | Q(netbox__sysname__icontains=search)),
+    ]
+
+    for component_type, query in searches:
+        component_result = component_type.objects.filter(query)
+        if component_result:
+            component_title = component_type._meta.verbose_name.title()
+            results[component_title] = component_result
+
+    return render(
+        request, 'maintenance/component-search-results-frag.html', {'results': results}
     )
 
 

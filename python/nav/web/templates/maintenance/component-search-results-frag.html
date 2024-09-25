@@ -1,0 +1,14 @@
+{% if results %}
+    {% for component_type, values in results.items %}
+        {% if values %}
+            <h4>{{ component_type }}</h4>
+            <ul>
+                {% for value in values %}
+                    <li>{{ value }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endfor %}
+{% else %}
+    <strong>No hits</strong>
+{% endif %}
