@@ -91,7 +91,6 @@ def management_profile_list(request):
     management_profile()"""
     info = ManagementProfileInfo()
     value_list = ('name', 'description', 'get_protocol_display', 'related')
-    netbox_link = reverse('seeddb-netbox')
     queryset = ManagementProfile.objects.annotate(related=Count('netboxes'))
     filter_form = ManagementProfileFilterForm(request.GET)
     return render_list(
