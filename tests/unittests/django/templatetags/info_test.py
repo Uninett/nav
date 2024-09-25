@@ -30,7 +30,6 @@ class TemplateTagsTest(unittest.TestCase):
             return datetime.now() - timedelta(*args, **kwargs)
 
         minute = 60
-        hour = minute * 60
 
         self.assertEqual(time_since(None), "Never")
         self.assertEqual(

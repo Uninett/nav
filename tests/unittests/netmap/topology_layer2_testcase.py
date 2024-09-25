@@ -64,9 +64,6 @@ class TopologyLayer2TestCase(TopologyTestCase):
         )
         self.build_l2.start()
 
-        bar = vlan.build_layer2_graph()
-        # foo = topology._get_vlans_map_layer2(bar)
-
         vlan_by_interfaces, vlan_by_netbox = topology._get_vlans_map_layer2(
             self.nav_graph
         )
