@@ -47,10 +47,7 @@ from nav.models.arnold import Identity, Event
 from nav.models.manage import Interface, Prefix
 from nav.netbiostracker.tracker import scan, parse_get_workstations
 from nav.portadmin.management import ManagementFactory
-from nav.portadmin.snmp.base import (
-    InvalidManagementProfileError,
-    NoReadWriteManagementProfileError,
-)
+from nav.portadmin.snmp.base import NoReadWriteManagementProfileError
 from nav.util import is_valid_ip
 
 CONFIGFILE = os.path.join("arnold", "arnold.conf")

@@ -37,7 +37,7 @@ import logging
 
 from django.urls import reverse_lazy
 
-from nav.models.manage import NetboxGroup, Netbox
+from nav.models.manage import NetboxGroup
 from nav.bulkparse import NetboxGroupBulkParser
 from nav.bulkimport import NetboxGroupImporter
 

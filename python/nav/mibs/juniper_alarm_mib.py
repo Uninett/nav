@@ -16,7 +16,6 @@
 """JUNIPER-ALARM-MIB MibRetriever"""
 from twisted.internet import defer
 
-from nav.oids import OID
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever
 
