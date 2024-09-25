@@ -1,5 +1,6 @@
 <form class="{{ form.hints.form_class }}" method="{{ form.hints.method }}"{% if form.hints.form_action %}
-      action="{% url form.hints.form_action %}"{% endif %}>
+      action="{% url form.hints.form_action %}"{% endif %}{% if form.hints.form_id %}
+      id="{{ form.hints.form_id }}"{% endif %}>
 
     <div class="row collapse">
         {% for field in form %}

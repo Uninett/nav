@@ -27,7 +27,11 @@ class SearchForm(forms.Form):
 
     query = forms.CharField(max_length=100, label='', required=False)
     hints = SimpleNamespace(
-        placeholder='Search', method='get', form_action='', form_class='search-form'
+        placeholder='Search',
+        method='get',
+        form_id='',
+        form_action='',
+        form_class='search-form',
     )
 
     def __init__(self, *args, **kwargs):
