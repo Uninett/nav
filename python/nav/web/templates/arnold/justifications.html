@@ -1,5 +1,4 @@
 {% extends "arnold/tabs.html" %}
-{% load crispy_forms_tags %}
 
 {% block tabcontent %}
 
@@ -54,7 +53,7 @@
         {% if form.attrs %}
           {% include 'custom_crispy_templates/flat_form.html' %}
         {% else %}
-          {% crispy form %}
+          {{ form }}
         {% endif %}
         </div>
 
