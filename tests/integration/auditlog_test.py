@@ -53,10 +53,16 @@ class AuditlogModelTestCase(TestCase):
         log_entry.delete()
 
     def test_compare_objects(self):
-        j1 = Justification.objects.create(name='ferrari', description='Psst!')
-        j2 = Justification.objects.create(name='lambo', description='Hush')
+        justification_1 = Justification.objects.create(
+            name='ferrari', description='Psst!'
+        )
+        justification_2 = Justification.objects.create(name='lambo', description='Hush')
         LogEntry.compare_objects(
-            self.justification, j1, j2, ('name', 'description'), ('description',)
+            self.justification,
+            justification_1,
+            justification_2,
+            ('name', 'description'),
+            ('description',),
         )
         log_entry = LogEntry.objects.filter(verb=u'edit-justification-name').get()
         self.assertEqual(
@@ -90,27 +96,27 @@ class AuditlogUtilsTestCase(TestCase):
 
     def test_get_auditlog_entries(self):
         modelname = 'blocked_reason'  # Justification's db_table
-        j1 = Justification.objects.create(name='j1')
-        j2 = Justification.objects.create(name='j2')
-        LogEntry.add_create_entry(self.justification, j1)
+        justification_1 = Justification.objects.create(name='j1')
+        justification_2 = Justification.objects.create(name='j2')
+        LogEntry.add_create_entry(self.justification, justification_1)
         LogEntry.add_log_entry(
             self.justification,
             u'greet',
             u'{actor} greets {object}',
-            object=j2,
+            object=justification_2,
             subsystem="hello",
         )
         LogEntry.add_log_entry(
             self.justification,
             u'deliver',
             u'{actor} delivers {object} to {target}',
-            object=j1,
-            target=j2,
+            object=justification_1,
+            target=justification_2,
             subsystem='delivery',
         )
         entries = get_auditlog_entries(modelname=modelname)
         self.assertEqual(entries.count(), 3)
         entries = get_auditlog_entries(modelname=modelname, subsystem='hello')
         self.assertEqual(entries.count(), 1)
-        entries = get_auditlog_entries(modelname=modelname, pks=[j1.pk])
+        entries = get_auditlog_entries(modelname=modelname, pks=[justification_1.pk])
         self.assertEqual(entries.count(), 2)
