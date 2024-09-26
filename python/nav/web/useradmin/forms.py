@@ -31,6 +31,7 @@ from crispy_forms_foundation.layout import (
     Field,
     HTML,
 )
+from nav.web.crispyforms import set_flat_form_attributes, SubmitField
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
@@ -230,13 +231,15 @@ class AccountAddForm(forms.Form):
             query = Account.objects.all()
 
         self.fields['account'] = forms.models.ModelChoiceField(
-            query, required=True, widget=forms.Select(), label=''
+            query,
+            required=True,
+            widget=forms.Select(attrs={'class': 'select2'}),
+            label='',
         )
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Field('account', css_class='select2'),
-            Submit('submit_account', 'Add to group', css_class='postfix'),
+        self.attrs = set_flat_form_attributes(
+            submit_field=SubmitField(
+                'submit_account', 'Add to group', css_classes='postfix'
+            )
         )
 
 
