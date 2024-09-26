@@ -93,5 +93,9 @@ class IfMib(mibretriever.MibRetriever):
 
         """
         status = yield self.retrieve_columns(['ifStackStatus'])
-        result = [(h, l) for h, l in status.keys() if h > 0 and l > 0]
+        result = [
+            (higher, lower)
+            for higher, lower in status.keys()
+            if higher > 0 and lower > 0
+        ]
         defer.returnValue(result)
