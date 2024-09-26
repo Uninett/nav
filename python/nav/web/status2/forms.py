@@ -283,7 +283,7 @@ def get_device_groups():
 
 def get_locations():
     """Gets all locations formatted as choices"""
-    return [(l.id, l.id) for l in Location.objects.all()]
+    return [(location.id, location.id) for location in Location.objects.all()]
 
 
 def get_severity():

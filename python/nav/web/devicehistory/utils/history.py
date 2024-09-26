@@ -256,5 +256,5 @@ def add_descendants(parents):
         except Location.DoesNotExist:
             pass
         else:
-            locations.extend([l.pk for l in location.get_descendants()])
+            locations.extend([location.pk for location in location.get_descendants()])
     return list(set(locations))

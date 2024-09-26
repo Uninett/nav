@@ -181,7 +181,10 @@ def _get_descendants(parents):
             pass
         else:
             locations.extend(
-                [l.pk for l in location.get_descendants(include_self=True)]
+                [
+                    location.pk
+                    for location in location.get_descendants(include_self=True)
+                ]
             )
 
     return list(set(locations))
