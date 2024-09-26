@@ -1,5 +1,4 @@
 {% extends "devicehistory/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block tabcontent %}
     <p class="panel">
@@ -14,7 +13,7 @@
               {% if form.attrs %}
                 {% include 'custom_crispy_templates/_form_content.html' %}
               {% else %}
-                {% crispy form %}
+                {{ form }}
               {% endif %}
             </div>
         </div>
