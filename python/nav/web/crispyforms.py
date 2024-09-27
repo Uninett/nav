@@ -166,6 +166,8 @@ def set_flat_form_attributes(
     form_method='post',
     submit_field: Optional[SubmitField] = None,
     form_fields: list = None,
+    form_id: str = '',
+    form_class: str = '',
 ):
     """Sets and returns a SimpleNamespace object representing a flat form.
     Only flat layout of children fields is supported out of the box.
@@ -180,6 +182,8 @@ def set_flat_form_attributes(
     :type form_method: str, optional
     :param submit_field: An instance of SubmitField for the form's submit button. Defaults to None.
     :param form_fields: A list of fields to include in the form in case you want to render any fields that are not present in Django's built-in Field classes, e.g., fieldset, submit, row, column etc. Do not set it if you want to render only Django's built-in fields. Defaults to None.
+    :param form_id: The ID attribute of the form element. Defaults to an empty string.
+    :param form_class: Additional CSS classes to apply to the form. Defaults to an empty string.
 
     :return: An object containing the form attributes.
     :rtype: SimpleNamespace
@@ -191,4 +195,6 @@ def set_flat_form_attributes(
         method=form_method,
         submit_field=submit_field,
         form_fields=form_fields,
+        form_id='',
+        form_class=form_class,
     )
