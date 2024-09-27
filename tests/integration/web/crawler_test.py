@@ -244,6 +244,11 @@ def _content_as_string(content):
 
 
 def test_page_should_be_valid_html(webcrawler):
+    try:
+        tidy_document("")
+    except OSError as error:
+        pytest.skip("tidylib is not available: {!r}".format(error))
+
     invalid = []
     for page in webcrawler.crawl_only_html():
         if page.response != 200 or not page.content:

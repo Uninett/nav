@@ -1,5 +1,7 @@
-import pytest
+from shutil import which
 import subprocess
+
+import pytest
 
 
 BINDIR = './python/nav/bin'
@@ -7,6 +9,9 @@ BINDIR = './python/nav/bin'
 
 def test_script_runs(script):
     """Verifies that a script defined in pyproject.toml runs with a zero exit code"""
+    if "netbiostracker" in script[0] and not which("nbtscan"):
+        pytest.skip("nbtscan is not installed")
+
     proc = subprocess.Popen(script, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
     (done, fail) = proc.communicate()
     retcode = proc.wait()

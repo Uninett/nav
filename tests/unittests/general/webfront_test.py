@@ -2,6 +2,11 @@
 from mock import patch, MagicMock, Mock
 from django.test import RequestFactory
 
+try:
+    import ldap
+except ImportError:
+    ldap = None
+
 import pytest
 
 import nav.web.auth.ldap
@@ -170,6 +175,7 @@ class TestLoginRemoteUser(object):
                 )
 
 
+@pytest.mark.skipif(not ldap, reason="ldap module is not available")
 class TestLdapUser(object):
     @patch.dict(
         "nav.web.auth.ldap._config._sections",
@@ -269,6 +275,7 @@ class TestLdapUser(object):
         },
     },
 )
+@pytest.mark.skipif(not ldap, reason="ldap module is not available")
 class TestLdapEntitlements(object):
     def test_required_entitlement_should_be_verified(self, user_zaphod):
         u = nav.web.auth.ldap.LDAPUser("zaphod", user_zaphod)
