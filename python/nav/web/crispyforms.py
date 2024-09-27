@@ -92,6 +92,36 @@ class FlatFieldset:
         self.template = FlatFieldset.template
 
 
+class FormRow:
+    """A class representing a row in a form layout.
+    Row is not a functional element in forms, but a visual one.
+
+    :param fields: A list of fields to include in the row.
+    :param css_classes: Additional CSS classes to apply to the row. Defaults to an empty string.
+    """
+
+    def __init__(self, fields: list, css_classes: str = ''):
+        """Constructor method"""
+        self.fields = fields
+        self.css_classes = css_classes
+        self.template = 'custom_crispy_templates/form_row.html'
+
+
+class FormColumn:
+    """A class representing a column in a form layout.
+    Column is not a functional element in forms, but a visual one.
+
+    :param fields: A list of fields to include in the column.
+    :param css_classes: Additional CSS classes to apply to the column. Defaults to an empty string.
+    """
+
+    def __init__(self, fields: list, css_classes: str = ''):
+        """Constructor method"""
+        self.fields = fields
+        self.css_classes = css_classes
+        self.template = 'custom_crispy_templates/form_column.html'
+
+
 class SubmitField:
     """A class representing a submit field (button) in a form.
 
