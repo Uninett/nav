@@ -69,15 +69,35 @@ class NumberField(forms.IntegerField):
 
 
 class FlatFieldset:
+    """
+    A class representing a fieldset for forms.
+    Only flat layout of children fields is supported out of the box.
+    Any nesting of fields inside this fieldset might require custom
+    class definitions akin to this one.
+
+    Attributes:
+        template (str): The path to the template used for rendering the fieldset.
+        Path is relative to the app's templates directory.
+        legend (str): The legend text for the fieldset.
+        fields (list): A list of fields to include in the fieldset.
+        css_class (str): Additional CSS classes to apply to the fieldset.
+    """
+
     template = 'custom_crispy_templates/flat_fieldset.html'
 
+    def __init__(self, legend, fields: list, css_class=''):
+        """
+        Initializes a FlatFieldset object with the specified attributes.
 
-def set_flat_fieldset(legend, fields: list, css_class=''):
-    obj = FlatFieldset()
-    obj.legend = legend
-    obj.fields = fields
-    obj.css_class = css_class
-    return obj
+        Args:
+            legend (str): The legend text for the fieldset.
+            fields (list): A list of fields to include in the fieldset.
+            css_class (str, optional): Additional CSS classes to apply to the fieldset. Defaults to an empty string.
+        """
+        self.legend = legend
+        self.fields = fields
+        self.css_class = css_class
+        self.template = FlatFieldset.template
 
 
 class SubmitField:
