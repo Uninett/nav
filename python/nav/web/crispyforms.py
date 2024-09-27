@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A collection of forms using the django crispy forms framework"""
+from types import SimpleNamespace
 from typing import Optional
 
 from django import forms
@@ -96,13 +97,10 @@ def set_flat_form_attributes(
     submit_field: Optional[SubmitField] = None,
     form_fields: list = None,
 ):
-    class Obj:
-        pass
-
-    obj = Obj()
-    obj.legend = legend
-    obj.action = form_action
-    obj.method = form_method
-    obj.submit_field = submit_field
-    obj.form_fields = form_fields
-    return obj
+    return SimpleNamespace(
+        legend=legend,
+        action=form_action,
+        method=form_method,
+        submit_field=submit_field,
+        form_fields=form_fields,
+    )
