@@ -101,9 +101,27 @@ class FlatFieldset:
 
 
 class SubmitField:
+    """
+    A class representing a submit field (button) in a form.
+
+    Attributes:
+        name (str): The name attribute of the submit field.
+        value (str): The display text of the submit button.
+        css_classes (str): Additional CSS classes to apply to the submit button.
+        input_type (str): The type of input, which is 'submit' for this class.
+    """
+
     def __init__(
         self, name: str = 'submit', value: str = 'Submit', css_classes: str = ''
     ):
+        """
+        Initializes a SubmitField object with the specified attributes.
+
+        Args:
+            name (str, optional): The name attribute of the submit field. Defaults to 'submit'.
+            value (str, optional): The display text of the submit button. Defaults to 'Submit'.
+            css_classes (str, optional): Additional CSS classes to apply to the submit button. Defaults to an empty string.
+        """
         self.name = name
         self.value = value
         self.css_classes = css_classes
