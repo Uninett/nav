@@ -82,7 +82,7 @@ class TestRemoteUserAuthenticate(object):
             ):
                 with patch("nav.web.auth.LogEntry.add_log_entry"):
                     with patch("nav.web.auth.Account.locked", return_value=True):
-                        assert remote_user.authenticate(request) == False
+                        assert remote_user.authenticate(request) is False
 
 
 class TestGetStandardUrls(object):
