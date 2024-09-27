@@ -15,24 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django.urls import reverse
 
 from nav.web.seeddb.constants import TITLE_DEFAULT, NAVPATH_DEFAULT
-
-
-def reverse_lazy(*args, **kwargs):
-    # Lazy reverse will become part of the Django framework in future releases.
-    class Proxy(object):
-        def __init__(self, *args, **kwargs):
-            self.args = args
-            self.kwargs = kwargs
-
-        def __str__(self):
-            if not hasattr(self, 'reverse_url'):
-                self.reverse_url = reverse(*self.args, **self.kwargs)
-            return self.reverse_url
-
-    return Proxy(*args, **kwargs)
 
 
 class SeeddbInfo(object):

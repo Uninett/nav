@@ -33,6 +33,8 @@ from pynetsnmp.twistedsnmp import snmpprotocol
 
 from . import common
 
+__all__ = ["snmpprotocol", "pynetsnmp_limits_results", "AgentProxy"]
+
 
 def pynetsnmp_limits_results():
     """Returns True if the available pynetsnmp version limits the number of

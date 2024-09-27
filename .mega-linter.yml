@@ -5,12 +5,12 @@ LINTER_RULES_PATH: .
 
 ENABLE_LINTERS:
   - PYTHON_BLACK
-  - PYTHON_FLAKE8
+  - PYTHON_RUFF
 
 # Make workflow fail even on non blocking errors
 FORMATTERS_DISABLE_ERRORS: false
 
-# Tell the linter the location of the configuration file (pyproject.toml)
-LINTER_RULES_PATH: /
 PYTHON_BLACK_CONFIG_FILE: pyproject.toml
-PYTHON_FLAKE8_CONFIG_FILE: tox.ini
+PYTHON_RUFF_CONFIG_FILE: pyproject.toml
+
+PYTHON_RUFF_FILTER_REGEX_INCLUDE: (python|tests|tools)

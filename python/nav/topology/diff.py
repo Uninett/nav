@@ -41,18 +41,18 @@ def printdiffs():
     ifcs = Interface.objects.select_related('netbox', 'to_netbox', 'to_interface')
 
     saved_links = ifcs.filter(to_netbox__isnull=False)
-    saved_links = dict((l.id, l) for l in saved_links)
+    saved_links = dict((link.id, link) for link in saved_links)
 
     found_links = dict((u[1], v) for u, v in connections)
     found_link_ids = set(found_links)
 
     new_link_ids = found_link_ids.difference(saved_links)
     new_links = ifcs.filter(id__in=new_link_ids)
-    new_links = dict((l.id, l) for l in new_links)
+    new_links = dict((link.id, link) for link in new_links)
 
     deleted_link_ids = set(saved_links).difference(found_link_ids)
     deleted_links = ifcs.filter(id__in=deleted_link_ids)
-    deleted_links = {l.id: l for l in deleted_links}
+    deleted_links = {link.id: link for link in deleted_links}
 
     output = []
     for port_id in found_link_ids.union(new_links).union(deleted_links):

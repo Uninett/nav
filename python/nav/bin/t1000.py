@@ -27,7 +27,6 @@ some other port and detains that port.
 
 """
 
-import os
 import sys
 import logging
 import getpass
@@ -37,7 +36,6 @@ from nav.bootstrap import bootstrap_django
 
 bootstrap_django(__file__)
 
-import nav.buildconf
 from nav.logs import init_generic_logging
 from nav.arnold import (
     find_computer_info,

@@ -11,6 +11,20 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [5.10.2] - 2024-06-03
+
+
+### Changed
+
+- `snmptrapd` renamed to `navtrapd` to avoid naming conflicts with Net-SNMP
+  programs ([#2926](https://github.com/Uninett/nav/issues/2926))
+
+### Fixed
+
+- Replace incorrect fix for premature ARP record closure introduced in 5.10.1
+  ([#2910](https://github.com/Uninett/nav/issues/2910))
+
+
 ## [5.10.1] - 2024-05-27
 
 

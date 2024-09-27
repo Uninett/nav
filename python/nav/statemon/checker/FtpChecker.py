@@ -15,8 +15,6 @@
 #
 """FTP Service Checker"""
 import contextlib
-import socket
-import sys
 from ftplib import FTP
 
 from nav.statemon.abstractchecker import AbstractChecker

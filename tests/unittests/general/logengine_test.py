@@ -1,7 +1,6 @@
 import datetime
 import pytest
 from mock import Mock
-from unittest import TestCase
 import random
 import logging
 

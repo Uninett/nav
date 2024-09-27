@@ -2,7 +2,6 @@ from datetime import datetime
 
 from nav.alertengine.dispatchers import InvalidAlertAddressError
 from nav.models.profiles import (
-    Account,
     AccountAlertQueue,
     AlertAddress,
     AlertProfile,

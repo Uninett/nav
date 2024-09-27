@@ -17,7 +17,6 @@
 Contains web authentication and login functionality for NAV.
 """
 
-from datetime import datetime
 import logging
 
 from urllib import parse

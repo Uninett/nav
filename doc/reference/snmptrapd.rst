@@ -5,11 +5,12 @@
 What is the SNMP trap daemon?
 =============================
 
-:program:`snmptrapd` is a NAV backend service program, designed to receive SNMP
-trap messages sent to the NAV server. It hands trap messages off to trap
-handler plugins, which will process them, and typically translate them into NAV
-events as they see fit.  Anyone with some knowledge of Python and SNMP should
-be able to write a new trap handler plugin.
+:program:`snmptrapd` (a.k.a. :program:`navtrapd` to avoid name conflicts with
+Net-SNMP's similarly named trap daemon) is a NAV backend service program,
+designed to receive SNMP trap messages sent to the NAV server. It hands trap
+messages off to trap handler plugins, which will process them, and typically
+translate them into NAV events as they see fit.  Anyone with some knowledge of
+Python and SNMP should be able to write a new trap handler plugin.
 
 snmptrapd uses the :mod:`pynetsnmp-2` library (via NAV's own :py:mod:`nav.Snmp`
 adapter module), but is loosely based on this example from the PySNMP library:
@@ -30,7 +31,7 @@ the port is bound.
 
 ::
 
-    usage: snmptrapd [-h] [-d] [-c COMMUNITY] [address [address ...]]
+    usage: navtrapd [-h] [-d] [-c COMMUNITY] [address [address ...]]
 
     NAV SNMP Trap daemon
 
@@ -108,4 +109,3 @@ nav.snmptrapd.trap.SNMPTrap
 .. autoclass:: nav.snmptrapd.trap.SNMPTrap
    :members:
    :show-inheritance:
-

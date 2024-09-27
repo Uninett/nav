@@ -14,18 +14,20 @@ class AuditlogModelTestCase(TestCase):
 
     def test_str(self):
         LogEntry.add_log_entry(self.justification, u'str test', 'foo')
-        l = LogEntry.objects.filter(verb='str test').get()
-        self.assertEqual(str(l), 'foo')
-        l.delete()
+        log_entry = LogEntry.objects.filter(verb='str test').get()
+        self.assertEqual(str(log_entry), 'foo')
+        log_entry.delete()
 
     def test_add_log_entry_bad_template(self):
         with self.assertLogs(level='ERROR') as log:
             LogEntry.add_log_entry(
                 self.justification, u'bad template test', u'this is a {bad} template'
             )
-            l = LogEntry.objects.filter(verb='bad template test').get()
-            self.assertEqual(l.summary, u'Error creating summary - see error log')
-            l.delete()
+            log_entry = LogEntry.objects.filter(verb='bad template test').get()
+            self.assertEqual(
+                log_entry.summary, u'Error creating summary - see error log'
+            )
+            log_entry.delete()
             self.assertEqual(len(log.output), 1)
             self.assertEqual(len(log.records), 1)
             self.assertIn('KeyError when creating summary:', log.output[0])
@@ -34,43 +36,53 @@ class AuditlogModelTestCase(TestCase):
         LogEntry.add_log_entry(
             self.justification, u'actor test', u'actor "{actor}" only is tested'
         )
-        l = LogEntry.objects.filter(verb='actor test').get()
-        self.assertEqual(l.summary, u'actor "testarossa" only is tested')
-        l.delete()
+        log_entry = LogEntry.objects.filter(verb='actor test').get()
+        self.assertEqual(log_entry.summary, u'actor "testarossa" only is tested')
+        log_entry.delete()
 
     def test_add_create_entry(self):
         LogEntry.add_create_entry(self.justification, self.justification)
-        l = LogEntry.objects.filter(verb=u'create-justification').get()
-        self.assertEqual(l.summary, u'testarossa created testarossa')
-        l.delete()
+        log_entry = LogEntry.objects.filter(verb=u'create-justification').get()
+        self.assertEqual(log_entry.summary, u'testarossa created testarossa')
+        log_entry.delete()
 
     def test_add_delete_entry(self):
         LogEntry.add_delete_entry(self.justification, self.justification)
-        l = LogEntry.objects.filter(verb=u'delete-justification').get()
-        self.assertEqual(l.summary, u'testarossa deleted testarossa')
-        l.delete()
+        log_entry = LogEntry.objects.filter(verb=u'delete-justification').get()
+        self.assertEqual(log_entry.summary, u'testarossa deleted testarossa')
+        log_entry.delete()
 
     def test_compare_objects(self):
-        j1 = Justification.objects.create(name='ferrari', description='Psst!')
-        j2 = Justification.objects.create(name='lambo', description='Hush')
-        LogEntry.compare_objects(
-            self.justification, j1, j2, ('name', 'description'), ('description',)
+        justification_1 = Justification.objects.create(
+            name='ferrari', description='Psst!'
         )
-        l = LogEntry.objects.filter(verb=u'edit-justification-name').get()
+        justification_2 = Justification.objects.create(name='lambo', description='Hush')
+        LogEntry.compare_objects(
+            self.justification,
+            justification_1,
+            justification_2,
+            ('name', 'description'),
+            ('description',),
+        )
+        log_entry = LogEntry.objects.filter(verb=u'edit-justification-name').get()
         self.assertEqual(
-            l.summary,
+            log_entry.summary,
             u'testarossa edited lambo: name changed' u" from 'ferrari' to 'lambo'",
         )
-        l.delete()
-        l = LogEntry.objects.filter(verb=u'edit-justification-description').get()
-        self.assertEqual(l.summary, u'testarossa edited lambo: description changed')
-        l.delete()
+        log_entry.delete()
+        log_entry = LogEntry.objects.filter(
+            verb=u'edit-justification-description'
+        ).get()
+        self.assertEqual(
+            log_entry.summary, u'testarossa edited lambo: description changed'
+        )
+        log_entry.delete()
 
     def test_addLog_entry_before(self):
         LogEntry.add_log_entry(self.justification, u'actor test', u'blbl', before=1)
-        l = LogEntry.objects.filter(verb='actor test').get()
-        self.assertEqual(l.before, u'1')
-        l.delete()
+        log_entry = LogEntry.objects.filter(verb='actor test').get()
+        self.assertEqual(log_entry.before, u'1')
+        log_entry.delete()
 
     def test_find_name(self):
         name = find_modelname(self.justification)
@@ -84,27 +96,27 @@ class AuditlogUtilsTestCase(TestCase):
 
     def test_get_auditlog_entries(self):
         modelname = 'blocked_reason'  # Justification's db_table
-        j1 = Justification.objects.create(name='j1')
-        j2 = Justification.objects.create(name='j2')
-        LogEntry.add_create_entry(self.justification, j1)
+        justification_1 = Justification.objects.create(name='j1')
+        justification_2 = Justification.objects.create(name='j2')
+        LogEntry.add_create_entry(self.justification, justification_1)
         LogEntry.add_log_entry(
             self.justification,
             u'greet',
             u'{actor} greets {object}',
-            object=j2,
+            object=justification_2,
             subsystem="hello",
         )
         LogEntry.add_log_entry(
             self.justification,
             u'deliver',
             u'{actor} delivers {object} to {target}',
-            object=j1,
-            target=j2,
+            object=justification_1,
+            target=justification_2,
             subsystem='delivery',
         )
         entries = get_auditlog_entries(modelname=modelname)
         self.assertEqual(entries.count(), 3)
         entries = get_auditlog_entries(modelname=modelname, subsystem='hello')
         self.assertEqual(entries.count(), 1)
-        entries = get_auditlog_entries(modelname=modelname, pks=[j1.pk])
+        entries = get_auditlog_entries(modelname=modelname, pks=[justification_1.pk])
         self.assertEqual(entries.count(), 2)

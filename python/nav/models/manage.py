@@ -22,7 +22,6 @@
 import base64
 import datetime as dt
 import pickle
-import warnings
 from functools import partial
 from itertools import count, groupby
 import logging

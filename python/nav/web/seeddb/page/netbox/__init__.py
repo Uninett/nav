@@ -18,12 +18,13 @@
 import datetime
 from django.db import transaction
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.urls import reverse_lazy
 
 from nav.models.manage import Netbox
 from nav.bulkparse import NetboxBulkParser
 from nav.bulkimport import NetboxImporter
 
-from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
 from nav.web.seeddb.utils.list import render_list

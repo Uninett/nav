@@ -1,12 +1,12 @@
-{% load crispy_forms_field %}
+{% load forms %}
 
 {% if field.is_hidden %}
   {{ field }}
 {% else %}
-    <div id="div_{{ field.auto_id }}" class="ctrlHolder{% if wrapper_class %} {{ wrapper_class }}{% endif %}{% if field.errors and form_show_errors %} error{% endif %}{% if field|is_checkbox %} checkbox{% endif %}{% if field.css_classes %} {{ field.css_classes }}{% endif %}">
+    <div id="div_{{ field.auto_id }}" class="ctrlHolder{% if wrapper_class %} {{ wrapper_class }}{% endif %}{% if field.errors and form_show_errors %} error{% endif %}{% if field.css_classes %} {{ field.css_classes }}{% endif %}">
       {% if field.label %}
         {% if field|is_checkbox %}
-          {% crispy_field field %}
+          {{ field }}
         {% endif %}
 
           <label for="{{ field.id_for_label }}" {% if field.field.required %}class="requiredField"{% endif %}>
@@ -20,7 +20,7 @@
       {% endif %}
 
       {% if not field|is_checkbox %}
-        {% crispy_field field %}
+        {{ field }}
       {% endif %}
 
       {% if form_show_errors %}

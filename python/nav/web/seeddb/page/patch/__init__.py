@@ -21,6 +21,7 @@ import logging
 from django import forms
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 
 from nav.models.cabling import Patch, Cabling
@@ -28,7 +29,7 @@ from nav.models.manage import Netbox, Interface, Room
 from nav.bulkparse import PatchBulkParser
 from nav.bulkimport import PatchImporter
 
-from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher, not_implemented
 from nav.web.seeddb.utils.list import render_list

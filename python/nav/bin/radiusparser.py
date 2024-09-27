@@ -58,7 +58,7 @@ def main(args=None):
     else:
         print("Running instance of script not found. Starting...")
 
-    if args == None:
+    if args is None:
         args = sys.argv[1:]
 
     try:

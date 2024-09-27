@@ -25,6 +25,7 @@ from django.http import HttpResponse, Http404
 from django.urls import reverse
 
 from nav.maintengine import check_devices_on_maintenance
+from nav.event2 import EventFactory
 from nav.models.event import AlertHistory
 from nav.models.manage import Netbox, NetboxEntity, Module
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
@@ -32,6 +33,8 @@ from nav.models.fields import INFINITY
 from . import forms, STATELESS_THRESHOLD
 
 _logger = logging.getLogger(__name__)
+
+device_event = EventFactory('ipdevpoll', 'eventEngine', 'deviceState')
 
 
 class StatusView(View):
@@ -190,12 +193,33 @@ def delete_module_or_chassis(request):
         alerts = get_alerts_from_request(
             request, event_type_filter=accepted_event_types
         )
-        module_ids = [a.subid for a in alerts if a.event_type.pk == 'moduleState']
-        entity_ids = [a.subid for a in alerts if a.event_type.pk == 'chassisState']
+        module_ids = []
+        entity_ids = []
+        notify_events = []
+
+        for alert in alerts:
+            if alert.event_type.pk == 'moduleState':
+                module_ids.append(alert.subid)
+                notify_events.append(
+                    (alert.device, alert.netbox, "deviceDeletedModule")
+                )
+            elif alert.event_type.pk == 'chassisState':
+                entity_ids.append(alert.subid)
+                notify_events.append(
+                    (alert.device, alert.netbox, "deviceDeletedChassis")
+                )
 
         Module.objects.filter(pk__in=module_ids).delete()
         NetboxEntity.objects.filter(pk__in=entity_ids).delete()
         resolve_alerts(alerts)
+
+        for device, netbox, alert_type in notify_events:
+            device_event.notify(
+                device=device,
+                netbox=netbox,
+                alert_type=alert_type,
+            ).save()
+
         return HttpResponse()
 
     return HttpResponse('Wrong request type', status=400)

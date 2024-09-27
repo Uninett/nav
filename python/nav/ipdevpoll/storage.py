@@ -379,7 +379,7 @@ class Shadow(object, metaclass=MetaShadow):
         for lookup in lookups:
             kwargs = None
             if isinstance(lookup, tuple):
-                kwargs = dict(zip(lookup, [getattr(self, l) for l in lookup]))
+                kwargs = dict(zip(lookup, [getattr(self, field) for field in lookup]))
             else:
                 value = getattr(self, lookup)
                 if value is not None:

@@ -47,7 +47,7 @@ except (OSError, CrontabError) as _error:
 
 def main(args=None):
     """Main execution point"""
-    if args == None:
+    if args is None:
         parser = make_argparser()
         args = parser.parse_args()
     try:

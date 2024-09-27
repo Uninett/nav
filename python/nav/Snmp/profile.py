@@ -17,7 +17,7 @@
 from functools import partial
 from typing import Callable
 
-from nav.models.manage import Netbox, ManagementProfile
+from nav.models.manage import ManagementProfile
 from nav.Snmp import Snmp
 
 

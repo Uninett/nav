@@ -1,3 +1,5 @@
+# ruff: noqa: F401 - importing to test availability
+
 import unittest
 from mock import Mock, patch
 import pytest

@@ -827,6 +827,7 @@ class PowerSupplyOrFan(Shadow):
             netbox.sysname,
             ", ".join(psu_and_fan_names),
         )
+        cls._alert_missing_devices_are_deleted(missing_psus_and_fans)
         missing_psus_and_fans.delete()
 
     @classmethod
@@ -837,6 +838,23 @@ class PowerSupplyOrFan(Shadow):
             netbox=netbox.id
         ).exclude(pk__in=found_psus_and_fans_pks)
         return missing_psus_and_fans
+
+    @classmethod
+    def _alert_missing_devices_are_deleted(cls, deleted_psus_and_fans):
+        for psufan in deleted_psus_and_fans:
+            try:
+                if psufan.device.serial:
+                    device_event.notify(
+                        device=psufan.device,
+                        netbox=psufan.netbox,
+                        alert_type=(
+                            "deviceDeletedPsu"
+                            if psufan.is_psu()
+                            else "deviceDeletedFan"
+                        ),
+                    ).save()
+            except manage.Device.DoesNotExist:
+                pass
 
 
 class POEPort(Shadow):

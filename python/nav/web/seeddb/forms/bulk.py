@@ -86,7 +86,7 @@ class BulkImportForm(forms.Form):
     def _is_bulk_data_empty(bulk_data):
         bulk_lines = bulk_data.split('\n')
         stripper = CommentStripper(iter(bulk_lines))
-        stripped_lines = [l for l in stripper if l.strip()]
+        stripped_lines = [line for line in stripper if line.strip()]
         return len(stripped_lines) < 1
 
     def bulk_process_check(self, importer):

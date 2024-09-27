@@ -21,9 +21,8 @@ Forms and controllers for the prefix functionality in SeedDB
 
 from django import forms
 from django.db import transaction
-from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 
 from nav.web.message import new_message, Messages
 
@@ -32,7 +31,7 @@ from nav.django.forms import CIDRField
 from nav.bulkparse import PrefixBulkParser
 from nav.bulkimport import PrefixImporter
 
-from nav.web.seeddb import SeeddbInfo, reverse_lazy
+from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher, not_implemented
 from nav.web.seeddb.utils.list import render_list

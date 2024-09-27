@@ -1032,7 +1032,10 @@ class Filter(models.Model):
                 filtr[lookup] = list(
                     set(
                         itertools.chain(
-                            *[l.get_descendants(include_self=True) for l in locations]
+                            *[
+                                location.get_descendants(include_self=True)
+                                for location in locations
+                            ]
                         )
                     )
                 )
