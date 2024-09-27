@@ -69,31 +69,23 @@ class NumberField(forms.IntegerField):
 
 
 class FlatFieldset:
-    """
-    A class representing a fieldset for forms.
+    """A class representing a fieldset for forms.
     Only flat layout of children fields is supported out of the box.
     Any nesting of fields inside this fieldset might require custom
     class definitions akin to this one.
 
-    Attributes:
-        template (str): The path to the template used for rendering the fieldset.
-        Path is relative to the app's templates directory.
-        legend (str): The legend text for the fieldset.
-        fields (list): A list of fields to include in the fieldset.
-        css_class (str): Additional CSS classes to apply to the fieldset.
+    :cvar template: The path to the template used for rendering the fieldset. Path is relative to the app's templates directory.
+    :type template: str
+    :param legend: The legend text for the fieldset.
+    :type legend: str
+    :param fields: A list of fields to include in the fieldset.
+    :param css_class: Additional CSS classes to apply to the fieldset.
     """
 
     template = 'custom_crispy_templates/flat_fieldset.html'
 
     def __init__(self, legend, fields: list, css_class=''):
-        """
-        Initializes a FlatFieldset object with the specified attributes.
-
-        Args:
-            legend (str): The legend text for the fieldset.
-            fields (list): A list of fields to include in the fieldset.
-            css_class (str, optional): Additional CSS classes to apply to the fieldset. Defaults to an empty string.
-        """
+        """Constructor method"""
         self.legend = legend
         self.fields = fields
         self.css_class = css_class
@@ -101,27 +93,19 @@ class FlatFieldset:
 
 
 class SubmitField:
-    """
-    A class representing a submit field (button) in a form.
+    """A class representing a submit field (button) in a form.
 
-    Attributes:
-        name (str): The name attribute of the submit field.
-        value (str): The display text of the submit button.
-        css_classes (str): Additional CSS classes to apply to the submit button.
-        input_type (str): The type of input, which is 'submit' for this class.
+    :param name: The name attribute of the submit field.
+    :param value: The display text of the submit button.
+    :param css_classes: Additional CSS classes to apply to the submit button.
+    :ivar input_type: The type of input, which is 'submit' for this class.
+    :type input_type: str
     """
 
     def __init__(
         self, name: str = 'submit', value: str = 'Submit', css_classes: str = ''
     ):
-        """
-        Initializes a SubmitField object with the specified attributes.
-
-        Args:
-            name (str, optional): The name attribute of the submit field. Defaults to 'submit'.
-            value (str, optional): The display text of the submit button. Defaults to 'Submit'.
-            css_classes (str, optional): Additional CSS classes to apply to the submit button. Defaults to an empty string.
-        """
+        """Constructor method"""
         self.name = name
         self.value = value
         self.css_classes = css_classes
@@ -135,23 +119,22 @@ def set_flat_form_attributes(
     submit_field: Optional[SubmitField] = None,
     form_fields: list = None,
 ):
-    """
-    Sets and returns a SimpleNamespace object representing a flat form.
+    """Sets and returns a SimpleNamespace object representing a flat form.
     Only flat layout of children fields is supported out of the box.
     Any nesting of fields inside this form might require custom
     class and template definitions.
 
-    Args:
-        legend (str, optional): The legend text for the form. Defaults to None.
-        form_action (str, optional): The action destination URL for the form. Defaults to an empty string.
-        form_method (str, optional): The HTTP method for the form. Defaults to 'post'.
-        submit_field (SubmitField, optional): An instance of SubmitField for the form's submit button. Defaults to None.
-        form_fields (list, optional): A list of fields to include in the form in case you want to render any fields
-        that are not present in Django's built-in Field classes, f.e. fieldset, submit, row, column etc.
-        Do not set it if you want to render only Django's built-in fields. Defaults to None.
+    :param legend: The legend text for the form. Defaults to None.
+    :type legend: str, optional
+    :param form_action: The action destination URL for the form. Defaults to an empty string.
+    :type form_action: str, optional
+    :param form_method: The HTTP method for the form. Defaults to 'post'.
+    :type form_method: str, optional
+    :param submit_field: An instance of SubmitField for the form's submit button. Defaults to None.
+    :param form_fields: A list of fields to include in the form in case you want to render any fields that are not present in Django's built-in Field classes, e.g., fieldset, submit, row, column etc. Do not set it if you want to render only Django's built-in fields. Defaults to None.
 
-    Returns:
-        SimpleNamespace: An object containing the form attributes.
+    :return: An object containing the form attributes.
+    :rtype: SimpleNamespace
     """
 
     return SimpleNamespace(
