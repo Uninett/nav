@@ -15,7 +15,7 @@
 
         <label for="{{ field.id_for_label }}"
                {% if field.field.required %}class="requiredField"{% endif %}>
-          {{ field.label|safe }}
+          {{ field.label }}
           {% if field.field.required %}
             <span class="asteriskField">*</span>
           {% endif %}

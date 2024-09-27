@@ -14,6 +14,8 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A collection of forms using the django crispy forms framework"""
+from types import SimpleNamespace
+from typing import Optional
 
 from django import forms
 from crispy_forms.layout import BaseInput
@@ -61,3 +63,84 @@ class NumberField(forms.IntegerField):
     """Input field with type set to number"""
 
     widget = NumberInput
+
+
+# For uncrispyfied forms:
+
+
+class FlatFieldset:
+    """A class representing a fieldset for forms.
+    Only flat layout of children fields is supported out of the box.
+    Any nesting of fields inside this fieldset might require custom
+    class definitions akin to this one.
+
+    :cvar template: The path to the template used for rendering the fieldset. Path is relative to the app's templates directory.
+    :type template: str
+    :param legend: The legend text for the fieldset.
+    :type legend: str
+    :param fields: A list of fields to include in the fieldset.
+    :param css_class: Additional CSS classes to apply to the fieldset.
+    """
+
+    template = 'custom_crispy_templates/flat_fieldset.html'
+
+    def __init__(self, legend, fields: list, css_class=''):
+        """Constructor method"""
+        self.legend = legend
+        self.fields = fields
+        self.css_class = css_class
+        self.template = FlatFieldset.template
+
+
+class SubmitField:
+    """A class representing a submit field (button) in a form.
+
+    :param name: The name attribute of the submit field.
+    :param value: The display text of the submit button.
+    :param css_classes: Additional CSS classes to apply to the submit button.
+    :ivar input_type: The type of input, which is 'submit' for this class.
+    :type input_type: str
+    """
+
+    def __init__(
+        self, name: str = 'submit', value: str = 'Submit', css_classes: str = ''
+    ):
+        """Constructor method"""
+        self.name = name
+        self.value = value
+        self.css_classes = css_classes
+        self.input_type = 'submit'
+
+
+def set_flat_form_attributes(
+    legend=None,
+    form_action='',
+    form_method='post',
+    submit_field: Optional[SubmitField] = None,
+    form_fields: list = None,
+):
+    """Sets and returns a SimpleNamespace object representing a flat form.
+    Only flat layout of children fields is supported out of the box.
+    Any nesting of fields inside this form might require custom
+    class and template definitions.
+
+    :param legend: The legend text for the form. Defaults to None.
+    :type legend: str, optional
+    :param form_action: The action destination URL for the form. Defaults to an empty string.
+    :type form_action: str, optional
+    :param form_method: The HTTP method for the form. Defaults to 'post'.
+    :type form_method: str, optional
+    :param submit_field: An instance of SubmitField for the form's submit button. Defaults to None.
+    :param form_fields: A list of fields to include in the form in case you want to render any fields that are not present in Django's built-in Field classes, e.g., fieldset, submit, row, column etc. Do not set it if you want to render only Django's built-in fields. Defaults to None.
+
+    :return: An object containing the form attributes.
+    :rtype: SimpleNamespace
+    """
+
+    return SimpleNamespace(
+        legend=legend,
+        action=form_action,
+        method=form_method,
+        submit_field=submit_field,
+        form_fields=form_fields,
+    )

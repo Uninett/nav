@@ -1,0 +1,10 @@
+{# NB! This field can be used as a replacement of crispy's Submit #}
+
+<input type="submit"
+       name="{% if input.name|wordcount > 1 %}{{ input.name|slugify }}{% else %}{{ input.name }}{% endif %}"
+       value="{{ input.value }}"
+    {% if input.input_type != "hidden" %}
+       class="submit button {{ input.css_classes }}"
+       id="{% if input.id %}{{ input.id }}{% else %}{{ input.input_type }}-id-{{ input.name|slugify }}{% endif %}"
+    {% endif %}
+/>
