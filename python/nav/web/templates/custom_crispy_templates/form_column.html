@@ -1,0 +1,11 @@
+{# NB! This form row can only render fields that are supported by custom_crispy_templates/_form_field.html #}
+
+<div
+    class="columns {{ field.css_classes|default:'large-12' }}"
+>
+  {% block formcolumn_content %}
+    {% for field in field.fields %}
+      {% include 'custom_crispy_templates/_form_field.html' %}
+    {% endfor %}
+  {% endblock %}
+</div>

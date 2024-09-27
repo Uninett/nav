@@ -92,6 +92,20 @@ class FlatFieldset:
         self.template = FlatFieldset.template
 
 
+class FormRow:
+    def __init__(self, fields: list, css_classes: str = ''):
+        self.fields = fields
+        self.css_classes = css_classes
+        self.template = 'custom_crispy_templates/form_row.html'
+
+
+class FormColumn:
+    def __init__(self, fields: list, css_classes: str = ''):
+        self.fields = fields
+        self.css_classes = css_classes
+        self.template = 'custom_crispy_templates/form_column.html'
+
+
 class SubmitField:
     """A class representing a submit field (button) in a form.
 
