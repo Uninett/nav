@@ -150,7 +150,7 @@ class TestIPRangeString(object):
 class TestFirstTrue(object):
     def test_first_true_should_find_true_element(self):
         elems = [False, False, True, False]
-        assert first_true(elems) == True
+        assert first_true(elems) is True
 
     def test_first_true_should_return_default_value_when_no_true_found(self):
         elems = [False, False, False]
