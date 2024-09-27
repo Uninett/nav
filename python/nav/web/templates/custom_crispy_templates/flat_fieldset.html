@@ -1,0 +1,11 @@
+<fieldset
+    {% if field.css_class %} class="{{ field.css_class }}" {% endif %}
+>
+  {% if field.legend %}
+    <legend>{{ field.legend }}</legend>{% endif %}
+  {% block fieldset_fields %}
+    {% for field in field.fields %}
+      {% include 'custom_crispy_templates/_form_field.html' %}
+    {% endfor %}
+  {% endblock %}
+</fieldset>
