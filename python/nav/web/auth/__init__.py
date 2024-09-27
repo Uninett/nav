@@ -48,68 +48,35 @@ def authenticate(username, password):
     Returns account object if user was authenticated, else None.
     """
     # FIXME Log stuff?
-    auth = False
-    account = None
 
     # Try to find the account in the database. If it's not found we can try
     # LDAP.
     try:
         account = Account.objects.get(login__iexact=username)
     except Account.DoesNotExist:
-        if ldap.available:
-            user = ldap.authenticate(username, password)
-            # If we authenticated, store the user in database.
-            if user:
-                account = Account(
-                    login=user.username, name=user.get_real_name(), ext_sync='ldap'
-                )
-                account.set_password(password)
-                account.save()
-                _handle_ldap_admin_status(user, account)
-                # We're authenticated now
-                auth = True
-
-    if account and account.locked:
-        _logger.info("Locked user %s tried to log in", account.login)
-
-    if (
-        account
-        and account.ext_sync == 'ldap'
-        and ldap.available
-        and not auth
-        and not account.locked
-    ):
-        try:
-            auth = ldap.authenticate(username, password)
-        except ldap.NoAnswerError:
-            # Fallback to stored password if ldap is unavailable
-            auth = False
-        else:
-            if auth:
-                account.set_password(password)
-                account.save()
-                _handle_ldap_admin_status(auth, account)
-            else:
-                return
-
-    if account and not auth:
-        auth = account.check_password(password)
-
-    if auth and account:
+        # account autocreated if username is authenticated
+        account = ldap.authenticate(username, password)
         return account
-    else:
+
+    if account.locked:
+        _logger.info("Locked user %s tried to log in", account.login)
         return None
 
-
-def _handle_ldap_admin_status(ldap_user, nav_account):
-    is_admin = ldap_user.is_admin()
-    # Only modify admin status if an entitlement is configured in webfront.conf
-    if is_admin is not None:
-        admin_group = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
-        if is_admin:
-            nav_account.groups.add(admin_group)
+    if account.ext_sync == 'ldap' and ldap.available:
+        try:
+            ldap_user = ldap.get_ldap_user(username, password)
+        except ldap.NoAnswerError:
+            pass
         else:
-            nav_account.groups.remove(admin_group)
+            if ldap_user:
+                account = ldap.update_ldap_user(ldap_user, account, password)
+                return account
+            return None
+        # Fallback to stored password if ldap is unavailable
+
+    if account.check_password(password):
+        return account
+    return None
 
 
 def get_login_url(request):
