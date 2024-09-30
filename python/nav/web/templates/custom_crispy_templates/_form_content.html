@@ -1,5 +1,5 @@
 {# NB! This template can be used directly (without form template wrapper) for cases where form.helper.form_tag is set to False. #}
-
+{% csrf_token %}
 {% if form.attrs.form_fields %}
   {% include 'custom_crispy_templates/_form_fields.html' with fields=form.attrs.form_fields %}
 {% else %}
