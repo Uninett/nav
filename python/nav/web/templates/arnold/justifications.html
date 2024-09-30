@@ -49,12 +49,12 @@
         </div>
 
         {% comment %} Form for creating new justifications {% endcomment %}
-      <div class="medium-6 column">
-        {% if form.attrs %}
-          {% include 'custom_crispy_templates/flat_form.html' %}
-        {% else %}
-          {{ form }}
-        {% endif %}
+        <div class="medium-6 column">
+            {% if form.attrs %}
+                {% include 'custom_crispy_templates/flat_form.html' %}
+            {% else %}
+                {{ form }}
+            {% endif %}
         </div>
 
     </div>
