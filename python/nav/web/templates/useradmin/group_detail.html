@@ -78,7 +78,11 @@
             {% endif %}
 
             <h6>Add group member</h6>
-            {% crispy account_form %}
+            {% if account_form.attrs %}
+              {% include 'custom_crispy_templates/flat_form.html' with form=account_form %}
+            {% else %}
+              {{ account_form }}
+            {% endif %}
           </fieldset>
         </div>
         {# END GROUP MEMBERS #}
