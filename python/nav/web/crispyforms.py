@@ -140,17 +140,23 @@ class SubmitField:
     :param name: The name attribute of the submit field.
     :param value: The display text of the submit button.
     :param css_classes: Additional CSS classes to apply to the submit button.
+    :param has_empty_label: If an empty label is added above the submit button to align it within a row.
     :ivar input_type: The type of input, which is 'submit' for this class.
     :type input_type: str
     """
 
     def __init__(
-        self, name: str = 'submit', value: str = 'Submit', css_classes: str = ''
+        self,
+        name: str = 'submit',
+        value: str = 'Submit',
+        css_classes: str = '',
+        has_empty_label: bool = False,
     ):
         """Constructor method"""
         self.name = name
         self.value = value
         self.css_classes = css_classes
+        self.has_empty_label = has_empty_label
         self.input_type = 'submit'
 
 
