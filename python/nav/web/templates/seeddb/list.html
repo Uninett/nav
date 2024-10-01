@@ -5,11 +5,7 @@
 
   {% if filter_form %}
     {% if filter_form.base_fields|length >= 3 %}
-      {% if filter_form.no_crispy %}
-        {% include "seeddb/_filter_form_columns.html" with attrs=filter_form.no_crispy %}
-      {% else %}
-        {% crispy filter_form %}
-      {% endif %}
+      {% crispy filter_form %}
     {% else %}
       <div class="row">
         <div class="medium-6 column">
