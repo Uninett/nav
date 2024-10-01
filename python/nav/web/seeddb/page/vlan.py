@@ -19,12 +19,15 @@
 from django import forms
 from django.urls import reverse_lazy
 
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Fieldset
-from nav.web.crispyforms import LabelSubmit
-
 from nav.models.manage import Vlan, NetType, Organization, Usage
 
+from nav.web.crispyforms import (
+    set_flat_form_attributes,
+    FlatFieldset,
+    FormColumn,
+    FormRow,
+    SubmitField,
+)
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.utils.list import render_list
 from nav.web.seeddb.utils.edit import render_edit
@@ -53,23 +56,40 @@ class VlanFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(VlanFilterForm, self).__init__(*args, **kwargs)
         col_class = 'medium-3'
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'GET'
-        self.helper.form_class = 'custom'
-        self.helper.layout = Layout(
-            Fieldset(
-                'Filter vlans',
-                Row(
-                    Column('net_type', css_class=col_class),
-                    Column('organization', css_class=col_class),
-                    Column('usage', css_class=col_class),
-                    Column(
-                        LabelSubmit('submit', 'Filter', css_class='postfix'),
-                        css_class=col_class,
-                    ),
-                ),
-            )
+
+        self.attrs = set_flat_form_attributes(
+            form_method="get",
+            form_class="custom",
+            form_fields=[
+                FlatFieldset(
+                    "Filter vlans",
+                    fields=[
+                        FormRow(
+                            fields=[
+                                FormColumn(
+                                    fields=[self["net_type"]], css_classes=col_class
+                                ),
+                                FormColumn(
+                                    fields=[self["organization"]], css_classes=col_class
+                                ),
+                                FormColumn(
+                                    fields=[self["usage"]], css_classes=col_class
+                                ),
+                                FormColumn(
+                                    fields=[
+                                        SubmitField(
+                                            value="Filter",
+                                            css_classes="postfix",
+                                            has_empty_label=True,
+                                        )
+                                    ],
+                                    css_classes=col_class,
+                                ),
+                            ]
+                        )
+                    ],
+                )
+            ],
         )
 
 

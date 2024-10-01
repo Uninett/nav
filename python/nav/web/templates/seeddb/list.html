@@ -5,7 +5,11 @@
 
   {% if filter_form %}
     {% if filter_form.base_fields|length >= 3 %}
-      {% crispy filter_form %}
+      {% if filter_form.attrs %}
+        {% include 'custom_crispy_templates/flat_form.html' with form=filter_form %}
+      {% else %}
+        {% crispy filter_form %}
+      {% endif %}
     {% else %}
       <div class="row">
         <div class="medium-6 column">
