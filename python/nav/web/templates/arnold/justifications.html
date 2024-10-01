@@ -1,5 +1,4 @@
 {% extends "arnold/tabs.html" %}
-{% load crispy_forms_tags %}
 
 {% block tabcontent %}
 
@@ -51,7 +50,11 @@
 
         {% comment %} Form for creating new justifications {% endcomment %}
         <div class="medium-6 column">
-            {% crispy form %}
+            {% if form.attrs %}
+                {% include 'custom_crispy_templates/flat_form.html' %}
+            {% else %}
+                {{ form }}
+            {% endif %}
         </div>
 
     </div>

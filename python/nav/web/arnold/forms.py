@@ -22,7 +22,12 @@ from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Fieldset, Div, Row, Submit, Column
 
 from nav.util import is_valid_ip, is_valid_mac
-from nav.web.crispyforms import CheckBox
+from nav.web.crispyforms import (
+    CheckBox,
+    FlatFieldset,
+    SubmitField,
+    set_flat_form_attributes,
+)
 from nav.models.arnold import (
     DETENTION_TYPE_CHOICES,
     STATUSES,
@@ -50,12 +55,15 @@ class JustificationForm(forms.Form):
             submit_value = 'Save changes'
             fieldset_legend = 'Edit detention reason'
 
-        # Create helper for crispy layout
-        self.helper = FormHelper()
-        self.helper.form_action = 'arnold-justificatons'
-        self.helper.layout = Layout(
-            Fieldset(fieldset_legend, 'name', 'description', 'justificationid'),
-            Submit('submit', submit_value, css_class='small'),
+        self.attrs = set_flat_form_attributes(
+            form_action='arnold-justificatons',
+            form_fields=[
+                FlatFieldset(
+                    fieldset_legend,
+                    fields=[self['name'], self['description'], self['justificationid']],
+                )
+            ],
+            submit_field=SubmitField(value=submit_value, css_classes='small'),
         )
 
 
