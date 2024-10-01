@@ -2,10 +2,9 @@
 
 from django import forms
 
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation import layout
-
 from nav.models.manage import Sensor, Room
+
+from nav.web.crispyforms import set_flat_form_attributes, FlatFieldset
 
 
 class AlertWidgetForm(forms.Form):
@@ -42,14 +41,17 @@ class AlertWidgetForm(forms.Form):
             )
         ]
 
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = layout.Layout(
-            'on_message',
-            'off_message',
-            layout.Fieldset('Choose sensor or fill in metric', 'sensor', 'metric'),
-            'on_state',
-            'alert_type',
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                self['on_message'],
+                self['off_message'],
+                FlatFieldset(
+                    legend='Choose sensor or fill in metric',
+                    fields=[self['sensor'], self['metric']],
+                ),
+                self['on_state'],
+                self['alert_type'],
+            ]
         )
 
     def clean(self):
