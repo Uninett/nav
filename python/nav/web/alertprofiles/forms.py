@@ -284,6 +284,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                 widget=forms.CheckboxInput(attrs={'class': 'input-align'}),
             )
             self.fields['type'].label = 'When'
+            self.fields['type'].widget.attrs.update({"class": "select2"})
             self.fields[
                 'type'
             ].help_text = """
@@ -315,7 +316,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                             css_classes='medium-3',
                         ),
                         FormColumn(
-                            fields=[HelpFormField(self['type'], css_classes='select2')],
+                            fields=[HelpFormField(self['type'])],
                             css_classes='medium-3',
                         ),
                         FormColumn(
