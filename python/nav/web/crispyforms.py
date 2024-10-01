@@ -57,15 +57,12 @@ class HelpFormField:
     """Field that displays an icon with tooltip as helptext
 
     :param field: A field to render as a help field.
-    :param css_classes: Additional CSS classes to apply to the field.
-        Defaults to an empty string.
     """
 
-    def __init__(self, field, css_classes: str = ''):
+    def __init__(self, field):
         """Constructor method"""
         self.field = field
-        self.css_classes = css_classes
-        self.template = 'custom_crispy_templates/_help_form_field.html'
+        self.input_type = 'helpfield'
 
 
 class NumberInput(forms.TextInput):
