@@ -304,36 +304,27 @@ class AlertSubscriptionForm(forms.ModelForm):
             """
         self.attrs = set_flat_form_attributes(
             form_fields=[
-                FlatFieldset(
-                    legend="legend",
+                FormRow(
                     fields=[
-                        FormRow(
-                            fields=[
-                                FormColumn(
-                                    fields=[self['filter_group']],
-                                    css_classes='medium-3',
-                                ),
-                                FormColumn(
-                                    fields=[self['alert_address']],
-                                    css_classes='medium-3',
-                                ),
-                                FormColumn(
-                                    fields=[
-                                        HelpFormField(
-                                            self['type'], css_classes='select2'
-                                        )
-                                    ],
-                                    css_classes='medium-3',
-                                ),
-                                FormColumn(
-                                    fields=[self['ignore_resolved_alerts']],
-                                    css_classes='medium-3',
-                                ),
-                            ]
+                        FormColumn(
+                            fields=[self['filter_group']],
+                            css_classes='medium-3',
                         ),
-                        *[self[field] for field in hidden_fields],
-                    ],
-                )
+                        FormColumn(
+                            fields=[self['alert_address']],
+                            css_classes='medium-3',
+                        ),
+                        FormColumn(
+                            fields=[HelpFormField(self['type'], css_classes='select2')],
+                            css_classes='medium-3',
+                        ),
+                        FormColumn(
+                            fields=[self['ignore_resolved_alerts']],
+                            css_classes='medium-3',
+                        ),
+                    ]
+                ),
+                *[self[field] for field in hidden_fields],
             ]
         )
 
