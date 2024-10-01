@@ -1,5 +1,7 @@
-{# NB! This field can be used as a replacement of crispy's Submit #}
-
+{# NB! This field can be used as a replacement of crispy's Submit and our custom LabelSubmit #}
+{% if input.has_empty_label %}
+   <label>&nbsp;</label>
+{% endif %}
 <input type="submit"
        name="{% if input.name|wordcount > 1 %}{{ input.name|slugify }}{% else %}{{ input.name }}{% endif %}"
        value="{{ input.value }}"
