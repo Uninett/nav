@@ -1,5 +1,4 @@
 {% extends "devicehistory/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block tabcontent %}
     <p class="panel">
@@ -11,7 +10,11 @@
     <form action="{% url 'devicehistory-search' %}" method="get">
         <div class="row">
             <div class="large-8 column">
-                {% crispy form %}
+              {% if form.attrs %}
+                {% include 'custom_crispy_templates/_form_content.html' %}
+              {% else %}
+                {{ form }}
+              {% endif %}
             </div>
         </div>
         <div class="row">

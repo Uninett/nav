@@ -19,8 +19,12 @@ from datetime import date, timedelta
 import logging
 
 from django import forms
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, Field
+from nav.web.crispyforms import (
+    set_flat_form_attributes,
+    FlatFieldset,
+    FormRow,
+    FormColumn,
+)
 from nav.web.devicehistory.utils import get_event_and_alert_types
 
 _logger = logging.getLogger(__name__)
@@ -57,7 +61,9 @@ class DeviceHistoryViewFilter(forms.Form):
     from_date = MyDateField(required=False)
     to_date = MyDateField(required=False)
     eventtype = forms.ChoiceField(required=False, label='Type')
+    eventtype.widget.attrs.update({"class": "select2"})
     group_by = forms.ChoiceField(choices=groupings, initial='netbox', required=False)
+    group_by.widget.attrs.update({"class": "select2"})
 
     def __init__(self, *args, **kwargs):
         super(DeviceHistoryViewFilter, self).__init__(*args, **kwargs)
@@ -68,22 +74,30 @@ class DeviceHistoryViewFilter(forms.Form):
 
         common_class = 'medium-3'
 
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Fieldset(
-                'Filters',
-                Row(
-                    Column('from_date', css_class=common_class),
-                    Column('to_date', css_class=common_class),
-                    Column(
-                        Field('eventtype', css_class='select2'), css_class=common_class
-                    ),
-                    Column(
-                        Field('group_by', css_class='select2'), css_class=common_class
-                    ),
-                ),
-            )
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FlatFieldset(
+                    "Filters",
+                    fields=[
+                        FormRow(
+                            fields=[
+                                FormColumn(
+                                    fields=[self['from_date']], css_classes=common_class
+                                ),
+                                FormColumn(
+                                    fields=[self['to_date']], css_classes=common_class
+                                ),
+                                FormColumn(
+                                    fields=[self['eventtype']], css_classes=common_class
+                                ),
+                                FormColumn(
+                                    fields=[self['group_by']], css_classes=common_class
+                                ),
+                            ]
+                        )
+                    ],
+                )
+            ]
         )
 
     def clean(self):

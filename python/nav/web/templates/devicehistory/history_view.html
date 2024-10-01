@@ -1,5 +1,4 @@
 {% extends "devicehistory/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block tabcontent %}
   <a href="{% url 'devicehistory-search' %}" class="button small secondary">New search</a>
@@ -12,7 +11,11 @@
             <input type="hidden" name="{{ type }}" value="{{ id }}" />
           {% endfor %}
         {% endfor %}
-        {% crispy form %}
+        {% if form.attrs %}
+          {% include 'custom_crispy_templates/_form_content.html' %}
+        {% else %}
+          {{ form }}
+        {% endif %}
         <input type="submit" class="button small" value="Filter">
       </form>
     </div>
