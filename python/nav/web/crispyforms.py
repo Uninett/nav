@@ -53,6 +53,20 @@ class HelpField(Field):
     template = 'custom_crispy_templates/field_helptext_as_icon.html'
 
 
+class HelpFormField:
+    """Field that displays an icon with tooltip as helptext
+
+    :param field: A field to render as a help field.
+    :param css_classes: Additional CSS classes to apply to the field. Defaults to an empty string.
+    """
+
+    def __init__(self, field, css_classes: str = ''):
+        """Constructor method"""
+        self.field = field
+        self.css_classes = css_classes
+        self.template = 'custom_crispy_templates/_help_form_field.html'
+
+
 class NumberInput(forms.TextInput):
     """Input widget with type set to number"""
 
