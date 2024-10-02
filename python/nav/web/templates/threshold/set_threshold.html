@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   <script>require(['src/threshold']);</script>
@@ -21,7 +20,11 @@
            data-url="{% url 'threshold-search' %}"
            data-renderurl="{% url 'threshold-graph' %}"
            data-metric="{{ metric|default_if_none:'' }}">
-        {% crispy form %}
+        {% if form.attrs %}
+          {% include 'custom_crispy_templates/flat_form.html' %}
+        {% else %}
+          {{ form }}
+        {% endif %}
       </div>
       {% if id %}
       <a href="#" data-dropdown="confirm-delete" class="button alert">Delete</a>

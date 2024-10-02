@@ -17,14 +17,19 @@
 
 import re
 
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Fieldset, Submit, Row, Column
 from django import forms
 
 from nav.metrics.thresholds import ThresholdEvaluator, InvalidExpressionError
 from nav.models.thresholds import ThresholdRule
 from nav.util import parse_interval
-from nav.web.crispyforms import HelpField
+from nav.web.crispyforms import (
+    FlatFieldset,
+    SubmitField,
+    set_flat_form_attributes,
+    FormRow,
+    FormColumn,
+    HelpFormField,
+)
 
 
 class ThresholdForm(forms.ModelForm):
@@ -55,25 +60,46 @@ class ThresholdForm(forms.ModelForm):
             action_text = 'Edit rule'
 
         column_class = 'small-4'
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.layout = Layout(
-            Fieldset(
-                action_text,
-                'target',
-                Row(
-                    Column(HelpField('alert'), css_class=column_class),
-                    Column(HelpField('clear'), css_class=column_class),
-                    Column(HelpField('period'), css_class=column_class),
-                ),
-                'description',
-                Row(
-                    Column(
-                        Submit('submit', 'Save', css_class='small'), css_class='small-6'
-                    ),
-                    Column(HelpField('raw'), css_class='small-6'),
-                ),
-            )
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FlatFieldset(
+                    legend=action_text,
+                    fields=[
+                        self['target'],
+                        FormRow(
+                            fields=[
+                                FormColumn(
+                                    fields=[HelpFormField(self['alert'])],
+                                    css_classes=column_class,
+                                ),
+                                FormColumn(
+                                    fields=[HelpFormField(self['clear'])],
+                                    css_classes=column_class,
+                                ),
+                                FormColumn(
+                                    fields=[HelpFormField(self['period'])],
+                                    css_classes=column_class,
+                                ),
+                            ]
+                        ),
+                        self['description'],
+                        FormRow(
+                            fields=[
+                                FormColumn(
+                                    fields=[
+                                        SubmitField(value='Save', css_classes='small')
+                                    ],
+                                    css_classes='small-6',
+                                ),
+                                FormColumn(
+                                    fields=[HelpFormField(self['raw'])],
+                                    css_classes='small-6',
+                                ),
+                            ]
+                        ),
+                    ],
+                )
+            ],
         )
 
     def clean(self):
