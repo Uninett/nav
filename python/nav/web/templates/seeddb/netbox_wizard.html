@@ -1,5 +1,4 @@
 {% extends "seeddb/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   {{ block.super }}
@@ -44,7 +43,7 @@
     {% if form.attrs %}
       {% include 'seeddb/_seeddb_netbox_form_content.html' %}
     {% else %}
-      {% crispy form %}
+      {{ form }}
     {% endif %}
     <input type="submit" name="save_ip_device" value="Save IP device" class="submit button small left" id="submit-id-save_ip_device" />
   </form>
