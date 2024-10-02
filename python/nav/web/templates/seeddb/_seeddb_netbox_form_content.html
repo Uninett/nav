@@ -2,7 +2,7 @@
 
 {% block form_fields %}
   <div class="row">
-    <div class="columns {{ columns_css_class|default:'large-12' }}">
+    <div class="columns large-4">
       <fieldset>
         <legend>Inventory</legend>
         {% include 'foundation-5/field.html' with field=form.ip %}
@@ -13,7 +13,7 @@
       </fieldset>
     </div>
 
-    <div class="columns {{ columns_css_class|default:'large-12' }}">
+    <div class="columns large-4">
       <fieldset>
         <legend>Management profiles</legend>
         {% include 'foundation-5/field.html' with field=form.profiles %}
@@ -35,7 +35,7 @@
       </fieldset>
     </div>
 
-    <div class="columns {{ columns_css_class|default:'large-12' }}">
+    <div class="columns large-4">
       <fieldset>
         <legend>Meta information</legend>
         {% include 'foundation-5/field.html' with field=form.function %}
