@@ -19,16 +19,6 @@ from socket import error as SocketError
 
 from django import forms
 from django.db.models import Q
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (
-    Layout,
-    Row,
-    Column,
-    Fieldset,
-    Field,
-    Div,
-    HTML,
-)
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import (
