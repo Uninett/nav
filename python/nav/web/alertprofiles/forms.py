@@ -34,7 +34,6 @@ from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress, AlertSender
 from nav.util import is_valid_cidr, is_valid_ip
 from nav.web.crispyforms import (
-    FlatFieldset,
     set_flat_form_attributes,
     FormRow,
     FormColumn,
