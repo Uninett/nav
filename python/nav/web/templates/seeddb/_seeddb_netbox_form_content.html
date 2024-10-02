@@ -1,4 +1,55 @@
 {% extends 'custom_crispy_templates/_form_content.html' %}
 
 {% block form_fields %}
+  <div class="row">
+    <div class="columns {{ columns_css_class|default:'large-12' }}">
+      <fieldset>
+        <legend>Inventory</legend>
+        {% include 'foundation-5/field.html' with field=form.ip %}
+        <div id="verify-address-feedback"></div>
+        {% include 'foundation-5/field.html' with field=form.room %}
+        {% include 'foundation-5/field.html' with field=form.category %}
+        {% include 'foundation-5/field.html' with field=form.organization %}
+      </fieldset>
+    </div>
+
+    <div class="columns {{ columns_css_class|default:'large-12' }}">
+      <fieldset>
+        <legend>Management profiles</legend>
+        {% include 'foundation-5/field.html' with field=form.profiles %}
+        <input
+            type="button"
+            name="check_connectivity"
+            value="Check connectivity"
+            class="button small check_connectivity"
+            id="button-id-check_connectivity"
+        />
+      </fieldset>
+
+      <fieldset>
+        <legend>Collected info</legend>
+        <div id="real_collected_fields" class="hide">
+          {% include 'foundation-5/field.html' with field=form.sysname %}
+          {% include 'foundation-5/field.html' with field=form.type %}
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="columns {{ columns_css_class|default:'large-12' }}">
+      <fieldset>
+        <legend>Meta information</legend>
+        {% include 'foundation-5/field.html' with field=form.function %}
+        {% include 'foundation-5/field.html' with field=form.groups %}
+        {% include 'foundation-5/field.html' with field=form.data %}
+        <a class='advanced-toggle'>
+          <i class='fa fa-caret-square-o-right'>&nbsp;</i>Advanced options
+        </a>
+        <div class="advanced">
+          <small class="alert-box">NB: An IP Device cannot both have a master and have virtual instances</small>
+          {% include 'foundation-5/field.html' with field=form.master %}
+          {% include 'foundation-5/field.html' with field=form.virtual_instance %}
+        </div>
+      </fieldset>
+    </div>
+  </div>
 {% endblock form_fields %}

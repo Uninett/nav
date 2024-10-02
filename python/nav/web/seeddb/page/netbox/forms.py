@@ -126,62 +126,6 @@ class NetboxModelForm(forms.ModelForm):
         css_class = 'large-4'
         self.helper = FormHelper()
         self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Fieldset(
-                        'Inventory',
-                        'ip',
-                        Div(id='verify-address-feedback'),
-                        'room',
-                        'category',
-                        'organization',
-                    ),
-                    css_class=css_class,
-                ),
-                Column(
-                    Fieldset(
-                        'Management profiles',
-                        Field('profiles'),
-                        NavButton(
-                            'check_connectivity',
-                            'Check connectivity',
-                            css_class='check_connectivity',
-                        ),
-                    ),
-                    Fieldset(
-                        'Collected info',
-                        Div(
-                            'sysname',
-                            'type',
-                            css_class='hide',
-                            css_id='real_collected_fields',
-                        ),
-                    ),
-                    css_class=css_class,
-                ),
-                Column(
-                    Fieldset(
-                        'Meta information',
-                        'function',
-                        Field('groups'),
-                        'data',
-                        HTML(
-                            "<a class='advanced-toggle'><i class='fa fa-caret-square-o-right'>&nbsp;</i>Advanced options</a>"
-                        ),
-                        Div(
-                            HTML(
-                                '<small class="alert-box">NB: An IP Device cannot both have a master and have virtual instances</small>'
-                            ),
-                            'master',
-                            'virtual_instance',
-                            css_class='advanced',
-                        ),
-                    ),
-                    css_class=css_class,
-                ),
-            ),
-        )
 
     def create_instance_query(self, masters):
         """Creates query for virtual instance multiselect"""
