@@ -39,7 +39,6 @@ from nav.web.crispyforms import (
     FormRow,
     FormColumn,
     HelpFormField,
-    HelpField,
 )
 
 _ = lambda a: a  # gettext variable (for future implementations)
@@ -480,25 +479,55 @@ class MatchFieldForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(MatchFieldForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            'id',
-            Row(
-                Column('name', css_class='medium-4'),
-                Column('description', css_class='medium-8'),
-            ),
-            HelpField('value_help'),
-            Row(
-                Column(HelpField('value_id'), css_class='medium-4'),
-                Column(HelpField('value_name'), css_class='medium-4'),
-                Column(HelpField('value_sort'), css_class='medium-4'),
-            ),
-            Row(
-                Column(HelpField('list_limit'), css_class='medium-4'),
-                Column(HelpField('data_type'), css_class='medium-4'),
-                Column(HelpField('show_list'), css_class='medium-4'),
-            ),
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                self['id'],
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self['name']],
+                            css_classes='medium-4',
+                        ),
+                        FormColumn(
+                            fields=[self['description']],
+                            css_classes='medium-8',
+                        ),
+                    ]
+                ),
+                HelpFormField(self['value_help']),
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[HelpFormField(self['value_id'])],
+                            css_classes='medium-4',
+                        ),
+                        FormColumn(
+                            fields=[HelpFormField(self['value_name'])],
+                            css_classes='medium-4',
+                        ),
+                        FormColumn(
+                            fields=[HelpFormField(self['value_sort'])],
+                            css_classes='medium-4',
+                        ),
+                    ]
+                ),
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[HelpFormField(self['list_limit'])],
+                            css_classes='medium-4',
+                        ),
+                        FormColumn(
+                            fields=[HelpFormField(self['data_type'])],
+                            css_classes='medium-4',
+                        ),
+                        FormColumn(
+                            fields=[HelpFormField(self['show_list'])],
+                            css_classes='medium-4',
+                        ),
+                    ]
+                ),
+            ]
         )
 
     class Meta(object):
