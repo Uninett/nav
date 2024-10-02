@@ -123,9 +123,8 @@ class NetboxModelForm(forms.ModelForm):
         self.fields['profiles'].widget.attrs.update({'class': 'select2'})
         self.fields['groups'].widget.attrs.update({'class': 'select2'})
 
+        self.attrs = set_flat_form_attributes()
         css_class = 'large-4'
-        self.helper = FormHelper()
-        self.helper.form_tag = False
 
     def create_instance_query(self, masters):
         """Creates query for virtual instance multiselect"""
