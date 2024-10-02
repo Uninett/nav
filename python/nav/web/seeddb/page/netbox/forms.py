@@ -122,9 +122,6 @@ class NetboxModelForm(forms.ModelForm):
 
         css_class = 'large-4'
         self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'POST'
-        self.helper.form_id = 'seeddb-netbox-form'
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Row(
