@@ -120,6 +120,9 @@ class NetboxModelForm(forms.ModelForm):
             # Set the inital value of the function field
             self.fields['function'].initial = self.instance.get_function()
 
+        self.fields['profiles'].widget.attrs.update({'class': 'select2'})
+        self.fields['groups'].widget.attrs.update({'class': 'select2'})
+
         css_class = 'large-4'
         self.helper = FormHelper()
         self.helper.form_tag = False
@@ -139,7 +142,7 @@ class NetboxModelForm(forms.ModelForm):
                 Column(
                     Fieldset(
                         'Management profiles',
-                        Field('profiles', css_class='select2'),
+                        Field('profiles'),
                         NavButton(
                             'check_connectivity',
                             'Check connectivity',
@@ -161,7 +164,7 @@ class NetboxModelForm(forms.ModelForm):
                     Fieldset(
                         'Meta information',
                         'function',
-                        Field('groups', css_class='select2'),
+                        Field('groups'),
                         'data',
                         HTML(
                             "<a class='advanced-toggle'><i class='fa fa-caret-square-o-right'>&nbsp;</i>Advanced options</a>"
