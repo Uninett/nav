@@ -33,7 +33,14 @@ from nav.models.profiles import Expression, Filter, FilterGroup, MatchField, Ope
 from nav.models.profiles import AlertProfile, TimePeriod, AlertSubscription
 from nav.models.profiles import AlertAddress, AlertSender
 from nav.util import is_valid_cidr, is_valid_ip
-from nav.web.crispyforms import HelpField
+from nav.web.crispyforms import (
+    FlatFieldset,
+    set_flat_form_attributes,
+    FormRow,
+    FormColumn,
+    HelpFormField,
+    HelpField,
+)
 
 _ = lambda a: a  # gettext variable (for future implementations)
 
@@ -258,6 +265,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                     ),
                 },
                 label='Send alerts to',
+                widget=forms.Select(attrs={'class': 'select2'}),
             )
             self.fields['filter_group'] = forms.ModelChoiceField(
                 queryset=filter_groups,
@@ -269,8 +277,14 @@ class AlertSubscriptionForm(forms.ModelForm):
                     ),
                 },
                 label='Watch',
+                widget=forms.Select(attrs={'class': 'select2'}),
+            )
+            self.fields['ignore_resolved_alerts'] = forms.BooleanField(
+                required=False,
+                widget=forms.CheckboxInput(attrs={'class': 'input-align'}),
             )
             self.fields['type'].label = 'When'
+            self.fields['type'].widget.attrs.update({"class": "select2"})
             self.fields[
                 'type'
             ].help_text = """
@@ -289,23 +303,30 @@ class AlertSubscriptionForm(forms.ModelForm):
                     over and a new one starts.</dd>
             </dl>
             """
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Field('filter_group', css_class='select2'), css_class='medium-3'
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self['filter_group']],
+                            css_classes='medium-3',
+                        ),
+                        FormColumn(
+                            fields=[self['alert_address']],
+                            css_classes='medium-3',
+                        ),
+                        FormColumn(
+                            fields=[HelpFormField(self['type'])],
+                            css_classes='medium-3',
+                        ),
+                        FormColumn(
+                            fields=[self['ignore_resolved_alerts']],
+                            css_classes='medium-3',
+                        ),
+                    ]
                 ),
-                Column(
-                    Field('alert_address', css_class='select2'), css_class='medium-3'
-                ),
-                Column(HelpField('type', css_class='select2'), css_class='medium-3'),
-                Column(
-                    Field('ignore_resolved_alerts', css_class='input-align'),
-                    css_class='medium-3',
-                ),
-            ),
-            *hidden_fields,
+                *[self[field] for field in hidden_fields],
+            ]
         )
 
     def clean(self):
