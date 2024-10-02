@@ -35,7 +35,6 @@ from nav.web.crispyforms import (
     FlatFieldset,
     FormColumn,
     FormRow,
-    NavButton,
     SubmitField,
     set_flat_form_attributes,
 )
