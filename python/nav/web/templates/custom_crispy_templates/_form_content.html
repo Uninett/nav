@@ -4,6 +4,8 @@
   {% csrf_token %}
 {% endif %}
 
+{% include 'foundation-5/errors.html' %}
+
 {% if form.attrs.form_fields %}
   {% include 'custom_crispy_templates/_form_fields.html' with fields=form.attrs.form_fields %}
 {% else %}

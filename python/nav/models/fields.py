@@ -45,10 +45,7 @@ class DateTimeInfinityField(models.DateTimeField):
             return super(DateTimeInfinityField, self).get_db_prep_value(
                 value, connection, prepared=prepared
             )
-        try:
-            return connection.ops.value_to_db_datetime(value)  # <= 1.8
-        except AttributeError:
-            return connection.ops.adapt_datetimefield_value(value)  # >= 1.9
+        return connection.ops.adapt_datetimefield_value(value)
 
 
 class VarcharField(models.TextField):
