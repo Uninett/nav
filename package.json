@@ -1,0 +1,20 @@
+{
+  "name": "NAV frontend",
+  "description": "Network Administration Visualized frontend",
+  "version": "5",
+  "private": true,
+  "dependencies": {
+    "css-loader": "^6.10.0",
+    "glob": "^10.3.10",
+    "mini-css-extract-plugin": "^2.8.0",
+    "sass": "^1.71.1",
+    "sass-loader": "^14.1.1",
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4",
+    "webpack-remove-empty-scripts": "^1.0.4"
+  },
+  "scripts": {
+    "watch:sass": "webpack --config webpack.config.js --config-name sass --mode development --watch",
+    "build:sass": "webpack --config webpack.config.js --config-name sass --mode production"
+  }
+}
