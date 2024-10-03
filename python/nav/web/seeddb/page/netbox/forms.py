@@ -31,7 +31,15 @@ from crispy_forms_foundation.layout import (
 )
 
 from nav.django.forms import HStoreField
-from nav.web.crispyforms import LabelSubmit, NavButton
+from nav.web.crispyforms import (
+    FlatFieldset,
+    FormColumn,
+    FormRow,
+    NavButton,
+    SubmitField,
+    set_flat_form_attributes,
+)
+
 from nav.models.manage import Room, Category, Organization, Netbox, ManagementProfile
 from nav.web.seeddb.utils.edit import (
     resolve_ip_and_sysname,
@@ -281,25 +289,46 @@ class NetboxFilterForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(NetboxFilterForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'GET'
-        self.helper.form_class = 'custom'
 
-        self.helper.layout = Layout(
-            Fieldset(
-                'Filter devices',
-                Row(
-                    Column('category', css_class='medium-3'),
-                    Column('room', css_class='medium-3'),
-                    Column('organization', css_class='medium-3'),
-                    Column('profile', css_class='medium-3'),
-                    Column(
-                        LabelSubmit('submit', 'Filter', css_class='postfix'),
-                        css_class='medium-3',
-                    ),
-                ),
-            )
+        common_class = "medium-3"
+
+        self.attrs = set_flat_form_attributes(
+            form_method="get",
+            form_class="custom",
+            form_fields=[
+                FlatFieldset(
+                    "Filter devices",
+                    fields=[
+                        FormRow(
+                            fields=[
+                                FormColumn(
+                                    fields=[self["category"]], css_classes=common_class
+                                ),
+                                FormColumn(
+                                    fields=[self["room"]], css_classes=common_class
+                                ),
+                                FormColumn(
+                                    fields=[self["organization"]],
+                                    css_classes=common_class,
+                                ),
+                                FormColumn(
+                                    fields=[self["profile"]], css_classes=common_class
+                                ),
+                                FormColumn(
+                                    fields=[
+                                        SubmitField(
+                                            value="Filter",
+                                            css_classes="postfix",
+                                            has_empty_label=True,
+                                        )
+                                    ],
+                                    css_classes=common_class,
+                                ),
+                            ]
+                        )
+                    ],
+                )
+            ],
         )
 
     @staticmethod
