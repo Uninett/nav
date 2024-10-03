@@ -19,23 +19,12 @@ from socket import error as SocketError
 
 from django import forms
 from django.db.models import Q
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (
-    Layout,
-    Row,
-    Column,
-    Fieldset,
-    Field,
-    Div,
-    HTML,
-)
 
 from nav.django.forms import HStoreField
 from nav.web.crispyforms import (
     FlatFieldset,
     FormColumn,
     FormRow,
-    NavButton,
     SubmitField,
     set_flat_form_attributes,
 )
@@ -120,68 +109,10 @@ class NetboxModelForm(forms.ModelForm):
             # Set the inital value of the function field
             self.fields['function'].initial = self.instance.get_function()
 
-        css_class = 'large-4'
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'POST'
-        self.helper.form_id = 'seeddb-netbox-form'
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Fieldset(
-                        'Inventory',
-                        'ip',
-                        Div(id='verify-address-feedback'),
-                        'room',
-                        'category',
-                        'organization',
-                    ),
-                    css_class=css_class,
-                ),
-                Column(
-                    Fieldset(
-                        'Management profiles',
-                        Field('profiles', css_class='select2'),
-                        NavButton(
-                            'check_connectivity',
-                            'Check connectivity',
-                            css_class='check_connectivity',
-                        ),
-                    ),
-                    Fieldset(
-                        'Collected info',
-                        Div(
-                            'sysname',
-                            'type',
-                            css_class='hide',
-                            css_id='real_collected_fields',
-                        ),
-                    ),
-                    css_class=css_class,
-                ),
-                Column(
-                    Fieldset(
-                        'Meta information',
-                        'function',
-                        Field('groups', css_class='select2'),
-                        'data',
-                        HTML(
-                            "<a class='advanced-toggle'><i class='fa fa-caret-square-o-right'>&nbsp;</i>Advanced options</a>"
-                        ),
-                        Div(
-                            HTML(
-                                '<small class="alert-box">NB: An IP Device cannot both have a master and have virtual instances</small>'
-                            ),
-                            'master',
-                            'virtual_instance',
-                            css_class='advanced',
-                        ),
-                    ),
-                    css_class=css_class,
-                ),
-            ),
-        )
+        self.fields['profiles'].widget.attrs.update({'class': 'select2'})
+        self.fields['groups'].widget.attrs.update({'class': 'select2'})
+
+        self.attrs = set_flat_form_attributes()
 
     def create_instance_query(self, masters):
         """Creates query for virtual instance multiselect"""

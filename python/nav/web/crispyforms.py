@@ -19,19 +19,13 @@ from typing import Optional
 
 from django import forms
 from crispy_forms.layout import BaseInput
-from crispy_forms_foundation.layout import Field, Submit, Button
+from crispy_forms_foundation.layout import Field, Submit
 
 
 class NavSubmit(BaseInput):
     """Displays proper Foundation submit button"""
 
     input_type = 'submit'
-    field_classes = 'button small'
-
-
-class NavButton(Button):
-    """A normal nav size button"""
-
     field_classes = 'button small'
 
 

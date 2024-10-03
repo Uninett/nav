@@ -6,13 +6,15 @@
 
 {% include 'foundation-5/errors.html' %}
 
-{% if form.attrs.form_fields %}
-  {% include 'custom_crispy_templates/_form_fields.html' with fields=form.attrs.form_fields %}
-{% else %}
-  {% for field in form %}
-    {% include 'foundation-5/field.html' %}
-  {% endfor %}
-{% endif %}
-{% if form.attrs.submit_field %}
-  {% include 'custom_crispy_templates/submit_field.html' with input=form.attrs.submit_field %}
-{% endif %}
+{% block form_fields %}
+  {% if form.attrs.form_fields %}
+    {% include 'custom_crispy_templates/_form_fields.html' with fields=form.attrs.form_fields %}
+  {% else %}
+    {% for field in form %}
+      {% include 'foundation-5/field.html' %}
+    {% endfor %}
+  {% endif %}
+  {% if form.attrs.submit_field %}
+    {% include 'custom_crispy_templates/submit_field.html' with input=form.attrs.submit_field %}
+  {% endif %}
+{% endblock form_fields %}
