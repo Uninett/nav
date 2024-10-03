@@ -8,13 +8,66 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
-NAV 5.11 (Unreleased)
-=====================
+NAV 5.11
+========
+
+This is mostly an interim release to shed old dependencies that are ultimately
+keeping NAV from running on Python 3.11 and newer.  While there are some bug
+fixes, the main new user-facing feature in this release is the completion of
+the lifecycle events system.
 
 Dependency changes
 ------------------
 
 .. IMPORTANT:: NAV 5.11 requires PostgreSQL to be at least version *13*.
+.. IMPORTANT:: NAV 5.11 no longer supports Python versions older than *3.9*.
+
+Python modules with changed version requirements:
+
+* :mod:`twisted` (``>=23.8.0<24.0``)
+* :mod:`sphinx` (``==7.4.7``)
+
+New Python modules required:
+
+* :mod:`requests`
+* :mod:`pyjwt` (``>=2.6.0``)
+
+These Python modules are no longer required due to support for Python versions
+older than 3.9 being dropped:
+
+* :mod:`backports.zoneinfo`
+* :mod:`importlib_metadata`
+* :mod:`importlib_resources`
+
+
+More lifecycle events
+---------------------
+
+NAV 5.11 adds more lifecycle events that are posted when devices disappear or
+are removed (i.e. they appear to be taken out of service and put on the shelf),
+enabling a more complete lifecycle log of individual devices:
+
+* ``deviceDeletedFan`` is posted for fan entities that disappear from IP devices.
+* ``deviceDeletedPsu`` is posted for power supply entities that disappear from IP devices.
+* ``deviceDeletedChassis`` is posted for a chassis that are forcibly deleted
+  from a stack by a NAV operator (using the status or device history tools).
+* ``deviceDeletedModule`` is posted for a module that are forcibly deleted from
+  an IP device by a NAV operator (using the status or device history tools).
+
+Features in the making
+----------------------
+
+The changelog references several features that are not yet complete, that will
+be completed in upcoming feature releases.  These include:
+
+* Replacing the existing opaque API token system with self-signed JSON Web
+  Tokens (JWTs).  NAV already supports API authentication through JWTs signed
+  by authorized third parties.
+
+* An OUI vendor database is added to NAV, in order to keep track of which MAC
+  address prefixes are assigned to which hardware vendors.  This will be
+  utilized for machine tracker searches in a future NAV release.
+
 
 NAV 5.10 (Unreleased)
 =====================
