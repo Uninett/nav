@@ -1,1 +1,0 @@
-Change Python code due to dropping Python 3.7

@@ -1,1 +1,0 @@
-Make the test suite easier to run under MacOS
