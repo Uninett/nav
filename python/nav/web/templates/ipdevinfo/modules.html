@@ -1,5 +1,3 @@
-{% load crispy_forms_tags %}
-
 {% if port_view.perspective == 'swportactive' %}
   <h5>
     Activity based on CAM records since
@@ -12,7 +10,7 @@
         {% if activity_interval_form.attrs %}
           {% include 'custom_crispy_templates/_form_content.html' with form=activity_interval_form %}
         {% else %}
-          {% crispy activity_interval_form %}
+          {{ activity_interval_form }}
         {% endif %}
       </form>
     </div>
