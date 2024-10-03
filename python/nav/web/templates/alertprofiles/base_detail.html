@@ -15,7 +15,11 @@
   </h4>
 
   <form action="{% block url_edit %}{% endblock %}" method="post" >
-    {% crispy form %}
+    {% if form.attrs %}
+      {% include 'custom_crispy_templates/_form_content.html' %}
+    {% else %}
+      {% crispy form %}
+    {% endif %}
 
     {% block form_additional_fields %}
     {% endblock %}
