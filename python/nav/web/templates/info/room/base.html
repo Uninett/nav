@@ -1,5 +1,4 @@
 {% extends "info/base.html" %}
-{% load crispy_forms_tags %}
 {% load silent_include %}
 
 {% block base_header_additional_head %}
@@ -13,8 +12,7 @@
   {% block roominfo %}
 
     <h3>Room search</h3>
-    {% crispy searchform %}
-
+    {% include 'custom_crispy_templates/flat_form.html' with form=searchform %}
     {% if searchform.is_bound %}
 
       {% if rooms %}

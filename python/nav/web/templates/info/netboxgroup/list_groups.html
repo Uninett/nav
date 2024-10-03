@@ -1,5 +1,4 @@
 {% extends "info/netboxgroup/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   {{ block.super }}
@@ -16,7 +15,7 @@
 {% block content %}
 
   <h3>Device Group search</h3>
-  {% crispy searchform %}
+  {% include 'custom_crispy_templates/flat_form.html' with form=searchform %}
 
   <table id="device-groups-table" class="listtable">
     <caption>Device Groups</caption>

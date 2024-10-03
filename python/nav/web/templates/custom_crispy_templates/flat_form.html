@@ -1,5 +1,7 @@
 <form method="{{ form.attrs.method }}"
       {% if form.attrs.action %}action="{% url form.attrs.action %}"{% endif %}
+      {% if form.attrs.form_class %}class="{{ form.attrs.form_class }}"{% endif %}
+      {% if form.attrs.form_id %}id="{{ form.attrs.form_id }}"{% endif %}
 >
   {% block form_content %}
     {% include 'custom_crispy_templates/_form_content.html' %}

@@ -39,7 +39,7 @@ class PrefixSearchForm(SearchForm):
         super(PrefixSearchForm, self).__init__(
             *args, form_action='prefix-index', placeholder='a.b.c.d/e', **kwargs
         )
-        self.helper.form_id = 'prefix-search-form'
+        self.attrs.form_id = 'prefix-search-form'
 
     def clean_query(self):
         """Make sure it's something we can use"""
