@@ -6,7 +6,7 @@ psycopg2==2.9.9  # requires libpq to build
 IPy==1.01
 pyaml
 
-twisted>=23.8.0
+twisted>=23.8.0<24.0
 
 networkx==2.6.3
 # Cannot be removed as long as qrcode is included
