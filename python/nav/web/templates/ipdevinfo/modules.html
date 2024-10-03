@@ -9,7 +9,11 @@
   <div class="row">
     <div class="medium-6 column">
       <form id="switchport_activity_recheck" action="" method="get">
-        {% crispy activity_interval_form %}
+        {% if activity_interval_form.attrs %}
+          {% include 'custom_crispy_templates/_form_content.html' with form=activity_interval_form %}
+        {% else %}
+          {% crispy activity_interval_form %}
+        {% endif %}
       </form>
     </div>
     <div class="medium-6 column">
