@@ -16,10 +16,19 @@
 """Forms for sorted stats"""
 
 from operator import itemgetter
+
 from django import forms
-from crispy_forms.helper import FormHelper
+
 from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column
-from nav.web.crispyforms import LabelSubmit
+
+from nav.web.crispyforms import (
+    FlatFieldset,
+    FormColumn,
+    FormRow,
+    LabelSubmit,
+    SubmitField,
+    set_flat_form_attributes,
+)
 from . import CLASSMAP, TIMEFRAMES
 
 
@@ -60,23 +69,39 @@ class ViewForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ViewForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_class = 'custom'
-        self.helper.form_action = ''
-        self.helper.form_method = 'GET'
-        self.helper.help_text_inline = True
-        self.helper.layout = Layout(
-            Fieldset(
-                'Choose statistic',
-                Row(
-                    Column('view', css_class='medium-5'),
-                    Column('timeframe', css_class='medium-3'),
-                    Column('rows', css_class='medium-1'),
-                    Column(
-                        LabelSubmit('submit', 'Show statistics', css_class='postfix'),
-                        css_class='medium-3',
-                    ),
-                    Column('use_cache'),
-                ),
-            )
+
+        self.attrs = set_flat_form_attributes(
+            form_method="get",
+            form_class="custom",
+            form_fields=[
+                FlatFieldset(
+                    "Choose statistic",
+                    fields=[
+                        FormRow(
+                            fields=[
+                                FormColumn(
+                                    fields=[self["view"]], css_classes="medium-5"
+                                ),
+                                FormColumn(
+                                    fields=[self["timeframe"]], css_classes="medium-3"
+                                ),
+                                FormColumn(
+                                    fields=[self["rows"]], css_classes="medium-1"
+                                ),
+                                FormColumn(
+                                    fields=[
+                                        SubmitField(
+                                            value="Show statistics",
+                                            css_classes="postfix",
+                                            has_empty_label=True,
+                                        )
+                                    ],
+                                    css_classes="medium-3",
+                                ),
+                                FormColumn(fields=[self["use_cache"]]),
+                            ]
+                        )
+                    ],
+                )
+            ],
         )
