@@ -8,7 +8,7 @@
       {% if filter_form.attrs %}
         {% include 'custom_crispy_templates/flat_form.html' with form=filter_form %}
       {% else %}
-        {% crispy filter_form %}
+        {{ filter_form }}
       {% endif %}
     {% else %}
       <div class="row">
