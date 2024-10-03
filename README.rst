@@ -29,7 +29,7 @@ NAV is licensed under the *GNU GPL version 3*.  NAV includes software from third
 parties, which are either licensed under the GPL or compatible licenses.
 
 * Copyright 2002-2021 Uninett AS
-* Copyright 2022-2023 Sikt
+* Copyright 2022-2024 Sikt
 
 See individual source files for more detailed copyright notices.
 
@@ -56,7 +56,7 @@ upgrade instructions.
 Take it for a quick spin
 ------------------------
 For instruction on how to use docker to run code straight from the repo, see
-`<doc/hacking/using-docker.rst>`_.  Please be aware, though, that this is a highly developer-oriented environment, and is not suitable for production use. 
+`<doc/hacking/using-docker.rst>`_.  Please be aware, though, that this is a highly developer-oriented environment, and is not suitable for production use.
 
 Contributing
 ------------
