@@ -63,19 +63,29 @@ class AlertProfileForm(forms.ModelForm):
 
         self.fields['daily_dispatch_time'].widget = forms.TimeInput(format='%H:%M')
         self.fields['weekly_dispatch_time'].widget = forms.TimeInput(format='%H:%M')
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            'id',
-            'name',
-            Row(
-                Column('daily_dispatch_time', css_class='medium-4'),
-                Column('weekly_dispatch_time', css_class='medium-4'),
-                Column(
-                    Field('weekly_dispatch_day', css_class='select2'),
-                    css_class='medium-4',
+        self.fields['weekly_dispatch_day'].widget.attrs.update({'class': 'select2'})
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                self["id"],
+                self["name"],
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self["daily_dispatch_time"]],
+                            css_classes="medium-4",
+                        ),
+                        FormColumn(
+                            fields=[self["weekly_dispatch_time"]],
+                            css_classes="medium-4",
+                        ),
+                        FormColumn(
+                            fields=[self["weekly_dispatch_day"]],
+                            css_classes="medium-4",
+                        ),
+                    ]
                 ),
-            ),
+            ]
         )
 
     class Meta(object):
