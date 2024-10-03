@@ -195,6 +195,6 @@ def set_flat_form_attributes(
         method=form_method,
         submit_field=submit_field,
         form_fields=form_fields,
-        form_id='',
+        form_id=form_id,
         form_class=form_class,
     )
