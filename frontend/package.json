@@ -13,11 +13,8 @@
     "webpack-cli": "^5.1.4",
     "webpack-remove-empty-scripts": "^1.0.4"
   },
-  "devDependencies": {
-    "webpack-dev-server": "^5.0.2"
-  },
   "scripts": {
-    "build:sass:dev": "webpack --config webpack.config.js --config-name sass --mode=development --node-env=development",
-    "build:sass:prod": "webpack --config webpack.config.js --config-name sass --mode=production --node-env=production"
+    "watch:sass": "webpack --config webpack.config.js --config-name sass --mode development --watch",
+    "build:sass": "webpack --config webpack.config.js --config-name sass --mode production"
   }
 }

@@ -4,11 +4,9 @@ const glob = require('glob');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 
-const isProduction = process.env.NODE_ENV === 'production';
-
 const stylesHandler = MiniCssExtractPlugin.loader;
 
-const config = [
+module.exports = [
     {
         name: 'sass',
         entry: {
@@ -22,10 +20,6 @@ const config = [
         output: {
             path: path.join(__dirname, '../python/nav/web/static/css'),
             clean: true,
-        },
-        devServer: {
-            open: true,
-            host: 'localhost',
         },
         plugins: [
             new MiniCssExtractPlugin(),
@@ -45,13 +39,3 @@ const config = [
         },
     },
 ];
-
-
-module.exports = () => {
-    if (isProduction) {
-        config.mode = 'production';
-    } else {
-        config.mode = 'development';
-    }
-    return config;
-};
