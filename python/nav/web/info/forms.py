@@ -43,11 +43,7 @@ class SearchForm(forms.Form):
                     [
                         FormColumn([self['query']], css_classes='medium-9'),
                         FormColumn(
-                            [
-                                SubmitField(
-                                    value='Search', css_classes='submit button postfix'
-                                )
-                            ],
+                            [SubmitField(value='Search', css_classes='postfix')],
                             css_classes='medium-3',
                         ),
                     ],
