@@ -45,7 +45,7 @@ def _get_preferred_database_name():
 
 
 @pytest.fixture(scope='session')
-def postgresql(request):
+def postgresql(request, admin_username, admin_password):
     """Fixture for all tests that depend on a running PostgreSQL server. This fixture
     will try to detect and use an existing PostgreSQL instance (like if running in a
     GitHub action), otherwise it will set up a temporary PostgreSQL server for the test
@@ -62,7 +62,7 @@ def postgresql(request):
 
     dbname = _get_preferred_database_name()
     _update_db_conf_for_test_run(dbname)
-    _populate_test_database(dbname)
+    _populate_test_database(dbname, admin_username, admin_password)
     yield dbname
     print("postgres fixture is done")
 
