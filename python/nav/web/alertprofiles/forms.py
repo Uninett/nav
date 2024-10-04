@@ -99,7 +99,7 @@ class AlertAddressForm(forms.ModelForm):
         super(AlertAddressForm, self).__init__(*args, **kwargs)
         self.fields['type'].widget.attrs.update({"class": "select2"})
         self.attrs = set_flat_form_attributes(
-            form_fields={
+            form_fields=[
                 self['id'],
                 FormRow(
                     fields=[
@@ -117,7 +117,7 @@ class AlertAddressForm(forms.ModelForm):
                         ),
                     ]
                 ),
-            }
+            ]
         )
 
     class Meta(object):
