@@ -24,7 +24,7 @@ from django import forms
 from django.db.models import Q
 
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit, HTML
+from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
 
 from nav.alertengine.dispatchers.email_dispatcher import Email
 from nav.alertengine.dispatchers.slack_dispatcher import Slack
@@ -107,15 +107,27 @@ class AlertAddressForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AlertAddressForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            'id',
-            Row(
-                Column(Field('type', css_class='select2'), css_class='medium-4'),
-                Column('address', css_class='medium-4'),
-                Column(HTML(''), css_class='medium-4'),
-            ),
+        self.fields['type'].widget.attrs.update({"class": "select2"})
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                self['id'],
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self['type']],
+                            css_classes='medium-4',
+                        ),
+                        FormColumn(
+                            fields=[self['address']],
+                            css_classes='medium-4',
+                        ),
+                        FormColumn(
+                            fields=[],
+                            css_classes='medium-4',
+                        ),
+                    ]
+                ),
+            ]
         )
 
     class Meta(object):
