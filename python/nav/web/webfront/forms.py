@@ -21,12 +21,7 @@ from django.urls import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, HTML, Submit
 from nav.models.profiles import NavbarLink, Account
-from nav.web.crispyforms import (
-    CheckBox,
-    NavSubmit,
-    SubmitField,
-    set_flat_form_attributes,
-)
+from nav.web.crispyforms import CheckBox, NavSubmit
 
 
 class LoginForm(forms.Form):
@@ -38,10 +33,14 @@ class LoginForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
-        self.attrs = set_flat_form_attributes(
-            form_action='webfront-login',
-            form_fields=[self['username'], self['password'], self['origin']],
-            submit_field=SubmitField(value='Log in', css_classes='small expand'),
+        self.helper = FormHelper()
+        self.helper.form_action = 'webfront-login'
+        self.helper.form_method = 'post'
+        self.helper.layout = Layout(
+            'username',
+            'password',
+            'origin',
+            Submit('submit', 'Log in', css_class='small expand'),
         )
 
 
