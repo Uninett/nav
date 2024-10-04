@@ -1,10 +1,13 @@
 {% extends "alertprofiles/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block tabcontent %}
 
 <form action="{% url 'alertprofiles-profile-timeperiod-add' %}" method="post">
     <input type="hidden" name="valid_during" value="{{ time_period.valid_during }}" />
-    {% crispy time_period_form %}
+    {% if time_period_form.attrs %}
+        {% include 'custom_crispy_templates/_form_content.html' with form=time_period_form %}
+    {% else %}
+        {{ time_period_form }}
+    {% endif %}
 </form>
 {% endblock %}
