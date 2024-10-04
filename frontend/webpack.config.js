@@ -33,7 +33,7 @@ module.exports = [
                 },
                 {
                     test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
-                    type: 'asset'
+                    type: 'asset' // webpack will individually pick the best way to include each asset it encounters
                 },
             ],
         },
