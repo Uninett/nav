@@ -48,11 +48,7 @@
         </div>
       {% endif %}
 
-      {% if form.attrs %}
-        {% include 'custom_crispy_templates/flat_form.html' %}
-      {% else %}
-        {{ form }}
-      {% endif %}
+      {% crispy form %}
 
       <small>
         <a href="#" data-reveal-id="auditlog-information">About audit logging in NAV</a>
