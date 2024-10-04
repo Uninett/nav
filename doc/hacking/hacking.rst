@@ -156,6 +156,7 @@ Directory                          Description
                                    processes.
 :file:`python/`                    Python source code.
 :file:`python/nav/etc/`            Example/initial configuration files.
+:file:`python/nav/web/sass/`       SCSS stylesheets.
 :file:`python/nav/web/static/`     Static media such as CSS stylesheets, images and JavaScript to be
                                    served by a webserver.
 :file:`python/nav/web/templates/`  Main/global Django HTML templates. More be located in individual
@@ -282,6 +283,24 @@ developing, something browsers love to do! See `config-urlArgs
 <http://requirejs.org/docs/api.html#config-urlArgs>`_ in the RequireJS
 documentation for details. :file:`require_config.dev.js` is listed in the
 repository :file:`.gitignore` file.
+
+CSS
+---
+
+NAV uses Sass for styling. If you want to modify the styling,
+you can do so by editing the SCSS files in the :file:`python/nav/web/static/scss`
+directory. To build the CSS assets, you will need to have Node.js
+and npm installed. Once you have these installed, you can run
+the following command to build the CSS files::
+
+  npm install
+  npm run build:sass
+
+This will build the CSS assets and place them in the :file:`python/nav/web/static/css`
+directory. If you want to watch for changes in the SCSS files and rebuild the
+CSS assets automatically, you can run the following command instead::
+
+  npm run watch:sass
 
 
 
