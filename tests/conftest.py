@@ -126,7 +126,13 @@ def admin_password():
 
 
 @pytest.fixture(scope='session')
-def staticfiles(tmp_path_factory):
+def build_sass():
+    """Builds the NAV SASS files into CSS files that can be installed as static files"""
+    subprocess.check_call(["make", "sassbuild"])
+
+
+@pytest.fixture(scope='session')
+def staticfiles(build_sass, tmp_path_factory):
     """Collects Django static files into a temporary directory and return the web root
     directory path that can be served by a web server.
     """
