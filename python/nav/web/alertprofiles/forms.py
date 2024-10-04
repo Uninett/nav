@@ -441,6 +441,7 @@ class FilterForm(forms.Form):
 
         self.attrs = set_flat_form_attributes(
             form_fields=[
+                self['id'],
                 FormRow(
                     fields=[
                         FormColumn(
