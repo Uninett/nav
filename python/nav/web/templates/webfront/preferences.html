@@ -77,7 +77,11 @@
         </p>
     {% else %}
         <form method="post" id="change-password-form" action="{% url 'webfront-preferences-changepassword' %}">
-            {% crispy password_form %}
+          {% if password_form.attrs %}
+            {% include 'custom_crispy_templates/_form_content.html' with form=password_form %}
+          {% else %}
+            {{ password_form }}
+          {% endif %}
         </form>
     {% endif %}
 

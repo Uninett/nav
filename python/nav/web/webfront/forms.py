@@ -19,13 +19,14 @@ from django import forms
 from django.forms.models import modelformset_factory
 from django.urls import reverse
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, HTML, Submit
+from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, HTML
 from nav.models.profiles import NavbarLink, Account
 from nav.web.crispyforms import (
     CheckBox,
     NavSubmit,
     SubmitField,
     set_flat_form_attributes,
+    FlatFieldset,
 )
 
 
@@ -96,16 +97,18 @@ class ChangePasswordForm(forms.Form):
 
         super(ChangePasswordForm, self).__init__(*args, **kwargs)
 
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Fieldset(
-                'Change password',
-                'old_password',
-                'new_password1',
-                'new_password2',
-                Submit('submit', 'Change password', css_class='small'),
-            )
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FlatFieldset(
+                    legend='Change password',
+                    fields=[
+                        self['old_password'],
+                        self['new_password1'],
+                        self['new_password2'],
+                        SubmitField(value='Change password', css_classes='small'),
+                    ],
+                )
+            ],
         )
 
     def clean_old_password(self):
