@@ -21,11 +21,7 @@ import logging
 from django import forms
 from django.utils.safestring import mark_safe
 
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column
-
 from nav.django.forms import HStoreField
-from nav.web.crispyforms import LabelSubmit
 from nav.models.manage import (
     Location,
     Room,
@@ -143,43 +139,6 @@ def set_filter_form_attributes(
     obj.method = form_method
     obj.form_class = form_class
     return obj
-
-
-# crispy helpers
-
-
-def get_formhelper():
-    """Get the default formhelper for seeddb forms"""
-    helper = FormHelper()
-    helper.form_action = ''
-    helper.form_method = 'GET'
-    helper.form_class = 'custom'
-    return helper
-
-
-def get_layout(heading, rows):
-    """Get the default layout for filterforms
-
-    :type heading: basestring
-    :type rows: list
-    """
-    return Layout(Fieldset(heading, Row(*rows)))
-
-
-def get_single_layout(heading, row):
-    """Get default layout for a single filter"""
-    return get_layout(
-        heading,
-        [
-            Column(row, css_class='medium-8'),
-            Column(get_submit_button(), css_class='medium-4'),
-        ],
-    )
-
-
-def get_submit_button(value='Filter'):
-    """Get default submit button for seeddb filter forms"""
-    return LabelSubmit('submit', value, css_class='postfix')
 
 
 # forms
