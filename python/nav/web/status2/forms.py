@@ -27,13 +27,17 @@ from crispy_forms_foundation.layout import (
     Column,
     Field,
     Submit,
-    HTML,
-    Fieldset,
 )
 
 from nav.models.event import EventType, AlertType
 from nav.models.manage import Organization, Category, NetboxGroup, Location
-from nav.web.crispyforms import NumberField
+from nav.web.crispyforms import (
+    NumberField,
+    set_flat_form_attributes,
+    FormRow,
+    FormColumn,
+    FlatFieldset,
+)
 from . import STATELESS_THRESHOLD
 
 
@@ -57,46 +61,60 @@ class StatusPanelForm(forms.Form):
         self.fields['event_type'] = forms.MultipleChoiceField(
             choices=get_event_types(), required=False
         )
+        self.fields['event_type'].widget.attrs.update({'class': 'select2'})
         self.fields['alert_type'] = forms.MultipleChoiceField(
             choices=alert_types, required=False
         )
+        self.fields['alert_type'].widget.attrs.update({'class': 'select2'})
         self.fields['category'] = forms.MultipleChoiceField(
             choices=get_categories(), required=False
         )
+        self.fields['category'].widget.attrs.update({'class': 'select2'})
         self.fields['organization'] = forms.MultipleChoiceField(
             choices=get_organizations(), required=False
         )
+        self.fields['organization'].widget.attrs.update({'class': 'select2'})
         self.fields['device_group'] = forms.MultipleChoiceField(
             choices=get_device_groups(), required=False
         )
+        self.fields['device_group'].widget.attrs.update({'class': 'select2'})
         self.fields['location'] = forms.MultipleChoiceField(
             choices=get_locations(), required=False
         )
+        self.fields['location'].widget.attrs.update({'class': 'select2'})
         self.fields['severity'] = forms.MultipleChoiceField(
             choices=get_severity(), required=False
         )
+        self.fields['severity'].widget.attrs.update({'class': 'select2'})
 
         self.fields['not_event_type'] = forms.MultipleChoiceField(
             choices=get_event_types(), required=False
         )
+        self.fields['not_event_type'].widget.attrs.update({'class': 'select2'})
         self.fields['not_alert_type'] = forms.MultipleChoiceField(
             choices=alert_types, required=False
         )
+        self.fields['not_alert_type'].widget.attrs.update({'class': 'select2'})
         self.fields['not_category'] = forms.MultipleChoiceField(
             choices=get_categories(), required=False
         )
+        self.fields['not_category'].widget.attrs.update({'class': 'select2'})
         self.fields['not_organization'] = forms.MultipleChoiceField(
             choices=get_organizations(), required=False
         )
+        self.fields['not_organization'].widget.attrs.update({'class': 'select2'})
         self.fields['not_device_group'] = forms.MultipleChoiceField(
             choices=get_device_groups(), required=False
         )
+        self.fields['not_device_group'].widget.attrs.update({'class': 'select2'})
         self.fields['not_location'] = forms.MultipleChoiceField(
             choices=get_locations(), required=False
         )
+        self.fields['not_location'].widget.attrs.update({'class': 'select2'})
         self.fields['not_severity'] = forms.MultipleChoiceField(
             choices=get_severity(), required=False
         )
+        self.fields['not_severity'].widget.attrs.update({'class': 'select2'})
 
         self.fields['status_filters'] = forms.MultipleChoiceField(
             choices=[
@@ -107,45 +125,53 @@ class StatusPanelForm(forms.Form):
             required=False,
             label='Choose fields to filter status by',
         )
+        self.fields['status_filters'].widget.attrs.update({'class': 'select2'})
 
         column_class = 'medium-6'
-        self.helper = FormHelper()
-        self.helper.form_id = 'status-form'
-        self.helper.form_action = ''
-        self.helper.form_method = 'POST'
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Field('status_filters', css_class='select2'),
-                    Fieldset(
-                        'Status filters',
-                        Field('alert_type', css_class='select2'),
-                        Field('category', css_class='select2'),
-                        Field('device_group', css_class='select2'),
-                        Field('event_type', css_class='select2'),
-                        Field('location', css_class='select2'),
-                        Field('organization', css_class='select2'),
-                        Field('severity', css_class='select2'),
-                        Field('not_alert_type', css_class='select2'),
-                        Field('not_category', css_class='select2'),
-                        Field('not_device_group', css_class='select2'),
-                        Field('not_event_type', css_class='select2'),
-                        Field('not_location', css_class='select2'),
-                        Field('not_organization', css_class='select2'),
-                        Field('not_severity', css_class='select2'),
-                        css_class='field_list',
-                    ),
-                    css_class=column_class,
-                ),
-                Column(
-                    'stateless',
-                    'stateless_threshold',
-                    'acknowledged',
-                    'on_maintenance',
-                    css_class=column_class,
-                ),
-            ),
-            HTML('<hr>'),
+
+        self.attrs = set_flat_form_attributes(
+            form_id='status-form',
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[
+                                self['status_filters'],
+                                FlatFieldset(
+                                    'Status filters',
+                                    fields=[
+                                        self['alert_type'],
+                                        self['category'],
+                                        self['device_group'],
+                                        self['event_type'],
+                                        self['location'],
+                                        self['organization'],
+                                        self['severity'],
+                                        self['not_alert_type'],
+                                        self['not_category'],
+                                        self['not_device_group'],
+                                        self['not_event_type'],
+                                        self['not_location'],
+                                        self['not_organization'],
+                                        self['not_severity'],
+                                    ],
+                                    css_class='field_list',
+                                ),
+                            ],
+                            css_classes=column_class,
+                        ),
+                        FormColumn(
+                            fields=[
+                                self['stateless'],
+                                self['stateless_threshold'],
+                                self['acknowledged'],
+                                self['on_maintenance'],
+                            ],
+                            css_classes=column_class,
+                        ),
+                    ]
+                )
+            ],
         )
 
     def clean_stateless_threshold(self):

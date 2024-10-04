@@ -1,6 +1,5 @@
 {% extends "status2/base.html" %}
 {% load tools %}
-{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/nav/status.css"/>
@@ -30,7 +29,12 @@
     {# Form for filtering events #}
     <a href="javascript:void(0);" class="button small secondary toggle-panel"></a>
     <div id="status-panel" class="hidden panel">
-      {% crispy form %}
+      {% if form.attrs %}
+        {% include 'custom_crispy_templates/flat_form.html' %}
+      {% else %}
+        {{ form }}
+      {% endif %}
+    <hr>
       <a href="javascript:void(0);" class="button small secondary set-default">Save as my default status filter</a>
       <button id="clear-status-form" class="small secondary">Clear form</button>
     </div>
