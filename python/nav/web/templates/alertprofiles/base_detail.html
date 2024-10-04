@@ -1,5 +1,4 @@
 {% extends "alertprofiles/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block tabcontent %}
   {% block backnavigation %}{% endblock %}
@@ -18,7 +17,7 @@
     {% if form.attrs %}
       {% include 'custom_crispy_templates/_form_content.html' %}
     {% else %}
-      {% crispy form %}
+      {{ form }}
     {% endif %}
 
     {% block form_additional_fields %}
