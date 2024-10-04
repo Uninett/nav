@@ -9,6 +9,9 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 from retry import retry
 
+from django.core.management import call_command
+from django.test import override_settings
+
 
 def pytest_configure(config):
     # Bootstrap Django config
@@ -123,7 +126,20 @@ def admin_password():
 
 
 @pytest.fixture(scope='session')
-def gunicorn(postgresql):
+def staticfiles(tmp_path_factory):
+    """Collects Django static files into a temporary directory and return the web root
+    directory path that can be served by a web server.
+    """
+    webroot = tmp_path_factory.mktemp("webroot")
+    static = webroot / "static"
+    with override_settings(STATIC_ROOT=static):
+        print(f"Collecting static files in {static!r}")
+        call_command('collectstatic', interactive=False)
+        yield webroot
+
+
+@pytest.fixture(scope='session')
+def gunicorn(postgresql, staticfiles):
     """Sets up NAV to be served by a gunicorn instance.
 
     Useful for tests that need to make external HTTP requests to NAV.
@@ -140,7 +156,7 @@ def gunicorn(postgresql):
             errorlog,
             '--access-logfile',
             accesslog,
-            'navtest_wsgi:application',
+            f'navtest_wsgi:nav_test_app(root={str(staticfiles)!r})',
         ]
     )
     # Allow for gunicorn to become ready to serve requests before handing off to a test
