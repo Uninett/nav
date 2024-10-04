@@ -425,15 +425,26 @@ class FilterGroupForm(forms.Form):
             for field in self.fields.values():
                 field.widget.attrs['disabled'] = 'disabled'
 
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            'id',
-            Row(
-                Column('name', css_class='medium-4'),
-                Column('description', css_class='medium-4'),
-                Column('owner', css_class='medium-4'),
-            ),
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                self['id'],
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self['name']],
+                            css_classes='medium-4',
+                        ),
+                        FormColumn(
+                            fields=[self['description']],
+                            css_classes='medium-4',
+                        ),
+                        FormColumn(
+                            fields=[self['owner']],
+                            css_classes='medium-4',
+                        ),
+                    ]
+                ),
+            ]
         )
 
 
