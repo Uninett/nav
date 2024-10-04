@@ -1,4 +1,5 @@
 """Pytest config and fixtures for all test suites"""
+
 import os
 import platform
 import subprocess
@@ -103,8 +104,8 @@ def _populate_test_database(database_name, admin_username, admin_password):
 
     # reset password of NAV admin account if indicated by environment
     if admin_password:
-        sql = f"UPDATE account SET password = {adminpassword!r} WHERE login={admin_username!r}"
-        subprocess.check_call(["psql", "-c", sql, database_name])
+        sql = f"UPDATE account SET password = {admin_password!r} WHERE login={admin_username!r}"
+        subprocess.check_call(["psql", "-c", sql, database_name], env=env)
 
     # Add generic test data set
     test_data_path = './tests/docker/scripts/test-data.sql'
