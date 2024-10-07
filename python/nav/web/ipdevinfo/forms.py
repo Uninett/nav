@@ -100,12 +100,4 @@ class BooleanSensorForm(forms.Form):
         label='What to display in "on" state', choices=Sensor.ALERT_TYPE_CHOICES
     )
 
-    def __init__(self, *args, **kwargs):
-        """Init"""
-        super(BooleanSensorForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            'on_message', 'off_message', 'on_state', 'alert_type'
-        )
+    attrs = set_flat_form_attributes()
