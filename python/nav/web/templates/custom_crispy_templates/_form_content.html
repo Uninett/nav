@@ -1,4 +1,5 @@
 {# NB! This template can be used directly (without form template wrapper) for cases where form.helper.form_tag is set to False. #}
+{% load forms %}
 
 {% if form.attrs.method|lower == 'post' %}
   {% csrf_token %}
@@ -11,7 +12,7 @@
     {% include 'custom_crispy_templates/_form_fields.html' with fields=form.attrs.form_fields %}
   {% else %}
     {% for field in form %}
-      {% include 'foundation-5/field.html' %}
+      {% field field %}
     {% endfor %}
   {% endif %}
   {% if form.attrs.submit_field %}
