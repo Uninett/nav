@@ -1,5 +1,4 @@
 {% extends "info/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block content %}
 
@@ -7,7 +6,11 @@
 
 <div class="row">
     <div class="column medium-6">
-        {% crispy search_form %}
+        {% if search_form.attrs %}
+            {% include 'custom_crispy_templates/flat_form.html' with form=search_form %}
+        {% else %}
+            {{ search_form }}
+        {% endif %}
     </div>
 </div>
 

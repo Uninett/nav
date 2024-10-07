@@ -17,9 +17,15 @@
 
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Field, Submit
+from crispy_forms_foundation.layout import Layout, Row, Column
 from nav.models.manage import Sensor
-from nav.web.crispyforms import LabelSubmit
+from nav.web.crispyforms import (
+    FormColumn,
+    FormRow,
+    LabelSubmit,
+    SubmitField,
+    set_flat_form_attributes,
+)
 
 
 class SearchForm(forms.Form):
@@ -29,21 +35,24 @@ class SearchForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(SearchForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = 'ipdevinfo-search'
-        self.helper.form_method = 'GET'
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Field('query', placeholder='IP or hostname'), css_class='medium-9'
-                ),
-                Column(
-                    Submit('submit', 'Search', css_class='postfix'),
-                    css_class='medium-3',
-                ),
-                css_class='collapse',
-            )
+
+        self.attrs = set_flat_form_attributes(
+            form_action="ipdevinfo-search",
+            form_method="get",
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self["query"]], css_classes="medium-9"),
+                        FormColumn(
+                            fields=[SubmitField(value="Search", css_classes="postfix")],
+                            css_classes="medium-3",
+                        ),
+                    ],
+                    css_classes="collapse",
+                )
+            ],
         )
+        self.fields['query'].widget.attrs.update({"placeholder": "IP or hostname"})
 
 
 class ActivityIntervalForm(forms.Form):
