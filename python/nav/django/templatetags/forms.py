@@ -14,8 +14,11 @@ def is_checkbox(field):
 
 @register.inclusion_tag('foundation-5/field.html', name='field')
 def show_field(field):
-    """Renders a form field using a predefined template::
+    """Renders a form field using a predefined template.
 
+    Usage::
+
+        {% load forms %}
         {% field form.my_field %}
 
 
