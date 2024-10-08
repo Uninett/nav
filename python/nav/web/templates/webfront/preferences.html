@@ -63,7 +63,11 @@
         </div>
 
         <div class="column medium-6 large-7">
-          {% crispy columns_form %}
+            {% if columns_form.attrs %}
+                {% include 'custom_crispy_templates/flat_form.html' with form=columns_form %}
+            {% else %}
+                {{ columns_form }}
+            {% endif %}
         </div>
 
     </div>
