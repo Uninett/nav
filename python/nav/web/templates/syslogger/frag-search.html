@@ -6,11 +6,15 @@
 
             {% if form %}
             <form id="syslog_search_form" action="{{ form_target }}" method="get">
-                {% crispy form %}
+                {% if form.attrs %}
+                    {% include 'custom_crispy_templates/_form_content.html' %}
+                {% else %}
+                    {{ form }}
+                {% endif %}
                 <button name="send" data-target="{{ form_target }}" class="button">Search</button>
             </form>
 
-            
+
             {% endif %}
         </div>
         <div class="large-9 column">
