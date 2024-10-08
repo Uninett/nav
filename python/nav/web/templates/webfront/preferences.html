@@ -91,7 +91,11 @@
                 <fieldset>
                     <legend>'My stuff' quick links</legend>
                     <p>A quick link requires both link text and URL.</p>
-                    {% crispy navbar_formset navbar_formset.form.helper %}
+                    {% if navbar_formset.form.attrs %}
+                        {% include 'custom_crispy_templates/_form_content.html' with form=navbar_formset.form %}
+                    {% else %}
+                        {{ navbar_formset.form }}
+                  {% endif %}
                     <input type="submit" class="button primary small" name="submit" value="Save changes" />
                 </fieldset>
 
