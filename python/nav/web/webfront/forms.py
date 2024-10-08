@@ -17,13 +17,11 @@
 
 from django import forms
 from django.forms.models import modelformset_factory
-from django.urls import reverse
 from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, HTML
+from crispy_forms_foundation.layout import Layout, Row, Column, HTML
 from nav.models.profiles import NavbarLink, Account
 from nav.web.crispyforms import (
     CheckBox,
-    NavSubmit,
     SubmitField,
     set_flat_form_attributes,
     FlatFieldset,
@@ -150,13 +148,16 @@ class ColumnsForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ColumnsForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = reverse('webfront-preferences-setwidgetcolumns')
 
-        self.helper.layout = Layout(
-            Fieldset(
-                'Number of columns for widgets',
-                'num_columns',
-                NavSubmit('submit', 'Save'),
-            )
+        self.attrs = set_flat_form_attributes(
+            form_action='webfront-preferences-setwidgetcolumns',
+            form_fields=[
+                FlatFieldset(
+                    legend='Number of columns for widgets',
+                    fields=[
+                        self['num_columns'],
+                        SubmitField(value='Save', css_classes='small'),
+                    ],
+                )
+            ],
         )
