@@ -3,9 +3,13 @@ forms and functions used for syslogger in NAV
 """
 
 from django import forms
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column, Field
 from nav.models.logger import Priority, LoggerCategory, Origin, LogMessageType
+from nav.web.crispyforms import (
+    FlatFieldset,
+    FormRow,
+    FormColumn,
+    set_flat_form_attributes,
+)
 
 DATEFORMAT = ("%Y-%m-%d %H:%M",)
 
@@ -48,40 +52,61 @@ class LoggerGroupSearchForm(forms.Form):
         self.fields['timestamp_from'].widget.format = DATEFORMAT[0]
         self.fields['timestamp_to'].widget.format = DATEFORMAT[0]
 
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Fieldset(
-                        'Filter <a href="http://www.cisco.com/en/US/docs/ios/system/messages/guide/sm_cnovr.html"><i class="fa fa-info-circle"></i></a>',
-                        Row(
-                            Column(
-                                Field('facility', css_class='select2 medium-12'),
-                                css_class='medium-12',
-                            ),
-                            Column(
-                                Field('priority', css_class='select2'),
-                                css_class='medium-12',
-                            ),
-                            Column(
-                                Field('mnemonic', css_class='select2'),
-                                css_class='medium-12',
-                            ),
-                            Column(
-                                Field('origin', css_class='select2'),
-                                css_class='medium-12',
-                            ),
-                            Column(
-                                Field('category', css_class='select2'),
-                                css_class='medium-12',
-                            ),
-                            Column('timestamp_from', css_class='medium-12'),
-                            Column('timestamp_to', css_class='medium-12'),
-                            Column('show_log', css_class='medium-12'),
-                        ),
-                    ),
-                    css_class='medium-12',
-                ),
-            ),
+        for field in ('facility', 'priority', 'mnemonic', 'origin', 'category'):
+            self.fields[field].widget.attrs.update({"class": "select2"})
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[
+                                FlatFieldset(
+                                    legend='Filter',
+                                    fields=[
+                                        FormRow(
+                                            fields=[
+                                                FormColumn(
+                                                    fields=[self['facility']],
+                                                    css_classes='medium-12',
+                                                ),
+                                                FormColumn(
+                                                    fields=[self['priority']],
+                                                    css_classes='medium-12',
+                                                ),
+                                                FormColumn(
+                                                    fields=[self['mnemonic']],
+                                                    css_classes='medium-12',
+                                                ),
+                                                FormColumn(
+                                                    fields=[self['origin']],
+                                                    css_classes='medium-12',
+                                                ),
+                                                FormColumn(
+                                                    fields=[self['category']],
+                                                    css_classes='medium-12',
+                                                ),
+                                                FormColumn(
+                                                    fields=[self['timestamp_from']],
+                                                    css_classes='medium-12',
+                                                ),
+                                                FormColumn(
+                                                    fields=[self['timestamp_to']],
+                                                    css_classes='medium-12',
+                                                ),
+                                                FormColumn(
+                                                    fields=[self['show_log']],
+                                                    css_classes='medium-12',
+                                                ),
+                                            ]
+                                        )
+                                    ],
+                                    template='syslogger/frag-search-form-fieldset.html',
+                                )
+                            ],
+                            css_classes='medium-12',
+                        )
+                    ]
+                )
+            ]
         )

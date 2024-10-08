@@ -6,7 +6,7 @@
 
             {% if form %}
             <form id="syslog_search_form" action="{{ form_target }}" method="get">
-                {% crispy form %}
+                {% include 'custom_crispy_templates/_form_content.html' %}
                 <button name="send" data-target="{{ form_target }}" class="button">Search</button>
             </form>
 
