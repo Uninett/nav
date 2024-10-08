@@ -24,7 +24,8 @@ def show_field(field):
 
     :param field: The form field to be rendered.
     :type field: django.forms.BoundField
-    :return: A dictionary that will be used as a template context for the field template.
+    :return: A dictionary that will be used as a template context for the field
+    template.
     :rtype: dict
     """
     return {'field': field}
