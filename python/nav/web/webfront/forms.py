@@ -27,6 +27,8 @@ from nav.web.crispyforms import (
     SubmitField,
     set_flat_form_attributes,
     FlatFieldset,
+    FormColumn,
+    FormRow,
 )
 
 
@@ -64,6 +66,20 @@ class NavbarlinkForm(forms.ModelForm):
                     css_class='link-delete medium-2',
                 ),
             ),
+        )
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self['name']], css_classes='medium-5'),
+                        FormColumn(fields=[self['uri']], css_classes='medium-5'),
+                        FormColumn(
+                            fields=['DELETE'], css_classes='link-delete medium-2'
+                        ),
+                    ]
+                )
+            ]
         )
 
 
