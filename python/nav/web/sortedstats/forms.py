@@ -19,13 +19,10 @@ from operator import itemgetter
 
 from django import forms
 
-from crispy_forms_foundation.layout import Layout, Fieldset, Row, Column
-
 from nav.web.crispyforms import (
     FlatFieldset,
     FormColumn,
     FormRow,
-    LabelSubmit,
     SubmitField,
     set_flat_form_attributes,
 )
