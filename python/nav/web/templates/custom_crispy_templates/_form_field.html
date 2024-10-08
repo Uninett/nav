@@ -7,5 +7,5 @@
 {% elif field.input_type == 'helpfield' %}
   {% include 'custom_crispy_templates/field_helptext_as_icon.html' with field=field.field %}
 {% else %}
-  {% field field %}
+  {% show_field field %}
 {% endif %}

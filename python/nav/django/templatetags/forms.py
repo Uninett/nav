@@ -12,14 +12,14 @@ def is_checkbox(field):
     return isinstance(field.field.widget, forms.CheckboxInput)
 
 
-@register.inclusion_tag('foundation-5/field.html', name='field')
+@register.inclusion_tag('foundation-5/field.html')
 def show_field(field):
     """Renders a form field using a predefined template.
 
     Usage::
 
         {% load forms %}
-        {% field form.my_field %}
+        {% show_field form.my_field %}
 
 
     :param field: The form field to be rendered.

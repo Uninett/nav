@@ -12,7 +12,7 @@
     {% include 'custom_crispy_templates/_form_fields.html' with fields=form.attrs.form_fields %}
   {% else %}
     {% for field in form %}
-      {% field field %}
+      {% show_field field %}
     {% endfor %}
   {% endif %}
   {% if form.attrs.submit_field %}
