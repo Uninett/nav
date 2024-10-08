@@ -31,7 +31,7 @@ from nav.web.seeddb.page.service import ServiceInfo
 
 
 class ServiceChoiceForm(forms.Form):
-    """For for editing services"""
+    """Form for editing services"""
 
     def __init__(self, *args, **kwargs):
         super(ServiceChoiceForm, self).__init__(*args, **kwargs)
