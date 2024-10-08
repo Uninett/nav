@@ -18,13 +18,7 @@ from types import SimpleNamespace
 from typing import Optional
 
 from django import forms
-from crispy_forms_foundation.layout import Field, Submit
-
-
-class LabelSubmit(Submit):
-    """Submitbutton with a label above it to align within a row"""
-
-    template = 'custom_crispy_templates/submit.html'
+from crispy_forms_foundation.layout import Field
 
 
 class CheckBox(Field):
