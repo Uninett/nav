@@ -10,3 +10,22 @@ register = template.Library()
 @register.filter
 def is_checkbox(field):
     return isinstance(field.field.widget, forms.CheckboxInput)
+
+
+@register.inclusion_tag('foundation-5/field.html')
+def show_field(field):
+    """Renders a form field using a predefined template.
+
+    Usage::
+
+        {% load forms %}
+        {% show_field form.my_field %}
+
+
+    :param field: The form field to be rendered.
+    :type field: django.forms.BoundField
+    :return: A dictionary that will be used as a template context for the field
+    template.
+    :rtype: dict
+    """
+    return {'field': field}
