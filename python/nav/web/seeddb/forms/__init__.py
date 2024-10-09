@@ -129,25 +129,6 @@ def cut_branch(field, klass, pk):
 # non-crispy helpers
 
 
-def set_filter_form_attributes(
-    legend,
-    submit_value='Filter',
-    form_action='',
-    form_method='get',
-    form_class='custom',
-):
-    class Obj:
-        pass
-
-    obj = Obj()
-    obj.legend = legend
-    obj.submit_value = submit_value
-    obj.action = form_action
-    obj.method = form_method
-    obj.form_class = form_class
-    return obj
-
-
 def get_single_layout(heading, row):
     """Get default layout for a single filter"""
     return set_flat_form_attributes(
@@ -185,10 +166,10 @@ class RoomFilterForm(forms.Form):
     """Form for filtering rooms"""
 
     location = forms.ModelChoiceField(
-        Location.objects.order_by('id').all(), required=False, label_suffix=''
+        Location.objects.order_by('id').all(), required=False
     )
     location.widget.attrs.update({"class": "select"})
-    no_crispy = set_filter_form_attributes('Filter rooms')
+    attrs = get_single_layout(heading="Filter rooms", row=[location])
 
 
 class RoomForm(forms.ModelForm):
@@ -303,10 +284,8 @@ class OrganizationMoveForm(forms.Form):
 class NetboxTypeFilterForm(forms.Form):
     """Form for filtering a netbox type by vendor"""
 
-    vendor = forms.ModelChoiceField(
-        Vendor.objects.order_by('id').all(), required=False, label_suffix=''
-    )
-    no_crispy = set_filter_form_attributes('Filter types')
+    vendor = forms.ModelChoiceField(Vendor.objects.order_by('id').all(), required=False)
+    attrs = get_single_layout(heading="Filter types", row=[vendor])
 
 
 class NetboxTypeForm(forms.ModelForm):
