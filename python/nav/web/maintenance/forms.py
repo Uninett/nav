@@ -16,8 +16,7 @@
 from datetime import date
 
 from django import forms
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Field
+from nav.web.crispyforms import set_flat_form_attributes, FormRow, FormColumn
 from nav.models.fields import INFINITY
 
 
@@ -29,20 +28,20 @@ class MaintenanceTaskForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(MaintenanceTaskForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Field('start_time', css_class='datetimepicker'),
-                    css_class="medium-6",
+        self.fields['start_time'].widget.attrs['class'] = 'datetimepicker'
+        self.fields['end_time'].widget.attrs['class'] = 'datetimepicker'
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self['start_time']], css_classes='medium-6'),
+                        FormColumn(fields=[self['end_time']], css_classes='medium-6'),
+                    ]
                 ),
-                Column(
-                    Field('end_time', css_class='datetimepicker'), css_class="medium-6"
-                ),
-            ),
-            'no_end_time',
-            'description',
+                self['no_end_time'],
+                self['description'],
+            ]
         )
 
         # If end_time infinity, check no_end time and disable input
