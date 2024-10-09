@@ -16,8 +16,7 @@
 """Form models for Messages"""
 
 from django.forms import ModelForm
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Submit
+from nav.web.crispyforms import set_flat_form_attributes, SubmitField, FlatFieldset
 
 from nav.models.msgmaint import Message
 from nav.models.msgmaint import MessageToMaintenanceTask
@@ -28,11 +27,22 @@ class MessageForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(MessageForm, self).__init__(*args, **kwargs)
-
-        self.helper = FormHelper()
-        self.helper.form_action = ""
-        self.helper.form_method = 'POST'
-        self.helper.add_input(Submit('submit', 'Save message', css_class='small'))
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FlatFieldset(
+                    legend='',
+                    fields=[
+                        self['title'],
+                        self['description'],
+                        self['tech_description'],
+                        self['publish_start'],
+                        self['publish_end'],
+                        self['maintenance_tasks'],
+                    ],
+                ),
+            ],
+            submit_field=SubmitField(value='Save message', css_classes='small'),
+        )
 
         # Since the m2m uses through, we need to fetch initial data manually
         initials = []
