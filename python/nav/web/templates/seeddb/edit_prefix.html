@@ -2,5 +2,9 @@
 {% load crispy_forms_tags %}
 {% block crispyfields %}
 {{ block.super }}
-{{ vlan_form|crispy }}
+{% if vlan_form.attrs %}
+    {% include 'custom_crispy_templates/_form_content.html' with form=vlan_form %}
+{% else %}
+    {{ vlan_form }}
+{% endif %}
 {% endblock %}
