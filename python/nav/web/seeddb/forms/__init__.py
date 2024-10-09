@@ -33,6 +33,7 @@ from nav.models.manage import (
 )
 from nav.models.cabling import Cabling
 from nav.oids import OID
+from nav.web.crispyforms import set_flat_form_attributes
 
 _logger = logging.getLogger(__name__)
 
@@ -312,7 +313,6 @@ class DeviceGroupForm(forms.ModelForm):
         queryset=Netbox.objects.all(), required=False
     )
     netboxes.widget.attrs.update({"class": "select2"})
-    no_crispy = True
 
     def __init__(self, *args, **kwargs):
         # If the form is based on an existing model instance, populate the
@@ -321,6 +321,8 @@ class DeviceGroupForm(forms.ModelForm):
             initial = kwargs.setdefault('initial', {})
             initial['netboxes'] = [n.pk for n in kwargs['instance'].netboxes.all()]
         forms.ModelForm.__init__(self, *args, **kwargs)
+
+        self.attrs = set_flat_form_attributes()
 
     class Meta(object):
         model = NetboxGroup

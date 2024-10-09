@@ -41,10 +41,8 @@
       <form class="seeddb-edit" action="" method="post">
         <fieldset>
           <legend>Attributes</legend>
-	        {% if form.no_crispy %}
-		        {% block formfields %}
-			        {% include "seeddb/_form_fields.html" %}
-		        {% endblock %}
+	        {% if form.attrs %}
+		        {% include 'custom_crispy_templates/_form_content.html' %}
 	        {% else %}
 		        {% block crispyfields %}
 			        {{ form|crispy }}
