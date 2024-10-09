@@ -16,6 +16,7 @@
 from django import forms
 
 from nav.models.manage import ManagementProfile
+from nav.web.crispyforms import set_flat_form_attributes
 from nav.web.seeddb.forms import get_single_layout
 
 PROTOCOL_CHOICES = dict(ManagementProfile.PROTOCOL_CHOICES)

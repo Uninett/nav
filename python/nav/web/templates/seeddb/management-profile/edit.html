@@ -26,11 +26,7 @@
             <div class="columns large-4">
                 <fieldset>
                     <legend>Basic profile data</legend>
-                    {% if form.attrs %}
-                      {% include 'custom_crispy_templates/_form_content.html' %}
-                    {% else %}
-                      {{ form }}
-                    {% endif %}
+                    {% include 'custom_crispy_templates/_form_content.html' %}
                 </fieldset>
             </div>
 
@@ -41,11 +37,7 @@
                         {% if form.NOTABENE %}
                             <div class="alert-box warning with-icon">{{ form.NOTABENE }}</div>
                         {% endif %}
-                        {% if form.attrs %}
-                          {% include 'custom_crispy_templates/_form_content.html' %}
-                        {% else %}
-                          {{ form }}
-                        {% endif %}
+                        {% include 'custom_crispy_templates/_form_content.html' %}
                     </fieldset>
                 {% endfor %}
             </div>
