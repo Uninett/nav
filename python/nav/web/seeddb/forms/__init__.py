@@ -33,7 +33,13 @@ from nav.models.manage import (
 )
 from nav.models.cabling import Cabling
 from nav.oids import OID
-from nav.web.crispyforms import set_flat_form_attributes
+from nav.web.crispyforms import (
+    FlatFieldset,
+    FormColumn,
+    FormRow,
+    SubmitField,
+    set_flat_form_attributes,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -140,6 +146,36 @@ def set_filter_form_attributes(
     obj.method = form_method
     obj.form_class = form_class
     return obj
+
+
+def get_single_layout(heading, row):
+    """Get default layout for a single filter"""
+    return set_flat_form_attributes(
+        form_class="custom",
+        form_method="get",
+        form_fields=[
+            FlatFieldset(
+                legend=heading,
+                fields=[
+                    FormRow(
+                        fields=[
+                            FormColumn(fields=[row], css_classes="medium-8"),
+                            FormColumn(
+                                fields=[
+                                    SubmitField(
+                                        value="Filter",
+                                        css_classes="postfix",
+                                        has_empty_label=True,
+                                    )
+                                ],
+                                css_classes="medium-4",
+                            ),
+                        ]
+                    )
+                ],
+            )
+        ],
+    )
 
 
 # forms
