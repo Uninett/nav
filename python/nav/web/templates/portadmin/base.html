@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
 {% load tools %}
 
 {% block base_header_additional_head %}
@@ -23,7 +22,11 @@
 
   {% block page_content %}
 
-    {% crispy form %}
+    {% if form.attrs %}
+      {% include 'custom_crispy_templates/flat_form.html' %}
+    {% else %}
+      {{ form }}
+    {% endif %}
 
     {% block content %}
       {% if form.is_bound %}
