@@ -16,13 +16,7 @@
 from django import forms
 
 from nav.models.manage import ManagementProfile
-from nav.web.crispyforms import (
-    FlatFieldset,
-    FormColumn,
-    FormRow,
-    SubmitField,
-    set_flat_form_attributes,
-)
+from nav.web.seeddb.forms import get_single_layout
 
 PROTOCOL_CHOICES = dict(ManagementProfile.PROTOCOL_CHOICES)
 
@@ -37,33 +31,8 @@ class ManagementProfileFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ManagementProfileFilterForm, self).__init__(*args, **kwargs)
 
-        self.attrs = set_flat_form_attributes(
-            form_class="custom",
-            form_method="get",
-            form_fields=[
-                FlatFieldset(
-                    legend="Filter connection profiles",
-                    fields=[
-                        FormRow(
-                            fields=[
-                                FormColumn(
-                                    fields=[self["protocol"]], css_classes="medium-8"
-                                ),
-                                FormColumn(
-                                    fields=[
-                                        SubmitField(
-                                            value="Filter",
-                                            css_classes="postfix",
-                                            has_empty_label=True,
-                                        )
-                                    ],
-                                    css_classes="medium-4",
-                                ),
-                            ]
-                        )
-                    ],
-                )
-            ],
+        self.attrs = get_single_layout(
+            heading="Filter connection profiles", row=self["protocol"]
         )
 
 
