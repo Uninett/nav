@@ -85,8 +85,6 @@ class ProtocolSpecificMixIn(object):
                 if field in cfg:
                     self.fields[field].initial = cfg.get(field)
 
-        self.attrs = set_flat_form_attributes()
-
     def _post_clean(self):
         super(ProtocolSpecificMixIn, self)._post_clean()
         cfg = self.instance.configuration
@@ -294,8 +292,6 @@ class ManagementProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ManagementProfileForm, self).__init__(*args, **kwargs)
-
-        self.attrs = set_flat_form_attributes()
 
     def get_protocol_form_class(self):
         """Returns the protocol-specific form class that corresponds with the selected
