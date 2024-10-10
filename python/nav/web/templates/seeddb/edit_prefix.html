@@ -1,6 +1,5 @@
 {% extends "seeddb/edit.html" %}
-{% load crispy_forms_tags %}
 {% block crispyfields %}
 {{ block.super }}
-{{ vlan_form|crispy }}
+{% include 'custom_crispy_templates/_form_content.html' with form=vlan_form %}
 {% endblock %}
