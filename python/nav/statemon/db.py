@@ -129,7 +129,7 @@ class _DB(threading.Thread):
                         err.pgcode,
                     )
                     raise
-        except Exception as err:
+        except Exception:
             if self.db is not None:
                 _logger.critical(
                     "Could not get cursor. Trying to reconnect...", exc_info=True
