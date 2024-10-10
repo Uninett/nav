@@ -78,7 +78,7 @@ class PrefixPluginTest(TestCase):
     def test_instantiation(self):
         netbox = Mock('Netbox')
         netbox.sysname = 'foo-sw.example.org'
-        plugin = prefix.Prefix(netbox, None, None)
+        prefix.Prefix(netbox, None, None)
 
 
 class VlanPatternTest(TestCase):
