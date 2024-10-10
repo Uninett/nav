@@ -41,7 +41,7 @@ class MacWatchForm(forms.Form):
                     legend="Add mac to watch list",
                     fields=[self['macaddress'], self['description']],
                 ),
-                SubmitField(value='Add', css_classes='button small'),
+                SubmitField(value='Add', css_classes='small'),
             ]
         )
 
