@@ -25,8 +25,6 @@ import smtplib
 
 from django.core.mail import EmailMessage
 
-# pylint: disable=unused-import
-from nav import models as _  # ensure Django is setup for NAV
 from nav.smsd.dispatcher import Dispatcher, DispatcherError
 
 

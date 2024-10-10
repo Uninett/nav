@@ -24,6 +24,8 @@ support.
 
 """
 
+# ruff: noqa: F401 - twisted imports are used by other modules using asyncdns
+
 
 import socket
 from itertools import cycle

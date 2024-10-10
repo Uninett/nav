@@ -41,7 +41,7 @@ from nav.web.geomap.conf import get_configuration
 
 # is_nan must be available in the global namespace for the proper evaluation of
 # some indicator rules
-from nav.web.geomap.utils import union_dict, subdict, concat_list, is_nan
+from nav.web.geomap.utils import union_dict, subdict, concat_list, is_nan  # noqa: F401
 
 _logger = logging.getLogger('nav.web.geomap.features')
 

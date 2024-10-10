@@ -27,7 +27,7 @@ BACKEND = None
 
 try:
     # our highest preference is pynetsnmp, since it can support IPv6
-    import pynetsnmp
+    import pynetsnmp  # noqa: F401 - needed to set BACKEND
 except ImportError:
     pass
 else:
