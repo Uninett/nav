@@ -16,13 +16,8 @@
 from django import forms
 
 from nav.models.manage import ManagementProfile
-from nav.web.crispyforms import (
-    FlatFieldset,
-    FormColumn,
-    FormRow,
-    SubmitField,
-    set_flat_form_attributes,
-)
+from nav.web.crispyforms import set_flat_form_attributes
+from nav.web.seeddb.forms import get_single_layout
 
 PROTOCOL_CHOICES = dict(ManagementProfile.PROTOCOL_CHOICES)
 
@@ -37,33 +32,8 @@ class ManagementProfileFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ManagementProfileFilterForm, self).__init__(*args, **kwargs)
 
-        self.attrs = set_flat_form_attributes(
-            form_class="custom",
-            form_method="get",
-            form_fields=[
-                FlatFieldset(
-                    legend="Filter connection profiles",
-                    fields=[
-                        FormRow(
-                            fields=[
-                                FormColumn(
-                                    fields=[self["protocol"]], css_classes="medium-8"
-                                ),
-                                FormColumn(
-                                    fields=[
-                                        SubmitField(
-                                            value="Filter",
-                                            css_classes="postfix",
-                                            has_empty_label=True,
-                                        )
-                                    ],
-                                    css_classes="medium-4",
-                                ),
-                            ]
-                        )
-                    ],
-                )
-            ],
+        self.attrs = get_single_layout(
+            heading="Filter connection profiles", row=self["protocol"]
         )
 
 
@@ -84,6 +54,8 @@ class ProtocolSpecificMixIn(object):
             for field in self.Meta.configuration_fields:
                 if field in cfg:
                     self.fields[field].initial = cfg.get(field)
+
+        self.attrs = set_flat_form_attributes()
 
     def _post_clean(self):
         super(ProtocolSpecificMixIn, self)._post_clean()
@@ -292,6 +264,8 @@ class ManagementProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ManagementProfileForm, self).__init__(*args, **kwargs)
+
+        self.attrs = set_flat_form_attributes()
 
     def get_protocol_form_class(self):
         """Returns the protocol-specific form class that corresponds with the selected

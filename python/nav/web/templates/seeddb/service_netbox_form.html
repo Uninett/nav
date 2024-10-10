@@ -1,5 +1,4 @@
 {% extends "seeddb/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block content %}
 
@@ -16,11 +15,11 @@
       <form id="service_checker_add_form" action="" method="post">
         <fieldset>
           <legend>Add new service checker</legend>
-          {% crispy choice_form %}
+          {% include 'custom_crispy_templates/_form_content.html' with form=choice_form %}
           <input type="submit" value="Continue" class="button small"/>
         </fieldset>
       </form>
-      
+
     </div>
   </div>
 

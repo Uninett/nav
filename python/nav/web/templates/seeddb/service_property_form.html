@@ -1,5 +1,4 @@
 {% extends "seeddb/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block content %}
 
@@ -20,9 +19,9 @@
       <form action="" method="post">
         <fieldset>
           <legend>Attributes</legend>
-          {% crispy service_form %}
+          {% include 'custom_crispy_templates/_form_content.html' with form=service_form %}
           {% if property_form.fields %}
-            {% crispy property_form %}
+            {% include 'custom_crispy_templates/_form_content.html' with form=property_form %}
           {% else %}
             <div class="alert-box">
               There are no attributes for this service.
