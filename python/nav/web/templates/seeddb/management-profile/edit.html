@@ -1,5 +1,4 @@
 {% extends "seeddb/base.html" %}
-{% load crispy_forms_tags %}
 {% block content %}
 
   <p><a href="{{ back_url }}">Back to list</a></p>
@@ -27,7 +26,7 @@
             <div class="columns large-4">
                 <fieldset>
                     <legend>Basic profile data</legend>
-                    {{ form | crispy }}
+                    {% include 'custom_crispy_templates/_form_content.html' %}
                 </fieldset>
             </div>
 
@@ -38,7 +37,7 @@
                         {% if form.NOTABENE %}
                             <div class="alert-box warning with-icon">{{ form.NOTABENE }}</div>
                         {% endif %}
-                        {{ form | crispy }}
+                        {% include 'custom_crispy_templates/_form_content.html' %}
                     </fieldset>
                 {% endfor %}
             </div>
