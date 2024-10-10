@@ -1,5 +1,4 @@
 {% extends "radius/base.html" %}
-{% load crispy_forms_tags %}
 
 {% load radius %}
 
@@ -18,7 +17,7 @@
   </div>
 
   <div id="forms">
-    {% crispy form %}
+    {% include 'custom_crispy_templates/flat_form.html' %}
   </div>
 
   {% if form.is_bound %}
