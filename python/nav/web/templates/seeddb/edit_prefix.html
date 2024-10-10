@@ -1,9 +1,5 @@
 {% extends "seeddb/edit.html" %}
 {% block crispyfields %}
 {{ block.super }}
-{% if vlan_form.attrs %}
-    {% include 'custom_crispy_templates/_form_content.html' with form=vlan_form %}
-{% else %}
-    {{ vlan_form }}
-{% endif %}
+{% include 'custom_crispy_templates/_form_content.html' with form=vlan_form %}
 {% endblock %}

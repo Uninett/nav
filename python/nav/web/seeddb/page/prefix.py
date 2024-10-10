@@ -31,7 +31,6 @@ from nav.django.forms import CIDRField
 from nav.bulkparse import PrefixBulkParser
 from nav.bulkimport import PrefixImporter
 
-from nav.web.crispyforms import set_flat_form_attributes
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher, not_implemented
@@ -83,8 +82,6 @@ class PrefixVlanForm(forms.ModelForm):
             'usage',
             'net_type',
         )
-
-    attrs = set_flat_form_attributes()
 
 
 def get_prefix_view(request):
