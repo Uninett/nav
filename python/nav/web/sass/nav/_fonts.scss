@@ -1,18 +1,20 @@
+@import 'settings';
+
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 300;
-  src: local('Open Sans Light'), local('OpenSans-Light'), url('/static/fonts/OS300.woff') format('woff');
+  src: local('Open Sans Light'), local('OpenSans-Light'), url('#{$assets-url}/fonts/OS300.woff') format('woff');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 400;
-  src: local('Open Sans'), local('OpenSans'), url('/static/fonts/OS400.woff') format('woff');
+  src: local('Open Sans'), local('OpenSans'), url('#{$assets-url}/fonts/OS400.woff') format('woff');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 600;
-  src: local('Open Sans Semibold'), local('OpenSans-Semibold'), url('/static/fonts/OS600.woff') format('woff');
+  src: local('Open Sans Semibold'), local('OpenSans-Semibold'), url('#{$assets-url}/fonts/OS600.woff') format('woff');
 }
