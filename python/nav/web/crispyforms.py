@@ -29,12 +29,6 @@ class NavSubmit(BaseInput):
     field_classes = 'button small'
 
 
-class LabelSubmit(Submit):
-    """Submitbutton with a label above it to align within a row"""
-
-    template = 'custom_crispy_templates/submit.html'
-
-
 class CheckBox(Field):
     """Checkbox suited for the NAV layout"""
 
