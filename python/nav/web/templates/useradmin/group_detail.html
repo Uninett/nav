@@ -1,5 +1,4 @@
 {% extends "useradmin/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   {{ block.super }}
@@ -41,7 +40,7 @@
       {# GROUP FORM #}
       <div class="column medium-6 large-3">
         {% if group_form %}
-          {% crispy group_form %}
+          {% include 'custom_crispy_templates/flat_form.html' with form=group_form %}
         {% endif %}
       </div>
 
