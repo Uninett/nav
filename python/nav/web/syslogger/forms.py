@@ -65,7 +65,7 @@ class LoggerGroupSearchForm(forms.Form):
                         FormColumn(
                             fields=[
                                 FlatFieldset(
-                                    legend='Filter <a href="http://www.cisco.com/en/US/docs/ios/system/messages/guide/sm_cnovr.html"><i class="fa fa-info-circle"></i></a>',
+                                    legend='Filter',
                                     fields=[
                                         FormRow(
                                             fields=[
@@ -104,6 +104,7 @@ class LoggerGroupSearchForm(forms.Form):
                                             ]
                                         )
                                     ],
+                                    template='syslogger/frag-search-form-fieldset.html',
                                 )
                             ],
                             css_classes='medium-12',
