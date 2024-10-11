@@ -20,14 +20,6 @@ from operator import itemgetter
 
 from django import forms
 from django.forms.utils import pretty_name
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import (
-    Layout,
-    Row,
-    Column,
-    Field,
-    Submit,
-)
 
 from nav.models.event import EventType, AlertType
 from nav.models.manage import Organization, Category, NetboxGroup, Location
@@ -37,6 +29,7 @@ from nav.web.crispyforms import (
     FormRow,
     FormColumn,
     FlatFieldset,
+    SubmitField,
 )
 from . import STATELESS_THRESHOLD
 
@@ -201,72 +194,110 @@ class StatusWidgetForm(StatusPanelForm):
     def __init__(self, *args, **kwargs):
         super(StatusWidgetForm, self).__init__(*args, **kwargs)
 
+        for field_name in (
+            "event_type",
+            "not_event_type",
+            "category",
+            "not_category",
+            "alert_type",
+            "not_alert_type",
+            "organization",
+            "not_organization",
+            "device_group",
+            "not_device_group",
+            "location",
+            "not_location",
+            "severity",
+            "not_severity",
+        ):
+            self.fields[field_name].widget.attrs.update({'class': 'select2'})
+
         column_class = 'medium-6'
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Field('event_type', css_class='select2'), css_class=column_class
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self["event_type"]], css_classes=column_class
+                        ),
+                        FormColumn(
+                            fields=[self["not_event_type"]], css_classes=column_class
+                        ),
+                    ]
                 ),
-                Column(
-                    Field('not_event_type', css_class='select2'), css_class=column_class
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self["category"]], css_classes=column_class),
+                        FormColumn(
+                            fields=[self["not_category"]], css_classes=column_class
+                        ),
+                    ]
                 ),
-            ),
-            Row(
-                Column(Field('category', css_class='select2'), css_class=column_class),
-                Column(
-                    Field('not_category', css_class='select2'), css_class=column_class
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self["alert_type"]], css_classes=column_class
+                        ),
+                        FormColumn(
+                            fields=[self["not_alert_type"]], css_classes=column_class
+                        ),
+                    ]
                 ),
-            ),
-            Row(
-                Column(
-                    Field('alert_type', css_class='select2'), css_class=column_class
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self["organization"]], css_classes=column_class
+                        ),
+                        FormColumn(
+                            fields=[self["not_organization"]], css_classes=column_class
+                        ),
+                    ]
                 ),
-                Column(
-                    Field('not_alert_type', css_class='select2'), css_class=column_class
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self["device_group"]], css_classes=column_class
+                        ),
+                        FormColumn(
+                            fields=[self["not_device_group"]], css_classes=column_class
+                        ),
+                    ]
                 ),
-            ),
-            Row(
-                Column(
-                    Field('organization', css_class='select2'), css_class=column_class
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self["location"]], css_classes=column_class),
+                        FormColumn(
+                            fields=[self["not_location"]], css_classes=column_class
+                        ),
+                    ]
                 ),
-                Column(
-                    Field('not_organization', css_class='select2'),
-                    css_class=column_class,
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self["severity"]], css_classes=column_class),
+                        FormColumn(
+                            fields=[self["not_severity"]], css_classes=column_class
+                        ),
+                    ]
                 ),
-            ),
-            Row(
-                Column(
-                    Field('device_group', css_class='select2'), css_class=column_class
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[self["stateless"], self["stateless_threshold"]],
+                            css_classes=column_class,
+                        ),
+                        FormColumn(
+                            fields=[
+                                self["acknowledged"],
+                                self["on_maintenance"],
+                                self["extra_columns"],
+                            ],
+                            css_classes=column_class,
+                        ),
+                    ]
                 ),
-                Column(
-                    Field('not_device_group', css_class='select2'),
-                    css_class=column_class,
-                ),
-            ),
-            Row(
-                Column(Field('location', css_class='select2'), css_class=column_class),
-                Column(
-                    Field('not_location', css_class='select2'), css_class=column_class
-                ),
-            ),
-            Row(
-                Column(Field('severity', css_class='select2'), css_class=column_class),
-                Column(
-                    Field('not_severity', css_class='select2'), css_class=column_class
-                ),
-            ),
-            Row(
-                Column('stateless', 'stateless_threshold', css_class=column_class),
-                Column(
-                    'acknowledged',
-                    'on_maintenance',
-                    'extra_columns',
-                    css_class=column_class,
-                ),
-            ),
-            Submit('submit', 'Save'),
+            ],
+            submit_field=SubmitField(value="Save"),
         )
 
 
