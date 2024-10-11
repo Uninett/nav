@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
 {% load tools %}
 
 
@@ -13,7 +12,7 @@
     <div class="row">
 
       <div class="column medium-6">
-        {% crispy form %}
+        {% include 'custom_crispy_templates/flat_form.html' %}
       </div>
 
       <div class="column medium-6">
