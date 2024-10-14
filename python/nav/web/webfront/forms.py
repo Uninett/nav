@@ -17,11 +17,8 @@
 
 from django import forms
 from django.forms.models import modelformset_factory
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, HTML
 from nav.models.profiles import NavbarLink, Account
 from nav.web.crispyforms import (
-    CheckBox,
     SubmitField,
     set_flat_form_attributes,
     FlatFieldset,
@@ -48,20 +45,12 @@ class NavbarlinkForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(NavbarlinkForm, self).__init__(*args, **kwargs)
         self.empty_permitted = True
-        self.helper = FormHelper()
-        self.helper.form_tag = False
         self.render_unmentioned_fields = True
-
-        self.helper.layout = Layout(
-            Row(
-                Column('name', css_class='medium-5'),
-                Column('uri', css_class='medium-5'),
-                Column(
-                    HTML('<label>&nbsp;</label>'),
-                    CheckBox('DELETE'),
-                    css_class='link-delete medium-2',
-                ),
-            ),
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                self['name'],
+                self['uri'],
+            ]
         )
 
 

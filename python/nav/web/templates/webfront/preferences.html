@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 
-{% load crispy_forms_tags %}
-
 {% block base_header_additional_head %}
 <link rel="stylesheet"  href="{{ STATIC_URL }}css/nav/my_account.css" />
 <script>require(['src/navigation_preferences']);</script>
@@ -95,7 +93,14 @@
                 <fieldset>
                     <legend>'My stuff' quick links</legend>
                     <p>A quick link requires both link text and URL.</p>
-                    {% crispy navbar_formset navbar_formset.form.helper %}
+                    {% csrf_token %}
+                    <div>{{ navbar_formset.management_form }}</div>
+                    {% include 'foundation-5/errors_formset.html' %}
+                    {% for form in navbar_formset %}
+                      {% include 'webfront/_navbar_link_form.html' %}
+                      {% empty %}
+                      {{ navbar_formset }}
+                    {% endfor %}
                     <input type="submit" class="button primary small" name="submit" value="Save changes" />
                 </fieldset>
 
