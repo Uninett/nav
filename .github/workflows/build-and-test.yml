@@ -136,7 +136,7 @@ jobs:
       - run: chrome --version
       - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
 
       - name: npm install
         run: |
