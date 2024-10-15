@@ -7,7 +7,6 @@
       </div>
     {% elif field.name == 'DELETE' and navbar_formset.can_delete %}
       <div class="columns link-delete medium-2">
-        <label>&nbsp;</label>
         {% include 'custom_crispy_templates/horizontal_checkbox.html' %}
       </div>
     {% elif form.render_unmentioned_fields %}
