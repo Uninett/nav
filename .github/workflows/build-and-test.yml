@@ -144,7 +144,7 @@ jobs:
           npm ci
 
       - name: npm test
-        run: xvfb-run -a npm test
+        run: OPENSSL_CONF=/dev/null xvfb-run -a npm test
         working-directory: ./python/nav/web/static/js
 
       - name: Upload JavaScript test reports
