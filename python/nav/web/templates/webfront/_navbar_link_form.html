@@ -1,0 +1,16 @@
+{% load forms %}
+<div class="row">
+  {% for field in form %}
+    {% if field in form.attrs.form_fields %}
+      <div class="columns medium-5">
+        {% show_field field %}
+      </div>
+    {% elif field.name == 'DELETE' and navbar_formset.can_delete %}
+      <div class="columns link-delete medium-2">
+        {% include 'custom_crispy_templates/horizontal_checkbox.html' %}
+      </div>
+    {% elif form.render_unmentioned_fields %}
+      {{ field }}
+    {% endif %}
+  {% endfor %}
+</div>

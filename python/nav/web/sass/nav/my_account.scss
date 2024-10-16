@@ -1,11 +1,19 @@
 @import "../navsettings";
 
-#navigation-preferences { 
+#navigation-preferences {
 	.asteriskField {
 		display:none;
 	}
 
 	.link-delete label{
 		color:$alert-color;
+	}
+
+	.row {
+		display: flex;
+	}
+
+	.row .link-delete {
+		align-self: center;
 	}
 }
