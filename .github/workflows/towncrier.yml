@@ -14,7 +14,6 @@ jobs:
 
     - name: Install towncrier
       run: |
-        pip install -U pip
-        pip install towncrier
+        sudo apt-get install -y --no-install-recommends towncrier
     - name: Check for changelog file
       run: towncrier check --compare-with origin/master
