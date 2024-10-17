@@ -1,21 +1,25 @@
 {# NB! This template can be used directly (without form template wrapper) for cases where form.helper.form_tag is set to False. #}
 {% load forms %}
 
-{% if form.attrs.method|lower == 'post' %}
-  {% csrf_token %}
+{% if form.attrs %}
+  {% if form.attrs.method|lower == 'post' %}
+    {% csrf_token %}
+  {% endif %}
+
+  {% include 'foundation-5/errors.html' %}
+
+  {% block form_fields %}
+    {% if form.attrs.form_fields %}
+      {% include 'custom_crispy_templates/_form_fields.html' with fields=form.attrs.form_fields %}
+    {% else %}
+      {% for field in form %}
+        {% show_field field %}
+      {% endfor %}
+    {% endif %}
+    {% if form.attrs.submit_field %}
+      {% include 'custom_crispy_templates/submit_field.html' with input=form.attrs.submit_field %}
+    {% endif %}
+  {% endblock form_fields %}
+{% else %}
+  {{ form }}
 {% endif %}
-
-{% include 'foundation-5/errors.html' %}
-
-{% block form_fields %}
-  {% if form.attrs.form_fields %}
-    {% include 'custom_crispy_templates/_form_fields.html' with fields=form.attrs.form_fields %}
-  {% else %}
-    {% for field in form %}
-      {% show_field field %}
-    {% endfor %}
-  {% endif %}
-  {% if form.attrs.submit_field %}
-    {% include 'custom_crispy_templates/submit_field.html' with input=form.attrs.submit_field %}
-  {% endif %}
-{% endblock form_fields %}
