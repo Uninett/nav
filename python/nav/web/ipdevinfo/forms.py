@@ -16,13 +16,11 @@
 #
 
 from django import forms
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column
+
 from nav.models.manage import Sensor
 from nav.web.crispyforms import (
     FormColumn,
     FormRow,
-    LabelSubmit,
     SubmitField,
     set_flat_form_attributes,
 )
@@ -62,17 +60,26 @@ class ActivityIntervalForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ActivityIntervalForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Row(
-                Column('interval', css_class='small-4'),
-                Column(
-                    LabelSubmit('submit', 'Recheck activity', css_class='postfix'),
-                    css_class='small-8',
-                ),
-                css_class='collapse',
-            )
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self["interval"]], css_classes="small-4"),
+                        FormColumn(
+                            fields=[
+                                SubmitField(
+                                    value="Recheck activity",
+                                    css_classes="postfix",
+                                    has_empty_label=True,
+                                )
+                            ],
+                            css_classes="small-8",
+                        ),
+                    ],
+                    css_classes="collapse",
+                )
+            ]
         )
 
 
