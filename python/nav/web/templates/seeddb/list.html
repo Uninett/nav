@@ -1,23 +1,14 @@
 {% extends "seeddb/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block content %}
 
   {% if filter_form %}
     {% if filter_form.base_fields|length >= 3 %}
-      {% if filter_form.attrs %}
-        {% include 'custom_crispy_templates/flat_form.html' with form=filter_form %}
-      {% else %}
-        {{ filter_form }}
-      {% endif %}
+      {% include 'custom_crispy_templates/flat_form.html' with form=filter_form %}
     {% else %}
       <div class="row">
         <div class="medium-6 column">
-        {% if filter_form.attrs %}
           {% include 'custom_crispy_templates/flat_form.html' with form=filter_form %}
-        {% else %}
-          {% crispy filter_form %}
-        {% endif %}
         </div>
       </div>
     {% endif %}
