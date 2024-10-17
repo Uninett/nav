@@ -21,6 +21,9 @@ object", in the sense that access to member attributes will not result in
 database I/O.
 
 """
+
+# ruff: noqa: F401
+
 from collections import defaultdict
 import IPy
 
