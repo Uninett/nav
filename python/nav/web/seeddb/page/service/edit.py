@@ -24,7 +24,6 @@ from django.urls import reverse
 
 from nav.models.service import Service, ServiceProperty
 from nav.models.manage import Netbox
-from nav.web.crispyforms import set_flat_form_attributes
 from nav.web.servicecheckers import get_description, load_checker_classes
 from nav.web.message import new_message, Messages
 from nav.web.seeddb.page.service import ServiceInfo
@@ -44,8 +43,6 @@ class ServiceChoiceForm(forms.Form):
             choices=sorted(self._build_checker_choices()),
             widget=forms.Select(attrs={'class': 'select2'}),
         )
-
-        self.attrs = set_flat_form_attributes()
 
     @staticmethod
     def _build_checker_choices():
@@ -75,8 +72,6 @@ class ServiceForm(forms.Form):
     handler = forms.CharField(widget=forms.HiddenInput)
     netbox = forms.IntegerField(widget=forms.HiddenInput)
 
-    attrs = set_flat_form_attributes()
-
 
 class ServicePropertyForm(forms.Form):
     """Form for editing service properties"""
@@ -93,8 +88,6 @@ class ServicePropertyForm(forms.Form):
         if opt_args:
             for arg, descr in opt_args:
                 self.fields[arg] = forms.CharField(required=False, help_text=descr)
-
-        self.attrs = set_flat_form_attributes()
 
 
 def service_edit(request, service_id=None):
