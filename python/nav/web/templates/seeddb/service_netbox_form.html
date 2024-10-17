@@ -15,11 +15,7 @@
       <form id="service_checker_add_form" action="" method="post">
         <fieldset>
           <legend>Add new service checker</legend>
-          {% if choice_form.attrs %}
-            {% include 'custom_crispy_templates/_form_content.html' with form=choice_form %}
-          {% else %}
-            {{ choice_form }}
-          {% endif %}
+          {% include 'custom_crispy_templates/_form_content.html' with form=choice_form %}
           <input type="submit" value="Continue" class="button small"/>
         </fieldset>
       </form>

@@ -1,6 +1,4 @@
 {% extends "seeddb/base.html" %}
-{% load crispy_forms_tags %}
-
 
 {% block base_header_additional_head %}
   {{ block.super }}
@@ -41,13 +39,9 @@
       <form class="seeddb-edit" action="" method="post">
         <fieldset>
           <legend>Attributes</legend>
-	        {% if form.attrs %}
-		        {% include 'custom_crispy_templates/_form_content.html' %}
-	        {% else %}
-		        {% block crispyfields %}
-			        {{ form|crispy }}
-		        {% endblock %}
-	        {% endif %}
+          {% block crispyfields %}
+  	        {% include 'custom_crispy_templates/_form_content.html' %}
+          {% endblock %}
         </fieldset>
         <input type="submit" name="submit" value="Save {{ verbose_name }}" class="submit button small left" id="submit-id-submit">
       </form>
