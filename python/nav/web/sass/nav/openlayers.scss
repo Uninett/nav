@@ -1,4 +1,5 @@
-$ol-imagepath: '../../images/openlayers';
+@import "settings";
+$ol-imagepath: '#{$assets-url}/images/openlayers';
 
 div.olMap {
     z-index: 0;
