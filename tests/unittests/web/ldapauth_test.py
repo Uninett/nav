@@ -56,7 +56,7 @@ debug=true
 
 @patch('nav.web.auth.ldap._config', LdapOpenTestConfig())
 def test_open_ldap_should_run_without_error():
-    with patch('ldap.initialize') as initialize:
+    with patch('ldap.initialize'):
         assert open_ldap()
 
 
@@ -74,5 +74,5 @@ debug=true
 
 @patch('nav.web.auth.ldap._config', LdapOpenTestInvalidEncryptionConfig())
 def test_when_encryption_setting_is_invalid_open_ldap_should_run_without_encryption():
-    with patch('ldap.initialize') as initialize:
+    with patch('ldap.initialize'):
         assert open_ldap()

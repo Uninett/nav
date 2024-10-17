@@ -8,7 +8,7 @@ from .metaclass_testcase import MetaClassTestCase
 
 class MetaClassesTests(MetaClassTestCase):
     def test_group_does_not_raise_exception_when_interface_is_none(self):
-        foo = Group(Mock(name='netbox', spec=Netbox), None)
+        Group(Mock(name='netbox', spec=Netbox), None)
 
     def test_edge_allows_both_interface_linkspeed_in_group_to_be_none(self):
         netbox_a = Mock(name='netbox a', sepc=Netbox)
@@ -21,7 +21,7 @@ class MetaClassesTests(MetaClassTestCase):
         b = Mock(name='interface b', spec=Interface)
         b.speed = None
 
-        foo = Edge((netbox_a, netbox_b), (a, b))
+        Edge((netbox_a, netbox_b), (a, b))
 
 
 class Layer2NetworkXMetadataTests(TopologyLayer2TestCase):
