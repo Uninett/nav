@@ -19,17 +19,9 @@
       <form action="" method="post">
         <fieldset>
           <legend>Attributes</legend>
-          {% if service_form.attrs %}
-            {% include 'custom_crispy_templates/_form_content.html' with form=service_form %}
-          {% else %}
-            {{ service_form }}
-          {% endif %}
+          {% include 'custom_crispy_templates/_form_content.html' with form=service_form %}
           {% if property_form.fields %}
-            {% if property_form.attrs %}
-              {% include 'custom_crispy_templates/_form_content.html' with form=property_form %}
-            {% else %}
-              {{ property_form }}
-            {% endif %}
+            {% include 'custom_crispy_templates/_form_content.html' with form=property_form %}
           {% else %}
             <div class="alert-box">
               There are no attributes for this service.
