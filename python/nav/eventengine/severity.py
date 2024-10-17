@@ -171,7 +171,7 @@ class SeverityRules(tuple):
                 if attr == "severity":
                     try:
                         modifier = cls._parse_modifier(value)
-                    except ValueError as error:
+                    except ValueError:
                         raise ValueError(
                             f"{value!r} is an invalid severity modifier expression"
                         ) from None
