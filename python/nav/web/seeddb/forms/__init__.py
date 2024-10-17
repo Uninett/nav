@@ -126,7 +126,7 @@ def cut_branch(field, klass, pk):
     return [c for c in field.choices if c[0] not in descendant_ids]
 
 
-# non-crispy helpers
+# helpers
 
 
 def get_single_layout(heading, row):
