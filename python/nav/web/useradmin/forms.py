@@ -31,7 +31,7 @@ from crispy_forms_foundation.layout import (
     Field,
     HTML,
 )
-from nav.web.crispyforms import set_flat_form_attributes, SubmitField
+from nav.web.crispyforms import set_flat_form_attributes, FlatFieldset, SubmitField
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
@@ -48,16 +48,22 @@ class AccountGroupForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(AccountGroupForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'post'
-        self.helper.layout = Layout(
-            Fieldset(
-                'Group info',
-                'name',
-                'description',
-                Submit('submit_group', 'Save changes', css_class='small'),
-            )
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FlatFieldset(
+                    legend="Group info",
+                    fields=[
+                        self["name"],
+                        self["description"],
+                        SubmitField(
+                            name="submit_group",
+                            value="Save changes",
+                            css_classes="small",
+                        ),
+                    ],
+                )
+            ]
         )
 
     class Meta(object):
