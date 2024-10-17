@@ -31,8 +31,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Validate whole codebase on pushes and only changes on pull requests
-          # Change this to VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' }}
-          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' }}
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
