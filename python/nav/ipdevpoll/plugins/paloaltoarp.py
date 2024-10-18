@@ -28,6 +28,7 @@ for example:
 import xml.etree.ElementTree as ET
 
 from IPy import IP
+from nav.models.manage import Netbox
 from twisted.internet import defer, reactor, ssl
 from twisted.internet.defer import returnValue
 from twisted.web import client
@@ -39,63 +40,52 @@ from nav.ipdevpoll.plugins.arp import Arp
 
 
 class PaloaltoArp(Arp):
-    configured_devices: dict[str, str] = {}
-
-    @classmethod
-    def on_plugin_load(cls):
-        """Loads the list of PaloAlto access keys from ipdevpoll.conf into the plugin
-        class instance, so that `can_handle` will be able to answer which devices
-        this plugin can run for.
-        """
-        from nav.ipdevpoll.config import ipdevpoll_conf
-
-        cls._logger.debug("loading paloaltoarp configuration")
-        if 'paloaltoarp' not in ipdevpoll_conf:
-            cls._logger.debug("PaloaltoArp config section NOT found")
-            return
-        cls._logger.debug("PaloaltoArp config section found")
-        cls.configured_devices = dict(ipdevpoll_conf['paloaltoarp'])
-
     @classmethod
     def can_handle(cls, netbox):
         """Return True if this plugin can handle the given netbox."""
-        return (
-            netbox.sysname in cls.configured_devices
-            or str(netbox.ip) in cls.configured_devices
-        )
+        return netbox.get_http_rest_management_profiles("Palo Alto ARP").exists()
 
     @defer.inlineCallbacks
     def handle(self):
         """Handle plugin business, return a deferred."""
-
-        api_key = self.configured_devices.get(
-            str(self.netbox.ip), self.configured_devices.get(self.netbox.sysname, "")
-        )
         self._logger.debug("Collecting IP/MAC mappings for Paloalto device")
 
-        mappings = yield self._get_paloalto_arp_mappings(self.netbox.ip, api_key)
-        if mappings is None:
-            self._logger.info("No mappings found for Paloalto device")
-            returnValue(None)
-
-        yield self._process_data(mappings)
-
-        returnValue(None)
+        api_keys = self._get_paloalto_api_keys(self.netbox)
+        mappings = self._get_paloalto_arp_mappings(self.netbox.ip, api_keys)
+        if mappings is not None:
+            yield self._process_data(mappings)
 
     @defer.inlineCallbacks
-    def _get_paloalto_arp_mappings(self, address: str, key: str):
-        """Get mappings from Paloalto device"""
+    def _get_paloalto_arp_mappings(self, ip: IP, api_keys: list[str]):
+        """
+        Get ARP mappings from Paloalto device
 
-        arptable = yield self._do_request(address, key)
-        if arptable is None:
-            returnValue(None)
+        The Paloalto device is expected to give the same result for two correct but different keys in api_keys.
+        Hence, a request to the Paloalto device is made for each api key only until a successful response from the device.
+        """
 
-        # process arpdata into an array of mappings
-        mappings = parse_arp(arptable.decode('utf-8'))
+        mappings = None
+        for i, api_key in enumerate(api_keys):
+            arptable = yield self._do_request(ip, api_key)
+            if arptable is not None:
+                # process arpdata into an array of mappings
+                mappings = parse_arp(arptable.decode('utf-8'))
+                break
+            self._logger.info(
+                "Could not fetch ARP table from Paloalto device When using API key %d of %d",
+                i,
+                len(api_keys),
+            )
+
         returnValue(mappings)
 
+    def _get_paloalto_api_keys(self, netbox: Netbox) -> list[str]:
+        api_profiles = netbox.get_http_rest_management_profiles(service="Palo Alto ARP")
+        api_keys = [profile.configuration["api_key"] for profile in api_profiles]
+        return api_keys
+
     @defer.inlineCallbacks
-    def _do_request(self, address: str, key: str):
+    def _do_request(self, address: IP, key: str):
         """Make request to Paloalto device"""
 
         class SslPolicy(client.BrowserLikePolicyForHTTPS):

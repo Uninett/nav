@@ -8,6 +8,55 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.12
+========
+Deprecation warnings
+--------------------
+.. warning:: The ``[paloaltoarp]`` section of :file:`ipdevpoll.conf`, used for
+             configuring HTTP-based ARP fetching from Palo Alto firewalls, is
+             deprecated and will be ignored in NAV 5.12 and future versions.
+             HTTP-based ARP fetching from Palo Alto
+             firewalls *must* now be configured using management profiles,
+             analogous to configuration of SNMP-based fetching.  :ref:`See below
+             for more details<5.12-new-http-rest-api-management-profile-type>`.
+
+.. _5.12-new-http-rest-api-management-profile-type:
+New way to configure fetching of Palo Alto firewall ARP cache data
+------------------------------------------------------------------
+.. NOTE:: Stated in the paragraphs below is the rationale for this
+          change. You can safely skip this reading and head
+          straight to the
+          :ref:`management profile reference documentation<http-rest-api-management-profile>`
+          for instructions on how to reconfigure your Palo Alto firewall
+          devices in NAV 5.12 to enable support for fetching of their
+          ARP information.
+
+NAV is often able to fetch ARP tables from devices (and do many other management
+tasks) using SNMP. However, some devices serve parts of their management-related
+interfaces such as ARP-table querying over alternative protocols that often
+demand a different set of configuration parameters than SNMP.
+
+Usually the act of configuring netboxes to enable NAV using some protocol, be it
+SNMP or another protocol, is done by creating a protocol-specific management
+profile with protocol-specific communication parameters, and assigning this
+profile to the relevant netboxes.
+
+An outlier to this configuration pattern in NAV 5.10 and NAV 5.11 was the
+configuration of parameters for Palo Alto firewall netboxes running PAN-OS, who
+serves ARP information over HTTP, because there was no management profile type
+for HTTP protocols.  Instead, the HTTP-protocol specific parameters
+for such netboxes needed to be supplied in the ``[paloaltoarp]`` section of
+:file:`ipdevpoll.conf` instead of the standard way of assigning the netbox
+a parameter-bearing management profile through the netbox's "edit netbox" SeedDB page.
+
+Starting with NAV 5.12, a new HTTP REST API management profile type has been
+added to NAV for configuring HTTP-specific parameters used in fetching of ARP
+information from Palo Alto firewalls running PAN-OS. Currently, this management
+profile type is only used to configure Palo Alto firewall devices. If support
+for other devices that similarly can be managed using HTTP is added to NAV in future
+releases, you can expect to be able to configure HTTP parameters for these
+devices the standard way by using management profiles as well.
+
 NAV 5.11
 ========
 
