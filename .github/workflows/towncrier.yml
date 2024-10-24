@@ -14,6 +14,7 @@ jobs:
 
     - name: Install towncrier
       run: |
-        sudo apt-get install -y --no-install-recommends towncrier
+        sudo apt-get install -y pipx
+        pipx install towncrier
     - name: Check for changelog file
       run: towncrier check --compare-with origin/master
