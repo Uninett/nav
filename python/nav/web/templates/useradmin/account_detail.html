@@ -96,7 +96,7 @@
 
             {% if org_form %}
               <h6>Add organization membership</h6>
-              {% crispy org_form %}
+              {% include 'custom_crispy_templates/flat_form.html' with form=org_form %}
             {% endif %}
 
           </fieldset>
