@@ -139,7 +139,7 @@
                 privileges like 'web_access'."
               </div>
 
-              {% crispy privilege_form %}
+              {% include 'custom_crispy_templates/flat_form.html' with form=privilege_form %}
             {% endif %}
 
           </fieldset>
