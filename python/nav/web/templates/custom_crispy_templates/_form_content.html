@@ -21,5 +21,7 @@
     {% endif %}
   {% endblock form_fields %}
 {% else %}
-  {{ form }}
+  {% for field in form %}
+    {% show_field field %}
+  {% endfor %}
 {% endif %}
