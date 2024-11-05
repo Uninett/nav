@@ -16,10 +16,8 @@
 """macwatch form definitions"""
 
 
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, ButtonHolder
 from django import forms
-from nav.web.crispyforms import NavSubmit
+from nav.web.crispyforms import set_flat_form_attributes, FlatFieldset, SubmitField
 from nav.web.macwatch.models import MacWatch
 from nav.web.macwatch.utils import MAC_ADDR_MAX_LEN
 from nav.web.macwatch.utils import MAC_ADDR_MIN_LEN
@@ -37,11 +35,14 @@ class MacWatchForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(MacWatchForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = '.'
-        self.helper.layout = Layout(
-            Fieldset('Add mac to watch list', 'macaddress', 'description'),
-            ButtonHolder(NavSubmit('submit', 'Add')),
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FlatFieldset(
+                    legend="Add mac to watch list",
+                    fields=[self['macaddress'], self['description']],
+                ),
+                SubmitField(value='Add', css_classes='small'),
+            ]
         )
 
     def clean_macaddress(self):
