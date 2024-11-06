@@ -31,7 +31,12 @@ from crispy_forms_foundation.layout import (
     Field,
     HTML,
 )
-from nav.web.crispyforms import set_flat_form_attributes, SubmitField
+from nav.web.crispyforms import (
+    set_flat_form_attributes,
+    FormColumn,
+    FormRow,
+    SubmitField,
+)
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
@@ -158,18 +163,24 @@ class PrivilegeForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(PrivilegeForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = ""
-        self.helper.form_method = "POST"
-        self.helper.layout = Layout(
-            Row(
-                Column(Field('type', css_class='select2'), css_class='medium-3'),
-                Column('target', css_class='medium-6'),
-                Column(
-                    Submit('submit_privilege', 'Grant', css_class='postfix'),
-                    css_class='medium-3',
-                ),
-            )
+        self.fields['type'].widget.attrs.update({"class": "select2"})
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self["type"]], css_classes="medium-3"),
+                        FormColumn(fields=[self["target"]], css_classes="medium-6"),
+                        FormColumn(
+                            fields=[
+                                SubmitField(
+                                    "submit_privilege", "Grant", css_classes="postfix"
+                                )
+                            ],
+                            css_classes="medium-3",
+                        ),
+                    ]
+                )
+            ]
         )
 
 
