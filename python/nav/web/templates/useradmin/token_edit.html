@@ -1,5 +1,4 @@
 {% extends "useradmin/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/multi-select.css">
@@ -50,16 +49,7 @@
     </h4>
 
 
-    <form id="edit-token-form" action="" method="post">{% csrf_token %}
-      {% crispy form %}
-
-      {% if object %}
-        <input type="submit" value="Save token" class="button small">
-      {% else %}
-        <input type="submit" value="Save new token" class="button small">
-      {% endif %}
-
-    </form>
+    {% include 'custom_crispy_templates/flat_form.html' %}
 
 
     {% if object %}
