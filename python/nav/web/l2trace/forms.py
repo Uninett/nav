@@ -14,8 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Row, Column, Submit, Field
+from nav.web.crispyforms import (
+    set_flat_form_attributes,
+    FormRow,
+    FormColumn,
+    SubmitField,
+)
 from django.core.exceptions import MultipleObjectsReturned
 from django import forms
 
@@ -33,22 +37,20 @@ class L2TraceForm(forms.Form):
         super(L2TraceForm, self).__init__(*args, **kwargs)
 
         placeholder_text = "Hostname or IP-address"
+        self.fields['host_from'].widget.attrs.update({"placeholder": placeholder_text})
+        self.fields['host_to'].widget.attrs.update({"placeholder": placeholder_text})
 
-        self.helper = FormHelper()
-        self.helper.form_action = ""
-        self.helper.form_method = 'GET'
-
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Field('host_from', placeholder=placeholder_text),
-                    css_class='medium-6',
+        self.attrs = set_flat_form_attributes(
+            form_method='get',
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self['host_from']], css_classes='medium-6'),
+                        FormColumn(fields=[self['host_to']], css_classes='medium-6'),
+                    ]
                 ),
-                Column(
-                    Field('host_to', placeholder=placeholder_text), css_class='medium-6'
-                ),
-            ),
-            Submit('submit', 'Trace'),
+                SubmitField(value='Trace'),
+            ],
         )
 
     def clean(self):
