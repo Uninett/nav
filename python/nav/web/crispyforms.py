@@ -72,22 +72,26 @@ class FlatFieldset:
     Any nesting of fields inside this fieldset might require custom
     class definitions akin to this one.
 
-    :cvar template: The path to the template used for rendering the fieldset. Path is relative to the app's templates directory.
-    :type template: str
     :param legend: The legend text for the fieldset.
     :type legend: str
     :param fields: A list of fields to include in the fieldset.
     :param css_class: Additional CSS classes to apply to the fieldset.
+    :param template: The path to the template used for rendering the fieldset.
+    Path is relative to the app's templates directory.
     """
 
-    template = 'custom_crispy_templates/flat_fieldset.html'
-
-    def __init__(self, legend, fields: list, css_class=''):
+    def __init__(
+        self,
+        legend,
+        fields: list,
+        css_class='',
+        template: str = 'custom_crispy_templates/flat_fieldset.html',
+    ):
         """Constructor method"""
         self.legend = legend
         self.fields = fields
         self.css_class = css_class
-        self.template = FlatFieldset.template
+        self.template = template
 
 
 class FormRow:
