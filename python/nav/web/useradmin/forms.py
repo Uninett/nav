@@ -197,11 +197,12 @@ class OrganizationAddForm(forms.Form):
         self.fields['organization'] = forms.models.ModelChoiceField(
             queryset=query, required=True, label=''
         )
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Field('organization', css_class='select2'),
-            Submit('submit_org', 'Add organization', css_class='postfix'),
+        self.fields['organization'].widget.attrs.update({"class": "select2"})
+        self.attrs = set_flat_form_attributes(
+            form_fields=[self["organization"]],
+            submit_field=SubmitField(
+                "submit_org", "Add organization", css_classes="postfix"
+            ),
         )
 
 
