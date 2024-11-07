@@ -220,16 +220,25 @@ class GroupAddForm(forms.Form):
         self.fields['group'] = forms.models.ModelChoiceField(
             queryset=query, required=True, label=''
         )
-
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Row(
-                Column(Field('group', css_class='select2'), css_class='medium-8'),
-                Column(
-                    Submit('submit_group', 'Add membership', css_class='postfix'),
-                    css_class='medium-4',
-                ),
-            )
+        self.fields['group'].widget.attrs.update({'class': 'select2'})
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self['group']], css_classes='medium-8'),
+                        FormColumn(
+                            fields=[
+                                SubmitField(
+                                    'submit_group',
+                                    'Add membership',
+                                    css_classes='postfix',
+                                )
+                            ],
+                            css_classes='medium-4',
+                        ),
+                    ]
+                )
+            ]
         )
 
 
