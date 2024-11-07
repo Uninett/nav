@@ -1,5 +1,4 @@
 {% extends 'arnold/base.html' %}
-{% load crispy_forms_tags %}
 
 {% block content %}
 
@@ -13,7 +12,7 @@
 
   <div class="row">
     <div class="medium-4 column">
-      {% crispy form %}
+      {% include 'custom_crispy_templates/flat_form.html' %}
     </div>
   </div>
 
