@@ -33,6 +33,7 @@ from crispy_forms_foundation.layout import (
 )
 from nav.web.crispyforms import (
     set_flat_form_attributes,
+    FlatFieldset,
     FormColumn,
     FormRow,
     SubmitField,
@@ -294,23 +295,42 @@ class TokenForm(forms.ModelForm):
         if self.instance and self.instance.endpoints:
             self.initial['endpoints'] = list(self.instance.endpoints.keys())
 
-        # Create the formhelper and define the layout of the form. The form
-        # element itself aswell as the submit button is defined in the template
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Row(
-                Column(
-                    Fieldset(
-                        'Token details', 'token', 'permission', 'expires', 'comment'
-                    ),
-                    css_class='large-4 small-12',
-                ),
-                Column(
-                    Fieldset('Token endpoints', 'endpoints'),
-                    css_class='large-8 small-12',
-                ),
-            )
+        if self.instance.id:
+            submit_message = "Save token"
+        else:
+            submit_message = "Save new token"
+
+        self.attrs = set_flat_form_attributes(
+            form_id="edit-token-form",
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[
+                                FlatFieldset(
+                                    legend="Token details",
+                                    fields=[
+                                        self["token"],
+                                        self["permission"],
+                                        self["expires"],
+                                        self["comment"],
+                                    ],
+                                )
+                            ],
+                            css_classes="large-4 small-12",
+                        ),
+                        FormColumn(
+                            fields=[
+                                FlatFieldset(
+                                    legend="Token endpoints", fields=[self["endpoints"]]
+                                )
+                            ],
+                            css_classes="large-8 small-12",
+                        ),
+                    ]
+                )
+            ],
+            submit_field=SubmitField("submit", submit_message, css_classes="small"),
         )
 
     def clean_endpoints(self):
