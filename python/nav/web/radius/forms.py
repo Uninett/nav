@@ -20,8 +20,6 @@ from django import forms
 from django.core.validators import validate_ipv4_address
 from django.core.validators import validate_integer as django_validate_integer
 
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Submit
 from nav.web.crispyforms import (
     set_flat_form_attributes,
     FormColumn,
@@ -255,9 +253,8 @@ class AccountChartsForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(AccountChartsForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'GET'
-        self.helper.layout = Layout(
-            'days', 'charts', Submit('send', 'Show me', css_class='small')
+        self.attrs = set_flat_form_attributes(
+            form_method='get',
+            form_fields=[self['days'], self['charts']],
+            submit_field=SubmitField('send', 'Show me', css_classes='small'),
         )

@@ -1,5 +1,4 @@
 {% extends "radius/base.html" %}
-{% load crispy_forms_tags %}
 {% load radius %}
 
 {% block content %}
@@ -16,7 +15,7 @@
 
   <div id="form" class="row">
     <div class="medium-6 columns">
-      {% crispy form %}
+      {% include 'custom_crispy_templates/flat_form.html' %}
     </div>
   </div>
 
