@@ -1,5 +1,4 @@
 {% extends "useradmin/base.html" %}
-{% load crispy_forms_tags %}
 
 {% block content %}
 
@@ -63,7 +62,7 @@
       {% comment %} ACCOUNT FORM {% endcomment %}
       {% if account_form %}
         <div class="column medium-6 large-3">
-          {% crispy account_form %}
+          {% include 'custom_crispy_templates/flat_form.html' with form=account_form %}
         </div>
       {% endif %}
 
