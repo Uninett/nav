@@ -98,40 +98,28 @@ class AccountForm(forms.ModelForm):
         self.helper.form_action = ''
         self.helper.form_method = 'POST'
 
-        fieldset_name = 'Account'
-        fieldset_args = [fieldset_name]
-        default_args = ['login', 'name', 'password1', 'password2']
-
         if account:
             self.fields['password1'].required = False
             submit_value = 'Save changes'
 
-            # This should really be two different forms because of this
-            if kwargs['instance'].ext_sync:
-                # We don't want to enable local password editing for accounts that are
-                # managed externally.
-                authenticator = (
-                    "<p class='alert-box'>External authenticator: %s</p>"
-                    % kwargs["instance"].ext_sync
-                )
-                del self.fields['password1']
-                del self.fields['password2']
-                self.fields['login'].widget.attrs['readonly'] = True
-                fieldset_args.extend(['login', 'name', HTML(authenticator)])
-            else:
-                fieldset_args.extend(default_args)
             if kwargs["instance"].id == Account.DEFAULT_ACCOUNT:
                 # We don't want to enable significant changes to the anonymous account
-                for field in ("password1", "password2", "login"):
-                    self.fields[field].widget.attrs["readonly"] = True
+                self.fields["password1"].widget.attrs["readonly"] = True
+                self.fields["password2"].widget.attrs["readonly"] = True
+                self.fields["login"].widget.attrs["readonly"] = True
         else:
             submit_value = 'Create account'
-            fieldset_args.extend(default_args)
 
-        submit = Submit('submit_account', submit_value, css_class='small')
-        fieldset_args.extend([submit])
-        fieldset = Fieldset(*fieldset_args)
-        self.helper.layout = Layout(fieldset)
+        self.helper.layout = Layout(
+            Fieldset(
+                'Account',
+                'login',
+                'name',
+                'password1',
+                'password2',
+                Submit('submit_account', submit_value, css_class='small'),
+            )
+        )
 
     def clean_password1(self):
         """Validate password"""
@@ -155,6 +143,37 @@ class AccountForm(forms.ModelForm):
     class Meta(object):
         model = Account
         exclude = ('password', 'ext_sync', 'organizations', 'preferences')
+
+
+class ExternalAccountForm(AccountForm):
+    """Form for editing an externally managed account"""
+
+    def __init__(self, *args, **kwargs):
+        super(AccountForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_action = ''
+        self.helper.form_method = 'POST'
+
+        if kwargs['instance'].ext_sync:
+            # We don't want to enable local password editing for accounts that are
+            # managed externally.
+            authenticator = (
+                "<p class='alert-box'>External authenticator: %s</p>"
+                % kwargs["instance"].ext_sync
+            )
+            del self.fields['password1']
+            del self.fields['password2']
+            self.fields['login'].widget.attrs['readonly'] = True
+
+        self.helper.layout = Layout(
+            Fieldset(
+                'Account',
+                'login',
+                'name',
+                HTML(authenticator),
+                Submit('submit_account', 'Save changes', css_class='small'),
+            )
+        )
 
 
 class PrivilegeForm(forms.Form):

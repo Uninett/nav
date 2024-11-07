@@ -59,13 +59,18 @@ def account_detail(request, account_id=None):
         account = None
 
     old_account = copy.deepcopy(account)
-    account_form = forms.AccountForm(instance=account)
+    external_authentication = getattr(account, "ext_sync", False)
+    if external_authentication:
+        account_form_class = forms.ExternalAccountForm
+    else:
+        account_form_class = forms.AccountForm
+    account_form = account_form_class(instance=account)
     org_form = forms.OrganizationAddForm(account)
     group_form = forms.GroupAddForm(account)
 
     if request.method == 'POST':
         if 'submit_account' in request.POST:
-            account_form = forms.AccountForm(request.POST, instance=account)
+            account_form = account_form_class(request.POST, instance=account)
             if account_form.is_valid():
                 return save_account(request, account_form, old_account)
 
