@@ -86,7 +86,38 @@ Use keys
 Alternate port
   If access to the switch is not on the default port (22, in the case of the
   JunOS driver), put the alternate port here.
-  
+
 
 .. _`NAPALM`: https://napalm.readthedocs.io/en/latest/
 .. _`NETCONF`: https://en.wikipedia.org/wiki/NETCONF
+
+.. _http-rest-api-management-profile:
+HTTP APIs
+--------------
+As of NAV 5.12, HTTP API profiles are used to configure access to
+services of the following devices.
+
+`Palo Alto PAN-OS firewalls`_
+  A HTTP API profile is needed for NAV to access the firewall's ARP information.
+
+.. warning:: The Palo Alto ARP implementation in NAV does not currently verify TLS
+             certificates when accessing a Palo Alto API.  This will be changed
+             at a later date, but if it worries you, you should not configure
+             any netboxes to use the Palo Alto Arp service yet.
+
+.. image:: http-rest-api-profile-example.png
+
+If you have a Palo Alto firewall running on a netbox managed by NAV,
+with a secret API key of ``762e87e0ec051a1c5211a08dd48e7a93720eee63``,
+you can configure NAV to fetch ARP information from this firewall by
+creating a new management profile with
+
+* protocol set to ``HTTP API``,
+
+* API key set to ``762e87e0ec051a1c5211a08dd48e7a93720eee63``,
+
+* service set to ``Palo Alto ARP``,
+
+and then add this management profile to the netbox.
+
+.. _`Palo Alto PAN-OS firewalls`: https://docs.paloaltonetworks.com/pan-os/11-0/pan-os-panorama-api/pan-os-xml-api-request-types/configuration-api/get-active-configuration/use-xpath-to-get-arp-information
