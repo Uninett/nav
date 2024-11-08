@@ -240,10 +240,10 @@ class ManualDetentionTargetForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ManualDetentionTargetForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = 'arnold-manual-detention'
-        self.helper.layout = Layout(
-            'target', Submit('submit', 'Find', css_class='small')
+        self.attrs = set_flat_form_attributes(
+            form_action='arnold-manual-detention',
+            form_fields=[self['target']],
+            submit_field=SubmitField(value='Find', css_classes='small'),
         )
 
     def clean_target(self):
