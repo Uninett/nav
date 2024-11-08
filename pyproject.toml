@@ -63,6 +63,9 @@ include-package-data = true
 zip-safe = false
 platforms = ["any"]
 
+[tool.setuptools.package-data]
+"nav.web" = ["static/**"]
+
 [tool.setuptools_scm]
 
 [tool.setuptools.packages.find]
