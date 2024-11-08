@@ -129,7 +129,7 @@ def cut_branch(field, klass, pk):
 # non-crispy helpers
 
 
-def get_single_layout(heading, row):
+def get_single_layout(heading, filter_fields: list):
     """Get default layout for a single filter"""
     return set_flat_form_attributes(
         form_class="custom",
@@ -140,7 +140,7 @@ def get_single_layout(heading, row):
                 fields=[
                     FormRow(
                         fields=[
-                            FormColumn(fields=[row], css_classes="medium-8"),
+                            FormColumn(fields=filter_fields, css_classes="medium-8"),
                             FormColumn(
                                 fields=[
                                     SubmitField(
