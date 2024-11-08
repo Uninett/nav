@@ -169,7 +169,12 @@ class RoomFilterForm(forms.Form):
         Location.objects.order_by('id').all(), required=False
     )
     location.widget.attrs.update({"class": "select"})
-    attrs = get_single_layout(heading="Filter rooms", row=[location])
+
+    def __init__(self, *args, **kwargs):
+        super(RoomFilterForm, self).__init__(*args, **kwargs)
+        self.attrs = get_single_layout(
+            heading="Filter rooms", filter_fields=[self["location"]]
+        )
 
 
 class RoomForm(forms.ModelForm):
@@ -285,7 +290,12 @@ class NetboxTypeFilterForm(forms.Form):
     """Form for filtering a netbox type by vendor"""
 
     vendor = forms.ModelChoiceField(Vendor.objects.order_by('id').all(), required=False)
-    attrs = get_single_layout(heading="Filter types", row=[vendor])
+
+    def __init__(self, *args, **kwargs):
+        super(NetboxTypeFilterForm, self).__init__(*args, **kwargs)
+        self.attrs = get_single_layout(
+            heading="Filter types", filter_fields=[self["vendor"]]
+        )
 
 
 class NetboxTypeForm(forms.ModelForm):
