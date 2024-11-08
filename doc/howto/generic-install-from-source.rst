@@ -217,7 +217,7 @@ Building the documentation
 
 If you wish, this HTML documentation can be built separately using this step::
 
-  python setup.py build_sphinx
+  sphinx-build
 
 The resulting files will typically be placed in :file:`build/sphinx/html/`.
 
