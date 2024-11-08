@@ -1,5 +1,4 @@
 {% extends 'arnold/base.html' %}
-{% load crispy_forms_tags %}
 
 {% block content %}
 
@@ -11,7 +10,7 @@
     <div class="large-8 column">
       <div class="panel white">
 
-        {% crispy form %}
+        {% include 'custom_crispy_templates/flat_form.html' %}
 
         {% if profile %}
           <p>Last changed {{ profile.last_edited|date:'DATETIME_FORMAT' }}
