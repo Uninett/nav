@@ -22,6 +22,12 @@ from django.core.validators import validate_integer as django_validate_integer
 
 from crispy_forms.helper import FormHelper
 from crispy_forms_foundation.layout import Layout, Row, Column, Submit
+from nav.web.crispyforms import (
+    set_flat_form_attributes,
+    FormColumn,
+    FormRow,
+    SubmitField,
+)
 
 from nav.util import is_valid_cidr
 
@@ -146,17 +152,21 @@ class ErrorLogSearchForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ErrorLogSearchForm, self).__init__(*args, **kwargs)
         css_class = 'medium-4'
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'GET'
-        self.helper.form_class = 'custom'
-        self.helper.layout = Layout(
-            Row(
-                Column('query', css_class=css_class),
-                Column('log_entry_type', css_class=css_class),
-                Column('time', css_class=css_class),
-            ),
-            Submit('send', 'Search', css_class='small'),
+        self.attrs = set_flat_form_attributes(
+            form_method='get',
+            form_class='custom',
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self['query']], css_classes=css_class),
+                        FormColumn(
+                            fields=[self['log_entry_type']], css_classes=css_class
+                        ),
+                        FormColumn(fields=[self['time']], css_classes=css_class),
+                    ]
+                ),
+                SubmitField(name='send', value='Search', css_classes='small'),
+            ],
         )
 
 
