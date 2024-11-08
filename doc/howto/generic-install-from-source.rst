@@ -43,11 +43,14 @@ To run NAV, these software packages are required:
 PostgreSQL and Graphite are services that do not necessarily need to run on
 the same server as NAV.
 
-The required Python modules can be installed either from your OS package
-manager, or from the Python Package Index (PyPI_) using the regular ``setup.py``
-method described below. The packages can also be installed from PyPI_ in a
-separate step, using the pip_ tool and the provided requirements and constraints
-files::
+While the required Python modules can be installed from your OS package
+manager, most distributions do not provide all of them, or cannot provide them
+in the required versions.  We recommend creating a Python virtual environment
+(virtualenv), which will ensure NAV's Python requirements do not interfere with
+your system Python libraries. Use pip_ to install all Python requirements
+from the Python Package Index (PyPI_), using the method described below. The
+packages can also be installed from PyPI_ in a separate step, using the pip_
+tool and the provided requirements and constraints files::
 
   pip install -r requirements.txt -c constraints.txt
 
@@ -90,13 +93,25 @@ the following command to build the CSS assets::
 This will build the CSS assets and place them in the :file:`python/nav/web/static/css`
 directory.
 
-To build and install NAV and all its Python dependencies::
+We recommend installing NAV into a Python virtual environment, to avoid
+interfering with your system-wide Python libraries.  Pick a suitable path for
+the virtual environment (e.g. :file:`/opt/nav`), create it and activate it in
+your shell before installing NAV::
+
+  python3 -m venv /opt/nav
+  source /opt/nav/bin/activate
+
+To build and install NAV and all its Python dependencies in the activated
+virtual environment, run::
 
   pip install -r requirements.txt -c constraints.txt .
 
-This will build and install NAV in the default system-wide directories for your
-system. If you wish to customize the install locations, please consult the
-output of ``python setup.py install --help``.
+If you want to make sure you can run all NAV programs without first explicitly
+activating the virtual environment in a shell, you can add the virtual
+environment's :file:`bin` directory to your system's :envvar:`PATH` variable,
+e.g.::
+
+  export PATH=$PATH:/opt/nav/bin
 
 
 .. _initializing-the-configuration-files:
