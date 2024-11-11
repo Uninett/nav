@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
 
 {% block base_header_additional_head %}
   <style>
@@ -416,8 +415,8 @@
         need to create forms - ask on mail/jabber/irc.
       </p>
 
-      {% crispy form1 %}
-      {% crispy form2 %}
+      {% include 'custom_crispy_templates/flat_form.html' with form=form1 %}
+      {% include 'custom_crispy_templates/flat_form.html' with form=form2 %}
 
     </div>
 
