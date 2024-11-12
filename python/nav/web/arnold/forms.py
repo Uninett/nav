@@ -25,6 +25,8 @@ from nav.util import is_valid_ip, is_valid_mac
 from nav.web.crispyforms import (
     CheckBox,
     FlatFieldset,
+    FormColumn,
+    FormRow,
     SubmitField,
     set_flat_form_attributes,
 )
@@ -120,19 +122,29 @@ class SearchForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(SearchForm, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_class = 'custom'
-        self.helper.layout = Layout(
-            Row(
-                Column('searchtype', css_class='medium-3'),
-                Column('searchvalue', css_class='medium-9'),
-                css_class='collapse',
+
+        self.attrs = set_flat_form_attributes(
+            form_class='custom',
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self['searchtype']], css_classes='medium-3'),
+                        FormColumn(
+                            fields=[self['searchvalue']], css_classes='medium-9'
+                        ),
+                    ],
+                    css_classes='collapse',
+                ),
+                FormRow(
+                    fields=[
+                        FormColumn(fields=[self['status']], css_classes='medium-6'),
+                        FormColumn(fields=[self['days']], css_classes='medium-6'),
+                    ],
+                ),
+            ],
+            submit_field=SubmitField(
+                name='search', value='Search', css_classes='small'
             ),
-            Row(
-                Column('status', css_class='medium-6'),
-                Column('days', css_class='medium-6'),
-            ),
-            Submit('search', 'Search', css_class='small'),
         )
 
     def clean_searchvalue(self):
