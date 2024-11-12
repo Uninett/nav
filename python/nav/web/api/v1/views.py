@@ -330,6 +330,7 @@ class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     queryset = manage.Room.objects.all()
     serializer_class = serializers.RoomSerializer
     filterset_fields = ('location', 'description')
+    lookup_value_regex = '[^/]+'
 
 
 class LocationViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
@@ -349,6 +350,7 @@ class LocationViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     serializer_class = serializers.LocationSerializer
     filterset_fields = ('id', 'parent')
     search_fields = ('description',)
+    lookup_value_regex = '[^/]+'
 
 
 class UnrecognizedNeighborViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
