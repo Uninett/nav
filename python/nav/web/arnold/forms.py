@@ -84,12 +84,15 @@ class QuarantineVlanForm(forms.Form):
             submit_value = 'Save changes'
             fieldset_legend = 'Edit vlan'
 
-        # Create helper for crispy layout
-        self.helper = FormHelper()
-        self.helper.form_action = 'arnold-quarantinevlans'
-        self.helper.layout = Layout(
-            Fieldset(fieldset_legend, 'vlan', 'description', 'qid'),
-            Submit('submit', submit_value, css_class='small'),
+        self.attrs = set_flat_form_attributes(
+            form_action='arnold-quarantinevlans',
+            form_fields=[
+                FlatFieldset(
+                    fieldset_legend,
+                    fields=[self['vlan'], self['description'], self['qid']],
+                )
+            ],
+            submit_field=SubmitField(value=submit_value, css_classes='small'),
         )
 
 

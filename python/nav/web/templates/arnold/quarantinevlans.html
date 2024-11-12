@@ -1,5 +1,4 @@
 {% extends "arnold/tabs.html" %}
-{% load crispy_forms_tags %}
 
 {% block tabcontent %}
 
@@ -39,7 +38,7 @@
 
         {% comment %} Display form for creating a new quarantine vlan {% endcomment %}
         <div class="medium-6 column">
-            {% crispy form %}
+            {% include 'custom_crispy_templates/flat_form.html' %}
         </div>
 
     </div>
