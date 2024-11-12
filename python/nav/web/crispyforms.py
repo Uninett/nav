@@ -96,7 +96,7 @@ class FormRow:
     :param css_classes: Additional CSS classes to apply to the row. Defaults to an empty string.
     """
 
-    def __init__(self, fields: list, css_classes: str = ''):
+    def __init__(self, fields: list, css_classes: Optional[str] = None):
         """Constructor method"""
         self.fields = fields
         self.css_classes = css_classes

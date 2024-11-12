@@ -1,7 +1,7 @@
 {# NB! This form row can only render fields that are supported by custom_crispy_templates/_form_field.html #}
 
 <div
-    class="row {{ field.css_classes|default:'' }}"
+    class="row{% if field.css_classes %} {{ field.css_classes }}{% endif %}"
 >
   {% block formrow_content %}
     {% for field in field.fields %}
