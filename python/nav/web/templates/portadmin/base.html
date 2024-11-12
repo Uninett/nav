@@ -22,11 +22,7 @@
 
   {% block page_content %}
 
-    {% if form.attrs %}
-      {% include 'custom_crispy_templates/flat_form.html' %}
-    {% else %}
-      {{ form }}
-    {% endif %}
+    {% include 'custom_crispy_templates/flat_form.html' %}
 
     {% block content %}
       {% if form.is_bound %}

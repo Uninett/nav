@@ -104,11 +104,7 @@
             Add to dashboard
           </button>
           <form method="post">
-            {% if form.attrs %}
-              {% include 'custom_crispy_templates/_form_content.html' %}
-            {% else %}
-              {{ form }}
-            {% endif %}
+            {% include 'custom_crispy_templates/_form_content.html' %}
             <button type="submit" class="button small">Update settings</button>
           </form>
         {% else %}

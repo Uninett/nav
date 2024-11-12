@@ -83,11 +83,7 @@
               <a href="{% url 'alertprofiles-filter_groups-new' %}">Add your first filter group</a> to fix this problem.
             </div>
         {% endif %}
-          {% if form.attrs %}
-            {% include 'custom_crispy_templates/_form_content.html' %}
-          {% else %}
-            {{ form }}
-          {% endif %}
+          {% include 'custom_crispy_templates/_form_content.html' %}
           <input type="submit" value="{{ editing|yesno:"Save,Add" }}" class="button small"/>
         </div>
     </form>

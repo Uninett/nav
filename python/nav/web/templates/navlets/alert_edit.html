@@ -12,11 +12,7 @@
   </p>
 
   <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post">
-    {% if form.attrs %}
-      {% include 'custom_crispy_templates/_form_content.html' %}
-    {% else %}
-      {{ form }}
-    {% endif %}
+    {% include 'custom_crispy_templates/_form_content.html' %}
     <input type="submit" class="button tiny" value="Save">
     <a class="button tiny secondary cancel-button">Cancel</a>
   </form>

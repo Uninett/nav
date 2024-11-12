@@ -22,11 +22,7 @@
     </div>
   {% endif %}
 
-  {% if form.attrs %}
-    {% include 'custom_crispy_templates/flat_form.html' %}
-  {% else %}
-    {{ form }}
-  {% endif %}
+  {% include 'custom_crispy_templates/flat_form.html' %}
 
   {# Display view if exists #}
   {% if result %}

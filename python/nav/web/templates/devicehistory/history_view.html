@@ -11,11 +11,7 @@
             <input type="hidden" name="{{ type }}" value="{{ id }}" />
           {% endfor %}
         {% endfor %}
-        {% if form.attrs %}
-          {% include 'custom_crispy_templates/_form_content.html' %}
-        {% else %}
-          {{ form }}
-        {% endif %}
+        {% include 'custom_crispy_templates/_form_content.html' %}
         <input type="submit" class="button small" value="Filter">
       </form>
     </div>

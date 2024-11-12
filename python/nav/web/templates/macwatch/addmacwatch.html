@@ -5,11 +5,7 @@
     <div class="row">
         <div class="large-4 column">
             <a href="{% url 'listwatch' %}" class="button small secondary">Back</a>
-            {% if form.attrs %}
-                {% include 'custom_crispy_templates/flat_form.html' %}
-            {% else %}
-                {{ form }}
-            {% endif %}
+            {% include 'custom_crispy_templates/flat_form.html' %}
         </div>
     </div>
 
