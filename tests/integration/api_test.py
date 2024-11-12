@@ -192,6 +192,32 @@ def test_get_new_room(db, api_client, token):
     assert response.status_code == 200
 
 
+def test_when_room_has_dot_in_id_the_api_should_still_find_it(db, api_client, token):
+    create_token_endpoint(token, "room")
+    from nav.models.manage import Room
+
+    room = Room(id="foo.bar", location_id="mylocation")
+    room.save()
+
+    response = api_client.get(f"/api/1/room/{room.id}/")
+    print(response)
+    assert response.status_code == 200
+
+
+def test_when_location_has_dot_in_id_the_api_should_still_find_it(
+    db, api_client, token
+):
+    create_token_endpoint(token, "location")
+    from nav.models.manage import Location
+
+    location = Location(id="foo.bar")
+    location.save()
+
+    response = api_client.get(f"/api/1/location/{location.id}/")
+    print(response)
+    assert response.status_code == 200
+
+
 def test_patch_room_not_found(db, api_client, token):
     create_token_endpoint(token, 'room')
     data = {'location': 'mylocation'}
