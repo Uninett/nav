@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel", "setuptools_scm[toml]>=6.2", "libsass==0.15.1"]
+requires = ["setuptools>=61.0", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -62,6 +62,9 @@ navoui = "nav.bin.update_ouis:main"
 include-package-data = true
 zip-safe = false
 platforms = ["any"]
+
+[tool.setuptools.package-data]
+"nav.web" = ["static/**"]
 
 [tool.setuptools_scm]
 

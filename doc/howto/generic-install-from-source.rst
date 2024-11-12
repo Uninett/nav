@@ -5,6 +5,8 @@
 This is a generic guide to installing NAV from source code on a \*NIX flavored
 operating system. The specifics of how to install NAV's dependencies, such as
 :xref:`PostgreSQL` or :xref:`Graphite` will be entirely up to you and your choice of OS.
+Note that building NAV from source will also require Node.js and npm to be installed
+in order to manage frontend assets.
 
 
 Dependencies
@@ -20,6 +22,11 @@ To build NAV, you need at least the following:
 
  * Python >= 3.9.0
  * Sphinx >= 1.0 (for building this documentation)
+
+Additionally to build frontend assets (like CSS and JS), you will need:
+
+ * Node.js >= 14.0
+ * npm >= 6.0
 
 Runtime requirements
 --------------------
@@ -72,6 +79,16 @@ default.
 
 Installing NAV
 ==============
+
+First you need to build the static assets. To do this, you will need to have
+Node.js and npm installed. Once you have these installed, you can run
+the following command to build the CSS assets::
+
+  npm install
+  npm run build:sass
+
+This will build the CSS assets and place them in the :file:`python/nav/web/static/css`
+directory.
 
 To build and install NAV and all its Python dependencies::
 

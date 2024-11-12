@@ -187,9 +187,10 @@ nav
   starts.
 
 sass-watcher
-  This is a process that monitors the :file:`python/nav/web/sass/` subdirectory
-  for changes, and re-runs ``python setup.py build_sass`` (i.e. rebuilding all
-  the SASS-based stylesheets) on changes.
+  This is a process that runs ``npm run watch:sass`` command to monitor and
+  rebuild all the SASS-based stylesheets whenever changes occur
+  in the :file:`python/nav/web/sass/` subdirectory. The command continuously
+  monitors the files and does not exit by itself.
 
 The individual logs of these program are typically found inside the ``nav``
 container in the :file:`/var/log/supervisor/` directory. The NAV process logs

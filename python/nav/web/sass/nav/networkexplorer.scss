@@ -1,3 +1,5 @@
+@import "settings";
+
 #working {
     visibility: hidden;
 }
@@ -13,7 +15,7 @@
 }
 
 #networktree .node  {
-    background: url('../../images/networkexplorer/vertical.gif') repeat-y top left;
+    background: url('#{$assets-url}/images/networkexplorer/vertical.gif') repeat-y top left;
 }
 
 #networktree #root {
@@ -55,12 +57,12 @@ dl, dl dd {
 
 dl, dt, dd {
 	padding-left: 1em;
-	background-image: url('../../images/networkexplorer/vertical.gif');
+	background-image: url('#{$assets-url}/images/networkexplorer/vertical.gif');
 	background-repeat: repeat-y;
 }
 
 .tree-navigators {
-	background-image: url('../../images/networkexplorer/vertical.gif');
+	background-image: url('#{$assets-url}/images/networkexplorer/vertical.gif');
 	background-repeat: repeat-y;
 	}
 #tree > dl, dt, dd {

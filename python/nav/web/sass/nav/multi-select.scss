@@ -1,5 +1,7 @@
+@import "settings";
+
 .ms-container{
-  background: transparent url('../../images/multiselect/switch.png') no-repeat 50% 50%;
+  background: transparent url('#{$assets-url}/images/multiselect/switch.png') no-repeat 50% 50%;
   width: 100%;
 }
 

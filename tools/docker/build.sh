@@ -9,7 +9,7 @@ fi
 
 cd /source
 pip install -vv -e .
-python setup.py build_sass
+make sassbuild
 
 if [[ ! -f "/etc/nav/nav.conf" ]]; then
     echo "Copying initial NAV config files into this container"

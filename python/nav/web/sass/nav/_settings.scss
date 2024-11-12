@@ -1,0 +1,5 @@
+// Assets path variables
+// Giving same name to  variables as in ../navsettings, and making them default in this folder
+$assets-url: '../../static' !default;
+$image-path: '#{$assets-url}/images' !default;
+$image-path-partials: '#{$assets-url}/images' !default;
