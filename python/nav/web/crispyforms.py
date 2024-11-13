@@ -27,6 +27,17 @@ class CheckBox(Field):
     template = 'custom_crispy_templates/horizontal_checkbox.html'
 
 
+class FormCheckBox:
+    """Checkbox suited for the NAV layout
+
+    :param field: A field to render as a checkbox field.
+    """
+
+    def __init__(self, field):
+        self.field = field
+        self.input_type = 'checkbox'
+
+
 class HelpField(Field):
     """Field that displays an icon with tooltip as helptext"""
 
