@@ -106,5 +106,3 @@ class BooleanSensorForm(forms.Form):
     alert_type = forms.ChoiceField(
         label='What to display in "on" state', choices=Sensor.ALERT_TYPE_CHOICES
     )
-
-    attrs = set_flat_form_attributes()
