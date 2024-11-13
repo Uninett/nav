@@ -1,8 +1,7 @@
 {% extends 'navlets/base.html' %}
-{% load crispy_forms_tags %}
 
 {% block navlet-content %}
 
-  {% crispy form %}
+  {% include 'custom_crispy_templates/flat_form.html' %}
 
 {% endblock %}
