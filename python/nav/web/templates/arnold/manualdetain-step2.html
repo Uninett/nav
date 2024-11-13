@@ -1,5 +1,4 @@
 {% extends 'arnold/base.html' %}
-{% load crispy_forms_tags %}
 
 {% load info %}
 
@@ -68,7 +67,7 @@
           </div>
 
           {# Display form for setting detention choices. #}
-          {% crispy form %}
+          {% include 'custom_crispy_templates/_form_content.html' %}
         </fieldset>
       </form>
       </div>  {# formcontainer #}

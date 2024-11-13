@@ -26,6 +26,7 @@ from nav.web.crispyforms import (
     CheckBox,
     FlatFieldset,
     FormColumn,
+    FormDiv,
     FormRow,
     SubmitField,
     set_flat_form_attributes,
@@ -302,21 +303,24 @@ class ManualDetentionForm(forms.Form):
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            'target',
-            'method',
-            Div('qvlan', css_class='qvlanrow'),
-            'justification',
-            'comment',
-            'days',
-            Submit('submit', 'Detain'),
-        )
-
         super(ManualDetentionForm, self).__init__(*args, **kwargs)
         self.fields['justification'].choices = get_justifications()
         self.fields['qvlan'].choices = get_quarantine_vlans()
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                self['target'],
+                self['method'],
+                FormDiv(
+                    fields=[self['qvlan']],
+                    css_classes='qvlanrow',
+                ),
+                self['justification'],
+                self['comment'],
+                self['days'],
+            ],
+            submit_field=SubmitField(value='Detain'),
+        )
 
 
 def get_justifications(profileid=None):
