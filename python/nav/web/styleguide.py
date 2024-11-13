@@ -17,8 +17,13 @@
 
 from django.shortcuts import render
 from django import forms
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout import Layout, Column, Row, Fieldset
+
+from nav.web.crispyforms import (
+    FlatFieldset,
+    FormColumn,
+    FormRow,
+    set_flat_form_attributes,
+)
 
 
 class StyleFormOne(forms.Form):
@@ -36,17 +41,25 @@ class StyleFormTwo(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(StyleFormTwo, self).__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_method = 'POST'
-        self.helper.layout = Layout(
-            Fieldset(
-                'Address form',
-                Row(
-                    Column('name', css_class='small-6'),
-                    Column('address', css_class='small-6'),
-                ),
-            )
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FlatFieldset(
+                    legend="Address form",
+                    fields=[
+                        FormRow(
+                            fields=[
+                                FormColumn(
+                                    fields=[self["name"]], css_classes="small-6"
+                                ),
+                                FormColumn(
+                                    fields=[self["address"]], css_classes="small-6"
+                                ),
+                            ]
+                        )
+                    ],
+                )
+            ]
         )
 
 
