@@ -1,10 +1,9 @@
 {% extends 'navlets/base.html' %}
-{% load crispy_forms_tags %}
 
 {% block navlet-content %}
 
   <form action="{% url 'get-user-navlet' navlet.navlet_id %}">
-    {% crispy form %}
+    {% include 'custom_crispy_templates/_form_content.html' %}
   </form>
 
   <script>
