@@ -40,11 +40,7 @@
   </div>
 
   <form  id="seeddb-netbox-form" method="post">
-    {% if form.attrs %}
-      {% include 'seeddb/_seeddb_netbox_form_content.html' %}
-    {% else %}
-      {{ form }}
-    {% endif %}
+    {% include 'seeddb/_seeddb_netbox_form_content.html' %}
     <input type="submit" name="save_ip_device" value="Save IP device" class="submit button small left" id="submit-id-save_ip_device" />
   </form>
 

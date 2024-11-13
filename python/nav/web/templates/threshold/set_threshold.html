@@ -20,11 +20,7 @@
            data-url="{% url 'threshold-search' %}"
            data-renderurl="{% url 'threshold-graph' %}"
            data-metric="{{ metric|default_if_none:'' }}">
-        {% if form.attrs %}
-          {% include 'custom_crispy_templates/flat_form.html' %}
-        {% else %}
-          {{ form }}
-        {% endif %}
+        {% include 'custom_crispy_templates/flat_form.html' %}
       </div>
       {% if id %}
       <a href="#" data-dropdown="confirm-delete" class="button alert">Delete</a>

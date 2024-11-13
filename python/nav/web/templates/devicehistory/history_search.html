@@ -10,11 +10,7 @@
     <form action="{% url 'devicehistory-search' %}" method="get">
         <div class="row">
             <div class="large-8 column">
-              {% if form.attrs %}
-                {% include 'custom_crispy_templates/_form_content.html' %}
-              {% else %}
-                {{ form }}
-              {% endif %}
+              {% include 'custom_crispy_templates/_form_content.html' %}
             </div>
         </div>
         <div class="row">

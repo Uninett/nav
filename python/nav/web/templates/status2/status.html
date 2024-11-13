@@ -29,11 +29,7 @@
     {# Form for filtering events #}
     <a href="javascript:void(0);" class="button small secondary toggle-panel"></a>
     <div id="status-panel" class="hidden panel">
-      {% if form.attrs %}
-        {% include 'custom_crispy_templates/flat_form.html' %}
-      {% else %}
-        {{ form }}
-      {% endif %}
+      {% include 'custom_crispy_templates/flat_form.html' %}
     <hr>
       <a href="javascript:void(0);" class="button small secondary set-default">Save as my default status filter</a>
       <button id="clear-status-form" class="small secondary">Clear form</button>

@@ -61,11 +61,7 @@
         </div>
 
         <div class="column medium-6 large-7">
-            {% if columns_form.attrs %}
-                {% include 'custom_crispy_templates/flat_form.html' with form=columns_form %}
-            {% else %}
-                {{ columns_form }}
-            {% endif %}
+            {% include 'custom_crispy_templates/flat_form.html' with form=columns_form %}
         </div>
 
     </div>
@@ -79,11 +75,7 @@
         </p>
     {% else %}
         <form method="post" id="change-password-form" action="{% url 'webfront-preferences-changepassword' %}">
-          {% if password_form.attrs %}
-            {% include 'custom_crispy_templates/_form_content.html' with form=password_form %}
-          {% else %}
-            {{ password_form }}
-          {% endif %}
+          {% include 'custom_crispy_templates/_form_content.html' with form=password_form %}
         </form>
     {% endif %}
 
