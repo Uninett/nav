@@ -189,3 +189,18 @@ def set_flat_form_attributes(
         form_id=form_id,
         form_class=form_class,
     )
+
+
+class FormDiv:
+    """A class representing a div in a form layout.
+
+    :param fields: A list of fields to include in the div.
+    :param css_classes: Additional CSS classes to apply to the div.
+    """
+
+    def __init__(
+        self, fields: Optional[list] = None, css_classes: Optional[str] = None
+    ):
+        self.fields = fields
+        self.css_classes = css_classes
+        self.template = 'custom_crispy_templates/form_div.html'

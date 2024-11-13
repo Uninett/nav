@@ -1,0 +1,11 @@
+{# NB! This form div can only render fields that are supported by custom_crispy_templates/_form_field.html #}
+
+<div
+  {% if field.css_classes %} class="{{ field.css_classes }}" {% endif %}
+>
+  {% block formdiv_content %}
+    {% for field in field.fields %}
+      {% include 'custom_crispy_templates/_form_field.html' %}
+    {% endfor %}
+  {% endblock %}
+</div>
