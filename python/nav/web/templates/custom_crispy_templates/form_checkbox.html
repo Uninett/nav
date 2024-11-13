@@ -1,11 +1,13 @@
-<div id="div_{{ field.auto_id }}" class="ctrlHolder{% if field.errors %} error{% endif %}{% if field.css_classes %} {{ field.css_classes }}{% endif %}">
-    <label for="{{ field.id_for_label }}">
-        {{ field.label}}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}
-        {{ field }}
-    </label>
-    {% for error in field.errors %}
-        <small id="error_{{ forloop.counter }}_{{ field.auto_id }}" class="errorField">
-            {{ error }}
-        </small>
-    {% endfor %}
-</div>
+{% with input=field.field %}
+    <div id="div_{{ input.auto_id }}" class="ctrlHolder{% if input.errors %} error{% endif %}{% if field.css_classes %} {{ field.css_classes }}{% endif %}">
+        <label for="{{ input.id_for_label }}">
+            {{ input.label}}{% if input.field.required %}<span class="asteriskField">*</span>{% endif %}
+            {{ input }}
+        </label>
+        {% for error in input.errors %}
+            <small id="error_{{ forloop.counter }}_{{ input.auto_id }}" class="errorField">
+                {{ error }}
+            </small>
+        {% endfor %}
+    </div>
+{% endwith %}

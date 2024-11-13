@@ -6,8 +6,6 @@
   {% include 'custom_crispy_templates/submit_field.html' with input=field %}
 {% elif field.input_type == 'helpfield' %}
   {% include 'custom_crispy_templates/field_helptext_as_icon.html' with field=field.field %}
-{% elif field.input_type == 'checkbox' %}
-  {% include 'custom_crispy_templates/form_checkbox.html' with field=field.field %}
 {% else %}
   {% show_field field %}
 {% endif %}
