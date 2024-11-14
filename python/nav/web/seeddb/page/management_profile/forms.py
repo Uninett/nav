@@ -32,7 +32,7 @@ class ManagementProfileFilterForm(forms.Form):
         super(ManagementProfileFilterForm, self).__init__(*args, **kwargs)
 
         self.attrs = get_single_layout(
-            heading="Filter connection profiles", filter_fields=[self["protocol"]]
+            heading="Filter connection profiles", filter_field=self["protocol"]
         )
 
 

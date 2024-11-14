@@ -129,7 +129,7 @@ def cut_branch(field, klass, pk):
 # non-crispy helpers
 
 
-def get_single_layout(heading, filter_fields: list):
+def get_single_layout(heading, filter_field):
     """Get default layout for a single filter"""
     return set_flat_form_attributes(
         form_class="custom",
@@ -140,7 +140,7 @@ def get_single_layout(heading, filter_fields: list):
                 fields=[
                     FormRow(
                         fields=[
-                            FormColumn(fields=filter_fields, css_classes="medium-8"),
+                            FormColumn(fields=[filter_field], css_classes="medium-8"),
                             FormColumn(
                                 fields=[
                                     SubmitField(
@@ -294,7 +294,7 @@ class NetboxTypeFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(NetboxTypeFilterForm, self).__init__(*args, **kwargs)
         self.attrs = get_single_layout(
-            heading="Filter types", filter_fields=[self["vendor"]]
+            heading="Filter types", filter_field=self["vendor"]
         )
 
 
