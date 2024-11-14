@@ -39,12 +39,6 @@ class FormCheckBox:
         self.template = 'custom_crispy_templates/form_checkbox.html'
 
 
-class HelpField(Field):
-    """Field that displays an icon with tooltip as helptext"""
-
-    template = 'custom_crispy_templates/field_helptext_as_icon.html'
-
-
 class HelpFormField:
     """Field that displays an icon with tooltip as helptext
 
