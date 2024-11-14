@@ -1,5 +1,4 @@
 {% extends 'navlets/base.html' %}
-{% load crispy_forms_tags %}
 
 {% block navlet-content %}
   {% if can_edit_rooms %}
@@ -10,6 +9,6 @@
     <div id="room_map" class="navletmap"></div>
   </div>
 
-  {% crispy searchform %}
+  {% include 'custom_crispy_templates/flat_form.html' with form=searchform %}
 
 {% endblock navlet-content %}
