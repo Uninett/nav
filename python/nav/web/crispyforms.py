@@ -33,9 +33,10 @@ class FormCheckBox:
     :param field: A field to render as a checkbox field.
     """
 
-    def __init__(self, field):
+    def __init__(self, field, css_classes: Optional[str] = None):
         self.field = field
-        self.input_type = 'checkbox'
+        self.css_classes = css_classes
+        self.template = 'custom_crispy_templates/form_checkbox.html'
 
 
 class HelpField(Field):
