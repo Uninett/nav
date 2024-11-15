@@ -59,16 +59,16 @@ urlpatterns = [
         views.render_edit_detention_profile,
         name="arnold-detention-profile-edit",
     ),
-    re_path(r"^addreason/$", views.render_justifications, name="arnold-justificatons"),
+    re_path(r"^addreason/$", views.render_justifications, name="arnold-justifications"),
     re_path(
         r"^addreason/edit/(?P<jid>\d+)$",
         views.render_justifications,
-        name="arnold-justificatons-edit",
+        name="arnold-justifications-edit",
     ),
     re_path(
         r"^addreason/delete/(?P<jid>\d+)$",
         views.delete_justification,
-        name="arnold-justificatons-delete",
+        name="arnold-justifications-delete",
     ),
     re_path(
         r"^addquarantinevlan/$",

@@ -24,14 +24,14 @@
                             <td>{{ justification.name }}</td>
                             <td>{{ justification.description }}</td>
                             <td>
-                                <a href="{% url 'arnold-justificatons-edit' justification.id %}"
+                                <a href="{% url 'arnold-justifications-edit' justification.id %}"
                                    class="button tiny secondary">
                                     Edit
                                 </a>
                             </td>
                             <td>
                                 {% if justification.deletable %}
-                                    <a href="{% url 'arnold-justificatons-delete' justification.id %}"
+                                    <a href="{% url 'arnold-justifications-delete' justification.id %}"
                                        class="button tiny alert">
                                         Delete
                                     </a>
