@@ -18,13 +18,6 @@ from types import SimpleNamespace
 from typing import Optional
 
 from django import forms
-from crispy_forms_foundation.layout import Field
-
-
-class CheckBox(Field):
-    """Checkbox suited for the NAV layout"""
-
-    template = 'custom_crispy_templates/horizontal_checkbox.html'
 
 
 class FormCheckBox:
