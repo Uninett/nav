@@ -331,17 +331,6 @@ form label .fa {
     line-height: 1.5em;
 }
 
-
-/* This will align the label from crispy forms to the right of the checkbox */
-.checkboxinput + label {
-    display: inline-block;
-}
-
-/* This will try to center the checkbox vertically when adjacent to input fields */
-.checkboxinput.input-align {
-    margin: 1.5em 0.2em 1.5em 0.2em;
-}
-
 /* Limit the vertical size of an element and display a scroll-bar instead */
 .limit-size {
     max-height: 200px;
