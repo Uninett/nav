@@ -337,8 +337,6 @@ class DeviceGroupForm(forms.ModelForm):
             initial['netboxes'] = [n.pk for n in kwargs['instance'].netboxes.all()]
         forms.ModelForm.__init__(self, *args, **kwargs)
 
-        self.attrs = set_flat_form_attributes()
-
     class Meta(object):
         model = NetboxGroup
         fields = '__all__'
