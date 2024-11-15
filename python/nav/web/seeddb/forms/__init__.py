@@ -129,7 +129,7 @@ def cut_branch(field, klass, pk):
 # helpers
 
 
-def get_single_layout(heading, row):
+def get_single_layout(heading, filter_field):
     """Get default layout for a single filter"""
     return set_flat_form_attributes(
         form_class="custom",
@@ -140,7 +140,7 @@ def get_single_layout(heading, row):
                 fields=[
                     FormRow(
                         fields=[
-                            FormColumn(fields=[row], css_classes="medium-8"),
+                            FormColumn(fields=[filter_field], css_classes="medium-8"),
                             FormColumn(
                                 fields=[
                                     SubmitField(
@@ -169,7 +169,12 @@ class RoomFilterForm(forms.Form):
         Location.objects.order_by('id').all(), required=False
     )
     location.widget.attrs.update({"class": "select"})
-    attrs = get_single_layout(heading="Filter rooms", row=[location])
+
+    def __init__(self, *args, **kwargs):
+        super(RoomFilterForm, self).__init__(*args, **kwargs)
+        self.attrs = get_single_layout(
+            heading="Filter rooms", filter_field=self["location"]
+        )
 
 
 class RoomForm(forms.ModelForm):
@@ -285,7 +290,12 @@ class NetboxTypeFilterForm(forms.Form):
     """Form for filtering a netbox type by vendor"""
 
     vendor = forms.ModelChoiceField(Vendor.objects.order_by('id').all(), required=False)
-    attrs = get_single_layout(heading="Filter types", row=[vendor])
+
+    def __init__(self, *args, **kwargs):
+        super(NetboxTypeFilterForm, self).__init__(*args, **kwargs)
+        self.attrs = get_single_layout(
+            heading="Filter types", filter_field=self["vendor"]
+        )
 
 
 class NetboxTypeForm(forms.ModelForm):
