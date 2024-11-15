@@ -17,14 +17,11 @@
 
 from IPy import IP
 from django import forms
-from crispy_forms.helper import FormHelper
-
-from crispy_forms_foundation.layout import Layout, Fieldset, Div, Row, Submit, Column
 
 from nav.util import is_valid_ip, is_valid_mac
 from nav.web.crispyforms import (
-    CheckBox,
     FlatFieldset,
+    FormCheckBox,
     FormColumn,
     FormDiv,
     FormRow,
@@ -213,39 +210,53 @@ class DetentionProfileForm(forms.Form):
         did = self.data.get('detention_id') or self.initial.get('detention_id')
         self.fields['justification'].choices = get_justifications(did)
 
-        self.helper = FormHelper()
-        self.helper.form_action = ''
-        self.helper.form_class = 'profileDetentionForm custom'
-        self.helper.layout = Layout(
-            'detention_id',
-            'title',
-            'description',
-            Fieldset(
-                'Obligatory',
-                Row(
-                    Column('detention_type', css_class='medium-4'),
-                    Column('justification', css_class='medium-4'),
-                    Column('duration', css_class='medium-4'),
+        self.attrs = set_flat_form_attributes(
+            form_class='profileDetentionForm custom',
+            form_fields=[
+                self['detention_id'],
+                self['title'],
+                self['description'],
+                FlatFieldset(
+                    'Obligatory',
+                    fields=[
+                        FormRow(
+                            fields=[
+                                FormColumn(
+                                    [self['detention_type']], css_classes='medium-4'
+                                ),
+                                FormColumn(
+                                    [self['justification']], css_classes='medium-4'
+                                ),
+                                FormColumn([self['duration']], css_classes='medium-4'),
+                            ]
+                        ),
+                        FormDiv(fields=[self['qvlan']], css_classes='qvlanrow'),
+                    ],
+                    css_class='secondary',
                 ),
-                Div('qvlan', css_class='qvlanrow'),
-                css_class='secondary',
-            ),
-            Fieldset(
-                'Extra options',
-                Row(
-                    Column('keep_closed', css_class='medium-4'),
-                    Column(
-                        CheckBox('exponential', css_class='input-align'),
-                        css_class='medium-4',
-                    ),
-                    Div(css_class='medium-4 columns'),
+                FlatFieldset(
+                    'Extra options',
+                    fields=[
+                        FormRow(
+                            fields=[
+                                FormColumn(
+                                    fields=[self['keep_closed']], css_classes='medium-4'
+                                ),
+                                FormColumn(
+                                    fields=[FormCheckBox(self['exponential'])],
+                                    css_classes='medium-4',
+                                ),
+                                FormDiv(css_classes='medium-4 columns'),
+                            ]
+                        ),
+                        self['mail'],
+                        self['active_on_vlans'],
+                    ],
+                    css_class='secondary',
                 ),
-                'mail',
-                'active_on_vlans',
-                css_class='secondary',
-            ),
-            CheckBox('active', css_class='input-align'),
-            Submit('submit', 'Save'),
+                FormCheckBox(self['active']),
+            ],
+            submit_field=SubmitField(value='Save'),
         )
 
 
