@@ -173,7 +173,7 @@ class RoomFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(RoomFilterForm, self).__init__(*args, **kwargs)
         self.attrs = get_single_layout(
-            heading="Filter rooms", filter_fields=[self["location"]]
+            heading="Filter rooms", filter_field=self["location"]
         )
 
 
