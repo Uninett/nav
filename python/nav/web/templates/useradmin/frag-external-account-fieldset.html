@@ -1,0 +1,6 @@
+{% extends "custom_crispy_templates/flat_fieldset.html" %}
+
+{% block fieldset_fields %}
+    <p class='alert-box'>External authenticator: {{ account.ext_sync }}</p>
+    {{ block.super }}
+{% endblock %}
