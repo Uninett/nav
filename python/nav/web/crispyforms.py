@@ -20,7 +20,7 @@ from typing import Optional
 from django import forms
 
 
-class FormCheckBox:
+class CheckBox:
     """Checkbox suited for the NAV layout
 
     :param field: A field to render as a checkbox field.
