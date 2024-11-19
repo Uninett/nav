@@ -211,8 +211,6 @@ NAVLETS = (
     'nav.web.navlets.env_rack.EnvironmentRackWidget',
 )
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'foundation-5'
-CRISPY_TEMPLATE_PACK = 'foundation-5'
 
 INSTALLED_APPS = (
     'nav.models',
