@@ -20,8 +20,8 @@ from django import forms
 
 from nav.util import is_valid_ip, is_valid_mac
 from nav.web.crispyforms import (
+    CheckBox,
     FlatFieldset,
-    FormCheckBox,
     FormColumn,
     FormDiv,
     FormRow,
@@ -243,7 +243,7 @@ class DetentionProfileForm(forms.Form):
                                     fields=[self['keep_closed']], css_classes='medium-4'
                                 ),
                                 FormColumn(
-                                    fields=[FormCheckBox(self['exponential'])],
+                                    fields=[CheckBox(self['exponential'])],
                                     css_classes='medium-4',
                                 ),
                                 FormDiv(css_classes='medium-4 columns'),
@@ -254,7 +254,7 @@ class DetentionProfileForm(forms.Form):
                     ],
                     css_class='secondary',
                 ),
-                FormCheckBox(self['active']),
+                CheckBox(self['active']),
             ],
             submit_field=SubmitField(value='Save'),
         )
