@@ -56,7 +56,7 @@ class JustificationForm(forms.Form):
             fieldset_legend = 'Edit detention reason'
 
         self.attrs = set_flat_form_attributes(
-            form_action='arnold-justificatons',
+            form_action='arnold-justifications',
             form_fields=[
                 FlatFieldset(
                     fieldset_legend,

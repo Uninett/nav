@@ -145,7 +145,7 @@ def render_justifications(request, jid=None):
         form = JustificationForm(request.POST)
         if form.is_valid():
             process_justification_form(form)
-            return redirect('arnold-justificatons')
+            return redirect('arnold-justifications')
     elif jid:
         justification = Justification.objects.get(pk=jid)
         form = JustificationForm(
@@ -214,11 +214,11 @@ def delete_justification(_request, jid):
     except Justification.DoesNotExist:
         # As this method is only called from ui on existing justifications
         # this should not happen. Just redirect to list again
-        return redirect('arnold-justificatons')
+        return redirect('arnold-justifications')
     else:
         justification.delete()
 
-    return redirect('arnold-justificatons')
+    return redirect('arnold-justifications')
 
 
 def render_manual_detention_step_one(request):
