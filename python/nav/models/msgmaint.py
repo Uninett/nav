@@ -181,6 +181,7 @@ class MaintenanceComponent(models.Model):
     )
     key = VarcharField()
     value = VarcharField()
+    description = VarcharField(null=True, blank=True)
     component = LegacyGenericForeignKey('key', 'value')
 
     class Meta(object):
