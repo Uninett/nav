@@ -36,10 +36,8 @@ class Netbox(object):
     def __key(self):
         return self.sysname
 
-    # Yes we know we access private variable
-    # pylint: disable=W0212
-    def __eq__(self, i):
-        return self.__key() == i.__key()
+    def __eq__(self, value):
+        return self.sysname == getattr(value, "sysname", None)
 
     def __hash__(self):
         return hash(self.__key())
