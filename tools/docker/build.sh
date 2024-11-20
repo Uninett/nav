@@ -2,7 +2,7 @@
 
 set -ex
 
-if [[ ! -f "/source/setup.py" ]]; then
+if [[ ! -f "/source/pyproject.toml" ]]; then
   echo NAV source code does not appear to be mounted at /source
   exit 1
 fi

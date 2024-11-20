@@ -59,7 +59,7 @@ actually find :file:`nav.conf`::
 
 If you like, you can build the complete HTML documentation thus::
 
-    python setup.py build_sphinx
+    sphinx-build
 
 
 6. Initialize the database
