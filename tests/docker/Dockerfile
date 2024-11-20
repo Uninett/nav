@@ -59,7 +59,7 @@ RUN cd /tmp && \
 
 # Install chromedriver to properly run Selenium tests in Chrome, if need be
 # Ref: https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
-ENV CHROMEDRIVERVERSION=128.0.6613.137
+ENV CHROMEDRIVERVERSION=131.0.6778.69
 RUN cd /tmp && \
     apt-get update && \
     apt-get -y --no-install-recommends install unzip && \
