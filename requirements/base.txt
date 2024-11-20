@@ -25,6 +25,7 @@ dnspython<3.0.0,>=2.1.0
 django-filter>=2
 djangorestframework>=3.12,<3.13
 django-crispy-forms>=1.8,<1.9
+django-csp
 crispy-forms-foundation>=0.7,<0.8
 
 # REST framework
