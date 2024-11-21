@@ -103,6 +103,20 @@ def do_state_transitions():
 
     _logger.debug("Tasks transitioned to active state: %r", tasks)
 
+    cancel_tasks_without_components()
+
+
+def cancel_tasks_without_components():
+    """Cancels active tasks where all components are missing"""
+    tasks = MaintenanceTask.objects.filter(
+        state=MaintenanceTask.STATE_ACTIVE
+    ).prefetch_related('maintenance_components')
+    for task in tasks:
+        if not any(task.get_components()):
+            task.state = MaintenanceTask.STATE_CANCELED
+            task.save()
+            _logger.debug("Task %r canceled because all components were missing", task)
+
 
 def check_state_differences():
     """
