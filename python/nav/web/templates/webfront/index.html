@@ -144,7 +144,7 @@
         </div>
 
         <div class="column medium-4">
-          {% if request.account.account_dashboards.count > 1 %}
+          {% if request.account.account_dashboards.count > 1 and not dashboard.is_default %}
             <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}">
               <input type="submit" class="small button alert expand" value="Delete dashboard">
             </form>
