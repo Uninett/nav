@@ -1155,6 +1155,9 @@ class Location(models.Model, TreeMixin):
         locations = self.get_descendants(True)
         return Room.objects.filter(location__in=locations)
 
+    def get_absolute_url(self):
+        return reverse('location-info', kwargs={'locationid': self.pk})
+
 
 class Organization(models.Model, TreeMixin):
     """From NAV Wiki: The org table defines an organization which is in charge
