@@ -289,7 +289,7 @@ require([
                     window.location = '/';
                 });
                 request.fail(function (response) {
-                    feedback.addFeedback(response, 'error');
+                    feedback.addFeedback(response.responseText, 'error');
                 });
             }
         });

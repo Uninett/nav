@@ -24,6 +24,7 @@ from operator import attrgetter
 from urllib.parse import quote as urlquote
 
 from django.http import (
+    HttpResponseBadRequest,
     HttpResponseForbidden,
     HttpResponseRedirect,
     HttpResponse,
@@ -428,7 +429,7 @@ def delete_dashboard(request, did):
     """Delete this dashboard and all widgets on it"""
     is_last = AccountDashboard.objects.filter(account=request.account).count() == 1
     if is_last:
-        return HttpResponse('Can not delete last dashboard', status=400)
+        return HttpResponseBadRequest('Cannot delete last dashboard')
 
     dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
     dash.delete()

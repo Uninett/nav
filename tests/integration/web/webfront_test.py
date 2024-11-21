@@ -68,6 +68,20 @@ def test_set_default_dashboard_with_multiple_previous_defaults_should_succeed(
     )
 
 
+def test_delete_last_dashboard_should_fail(db, client, admin_account):
+    """Tests that the last dashboard cannot be deleted"""
+    dashboard = AccountDashboard.objects.get(
+        is_default=True,
+        account=admin_account,
+    )
+    url = reverse("delete-dashboard", args=(dashboard.pk,))
+    response = client.post(url, follow=True)
+
+    assert response.status_code == 400
+    assert "Cannot delete last dashboard" in smart_str(response.content)
+    assert AccountDashboard.objects.filter(id=dashboard.id).exists()
+
+
 def test_when_logging_in_it_should_change_the_session_id(
     db, client, admin_username, admin_password
 ):
