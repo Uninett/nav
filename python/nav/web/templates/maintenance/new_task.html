@@ -1,4 +1,5 @@
 {% extends "maintenance/base.html" %}
+{% load maintenance %}
 
 {% block base_header_additional_head %}
   {{ block.super }}
@@ -57,26 +58,19 @@
 
             {% if components %}
               <ul id="component-list" class="no-bullet">
-                {% for comp in components %}
-                  <li>
-                    <div>
-                      <input type="hidden" name="{{ comp.type }}" value="{{ comp.id }}"/>
-                      <input type="checkbox" name="remove_{{ comp.type }}" value="{{ comp.id }}"/>
-                      {{ comp.title|capfirst }}:
-                    </div>
-                    <div>
-                      {% for elem in comp.trail %}
-                        {% if elem.url %}
-                          <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
-                        {% else %}
-                          {{ elem.name }}
-                        {% endif %}
-                        {% if not forloop.last %}
-                          &rarr;
-                        {% endif %}
-                      {% endfor %}
-                    </div>
-                  </li>
+                {% for trail in components %}
+                    {% with trail|last as component %}
+                      <li>
+                        <div>
+                          <input type="hidden" name="{{ component|component_db_table }}" value="{{ component.pk }}"/>
+                          <input type="checkbox" name="remove_{{ component|component_db_table }}" value="{{ component.pk }}"/>
+                            {{ component|model_verbose_name }}:
+                        </div>
+                        <div>
+                          {% include "maintenance/frag-component-trail.html" %}
+                        </div>
+                      </li>
+                    {% endwith %}
                 {% endfor %}
               </ul>
               <input type="submit" name="remove"

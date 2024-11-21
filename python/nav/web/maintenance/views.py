@@ -42,12 +42,10 @@ from nav.web.maintenance.utils import (
     TITLE,
     MaintenanceCalendar,
     component_to_trail,
-    components_for_keys,
     get_component_keys,
     get_components,
+    get_components_from_keydict,
     infodict_by_state,
-    structure_component_data,
-    task_component_trails,
     task_form_initial,
 )
 from nav.web.message import Messages, new_message
@@ -246,7 +244,8 @@ def cancel(request, task_id):
 def edit(request, task_id=None, start_time=None, **_):
     account = get_account(request)
     quickselect = QuickSelect(service=True)
-    component_trail = component_keys_errors = component_data = task = None
+    component_trail = components = task = None
+    component_keys_errors = []
 
     if task_id:
         task = get_object_or_404(MaintenanceTask, pk=task_id)
@@ -265,9 +264,8 @@ def edit(request, task_id=None, start_time=None, **_):
         component_keys, component_keys_errors = get_component_keys(request.GET)
 
     if component_keys:
-        component_data, component_data_errors = components_for_keys(component_keys)
-        components = structure_component_data(component_data)
-        component_trail = task_component_trails(component_keys, components)
+        components, component_data_errors = get_components_from_keydict(component_keys)
+        component_trail = [component_to_trail(c) for c in components]
         for error in component_data_errors:
             new_message(request, error, Messages.ERROR)
 
@@ -277,7 +275,7 @@ def edit(request, task_id=None, start_time=None, **_):
     if request.method == 'POST':
         if 'save' in request.POST:
             task_form = MaintenanceTaskForm(request.POST)
-            if component_keys and not any(component_data.values()):
+            if component_keys and not components:
                 new_message(request, "No components selected.", Messages.ERROR)
             elif not component_keys_errors and task_form.is_valid():
                 start_time = task_form.cleaned_data['start_time']
@@ -309,14 +307,13 @@ def edit(request, task_id=None, start_time=None, **_):
                     sql = """DELETE FROM maint_component
                                 WHERE maint_taskid = %s"""
                     cursor.execute(sql, (new_task.id,))
-                for key in component_data:
-                    for component in component_data[key]:
-                        task_component = MaintenanceComponent(
-                            maintenance_task=new_task,
-                            key=key,
-                            value="%s" % component['id'],
-                        )
-                        task_component.save()
+                for component in components:
+                    task_component = MaintenanceComponent(
+                        maintenance_task=new_task,
+                        key=component._meta.db_table,
+                        value=getattr(component, "primary_key", component.pk),
+                    )
+                    task_component.save()
                 new_message(
                     request, "Saved task %s" % new_task.description, Messages.SUCCESS
                 )
