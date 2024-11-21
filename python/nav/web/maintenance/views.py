@@ -273,11 +273,11 @@ def edit(request, task_id=None, start_time=None, **_):
         component_data, component_data_errors = components_for_keys(component_keys)
         components = structure_component_data(component_data)
         component_trail = task_component_trails(component_keys, components)
-        if component_data_errors:
-            new_message(request, ",".join(component_data_errors), Messages.ERROR)
+        for error in component_data_errors:
+            new_message(request, error, Messages.ERROR)
 
-    if component_keys_errors:
-        new_message(request, ",".join(component_keys_errors), Messages.ERROR)
+    for error in component_keys_errors:
+        new_message(request, error, Messages.ERROR)
 
     if request.method == 'POST':
         if 'save' in request.POST:
