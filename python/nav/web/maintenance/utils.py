@@ -24,6 +24,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.html import conditional_escape
 
+from nav.models.fields import LegacyGenericForeignKey
 from nav.models.manage import Netbox, Room, Location, NetboxGroup
 from nav.models.service import Service
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
@@ -184,68 +185,37 @@ def get_component_keys(post):
     return component_keys, errors
 
 
-def components_for_keys(component_keys):
-    component_data = {}
+def get_components_from_keydict(
+    component_keys: dict[str, List[Union[int, str]]]
+) -> tuple[List[ComponentType], List[str]]:
+    """Fetches components from a dictionary of component keys, typically as created
+    from POST data.
+
+    Returns a list of matched components and a list of errors encountered during the
+    process.  Again, this would be better handled by a Django Form class.
+    """
+    components = []
     component_data_errors = []
-    if component_keys['service']:
-        component_data['service'] = Service.objects.filter(
-            id__in=component_keys['service']
-        ).values(
-            'id',
-            'handler',
-            'netbox__id',
-            'netbox__sysname',
-            'netbox__ip',
-            'netbox__room__id',
-            'netbox__room__description',
-            'netbox__room__location__id',
-            'netbox__room__location__description',
+
+    for key, values in component_keys.items():
+        if not values:
+            continue
+        model_class = (
+            LegacyGenericForeignKey.get_model_class(key)
+            if key in ALLOWED_COMPONENTS
+            else None
         )
-        if not component_data['service']:
+        if not model_class:
+            component_data_errors.append(f"{key}: invalid component type")
+            continue
+
+        objects = model_class.objects.filter(id__in=component_keys[key])
+        components.extend(objects)
+        if not objects:
             component_data_errors.append(
-                "service: no elements with the given identifiers found"
+                f"{key}: no elements with the given identifiers found"
             )
-    if component_keys['netbox']:
-        component_data['netbox'] = Netbox.objects.filter(
-            id__in=component_keys['netbox']
-        ).values(
-            'id',
-            'sysname',
-            'ip',
-            'room__id',
-            'room__description',
-            'room__location__id',
-            'room__location__description',
-        )
-        if not component_data['netbox']:
-            component_data_errors.append(
-                "netbox: no elements with the given identifiers found"
-            )
-    if component_keys['room']:
-        component_data['room'] = Room.objects.filter(
-            id__in=component_keys['room']
-        ).values('id', 'description', 'location__id', 'location__description')
-        if not component_data['room']:
-            component_data_errors.append(
-                "room: no elements with the given identifiers found"
-            )
-    if component_keys['location']:
-        component_data['location'] = Location.objects.filter(
-            id__in=component_keys['location']
-        ).values('id', 'description')
-        if not component_data['location']:
-            component_data_errors.append(
-                "location: no elements with the given identifiers found"
-            )
-    if component_keys['netboxgroup']:
-        component_data['netboxgroup'] = NetboxGroup.objects.filter(
-            id__in=component_keys['netboxgroup']
-        ).values('id', 'description')
-        if not component_data['netboxgroup']:
-            component_data_errors.append(
-                "netboxgroup: no elements with the given identifiers found"
-            )
-    return component_data, component_data_errors
+    return components, component_data_errors
 
 
 def structure_component_data(component_data):
