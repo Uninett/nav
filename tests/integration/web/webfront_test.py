@@ -82,6 +82,27 @@ def test_delete_last_dashboard_should_fail(db, client, admin_account):
     assert AccountDashboard.objects.filter(id=dashboard.id).exists()
 
 
+def test_delete_default_dashboard_should_fail(db, client, admin_account):
+    """Tests that the default dashboard cannot be deleted"""
+    # Creating another dashboard, so that default is not the last one
+    AccountDashboard.objects.create(
+        name="non_default",
+        is_default=False,
+        account=admin_account,
+    )
+
+    default_dashboard = AccountDashboard.objects.get(
+        is_default=True,
+        account=admin_account,
+    )
+    url = reverse("delete-dashboard", args=(default_dashboard.pk,))
+    response = client.post(url, follow=True)
+
+    assert response.status_code == 400
+    assert "Cannot delete default dashboard" in smart_str(response.content)
+    assert AccountDashboard.objects.filter(id=default_dashboard.id).exists()
+
+
 def test_when_logging_in_it_should_change_the_session_id(
     db, client, admin_username, admin_password
 ):
