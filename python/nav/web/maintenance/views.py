@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2011 Uninett AS
+# Copyright (C) 2024 Sikt
 #
 # This file is part of Network Administration Visualized (NAV).
 #
@@ -15,36 +16,41 @@
 #
 
 import logging
-
 import time
 from datetime import datetime
 
-from django.db import transaction, connection
+from django.db import connection, transaction
 from django.db.models import Count, Q
-from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
+import nav.maintengine
 from nav.django.utils import get_account
 from nav.models.manage import Netbox
-from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
-from nav.web.message import new_message, Messages
-from nav.web.quickselect import QuickSelect
-
-from nav.web.maintenance.utils import (
-    components_for_keys,
-    get_components,
-    component_to_trail,
+from nav.models.msgmaint import MaintenanceComponent, MaintenanceTask
+from nav.web.maintenance.forms import (
+    MaintenanceAddSingleNetbox,
+    MaintenanceCalendarForm,
+    MaintenanceTaskForm,
 )
-from nav.web.maintenance.utils import task_component_trails
-from nav.web.maintenance.utils import get_component_keys, PRIMARY_KEY_INTEGER
-from nav.web.maintenance.utils import structure_component_data
-from nav.web.maintenance.utils import task_form_initial, infodict_by_state
-from nav.web.maintenance.utils import MaintenanceCalendar, NAVPATH, TITLE
-from nav.web.maintenance.forms import MaintenanceTaskForm, MaintenanceCalendarForm
-from nav.web.maintenance.forms import MaintenanceAddSingleNetbox
-import nav.maintengine
+from nav.web.maintenance.utils import (
+    NAVPATH,
+    PRIMARY_KEY_INTEGER,
+    TITLE,
+    MaintenanceCalendar,
+    component_to_trail,
+    components_for_keys,
+    get_component_keys,
+    get_components,
+    infodict_by_state,
+    structure_component_data,
+    task_component_trails,
+    task_form_initial,
+)
+from nav.web.message import Messages, new_message
+from nav.web.quickselect import QuickSelect
 
 INFINITY = datetime.max
 
