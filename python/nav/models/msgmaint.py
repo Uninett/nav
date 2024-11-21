@@ -191,6 +191,10 @@ class MaintenanceComponent(models.Model):
     def __str__(self):
         return u'%s=%s' % (self.key, self.value)
 
+    def get_component_class(self) -> models.Model:
+        """Returns a Model class based on the database table name stored in key"""
+        return LegacyGenericForeignKey.get_model_class(self.key)
+
 
 class MessageToMaintenanceTask(models.Model):
     """From NAV Wiki: The connection between messages and related maintenance
