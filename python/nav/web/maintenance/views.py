@@ -32,7 +32,11 @@ from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.web.message import new_message, Messages
 from nav.web.quickselect import QuickSelect
 
-from nav.web.maintenance.utils import components_for_keys
+from nav.web.maintenance.utils import (
+    components_for_keys,
+    get_components,
+    component_to_trail,
+)
 from nav.web.maintenance.utils import task_component_trails
 from nav.web.maintenance.utils import get_component_keys, PRIMARY_KEY_INTEGER
 from nav.web.maintenance.utils import structure_component_data
@@ -189,25 +193,8 @@ def historic(request):
 
 def view(request, task_id):
     task = get_object_or_404(MaintenanceTask, pk=task_id)
-    maint_components = MaintenanceComponent.objects.filter(
-        maintenance_task=task.id
-    ).values_list('key', 'value')
-
-    component_keys = {
-        'service': [],
-        'netbox': [],
-        'room': [],
-        'location': [],
-        'netboxgroup': [],
-    }
-    for key, value in maint_components:
-        if key in PRIMARY_KEY_INTEGER:
-            value = int(value)
-        component_keys[key].append(value)
-
-    component_data, _ = components_for_keys(component_keys)
-    components = structure_component_data(component_data)
-    component_trail = task_component_trails(component_keys, components)
+    components = get_components(task)
+    component_trail = [component_to_trail(c) for c in components]
 
     heading = 'Task "%s"' % task.description
     infodict = infodict_by_state(task)

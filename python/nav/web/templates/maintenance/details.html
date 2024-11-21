@@ -1,4 +1,5 @@
 {% extends "maintenance/base.html" %}
+{% load maintenance %}
 
 {% block content %}
 
@@ -43,20 +44,13 @@
           <td>
             {% if components %}
               <ul class="no-bullet">
-                {% for comp in components %}
-                  <li>
-                    {{ comp.title|capfirst }}:
-                    {% for elem in comp.trail %}
-                      {% if elem.url %}
-                        <a href="{{ elem.url }}" title="{{ elem.title }}">{{ elem.name }}</a>
-                      {% else %}
-                        {{ elem.name }}
-                      {% endif %}
-                      {% if not forloop.last %}
-                        &rarr;
-                      {% endif %}
-                    {% endfor %}
-                  </li>
+                {% for trail in components %}
+                    <li>
+                        {% with trail|last as component %}
+                            {{ component|model_verbose_name }}:
+                            {% include "maintenance/frag-component-trail.html" %}
+                        {% endwith %}
+                    </li>
                 {% endfor %}
               </ul>
             {% else %}
