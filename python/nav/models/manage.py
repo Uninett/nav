@@ -282,8 +282,8 @@ class Netbox(models.Model):
 
     class Meta(object):
         db_table = 'netbox'
-        verbose_name = 'ip device'
-        verbose_name_plural = 'ip devices'
+        verbose_name = 'IP device'
+        verbose_name_plural = 'IP devices'
         ordering = ('sysname',)
 
     def __str__(self):
