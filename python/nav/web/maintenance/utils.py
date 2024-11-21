@@ -15,15 +15,18 @@
 #
 
 from calendar import HTMLCalendar
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from time import strftime
+from typing import Union, List, Iterator
 
+from django.db import models
 from django.urls import reverse
 from django.utils.html import conditional_escape
 
 from nav.models.manage import Netbox, Room, Location, NetboxGroup
 from nav.models.service import Service
-from nav.models.msgmaint import MaintenanceTask
+from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 
 PRIMARY_KEY_INTEGER = ('netbox', 'service')
 
@@ -94,6 +97,70 @@ def infodict_by_state(task):
         'active': {state: True},
         'navpath': navpath,
     }
+
+
+@dataclass
+class MissingComponent:
+    """Represents a deleted component still associated with a task"""
+
+    model_class: models.Model
+    primary_key: Union[int, str]
+    description: str
+
+    @property
+    def _meta(self):
+        """Provides a fake `_meta` attribute for compatibility with Django model
+        objects.
+        """
+        return self.model_class._meta
+
+    @property
+    def pk(self):
+        """Fakes a descriptive primary key attribute for compatibility with Django
+        model objects.
+        """
+        return str(self)
+
+    def __str__(self):
+        descr = self.description or self.primary_key
+        return f"{descr} (Component was deleted)"
+
+
+ComponentType = Union[Location, Room, Netbox, Service, NetboxGroup, MissingComponent]
+
+
+def component_to_trail(component: ComponentType) -> List[ComponentType]:
+    """Transforms a single component into a list of components that make up a trail for
+    display purposes.
+    """
+    if isinstance(component, Room):
+        return [component.location, component]
+    if isinstance(component, Netbox):
+        return [component.room.location, component.room, component]
+    if isinstance(component, Service):
+        return [
+            component.netbox.room.location,
+            component.netbox.room,
+            component.netbox,
+            component,
+        ]
+    return [component]
+
+
+def get_components(task: MaintenanceTask) -> Iterator[ComponentType]:
+    """Yields all components associated with a task, replacing deleted components with
+    a MissingComponent instance.
+    """
+    relation: MaintenanceComponent
+    for relation in task.maintenance_components.all():
+        if relation.component is None:
+            yield MissingComponent(
+                model_class=relation.get_component_class(),
+                primary_key=relation.value,
+                description=relation.description,
+            )
+        else:
+            yield relation.component
 
 
 def get_component_keys(post):
