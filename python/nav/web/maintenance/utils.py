@@ -33,26 +33,6 @@ ALLOWED_COMPONENTS = ('service', 'netbox', 'room', 'location', 'netboxgroup')
 
 PRIMARY_KEY_INTEGER = ('netbox', 'service')
 
-FIELD_KEYS = {
-    'service': {
-        'netbox': 'netbox__',
-        'room': 'netbox__room__',
-        'location': 'netbox__room__location__',
-    },
-    'netbox': {
-        'netbox': '',
-        'room': 'room__',
-        'location': 'room__location__',
-    },
-    'room': {
-        'room': '',
-        'location': 'location__',
-    },
-    'location': {
-        'location': '',
-    },
-}
-
 NAVPATH = [
     ('Home', '/'),
     ('Maintenance', '/maintenance/'),
@@ -223,108 +203,6 @@ def get_components_from_keydict(
                 f"{key}: no elements with the given identifiers found"
             )
     return components, component_data_errors
-
-
-def structure_component_data(component_data):
-    components = {}
-    for key in component_data:
-        for component in component_data[key]:
-            pkey = component['id']
-            if key not in components:
-                components[key] = {}
-            components[key][pkey] = component
-    return components
-
-
-def task_component_trails(component_keys, components):
-    """Create the 'trail' of selected components
-
-    An IP Device would have a trail consisting of a location, room and the
-    device itself, and a room would have a trail consisting of a location and
-    the room itself.
-
-    Ex:
-    IP Device: <location> -> <room> -> <device>
-    """
-
-    # Mapping for changing the title of the trail.
-    title_mapping = {'netbox': 'IP Device', 'netboxgroup': 'Device Group'}
-
-    trails = []
-    for key in component_keys:
-        title = title_mapping.get(key, key)
-        for pkey in component_keys[key]:
-            trail = []
-            try:
-                comp = components[key][pkey]
-            except KeyError:
-                trail.append(
-                    {
-                        'url': None,
-                        'title': None,
-                        'name': "ID %s (Component was deleted)" % pkey,
-                    }
-                )
-            else:
-                if key in ('location', 'room', 'netbox', 'service'):
-                    location_id = comp[FIELD_KEYS[key]['location'] + "id"]
-                    location_description = comp[
-                        FIELD_KEYS[key]['location'] + "description"
-                    ]
-                    trail.append(
-                        {
-                            'url': reverse('location-info', args=[location_id]),
-                            'title': location_description,
-                            'name': location_id,
-                        }
-                    )
-                if key in ('room', 'netbox', 'service'):
-                    room_id = comp[FIELD_KEYS[key]['room'] + "id"]
-                    room_description = comp[FIELD_KEYS[key]['room'] + "description"]
-                    trail.append(
-                        {
-                            'url': reverse('room-info', args=[room_id]),
-                            'title': room_description,
-                            'name': room_id,
-                        }
-                    )
-                if key in ('netbox', 'service'):
-                    netbox_sysname = comp[FIELD_KEYS[key]['netbox'] + "sysname"]
-                    netbox_ip = comp[FIELD_KEYS[key]['netbox'] + "ip"]
-                    trail.append(
-                        {
-                            'url': reverse(
-                                'ipdevinfo-details-by-name', args=[netbox_sysname]
-                            ),
-                            'title': netbox_ip,
-                            'name': netbox_sysname,
-                        }
-                    )
-                if key == 'service':
-                    trail.append(
-                        {
-                            'url': None,
-                            'title': None,
-                            'name': comp['handler'],
-                        }
-                    )
-                if key == 'netboxgroup':
-                    trail.append(
-                        {
-                            'url': reverse('netbox-group-detail', args=[comp['id']]),
-                            'title': '',
-                            'name': comp['id'],
-                        }
-                    )
-            trails.append(
-                {
-                    'id': pkey,
-                    'type': key,
-                    'title': title,
-                    'trail': trail,
-                }
-            )
-    return trails
 
 
 class MaintenanceCalendar(HTMLCalendar):
