@@ -21,6 +21,7 @@ from time import strftime
 from typing import Union, List, Iterator
 
 from django.db import models
+from django.db.models import IntegerField
 from django.urls import reverse
 from django.utils.html import conditional_escape
 
@@ -31,7 +32,14 @@ from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 
 ALLOWED_COMPONENTS = ('service', 'netbox', 'room', 'location', 'netboxgroup')
 
-PRIMARY_KEY_INTEGER = ('netbox', 'service')
+PRIMARY_KEY_INTEGER = [
+    table
+    for table in ALLOWED_COMPONENTS
+    if isinstance(
+        LegacyGenericForeignKey.get_model_class(table)._meta.get_field('id'),
+        IntegerField,
+    )
+]
 
 NAVPATH = [
     ('Home', '/'),
