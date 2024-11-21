@@ -86,10 +86,8 @@ def check_tasks_without_end():
 
 @transaction.atomic()
 def do_state_transitions():
-    """
-    Finds active or scheduled tasks that have run out and sets them as passed,
-    and finds scheduled scheduled tasks in the current window and sets them
-    as active.
+    """Finds active or scheduled tasks that have run out and sets them as passed,
+    and finds scheduled tasks in the current window and sets them as active.
     """
     tasks = MaintenanceTask.objects.past().filter(
         state__in=[MaintenanceTask.STATE_ACTIVE, MaintenanceTask.STATE_SCHEDULED]
