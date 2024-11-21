@@ -28,6 +28,8 @@ from nav.models.manage import Netbox, Room, Location, NetboxGroup
 from nav.models.service import Service
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 
+ALLOWED_COMPONENTS = ('service', 'netbox', 'room', 'location', 'netboxgroup')
+
 PRIMARY_KEY_INTEGER = ('netbox', 'service')
 
 FIELD_KEYS = {
@@ -164,31 +166,18 @@ def get_components(task: MaintenanceTask) -> Iterator[ComponentType]:
 
 
 def get_component_keys(post):
+    """Transforms GET/POST data into a dictionary of component keys.
+
+    This would preferably be done by a Django Form class, but the original code
+    predates Django.
+    """
     remove = {}
     errors = []
-    raw_component_keys = {
-        'service': post.getlist('service'),
-        'netbox': post.getlist('netbox'),
-        'room': post.getlist('room'),
-        'location': post.getlist('location'),
-        'netboxgroup': post.getlist('netboxgroup'),
-    }
+    raw_component_keys = {key: post.getlist(key) for key in ALLOWED_COMPONENTS}
     raw_component_keys['location'].extend(post.getlist('loc'))
     if 'remove' in post:
-        remove = {
-            'service': post.getlist('remove_service'),
-            'netbox': post.getlist('remove_netbox'),
-            'room': post.getlist('remove_room'),
-            'location': post.getlist('remove_location'),
-            'netboxgroup': post.getlist('remove_netboxgroup'),
-        }
-    component_keys = {
-        'service': [],
-        'netbox': [],
-        'room': [],
-        'location': [],
-        'netboxgroup': [],
-    }
+        remove = {key: post.getlist(f"remove_{key}") for key in ALLOWED_COMPONENTS}
+    component_keys = {key: [] for key in ALLOWED_COMPONENTS}
     for key in raw_component_keys:
         for value in raw_component_keys[key]:
             if not remove or value not in remove[key]:
