@@ -36,6 +36,7 @@ from nav.web.maintenance.forms import (
     MaintenanceTaskForm,
 )
 from nav.web.maintenance.utils import (
+    ALLOWED_COMPONENTS,
     NAVPATH,
     PRIMARY_KEY_INTEGER,
     TITLE,
@@ -255,13 +256,7 @@ def edit(request, task_id=None, start_time=None, **_):
         component_keys, component_keys_errors = get_component_keys(request.POST)
 
     elif task:
-        component_keys = {
-            'service': [],
-            'netbox': [],
-            'room': [],
-            'location': [],
-            'netboxgroup': [],
-        }
+        component_keys = {key: [] for key in ALLOWED_COMPONENTS}
         for key, value in task.maintenance_components.values_list('key', 'value'):
             if key in PRIMARY_KEY_INTEGER:
                 value = int(value)
