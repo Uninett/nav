@@ -211,8 +211,6 @@ NAVLETS = (
     'nav.web.navlets.env_rack.EnvironmentRackWidget',
 )
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = 'foundation-5'
-CRISPY_TEMPLATE_PACK = 'foundation-5'
 
 INSTALLED_APPS = (
     'nav.models',
@@ -222,8 +220,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.humanize',
     'django_filters',
-    'crispy_forms',
-    'crispy_forms_foundation',
     'rest_framework',
     'nav.auditlog',
     'nav.web.macwatch',

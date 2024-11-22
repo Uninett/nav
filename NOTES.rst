@@ -8,6 +8,18 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+Unreleased
+==========
+
+Dependency changes
+------------------
+
+These Python modules are no longer required due to us rewriting forms in order
+to be able to upgrade to Python 3.11:
+
+* :mod:`django-crispy-forms`
+* :mod:`crispy-forms-foundation`
+
 NAV 5.11
 ========
 
