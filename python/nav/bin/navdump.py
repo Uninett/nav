@@ -172,10 +172,6 @@ class Handlers(object):
         """Outputs a line for each management profile in the database"""
         header("#name:protocol:option=value|option=value...")
         for profile in manage.ManagementProfile.objects.all():
-            configuration = [
-                '{}={}'.format(key, value)
-                for key, value in profile.configuration.items()
-            ]
             line = [
                 profile.name,
                 profile.get_protocol_display(),
