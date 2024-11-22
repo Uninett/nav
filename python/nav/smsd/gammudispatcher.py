@@ -29,7 +29,7 @@ from nav.smsd.dispatcher import Dispatcher, PermanentDispatcherError, Dispatcher
 
 try:
     import gammu
-except ImportError as error:
+except ImportError:
     raise PermanentDispatcherError('python-gammu not installed or misconfigured.')
 
 
