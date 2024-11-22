@@ -15,9 +15,8 @@
 #
 """selects a proper SNMP backend for ipdevpoll"""
 
-
 try:
-    import pynetsnmp.twistedsnmp
+    import pynetsnmp.twistedsnmp  # noqa: F401 - unused imports
 except ImportError:
     raise ImportError("No supported SNMP backend was found")
 else:
