@@ -1,12 +1,12 @@
+import importlib.util
 import pytest
 
 from nav.config import NAVConfigParser
 from nav.web.auth.ldap import LDAPUser, open_ldap
 from mock import Mock, patch
 
-try:
-    import ldap
-except ImportError:
+found = importlib.util.find_spec('ldap')
+if not found:
     pytestmark = pytest.mark.skip(reason="ldap module is not available")
 
 

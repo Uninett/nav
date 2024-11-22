@@ -98,7 +98,7 @@ def log_last_django_query(logger):
 
     :param logger: The logging.Logger object to use for logging.
     """
-    from nav.models import manage as _manage
+    from nav.models import manage as _manage  # noqa: F401 - import needed for debugging
     from django.db import connection
 
     if connection.queries:

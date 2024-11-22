@@ -15,12 +15,17 @@
 #
 """selects a proper SNMP backend for ipdevpoll"""
 
-
 try:
-    import pynetsnmp.twistedsnmp
+    import pynetsnmp.twistedsnmp  # noqa: F401 - unused imports
 except ImportError:
     raise ImportError("No supported SNMP backend was found")
 else:
     from nav.ipdevpoll.snmp.pynetsnmp import AgentProxy, snmpprotocol
 
 from .common import SnmpError
+
+__all__ = [
+    "AgentProxy",
+    "snmpprotocol",
+    "SnmpError",
+]
