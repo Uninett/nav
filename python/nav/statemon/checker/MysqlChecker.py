@@ -53,7 +53,7 @@ class MysqlChecker(AbstractChecker):
             conn.write_auth_packet('navmon')
             try:
                 conn.read_packet()
-            except MysqlError as err:
+            except MysqlError:
                 pass  # Ignore login error
 
             return Event.UP, 'OK'

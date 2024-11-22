@@ -98,7 +98,7 @@ def main(args=None):
             # Check if the line is parseable
             try:
                 row = Row(parse_line(line))
-            except AttributeError as e:
+            except AttributeError:
                 print("AttributeError: " + line)
 
             # We want to look for octals in the messages
