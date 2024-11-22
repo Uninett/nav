@@ -1,0 +1,1 @@
+Ensure that each account has exactly one default dashboard
