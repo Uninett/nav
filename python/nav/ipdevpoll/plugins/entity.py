@@ -50,7 +50,8 @@ class Entity(Plugin):
     @defer.inlineCallbacks
     def handle(self):
         self._logger.debug("Collecting physical entity data")
-        need_to_collect = yield self._need_to_collect()
+        # Temporarily disabled due to consistency issues with some vendors:
+        # need_to_collect = yield self._need_to_collect()
         # if need_to_collect:
         if True:
             physical_table = yield self.entitymib.get_entity_physical_table()

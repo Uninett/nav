@@ -230,7 +230,7 @@ def check_snmp_version(ip, profile):
 def test_napalm_connectivity(ip_address: str, profile: ManagementProfile) -> dict:
     """Tests connectivity of a NAPALM profile and returns a status dictionary"""
     try:
-        with napalm.connect(ip_address, profile) as device:
+        with napalm.connect(ip_address, profile):
             return {"status": True}
     except Exception as error:
         _logger.exception("Could not connect to %s using NAPALM profile", ip_address)
