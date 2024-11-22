@@ -24,3 +24,9 @@ else:
     from nav.ipdevpoll.snmp.pynetsnmp import AgentProxy, snmpprotocol
 
 from .common import SnmpError
+
+__all__ = [
+    "AgentProxy",
+    "snmpprotocol",
+    "SnmpError",
+]

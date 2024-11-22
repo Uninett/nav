@@ -44,6 +44,23 @@ from twisted.names.error import DNSQueryTimeoutError, DNSFormatError
 from twisted.names.error import DNSServerError, DNSNameError
 from twisted.names.error import DNSNotImplementedError, DNSQueryRefusedError
 
+__all__ = [
+    "reverse_lookup",
+    "forward_lookup",
+    "Resolver",
+    "ForwardResolver",
+    "ReverseResolver",
+    "DNSUnknownError",
+    "DomainError",
+    "AuthoritativeDomainError",
+    "DNSQueryTimeoutError",
+    "DNSFormatError",
+    "DNSServerError",
+    "DNSNameError",
+    "DNSNotImplementedError",
+    "DNSQueryRefusedError",
+]
+
 
 BATCH_SIZE = 100
 

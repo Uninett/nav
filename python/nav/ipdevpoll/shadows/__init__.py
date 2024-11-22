@@ -43,6 +43,38 @@ from .entity import NetboxEntity
 from .prefix import Prefix
 from .gwpeers import GatewayPeerSession
 
+__all__ = [
+    "NetboxType",
+    "NetboxInfo",
+    "Vendor",
+    "Module",
+    "Device",
+    "Location",
+    "Room",
+    "Category",
+    "Organization",
+    "Usage",
+    "Vlan",
+    "GwPortPrefix",
+    "NetType",
+    "SwPortVlan",
+    "Arp",
+    "SwPortAllowedVlan",
+    "Sensor",
+    "PowerSupplyOrFan",
+    "POEPort",
+    "POEGroup",
+    "Interface",
+    "InterfaceStack",
+    "InterfaceAggregate",
+    "SwPortBlocked",
+    "Cam",
+    "AdjacencyCandidate",
+    "UnrecognizedNeighbor",
+    "NetboxEntity",
+    "GatewayPeerSession",
+]
+
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
 
