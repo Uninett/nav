@@ -265,9 +265,9 @@ def get_source_address_for(dest):
         sock.connect(sockaddr)
     except socket.error as err:
         _logger.warning(
-            "Error when getting NAV's source address for "
-            "connecting to %(dest)s: %(err)s",
-            locals(),
+            "Error when getting NAV's source address for connecting to %s: %s",
+            dest,
+            err,
         )
         return
     addrinfo = sock.getsockname()
