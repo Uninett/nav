@@ -734,6 +734,7 @@ class ExpressionForm(forms.ModelForm):
 
                 # At last we acctually add the multiple choice field.
                 self.fields['value'] = forms.MultipleChoiceField(choices=choices)
+                self.fields['value'].widget.attrs['class'] = 'select2'
             else:
                 self.fields['value'] = forms.CharField(required=True)
 
