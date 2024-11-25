@@ -2,10 +2,10 @@
 
 # MAIN EXECUTION POINT
 cd "$WORKSPACE"
-tox
+tox run
 
 # Code analysis steps
-tox -e pylint
+tox run -e pylint
 /count-lines-of-code.sh
 
 echo "test.sh done"
