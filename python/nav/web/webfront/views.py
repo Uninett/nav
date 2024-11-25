@@ -432,6 +432,10 @@ def delete_dashboard(request, did):
         return HttpResponseBadRequest('Cannot delete last dashboard')
 
     dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+
+    if dash.is_default:
+        return HttpResponseBadRequest('Cannot delete default dashboard')
+
     dash.delete()
 
     return HttpResponse('Dashboard deleted')
