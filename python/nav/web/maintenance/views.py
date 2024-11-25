@@ -37,7 +37,7 @@ from nav.web.maintenance.forms import (
 )
 from nav.web.maintenance.utils import (
     NAVPATH,
-    PRIMARY_KEY_INTEGER,
+    COMPONENTS_WITH_INTEGER_PK,
     TITLE,
     MaintenanceCalendar,
     component_to_trail,
@@ -305,7 +305,9 @@ def edit(request, task_id=None, start_time=None, **_):
                     cursor.execute(sql, (new_task.id,))
                 for component in components:
                     table = component._meta.db_table
-                    descr = str(component) if table in PRIMARY_KEY_INTEGER else None
+                    descr = (
+                        str(component) if table in COMPONENTS_WITH_INTEGER_PK else None
+                    )
                     task_component = MaintenanceComponent(
                         maintenance_task=new_task,
                         key=table,

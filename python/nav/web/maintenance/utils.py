@@ -32,7 +32,7 @@ from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 
 ALLOWED_COMPONENTS = ('service', 'netbox', 'room', 'location', 'netboxgroup')
 
-PRIMARY_KEY_INTEGER = [
+COMPONENTS_WITH_INTEGER_PK = [
     table
     for table in ALLOWED_COMPONENTS
     if isinstance(
@@ -163,7 +163,7 @@ def get_component_keys(post):
     for key in raw_component_keys:
         for value in raw_component_keys[key]:
             if not remove or value not in remove[key]:
-                if key in PRIMARY_KEY_INTEGER:
+                if key in COMPONENTS_WITH_INTEGER_PK:
                     if not value.isdigit():
                         errors.append(key + ": argument needs to be a number")
                         continue
