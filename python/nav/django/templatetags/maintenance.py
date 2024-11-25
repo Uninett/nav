@@ -47,6 +47,18 @@ def component_name(component):
 
 
 @register.filter
+def component_description(component):
+    """Returns a description of a component useful as a link title tooltip.  Returns
+    an empty string if there is no further description than the component's name.
+    """
+    if isinstance(component, MissingComponent):
+        return str(component)
+    if hasattr(component, "ip"):
+        return str(component.ip)
+    return getattr(component, "description", "")
+
+
+@register.filter
 def component_db_table(component):
     """Returns the database table name of a model object used as a maintenance
     component.

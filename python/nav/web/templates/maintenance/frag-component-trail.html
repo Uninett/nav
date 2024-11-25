@@ -1,10 +1,10 @@
 {% load maintenance %}
 {% for element in trail %}
-    {% with element|component_name as title %}
+    {% with element|component_name as name %}
         {% if element.get_absolute_url %}
-            <a href="{{ element.get_absolute_url }}" title="{{ title }}">{{ title }}</a>
+            <a href="{{ element.get_absolute_url }}" title="{{ element|component_description }}">{{ name }}</a>
         {% else %}
-            {{ title }}
+            {{ name }}
         {% endif %}
     {% endwith %}
     {% if not forloop.last %} → {% endif %}
