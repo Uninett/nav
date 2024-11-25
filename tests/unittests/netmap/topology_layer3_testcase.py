@@ -36,19 +36,19 @@ class TopologyLayer3TestCase(TopologyTestCase):
         self.e = e = self._netbox_factory('e')
         self.f = f = self._netbox_factory('f')
 
-        self.a1 = a1 = self._interface_factory('a1', a)
-        self.a3 = a3 = self._interface_factory('a3', a)
+        self.a1 = self._interface_factory('a1', a)
+        self.a3 = self._interface_factory('a3', a)
 
-        self.b1 = b1 = self._interface_factory('b1', b)
-        self.b4 = b4 = self._interface_factory('b4', b)
+        self.b1 = self._interface_factory('b1', b)
+        self.b4 = self._interface_factory('b4', b)
 
-        self.c3 = c3 = self._interface_factory('c3', c)
+        self.c3 = self._interface_factory('c3', c)
 
-        self.d4 = d4 = self._interface_factory('d4', d)
+        self.d4 = self._interface_factory('d4', d)
 
-        self.e4 = e4 = self._interface_factory('e4', e)
+        self.e4 = self._interface_factory('e4', e)
 
-        self.f5 = f5 = self._interface_factory('f5', f)
+        self.f5 = self._interface_factory('f5', f)
 
         self.prefix_foo = Prefix(
             id=1111,

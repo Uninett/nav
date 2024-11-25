@@ -60,7 +60,7 @@ class TestCIDRField(object):
         field = CIDRField()
         ip6 = u'1234:dead:beef::63/23'
         with pytest.raises(exceptions.ValidationError):
-            result6 = field.to_python(ip6)
+            field.to_python(ip6)
 
 
 class TestDateTimeInfinityField(object):

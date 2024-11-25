@@ -1,7 +1,6 @@
 """Tests for bulkparse"""
 
 # pylint: disable=C0111, C0103, W0614
-
 import pytest
 
 from nav import bulkparse
@@ -84,7 +83,7 @@ class TestNetboxBulkParser(object):
             b"room1:10.0.0.187:myorg:OTHER:SNMP v2c read profile::\n"
         )
         b = bulkparse.NetboxBulkParser(data)
-        out_data = list(b)
+        list(b)  # Generator needs to be consumed for this test to succeed
         assert b.line_num == 3
 
     def test_short_line_should_raise_error(self):
