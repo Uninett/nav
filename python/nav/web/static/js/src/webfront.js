@@ -210,7 +210,8 @@ require([
     function addDefaultDashboardListener(feedback) {
         var defaultDashboardContainer = $('#default-dashboard-container'),
             setDefaultDashboardForm = $('#form-set-default-dashboard'),
-            isDefaultDashboardAlert = defaultDashboardContainer.find('.alert-box');
+            isDefaultDashboardAlert = defaultDashboardContainer.find('.alert-box'),
+            deleteDashboardForm = $('#form-delete-dashboard');
 
         if (defaultDashboardContainer.data('is-default-dashboard')) {
             setDefaultDashboardForm.hide();
@@ -226,6 +227,7 @@ require([
                 feedback.addFeedback(responseText);
                 setDefaultDashboardForm.hide();
                 isDefaultDashboardAlert.show();
+                deleteDashboardForm.hide();
                 $dashboardNavigator.find('.fa-star').addClass('hidden');
                 $dashboardNavigator.find('.current .fa-star').removeClass('hidden');
             });
