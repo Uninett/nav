@@ -23,4 +23,7 @@ from nav.wsgi import application
 
 from nav import buildconf
 
-application = WhiteNoise(application, root=buildconf.webrootdir)
+
+def nav_test_app(root=buildconf.webrootdir):
+    """Returns a WhiteNoise application instance of NAV with the given web root"""
+    return WhiteNoise(application, root=root)
