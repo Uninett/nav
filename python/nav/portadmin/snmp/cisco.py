@@ -38,6 +38,10 @@ _logger = logging.getLogger(__name__)
 class Cisco(SNMPHandler):
     """A specialized class for handling ports in CISCO switches."""
 
+    # Cisco sysObjectIDs under this tree are not normal Cisco products and should
+    # probably not be handled by this handler
+    OTHER_ENTERPRISES = OID('.1.3.6.1.4.1.9.6')
+
     VENDOR = VENDOR_ID_CISCOSYSTEMS
 
     VTPNODES = get_mib('CISCO-VTP-MIB')['nodes']

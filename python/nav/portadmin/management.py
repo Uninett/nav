@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This is a utility library made especially for PortAdmin."""
+from nav.enterprise.ids import VENDOR_ID_CISCOSYSTEMS
 from nav.errors import NoNetboxTypeError
 from nav.models import manage
 from nav.portadmin.handlers import ManagementHandler
@@ -38,6 +39,12 @@ class ManagementFactory(object):
             raise NoNetboxTypeError()
 
         vendor_id = netbox.type.get_enterprise_id()
+        if (
+            vendor_id == VENDOR_ID_CISCOSYSTEMS
+            and Cisco.OTHER_ENTERPRISES.is_a_prefix_of(netbox.type.sysobjectid)
+        ):
+            # Cisco SM and SMB products are not supported by the Cisco handler:
+            vendor_id = None
         handler = VENDOR_MAP.get(vendor_id, SNMPHandler)
         return handler(netbox, **kwargs)
 
