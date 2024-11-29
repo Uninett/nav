@@ -282,8 +282,8 @@ class Netbox(models.Model):
 
     class Meta(object):
         db_table = 'netbox'
-        verbose_name = 'ip device'
-        verbose_name_plural = 'ip devices'
+        verbose_name = 'IP Device'
+        verbose_name_plural = 'IP Devices'
         ordering = ('sysname',)
 
     def __str__(self):
@@ -1154,6 +1154,9 @@ class Location(models.Model, TreeMixin):
         sublocations"""
         locations = self.get_descendants(True)
         return Room.objects.filter(location__in=locations)
+
+    def get_absolute_url(self):
+        return reverse('location-info', kwargs={'locationid': self.pk})
 
 
 class Organization(models.Model, TreeMixin):

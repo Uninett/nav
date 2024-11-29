@@ -20,6 +20,7 @@ import pickle
 import json
 from datetime import datetime
 from decimal import Decimal
+from typing import Optional
 
 from django import forms
 from django.db import models
@@ -234,11 +235,11 @@ class LegacyGenericForeignKey(object):
         setattr(instance, self.cache_attr, value)
 
     @staticmethod
-    def get_model_name(obj):
+    def get_model_name(obj) -> str:
         return obj._meta.db_table
 
     @staticmethod
-    def get_model_class(table_name):
+    def get_model_class(table_name) -> Optional[models.Model]:
         """Returns a Model class based on a database table name"""
         classmap = {model._meta.db_table: model for model in apps.get_models()}
         if table_name in classmap:
