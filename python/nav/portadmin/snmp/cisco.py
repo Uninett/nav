@@ -89,6 +89,15 @@ class Cisco(SNMPHandler):
         self.voice_vlan_oid = '1.3.6.1.4.1.9.9.68.1.5.1.1.1'
         self.cdp_oid = '1.3.6.1.4.1.9.9.23.1.1.1.1.2'
 
+    @classmethod
+    def can_handle(cls, netbox: manage.Netbox) -> bool:
+        """Returns True if this handler can handle this netbox"""
+        if netbox.type and cls.OTHER_ENTERPRISES.is_a_prefix_of(
+            netbox.type.sysobjectid
+        ):
+            return False
+        return super().can_handle(netbox)
+
     @translate_protocol_errors
     def get_interface_native_vlan(self, interface):
         return self._query_netbox(self.vlan_oid, interface.ifindex)
