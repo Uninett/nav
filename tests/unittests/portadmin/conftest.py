@@ -23,6 +23,7 @@ def netbox_hp(profile):
 
     netbox_type = Mock()
     netbox_type.vendor = vendor
+    netbox_type.sysobjectid = '1.3.6.1.4.1.11.2.3.7.11.45'
     netbox_type.get_enterprise_id.return_value = VENDOR_ID_HEWLETT_PACKARD
 
     netbox = Mock()
@@ -40,6 +41,7 @@ def netbox_cisco(profile):
 
     netbox_type = Mock()
     netbox_type.vendor = vendor
+    netbox_type.sysobjectid = '1.3.6.1.4.1.9.1.278'
     netbox_type.get_enterprise_id.return_value = VENDOR_ID_CISCOSYSTEMS
 
     netbox = Mock()
@@ -48,6 +50,12 @@ def netbox_cisco(profile):
     netbox.get_preferred_snmp_management_profile.return_value = profile
 
     return netbox
+
+
+@pytest.fixture
+def netbox_cisco_smb(netbox_cisco):
+    netbox_cisco.type.sysobjectid = '1.3.6.1.4.1.9.6.1.1004.10.1'
+    return netbox_cisco
 
 
 @pytest.fixture

@@ -2,6 +2,7 @@ from mock import Mock
 
 from nav.oids import OID
 from nav.portadmin.management import ManagementFactory
+from nav.portadmin.snmp.base import SNMPHandler
 from nav.portadmin.snmp.hp import HP
 from nav.portadmin.snmp.cisco import Cisco
 
@@ -16,6 +17,13 @@ class TestPortadminManagementFactory:
         handler = ManagementFactory.get_instance(netbox_cisco)
         assert handler is not None, "Could not get handler-object"
         assert isinstance(handler, Cisco), "Wrong handler-type"
+
+    def test_when_device_is_cisco_smb_switch_it_should_return_generic_snmp_handler(
+        self, netbox_cisco_smb
+    ):
+        handler = ManagementFactory.get_instance(netbox_cisco_smb)
+        assert handler is not None, "Could not get handler-object"
+        assert type(handler) is SNMPHandler, "Wrong handler-type"
 
 
 class TestPortadminResponseHP:
