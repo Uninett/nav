@@ -197,7 +197,7 @@ def get_components_from_keydict(
             component_data_errors.append(f"{key}: invalid component type")
             continue
 
-        objects = model_class.objects.filter(id__in=component_keys[key])
+        objects = model_class.objects.filter(id__in=values)
         components.extend(objects)
         if not objects:
             component_data_errors.append(

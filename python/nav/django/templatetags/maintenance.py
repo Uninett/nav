@@ -28,7 +28,7 @@ def model_verbose_name(model):
         return
     name = model._meta.verbose_name
     # Keep original capitalization, if any, otherwise apply our own
-    # e.g. don't turn "IP device" into "Ip device", but do turn "room" into "Room"
+    # e.g. don't turn "IP Device" into "Ip device", but do turn "room" into "Room"
     return name if name[0].isupper() else name.capitalize()
 
 
