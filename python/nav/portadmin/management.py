@@ -24,7 +24,8 @@ from nav.portadmin.snmp.h3c import H3C
 from nav.portadmin.snmp.hp import HP
 from nav.portadmin.napalm.juniper import Juniper
 
-VENDOR_MAP = {cls.VENDOR: cls for cls in (Cisco, Dell, H3C, HP, Juniper)}
+SUPPORTED_HANDLERS = (Cisco, Dell, H3C, HP, Juniper)
+FALLBACK_HANDLER = SNMPHandler
 
 
 class ManagementFactory(object):
@@ -37,9 +38,9 @@ class ManagementFactory(object):
         if not netbox.type:
             raise NoNetboxTypeError()
 
-        vendor_id = netbox.type.get_enterprise_id()
-        handler = VENDOR_MAP.get(vendor_id, SNMPHandler)
-        return handler(netbox, **kwargs)
+        matched_handlers = (h for h in SUPPORTED_HANDLERS if h.can_handle(netbox))
+        chosen_handler = next(matched_handlers, FALLBACK_HANDLER)
+        return chosen_handler(netbox, **kwargs)
 
     def __init__(self):
         pass

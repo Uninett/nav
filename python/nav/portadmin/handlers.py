@@ -45,8 +45,15 @@ class ManagementHandler:
     a class.
     """
 
+    VENDOR = None
+
     def __init__(self, netbox: manage.Netbox, **kwargs):
         self.netbox = netbox
+
+    @classmethod
+    def can_handle(cls, netbox: manage.Netbox) -> bool:
+        """Returns True if this handler can handle the given netbox"""
+        return netbox.type and netbox.type.get_enterprise_id() == cls.VENDOR
 
     def set_interface_description(self, interface: manage.Interface, description: str):
         """Configures a single interface's description, AKA the ifalias value"""
