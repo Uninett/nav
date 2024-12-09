@@ -7,6 +7,7 @@ pylint-django==2.0.6
 pytest==8.3.3
 pytest-metadata==3.1.1
 pytest-cov==6.0.0
+pytest-docker
 pytest-selenium==4.1.0
 pytest-timeout==2.3.1
 pytest-twisted==1.14.3
@@ -15,6 +16,7 @@ pytidylib==0.3.2
 selenium<4.11.0
 snmpsim>=1.0,!=1.1.6
 toml
+retry
 whisper>=0.9.9
 whitenoise==4.1.4
 # Our version of selenium breaks down if it is allowed to pull in the newest version of urllib3
