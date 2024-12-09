@@ -53,6 +53,10 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
   This should not affect looks or functionality.  This work is still ongoing in
   the master branch and we hope it will be complete by NAV version 5.12.
 
+### Added
+
+- Added a report of software upgrade logs ([#2466](https://github.com/Uninett/nav/pull/2466), [#2457](https://github.com/Uninett/nav/issues/2457))
+
 ### Fixed
 
 - Correctly delete an IP Device's existing `function` value when empty field
