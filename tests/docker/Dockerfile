@@ -9,13 +9,18 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ### Installing packages
 RUN sed -ie 's/^# *deb-src/deb-src/' /etc/apt/sources.list  # Enable source repos
-RUN apt-get update && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && \
+    apt-get update && \
     apt-get install -y software-properties-common gosu sudo unzip
 
 RUN echo "build   ALL =(ALL: ALL) NOPASSWD: ALL" > /etc/sudoers.d/navbuild
 
 
-RUN add-apt-repository ppa:deadsnakes/ppa && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get -y install --no-install-recommends \
       curl git build-essential \
@@ -28,11 +33,15 @@ RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sou
 # 78BD65473CB3BD13 Google signing key for chrome (for selenium, functional tests)
 RUN apt-key adv --no-tty --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13
 
-RUN apt-get update && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt-get update && \
     apt-get -y --no-install-recommends build-dep \
 	python3-psycopg2 python3-lxml python3-pil python3-ldap
 
-RUN apt-get update && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt-get update && \
     apt-get -y --no-install-recommends install \
 	libsnmp35 \
 	cron \
@@ -47,7 +56,9 @@ RUN apt-get update && \
 
 
 # Now install NodeJS and NPM for Javascript testing needs -
-RUN curl -sL https://deb.nodesource.com/setup_18.x  | bash - && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    curl -sL https://deb.nodesource.com/setup_18.x  | bash - && \
     apt-get install -y --no-install-recommends nodejs
 
 # Install geckodriver to properly run Selenium tests in Firefox versions>=47
