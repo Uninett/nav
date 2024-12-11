@@ -2,10 +2,10 @@
 #
 FROM ubuntu:focal
 
-ENV DISTRO focal
-ENV DISPLAY :99
-ENV ADMINPASSWORD omicronpersei8
-ENV DEBIAN_FRONTEND noninteractive
+ENV DISTRO=noble
+ENV DISPLAY=:99
+ENV ADMINPASSWORD=omicronpersei8
+ENV DEBIAN_FRONTEND=noninteractive
 
 ### Installing packages
 RUN sed -ie 's/^# *deb-src/deb-src/' /etc/apt/sources.list  # Enable source repos
@@ -71,13 +71,13 @@ RUN cd /tmp && \
 RUN python3.9 -m pip install tox virtualenv
 
 # Add a build user
-ENV USER build
+ENV USER=build
 RUN adduser --system --group --home=/source --shell=/bin/bash $USER && \
     mkdir -p /usr/share/nav/var/uploads && \
     chown -R $USER /usr/share/nav
 
-ENV WORKSPACE /source
-ENV HOME /source
+ENV WORKSPACE=/source
+ENV HOME=/source
 
 COPY scripts/ /
 WORKDIR /source
