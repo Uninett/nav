@@ -10,8 +10,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ### Installing packages
 RUN sed -ie 's/^# *deb-src/deb-src/' /etc/apt/sources.list  # Enable source repos
 RUN apt-get update && \
-    apt-get install -y software-properties-common gosu sudo && \
-    chmod u+s /usr/sbin/gosu
+    apt-get install -y software-properties-common gosu sudo
 
 RUN echo "build   ALL =(ALL: ALL) NOPASSWD: ALL" > /etc/sudoers.d/navbuild
 
