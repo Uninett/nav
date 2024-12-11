@@ -8,7 +8,7 @@ on:
 jobs:
   build-docker-compose:
     name: "Build docker-compose-based development environment"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout

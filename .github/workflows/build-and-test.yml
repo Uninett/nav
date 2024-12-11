@@ -11,7 +11,7 @@ on:
 jobs:
   build-and-test:
     name: "Test on Python ${{ matrix.python-version}}"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       max-parallel: 4
@@ -128,7 +128,7 @@ jobs:
 
   javascript:
     name: "Test Javascript code"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@latest
@@ -157,7 +157,7 @@ jobs:
 
   upload-pr-number-base-sha:
     name: Save PR number and base SHA in artifact
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: ${{ github.event.number && always() }}
     env:
       PR_NUMBER: ${{ github.event.number }}

@@ -10,7 +10,7 @@ on:
 jobs:
   megalinter:
     name: MegaLinter
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       # Give the linter write permission to comment on PRs (if PR is not from fork)
       issues: write
