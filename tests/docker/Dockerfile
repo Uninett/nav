@@ -1,6 +1,6 @@
 # Full integration test image for NAV
 #
-FROM ubuntu:focal
+FROM ubuntu:24.04
 
 ENV DISTRO=noble
 ENV DISPLAY=:99
@@ -8,7 +8,7 @@ ENV ADMINPASSWORD=omicronpersei8
 ENV DEBIAN_FRONTEND=noninteractive
 
 ### Installing packages
-RUN sed -ie 's/^# *deb-src/deb-src/' /etc/apt/sources.list  # Enable source repos
+RUN sed -i 's/^Types: deb$/Types: deb deb-src/' /etc/apt/sources.list.d/ubuntu.sources  # Enable source repos
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     rm -f /etc/apt/apt.conf.d/docker-clean && \
@@ -24,9 +24,9 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     apt-get update && \
     apt-get -y install --no-install-recommends \
       curl git build-essential \
-      python3.9-dbg python3.9-dev \
-      python3.10-dbg python3.10-dev \
-      python3.11-dbg python3.11-dev \
+      python3.9-dbg python3.9-dev python3.9-venv \
+      python3.10-dbg python3.10-dev python3.10-venv \
+      python3.11-dbg python3.11-dev python3.11-venv \
       python3-pip
 
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
@@ -43,7 +43,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update && \
     apt-get -y --no-install-recommends install \
-	libsnmp35 \
+	libsnmp40 \
 	cron \
 	libjpeg62 \
 	postgresql postgresql-contrib postgresql-client \
@@ -76,8 +76,10 @@ RUN cd /tmp && \
     unzip chromedriver-linux64.zip && \
     mv chromedriver-linux64/chromedriver /usr/local/bin/
 
-# Install our primary test runner
-RUN python3.9 -m pip install tox virtualenv
+# Install required Python tools in a virtualenv, as required by Ubuntu
+ENV PATH=/opt/venvs/nav/bin:$PATH
+RUN python3.9 -m venv /opt/venvs/nav && \
+    /opt/venvs/nav/bin/pip install --upgrade pip setuptools tox
 
 # Add a build user
 ENV USER=build
