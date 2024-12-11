@@ -30,7 +30,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-${{ steps.system-info.outputs.release }}-pip-${{ hashFiles('**/requirements.txt', '**/requirements/*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-${{ steps.system-info.outputs.release }}-pip-
 
       - name: "Cache tox environments"
         uses: actions/cache@v4
