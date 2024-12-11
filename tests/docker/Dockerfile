@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ### Installing packages
 RUN sed -ie 's/^# *deb-src/deb-src/' /etc/apt/sources.list  # Enable source repos
 RUN apt-get update && \
-    apt-get install -y software-properties-common gosu sudo
+    apt-get install -y software-properties-common gosu sudo unzip
 
 RUN echo "build   ALL =(ALL: ALL) NOPASSWD: ALL" > /etc/sudoers.d/navbuild
 
@@ -61,8 +61,6 @@ RUN cd /tmp && \
 # Ref: https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
 ENV CHROMEDRIVERVERSION=131.0.6778.69
 RUN cd /tmp && \
-    apt-get update && \
-    apt-get -y --no-install-recommends install unzip && \
     wget https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVERVERSION/linux64/chromedriver-linux64.zip && \
     unzip chromedriver-linux64.zip && \
     mv chromedriver-linux64/chromedriver /usr/local/bin/
