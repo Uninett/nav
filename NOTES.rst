@@ -20,9 +20,6 @@ to be able to upgrade to Python 3.11:
 * :mod:`django-crispy-forms`
 * :mod:`crispy-forms-foundation`
 
-
-NAV 5.12
-========
 Deprecation warnings
 --------------------
 .. warning:: The ``[paloaltoarp]`` section of :file:`ipdevpoll.conf`, used for
@@ -32,6 +29,20 @@ Deprecation warnings
              firewalls *must* now be configured using management profiles,
              analogous to configuration of SNMP-based fetching.  :ref:`See below
              for more details<5.12-new-http-rest-api-management-profile-type>`.
+
+Change ``ip2mac`` plugin order in :file:`ipdevpoll.conf`
+--------------------------------------------------------
+
+The Palo Alto ARP plugin in ipdevpoll had a problem which caused the ARP
+records it collected from Palo Palo firewalls to be unduly closed by the
+regular SNMP-based ARP plugin.  This release of NAV fixes this by making the
+SNMP-based ARP plugin a "fallback" mechanism that doesn't touch ARP collection
+if another plugin has already collected ARP data.
+
+In order for this fix to work, **you must change the order of the plugins** in the
+``[job_ip2mac]`` section of your :file:`ipdevpoll.conf` file, to ensure that
+the ``paloaltoarp`` plugin is listed *before* the ``arp`` plugin.
+
 
 .. _5.12-new-http-rest-api-management-profile-type:
 New way to configure fetching of Palo Alto firewall ARP cache data
