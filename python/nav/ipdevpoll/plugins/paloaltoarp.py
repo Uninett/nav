@@ -49,6 +49,7 @@ class PaloaltoArp(Arp):
     @defer.inlineCallbacks
     def handle(self):
         """Handle plugin business, return a deferred."""
+        self._check_and_update_prefix_cache()
         self._logger.debug("Collecting IP/MAC mappings for Paloalto device")
 
         configurations = yield self._get_paloalto_configurations(self.netbox)
