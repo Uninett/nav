@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 import pytest_twisted
 
+from nav.ipdevpoll import shadows
 from nav.ipdevpoll.storage import ContainerRepository
 from nav.ipdevpoll.plugins.arp import ipv6_address_in_mappings, Arp
 
@@ -35,3 +36,15 @@ def test_make_new_mappings_should_not_raise_on_empty_ip():
     a = Arp(None, None, ContainerRepository())
     mappings = [(None, '00:0b:ad:c0:ff:ee')]
     a._make_new_mappings(mappings)
+
+
+def test_when_arp_records_exist_is_arp_already_collected_should_return_true():
+    containers = ContainerRepository()
+    containers.factory(('192.168.0.1', '00:co:ff:ee:ba:be'), shadows.Arp)
+    plugin = Arp(None, None, containers)
+    assert plugin._is_arp_already_collected()
+
+
+def test_when_arp_records_do_not_exist_is_arp_already_collected_should_return_false():
+    plugin = Arp(None, None, ContainerRepository())
+    assert not plugin._is_arp_already_collected()
