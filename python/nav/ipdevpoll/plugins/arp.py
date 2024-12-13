@@ -69,11 +69,10 @@ class Arp(Plugin):
 
     @defer.inlineCallbacks
     def handle(self):
-        # Start by checking the prefix cache
-        prefix_cache_age = datetime.now() - self.prefix_cache_update_time
-        if prefix_cache_age > self.prefix_cache_max_age:
-            yield self._update_prefix_cache()
-
+        yield self._check_and_update_prefix_cache()
+        if self._is_arp_already_collected():
+            self._logger.debug("ARP records already collected for this device")
+            return
         self._logger.debug("Collecting IP/MAC mappings")
 
         # Fetch standard MIBs
@@ -98,6 +97,18 @@ class Arp(Plugin):
             mappings.update(cisco_ip_mappings)
 
         yield self._process_data(mappings)
+
+    @classmethod
+    @defer.inlineCallbacks
+    def _check_and_update_prefix_cache(cls):
+        """Updates the prefix cache if deemed necessary"""
+        prefix_cache_age = datetime.now() - cls.prefix_cache_update_time
+        if prefix_cache_age > cls.prefix_cache_max_age:
+            yield cls._update_prefix_cache()
+
+    def _is_arp_already_collected(self):
+        """Returns True if ARP entries have already been collected in this run"""
+        return shadows.Arp in self.containers and bool(self.containers[shadows.Arp])
 
     @defer.inlineCallbacks
     def _get_ip_mib(self):
