@@ -14,8 +14,7 @@ Unreleased
 Dependency changes
 ------------------
 
-These Python modules are no longer required due to us rewriting forms in order
-to be able to upgrade to Python 3.11:
+These Python modules are no longer required:
 
 * :mod:`django-crispy-forms`
 * :mod:`crispy-forms-foundation`
