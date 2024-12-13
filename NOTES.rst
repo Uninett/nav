@@ -18,6 +18,12 @@ These Python modules are no longer required:
 
 * :mod:`django-crispy-forms`
 * :mod:`crispy-forms-foundation`
+* :mod:`libsass`
+
+If you want to build NAV from source, you will now need `webpack
+<https://webpack.js.org/>` as a replacement for the now defunct :mod:`libsass`.
+Webpack is used to build many of the static resources (mostly CSS stylesheets
+from SASS source files) that are to be served by the NAV web GUI.
 
 Deprecation warnings
 --------------------
