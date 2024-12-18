@@ -127,3 +127,31 @@ def test_non_expired_session_id_should_not_be_changed_on_request_unrelated_to_lo
     client.get(index_url)
     session_id_post_login = client.session.session_key
     assert session_id_post_login == session_id_pre_login
+
+
+def test_show_qr_code_with_referred_in_header_should_show_qr_code(client):
+    """
+    Tests that when showing the qr_code view after being referred to from another side
+    will show a generated QR code
+    """
+    url = reverse("webfront-qr-code")
+    header = {'HTTP_REFERER': 'www.example.com'}
+    response = client.get(url, follow=True, **header)
+
+    assert response.status_code == 200
+    assert "QR Code linking to previous side" in smart_str(response.content)
+
+
+def test_show_qr_code_with_no_referred_in_header_should_show_alert(client):
+    """
+    Tests that when showing the qr_code view when directly accessing the side, for
+    example by directly opening the url it will show an alert
+    """
+    url = reverse("webfront-qr-code")
+    response = client.get(url, follow=True)
+
+    assert response.status_code == 200
+    assert (
+        "No previous side could be found. This functionality does not work when directly opening this page."
+        in smart_str(response.content)
+    )
