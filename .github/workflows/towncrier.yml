@@ -1,10 +1,14 @@
 name: Check for changelog file
 
-on: [pull_request]
+on: 
+  pull_request: 
+      # labeled/unlabeled = label is added/removed
+      # synchronize = PR's head branch was updated
+      types: [labeled, unlabeled, opened, reopened, synchronize]
 
 jobs:
   towncrier:
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.actor != 'dependabot[bot]' && !contains(github.event.pull_request.labels.*.name, 'nonews') }}
     runs-on: ubuntu-latest
     name: Towncrier check
     steps:
