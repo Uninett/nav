@@ -1,4 +1,4 @@
-from django.test import TestCase
+from nav.tests.cases import DjangoTransactionTestCase
 
 from nav.models.arnold import Justification
 
@@ -7,7 +7,7 @@ from nav.auditlog.models import LogEntry
 from nav.auditlog.utils import get_auditlog_entries
 
 
-class AuditlogModelTestCase(TestCase):
+class AuditlogModelTestCase(DjangoTransactionTestCase):
     def setUp(self):
         # This specific model is used because it is very simple
         self.justification = Justification.objects.create(name='testarossa')
@@ -89,7 +89,7 @@ class AuditlogModelTestCase(TestCase):
         self.assertEqual(name, 'blocked_reason')
 
 
-class AuditlogUtilsTestCase(TestCase):
+class AuditlogUtilsTestCase(DjangoTransactionTestCase):
     def setUp(self):
         # This specific model is used because it is very simple
         self.justification = Justification.objects.create(name='testarossa')
