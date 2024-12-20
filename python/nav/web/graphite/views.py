@@ -73,6 +73,14 @@ def index(request, uri):
     else:
         response = HttpResponse(output, content_type=content_type, status=status)
 
+    # Dirty hack to prevent logging of 5XX errors.  More specifically, this prevents
+    # a full Django error mail from being sent when Graphite is down or otherwise
+    # failing.  (I.e. we're just proxying the status code, there is no error in our
+    # application that needs to be mailed to anyone).
+    if status >= 500:
+        # Tricks Django into thinking this response has already been logged:
+        response._has_been_logged = True
+
     response['X-Where-Am-I'] = request.get_full_path()
     return response
 
