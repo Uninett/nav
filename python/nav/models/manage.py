@@ -42,7 +42,7 @@ from nav import util
 from nav.bitvector import BitVector
 from nav.metrics.data import get_netboxes_availability
 from nav.metrics.graphs import get_simple_graph_url, Graph
-from nav.metrics.names import get_all_leaves_below
+from nav.metrics.names import get_all_leaves_below, raw_metric_query
 from nav.metrics.templates import (
     metric_prefix_for_interface,
     metric_prefix_for_ports,
@@ -51,6 +51,7 @@ from nav.metrics.templates import (
     metric_path_for_sensor,
     metric_path_for_prefix,
     metric_path_for_power,
+    metric_path_for_vlan_dhcp,
 )
 import nav.natsort
 from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
@@ -1566,6 +1567,28 @@ class Vlan(models.Model):
                 ),
                 format='json',
             )
+
+    def get_dhcp_graph_url(self):
+        """Creates the graph url used for graphing dhcp stats for this vlan"""
+        max_path, cur_path, touch_path = self.get_dhcp_metric_paths()
+        ip_max = f'alias({max_path}, "Max addresses")'
+        ip_cur = f'alias({cur_path}, "Addresses in use")'
+        ip_touch = f'alias({touch_path}, "Expired addresses")'
+        metrics = [ip_max, ip_cur, ip_touch]
+        return get_simple_graph_url(
+            metrics, title=f"DHCP stats for vlan {str(self)}", format='json'
+        )
+
+    def has_dhcp_stats(self):
+        """Returns True if any DHCP statistic exists"""
+        for metric_path in self.get_dhcp_metric_paths():
+            if raw_metric_query(metric_path):
+                return True
+
+    def get_dhcp_metric_paths(self):
+        """Returns a tuple with metric paths for max, cur and touch respectively"""
+        path = partial(metric_path_for_vlan_dhcp, self.vlan)
+        return (path('max'), path('cur'), path('touch'))
 
 
 class NetType(models.Model):
