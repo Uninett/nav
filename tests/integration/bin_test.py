@@ -7,7 +7,7 @@ import pytest
 BINDIR = './python/nav/bin'
 
 
-def test_script_runs(script):
+def test_script_runs(postgresql, script):
     """Verifies that a script defined in pyproject.toml runs with a zero exit code"""
     if "netbiostracker" in script[0] and not which("nbtscan"):
         pytest.skip("nbtscan is not installed")

@@ -56,6 +56,8 @@ if _venv:
         os.path.join(_venv, 'etc/nav'),
         os.path.join(_venv, buildconf.datadir, 'conf'),
     ] + CONFIG_LOCATIONS
+if "NAV_CONFIG_DIR" in os.environ:
+    CONFIG_LOCATIONS.insert(0, os.environ["NAV_CONFIG_DIR"])
 
 
 def list_config_files_from_dir(dirname):
