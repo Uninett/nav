@@ -1,8 +1,6 @@
 mkfile_dir := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 top_srcdir := $(mkfile_dir)../..
 uname := $(shell uname)
-uid := $(shell id -u)
-gid := $(shell id -g)
 dockerfile := Dockerfile
 
 name := navtest:$(shell git describe --tags)-$(dockerfile)
@@ -16,14 +14,14 @@ buildnocache:
 	docker build --no-cache -t $(name) -f $(dockerfile) $(mkfile_dir)
 
 check: build
-	docker run -t -u $(uid):$(gid) -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) /source/tests/docker/test.sh
+	docker run -t -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) /source/tests/docker/test.sh
 
 lint: build
-	docker run -t -u $(uid):$(gid) -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) tox -e pylint
+	docker run -t -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) tox -e pylint
 
 # Runs an ephemeral container with core dumping capabilities and PostgreSQL on an in-memory tmpfs
 shell:
-	docker run -ti --rm --ulimit core=-1 -u $(uid):$(gid) -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) /bin/bash
+	docker run -ti --rm --ulimit core=-1 -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) /bin/bash
 
 name:
 	echo Image name: $(name)
