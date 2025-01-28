@@ -14,15 +14,15 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 
 
-from django.urls import re_path
+from django.urls import path
 
 from .views import AuditlogOverview, AuditlogNetboxDetail
 
 
 urlpatterns = [
-    re_path(r'^$', AuditlogOverview.as_view(), name='auditlog-home'),
-    re_path(
-        r'^netbox/(?P<netboxid>\d+)$',
+    path('', AuditlogOverview.as_view(), name='auditlog-home'),
+    path(
+        'netbox/<int:netboxid>',
         AuditlogNetboxDetail.as_view(),
         name='auditlog-netbox-detail',
     ),
