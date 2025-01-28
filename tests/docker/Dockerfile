@@ -40,22 +40,22 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update && \
     apt-get -y --no-install-recommends build-dep \
-	python3-psycopg2 python3-lxml python3-pil python3-ldap
+    python3-psycopg2 python3-lxml python3-pil python3-ldap
 
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update && \
     apt-get -y --no-install-recommends install \
-	libsnmp40 \
-	cron \
-	libjpeg62 \
-	postgresql postgresql-contrib postgresql-client \
-	libxml2-dev libxslt1-dev \
-	libwww-perl \
-	xvfb \
-	imagemagick \
-	x11vnc google-chrome-stable cloc \
-        cmake nbtscan libtidy5deb1
+    libsnmp40 \
+    cron \
+    libjpeg62 \
+    postgresql postgresql-contrib postgresql-client \
+    libxml2-dev libxslt1-dev \
+    libwww-perl \
+    xvfb \
+    imagemagick \
+    x11vnc google-chrome-stable cloc \
+    cmake nbtscan libtidy5deb1
 
 # Install Firefox (we don't want Snap!)
 ENV FF_VER=135.0
