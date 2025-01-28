@@ -26,6 +26,10 @@ from PIL import ImageDraw, ImageFont
 import qrcode.image.pil
 
 
+def is_ajax(request):
+    return request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+
 def get_navpath_root():
     """Returns the default navpath root
 
