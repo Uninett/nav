@@ -15,11 +15,12 @@
 #
 """Models for the NAV API"""
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from django.contrib.postgres.fields import HStoreField
 from django.db import models
 from django.urls import reverse
+from django.db.models import JSONField
 
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
@@ -66,3 +67,26 @@ class APIToken(models.Model):
 
     class Meta(object):
         db_table = 'apitoken'
+
+
+class JWTRefreshToken(models.Model):
+
+    name = VarcharField(unique=True)
+    description = models.TextField(null=True, blank=True)
+    data = JSONField()
+    hash = VarcharField()
+
+    def __str__(self):
+        return self.name
+
+    def is_active(self) -> bool:
+        """True if token is active. A token is considered active when
+        the nbf claim is in the past and the exp claim is in the future
+        """
+        now = datetime.now(tz=timezone.utc)
+        nbf = datetime.fromtimestamp(self.data['nbf'], tz=timezone.utc)
+        exp = datetime.fromtimestamp(self.data['exp'], tz=timezone.utc)
+        return now >= nbf and now < exp
+
+    class Meta(object):
+        db_table = 'jwtrefreshtoken'
