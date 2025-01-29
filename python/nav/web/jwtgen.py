@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
+import hashlib
 
 import jwt
 
@@ -49,3 +50,15 @@ def _generate_token(
         new_token, JWTConf().get_nav_private_key(), algorithm="RS256"
     )
     return encoded_token
+
+
+def hash_token(token: str) -> str:
+    """Hashes a token with SHA256"""
+    hash_object = hashlib.sha256(token.encode('utf-8'))
+    hex_dig = hash_object.hexdigest()
+    return hex_dig
+
+
+def decode_token(token: str) -> dict[str, Any]:
+    """Decodes a token in JWT format and returns the data of the decoded token"""
+    return jwt.decode(token, options={'verify_signature': False})
