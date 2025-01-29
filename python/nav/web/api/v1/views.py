@@ -45,6 +45,7 @@ from rest_framework.serializers import ValidationError
 from oidc_auth.authentication import JSONWebTokenAuthentication
 
 from nav.models import manage, event, cabling, rack, profiles
+from nav.models.api import JWTRefreshToken
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 from nav.util import auth_token, is_valid_cidr
@@ -52,6 +53,12 @@ from nav.util import auth_token, is_valid_cidr
 from nav.buildconf import VERSION
 from nav.web.api.v1 import serializers, alert_serializers
 from nav.web.status2 import STATELESS_THRESHOLD
+from nav.web.jwtgen import (
+    generate_access_token,
+    generate_refresh_token,
+    hash_token,
+    decode_token,
+)
 from nav.macaddress import MacPrefix
 from .auth import (
     APIPermission,
@@ -1153,3 +1160,36 @@ class ModuleViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         'device__serial',
     )
     serializer_class = serializers.ModuleSerializer
+
+
+class JWTRefreshViewSet(APIView):
+    """
+    Accepts a valid refresh token.
+    Returns a new refresh token and an access token.
+    """
+
+    def post(self, request):
+        incoming_token = request.data.get('refresh_token')
+        token_hash = hash_token(incoming_token)
+        try:
+            # If hash exists in the database, then we know it is a real token
+            db_token = JWTRefreshToken.objects.get(hash=token_hash)
+        except JWTRefreshToken.DoesNotExist:
+            return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
+        if not db_token.is_active():
+            return Response("Inactive token", status=status.HTTP_403_FORBIDDEN)
+
+        access_token = generate_access_token(db_token.data)
+        refresh_token = generate_refresh_token(db_token.data)
+
+        new_hash = hash_token(refresh_token)
+        new_data = decode_token(refresh_token)
+        db_token.hash = new_hash
+        db_token.data = new_data
+        db_token.save()
+
+        response_data = {
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        }
+        return Response(response_data)
