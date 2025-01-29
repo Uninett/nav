@@ -23,6 +23,7 @@ from django.urls import reverse
 
 from nav.models.fields import VarcharField
 from nav.models.profiles import Account
+from nav.web.jwtgen import is_active
 
 
 class APIToken(models.Model):
@@ -66,3 +67,34 @@ class APIToken(models.Model):
 
     class Meta(object):
         db_table = 'apitoken'
+
+
+class JWTRefreshToken(models.Model):
+    """Model representing a JWT refresh token. This model does not
+    contain the token itself, but a hash of the token that can be used
+    to validate the authenticity of the actual token when it is used to
+    generate an access token.
+    """
+
+    name = VarcharField(unique=True)
+    description = models.TextField(null=True, blank=True)
+    expires = models.DateTimeField()
+    activates = models.DateTimeField()
+    last_used = models.DateTimeField(null=True, blank=True)
+    revoked = models.BooleanField(default=False)
+    hash = VarcharField()
+
+    def __str__(self):
+        return self.name
+
+    def is_active(self) -> bool:
+        """Returns True if the token is active. A token is considered active when
+        `expires` is in the future and `activates` is in the past or matches
+        the current time.
+        """
+        return is_active(self.expires.timestamp(), self.activates.timestamp())
+
+    class Meta(object):
+        """Meta class"""
+
+        db_table = 'jwtrefreshtoken'
