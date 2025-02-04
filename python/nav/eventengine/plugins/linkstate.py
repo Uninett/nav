@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-""""linkState event plugin"""
+""" "linkState event plugin"""
 import copy
 
 from nav.config import ConfigurationError

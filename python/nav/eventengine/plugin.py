@@ -21,6 +21,7 @@ import logging
 
 class UnsupportedEvent(ValueError):
     "Event of unsupported type was passed to a handler"
+
     pass
 
 

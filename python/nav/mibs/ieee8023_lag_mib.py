@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-""""A MibRetriever to retrieve IEEE 802.3ad info from the IEEE8023-LAG-MIB"""
+""" "A MibRetriever to retrieve IEEE 802.3ad info from the IEEE8023-LAG-MIB"""
 from collections import defaultdict
 from twisted.internet.defer import inlineCallbacks, returnValue
 from nav.smidumps import get_mib

@@ -13,8 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-""" A class for extracting sensors from MGE UPSes.
-"""
+"""A class for extracting sensors from MGE UPSes."""
 from nav.smidumps import get_mib
 from nav.mibs.ups_mib import UpsMib
 from nav.models.manage import Sensor

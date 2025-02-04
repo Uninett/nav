@@ -13,8 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-"""A class for getting sensor information from Raritan PDU2 devices
-"""
+"""A class for getting sensor information from Raritan PDU2 devices"""
 
 from twisted.internet import defer
 from twisted.internet.defer import returnValue

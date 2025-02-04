@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-""" Unittests for web/info """
+"""Unittests for web/info"""
 
 import unittest
 

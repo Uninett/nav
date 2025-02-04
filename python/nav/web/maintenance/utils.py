@@ -174,7 +174,7 @@ def get_component_keys(post):
 
 
 def get_components_from_keydict(
-    component_keys: dict[str, List[Union[int, str]]]
+    component_keys: dict[str, List[Union[int, str]]],
 ) -> tuple[List[ComponentType], List[str]]:
     """Fetches components from a dictionary of component keys, typically as created
     from POST data.

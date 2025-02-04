@@ -98,6 +98,7 @@ INVALID_IPS = (
 # pylint: disable=R0903
 class Neighbor(object):
     "Abstract base class for neigbor identification"
+
     _logger = ContextLogger()
 
     def __init__(self, record, local_address=None):

@@ -15,8 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""A class for getting DDM values for ALE equipment
-"""
+"""A class for getting DDM values for ALE equipment"""
 
 from twisted.internet import defer
 from twisted.internet.defer import returnValue

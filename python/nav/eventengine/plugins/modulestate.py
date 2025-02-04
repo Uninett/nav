@@ -13,7 +13,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-""""moduleState event plugin"""
+""" "moduleState event plugin"""
 import datetime
 
 from nav.eventengine.alerts import AlertGenerator

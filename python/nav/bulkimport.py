@@ -418,21 +418,25 @@ def raise_if_exists(cls, **kwargs):
 
 class BulkImportError(BulkParseError):
     "Import failed."
+
     pass
 
 
 class DoesNotExist(BulkImportError):
     "Object does not exist"
+
     pass
 
 
 class MultipleObjectsReturned(BulkImportError):
     "Multiple objects returned"
+
     pass
 
 
 class AlreadyExists(BulkImportError):
     "Object already exist in database"
+
     pass
 
 

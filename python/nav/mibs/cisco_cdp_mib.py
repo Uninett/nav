@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-""""CISCO-CDP-MIB handling"""
+""" "CISCO-CDP-MIB handling"""
 import socket
 from collections import namedtuple
 
@@ -30,6 +30,7 @@ ADDRESS_TYPE_IP = 1
 
 class CiscoCDPMib(mibretriever.MibRetriever):
     "A MibRetriever for handling CISCO-CDP-MIB"
+
     mib = get_mib('CISCO-CDP-MIB')
 
     def get_neighbors_last_change(self):

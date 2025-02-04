@@ -14,8 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""Functions for deleting objects from seeddb.
-"""
+"""Functions for deleting objects from seeddb."""
 
 import logging
 

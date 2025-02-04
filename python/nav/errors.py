@@ -39,6 +39,7 @@ class BasepathError(ConfigurationError):
 
 class RedirectError(GeneralException):
     "Need to redirect"
+
     # raise with URL, dispatcher.py will redirect
 
 
