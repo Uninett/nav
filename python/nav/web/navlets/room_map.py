@@ -18,7 +18,7 @@
 from django.urls import reverse
 
 from nav.web.navlets import Navlet
-from nav.web.info.room.views import SearchForm
+from nav.web.info.room.views import RoomSearchForm
 
 
 class RoomMapNavlet(Navlet):
@@ -32,7 +32,7 @@ class RoomMapNavlet(Navlet):
         context['can_edit_rooms'] = request.account.has_perm(
             'web_access', reverse('seeddb-room-edit')
         )
-        context['searchform'] = SearchForm()
+        context['searchform'] = RoomSearchForm()
         return self.render_to_response(context)
 
     def get_template_basename(self):
