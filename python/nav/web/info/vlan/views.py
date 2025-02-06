@@ -31,6 +31,7 @@ from nav.web.utils import create_title
 from nav.metrics.graphs import get_simple_graph_url
 from nav.metrics.names import join_series
 from nav.metrics.templates import metric_path_for_prefix
+from nav.metrics.errors import GraphiteUnreachableError
 from ..forms import SearchForm
 
 _logger = logging.getLogger(__name__)
@@ -115,6 +116,13 @@ def vlan_details(request, vlanid):
 
     navpath = get_path([(str(vlan), '')])
 
+    try:
+        has_dhcp_stats = vlan.has_dhcp_stats()
+        graphite_error = False
+    except GraphiteUnreachableError:
+        has_dhcp_stats = False
+        graphite_error = True
+
     return render(
         request,
         'info/vlan/vlandetails.html',
@@ -126,6 +134,8 @@ def vlan_details(request, vlanid):
             'has_v4': has_v4,
             'has_v6': has_v6,
             'title': create_title(navpath),
+            'has_dhcp_stats': has_dhcp_stats,
+            'graphite_error': graphite_error,
         },
     )
 
