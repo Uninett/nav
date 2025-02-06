@@ -66,3 +66,25 @@ class APIToken(models.Model):
 
     class Meta(object):
         db_table = 'apitoken'
+
+
+class JWTRefreshToken(models.Model):
+
+    name = VarcharField(unique=True)
+    description = models.TextField(null=True, blank=True)
+    expires = models.DateTimeField()
+    activates = models.DateTimeField()
+    hash = VarcharField()
+
+    def __str__(self):
+        return self.name
+
+    def is_active(self) -> bool:
+        """True if token is active. A token is considered active when
+        `activates` is in the past and `expires` is in the future.
+        """
+        now = datetime.now()
+        return now >= self.activates and now < self.expires
+
+    class Meta(object):
+        db_table = 'jwtrefreshtoken'
