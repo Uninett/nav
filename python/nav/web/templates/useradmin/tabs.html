@@ -9,4 +9,7 @@
   <li{% if active.token_list %} class="tabactive"{% endif %}>
     <a href="{% url 'useradmin-token_list' %}">API Token List</a>
   </li>
+  <li{% if active.jwt_list %} class="tabactive"{% endif %}>
+    <a href="{% url 'useradmin-jwt_list' %}">JWT API Token List</a>
+  </li>
 </ul>
