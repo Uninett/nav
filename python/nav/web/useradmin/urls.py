@@ -99,4 +99,34 @@ urlpatterns = [
         views.token_expire,
         name='useradmin-token_expire',
     ),
+    # Manage JWT tokens
+    re_path(r'^jwt_tokens/$', views.JWTList.as_view(), name='useradmin-jwt_list'),
+    re_path(
+        r'^jwt_tokens/create/$', views.JWTCreate.as_view(), name='useradmin-jwt_create'
+    ),
+    re_path(
+        r'^jwt_tokens/edit/(?P<pk>\d+)/$',
+        views.JWTEdit.as_view(),
+        name='useradmin-jwt_edit',
+    ),
+    re_path(
+        r'^jwt_tokens/detail/(?P<pk>\d+)/$',
+        views.JWTDetail.as_view(),
+        name='useradmin-jwt_detail',
+    ),
+    re_path(
+        r'^jwt_tokens/delete/(?P<pk>\d+)/$',
+        views.JWTDelete.as_view(),
+        name='useradmin-jwt_delete',
+    ),
+    re_path(
+        r'^jwt_tokens/expire/(?P<pk>\d+)/$',
+        views.jwt_revoke,
+        name='useradmin-jwt_revoke',
+    ),
+    re_path(
+        r'^jwt_tokens/recreate/(?P<pk>\d+)/$',
+        views.jwt_recreate,
+        name='useradmin-jwt_recreate',
+    ),
 ]
