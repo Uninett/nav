@@ -1,10 +1,16 @@
-import pytest
-from unittest.mock import Mock, patch
 from datetime import datetime, timedelta
+from typing import Any
+from unittest.mock import Mock, patch
 
 import jwt
-
-from nav.web.jwtgen import generate_access_token, generate_refresh_token, is_active
+import pytest
+from nav.web.jwtgen import (
+    decode_token,
+    generate_access_token,
+    generate_refresh_token,
+    hash_token,
+    is_active,
+)
 
 
 class TestTokenGeneration:
@@ -88,6 +94,16 @@ class TestIsActive:
             assert is_active(exp.timestamp(), now.timestamp())
 
 
+class TestHashToken:
+    def test_should_return_correct_hash(self, token_string, token_hash):
+        assert hash_token(token_string) == token_hash
+
+
+class TestDecodeToken:
+    def test_should_return_expected_data(self, token_string, token_data):
+        assert decode_token(token_string) == token_data
+
+
 @pytest.fixture(scope="module", autouse=True)
 def jwtconf_mock(rsa_private_key, nav_name) -> str:
     """Mocks the get_nav_name and get_nav_private_key functions for
@@ -105,3 +121,35 @@ def jwtconf_mock(rsa_private_key, nav_name) -> str:
 @pytest.fixture(scope="module")
 def nav_name() -> str:
     yield "nav"
+
+
+@pytest.fixture(scope="module")
+def token_string() -> str:
+    """String representation of a token. Matching data is in `token_data`
+    and expected hash is in `token_hash`
+    """
+    token = (
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQ"
+        "iOjE3NDA0Nzg4NTQsImV4cCI6MTc0MDU2NTI1NH0.2GbcpbwzVOAV7"
+        "nv4lAS_ISrw-g9WKvhKKnpN9dhSL6s"
+    )
+    return token
+
+
+@pytest.fixture(scope="module")
+def token_hash() -> str:
+    """SHA256 hash of a token. Matching data is in `token_data`
+    and the actual token string is in `token_string`
+    """
+    return "91d0d189dde6a7423b884f8bb285b17f9706d21e6d0ce45aac028a22b3067395"
+
+
+@pytest.fixture(scope="module")
+def token_data() -> dict[str, Any]:
+    """Payload of a token. The actual token string is in `token_string`
+    and hash of the token in `token_hash`
+    """
+    return {
+        "iat": 1740478854,
+        "exp": 1740565254,
+    }

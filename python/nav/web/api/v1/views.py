@@ -48,6 +48,7 @@ from oidc_auth.authentication import JSONWebTokenAuthentication
 
 from nav.macaddress import MacAddress
 from nav.models import manage, event, cabling, rack, profiles
+from nav.models.api import JWTRefreshToken
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
 from nav.util import auth_token, is_valid_cidr
@@ -55,6 +56,13 @@ from nav.util import auth_token, is_valid_cidr
 from nav.buildconf import VERSION
 from nav.web.api.v1 import serializers, alert_serializers
 from nav.web.status2 import STATELESS_THRESHOLD
+from nav.web.jwtgen import (
+    decode_token,
+    generate_access_token,
+    generate_refresh_token,
+    hash_token,
+    is_active,
+)
 from nav.macaddress import MacPrefix
 from .auth import (
     APIAuthentication,
@@ -1319,3 +1327,51 @@ class NetboxEntityViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     queryset = manage.NetboxEntity.objects.all()
     serializer_class = serializers.NetboxEntitySerializer
     filterset_fields = ['netbox', 'physical_class']
+
+
+class JWTRefreshViewSet(APIView):
+    """
+    Accepts a valid refresh token.
+    Returns a new refresh token and an access token.
+    """
+
+    def post(self, request):
+        incoming_token = request.data.get('refresh_token')
+        if incoming_token is None:
+            return Response("Missing token", status=status.HTTP_400_BAD_REQUEST)
+        if not isinstance(incoming_token, str):
+            return Response("Invalid token", status=status.HTTP_400_BAD_REQUEST)
+
+        token_hash = hash_token(incoming_token)
+        try:
+            # If hash exists in the database, then we know it is a real token
+            # This means that we do not need to verify the signature of the token
+            db_token = JWTRefreshToken.objects.get(hash=token_hash)
+        except JWTRefreshToken.DoesNotExist:
+            return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
+
+        claims = decode_token(incoming_token)
+        if not is_active(claims['exp'], claims['nbf']):
+            return Response("Inactive token", status=status.HTTP_403_FORBIDDEN)
+
+        if db_token.revoked:
+            return Response(
+                "This token has been revoked", status=status.HTTP_403_FORBIDDEN
+            )
+
+        access_token = generate_access_token(claims)
+        refresh_token = generate_refresh_token(claims)
+
+        new_claims = decode_token(refresh_token)
+        new_hash = hash_token(refresh_token)
+        db_token.hash = new_hash
+        db_token.expires = datetime.fromtimestamp(new_claims['exp'])
+        db_token.activates = datetime.fromtimestamp(new_claims['nbf'])
+        db_token.last_used = datetime.now()
+        db_token.save()
+
+        response_data = {
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        }
+        return Response(response_data)
