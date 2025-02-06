@@ -31,7 +31,7 @@ from nav.web.crispyforms import (
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
-from nav.models.api import APIToken
+from nav.models.api import APIToken, JWTRefreshToken
 from nav.web.api.v1.views import get_endpoints as get_api_endpoints
 from nav.util import auth_token
 
@@ -365,3 +365,97 @@ class TokenForm(forms.ModelForm):
     class Meta(object):
         model = APIToken
         fields = ['token', 'permission', 'expires', 'comment', 'endpoints']
+
+
+class JWTRefreshTokenCreateForm(forms.ModelForm):
+    """Form for creating a new refresh token"""
+
+    name = forms.CharField(label='Token name')
+    permission = forms.ChoiceField(
+        choices=APIToken.permission_choices,
+        help_text=APIToken.permission_help_text,
+        initial='read',
+    )
+    available_endpoints = get_api_endpoints()
+    endpoints = forms.MultipleChoiceField(
+        required=False, choices=sorted(available_endpoints.items())
+    )
+    description = forms.CharField(label='Description', required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(JWTRefreshTokenCreateForm, self).__init__(*args, **kwargs)
+
+        self.attrs = set_flat_form_attributes(
+            form_id="edit-jwt-form",
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[
+                                FlatFieldset(
+                                    legend="Token details",
+                                    fields=[
+                                        self["name"],
+                                        self["description"],
+                                        self["permission"],
+                                    ],
+                                )
+                            ],
+                            css_classes="large-4 small-12",
+                        ),
+                        FormColumn(
+                            fields=[
+                                FlatFieldset(
+                                    legend="Token endpoints", fields=[self["endpoints"]]
+                                )
+                            ],
+                            css_classes="large-8 small-12",
+                        ),
+                    ]
+                )
+            ],
+            submit_field=SubmitField("submit", "Save token", css_classes="small"),
+        )
+
+    def clean_endpoints(self):
+        """Convert endpoints from list to dictionary"""
+        endpoints = self.cleaned_data.get('endpoints')
+        return {x: force_str(self.available_endpoints.get(x)) for x in endpoints}
+
+    class Meta(object):
+        model = JWTRefreshToken
+        fields = ['name', 'description', 'permission', 'endpoints']
+
+
+class JWTRefreshTokenEditForm(forms.ModelForm):
+    """Form for editing an existing refresh token"""
+
+    name = forms.CharField(label='Token name')
+    description = forms.CharField(label='Description', required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(JWTRefreshTokenEditForm, self).__init__(*args, **kwargs)
+
+        self.attrs = set_flat_form_attributes(
+            form_id="edit-jwt-form",
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[
+                                FlatFieldset(
+                                    legend="Token details",
+                                    fields=[self["name"], self["description"]],
+                                )
+                            ],
+                            css_classes="large-4 small-12",
+                        ),
+                    ]
+                )
+            ],
+            submit_field=SubmitField("submit", "Save token", css_classes="small"),
+        )
+
+    class Meta(object):
+        model = JWTRefreshToken
+        fields = ['name', 'description']
