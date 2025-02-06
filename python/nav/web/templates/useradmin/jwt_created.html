@@ -1,0 +1,66 @@
+{% extends "useradmin/base.html" %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/multi-select.css">
+  <style>
+    #edit-token-form input[type=submit] { float:left; margin-right: 1.25rem }
+    label[for='id_endpoints'] { display: none; }
+  </style>
+  <script>
+    require(['libs/jquery.multi-select'], function(){
+      $(function(){
+        /* Add multiselect for selecting endpoints */
+        var msSelector = '#id_endpoints';
+        $(msSelector).multiSelect({
+          selectableHeader: 'Available endpoints <a id="select-all-endpoints" class="right">Select all</a>',
+          selectionHeader: 'Selected endpoints <a id="remove-all-endpoints" class="right">Remove all</a>',
+          afterInit: function(){
+            $('#select-all-endpoints').click(function(){ $(msSelector).multiSelect('select_all') });
+            $('#remove-all-endpoints').click(function(){ $(msSelector).multiSelect('deselect_all') });
+          }
+        });
+
+        /* This is the code for closing the content dropdown */
+        $('#confirm-token-delete .close-button').click(function () {
+          $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
+        });
+      });
+    });
+  </script>
+
+  <style>
+    .token-card { max-width: 470px; overflow-wrap: break-word; }
+    .token-card .label { cursor: help; margin-bottom: 1px; }
+    .token-card code { display: inline-block; width: 100%; }
+  </style>
+{% endblock %}
+
+
+{% block content %}
+
+  Back to
+  <a href="{% url 'useradmin-jwt_list' %}">token list</a>
+
+  <div id="form-panel" class="token-card panel white">
+
+    <h3>
+        {{ object.name }}
+    </h3>
+
+    <code id="token" style="display:block; white-space:pre-wrap">{{ token }}</code>
+
+    <button onclick="myFunction()">Copy to clipboard</button>
+
+    <script>
+        function myFunction() {
+        var copyText = document.getElementById("token");
+        navigator.clipboard.writeText(copyText.innerHTML);
+        }
+    </script>
+
+
+    <div class="float-clear"></div>
+
+  </div>
+
+{% endblock %}

@@ -31,7 +31,7 @@ from nav.web.crispyforms import (
 
 from nav.models.profiles import Account, AccountGroup, PrivilegeType
 from nav.models.manage import Organization
-from nav.models.api import APIToken
+from nav.models.api import APIToken, JWTRefreshToken
 from nav.web.api.v1.views import get_endpoints as get_api_endpoints
 from nav.util import auth_token
 
@@ -365,3 +365,36 @@ class TokenForm(forms.ModelForm):
     class Meta(object):
         model = APIToken
         fields = ['token', 'permission', 'expires', 'comment', 'endpoints']
+
+
+class JWTRefreshTokenForm(forms.ModelForm):
+    """Form for creating a new refresh token"""
+
+    name = forms.CharField(label='Token name')
+    description = forms.CharField(label="Description", required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(JWTRefreshTokenForm, self).__init__(*args, **kwargs)
+        self.attrs = set_flat_form_attributes(
+            form_id="edit-token-form",
+            form_fields=[
+                FormRow(
+                    fields=[
+                        FormColumn(
+                            fields=[
+                                FlatFieldset(
+                                    legend="Token details",
+                                    fields=[self["name"], self["description"]],
+                                )
+                            ],
+                            css_classes="large-4 small-12",
+                        )
+                    ]
+                )
+            ],
+            submit_field=SubmitField("submit", "Save token", css_classes="small"),
+        )
+
+    class Meta(object):
+        model = JWTRefreshToken
+        fields = ['name', 'description']
