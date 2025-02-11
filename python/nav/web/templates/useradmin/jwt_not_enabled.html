@@ -1,0 +1,49 @@
+{% extends "useradmin/base.html" %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/multi-select.css">
+  <style>
+    #edit-token-form input[type=submit] { float:left; margin-right: 1.25rem }
+    label[for='id_endpoints'] { display: none; }
+  </style>
+  <script>
+    require(['libs/jquery.multi-select'], function(){
+      $(function(){
+        /* Add multiselect for selecting endpoints */
+        var msSelector = '#id_endpoints';
+        $(msSelector).multiSelect({
+          selectableHeader: 'Available endpoints <a id="select-all-endpoints" class="right">Select all</a>',
+          selectionHeader: 'Selected endpoints <a id="remove-all-endpoints" class="right">Remove all</a>',
+          afterInit: function(){
+            $('#select-all-endpoints').click(function(){ $(msSelector).multiSelect('select_all') });
+            $('#remove-all-endpoints').click(function(){ $(msSelector).multiSelect('deselect_all') });
+          }
+        });
+
+        /* This is the code for closing the content dropdown */
+        $('#confirm-token-delete .close-button').click(function () {
+          $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
+        });
+      });
+    });
+  </script>
+{% endblock %}
+
+
+{% block content %}
+
+  Back to
+  <a href="{% url 'useradmin-jwt_list' %}">token list</a>
+
+  <div id="form-panel" class="panel white">
+
+
+    <h4>
+        You must configure jwt.conf before using this feature.
+    </h4>
+
+    <div class="float-clear"></div>
+
+  </div>
+
+{% endblock %}
