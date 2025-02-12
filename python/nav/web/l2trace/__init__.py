@@ -15,16 +15,15 @@
 #
 """Layer 2 traceroute web tool for NAV."""
 
-import datetime
 import socket
 from socket import gethostbyaddr, gethostbyname
 
 from django.db.models import Q
-from nav.models.manage import Netbox, SwPortVlan, GwPortPrefix, Prefix, Arp, Cam
 
+from nav.models.fields import INFINITY
+from nav.models.manage import Netbox, SwPortVlan, GwPortPrefix, Prefix, Arp, Cam
 from nav.util import is_valid_ip
 
-INFINITY = datetime.datetime.max
 PATH_NOT_FOUND = None
 LAYER_3_PATH = -1
 

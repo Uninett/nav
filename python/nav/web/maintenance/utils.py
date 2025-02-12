@@ -25,7 +25,7 @@ from django.db.models import IntegerField
 from django.urls import reverse
 from django.utils.html import conditional_escape
 
-from nav.models.fields import LegacyGenericForeignKey
+from nav.models.fields import LegacyGenericForeignKey, INFINITY
 from nav.models.manage import Netbox, Room, Location, NetboxGroup
 from nav.models.service import Service
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
@@ -47,8 +47,6 @@ NAVPATH = [
 ]
 
 TITLE = "NAV - Maintenance"
-
-INFINITY = datetime.max
 
 
 def task_form_initial(task=None, start_time=None):

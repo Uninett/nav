@@ -28,6 +28,7 @@ from django.utils.safestring import mark_safe
 
 import nav.maintengine
 from nav.django.utils import get_account
+from nav.models.fields import INFINITY
 from nav.models.manage import Netbox
 from nav.models.msgmaint import MaintenanceComponent, MaintenanceTask
 from nav.web.maintenance.forms import (
@@ -49,8 +50,6 @@ from nav.web.maintenance.utils import (
 )
 from nav.web.message import Messages, new_message
 from nav.web.quickselect import QuickSelect
-
-INFINITY = datetime.max
 
 _logger = logging.getLogger(__name__)
 

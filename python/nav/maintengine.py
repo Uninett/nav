@@ -31,8 +31,6 @@ from nav.models import manage, service
 from nav.models.event import EventQueue as Event, AlertHistory
 from nav.models.msgmaint import MaintenanceTask
 
-INFINITY = datetime.datetime.max
-
 # The devices must have been up for at least this time before
 # ending a maintenance task without a specified end.
 MINIMUM_UPTIME = datetime.timedelta(minutes=60)
