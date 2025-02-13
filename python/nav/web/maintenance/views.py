@@ -25,6 +25,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.utils.timezone import now as utcnow
 
 import nav.maintengine
 from nav.django.utils import get_account
@@ -277,11 +278,8 @@ def edit(request, task_id=None, start_time=None, **_):
                 end_time = task_form.cleaned_data['end_time']
                 no_end_time = task_form.cleaned_data['no_end_time']
                 state = MaintenanceTask.STATE_SCHEDULED
-                if (
-                    start_time < datetime.now()
-                    and end_time
-                    and end_time <= datetime.now()
-                ):
+                now = utcnow()
+                if start_time < now and end_time and end_time <= now:
                     state = MaintenanceTask.STATE_SCHEDULED
 
                 new_task = MaintenanceTask()
