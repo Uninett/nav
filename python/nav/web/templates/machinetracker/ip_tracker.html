@@ -27,6 +27,9 @@
             {% if form_data.source %}
             <th>Source</th>
             {% endif %}
+            {% if form_data.vendor%}
+            <th>Vendor</th>
+            {% endif %}
         </tr>
     </thead>
 
@@ -44,7 +47,7 @@
 
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
-                <span style="display:none;">{{ row.ip_int_value }}</span> <a href="{% query 'machinetracker-ip' ip_range=row.ip days=form_data.days dns=dns %}" title="Search for this IP address">
+                <span style="display:none;">{{ row.ip_int_value }}</span> <a href="{% query 'machinetracker-ip' ip_range=row.ip days=form_data.days dns=dns vendor=form_data.vendor %}" title="Search for this IP address">
                     {{ row.ip }}</a>
             </td>
             <td>
@@ -53,7 +56,7 @@
             </td>
             <td>
                 {% if row.mac %}
-                <a href="{% query 'machinetracker-mac' mac=row.mac days=form_data.days dns=dns %}" title="Search for this MAC address">
+                <a href="{% query 'machinetracker-mac' mac=row.mac days=form_data.days dns=dns vendor=form_data.vendor %}" title="Search for this MAC address">
                 {{ row.mac }}</a>
                 {% endif %}
                 {% endwith %}
@@ -69,6 +72,15 @@
             </td>
             {% if form_data.source %}
             <td>{{row.sysname}}</td>
+            {% endif %}
+            {% if form_data.vendor %}
+            <td>
+                {% if row.vendor %}
+                    {{ row.vendor }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
             {% endif %}
         </tr>
         {% endfor %}
