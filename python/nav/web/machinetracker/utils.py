@@ -26,6 +26,7 @@ from django.db import DatabaseError, transaction
 
 from nav import asyncdns
 from nav.models.manage import Prefix, Netbox, Interface
+from nav.models.oui import OUI
 
 _cached_hostname = {}
 _logger = logging.getLogger(__name__)
@@ -146,13 +147,14 @@ def min_max_mac(prefix):
     return str(prefix[0]), str(prefix[-1])
 
 
-def track_mac(keys, resultset, dns):
+def track_mac(keys, resultset, dns, vendor=False):
     """Groups results from Query for the mac_search page.
 
     keys        - a tuple/list with strings that identifies the fields the
                   result should be grouped by
     resultset   - a QuerySet
     dns         - should we lookup the hostname?
+    vendor         - should we lookup the vendor?
     """
     if dns:
         ips_to_lookup = {row.ip for row in resultset}
@@ -172,6 +174,12 @@ def track_mac(keys, resultset, dns):
                 row.dns_lookup = dns_lookups[ip].pop()
             else:
                 row.dns_lookup = ""
+        if vendor:
+            oui = OUI.objects.extra(
+                where=['oui=trunc(CAST(%s AS macaddr))'], params=[row.mac]
+            ).first()
+            if oui:
+                row.vendor = oui.vendor
         if not hasattr(row, 'module'):
             row.module = ''
         if not hasattr(row, 'port'):

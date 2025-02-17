@@ -90,6 +90,9 @@ class MacTrackerForm(MachineTrackerForm):
     netbios = forms.BooleanField(
         required=False, initial=False, help_text="Netbios name (if any)"
     )
+    vendor = forms.BooleanField(
+        required=False, initial=False, help_text="Vendor name (if any)"
+    )
 
     def clean_mac(self):
         """Clean the mac field"""
