@@ -56,7 +56,7 @@ class SearchForm(forms.Form):
 class ActivityIntervalForm(forms.Form):
     """Form for setting an interval in switch port activity"""
 
-    interval = forms.IntegerField(label='Days', min_value=0)
+    interval = forms.IntegerField(label='Days', min_value=0, max_value=10000)
 
     def __init__(self, *args, **kwargs):
         super(ActivityIntervalForm, self).__init__(*args, **kwargs)
