@@ -163,9 +163,9 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         if name:
             try:
                 if is_valid_ip(name, strict=True):
-                    netbox = netboxes.get(Q(sysname=name) | Q(ip=name))
+                    netbox = netboxes.get(Q(sysname__iexact=name) | Q(ip=name))
                 else:
-                    netbox = netboxes.get(sysname=name)
+                    netbox = netboxes.get(sysname__iexact=name)
             except Netbox.DoesNotExist:
                 pass
         elif addr:
@@ -178,7 +178,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             for address in host_information['addresses']:
                 if 'name' in address:
                     try:
-                        netbox = netboxes.get(sysname=address['name'])
+                        netbox = netboxes.get(sysname__iexact=address['name'])
                         break  # Exit loop at first match
                     except Netbox.DoesNotExist:
                         pass
