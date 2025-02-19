@@ -30,6 +30,7 @@ from nav.web.auth.utils import (
     authorization_not_required,
 )
 from nav.web.auth.sudo import get_sudoer
+from nav.web.utils import is_ajax
 
 
 _logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ class AuthorizationMiddleware(MiddlewareMixin):
         response.
 
         """
-        if request.is_ajax():
+        if is_ajax(request):
             return HttpResponse(status=401)
 
         new_url = get_login_url(request)
