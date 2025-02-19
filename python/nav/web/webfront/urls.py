@@ -88,11 +88,6 @@ urlpatterns = [
         name='webfront-preferences-changepassword',
     ),
     re_path(
-        r'^preferences/setcolumns$',
-        views.set_widget_columns,
-        name='webfront-preferences-setwidgetcolumns',
-    ),
-    re_path(
         r'^preferences/set_account_preference$',
         views.set_account_preference,
         name='set-account-preference',

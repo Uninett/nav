@@ -48,12 +48,10 @@ from nav.web.webfront.forms import (
     LoginForm,
     NavbarLinkFormSet,
     ChangePasswordForm,
-    ColumnsForm,
 )
 from nav.web.navlets import list_navlets, can_modify_navlet
 from nav.web.message import new_message, Messages
 from nav.web.webfront import (
-    get_widget_columns,
     find_dashboard,
     WELCOME_ANONYMOUS_PATH,
     WELCOME_REGISTERED_PATH,
@@ -303,9 +301,6 @@ def _create_preference_context(request):
         'navpath': [('Home', '/'), ('Preferences', None)],
         'title': 'Personal NAV preferences',
         'password_form': password_form,
-        'columns_form': ColumnsForm(
-            initial={'num_columns': get_widget_columns(account)}
-        ),
         'account': account,
         'tool': {
             'name': 'My account',
@@ -371,19 +366,6 @@ def save_links(request):
 
             return render(request, 'webfront/preferences.html', context)
 
-    return HttpResponseRedirect(reverse('webfront-preferences'))
-
-
-def set_widget_columns(request):
-    """Set the number of columns on the webfront"""
-    if request.method == 'POST':
-        form = ColumnsForm(request.POST)
-        if form.is_valid():
-            account = request.account
-            num_columns = form.cleaned_data.get('num_columns')
-            account.preferences[account.PREFERENCE_KEY_WIDGET_COLUMNS] = num_columns
-            account.save()
-            return HttpResponseRedirect(reverse('webfront-index'))
     return HttpResponseRedirect(reverse('webfront-preferences'))
 
 
