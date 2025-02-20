@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM debian:bookworm
 
 #### Prepare the OS base setup ###
 
@@ -8,7 +8,7 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install \
             locales \
             sudo python3 supervisor \
-	    gnupg debian-keyring debian-archive-keyring ca-certificates
+	        gnupg debian-keyring debian-archive-keyring ca-certificates
 
 ARG TIMEZONE=Europe/Oslo
 ARG LOCALE=en_US.UTF-8
