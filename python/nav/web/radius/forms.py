@@ -29,6 +29,8 @@ from nav.web.crispyforms import (
 
 from nav.util import is_valid_cidr
 
+from ..utils import validate_timedelta_for_overflow
+
 
 def validate_integer(value):
     """Validator for integer"""
@@ -258,3 +260,9 @@ class AccountChartsForm(forms.Form):
             form_fields=[self['days'], self['charts']],
             submit_field=SubmitField('send', 'Show me', css_classes='small'),
         )
+
+    def clean_days(self):
+        days = self.cleaned_data["days"]
+        validate_timedelta_for_overflow(days=days)
+
+        return days
