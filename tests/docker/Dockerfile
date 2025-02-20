@@ -2,7 +2,6 @@
 #
 FROM ubuntu:24.04
 
-ENV DISTRO=noble
 ENV DISPLAY=:99
 ENV ADMINPASSWORD=omicronpersei8
 ENV DEBIAN_FRONTEND=noninteractive
