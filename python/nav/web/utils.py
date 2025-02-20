@@ -18,7 +18,7 @@ import base64
 import io
 import os
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.views.generic.list import ListView
 
 import qrcode
@@ -26,7 +26,8 @@ from PIL import ImageDraw, ImageFont
 import qrcode.image.pil
 
 
-def is_ajax(request):
+def is_ajax(request: HttpRequest) -> bool:
+    """Returns True if this request is an AJAX (XMLHttpRequest) request"""
     return request.headers.get("x-requested-with") == "XMLHttpRequest"
 
 
