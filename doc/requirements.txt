@@ -1,4 +1,4 @@
--r ../requirements/django32.txt
+-r ../requirements/django42.txt
 -r ../requirements/base.txt
 -c ../constraints.txt
 sphinx_rtd_theme>=2.0.0
