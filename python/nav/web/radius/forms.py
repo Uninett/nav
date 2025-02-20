@@ -167,6 +167,17 @@ class ErrorLogSearchForm(forms.Form):
             ],
         )
 
+    def clean_time(self):
+        time_type, time = self.cleaned_data["time"]
+        if time_type == "hours":
+            try:
+                datetime.now() - timedelta(hours=int(time))
+            except OverflowError:
+                raise forms.ValidationError(
+                    "They did not have computers %s hours ago" % time
+                )
+        return time
+
 
 class AccountLogSearchForm(forms.Form):
     """Form for searching in the radius account log"""
