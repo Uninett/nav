@@ -26,7 +26,7 @@ FROM --platform=linux/amd64 debian:bullseye
 
 #### Prepare the OS base setup ###
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN echo 'deb-src http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.list.d/srcpkg.list && \
     echo 'deb-src http://security.debian.org/debian-security bullseye-security main' >> /etc/apt/sources.list.d/srcpkg.list
@@ -49,8 +49,8 @@ ARG TIMEZONE=Europe/Oslo
 ARG LOCALE=en_US.UTF-8
 ARG ENCODING=UTF-8
 RUN echo "${LOCALE} ${ENCODING}" > /etc/locale.gen && locale-gen ${LOCALE} && update-locale LANG=${LOCALE} LC_ALL=${LOCALE}
-ENV LANG ${LOCALE}
-ENV LC_ALL ${LOCALE}
+ENV LANG=${LOCALE}
+ENV LC_ALL=${LOCALE}
 RUN echo "${TIMEZONE}" > /etc/timezone && cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
 
 #### Install various build and runtime requirements as Debian packages ####
@@ -128,7 +128,7 @@ RUN --mount=type=cache,target=/source/.cache \
 COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
 VOLUME ["/source"]
-ENV    DJANGO_SETTINGS_MODULE nav.django.settings
+ENV    DJANGO_SETTINGS_MODULE=nav.django.settings
 EXPOSE 8080
 
 CMD        ["/source/tools/docker/run.sh"]
