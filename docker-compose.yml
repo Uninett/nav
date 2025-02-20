@@ -3,8 +3,6 @@
 # containerization, have a look at the separate project
 # https://github.com/Uninett/nav-container
 #
-version: '3'
-
 services:
   nav:
     build:

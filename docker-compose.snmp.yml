@@ -7,7 +7,6 @@
 #
 # docker compose -f docker-compose.yml -f docker-compose.snmp.yml up
 #
-version: '3'
 
 # YAML template for an SNMP forwarding/proxying service. This should work on
 # Linux (not necessarily MacOS) by mounting your SSH agent communication socket
@@ -48,4 +47,3 @@ services:
     build: tools/snmpdv3
     ports:
       - 161:161/udp
-
