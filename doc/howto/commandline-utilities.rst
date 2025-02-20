@@ -60,7 +60,7 @@ function, and therefore requires a bit of knowledge about how the NAV database
 is modeled in the Django ORM.
 
 Please refer to the `Django QuerySet documentation
-<https://docs.djangoproject.com/en/3.2/ref/models/querysets/>`_ for more
+<https://docs.djangoproject.com/en/4.2/ref/models/querysets/>`_ for more
 information about how to build filters.
 
 

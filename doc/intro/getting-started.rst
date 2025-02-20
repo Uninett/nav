@@ -40,8 +40,8 @@ before running NAV:
     2. :kbd:`makepasswd --chars 51`
     3. :kbd:`pwgen -s 51 1`
 
-  Please see the 
-  `Django secret key documentation <https://docs.djangoproject.com/en/3.2/ref/settings/#std-setting-SECRET_KEY>`_
+  Please see the
+  `Django secret key documentation <https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-SECRET_KEY>`_
   if you want to know more about this.
 
 `TIME_ZONE`
@@ -50,7 +50,7 @@ before running NAV:
   generating and displaying all timestamps. Beware that this *should* match the
   configured timezones of your PostgreSQL and Graphite-web installations as
   well.
-  
+
 `DOMAIN_SUFFIX`
   The DNS domain name your devices are in.  Many parts of the web
   interface will chop off this suffix to display abbreviated device
