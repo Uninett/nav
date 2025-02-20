@@ -15,6 +15,8 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import datetime as dt
+
 from django import forms
 
 from nav.models.manage import Sensor
@@ -56,7 +58,7 @@ class SearchForm(forms.Form):
 class ActivityIntervalForm(forms.Form):
     """Form for setting an interval in switch port activity"""
 
-    interval = forms.IntegerField(label='Days', min_value=0, max_value=10000)
+    interval = forms.IntegerField(label='Days', min_value=0)
 
     def __init__(self, *args, **kwargs):
         super(ActivityIntervalForm, self).__init__(*args, **kwargs)
@@ -81,6 +83,17 @@ class ActivityIntervalForm(forms.Form):
                 )
             ]
         )
+
+    def clean_interval(self):
+        interval = self.cleaned_data["interval"]
+        try:
+            dt.datetime.now() - dt.timedelta(days=interval)
+        except OverflowError:
+            raise forms.ValidationError(
+                "They did not have computers %s days ago" % interval
+            )
+
+        return interval
 
 
 class SensorRangesForm(forms.Form):
