@@ -2,11 +2,7 @@ FROM debian:buster
 
 #### Prepare the OS base setup ###
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN echo 'deb-src http://deb.debian.org/debian buster main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://security.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://deb.debian.org/debian buster-updates main' >> /etc/apt/sources.list.d/srcpkg.list
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install \
@@ -18,8 +14,8 @@ ARG TIMEZONE=Europe/Oslo
 ARG LOCALE=en_US.UTF-8
 ARG ENCODING=UTF-8
 RUN echo "${LOCALE} ${ENCODING}" > /etc/locale.gen && locale-gen ${LOCALE} && update-locale LANG=${LOCALE} LC_ALL=${LOCALE}
-ENV LANG ${LOCALE}
-ENV LC_ALL ${LOCALE}
+ENV LANG=${LOCALE}
+ENV LC_ALL=${LOCALE}
 RUN echo "${TIMEZONE}" > /etc/timezone && cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
 
 RUN apt-get update \
