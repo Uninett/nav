@@ -459,7 +459,7 @@ like thus:
    ...
    $ make shell
    ...
-   $ tox run -e unit-py39-django32
+   $ tox run -e unit-py311-django42
    ...
 
 
@@ -511,7 +511,7 @@ the test case :py:class:`DjangoTransactionTestCase` in :py:mod:`nav.tests.cases`
 See :py:mod:`nav.tests.integration.l2trace_test` for an example on applying
 fixtures for your particular test case.
 
-See https://docs.djangoproject.com/en/1.8/topics/serialization/
+See https://docs.djangoproject.com/en/4.2/topics/serialization/
 
 .. TODO:: Be able to use `django-admin's management command: dumpdata
    <https://docs.djangoproject.com/en/dev/ref/django-admin/#dumpdata-appname-appname-appname-model>`_

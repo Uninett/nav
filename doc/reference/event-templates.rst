@@ -64,10 +64,10 @@ Template editing
 ----------------
 
 The templates are
-Django-templates. https://docs.djangoproject.com/en/1.7/ref/templates/ . The
+Django-templates. https://docs.djangoproject.com/en/4.2/ref/templates/ . The
 base-templates are optional but useful if you have common information for all
 templates. To learn about template inheritance, see
-https://docs.djangoproject.com/en/1.7/topics/templates/#template-inheritance .
+https://docs.djangoproject.com/en/4.2/ref/templates/language/#template-inheritance .
 
 
 Template context

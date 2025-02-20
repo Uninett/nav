@@ -10,7 +10,7 @@ the forked template changes.
 
 This guide serves to document the various official hooks into the NAV web
 interface. It is assumed you have a working knowledge of the `Django templating
-system <https://docs.djangoproject.com/en/1.8/topics/templates/>`_.
+system <https://docs.djangoproject.com/en/4.2/topics/templates/>`_.
 
 
 How to add custom templates
