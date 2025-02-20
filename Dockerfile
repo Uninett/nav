@@ -22,14 +22,12 @@
 # be world-readable!
 #
 #
-FROM --platform=linux/amd64 debian:bullseye
+FROM --platform=linux/amd64 debian:bookworm
 
 #### Prepare the OS base setup ###
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN echo 'deb-src http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.list.d/srcpkg.list && \
-    echo 'deb-src http://security.debian.org/debian-security bullseye-security main' >> /etc/apt/sources.list.d/srcpkg.list
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update && \
@@ -37,7 +35,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
             locales \
             python3-dbg python3-venv gdb \
             sudo python3-dev python3-pip python3-virtualenv build-essential supervisor \
-	    debian-keyring debian-archive-keyring ca-certificates curl gpg
+	        debian-keyring debian-archive-keyring ca-certificates curl gpg
 
 ## Use deb.nodesource.com to fetch more modern versions of Node/NPM than Debian can provide
 RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg && \
@@ -49,8 +47,8 @@ ARG TIMEZONE=Europe/Oslo
 ARG LOCALE=en_US.UTF-8
 ARG ENCODING=UTF-8
 RUN echo "${LOCALE} ${ENCODING}" > /etc/locale.gen && locale-gen ${LOCALE} && update-locale LANG=${LOCALE} LC_ALL=${LOCALE}
-ENV LANG ${LOCALE}
-ENV LC_ALL ${LOCALE}
+ENV LANG=${LOCALE}
+ENV LC_ALL=${LOCALE}
 RUN echo "${TIMEZONE}" > /etc/timezone && cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
 
 #### Install various build and runtime requirements as Debian packages ####
@@ -97,7 +95,7 @@ RUN --mount=type=cache,target=/source/.cache \
     chown -R nav /source/.cache
 USER nav
 ENV PATH=/opt/venvs/nav/bin:$PATH
-RUN python3.9 -m venv /opt/venvs/nav
+RUN python3.11 -m venv /opt/venvs/nav
 RUN --mount=type=cache,target=/source/.cache \
     pip install --upgrade setuptools wheel pip-tools build
 
@@ -128,7 +126,7 @@ RUN --mount=type=cache,target=/source/.cache \
 COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
 
 VOLUME ["/source"]
-ENV    DJANGO_SETTINGS_MODULE nav.django.settings
+ENV    DJANGO_SETTINGS_MODULE=nav.django.settings
 EXPOSE 8080
 
 CMD        ["/source/tools/docker/run.sh"]
