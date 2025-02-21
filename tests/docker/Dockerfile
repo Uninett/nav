@@ -74,7 +74,7 @@ RUN cd /tmp && \
 
 # Install chromedriver to properly run Selenium tests in Chrome, if need be
 # Ref: https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
-ENV CHROMEDRIVERVERSION=131.0.6778.69
+ENV CHROMEDRIVERVERSION=133.0.6943.126
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     cd /tmp && \
