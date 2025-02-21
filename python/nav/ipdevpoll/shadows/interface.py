@@ -25,6 +25,7 @@ from django.db import transaction
 from nav.models import manage
 from nav.models.event import EventQueue as Event, EventQueueVar as EventVar
 from nav.models.event import AlertHistory
+from nav.models.fields import INFINITY
 from nav import natsort
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager
@@ -32,7 +33,6 @@ from nav.ipdevpoll.storage import Shadow, DefaultManager
 from .netbox import Netbox
 
 MISSING_THRESHOLD = datetime.timedelta(days=1)
-INFINITY = datetime.datetime.max
 
 # pylint: disable=C0111
 
