@@ -1,4 +1,6 @@
+import pytest
 from unittest import TestCase
+
 from nav.web.networkexplorer import search
 from nav.web.networkexplorer.forms import NetworkSearchForm
 from nav.web.networkexplorer.views import (
@@ -17,6 +19,11 @@ class NetworkExplorerSearchTest(TestCase):
     Will not cover all code paths on an empty database.
 
     """
+
+    @pytest.fixture(autouse=True)
+    def requirements(self, postgresql):
+        """Ensures the required pytest fixtures are loaded implicitly for all these tests"""
+        pass
 
     def test_search_expand_swport(self):
         search.search_expand_swport(1)
@@ -73,6 +80,11 @@ class TestDataMixin(object):
 
 
 class ViewsTest(TestDataMixin, TestCase):
+    @pytest.fixture(autouse=True)
+    def requirements(self, postgresql):
+        """Ensures the required pytest fixtures are loaded implicitly for all these tests"""
+        pass
+
     def setUp(self):
         self.factory = RequestFactory()
         self.url_root = '/networkexplorer/'
@@ -117,6 +129,11 @@ class ViewsTest(TestDataMixin, TestCase):
 
 
 class FormsTest(TestDataMixin, TestCase):
+    @pytest.fixture(autouse=True)
+    def requirements(self, postgresql):
+        """Ensures the required pytest fixtures are loaded implicitly for all these tests"""
+        pass
+
     def test_search_form(self):
 
         valid_form = NetworkSearchForm(self.valid_data)

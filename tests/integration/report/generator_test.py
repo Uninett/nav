@@ -26,7 +26,7 @@ def report_list():
 
 
 @pytest.mark.parametrize("report_name", report_list())
-def test_report(report_name):
+def test_report(report_name, postgresql):
     # uri = 'http://example.com/report/%s/' % report_name
     uri = QueryDict('').copy()
     db.closeConnections()  # Ensure clean connection for each test
