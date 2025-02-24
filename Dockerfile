@@ -24,6 +24,9 @@
 #
 FROM --platform=linux/amd64 debian:bookworm
 
+# We're using mount caches, so don't clean the apt cache after every apt command!
+RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+
 #### Prepare the OS base setup ###
 
 ENV DEBIAN_FRONTEND=noninteractive
