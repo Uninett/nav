@@ -52,11 +52,15 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 	postgresql postgresql-contrib postgresql-client \
 	libxml2-dev libxslt1-dev \
 	libwww-perl \
-	firefox xvfb \
+	xvfb \
 	imagemagick \
 	x11vnc google-chrome-stable cloc \
         cmake nbtscan libtidy5deb1
 
+# Install Firefox (we don't want Snap!)
+ENV FF_VER=135.0
+ENV FF_DEB=firefox-$FF_VER.deb
+RUN cd /tmp && wget https://ftp.mozilla.org/pub/firefox/releases/$FF_VER/linux-x86_64/en-US/$FF_DEB && dpkg -i $FF_DEB && rm $FF_DEB
 
 # Now install NodeJS and NPM for Javascript testing needs -
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
