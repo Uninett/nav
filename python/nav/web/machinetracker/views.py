@@ -265,6 +265,7 @@ def mac_do_search(request):
         mac = form.cleaned_data['mac']
         days = form.cleaned_data['days']
         dns = form.cleaned_data['dns']
+        vendor = form.cleaned_data['vendor']
         from_time = date.today() - timedelta(days=days)
 
         mac_min, mac_max = min_max_mac(mac)
@@ -309,7 +310,7 @@ def mac_do_search(request):
             "mac_do_search: processed %d cam rows and %d arp rows", mac_count, ip_count
         )
         mac_tracker = track_mac(
-            ('mac', 'sysname', 'module', 'port'), cam_result, dns=False
+            ('mac', 'sysname', 'module', 'port'), cam_result, dns=False, vendor=vendor
         )
         _logger.debug("mac_do_search: track_mac finished")
         uplink_tracker = UplinkTracker(mac_min, mac_max)
