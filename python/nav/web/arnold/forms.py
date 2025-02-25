@@ -95,6 +95,14 @@ class QuarantineVlanForm(forms.Form):
             submit_field=SubmitField(value=submit_value, css_classes='small'),
         )
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data["qid"] and QuarantineVlan.objects.filter(
+            vlan=cleaned_data["vlan"]
+        ):
+            raise forms.ValidationError("This vlan is already quarantined.")
+        return cleaned_data
+
 
 class HistorySearchForm(forms.Form):
     """Form for searching in history"""
