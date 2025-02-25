@@ -37,6 +37,7 @@ from nav.logs import init_stderr_logging
 _logger = logging.getLogger(__name__)
 
 FILE_URL = "https://standards-oui.ieee.org/oui/oui.txt"
+USER_AGENT = "Mozilla/5.0 (X11; Linux i686; rv:135.0) Gecko/20100101 Firefox/135.0"
 
 MAX_ERRORS = 100
 
@@ -62,7 +63,10 @@ def run():
 
 
 def _download_oui_file(url: str) -> str:
-    response = requests.get(url)
+    headers = {
+        'User-Agent': USER_AGENT,
+    }
+    response = requests.get(url, headers=headers)
     response.raise_for_status()
     return response.text
 
