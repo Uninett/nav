@@ -127,26 +127,3 @@ class ChangePasswordForm(forms.Form):
             del cleaned_data['new_password2']
         if 'old_password' in cleaned_data:
             del cleaned_data['old_password']
-
-
-class ColumnsForm(forms.Form):
-    """Form for choosing number of columns on webfront"""
-
-    _choices = [('2', '2 columns'), ('3', '3 columns'), ('4', '4 columns')]
-    num_columns = forms.ChoiceField(choices=_choices, label='Number of columns')
-
-    def __init__(self, *args, **kwargs):
-        super(ColumnsForm, self).__init__(*args, **kwargs)
-
-        self.attrs = set_flat_form_attributes(
-            form_action='webfront-preferences-setwidgetcolumns',
-            form_fields=[
-                FlatFieldset(
-                    legend='Number of columns for widgets',
-                    fields=[
-                        self['num_columns'],
-                        SubmitField(value='Save', css_classes='small'),
-                    ],
-                )
-            ],
-        )
