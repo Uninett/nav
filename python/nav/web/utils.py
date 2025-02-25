@@ -17,7 +17,9 @@
 import base64
 import io
 import os
+from datetime import datetime, timedelta
 
+from django import forms
 from django.http import HttpResponse, HttpRequest
 from django.views.generic.list import ListView
 
@@ -130,3 +132,10 @@ def generate_qr_codes_as_byte_strings(url_dict: dict[str, str]) -> list[str]:
             convert_bytes_buffer_to_bytes_string(bytes_buffer=qr_code_byte_buffer)
         )
     return qr_code_byte_strings
+
+
+def validate_timedelta_for_overflow(delta: timedelta):
+    try:
+        datetime.now() - delta
+    except OverflowError:
+        raise forms.ValidationError("They did not have computers that long ago")
