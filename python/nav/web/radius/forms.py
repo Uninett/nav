@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms for the radius tool"""
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django import forms
 from django.core.validators import validate_ipv4_address
@@ -258,3 +258,15 @@ class AccountChartsForm(forms.Form):
             form_fields=[self['days'], self['charts']],
             submit_field=SubmitField('send', 'Show me', css_classes='small'),
         )
+
+    def clean_days(self):
+        days = self.cleaned_data["days"]
+
+        try:
+            datetime.now() - timedelta(days=days)
+        except OverflowError:
+            raise forms.ValidationError(
+                "They did not have computers %s days ago" % days
+            )
+
+        return days
