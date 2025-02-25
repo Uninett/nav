@@ -70,6 +70,11 @@ class APIToken(models.Model):
 
 
 class JWTRefreshToken(models.Model):
+    """Model representing a JWT refresh token. This model does not
+    contain the token itself, but a hash of the token that can be used
+    to validate the authenticity of the actual token when it is used to
+    generate an access token.
+    """
 
     name = VarcharField(unique=True)
     description = models.TextField(null=True, blank=True)
@@ -90,4 +95,6 @@ class JWTRefreshToken(models.Model):
         return is_active(self.expires.timestamp(), self.activates.timestamp())
 
     class Meta(object):
+        """Meta class"""
+
         db_table = 'jwtrefreshtoken'

@@ -53,7 +53,7 @@ def _generate_token(
 
 def is_active(exp: float, nbf: float) -> bool:
     """
-    Takes `exp` and `nbf` as POSIX timestamps. These represent the claims
+    Takes `exp` (expiration time) and `nbf` (not before time) as POSIX timestamps. These represent the claims
     of a JWT token. `exp` should be the expiration time of the token and
     `nbf` should be the time when the token becomes active.
 
