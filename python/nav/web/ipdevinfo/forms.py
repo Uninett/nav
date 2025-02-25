@@ -14,8 +14,7 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-
-import datetime as dt
+from datetime import timedelta
 
 from django import forms
 
@@ -26,6 +25,7 @@ from nav.web.crispyforms import (
     SubmitField,
     set_flat_form_attributes,
 )
+from ..utils import validate_timedelta_for_overflow
 
 
 class SearchForm(forms.Form):
@@ -86,13 +86,7 @@ class ActivityIntervalForm(forms.Form):
 
     def clean_interval(self):
         interval = self.cleaned_data["interval"]
-        try:
-            dt.datetime.now() - dt.timedelta(days=interval)
-        except OverflowError:
-            raise forms.ValidationError(
-                "They did not have computers %s days ago" % interval
-            )
-
+        validate_timedelta_for_overflow(timedelta(days=interval))
         return interval
 
 
