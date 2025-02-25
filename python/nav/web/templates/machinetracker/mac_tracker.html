@@ -81,7 +81,11 @@
             </td>
             {% if form_data.vendor %}
             <td>
-                {{ row.vendor }}
+                {% if row.vendor %}
+                    {{ row.vendor }}
+                {% else %}
+                    N/A
+                {% endif %}
             </td>
             {% endif %}
         </tr>
@@ -91,7 +95,7 @@
 
     <tfoot>
         <tr>
-            <th colspan={% if form_data.vendor %} 9 {% else %} 8 {% endif %}>{{ mac_tracker_count }}
+            <th colspan={{ colspan }}>{{ mac_tracker_count }}
             hit{{ mac_tracker_count|pluralize }}</th>
         </tr>
     </tfoot>

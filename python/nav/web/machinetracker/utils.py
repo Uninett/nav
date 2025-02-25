@@ -26,7 +26,6 @@ from django.db import DatabaseError, transaction
 
 from nav import asyncdns
 from nav.models.manage import Prefix, Netbox, Interface
-from nav.models.oui import OUI
 
 _cached_hostname = {}
 _logger = logging.getLogger(__name__)
@@ -147,14 +146,13 @@ def min_max_mac(prefix):
     return str(prefix[0]), str(prefix[-1])
 
 
-def track_mac(keys, resultset, dns, vendor=False):
+def track_mac(keys, resultset, dns):
     """Groups results from Query for the mac_search page.
 
     keys        - a tuple/list with strings that identifies the fields the
                   result should be grouped by
     resultset   - a QuerySet
     dns         - should we lookup the hostname?
-    vendor         - should we lookup the vendor?
     """
     if dns:
         ips_to_lookup = {row.ip for row in resultset}
@@ -174,12 +172,6 @@ def track_mac(keys, resultset, dns, vendor=False):
                 row.dns_lookup = dns_lookups[ip].pop()
             else:
                 row.dns_lookup = ""
-        if vendor:
-            oui = OUI.objects.extra(
-                where=['oui=trunc(CAST(%s AS macaddr))'], params=[row.mac]
-            ).first()
-            if oui:
-                row.vendor = oui.vendor
         if not hasattr(row, 'module'):
             row.module = ''
         if not hasattr(row, 'port'):
@@ -192,6 +184,18 @@ def track_mac(keys, resultset, dns, vendor=False):
             tracker[key] = []
         tracker[key].append(row)
     return tracker
+
+
+def get_vendor_query(mac_field='mac'):
+    """Return a query that populates vendor names on a query.
+
+    This needs a field with a MAC address to match against the oui table.
+    The field containing the mac address can be specified with the `mac_field`
+    parameter.
+
+    Ex:
+    Arp.objects.filter(..).extra(select={'vendor': get_vendor_query()})"""
+    return f"SELECT vendor from oui where oui=trunc({mac_field})"
 
 
 class ProcessInput:
@@ -231,11 +235,11 @@ class ProcessInput:
         return self.input
 
 
-UplinkTuple = namedtuple('UplinkTuple', 'mac sysname uplink')
+UplinkTuple = namedtuple('UplinkTuple', 'mac sysname uplink vendor')
 
 
 class UplinkTracker(list):
-    def __init__(self, mac_min, mac_max):
+    def __init__(self, mac_min, mac_max, vendor=False):
         boxes = Netbox.objects.extra(
             select={'mac': 'netboxmac.mac'},
             tables=['netboxmac'],
@@ -246,20 +250,26 @@ class UplinkTracker(list):
             params=[mac_min, mac_max],
         ).order_by('mac', 'sysname')
 
+        if vendor:
+            boxes = boxes.extra(select={'vendor': get_vendor_query()})
+
         for box in boxes:
             uplinks = box.get_uplinks()
+            box_vendor = box.vendor if vendor else None
             if uplinks:
                 for link in uplinks:
-                    self.append(UplinkTuple(box.mac, box.sysname, link))
+                    self.append(UplinkTuple(box.mac, box.sysname, link, box_vendor))
             else:
-                self.append(UplinkTuple(box.mac, box.sysname, None))
+                self.append(UplinkTuple(box.mac, box.sysname, None, box_vendor))
 
 
 class InterfaceTracker(list):
-    def __init__(self, mac_min, mac_max):
+    def __init__(self, mac_min, mac_max, vendor=False):
         ifcs = (
             Interface.objects.select_related('netbox')
             .extra(where=['ifphysaddress BETWEEN %s AND %s'], params=[mac_min, mac_max])
             .order_by('ifphysaddress', 'netbox__sysname')
         )
+        if vendor:
+            ifcs = ifcs.extra(select={'vendor': get_vendor_query('ifphysaddress')})
         self.extend(ifcs)
