@@ -14,7 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms for the radius tool"""
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django import forms
 from django.core.validators import validate_ipv4_address
@@ -167,6 +167,17 @@ class ErrorLogSearchForm(forms.Form):
             ],
         )
 
+    def clean_time(self):
+        time_type, time = self.cleaned_data["time"]
+        if time_type == "hours":
+            try:
+                datetime.now() - timedelta(hours=int(time))
+            except OverflowError:
+                raise forms.ValidationError(
+                    "They did not have computers %s hours ago" % time
+                )
+        return time
+
 
 class AccountLogSearchForm(forms.Form):
     """Form for searching in the radius account log"""
@@ -236,6 +247,17 @@ class AccountLogSearchForm(forms.Form):
             ],
         )
 
+    def clean_time(self):
+        time_type, time = self.cleaned_data["time"]
+        if time_type == "days":
+            try:
+                datetime.now() - timedelta(days=int(time))
+            except OverflowError:
+                raise forms.ValidationError(
+                    "They did not have computers %s days ago" % time
+                )
+        return time
+
 
 class AccountChartsForm(forms.Form):
     """Form for displaying top talkers"""
@@ -258,3 +280,15 @@ class AccountChartsForm(forms.Form):
             form_fields=[self['days'], self['charts']],
             submit_field=SubmitField('send', 'Show me', css_classes='small'),
         )
+
+    def clean_days(self):
+        days = self.cleaned_data["days"]
+
+        try:
+            datetime.now() - timedelta(days=days)
+        except OverflowError:
+            raise forms.ValidationError(
+                "They did not have computers %s days ago" % days
+            )
+
+        return days
