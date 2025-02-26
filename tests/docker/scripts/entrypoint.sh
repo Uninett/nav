@@ -11,8 +11,8 @@ SOURCE_UID=$(echo "$SOURCE_UID_GID" | cut -d ' ' -f 1)
 SOURCE_GID=$(echo "$SOURCE_UID_GID" | cut -d ' ' -f 2)
 
 # Modify the build user's UID and GID to match the /source directory's UID and GID
-usermod -u $SOURCE_UID build
-groupmod -g $SOURCE_GID build
+usermod --non-unique -u $SOURCE_UID build
+groupmod --non-unique -g $SOURCE_GID build
 
 if [ -n "$WORKSPACE" ]; then
     export HOME="$WORKSPACE"
