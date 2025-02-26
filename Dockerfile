@@ -24,6 +24,9 @@
 #
 FROM --platform=linux/amd64 debian:bookworm
 
+# We're using mount caches, so don't clean the apt cache after every apt command!
+RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+
 #### Prepare the OS base setup ###
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -89,14 +92,14 @@ RUN sed -e 's,^Defaults.*secure_path.*,Defaults        secure_path="/opt/venvs/n
 RUN sed -e 's,^ENV_SUPATH.*,ENV_SUPATH      PATH=/opt/venvs/nav/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",' -i /etc/login.defs
 RUN sed -e 's,^ENV_PATH.*,ENV_PATH        PATH=/opt/venvs/nav/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games",' -i /etc/login.defs
 
-RUN --mount=type=cache,target=/source/.cache \
+RUN --mount=type=cache,target=/source/.cache,sharing=locked \
     mkdir -p /opt/venvs/nav && chown nav /opt/venvs/nav && \
     mkdir -p /etc/nav && chown nav /etc/nav && \
     chown -R nav /source/.cache
 USER nav
 ENV PATH=/opt/venvs/nav/bin:$PATH
 RUN python3.11 -m venv /opt/venvs/nav
-RUN --mount=type=cache,target=/source/.cache \
+RUN --mount=type=cache,target=/source/.cache,sharing=locked \
     pip install --upgrade setuptools wheel pip-tools build
 
 #################################################################################
@@ -114,13 +117,13 @@ COPY requirements.txt /
 COPY constraints.txt /
 COPY tests/requirements.txt /test-requirements.txt
 COPY doc/requirements.txt /doc-requirements.txt
-RUN --mount=type=cache,target=/source/.cache \
+RUN --mount=type=cache,target=/source/.cache,sharing=locked \
     cd /opt/venvs/nav && \
     pip-compile --resolver=backtracking --output-file ./requirements.txt.lock -c /constraints.txt /requirements.txt /test-requirements.txt /doc-requirements.txt ; \
     pip install -r ./requirements.txt.lock
 
 ARG CUSTOM_PIP=ipython
-RUN --mount=type=cache,target=/source/.cache \
+RUN --mount=type=cache,target=/source/.cache,sharing=locked \
     pip install ${CUSTOM_PIP}
 
 COPY tools/docker/full-nav-restore.sh /usr/local/sbin/full-nav-restore.sh
