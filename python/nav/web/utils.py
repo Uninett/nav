@@ -135,6 +135,13 @@ def generate_qr_codes_as_byte_strings(url_dict: dict[str, str]) -> list[str]:
 
 
 def validate_timedelta_for_overflow(days: int = 0, hours: int = 0):
+    """
+    Validates that the given numbers of days and hours when subtracted from the
+    current time will not result in an overflow error
+
+
+    If that happens this function will raise a forms.ValidationError
+    """
     try:
         datetime.now() - timedelta(days=days, hours=hours)
     except OverflowError:
