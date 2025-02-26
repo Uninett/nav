@@ -16,9 +16,6 @@ buildnocache:
 check: build
 	docker run -t -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) /source/tests/docker/test.sh
 
-lint: build
-	docker run -t -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) tox -e pylint
-
 # Runs an ephemeral container with core dumping capabilities and PostgreSQL on an in-memory tmpfs
 shell:
 	docker run -ti --rm --ulimit core=-1 -v $(top_srcdir):/source --tmpfs /var/lib/postgresql $(name) /bin/bash
