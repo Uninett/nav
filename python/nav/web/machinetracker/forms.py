@@ -14,12 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Machine tracker forms"""
-from datetime import date, timedelta
-
 from django import forms
 
 from nav.macaddress import MacPrefix
 from nav.web.machinetracker import iprange
+
+from ..utils import validate_timedelta_for_overflow
 
 
 class MachineTrackerForm(forms.Form):
@@ -44,10 +44,7 @@ class MachineTrackerForm(forms.Form):
                 "I can't see into the future. " "Please enter a positive number."
             )
 
-        try:
-            date.today() - timedelta(days=data)
-        except OverflowError:
-            raise forms.ValidationError("They didn't have computers %s days ago" % data)
+        validate_timedelta_for_overflow(days=data)
 
         return data
 
