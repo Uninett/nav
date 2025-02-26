@@ -14,7 +14,6 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-from datetime import timedelta
 
 from django import forms
 
@@ -86,7 +85,7 @@ class ActivityIntervalForm(forms.Form):
 
     def clean_interval(self):
         interval = self.cleaned_data["interval"]
-        validate_timedelta_for_overflow(timedelta(days=interval))
+        validate_timedelta_for_overflow(days=interval)
         return interval
 
 
