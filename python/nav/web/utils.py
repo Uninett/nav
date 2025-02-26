@@ -134,8 +134,8 @@ def generate_qr_codes_as_byte_strings(url_dict: dict[str, str]) -> list[str]:
     return qr_code_byte_strings
 
 
-def validate_timedelta_for_overflow(delta: timedelta):
+def validate_timedelta_for_overflow(days: int = 0, hours: int = 0):
     try:
-        datetime.now() - delta
+        datetime.now() - timedelta(days=days, hours=hours)
     except OverflowError:
         raise forms.ValidationError("They did not have computers that long ago")
