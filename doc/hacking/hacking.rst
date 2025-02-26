@@ -533,7 +533,6 @@ __ Github_
 .. _tox: https://tox.readthedocs.io/en/latest/
 .. _Node.js: http://nodejs.org/
 .. _GitHub Actions: https://docs.github.com/en/actions
-.. _pylint: http://www.pylint.org/
 .. _Karma: https://github.com/karma-runner/karma-mocha
 .. _Mocha: http://mochajs.org/
 .. _Chai: http://chaijs.com/
