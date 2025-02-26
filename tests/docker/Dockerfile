@@ -94,6 +94,10 @@ RUN adduser --system --group --home=/source --shell=/bin/bash $USER && \
     mkdir -p /usr/share/nav/var/uploads && \
     chown -R $USER /usr/share/nav
 
+# The parent image hijacks the uid 1000 for an "ubuntu" user
+# Let's just get rid of it, it'll mess up future sudo
+RUN deluser ubuntu
+
 ENV WORKSPACE=/source
 ENV HOME=/source
 
