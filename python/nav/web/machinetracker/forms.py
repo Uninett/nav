@@ -34,7 +34,7 @@ class MachineTrackerForm(forms.Form):
         help_text="Days back in time to search",
     )
     vendor = forms.BooleanField(
-        required=False, initial=False, help_text="Vendor name (if any)"
+        required=False, initial=False, help_text="Show vendor name (if any)"
     )
 
     def clean_days(self):
@@ -111,7 +111,7 @@ class SwitchTrackerForm(forms.Form):
     port = forms.CharField(required=False, widget=forms.TextInput(attrs={'size': 16}))
     days = forms.IntegerField(initial=7, widget=forms.TextInput(attrs={'size': 3}))
     vendor = forms.BooleanField(
-        required=False, initial=False, help_text="Vendor name (if any)"
+        required=False, initial=False, help_text="Show vendor name (if any)"
     )
 
 
