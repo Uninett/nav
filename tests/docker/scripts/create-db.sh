@@ -8,7 +8,7 @@ maybesudo() {
     if [ -n "$GITHUB_ACTIONS" ]; then
         $@
     else
-        gosu "$user" $@
+        sudo -u "$user" $@
     fi
 }
 
@@ -30,23 +30,23 @@ create_nav_db() {
 
     # Create and populate database
     echo Creating and populating initial database
-    maybesudo postgres:postgres "${BUILDDIR}/bin/navsyncdb" -c --drop-database
+    maybesudo postgres "${BUILDDIR}/bin/navsyncdb" -c --drop-database
 
     if [ -n "$ADMINPASSWORD" ]; then
-      maybesudo postgres:postgres psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'" $PGDATABASE
+      maybesudo postgres psql -c "UPDATE account SET password = '$ADMINPASSWORD' WHERE login = 'admin'" $PGDATABASE
     fi
 
     # Add generic test data set
-    maybesudo postgres:postgres psql -f "$(dirname $0)/test-data.sql" $PGDATABASE
+    maybesudo postgres psql -f "$(dirname $0)/test-data.sql" $PGDATABASE
 
 }
 
 if [ -z "$GITHUB_ACTIONS" ]; then
     # If not on GitHub actions, we manipulate PostgreSQL clusters directly
-    PGVERSION=$(gosu root pg_lsclusters -h|awk '{print $1}')
+    PGVERSION=$(sudo pg_lsclusters -h|awk '{print $1}')
     export PGDATABASE=nav
-    gosu root pg_dropcluster --stop ${PGVERSION} main || true
-    gosu root pg_createcluster --locale=C.UTF-8 --start ${PGVERSION} main -- --nosync
+    sudo pg_dropcluster --stop ${PGVERSION} main || true
+    sudo pg_createcluster --locale=C.UTF-8 --start ${PGVERSION} main -- --nosync
 else
     # Generate an appropriately unique database name for this test run
     if [ -z "$PGDATABASE" ] && [ -n "$TOX_ENV_NAME" ]; then
