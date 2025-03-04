@@ -60,7 +60,7 @@ def is_active(exp: float, nbf: float) -> bool:
     Returns True if `exp` is in the future and `nbf` is in the past or matches
     the current time.
     """
-    now = datetime.now(timezone.utc)
-    expires = datetime.fromtimestamp(exp, tz=timezone.utc)
-    activates = datetime.fromtimestamp(nbf, tz=timezone.utc)
+    now = datetime.now()
+    expires = datetime.fromtimestamp(exp)
+    activates = datetime.fromtimestamp(nbf)
     return now >= activates and now < expires
