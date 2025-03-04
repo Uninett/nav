@@ -80,7 +80,7 @@ class JWTRefreshToken(models.Model):
     description = models.TextField(null=True, blank=True)
     expires = models.DateTimeField()
     activates = models.DateTimeField()
-    last_used = models.DateTimeField(null=True)
+    last_used = models.DateTimeField(null=True, blank=True)
     revoked = models.BooleanField(default=False)
     hash = VarcharField()
 
