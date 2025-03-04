@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block base_header_additional_head %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/nav.css" />
+<script>require(['src/navigation_preferences']);</script>
+{% endblock %}
+
+{% block base_content %}
+    {% if qr_code %}
+        <img src="data:image/png;base64,{{qr_code}}" alt="QR Code linking to previous side">
+    {% else %}
+        <div class="alert-box warning with-icon">
+            No previous side could be found. This functionality does not work when directly opening this page.
+      </div>
+    {% endif %}
+
+{% endblock %}
