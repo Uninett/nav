@@ -14,7 +14,7 @@ class TestIsActive:
         )
         assert not token.is_active()
 
-    def test_should_return_false_if_token_expires_in_the_past(self):
+    def test_should_return_false_if_token_expired_in_the_past(self):
         now = datetime.now()
         token = JWTRefreshToken(
             name="testtoken",
@@ -24,7 +24,7 @@ class TestIsActive:
         )
         assert not token.is_active()
 
-    def test_should_return_true_if_token_activates_in_the_past_and_expires_in_the_future(
+    def test_should_return_true_if_token_activated_in_the_past_and_expires_in_the_future(
         self,
     ):
         now = datetime.now()
