@@ -27,6 +27,9 @@
             {% if form_data.source %}
             <th>Source</th>
             {% endif %}
+            {% if form_data.vendor%}
+            <th>Vendor</th>
+            {% endif %}
         </tr>
     </thead>
 
@@ -69,6 +72,15 @@
             </td>
             {% if form_data.source %}
             <td>{{row.sysname}}</td>
+            {% endif %}
+            {% if form_data.vendor %}
+            <td>
+                {% if row.vendor %}
+                    {{ row.vendor }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
             {% endif %}
         </tr>
         {% endfor %}
