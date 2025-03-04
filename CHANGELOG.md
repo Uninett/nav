@@ -43,6 +43,10 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
   refactored to remove the `django-crispy-forms` dependency
   ([#3157](https://github.com/Uninett/nav/issues/3157))
 
+### Added
+
+- Added a report of software upgrade logs ([#2466](https://github.com/Uninett/nav/pull/2466), [#2457](https://github.com/Uninett/nav/issues/2457))
+
 ### Fixed
 
 - Alert profiles filter match value dropdowns now support more than the old
