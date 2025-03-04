@@ -1,16 +1,22 @@
+.*
+!.codecov.yml
+!.dockerignore
+!.git-blame-ignore-revs
+!.github/
+!.gitkeep
+!.mega-linter.yml
+!.pre-commit-config.yaml
+!.readthedocs.yaml
+!.sonarcloud.properties
+
 *.orig
 *.rej
 *.pyc
 *.swp
 *~
-.*
-!.gitkeep
-!.github/
-!.mega-linter.yml
 *.bak
 *.iml # JetBrains (PyCharm/IDEA) project files
 *.rrd
-.idea/*
 *.egg-info
 wheelhouse/*
 \#*
