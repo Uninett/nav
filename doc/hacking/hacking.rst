@@ -181,7 +181,7 @@ Coding style
 ============
 
 NAV code should adhere to the Python style guide documented in
-:pep:`8`. PyLint_ is used to automatically validate much of these coding styles
+:pep:`8`. Ruff_ is used to automatically validate much of these coding styles
 in our CI system.
 
 More importantly, all Python code in NAV is automatically formatted using
@@ -539,3 +539,4 @@ __ Github_
 .. _Black: https://black.readthedocs.io/
 .. _black-macchiato: https://github.com/wbolster/black-macchiato
 .. _pre-commit: https://pre-commit.com/
+.. _Ruff: https://docs.astral.sh/ruff/
