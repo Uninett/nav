@@ -50,6 +50,11 @@
                   <small class="error">{{ form.port.errors }}</small>
                 {% endif %}
               </td>
+
+              <th><label for="{{ form.vendor.auto_id }}" title="{{ form.vendor.help_text }}">{{ form.vendor.label }}</label></th>
+              <td>
+                {{ form.vendor }}
+              </td>
               <td colspan="2">
                 <input type="submit" value="Search" class="button small right"/>
               </td>
@@ -68,7 +73,7 @@
 
   {% if mac_tracker %}
     <div class="results">
-      {% include "machinetracker/mac_tracker.html" %}
+      {% include "machinetracker/mac_tracker.html" with colspan=mac_tracker_colspan %}
     </div>
   {% elif mac_tracker != None %}
     <div class="alert-box">No results for "{{ form_data.switch }}"</div>

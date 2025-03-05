@@ -20,7 +20,7 @@
 
       </div>
 
-      <div class="medium-2 column machinetracker-filter">
+      <div class="medium-1 column machinetracker-filter">
         <div>
           <label for="{{ form.dns.auto_id }}"
                  title="{{ form.dns.help_text }}">{{ form.dns.label }}
@@ -29,7 +29,17 @@
         </div>
       </div>
 
-      <div class="medium-2 column machinetracker-filter">
+      <div class="medium-1 column machinetracker-filter">
+        <div>
+          <label for="{{ form.vendor.auto_id }}" title="{{ form.vendor.help_text }}">
+            {{ form.vendor.label }}
+            {{ form.vendor }}
+          </label>
+        </div>
+      </div>
+
+
+      <div class="medium-1 column machinetracker-filter">
         <div class="machinetracker-filter-days">
           <label for="{{ form.days.auto_id }}"
                  title="{{ form.days.help_text }}">{{ form.days.label }}

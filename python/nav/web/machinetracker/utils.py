@@ -186,6 +186,18 @@ def track_mac(keys, resultset, dns):
     return tracker
 
 
+def get_vendor_query(mac_field='mac'):
+    """Return a query that populates vendor names on a query.
+
+    This needs a field with a MAC address to match against the oui table.
+    The field containing the mac address can be specified with the `mac_field`
+    parameter.
+
+    Ex:
+    Arp.objects.filter(..).extra(select={'vendor': get_vendor_query()})"""
+    return f"SELECT vendor from oui where oui=trunc({mac_field})"
+
+
 class ProcessInput:
     """Some sort of search form input processing class. Who the hell knows."""
 
@@ -223,11 +235,11 @@ class ProcessInput:
         return self.input
 
 
-UplinkTuple = namedtuple('UplinkTuple', 'mac sysname uplink')
+UplinkTuple = namedtuple('UplinkTuple', 'mac sysname uplink vendor')
 
 
 class UplinkTracker(list):
-    def __init__(self, mac_min, mac_max):
+    def __init__(self, mac_min, mac_max, vendor=False):
         boxes = Netbox.objects.extra(
             select={'mac': 'netboxmac.mac'},
             tables=['netboxmac'],
@@ -238,20 +250,26 @@ class UplinkTracker(list):
             params=[mac_min, mac_max],
         ).order_by('mac', 'sysname')
 
+        if vendor:
+            boxes = boxes.extra(select={'vendor': get_vendor_query()})
+
         for box in boxes:
             uplinks = box.get_uplinks()
+            box_vendor = box.vendor if vendor else None
             if uplinks:
                 for link in uplinks:
-                    self.append(UplinkTuple(box.mac, box.sysname, link))
+                    self.append(UplinkTuple(box.mac, box.sysname, link, box_vendor))
             else:
-                self.append(UplinkTuple(box.mac, box.sysname, None))
+                self.append(UplinkTuple(box.mac, box.sysname, None, box_vendor))
 
 
 class InterfaceTracker(list):
-    def __init__(self, mac_min, mac_max):
+    def __init__(self, mac_min, mac_max, vendor=False):
         ifcs = (
             Interface.objects.select_related('netbox')
             .extra(where=['ifphysaddress BETWEEN %s AND %s'], params=[mac_min, mac_max])
             .order_by('ifphysaddress', 'netbox__sysname')
         )
+        if vendor:
+            ifcs = ifcs.extra(select={'vendor': get_vendor_query('ifphysaddress')})
         self.extend(ifcs)

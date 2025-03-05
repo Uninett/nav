@@ -62,17 +62,24 @@
             <legend>Columns</legend>
 
             <div class="row machinetracker-filter">
-              <div class="small-6 column">
+              <div class="small-4 column">
                 <label for="{{ form.dns.auto_id }}" title="{{ form.dns.help_text }}">
                   {{ form.dns.label }}
                   {{ form.dns }}
                 </label>
               </div>
 
-              <div class="small-6 column">
+              <div class="small-4 column">
                 <label for="{{ form.netbios.auto_id }}" title="{{ form.netbios.help_text }}">
                   {{ form.netbios.label }}
                   {{ form.netbios }}
+                </label>
+              </div>
+
+              <div class="small-4 column">
+                <label for="{{ form.vendor.auto_id }}" title="{{ form.vendor.help_text }}">
+                  {{ form.vendor.label }}
+                  {{ form.vendor }}
                 </label>
               </div>
             </div>
@@ -98,12 +105,12 @@
 
     {% if mac_tracker or not uplink_tracker or not interface_tracker %}
       <div class="results">
-        {% include "machinetracker/mac_tracker.html" %}
+        {% include "machinetracker/mac_tracker.html" with colspan=mac_tracker_colspan %}
       </div>
     {% endif %}
 
     <div class="results">
-      {% include "machinetracker/ip_tracker.html" %}
+      {% include "machinetracker/ip_tracker.html" with colspan=ip_tracker_colspan %}
     </div>
   {% elif mac_tracker != None %}
     <div class="alert-box">No results for "{{ form_data.mac }}"</div>
