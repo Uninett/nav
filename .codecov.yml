@@ -2,3 +2,7 @@ coverage:
   range: 57..100
   round: down
   precision: 2
+  status:
+    project:
+      default:
+        threshold: 0.1  # Allow PRs to drop overall coverage no more than 0.1%
