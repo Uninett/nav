@@ -101,7 +101,9 @@ class PaloaltoArp(Arp):
                 return ssl.CertificateOptions(verify=False)
 
         url = f"https://{address}/api/?type=op&cmd=<show><arp><entry+name+=+'all'/></arp></show>&key={key}"
-        self._logger.debug("making request: %s", url)
+        self._logger.debug(
+            "Making HTTP request to Paloalto API endpoint at %s", address
+        )
 
         agent = Agent(reactor, contextFactory=SslPolicy())
 
@@ -116,7 +118,7 @@ class PaloaltoArp(Arp):
             )
         except Exception:  # noqa
             self._logger.exception(
-                "Error when talking to PaloAlto API. "
+                "Error when making HTTP request to Paloalto API endpoint. "
                 "Make sure the device is reachable and the API key is correct."
             )
             returnValue(None)
