@@ -1,15 +1,14 @@
-from typing import Any
-import pytest
-from unittest.mock import Mock, patch
 from datetime import datetime
+from typing import Any
+from unittest.mock import Mock, patch
 
 import jwt
-
+import pytest
 from nav.web.jwtgen import (
+    decode_token,
     generate_access_token,
     generate_refresh_token,
     hash_token,
-    decode_token,
 )
 
 
