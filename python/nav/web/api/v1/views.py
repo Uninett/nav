@@ -54,10 +54,10 @@ from nav.buildconf import VERSION
 from nav.web.api.v1 import serializers, alert_serializers
 from nav.web.status2 import STATELESS_THRESHOLD
 from nav.web.jwtgen import (
+    decode_token,
     generate_access_token,
     generate_refresh_token,
     hash_token,
-    decode_token,
     is_active,
 )
 from nav.macaddress import MacPrefix
