@@ -73,4 +73,5 @@ urlpatterns = [
         name="prefix-usage-detail",
     ),
     re_path(r'^', include(router.urls)),
+    re_path(r'^refresh/$', views.JWTRefreshViewSet.as_view(), name='jwt-refresh'),
 ]
