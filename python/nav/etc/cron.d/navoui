@@ -1,0 +1,2 @@
+## info: Update the database with OUIs and their respective vendors
+0 10 * * * navoui
