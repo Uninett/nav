@@ -169,6 +169,12 @@ class ErrorLogSearchForm(forms.Form):
             ],
         )
 
+    def clean_time(self):
+        time_type, time = self.cleaned_data["time"]
+        if time_type == "hours":
+            validate_timedelta_for_overflow(hours=int(time))
+        return time
+
 
 class AccountLogSearchForm(forms.Form):
     """Form for searching in the radius account log"""
