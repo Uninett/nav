@@ -5,13 +5,7 @@ from nav.smidumps import get_mib
 from nav.mibs import mibretriever, reduce_index
 from nav.models.manage import Sensor
 
-
-DEGREES_CELSIUS = "\xb0C"
-DEGREES_FAHRENHEIT = "\xb0F"
-UNIT_MAP = {
-    DEGREES_CELSIUS: Sensor.UNIT_CELSIUS,
-    DEGREES_FAHRENHEIT: Sensor.UNIT_FAHRENHEIT,
-}
+from nav.mibs.comet import UNIT_MAP, DEGREES_CELSIUS
 
 
 class T3611Mib(mibretriever.MibRetriever):
