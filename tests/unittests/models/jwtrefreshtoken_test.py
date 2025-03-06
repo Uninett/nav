@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from unittest.mock import patch
 
 from nav.models.api import JWTRefreshToken
 
@@ -44,7 +45,10 @@ class TestIsActive:
             expires=now + timedelta(hours=1),
             activates=now,
         )
-        assert token.is_active()
+        # Make sure the value we use for `activates` here matches
+        # the `now` value in jwtgen.is_active
+        with patch('nav.web.jwtgen.get_now', return_value=now):
+            assert token.is_active()
 
 
 def test_string_representation_should_match_name():
