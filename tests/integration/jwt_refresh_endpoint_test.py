@@ -1,12 +1,10 @@
 import hashlib
+from datetime import datetime, timedelta, timezone
 from typing import Generator
+from unittest.mock import MagicMock, Mock, patch
 
 import jwt
 import pytest
-from datetime import datetime, timedelta, timezone
-
-from unittest.mock import MagicMock, Mock, patch
-
 from django.urls import reverse
 from nav.models.api import JWTRefreshToken
 
@@ -43,6 +41,27 @@ def test_inactive_token_should_be_rejected(db, api_client, url, inactive_token):
         },
     )
 
+    assert response.status_code == 403
+
+
+def test_revoked_token_should_be_rejected(db, api_client, url, active_token):
+    token_hash = hashlib.sha256(active_token.encode('utf-8')).hexdigest()
+    data = jwt.decode(active_token, options={'verify_signature': False})
+    db_token = JWTRefreshToken(
+        name="testtoken",
+        hash=token_hash,
+        expires=datetime.fromtimestamp(data['exp']),
+        activates=datetime.fromtimestamp(data['nbf']),
+        revoked=True,
+    )
+    db_token.save()
+    response = api_client.post(
+        url,
+        follow=True,
+        data={
+            'refresh_token': active_token,
+        },
+    )
     assert response.status_code == 403
 
 
@@ -114,27 +133,6 @@ def test_should_include_access_and_refresh_token_in_response(
     assert response.status_code == 200
     assert "access_token" in response.data
     assert "refresh_token" in response.data
-
-
-def test_revoked_token_should_be_rejected(db, api_client, url, active_token):
-    token_hash = hashlib.sha256(active_token.encode('utf-8')).hexdigest()
-    data = jwt.decode(active_token, options={'verify_signature': False})
-    db_token = JWTRefreshToken(
-        name="testtoken",
-        hash=token_hash,
-        expires=datetime.fromtimestamp(data['exp']),
-        activates=datetime.fromtimestamp(data['nbf']),
-        revoked=True,
-    )
-    db_token.save()
-    response = api_client.post(
-        url,
-        follow=True,
-        data={
-            'refresh_token': active_token,
-        },
-    )
-    assert response.status_code == 403
 
 
 def test_last_used_should_be_updated_after_token_is_used(
