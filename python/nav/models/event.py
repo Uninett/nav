@@ -17,8 +17,6 @@
 #
 """Django ORM wrapper for the NAV manage database"""
 
-# Don't warn about Meta classes, we can't help the Django API
-# pylint: disable=R0903
 from collections import defaultdict
 import logging
 import datetime as dt

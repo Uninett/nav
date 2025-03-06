@@ -130,8 +130,6 @@ def get_netbox_filter(section, config=None):
     return []
 
 
-# this is a data container class, mr. pylint!
-# pylint: disable=R0913,R0903
 class JobDescriptor(object):
     """A data structure describing a job."""
 

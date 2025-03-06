@@ -117,7 +117,6 @@ class IpNode(PrefixHeap):
         self.net_type = net_type
 
     @property
-    # pylint: disable=invalid-name
     def ip(self):
         "Return the IP object of the node"
         return self._ip
@@ -180,11 +179,10 @@ class IpNodeFacade(IpNode):
 
     def __init__(self, ip_addr, pk, net_type, sort_fn=None):
         super(IpNodeFacade, self).__init__(ip_addr, net_type)
-        self.pk = pk  # pylint: disable=invalid-name
+        self.pk = pk
         self.sort_fn = sort_fn
 
     @property
-    # pylint: disable=no-member
     def parent_pk(self):
         "The primary key of the node's parent"
         if self.parent is None:

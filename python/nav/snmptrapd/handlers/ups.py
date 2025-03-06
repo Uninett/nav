@@ -68,7 +68,6 @@ OFFBATTERY = {
 }
 
 
-# pylint: disable=unused-argument
 def handleTrap(trap, config=None):
     """
     handleTrap is run by snmptrapd every time it receives a

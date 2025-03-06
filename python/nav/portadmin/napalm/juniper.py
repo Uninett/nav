@@ -13,8 +13,6 @@
 # details.  You should have received a copy of the GNU General Public License
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# Sorry pylint, we can't shorten URLs, you dumbass.
-# pylint: disable=line-too-long
 """Juniper specific PortAdmin functionality.
 
 Some references:

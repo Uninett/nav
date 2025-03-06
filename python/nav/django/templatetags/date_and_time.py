@@ -1,8 +1,6 @@
 """Template filters and tags for helping with dates and datetimes"""
 
 from datetime import timedelta
-
-# pylint: disable=W0702,C0103
 from django import template
 from django.template.defaultfilters import date, time
 from nav.django.settings import DATETIME_FORMAT, SHORT_TIME_FORMAT

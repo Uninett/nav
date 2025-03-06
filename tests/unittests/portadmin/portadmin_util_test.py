@@ -13,7 +13,6 @@ from nav.portadmin.vlan import FantasyVlan
 class TestPortAdminUtil(unittest.TestCase):
     """Test PortAdmin util functions"""
 
-    # pylint: disable=C0103
     def setUp(self):
         """Pre-test setup"""
         self.vlan1 = Mock()

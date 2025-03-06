@@ -139,7 +139,7 @@ def get_account_tools(account, all_tools):
     for tool in all_tools:
         try:
             account_tool = account_tools.get(toolname=tool.name)
-        except AccountTool.DoesNotExist:  # pylint: disable=E1101
+        except AccountTool.DoesNotExist:
             tools.append(tool)
         else:
             tool.priority = account_tool.priority

@@ -25,8 +25,6 @@ from nav.models.manage import Netbox
 class RoomViewsTest(unittest.TestCase):
     """Testclass for helper functions in roominfo's views module"""
 
-    # pylint: disable=R0904
-
     def setUp(self):
         """Test setup"""
 

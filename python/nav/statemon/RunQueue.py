@@ -91,7 +91,6 @@ class Worker(threading.Thread):
         self._time_start_execute = 0
 
 
-# pylint: disable=invalid-name
 def RunQueue(*args, **kwargs):
     """Instantiates or retrieves the RunQueue singleton"""
     if getattr(_RunQueue, '_instance') is None:

@@ -177,7 +177,6 @@ class LLDPMib(mibretriever.MibRetriever):
         returnValue(lookup)
 
 
-# pylint: disable=C0103
 LLDPNeighbor = namedtuple(
     "LLDPNeighbor", "ifindex chassis_id port_id port_desc sysname"
 )
@@ -188,7 +187,6 @@ LLDPNeighbor = namedtuple(
 #
 
 
-# pylint: disable=C0111,C0103,R0904,R0903
 class IdType(str):
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, str(self))
@@ -254,7 +252,6 @@ class NetworkAddress(IdType):
         return IdType.__new__(cls, arg)
 
 
-# pylint: disable=C0111,C0103,R0904,R0903
 class IdSubtypes(object):
     @classmethod
     def get(cls, typename, value):

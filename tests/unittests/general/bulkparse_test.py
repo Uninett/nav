@@ -1,6 +1,5 @@
 """Tests for bulkparse"""
 
-# pylint: disable=C0111, C0103, W0614
 import pytest
 
 from nav import bulkparse

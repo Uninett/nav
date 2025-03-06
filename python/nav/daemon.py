@@ -379,7 +379,6 @@ def daemonize(pidfile, stdin=None, stdout=None, stderr=None):
     return True
 
 
-# pylint: disable=W0703
 def daemonexit(pidfile):
     """
     Clean up after daemon process. This functions is only runned by the

@@ -117,7 +117,6 @@ class AdjacencyManager(DefaultManager):
         expired.delete()
 
 
-# pylint: disable=C0111
 class AdjacencyCandidate(Shadow):
     __shadowclass__ = manage.AdjacencyCandidate
     manager = AdjacencyManager
@@ -211,7 +210,6 @@ class UnrecognizedNeighborManager(DefaultManager):
             ).delete()
 
 
-# pylint: disable=C0111,W0201,E0203
 class UnrecognizedNeighbor(Shadow):
     __shadowclass__ = manage.UnrecognizedNeighbor
     __lookups__ = [('netbox', 'interface', 'remote_id')]

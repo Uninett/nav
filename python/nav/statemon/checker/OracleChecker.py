@@ -90,7 +90,6 @@ class OracleChecker(AbstractChecker):
             )
             row = cursor.fetchone()
             version = row[0]
-            # pylint: disable=W0703
         except Exception as err:
             return Event.DOWN, str(err)
         finally:

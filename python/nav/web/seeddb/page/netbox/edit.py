@@ -16,7 +16,6 @@
 
 """Controls add and edit of ip devices"""
 
-# pylint: disable=F0401
 
 import copy
 import socket
@@ -221,7 +220,7 @@ def check_snmp_version(ip, profile):
     try:
         snmp = get_snmp_session_for_profile(profile)(ip)
         snmp.get(sysobjectid)
-    except Exception:  # pylint: disable=W0703
+    except Exception:
         return False
     else:
         return True

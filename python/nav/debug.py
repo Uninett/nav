@@ -82,7 +82,6 @@ def log_stacktrace(logger, stacktrace):
     logger.debug("--- end of stack trace ---")
 
 
-# pylint: disable=W0703
 def _dumpvars(varitems):
     for var, val in varitems:
         try:

@@ -57,7 +57,6 @@ class TimestampChecker(object):
     _logger = ContextLogger()
 
     def __init__(self, agent, containers, var_name):
-        # pylint: disable=W0104
         self._logger
         self.agent = agent
         self.snmpv2mib = Snmpv2Mib(agent)
@@ -86,8 +85,6 @@ class TimestampChecker(object):
         self.collected_times = tuple(tup)
         defer.returnValue(self.collected_times)
 
-    # We must ignore deserialization failures by catching the Exception base class
-    # pylint: disable=W0703
     @defer.inlineCallbacks
     def load(self):
         """Loads existing timestamps from db"""
