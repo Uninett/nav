@@ -8,7 +8,7 @@ from nav.models.manage import Sensor
 from nav.mibs.comet import UNIT_MAP, DEGREES_CELSIUS
 
 
-class T3611Mib(mibretriever.MibRetriever):
+class CometT3611(mibretriever.MibRetriever):
     mib = get_mib("T3611-MIB")
 
     @defer.inlineCallbacks
