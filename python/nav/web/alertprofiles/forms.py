@@ -16,8 +16,6 @@
 #
 """Alert Profiles forms"""
 
-# pylint: disable=R0903
-
 from typing import Any
 
 from django import forms

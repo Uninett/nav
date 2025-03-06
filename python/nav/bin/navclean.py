@@ -217,9 +217,6 @@ class RecordCleaner:
         return cursor.rowcount
 
 
-# pylint: disable=missing-docstring
-
-
 class ArpDeleter(RecordCleaner):
     expiry_type = "arp"
     selector = "WHERE end_time < {expiry}"

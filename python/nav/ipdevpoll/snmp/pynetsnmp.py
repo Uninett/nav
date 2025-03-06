@@ -15,14 +15,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """pynetsnmp compatibility"""
-# pylint: disable=C0103,C0111,W0703,R0903,W0611
 
 import inspect
 import os
 
 import sys
 
-# pylint: disable=wrong-import-position
 # don't have NET-SNMP load and parse MIB modules, we don't use them
 # and we don't need all the parsing errors in our logs
 os.environ['MIBS'] = ''

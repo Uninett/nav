@@ -20,7 +20,7 @@ row indexes.
 
 Most of the functions here do not follow the correct naming pattern,
 as defined by PEP-8, because their names are derived directly from SNMP MIB
-objects. Pylint messages about this are therefore disabled in this file.
+objects.
 
 """
 
@@ -96,7 +96,6 @@ def oid_to_ipv4(oid):
 #############################################################################
 # Varios OID consumer functions, which can be fed to the consume() function #
 #############################################################################
-# pylint: disable=invalid-name
 
 
 def Unsigned32(iterator):

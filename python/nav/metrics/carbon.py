@@ -56,7 +56,6 @@ def send_metrics_to(metric_tuples, host, port=2003):
     :param port: The carbon backend UDP port
 
     """
-    # pylint: disable=W0601
     global carbon
     try:
         carbon
@@ -77,7 +76,6 @@ def _handle_error(error, host, port):
     Logs Carbon connection errors, but never more frequently than
     SOCKET_ERROR_MESSAGE_INTERVAL seconds.
     """
-    # pylint: disable=W0601
     global _error_timestamp
     root = logging.getLogger('')
     msg = "unable to send metrics to carbon ([%s]:%s): %s" % (host, port, error)
@@ -96,7 +94,6 @@ def _handle_error(error, host, port):
 
 # The __warningregistry__ global is only available after the first warning has
 # been issued.
-# pylint: disable=E0602
 def _reset_warning_registry():
     try:
         __warningregistry__

@@ -62,7 +62,6 @@ class ImapsChecker(AbstractChecker):
             return Event.UP, version
 
 
-# pylint: disable=R0904
 class IMAPSConnection(imaplib.IMAP4):
     """IMAP4 client class over SSL connection
 
@@ -84,7 +83,6 @@ class IMAPSConnection(imaplib.IMAP4):
         self.sslobj = None
         imaplib.IMAP4.__init__(self, host, port)
 
-    # pylint: disable=W0222
     def open(self, host, port):
         """Setup connection to remote server on "host:port".
             (default: localhost:standard IMAP4 SSL port).

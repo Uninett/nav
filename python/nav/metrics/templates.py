@@ -21,8 +21,6 @@ Graphite.
 
 from nav.metrics.names import escape_metric_name
 
-# pylint: disable=C0111
-
 
 def metric_prefix_for_ipdevpoll_job(sysname, job_name):
     tmpl = "{device}.ipdevpoll.{job_name}"

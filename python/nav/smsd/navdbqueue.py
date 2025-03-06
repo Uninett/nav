@@ -29,7 +29,6 @@ import sys
 import nav.db
 
 
-# pylint: disable=W0703
 class NAVDBQueue(object):
     """The smsd queue for the NAV database."""
 

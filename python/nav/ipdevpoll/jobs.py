@@ -181,7 +181,6 @@ class JobHandler(object):
                 raise
             # We very intentionally log and ignore unhandled exception here, to ensure
             # the stability of the ipdevpoll daemon
-            # pylint: disable = broad-except
             except Exception:  # noqa: BLE001
                 self._logger.exception("Unhandled exception from can_handle(): %r", cls)
                 can_handle = False
@@ -326,8 +325,6 @@ class JobHandler(object):
             df.addCallback(wrap_up_job)
             return df
 
-        # pylint is unable to find reactor members:
-        # pylint: disable=E1101
         shutdown_trigger_id = reactor.addSystemEventTrigger(
             "before", "shutdown", self.cancel
         )
@@ -534,7 +531,6 @@ class JobHandler(object):
         """
         return len([o for o in gc.get_objects() if isinstance(o, cls)])
 
-    # pylint: disable=W0703
     @defer.inlineCallbacks
     def _log_job_externally(self, success=True):
         """Logs a job to the database"""

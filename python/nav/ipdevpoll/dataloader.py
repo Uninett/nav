@@ -77,7 +77,6 @@ class NetboxLoader(dict):
         super(NetboxLoader, self).__init__()
         self.peak_count = 0
         # touch _logger to initialize logging context right away
-        # pylint: disable=W0104
         self._logger
 
     def load_all_s(self):
