@@ -1,4 +1,4 @@
-CREATE TABLE manage.JWTRefreshToken (
+CREATE TABLE manage.jwtrefreshtoken (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL UNIQUE,
     description VARCHAR,
