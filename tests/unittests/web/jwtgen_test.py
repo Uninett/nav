@@ -56,25 +56,27 @@ class TestGenerateRefreshToken:
 
 
 class TestIsActive:
-    def test_should_return_false_if_nbf_is_in_the_future(self):
+    def test_when_nbf_is_in_the_future_it_should_return_false(self):
         now = datetime.now()
         nbf = now + timedelta(hours=1)
         exp = now + timedelta(hours=1)
         assert not is_active(exp.timestamp(), nbf.timestamp())
 
-    def test_should_return_false_if_exp_is_in_the_past(self):
+    def test_when_exp_is_in_the_past_it_should_return_false(self):
         now = datetime.now()
         nbf = now - timedelta(hours=1)
         exp = now - timedelta(hours=1)
         assert not is_active(exp.timestamp(), nbf.timestamp())
 
-    def test_should_return_true_if_nbf_is_in_the_past_and_exp_is_in_the_future(self):
+    def test_when_nbf_is_in_the_past_and_exp_is_in_the_future_it_should_return_true(
+        self,
+    ):
         now = datetime.now()
         nbf = now - timedelta(hours=1)
         exp = now + timedelta(hours=1)
         assert is_active(exp.timestamp(), nbf.timestamp())
 
-    def test_should_return_true_if_nbf_is_now_and_exp_is_in_the_future(self):
+    def test_when_nbf_is_now_and_exp_is_in_the_future_it_should_return_true(self):
         now = datetime.now()
         exp = now + timedelta(hours=1)
         # Make sure the value we use for `nbf` here matches the `now` value in jwtgen.is_active

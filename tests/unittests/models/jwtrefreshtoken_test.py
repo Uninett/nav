@@ -5,7 +5,7 @@ from nav.models.api import JWTRefreshToken
 
 
 class TestIsActive:
-    def test_should_return_false_if_token_activates_in_the_future(self):
+    def test_when_token_activates_in_the_future_it_should_return_false(self):
         now = datetime.now()
         token = JWTRefreshToken(
             name="testtoken",
@@ -15,7 +15,7 @@ class TestIsActive:
         )
         assert not token.is_active()
 
-    def test_should_return_false_if_token_expired_in_the_past(self):
+    def test_when_token_expired_in_the_past_it_should_return_false(self):
         now = datetime.now()
         token = JWTRefreshToken(
             name="testtoken",
@@ -25,7 +25,7 @@ class TestIsActive:
         )
         assert not token.is_active()
 
-    def test_should_return_true_if_token_activated_in_the_past_and_expires_in_the_future(
+    def test_when_token_activated_in_the_past_and_expires_in_the_future_it_should_return_true(
         self,
     ):
         now = datetime.now()
@@ -37,7 +37,9 @@ class TestIsActive:
         )
         assert token.is_active()
 
-    def test_should_return_true_if_token_activates_now_and_expires_in_the_future(self):
+    def test_when_token_activates_now_and_expires_in_the_future_it_should_return_true(
+        self,
+    ):
         now = datetime.now()
         token = JWTRefreshToken(
             name="testtoken",
