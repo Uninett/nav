@@ -1,10 +1,10 @@
 import pytest
 from unittest.mock import Mock, patch
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import jwt
 
-from nav.web.jwtgen import generate_access_token, generate_refresh_token
+from nav.web.jwtgen import generate_access_token, generate_refresh_token, is_active
 
 
 class TestTokenGeneration:
@@ -53,6 +53,35 @@ class TestGenerateRefreshToken:
         encoded_token = generate_refresh_token()
         data = jwt.decode(encoded_token, options={'verify_signature': False})
         assert data['token_type'] == "refresh_token"
+
+
+class TestIsActive:
+    def test_when_nbf_is_in_the_future_it_should_return_false(self):
+        now = datetime.now()
+        nbf = now + timedelta(hours=1)
+        exp = now + timedelta(hours=1)
+        assert not is_active(exp.timestamp(), nbf.timestamp())
+
+    def test_when_exp_is_in_the_past_it_should_return_false(self):
+        now = datetime.now()
+        nbf = now - timedelta(hours=1)
+        exp = now - timedelta(hours=1)
+        assert not is_active(exp.timestamp(), nbf.timestamp())
+
+    def test_when_nbf_is_in_the_past_and_exp_is_in_the_future_it_should_return_true(
+        self,
+    ):
+        now = datetime.now()
+        nbf = now - timedelta(hours=1)
+        exp = now + timedelta(hours=1)
+        assert is_active(exp.timestamp(), nbf.timestamp())
+
+    def test_when_nbf_is_now_and_exp_is_in_the_future_it_should_return_true(self):
+        now = datetime.now()
+        exp = now + timedelta(hours=1)
+        # Make sure the value we use for `nbf` here matches the `now` value in jwtgen.is_active
+        with patch('nav.web.jwtgen.get_now', return_value=now):
+            assert is_active(exp.timestamp(), now.timestamp())
 
 
 @pytest.fixture(scope="module", autouse=True)
