@@ -28,6 +28,11 @@ Currently active contributors/maintainers
   Joined in 2022, working mainly as a front-end developer. Currently hacking
   away at open issues and learning the NAV codebase.
 
+* Jørund Hellebø <jorund.hellebo at sikt.no>
+  Joined part-time in 2024, working on DHCP statistics integration and building
+  HTTP/REST API management profiles for Palo Alto API implementations, among
+  other things.
+
 Other contributors and previous maintainers
 -------------------------------------------
 * Vidar Faltinsen <vidar.faltinsen at sikt.no>
