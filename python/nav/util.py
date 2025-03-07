@@ -350,7 +350,6 @@ class IPRange(object):
         iprange = IPy.IP(network).make_net(mask)
         return iprange[0], iprange[-1]
 
-    # pylint: disable=W0613
     @classmethod
     def get_mask_for_network(cls, network):
         """Returns a suitable mask for the given network address.
@@ -362,7 +361,6 @@ class IPRange(object):
         return '24'
 
 
-# pylint: disable=C0103,R0903
 class cachedfor(object):
     """Decorates a function with no arguments to cache its result for a period
     of time.

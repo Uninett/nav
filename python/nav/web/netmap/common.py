@@ -33,7 +33,7 @@ TRAFFIC_META = {
     'gb': 1000000000,
     'mb': 1000000,
     'kb': 1000,
-}  # pylint: disable=C0103
+}
 
 
 def convert_bits_to_si(bits):
@@ -141,7 +141,6 @@ def _traffic_gradient(intensity):
         return (255 * (intensity**gamma), 255, 0)
 
 
-# pylint: disable=W0702
 def get_status_image_link(status):
     """uplink icon for status"""
     try:

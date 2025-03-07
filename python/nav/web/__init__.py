@@ -50,7 +50,6 @@ def loginit():
     error log.
 
     """
-    # pylint: disable=W0601
     global _loginited
     try:
         # Make sure we don't initialize logging setup several times (in case

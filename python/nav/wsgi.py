@@ -24,6 +24,4 @@ bootstrap_django(__file__)
 loginit()
 from django.core.wsgi import get_wsgi_application
 
-# Such is the WSGI api:
-# pylint: disable=C0103
 application = get_wsgi_application()

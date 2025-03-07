@@ -33,7 +33,6 @@ from .icmppacket import ICMP_MINLEN, PacketV4, PacketV6
 _logger = logging.getLogger(__name__)
 
 
-# pylint: disable=W0703
 def make_sockets():
     """Makes and returns the raw IPv6 and IPv4 ICMP sockets.
 

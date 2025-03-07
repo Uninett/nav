@@ -65,7 +65,6 @@ class ContextFormatter(Formatter):
         self._style._fmt = fmt
 
 
-# pylint: disable=R0903
 class ContextLogger(object):
     """Descriptor for getting an appropriate logger instance.
 
