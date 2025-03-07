@@ -37,9 +37,9 @@ and populate the NAV database with them.  NAV 5.13 finally utilizes this
 information by adding optional vendor lookups to Machine Tracker searches.
 
 A new cron job, ``navoui``, is also added, to update the list of assignments
-nightly.  You will not benefit from vendor lookups in Machine Tracker until
+daily.  You will not benefit from vendor lookups in Machine Tracker until
 :program:`navoui` has been run at least once. If you don't want to wait for the
-first nightly run, you can simply run the program manually.
+first run, you can simply run the program manually.
 
 
 NAV 5.12

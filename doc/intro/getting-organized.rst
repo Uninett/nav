@@ -105,7 +105,7 @@ Vendor OUIs and MAC addresses
 NAV's Machine Tracker search tool allows searching logs of ARP and CAM data
 collected from your routers and switches.  It provides an optional OUI vendor
 lookup for MAC address results.  The OUI mapping database is populated by the
-:program:`navoui` cronjob on a nightly basis.  If you're on day 1 with your NAV
+:program:`navoui` cronjob on a daily basis.  If you're on day 1 with your NAV
 install and do not want to wait for the cronjob to run for the first time, you
 can run the :program:`navoui` command manually to populate the OUI table
 immediately.
