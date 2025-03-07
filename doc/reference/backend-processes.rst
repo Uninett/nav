@@ -25,6 +25,7 @@ relevant section in this document:
 - `logengine`_
 - `mactrace`_
 - `maintengine`_
+- `navoui`_
 - `navstats`_
 - `netbiostracker`_
 - `pping`_
@@ -214,6 +215,25 @@ appropriate maintenance events for individual devices and services on NAV's
   Maintenance tasks are configured in the web interface.
 :Logs:
   :file:`maintengine.log`
+
+
+navoui
+------
+
+Periodically updates the database with Organizationally Unique Identifiers (OUIs)
+and their corresponding vendors. This enables NAV to display the vendor name
+of a device based on its MAC address, helping to identify whether a device is,
+for example, from Juniper or Cisco.
+
+:Dependencies:
+  None
+:Run mode:
+  cron
+:Configuration:
+  None
+:Logs:
+  Logs to STDERR.
+
 
 navstats
 --------
