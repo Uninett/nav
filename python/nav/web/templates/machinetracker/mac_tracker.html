@@ -23,6 +23,9 @@
             <th>Start time</th>
             <th>End time</th>
             <th>Mac</th>
+            {% if form_data.vendor %}
+            <th>Vendor</th>
+            {% endif %}
         </tr>
     </thead>
 
@@ -32,7 +35,7 @@
         {% if row.fishy %}<tr class="fishy-item">{% else %}<tr>{% endif %}
             <td>
                 {% if row.netbox.sysname %}
-                <a href="{% query 'machinetracker-swp' switch=row.netbox.sysname days=form_data.days %}" title="Search for other machines on this switch">
+                <a href="{% query 'machinetracker-swp' switch=row.netbox.sysname days=form_data.days vendor=form_data.vendor %}" title="Search for other machines on this switch">
                 {{ row.netbox.sysname }}</a>
                 {% else %}
                 {{ row.sysname }}
@@ -49,7 +52,7 @@
             </td>
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
-                <a href="{% query 'machinetracker-swp' switch=row.sysname module=row.module|default_if_none:'' port=row.port days=form_data.days %}" title="Search for other machines on this port">
+                <a href="{% query 'machinetracker-swp' switch=row.sysname module=row.module|default_if_none:'' port=row.port days=form_data.days vendor=form_data.vendor %}" title="Search for other machines on this port">
                 {{ row.port }}</a>
                 {% endwith %}
             </td>
@@ -71,11 +74,20 @@
             <td>
                 {% with form_data.dns|yesno:"True," as dns %}
                 {% if forloop.first %}
-                <a href="{% query 'machinetracker-mac' mac=row.mac days=form_data.days dns=dns %}" title="Search for this MAC address">
+                <a href="{% query 'machinetracker-mac' mac=row.mac days=form_data.days dns=dns vendor=form_data.vendor %}" title="Search for this MAC address">
                 {{ row.mac }}</a>
                 {% endif %}
                 {% endwith %}
             </td>
+            {% if form_data.vendor %}
+            <td>
+                {% if row.vendor %}
+                    {{ row.vendor }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            {% endif %}
         </tr>
         {% endfor %}
     {% endfor %}
@@ -83,7 +95,7 @@
 
     <tfoot>
         <tr>
-            <th colspan="8">{{ mac_tracker_count }}
+            <th colspan={{ colspan }}>{{ mac_tracker_count }}
             hit{{ mac_tracker_count|pluralize }}</th>
         </tr>
     </tfoot>

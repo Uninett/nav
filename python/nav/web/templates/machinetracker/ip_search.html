@@ -76,7 +76,7 @@
             <legend>Columns</legend>
             <div class="row machinetracker-filter">
 
-              <div class="small-4 column">
+              <div class="small-3 column">
                 <label for="{{ form.netbios.auto_id }}"
                        title="{{ form.netbios.help_text }}">
                   {{ form.netbios }}
@@ -84,18 +84,26 @@
                 </label>
               </div>
 
-              <div class="small-4 column">
+              <div class="small-3 column">
                 <label for="{{ form.dns.auto_id }}" title="{{ form.dns.help_text }}">
                   {{ form.dns }}
                   {{ form.dns.label }}
                 </label>
               </div>
 
-              <div class="small-4 column">
+              <div class="small-3 column">
                 <label for="{{ form.source.auto_id }}"
                        title="{{ form.source.help_text }}">
                   {{ form.source }}
                   {{ form.source.label }}
+                </label>
+              </div>
+
+              <div class="small-3 column">
+                <label for="{{ form.vendor.auto_id }}"
+                       title="{{ form.vendor.help_text }}">
+                  {{ form.vendor }}
+                  {{ form.vendor.label }}
                 </label>
               </div>
 

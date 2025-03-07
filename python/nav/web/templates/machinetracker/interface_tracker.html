@@ -12,6 +12,9 @@
             <th>Interface</th>
             <th>Alias</th>
             <th>Mac</th>
+            {% if form_data.vendor %}
+            <th>Vendor</th>
+            {% endif %}
         </tr>
     </thead>
 
@@ -31,6 +34,16 @@
                 <a href="{% query 'machinetracker-mac' mac=ifc.ifphysaddress days=form_data.days dns=dns %}" title="Search again for this MAC address">
                 {{ ifc.ifphysaddress }}</a>
             </td>
+
+            {% if form_data.vendor %}
+            <td>
+                {% if ifc.vendor %}
+                    {{ ifc.vendor }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            {% endif %}
 
         </tr>
     {% endfor %}

@@ -12,6 +12,10 @@
             <th>Uplink from</th>
             <th>Uplink to</th>
             <th>Mac</th>
+            {% if form_data.vendor %}
+            <th>Vendor</th>
+            {% endif %}
+
         </tr>
     </thead>
 
@@ -43,6 +47,16 @@
                 <a href="{% query 'machinetracker-mac' mac=row.mac days=form_data.days dns=dns %}" title="Search again for this MAC address">
                 {{ row.mac }}</a>
             </td>
+
+            {% if form_data.vendor %}
+            <td>
+                {% if row.vendor %}
+                    {{ row.vendor }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            {% endif %}
 
         </tr>
     {% endfor %}

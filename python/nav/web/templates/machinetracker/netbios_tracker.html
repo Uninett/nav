@@ -15,6 +15,9 @@
       <th>Username</th>
       <th>Start time</th>
       <th>End time</th>
+      {% if form_data.vendor %}
+      <th>Vendor</th>
+      {% endif %}
     </tr>
   </thead>
 
@@ -60,7 +63,15 @@
               {{ row.end_time|date:"DATETIME_FORMAT" }}
             {% endif %}
           </td>
-
+          {% if form_data.vendor %}
+          <td>
+              {% if row.vendor %}
+                {{ row.vendor }}
+              {% else %}
+                N/A
+              {% endif %}
+          </td>
+          {% endif %}
         </tr>
       {% endfor %}
     {% endfor %}
