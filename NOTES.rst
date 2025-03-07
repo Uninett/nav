@@ -8,6 +8,40 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+NAV 5.13
+========
+
+Dependency changes
+------------------
+
+NAV 5.13 will run properly on Python 3.11.
+
+Dependencies to these Python modules have been added:
+
+:mod:`pytz`
+
+Python modules with changed version requirements:
+
+* :mod:`Django` (``>=4.2,<4.3``)
+* :mod:`djangorestframework` (``>=3.12`` - in practice, 3.15 at the time of release)
+
+OUI lookup in Machine Tracker searches
+--------------------------------------
+
+The first three octets of a MAC hardware address is considered its OUI
+(Organizationally Unique Identifier), and identifies a vendor, manufacturer or
+other organization (as assigned by the IEEE).
+
+NAV 5.11 added the :program:`navoui` program to fetch OUI assignments from IEEE
+and populate the NAV database with them.  NAV 5.13 finally utilizes this
+information by adding optional vendor lookups to Machine Tracker searches.
+
+A new cron job, ``navoui``, is also added, to update the list of assignments
+nightly.  You will not benefit from vendor lookups in Machine Tracker until
+:program:`navoui` has been run at least once. If you don't want to wait for the
+first nightly run, you can simply run the program manually.
+
+
 NAV 5.12
 ========
 
