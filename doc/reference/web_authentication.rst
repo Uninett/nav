@@ -63,6 +63,5 @@ user locally. The flag for that is ``post-logout-redirect-url``.
 
 Relevant How Tos:
 -----------------
-.. toctree::
 
-  ../howto/mod_auth_openidc_feide
+:ref:`openidc_feide_howto`
