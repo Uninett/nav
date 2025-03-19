@@ -26,6 +26,7 @@ from datetime import datetime
 import re
 import json
 
+from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.postgres.fields import HStoreField
 from django.db import models, transaction
 from django.forms.models import model_to_dict
@@ -83,9 +84,10 @@ _ = lambda a: a
 ### Account models
 
 
-class Account(models.Model):
+class Account(AbstractBaseUser):
     """NAV's basic account model"""
 
+    USERNAME_FIELD = 'login'
     DEFAULT_ACCOUNT = 0
     ADMIN_ACCOUNT = 1
 
@@ -198,6 +200,14 @@ class Account(models.Model):
     def is_admin(self):
         """Has this user administrator rights?"""
         return self.has_perm(None, None)
+
+    @property
+    def is_anonymous(self):
+        return self.id == self.DEFAULT_ACCOUNT
+
+    @property
+    def is_authenticated(self):
+        return self.id != self.DEFAULT_ACCOUNT
 
     @sensitive_variables('password')
     def set_password(self, password):
