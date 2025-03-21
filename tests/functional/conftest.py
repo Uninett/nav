@@ -53,7 +53,7 @@ def selenium(selenium, base_url, admin_username, admin_password):
     username.send_keys(admin_username)
     password.send_keys(admin_password)
     selenium.find_element(By.NAME, "submit").click()
-    wait.until(EC.url_changes("/"))
+    wait.until(EC.url_to_be(f"{base_url}/"))
 
     # Yield logged-in session to the test
     yield selenium
