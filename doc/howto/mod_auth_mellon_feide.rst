@@ -17,7 +17,7 @@ First check if the plugin is already installed and enabled::
     $ sudo apache2ctl -M | grep mellon
       auth_mellon_module (shared)
 
-If it is, go straight to `Configuration`_.
+If it is, go straight to :ref:`configuration <mellon_feide_howto_configuration>`.
 
 If not:
 
@@ -40,6 +40,7 @@ Disable with::
 
     $ sudo a2dismod auth_mellon
 
+.. _mellon_feide_howto_configuration:
 Files needed
 ============
 
