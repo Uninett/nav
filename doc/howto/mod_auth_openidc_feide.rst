@@ -11,7 +11,7 @@ First check if the plugin is already installed and enabled::
     $ sudo apache2ctl -M | grep openid
       auth_openidc_module (shared)
 
-If it is, go straight to :ref:`openidc_feide_howto_configuration`.
+If it is, go straight to :ref:`configuration <openidc_feide_howto_configuration>`.
 
 If not:
 
