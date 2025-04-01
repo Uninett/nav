@@ -1,7 +1,5 @@
 """Tests for bulkimport"""
 
-# pylint: disable=W0614, C0111, W0401
-
 from unittest import TestCase
 
 from nav.models import manage

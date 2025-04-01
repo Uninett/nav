@@ -13,7 +13,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# pylint: disable=R0903, R0913
 
 """Graph representation and manipulation."""
 

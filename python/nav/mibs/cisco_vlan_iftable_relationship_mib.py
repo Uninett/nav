@@ -44,5 +44,4 @@ class CiscoVlanIftableRelationshipMib(mibretriever.MibRetriever):
         defer.returnValue(result)
 
 
-# pylint: disable=C0103
 RoutedVlan = namedtuple('RoutedVlan', 'vlan physical virtual')
