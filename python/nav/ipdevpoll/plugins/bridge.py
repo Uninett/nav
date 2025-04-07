@@ -41,7 +41,7 @@ class Bridge(Plugin):
         if bridge_address:
             self._save_bridge_address(bridge_address)
         baseports = yield bridge.get_baseport_ifindex_map()
-        defer.returnValue(self._set_port_numbers(baseports))
+        return self._set_port_numbers(baseports)
 
     def _save_bridge_address(self, bridge_address):
         info = self.containers.factory(

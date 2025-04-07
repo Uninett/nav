@@ -69,7 +69,7 @@ class Modules(Plugin):
         yield self.stampcheck.collect([self.entitymib.get_last_change_time()])
 
         result = yield self.stampcheck.is_changed()
-        defer.returnValue(result)
+        return result
 
     def _device_from_entity(self, ent):
         serial_column = 'entPhysicalSerialNum'

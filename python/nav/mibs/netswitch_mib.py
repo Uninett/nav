@@ -47,4 +47,4 @@ class NetswitchMib(mibretriever.MibRetriever):
             slots = yield self.retrieve_columns([slot_oid, free_oid, used_oid])
             for row in slots.values():
                 result[kind + str(row[slot_oid])] = (row[used_oid], row[free_oid])
-        defer.returnValue(result)
+        return result
