@@ -8,12 +8,11 @@ description = "Network Administration Visualized - A comprehensive, free Network
 authors = [{name="Sikt - Norwegian agency for shared services in education and research", email="nav-support@uninett.no"}]
 readme = "README.rst"
 requires-python = ">=3.9"
-license = {text = "GPLv3"}
+license = "GPL-3.0-only"
 keywords = ["nms", "snmp"]
 classifiers = [
     "Development Status :: 6 - Mature",
     "Topic :: System :: Networking :: Monitoring",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
 dynamic = ["version"]
 dependencies = [
