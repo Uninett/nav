@@ -1,5 +1,6 @@
 .*
 !.codecov.yml
+!.devcontainer/
 !.dockerignore
 !.git-blame-ignore-revs
 !.github/
