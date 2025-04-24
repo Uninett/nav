@@ -1,0 +1,1 @@
+Added support for the T3611 sensor from Comet with a new mibretriever
