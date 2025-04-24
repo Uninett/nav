@@ -18,13 +18,16 @@
 
 from datetime import datetime, timedelta
 import logging
+from typing import Sequence
 
 from IPy import IP
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.db.models.fields.related import ManyToOneRel as _RelatedObject
 from django.core.exceptions import FieldDoesNotExist
+import django.db
 import iso8601
+import json
 
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from django_filters.filters import ModelMultipleChoiceFilter, CharFilter
@@ -162,6 +165,7 @@ def get_endpoints(request=None, version=1):
         'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
         'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
         'module': reverse_lazy('{}module-list'.format(prefix), **kwargs),
+        'vendor': reverse_lazy('{}vendor'.format(prefix), **kwargs),
     }
 
 
@@ -1153,3 +1157,105 @@ class ModuleViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         'device__serial',
     )
     serializer_class = serializers.ModuleSerializer
+
+
+class VendorLookup(NAVAPIMixin, APIView):
+    """Lookup vendor names for MAC addresses.
+
+    This endpoint allows you to look up vendor names for MAC addresses.
+    It can be used with either a GET or POST request.
+
+    For GET requests, the MAC address must be provided via the query parameter `mac`.
+    This only supports one MAC address at a time.
+
+    For POST requests, the MAC addresses must be provided in the request body
+    as a JSON array. This supports multiple MAC addresses.
+
+    Responds with a JSON dict mapping the MAC addresses to the corresponding vendors.
+    The MAC addresses will have the format `aa:bb:cc:dd:ee:ff`. If the vendor for a
+    given MAC address is not found, it will be omitted from the response.
+
+    Example GET request: `/api/1/vendor/?mac=aa:bb:cc:dd:ee:ff`
+
+    Example GET response: `{"aa:bb:cc:dd:ee:ff": "Vendor A"}`
+
+    Example POST request:
+        `/api/1/vendor/` with body `["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"]`
+
+    Example POST response:
+        `{"aa:bb:cc:dd:ee:ff": "Vendor A", "11:22:33:44:55:66": "Vendor B"}`
+    """
+
+    @staticmethod
+    def get(request):
+        mac = request.GET.get('mac', None)
+        if not mac:
+            return Response("Missing MAC address", status=status.HTTP_400_BAD_REQUEST)
+        try:
+            results = get_vendor_names([mac])
+        except ValueError:
+            return Response("Invalid MAC address", status=status.HTTP_400_BAD_REQUEST)
+        return Response(results)
+
+    @staticmethod
+    def post(request):
+        try:
+            mac_addresses = json.loads(request.body.decode('utf-8'))
+        except json.JSONDecodeError:
+            return Response("Invalid JSON", status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(mac_addresses, list):
+            return Response(
+                "JSON body must represent a list of MAC addresses",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            results = get_vendor_names(mac_addresses)
+        except ValueError:
+            return Response("Invalid MAC address", status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(results)
+
+
+@django.db.transaction.atomic
+def get_vendor_names(mac_addresses: Sequence[str]) -> dict[str, str]:
+    """Get vendor names for a list of MAC addresses.
+
+    :param mac_addresses: Sequence of MAC addresses in a valid format
+        (e.g., "aa:bb:cc:dd:ee:ff").
+    :return: A dictionary mapping MAC addresses to vendor names. If the vendor for a
+        given MAC address is not found, it will be omitted from the response.
+    """
+    cursor = django.db.connection.cursor()
+    cursor.execute(
+        """
+        CREATE TEMPORARY TABLE temp_macaddrs (
+            mac macaddr PRIMARY KEY
+        )
+        """
+    )
+    # Convert list to format executemany needs
+    params = [(mac,) for mac in mac_addresses]
+    try:
+        cursor.executemany(
+            """
+            INSERT INTO temp_macaddrs (mac)
+                VALUES (%s)
+            ON CONFLICT (mac)
+                DO NOTHING
+            """,
+            params,
+        )
+    except django.db.utils.DataError as e:
+        # Invalid mac address
+        raise ValueError(str(e))
+
+    cursor.execute(
+        """
+        SELECT mac, vendor FROM temp_macaddrs INNER JOIN oui ON trunc(mac)=oui
+        """
+    )
+    rows = cursor.fetchall()
+
+    # row[0] is mac address, row[1] is vendor name
+    return {str(row[0]): row[1] for row in rows}
