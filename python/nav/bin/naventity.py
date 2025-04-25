@@ -70,11 +70,11 @@ def collect_entities(netbox, portnumber):
     """Collects the entPhysicalTable"""
     agent = _create_agentproxy(netbox, portnumber)
     if not agent:
-        defer.returnValue(None)
+        return None
 
     mib = EntityMib(agent)
     result = yield mib.get_entity_physical_table()
-    defer.returnValue(result)
+    return result
 
 
 def make_graph(entities, netbox):

@@ -34,7 +34,7 @@ class CD6CMib(MibRetriever):
         supported = yield self.get_next('main')
         if not supported:
             self._logger.debug('CD6C mib not supported - returned %s', supported)
-            defer.returnValue([])
+            return []
 
         self._logger.debug('CD6C mib supported because main returned %s', supported)
 
@@ -52,7 +52,7 @@ class CD6CMib(MibRetriever):
 
         all_sensors = temp_sensors + pressure_sensors + flow_sensors
 
-        defer.returnValue(all_sensors)
+        return all_sensors
 
     def create_sensor(self, sensor, precision=0, uom=''):
         """Creates sensor object based on name"""

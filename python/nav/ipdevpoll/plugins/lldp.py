@@ -53,7 +53,7 @@ class LLDP(Plugin):
     def can_handle(cls, netbox):
         daddy_says_ok = super(LLDP, cls).can_handle(netbox)
         has_ifcs = yield run_in_thread(cls._has_interfaces, netbox)
-        defer.returnValue(has_ifcs and daddy_says_ok)
+        return has_ifcs and daddy_says_ok
 
     @classmethod
     def _has_interfaces(cls, netbox):
@@ -102,7 +102,7 @@ class LLDP(Plugin):
             INFO_KEY_LLDP_INFO,
             INFO_VAR_REMOTES_CACHE,
         )
-        defer.returnValue(value)
+        return value
 
     @defer.inlineCallbacks
     def _save_cached_remote_table(self, remote_table):
@@ -149,7 +149,7 @@ class LLDP(Plugin):
         yield stampcheck.load()
         yield stampcheck.collect([mib.get_remote_last_change()])
 
-        defer.returnValue(stampcheck)
+        return stampcheck
 
     def _process_remote(self):
         """Tries to synchronously identify LLDP entries in NAV's database"""

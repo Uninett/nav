@@ -13,7 +13,7 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
+from twisted.internet.defer import inlineCallbacks, Deferred
 
 from nav.mibs import mibretriever
 from nav.oids import OID
@@ -40,7 +40,7 @@ class AristaVrfMib(mibretriever.MibRetriever):
             for k, v in states.items()
             if only is None or v['aristaVrfState'] == only
         }
-        returnValue(states)
+        return states
 
 
 def _vrf_index_to_string(index: OID) -> str:

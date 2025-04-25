@@ -182,7 +182,7 @@ class CPQPowerMib(mibretriever.MibRetriever):
         for config in SENSORS:
             r = yield self._get_sensors(names, **config)
             result.extend(r)
-        defer.returnValue(result)
+        return result
 
     def _get_oid(self, column, index):
         return self.mib['nodes'][column]['oid'] + index
@@ -199,7 +199,7 @@ class CPQPowerMib(mibretriever.MibRetriever):
             name = name.strip()
             name = name.replace('\0', '')
             result[index] = name
-        defer.returnValue(result)
+        return result
 
     @defer.inlineCallbacks
     def _get_sensors(self, names, sensors, extra_columns=None, filter=lambda x: True):
@@ -213,7 +213,7 @@ class CPQPowerMib(mibretriever.MibRetriever):
             if not filter(row):
                 continue
             result.extend(self._mksensors(index, row, sensors, names))
-        defer.returnValue(result)
+        return result
 
     def _mksensors(self, index, row, table, names):
         result = []

@@ -35,7 +35,7 @@ class StatisticsMib(mibretriever.MibRetriever):
         """Returns the current switch CPU utilization in percent"""
         util = yield self.get_next('hpSwitchCpuStat')
         if util is not None:
-            defer.returnValue(dict(cpu=util))
+            return dict(cpu=util)
 
     def get_cpu_loadavg(self):
         return defer.succeed(None)
@@ -64,4 +64,4 @@ class StatisticsMib(mibretriever.MibRetriever):
                 IP('.'.join(str(i) for i in group)), ifindex, vlan, access
             )
 
-        defer.returnValue([_split(i) for i in ports.items()])
+        return [_split(i) for i in ports.items()]

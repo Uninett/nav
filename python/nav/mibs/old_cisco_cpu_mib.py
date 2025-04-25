@@ -27,7 +27,7 @@ class OldCiscoCpuMib(mibretriever.MibRetriever):
         avgbusy1 = yield self.get_next('avgBusy1')
         if avgbusy5 or avgbusy1:
             result = dict(cpu=[(5, avgbusy5), (1, avgbusy1)])
-            defer.returnValue(result)
+            return result
 
     def get_cpu_utilization(self):
         return defer.succeed(None)

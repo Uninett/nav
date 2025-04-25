@@ -113,10 +113,10 @@ class Arp(Plugin):
     @defer.inlineCallbacks
     def _get_ip_mib(self):
         if not self.is_arista():
-            defer.returnValue(IpMib(self.agent))  # regular IpMib for regular folks
+            return IpMib(self.agent)  # regular IpMib for regular folks
         else:
             instances = yield get_arista_vrf_instances(self.agent)
-            defer.returnValue(MultiIpMib(self.agent, instances=instances))
+            return MultiIpMib(self.agent, instances=instances)
 
     def is_arista(self):
         """Returns True if this is an Arista device"""
@@ -182,7 +182,7 @@ class Arp(Plugin):
         open_mappings = dict(
             ((IP(arp['ip']), arp['mac']), arp['id']) for arp in open_arp_records
         )
-        defer.returnValue(open_mappings)
+        return open_mappings
 
     @classmethod
     def _update_prefix_cache(cls):

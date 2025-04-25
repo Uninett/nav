@@ -34,4 +34,4 @@ class EtherLikeMib(mibretriever.MibRetriever):
         result = {
             index[0]: row['dot3StatsDuplexStatus'] for index, row in duplex.items()
         }
-        defer.returnValue(result)
+        return result

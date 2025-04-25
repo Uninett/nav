@@ -27,7 +27,6 @@ import xml.etree.ElementTree as ET
 
 from IPy import IP
 from twisted.internet import defer, reactor, ssl
-from twisted.internet.defer import returnValue
 from twisted.web import client
 from twisted.web.client import Agent
 from twisted.web.http_headers import Headers
@@ -44,7 +43,7 @@ class PaloaltoArp(Arp):
     def can_handle(cls, netbox):
         """Return True if this plugin can handle the given netbox."""
         has_configurations = yield cls._has_paloalto_configurations(netbox)
-        returnValue(has_configurations)
+        return has_configurations
 
     @defer.inlineCallbacks
     def handle(self):
@@ -90,7 +89,7 @@ class PaloaltoArp(Arp):
         """
         arptable = yield self._do_request(address, key)
         mappings = _parse_arp(arptable) if arptable else []
-        returnValue(mappings)
+        return mappings
 
     @defer.inlineCallbacks
     def _do_request(self, address: IP, key: str):
@@ -121,10 +120,10 @@ class PaloaltoArp(Arp):
                 "Error when making HTTP request to Paloalto API endpoint. "
                 "Make sure the device is reachable and the API key is correct."
             )
-            returnValue(None)
+            return None
 
         response = yield client.readBody(response)
-        returnValue(response)
+        return response
 
 
 def _parse_arp(arpbytes: bytes) -> list[tuple[str, IP, str]]:
