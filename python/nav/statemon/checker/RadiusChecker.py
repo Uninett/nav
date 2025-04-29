@@ -102,7 +102,7 @@ class RadiusChecker(AbstractChecker):
             )
             req["User-Password"] = req.PwCrypt(password)
             srv.SendPacket(req)
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             return (
                 Event.DOWN,
                 "Failed connecting to %s: %s)" % (self.get_address(), str(err)),

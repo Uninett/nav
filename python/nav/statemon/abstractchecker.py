@@ -171,7 +171,7 @@ class AbstractChecker(object):
                 self.serviceid,
                 self.get_type(),
             )
-        except Exception as err:  # pylint: disable=broad-except
+        except Exception as err:  # noqa: BLE001
             service = "%s:%s" % (self.sysname, self.get_type())
             _logger.error("statistics update failed for %s [%s]", service, err)
 
@@ -184,7 +184,7 @@ class AbstractChecker(object):
         start = time.time()
         try:
             status, info = self.execute()
-        except Exception as error:  # pylint: disable=broad-except
+        except Exception as error:  # noqa: BLE001
             status = event.Event.DOWN
             info = str(error)
         self.response_time = time.time() - start

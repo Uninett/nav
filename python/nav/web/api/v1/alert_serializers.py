@@ -144,7 +144,7 @@ class AlertSerializerBase(serializers.ModelSerializer):
             netbox = obj.netbox
             values = netbox.groups.values_list('id', flat=True)
             return list(values) if values else None
-        except Exception:
+        except Exception:  # noqa: BLE001
             pass
 
 

@@ -91,7 +91,7 @@ class OracleChecker(AbstractChecker):
             row = cursor.fetchone()
             version = row[0]
             # pylint: disable=W0703
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             return Event.DOWN, str(err)
         finally:
             connection.close()

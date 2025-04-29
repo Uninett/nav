@@ -47,7 +47,7 @@ def main():
     _logger.debug('-' * 60)  # Visual separation line
     try:
         check_devices_on_maintenance()
-    except Exception:
+    except Exception:  # noqa: BLE001
         _logger.exception("An unhandled exception occurred:")
     _logger.debug('Finished in %.3fs' % (time.time() - before))
     _logger.debug('-' * 60)  # Visual separation line

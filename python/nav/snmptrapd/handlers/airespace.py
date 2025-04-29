@@ -84,7 +84,7 @@ def handleTrap(trap, config=None):
 
     try:
         e.post()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _logger.error(e)
         return False
 

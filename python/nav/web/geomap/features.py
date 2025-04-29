@@ -119,7 +119,7 @@ def apply_indicator(ind, properties):
             # it allows the configuration file to do all kinds of
             # nasty stuff, but it is also quite useful).
             test_result = eval(option['test'], globals(), properties)
-        except Exception as err:  # pylint: disable=broad-except
+        except Exception as err:  # noqa: BLE001
             _logger.warning(
                 'Exception when evaluating test "%s" for indicator '
                 '"%s" on properties %s: %s',

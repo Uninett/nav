@@ -94,7 +94,7 @@ def post_event(mac_watch, cam):
     event['alerttype'] = 'macWarning'
     try:
         event.post()
-    except Exception:
+    except Exception:  # noqa: BLE001
         _logger.exception("Unhandled exception while posting event")
         return False
     return True

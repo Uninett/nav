@@ -53,7 +53,7 @@ def load_handler_modules(modules):
                 pass  # Silently ignore if module has no initialize method
 
             handlermodules.append(mod)
-        except Exception as why:
+        except Exception as why:  # noqa: BLE001
             _logger.exception("Module %s did not compile - %s", name, why)
             raise ModuleLoadError(why)
 

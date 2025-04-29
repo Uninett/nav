@@ -53,7 +53,7 @@ def connect(host: Host, profile: manage.ManagementProfile) -> NetworkDriver:
             weakref.finalize(device, key_file.close)
         device.open()
         return device
-    except Exception:
+    except Exception:  # noqa: BLE001
         # but remove it immediately if device was never created
         if key_file:
             key_file.close()

@@ -115,7 +115,7 @@ class PaloaltoArp(Arp):
                 ),
                 None,
             )
-        except Exception:  # noqa
+        except Exception:  # noqa: BLE001
             self._logger.exception(
                 "Error when making HTTP request to Paloalto API endpoint. "
                 "Make sure the device is reachable and the API key is correct."

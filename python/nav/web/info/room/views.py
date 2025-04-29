@@ -482,5 +482,5 @@ def remove_sensor(request, roomid):
     try:
         rack.save()
         return HttpResponse()
-    except Exception:
+    except Exception:  # noqa: BLE001
         return HttpResponse(status=500)

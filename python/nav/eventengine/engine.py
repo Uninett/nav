@@ -70,7 +70,7 @@ def swallow_unhandled_exceptions(func):
     def _decorated(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception:
+        except Exception:  # noqa: BLE001
             _logger.exception("Unhandled exception occurred; ignoring it")
 
     return _decorated
@@ -199,7 +199,7 @@ class EventEngine(object):
                 unresolved.update()
                 try:
                     self.handle_event(event)
-                except Exception:
+                except Exception:  # noqa: BLE001
                     self._logger.exception(
                         "Unhandled exception while " "handling %s, deleting event",
                         event,
@@ -276,7 +276,7 @@ class EventEngine(object):
             self._logger.debug("giving event to %s", handler.__class__.__name__)
             try:
                 handler.handle()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._logger.exception(
                     "Unhandled exception in plugin " "%s; ignoring it", handler
                 )

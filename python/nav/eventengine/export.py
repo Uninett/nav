@@ -63,7 +63,7 @@ class StreamExporter(object):
             )
             try:
                 self.run()
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001
                 _logger.error("Cannot restart dead export script: %s", error)
                 return False
 

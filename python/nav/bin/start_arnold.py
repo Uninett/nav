@@ -231,7 +231,7 @@ def report_detentions(profile, detentions):
 
         try:
             nav.arnold.sendmail(fromaddr, toaddr, subject, msg)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             _logger.error(error)
             continue
 

@@ -122,7 +122,7 @@ def tool_list(account):
                     fullpath = os.path.join(path, filename)
                     try:
                         tool = parse_tool(fullpath)
-                    except Exception as error:
+                    except Exception as error:  # noqa: BLE001
                         _logger.error('Error parsing tool in %s: %s', filename, error)
                         continue
 

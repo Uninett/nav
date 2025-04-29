@@ -144,7 +144,7 @@ def patch_save(request):
 
     try:
         Patch.objects.create(interface=interface, cabling=cable, split=split)
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001
         _logger.debug(error)
         return HttpResponse(error, status=500)
 

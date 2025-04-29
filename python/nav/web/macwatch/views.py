@@ -88,7 +88,7 @@ def delete_macwatch(request, macwatchid):
                 try:
                     m.delete()
                     return HttpResponseRedirect('/macwatch/')
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     messages = [e]
                     return do_list(request, messages)
             else:

@@ -646,7 +646,7 @@ class NetboxInfo(models.Model):
             value = cache.value.encode("utf-8")
             remote_table = pickle.loads(base64.decodebytes(value))
             return remote_table
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             _logger.debug(
                 "Unable to unpickle cache value for (%r, %r, %r): %s",
                 netbox.sysname,

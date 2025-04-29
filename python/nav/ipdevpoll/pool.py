@@ -314,7 +314,7 @@ class Worker(object):
             except twisted.internet.defer.TimeoutError:
                 self._logger.warning("PING: Timed out for %r", self)
                 is_alive = False
-            except Exception:  # pylint: disable=broad-except
+            except Exception:  # noqa: BLE001
                 self._logger.exception(
                     "PING: Unhandled exception while pinging %r", self
                 )
@@ -328,7 +328,7 @@ class Worker(object):
                         "PING: Not responding, attempting to kill: %r", self
                     )
                     os.kill(self.pid, signal.SIGTERM)
-            except Exception:  # pylint: disable=broad-except
+            except Exception:  # noqa: BLE001
                 self._logger.exception(
                     "PING: Ignoring unhandled exception when killing worker %r", self
                 )

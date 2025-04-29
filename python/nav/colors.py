@@ -122,5 +122,5 @@ def get_terminal_width():
             os.popen('stty size 2>/dev/null', 'r').read().strip().split(' ')
         )
         return int(width)
-    except Exception:
+    except Exception:  # noqa: BLE001
         pass

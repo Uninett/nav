@@ -84,7 +84,7 @@ class _DB(threading.Thread):
             _logger.info("Successfully (re)connected to NAVdb")
             # Set transaction isolation level to READ COMMITTED
             self.db.set_isolation_level(1)
-        except Exception:
+        except Exception:  # noqa: BLE001
             _logger.critical("Couldn't connect to db.", exc_info=True)
             self.db = None
 
@@ -102,7 +102,7 @@ class _DB(threading.Thread):
         try:
             if self.db.status:
                 return 1
-        except Exception:
+        except Exception:  # noqa: BLE001
             return 0
         return 0
 
@@ -129,7 +129,7 @@ class _DB(threading.Thread):
                         err.pgcode,
                     )
                     raise
-        except Exception:
+        except Exception:  # noqa: BLE001
             if self.db is not None:
                 _logger.critical(
                     "Could not get cursor. Trying to reconnect...", exc_info=True
@@ -148,7 +148,7 @@ class _DB(threading.Thread):
             try:
                 self.commit_event(event)
                 self.db.commit()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # If we fail to commit the event, place it
                 # back in our queue
                 _logger.debug("Failed to commit event, rescheduling...")
@@ -170,7 +170,7 @@ class _DB(threading.Thread):
             if commit:
                 self.db.commit()
             return cursor.fetchall()
-        except Exception:
+        except Exception:  # noqa: BLE001
             _logger.critical(
                 "Failed to execute query: %s",
                 cursor.query if cursor else statement,
@@ -179,7 +179,7 @@ class _DB(threading.Thread):
             if commit:
                 try:
                     self.db.rollback()
-                except Exception:
+                except Exception:  # noqa: BLE001
                     _logger.critical("Failed to rollback")
             raise DbError()
 
@@ -198,7 +198,7 @@ class _DB(threading.Thread):
             if commit:
                 try:
                     self.db.commit()
-                except Exception:
+                except Exception:  # noqa: BLE001
                     _logger.critical("Failed to commit")
         except psycopg2.IntegrityError:
             _logger.critical(
@@ -207,7 +207,7 @@ class _DB(threading.Thread):
             _logger.debug("Tried to execute: %s", cursor.query)
             if commit:
                 self.db.rollback()
-        except Exception:
+        except Exception:  # noqa: BLE001
             _logger.critical(
                 "Could not execute statement: %s",
                 cursor.query if cursor else statement,
@@ -375,7 +375,7 @@ class _DB(threading.Thread):
 
             try:
                 new_checker = checker(service, **kwargs)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 _logger.critical(
                     "Checker %s (%s) failed to init. This checker "
                     "will remain DISABLED:",

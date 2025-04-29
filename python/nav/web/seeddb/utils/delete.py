@@ -118,7 +118,7 @@ def _try_deleting(request, objects, pre_delete_operation=None, delete_operation=
         # table without any ON DELETE rules.
         msg = "Integrity failed: %s" % ex
         new_message(request, msg, Messages.ERROR)
-    except Exception as ex:
+    except Exception as ex:  # noqa: BLE001
         # Something else went wrong
         _logger.exception("Unhandled exception during delete: %r", request)
         msg = "Error: %s" % ex

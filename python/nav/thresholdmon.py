@@ -91,14 +91,14 @@ def evaluate_rule(rule, alerts):
                 rule.target,
                 rule.alert,
             )
-    except Exception:
+    except Exception:  # noqa: BLE001
         _logger.exception("Unhandled exception while getting values for rule: %r", rule)
         return
 
     # post new exceed events
     try:
         exceeded = evaluator.evaluate(rule.alert)
-    except Exception:
+    except Exception:  # noqa: BLE001
         _logger.exception("Unhandled exception while evaluating rule alert: %r", rule)
         return
 
@@ -118,7 +118,7 @@ def evaluate_rule(rule, alerts):
                 cleared = evaluator.evaluate(rule.clear)
             else:
                 cleared = evaluator.evaluate(rule.alert, invert=True)
-        except Exception:
+        except Exception:  # noqa: BLE001
             _logger.exception(
                 "Unhandled exception while evaluating rule clear: %r", rule
             )

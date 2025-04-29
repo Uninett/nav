@@ -67,7 +67,7 @@ class Error(Plugin):
     def error(self, deferred):
         try:
             raise RuntimeError()
-        except Exception:
+        except Exception:  # noqa: BLE001
             deferred.errback()
 
 

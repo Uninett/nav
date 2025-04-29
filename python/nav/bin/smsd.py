@@ -251,7 +251,7 @@ def main():
                 except:
                     _logger.exception("")
                     raise
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001
                 _logger.exception("Unknown exception: %s", error)
 
             _logger.info("SMS sent to %s.", user)
@@ -498,7 +498,7 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
         _logger = logging.getLogger()
         _logger.addHandler(mailhandler)
         return True
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001
         print(
             "Failed creating SMTP loghandler. Daemon mode disabled. (%s)" % error,
             file=sys.stderr,

@@ -44,7 +44,7 @@ def make_sockets():
         socketv6 = socket.socket(
             socket.AF_INET6, socket.SOCK_RAW, socket.getprotobyname('ipv6-icmp')
         )
-    except Exception:
+    except Exception:  # noqa: BLE001
         _logger.error("Could not create v6 socket")
         raise
 
@@ -52,8 +52,8 @@ def make_sockets():
         socketv4 = socket.socket(
             socket.AF_INET, socket.SOCK_RAW, socket.getprotobyname('icmp')
         )
-    except Exception:
-        _logger.error("Could not create v6 socket")
+    except Exception:  # noqa: BLE001
+        _logger.error("Could not create v4 socket")
         raise
 
     return [socketv6, socketv4]
@@ -161,7 +161,7 @@ class MegaPing(object):
         if conf is None:
             try:
                 self._conf = config.pingconf()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 _logger.critical("Failed to open config file. Using default values.")
                 self._conf = {}
         else:
@@ -196,7 +196,7 @@ class MegaPing(object):
         else:
             try:
                 sockets = make_sockets()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 _logger.error("Tried to create sockets without being root!")
 
             self._sock6 = sockets[0]
@@ -261,7 +261,7 @@ class MegaPing(object):
                     self._sock4.sendto(packet, (host.ip, 0))
                 else:
                     self._sock6.sendto(packet, (host.ip, 0, 0, 0))
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001
                 _logger.info("Failed to ping %s [%s]", host.ip, error)
 
             sleep(self._delay)
@@ -315,7 +315,7 @@ class MegaPing(object):
         packet_class = PacketV6 if is_ipv6 else PacketV4
         try:
             pong = packet_class(raw_pong)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             _logger.critical("could not disassemble packet from %r: %s", sender, error)
             return
 

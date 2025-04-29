@@ -105,7 +105,7 @@ def with_exception_logging(func):
     def _decorator(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception:
+        except Exception:  # noqa: BLE001
             stacktrace = inspect.trace()[1:]
             _logger = logging.getLogger(__name__)
             _logger.exception("An unhandled exception occurred")

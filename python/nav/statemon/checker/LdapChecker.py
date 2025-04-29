@@ -83,7 +83,7 @@ class LdapChecker(AbstractChecker):
             try:
                 conn.search_ext_s(base, scope, filterstr=filtr, timeout=self.timeout)
                 # pylint: disable=W0703
-            except Exception as err:
+            except Exception as err:  # noqa: BLE001
                 return (
                     Event.DOWN,
                     "Failed ldapSearch on %s for %s: %s"
@@ -92,7 +92,7 @@ class LdapChecker(AbstractChecker):
         finally:
             try:
                 conn.unbind()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
 
         return Event.UP, "Ok"
