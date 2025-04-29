@@ -17,12 +17,14 @@ EOF
 update_nav_conf() {
   NAV_USER=${_REMOTE_USER:-nav}
   NAV_CONF="${NAV_CONFIG_DIR}/nav.conf"
+  NAV_UPLOAD_DIR="${UV_PROJECT_ENVIRONMENT}/var/nav/uploads"
+  mkdir -p "$NAV_UPLOAD_DIR"
   echo "Updating $NAV_CONF"
   sed -i "s/^NAV_USER=.*/NAV_USER=${NAV_USER}/" "$NAV_CONF"
   sed -i '/^#DJANGO_DEBUG=True/s/^#//' "$NAV_CONF" || echo "DJANGO_DEBUG=True" >> "$NAV_CONF"
+  sed -i "s,^#UPLOAD_DIR=.*,UPLOAD_DIR=${NAV_UPLOAD_DIR}," "$NAV_CONF" || echo "UPLOAD_DIR=${NAV_UPLOAD_DIR}" >> "$NAV_CONF"
 }
 
-mkdir -p /usr/share/nav/var/uploads && chown "${_REMOTE_USER}" /usr/share/nav/var/uploads
 nav config install "$NAV_CONFIG_DIR"
 update_nav_conf
 update_nav_db_conf
