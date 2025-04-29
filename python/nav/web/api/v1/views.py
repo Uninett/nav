@@ -711,7 +711,9 @@ class ArpViewSet(MachineTrackerViewSet):
       timestamp*
     - `endtime`: *must be set with starttime: lists all active records in the
       period between starttime and endtime*
-    - `ip`
+    - `ip`: *Allows filtering by both individual IP addresses and subnet ranges.
+      Single IP example: "ip=2001:db8:a0b:12f0::1"
+      Subnet example: "ip=10.0.42.0/24"*
     - `mac`: *supports prefix filtering - for instance "mac=aa:aa:aa" will
        return all records where the mac address starts with aa:aa:aa*
     - `netbox`
