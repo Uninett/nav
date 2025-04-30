@@ -126,7 +126,7 @@ def active(request):
                 netbox_id = maint_components[0].value
                 try:
                     netbox = Netbox.objects.get(pk=int(netbox_id))
-                except Exception as error:
+                except Netbox.DoesNotExist as error:
                     _logger.error(
                         'Get netbox %s failed; Exception = %s', netbox_id, error
                     )

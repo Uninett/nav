@@ -146,7 +146,7 @@ def get_status_image_link(status):
     """uplink icon for status"""
     try:
         return STATUS_IMAGE_MAP[status]
-    except Exception:
+    except KeyError:
         return STATUS_IMAGE_MAP[Netbox.UP_DOWN]
 
 

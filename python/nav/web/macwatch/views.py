@@ -79,7 +79,7 @@ def delete_macwatch(request, macwatchid):
         macwatchid = int(macwatchid)
         try:
             m = MacWatch.objects.get(id=macwatchid)
-        except Exception as e:
+        except MacWatch.DoesNotExist as e:
             messages = [e]
             return do_list(request, messages)
 

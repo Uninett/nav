@@ -103,7 +103,12 @@ class TimestampChecker(object):
                 return None
             try:
                 return json.loads(info.value)
-            except Exception:
+            except (
+                AttributeError,
+                json.JSONDecodeError,
+                UnicodeDecodeError,
+                TypeError,
+            ):
                 return None
 
         self.loaded_times = yield db.run_in_thread(_deserialize)
