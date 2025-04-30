@@ -130,10 +130,7 @@ def show_profile(request):
     if order_by not in valid_ordering:
         order_by = 'name'
 
-    try:
-        active_profile = account.alert_preference.active_profile
-    except Exception:
-        active_profile = None
+    active_profile = account.get_active_profile()
 
     if not active_profile:
         new_message(request, _('There\'s no active profile set.'), Messages.NOTICE)
@@ -576,21 +573,17 @@ def profile_time_period_remove(request):
         account = get_account(request)
         time_periods = TimePeriod.objects.filter(pk__in=request.POST.getlist('period'))
         profile = AlertProfile.objects.get(pk=request.POST.get('profile'))
-        try:
-            active_profile = AlertPreference.objects.get(account=account).active_profile
-        except Exception:
-            pass
-        else:
-            if profile == active_profile:
-                new_message(
-                    request,
-                    _(
-                        "Time periods are used in profile %(profile)s, which "
-                        "is the current active profile."
-                    )
-                    % {'profile': profile.name},
-                    Messages.WARNING,
+        active_profile = account.get_active_profile()
+        if active_profile and profile == active_profile:
+            new_message(
+                request,
+                _(
+                    "Time periods are used in profile %(profile)s, which "
+                    "is the current active profile."
                 )
+                % {'profile': profile.name},
+                Messages.WARNING,
+            )
 
         if not time_periods:
             new_message(request, _('No time periods were selected.'), Messages.NOTICE)
