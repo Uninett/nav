@@ -16,6 +16,9 @@
        $('.prefixgraph').each(function (index, element) {
            new GraphFetcher($(element), element.dataset.url);
        });
+       $('.dhcpgraph').each(function (index, element) {
+           new GraphFetcher($(element), element.dataset.url);
+       });
    });
   </script>
 {% endblock %}
@@ -152,6 +155,19 @@
         <div class="rickshaw-container"></div>
       </li>
     {% endfor %}
+  </ul>
+
+  {% comment %} Graph containing DHCP statistics for max, cur and touch {% endcomment %}
+  <h2>DHCP graphs</h2>
+
+  <ul class="small-block-grid-1 large-block-grid-2">
+    {% if graphite_error %}
+      <span class="label alert">Graphite unreachable</span>
+    {% elif has_dhcp_stats %}
+      <li class="dhcpgraph graphitegraph" data-url="{{ vlan.get_dhcp_graph_url }}">
+        <div class="rickshaw-container"></div>
+      </li>
+    {% endif %}
   </ul>
 
 {% endblock %}
