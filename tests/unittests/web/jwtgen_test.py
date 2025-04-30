@@ -93,6 +93,8 @@ def jwtconf_mock(private_key, nav_name) -> str:
         instance = _jwtconf_mock.return_value
         instance.get_nav_name = Mock(return_value=nav_name)
         instance.get_nav_private_key = Mock(return_value=private_key)
+        instance.get_access_token_lifetime = Mock(return_value=timedelta(hours=1))
+        instance.get_refresh_token_lifetime = Mock(return_value=timedelta(days=1))
         yield _jwtconf_mock
 
 

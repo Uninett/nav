@@ -6,11 +6,9 @@ from typing import Any
 from datetime import timedelta
 
 from nav.config import ConfigurationError, NAVConfigParser
+from nav.util import parse_interval
 
 _logger = logging.getLogger('nav.jwtconf')
-
-ACCESS_TOKEN_EXPIRE_DELTA = timedelta(hours=1)
-REFRESH_TOKEN_EXPIRE_DELTA = timedelta(days=1)
 
 
 class JWTConf(NAVConfigParser):
@@ -18,6 +16,8 @@ class JWTConf(NAVConfigParser):
 
     DEFAULT_CONFIG_FILES = [join('webfront', 'jwt.conf')]
     NAV_SECTION = "nav"
+    DEFAULT_ACCESS_TOKEN_LIFETIME = timedelta(hours=1)
+    DEFAULT_REFRESH_TOKEN_LIFETIME = timedelta(days=1)
 
     def get_issuers_setting(self) -> dict[str, Any]:
         """Parses the webfront/jwt.conf config file and returns a dictionary that can
@@ -129,6 +129,28 @@ class JWTConf(NAVConfigParser):
         if not name:
             raise ConfigurationError("Invalid 'name': 'name' must not be empty")
         return name
+
+    def get_access_token_lifetime(self):
+        try:
+            interval = self._get_nav_token_config_option('access_token_lifetime')
+        except ConfigurationError:
+            return self.DEFAULT_ACCESS_TOKEN_LIFETIME
+        try:
+            lifetime = parse_interval(interval)
+        except ValueError:
+            raise ConfigurationError("Invalid 'access_token_lifetime': %s", interval)
+        return timedelta(seconds=lifetime)
+
+    def get_refresh_token_lifetime(self):
+        try:
+            interval = self._get_nav_token_config_option('refresh_token_lifetime')
+        except ConfigurationError:
+            return self.DEFAULT_REFRESH_TOKEN_LIFETIME
+        try:
+            lifetime = parse_interval(interval)
+        except ValueError:
+            raise ConfigurationError("Invalid 'refresh_token_lifetime': %s", interval)
+        return timedelta(seconds=lifetime)
 
     def _get_settings_for_nav_issued_tokens(self):
         if not self.has_section(self.NAV_SECTION):
