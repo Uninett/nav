@@ -33,6 +33,8 @@ Disable with::
 
     $ sudo a2dismod auth_openidc
 
+_ Configuration:
+
 Feide Kundeportal configuration
 ===============================
 

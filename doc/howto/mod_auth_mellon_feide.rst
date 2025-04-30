@@ -17,7 +17,7 @@ First check if the plugin is already installed and enabled::
     $ sudo apache2ctl -M | grep mellon
       auth_mellon_module (shared)
 
-If it is, go straight to `Configuration`_.
+If it is, go straight to `Files needed`_.
 
 If not:
 
@@ -39,6 +39,8 @@ Enable with::
 Disable with::
 
     $ sudo a2dismod auth_mellon
+
+.. _Files needed:
 
 Files needed
 ============
