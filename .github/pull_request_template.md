@@ -19,7 +19,7 @@ More information about contributing to NAV can be found in the
 [Hacker's guide to NAV](https://nav.readthedocs.io/en/latest/hacking/hacking.html#hacker-s-guide-to-nav).
 
 <!-- Add an "X" inside the brackets to confirm -->
-<!-- If not checking one or more of the boxes, please explain why below each. -->
+<!-- If not checking one or more of the boxes, please explain why below each or remove the line if not applicable. -->
 
 * [ ] Added a changelog fragment for [towncrier](https://nav.readthedocs.io/en/latest/hacking/hacking.html#adding-a-changelog-entry)
 * [ ] Added/amended tests for new/changed code
