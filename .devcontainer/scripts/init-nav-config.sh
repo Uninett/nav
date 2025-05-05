@@ -31,3 +31,5 @@ update_nav_db_conf
 
 # Ensure the default virtualenv is in the secure_path when running sudo
 echo "Defaults        secure_path=\"${UV_PROJECT_ENVIRONMENT}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"" | sudo tee /etc/sudoers.d/secure_path_virtualenv
+# Install an empty crontab to avoid the error "no crontab for vscode"
+echo -n | crontab
