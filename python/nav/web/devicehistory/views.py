@@ -119,7 +119,7 @@ def devicehistory_view(request, **_):
     if len(set(valid_params) & set(request.GET.keys())) >= 1:
         form = DeviceHistoryViewFilter(request.GET)
     else:
-        form = DeviceHistoryViewFilter()
+        form = DeviceHistoryViewFilter(DeviceHistoryViewFilter.get_initial())
     if form.is_valid():
         # We need to handle locations as they are tree-based
         selection['room__location'] = add_descendants(selection['room__location'])

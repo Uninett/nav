@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from nav.models.event import EventQueue, EventQueueVar
-from nav.models.manage import Device, Module, NetboxGroup
+from datetime import datetime, timedelta
 
+from nav.models.event import AlertHistory, EventQueue, EventQueueVar
+from nav.models.fields import INFINITY
+from nav.models.manage import Device, Module, NetboxGroup
+from nav.web.devicehistory.forms import DeviceHistoryViewFilter
+
+from django.http.request import QueryDict
 from django.urls import reverse
 from django.utils.encoding import smart_str
+
+import pytest
 
 
 def test_post_device_error_should_succeed(client, localhost):
@@ -99,6 +106,16 @@ def test_get_location_history_should_succeed(client, localhost):
     assert response.status_code == 200
 
 
+def test_get_location_history_with_only_location_parameter_should_succeed(
+    client, localhost_with_alert
+):
+    url = reverse('devicehistory-view')
+    response = client.get(f"{url}?loc={localhost_with_alert.room.location.id}")
+
+    assert response.status_code == 200
+    assert str(localhost_with_alert) in smart_str(response.content)
+
+
 def test_get_room_history_should_succeed(client, localhost):
     url = reverse('devicehistory-view')
     response = client.get(
@@ -138,3 +155,38 @@ def test_get_module_history_should_succeed(db, client, localhost):
     )
 
     assert response.status_code == 200
+
+
+def test_device_history_view_filter_with_initial_values_is_valid():
+    initial_values = DeviceHistoryViewFilter.get_initial()
+    form = DeviceHistoryViewFilter(initial_values)
+    assert form.is_valid()
+
+
+def test_device_history_view_filter_with_initial_values_is_same_as_same_get_parameters():
+    initial_values = DeviceHistoryViewFilter.get_initial()
+    form = DeviceHistoryViewFilter(initial_values)
+    form.is_valid()
+
+    query_string = f"from_date={str(initial_values['from_date'])}&to_date={str(initial_values['to_date'])}&eventtype={initial_values['eventtype']}"
+    form_get_parameters = DeviceHistoryViewFilter(QueryDict(query_string))
+    form_get_parameters.is_valid()
+
+    assert form.cleaned_data == form_get_parameters.cleaned_data
+
+
+@pytest.fixture()
+def localhost_with_alert(localhost):
+    alert = AlertHistory(
+        source_id='ipdevpoll',
+        netbox=localhost,
+        start_time=datetime.now() - timedelta(hours=1),
+        end_time=INFINITY,
+        event_type_id='boxState',
+        value=100,
+        severity=3,
+    )
+    alert.save()
+
+    yield localhost
+    alert.delete()

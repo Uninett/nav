@@ -65,12 +65,18 @@ class DeviceHistoryViewFilter(forms.Form):
     group_by = forms.ChoiceField(choices=groupings, initial='netbox', required=False)
     group_by.widget.attrs.update({"class": "select2"})
 
+    @staticmethod
+    def get_initial():
+        return {
+            'eventtype': 'all',
+            'from_date': date.today() - timedelta(days=7),
+            'to_date': date.today() + timedelta(days=1),
+        }
+
     def __init__(self, *args, **kwargs):
         super(DeviceHistoryViewFilter, self).__init__(*args, **kwargs)
         self.fields['eventtype'].choices = get_event_and_alert_types()
-        self.fields['eventtype'].initial = 'all'
-        self.fields['from_date'].initial = date.today() - timedelta(days=7)
-        self.fields['to_date'].initial = date.today() + timedelta(days=1)
+        self.initial = self.get_initial()
 
         common_class = 'medium-3'
 
