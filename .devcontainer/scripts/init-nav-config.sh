@@ -28,3 +28,6 @@ update_nav_conf() {
 nav config install "$NAV_CONFIG_DIR"
 update_nav_conf
 update_nav_db_conf
+
+# Ensure the default virtualenv is in the secure_path when running sudo
+echo "Defaults        secure_path=\"${UV_PROJECT_ENVIRONMENT}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"" | sudo tee /etc/sudoers.d/secure_path_virtualenv
