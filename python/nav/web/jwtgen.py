@@ -5,6 +5,9 @@ import jwt
 
 from nav.jwtconf import JWTConf, ACCESS_TOKEN_EXPIRE_DELTA, REFRESH_TOKEN_EXPIRE_DELTA
 
+# Alias for datetime.now for mocking purposes
+get_now = datetime.now
+
 
 def generate_access_token(token_data: Optional[dict[str, Any]] = None) -> str:
     """Generates and returns an access token in JWT format.
@@ -34,7 +37,7 @@ def _generate_token(
     else:
         new_token = dict(token_data)
 
-    now = datetime.now(timezone.utc)
+    now = get_now(timezone.utc)
     name = JWTConf().get_nav_name()
     updated_claims = {
         'exp': (now + expiry_delta).timestamp(),
@@ -49,3 +52,18 @@ def _generate_token(
         new_token, JWTConf().get_nav_private_key(), algorithm="RS256"
     )
     return encoded_token
+
+
+def is_active(exp: float, nbf: float) -> bool:
+    """
+    Takes `exp` (expiration time) and `nbf` (not before time) as POSIX timestamps.
+    These represent the claims of a JWT token. `exp` should be the expiration
+    time of the token and `nbf` should be the time when the token becomes active.
+
+    Returns True if `exp` is in the future and `nbf` is in the past or matches
+    the current time.
+    """
+    now = get_now()
+    expires = datetime.fromtimestamp(exp)
+    activates = datetime.fromtimestamp(nbf)
+    return now >= activates and now < expires
