@@ -15,7 +15,7 @@ EOF
 }
 
 update_nav_conf() {
-  NAV_USER=${_REMOTE_USER:-nav}
+  NAV_USER=${USER:-nav}
   NAV_CONF="${NAV_CONFIG_DIR}/nav.conf"
   NAV_UPLOAD_DIR="${UV_PROJECT_ENVIRONMENT}/var/nav/uploads"
   mkdir -p "$NAV_UPLOAD_DIR"
