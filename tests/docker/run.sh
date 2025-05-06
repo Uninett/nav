@@ -18,9 +18,6 @@ case $1 in
     check)
         docker run -t -u $USERID:$GROUPID -v /$TOPSRCDIR:/source --tmpfs //var/lib/postgresql $NAME //source/tests/docker/test.sh
         ;;
-    lint)
-        docker run -t -u $USERID:$GROUPID -v /$TOPSRCDIR:/source --tmpfs //var/lib/postgresql $NAME tox -e pylint
-        ;;
     shell)
         docker run -ti --rm -u $USERID:$GROUPID -v /$TOPSRCDIR:/source --tmpfs //var/lib/postgresql $NAME //bin/bash
         ;;

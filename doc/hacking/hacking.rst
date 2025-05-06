@@ -181,8 +181,8 @@ Coding style
 ============
 
 NAV code should adhere to the Python style guide documented in
-:pep:`8`. PyLint_ is used to automatically validate much of these coding styles
-in our CI system.
+:pep:`8`. Ruff_ and SonarCloud_ are used to automatically validate much of
+these coding styles in our CI system.
 
 More importantly, all Python code in NAV is automatically formatted using
 Black_, a great tool for automatically formatting your code, obviating the need
@@ -533,10 +533,11 @@ __ Github_
 .. _tox: https://tox.readthedocs.io/en/latest/
 .. _Node.js: http://nodejs.org/
 .. _GitHub Actions: https://docs.github.com/en/actions
-.. _pylint: http://www.pylint.org/
 .. _Karma: https://github.com/karma-runner/karma-mocha
 .. _Mocha: http://mochajs.org/
 .. _Chai: http://chaijs.com/
 .. _Black: https://black.readthedocs.io/
 .. _black-macchiato: https://github.com/wbolster/black-macchiato
 .. _pre-commit: https://pre-commit.com/
+.. _Ruff: https://docs.astral.sh/ruff/
+.. _SonarCloud: https://sonarcloud.io/
