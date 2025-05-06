@@ -48,8 +48,7 @@ An example configuration is shown below::
 
 The keypair can be generated like so::
 
-  ssh-keygen -t rsa -b 4096 -m PEM -f jwtRS256.key
-  # Don't add passphrase
+  openssl genrsa -out jwtRS256.key 4096
   openssl rsa -in jwtRS256.key -pubout -outform PEM -out jwtRS256.key.pub
 
 This keypair should ideally only be used for JWT token generation in one NAV instance.
