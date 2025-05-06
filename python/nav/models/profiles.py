@@ -88,6 +88,7 @@ class Account(AbstractBaseUser):
     """NAV's basic account model"""
 
     USERNAME_FIELD = 'login'
+    EMAIL_FIELD = 'email'
     DEFAULT_ACCOUNT = 0
     ADMIN_ACCOUNT = 1
 
@@ -105,6 +106,7 @@ class Account(AbstractBaseUser):
 
     login = VarcharField(unique=True)
     name = VarcharField()
+    email = models.EmailField(null=True, blank=True)  # Not currently used by NAV
     password = VarcharField()
     ext_sync = VarcharField(blank=True)
     preferences = HStoreField(default=dict)
