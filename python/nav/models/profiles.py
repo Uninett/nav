@@ -203,10 +203,12 @@ class Account(AbstractBaseUser):
 
     @property
     def is_anonymous(self):
+        """Returns True if this user represents NAV's anonymous user"""
         return self.id == self.DEFAULT_ACCOUNT
 
     @property
     def is_authenticated(self):
+        """Returns True if this represents an authenticated (non-anonymous) user"""
         return self.id != self.DEFAULT_ACCOUNT
 
     @sensitive_variables('password')
