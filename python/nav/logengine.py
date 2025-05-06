@@ -347,7 +347,6 @@ def read_log_lines(config):
             yield line
 
 
-# pylint: disable=W0703
 def parse_and_insert(
     line,
     database,
@@ -506,7 +505,6 @@ def logengine(config, options):
 
 def swallow_all_but_db_exceptions(func):
     def _swallow(*args, **kwargs):
-        # pylint: disable=try-except-raise
         try:
             return func(*args, **kwargs)
         except db.driver.Error:

@@ -17,7 +17,6 @@
 
 """Model definitions for arnold"""
 
-# pylint: disable=R0903
 
 from django.db import models
 

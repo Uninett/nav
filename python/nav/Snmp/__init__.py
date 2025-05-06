@@ -33,8 +33,6 @@ except ImportError:
 else:
     BACKEND = 'pynetsnmp'
 
-# These wildcard imports are informed, not just accidents.
-# pylint: disable=W0401
 if BACKEND == 'pynetsnmp':
     if sys.platform == "darwin" and not os.getenv("DYLD_LIBRARY_PATH"):
         # horrible workaround for MacOS problems, described at length at
