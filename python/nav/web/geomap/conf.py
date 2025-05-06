@@ -361,7 +361,7 @@ def interpret_configuration(config, filename):
 def conf_eval(expr, filename, linenr):
     try:
         return eval(expr, {})
-    except Exception as err:
+    except Exception as err:  # noqa: BLE001
         raise ConfigurationEvaluationError(expr, err, filename, linenr)
 
 

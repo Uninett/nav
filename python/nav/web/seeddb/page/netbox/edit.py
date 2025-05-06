@@ -221,7 +221,7 @@ def check_snmp_version(ip, profile):
     try:
         snmp = get_snmp_session_for_profile(profile)(ip)
         snmp.get(sysobjectid)
-    except Exception:  # pylint: disable=W0703
+    except Exception:  # noqa: BLE001
         return False
     else:
         return True
@@ -232,7 +232,7 @@ def test_napalm_connectivity(ip_address: str, profile: ManagementProfile) -> dic
     try:
         with napalm.connect(ip_address, profile):
             return {"status": True}
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001
         _logger.exception("Could not connect to %s using NAPALM profile", ip_address)
         return {"status": False, "error_message": str(error)}
 

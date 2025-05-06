@@ -164,7 +164,7 @@ def main():
             except InterfaceError:
                 connection.connection = None
 
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             _logger.critical('Unhandled error: %s', err, exc_info=True)
             sys.exit(1)
 
@@ -241,7 +241,7 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
         _logger = logging.getLogger()
         _logger.addHandler(mailhandler)
         return True
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001
         print(
             "Failed creating SMTP loghandler. Daemon mode disabled. (%s)" % error,
             file=sys.stderr,

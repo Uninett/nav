@@ -144,7 +144,7 @@ def main():
             server.listen(opts.community, trap_handler)
         except SystemExit:
             raise
-        except Exception:
+        except Exception:  # noqa: BLE001
             _logger.critical("Fatal exception ocurred", exc_info=True)
 
     else:
@@ -217,7 +217,7 @@ def trap_handler(trap):
                 'accepted' if accepted else 'ignored',
                 id(trap),
             )
-        except Exception as why:
+        except Exception as why:  # noqa: BLE001
             _logger.exception(
                 "Unhandled exception when handling trap (%s) with %s: %s",
                 id(trap),

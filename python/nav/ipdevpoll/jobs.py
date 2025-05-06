@@ -182,7 +182,7 @@ class JobHandler(object):
             # We very intentionally log and ignore unhandled exception here, to ensure
             # the stability of the ipdevpoll daemon
             # pylint: disable = broad-except
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._logger.exception("Unhandled exception from can_handle(): %r", cls)
                 can_handle = False
             if can_handle:
@@ -449,7 +449,7 @@ class JobHandler(object):
                 manager.cleanup()
         except AbortedJobError:
             raise
-        except Exception:
+        except Exception:  # noqa: BLE001
             self._logger.exception(
                 "Caught exception during cleanup. " "Last manager = %r", manager
             )
@@ -482,7 +482,7 @@ class JobHandler(object):
             return total_time
         except AbortedJobError:
             raise
-        except Exception:
+        except Exception:  # noqa: BLE001
             self._logger.exception(
                 "Caught exception during save. " "Last manager = %s. Last model = %s",
                 manager,
@@ -575,5 +575,5 @@ class JobHandler(object):
             yield db.run_in_thread(_create_record, timestamp)
         except db.ResetDBConnectionError:
             pass  # this is being logged all over the place at the moment
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             _logger.warning("failed to log job to database: %s", error)

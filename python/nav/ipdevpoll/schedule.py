@@ -157,7 +157,7 @@ class NetboxJobScheduler(object):
                 interval=self.job.interval,
             )
             self._current_job = deferred
-        except Exception:
+        except Exception:  # noqa: BLE001
             self._log_unhandled_error(Failure())
             self.reschedule(60)
             return

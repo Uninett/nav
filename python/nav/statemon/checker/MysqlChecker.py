@@ -64,7 +64,7 @@ class MysqlChecker(AbstractChecker):
         finally:
             try:
                 conn.close()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
 
 

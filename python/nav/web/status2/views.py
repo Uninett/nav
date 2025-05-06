@@ -49,7 +49,7 @@ class StatusView(View):
             try:
                 data = base64.b64decode(preferences)
                 return pickle.loads(data)
-            except Exception:  # maybe an old, none-base64 pickle
+            except Exception:  # noqa: BLE001 - maybe an old, none-base64 pickle
                 _logger.exception(
                     "Ignoring potential legacy status preferences for user %s",
                     self.request.account.login,

@@ -146,7 +146,7 @@ def load_plugins(paths):
             mod = __import__(path, globals(), locals(), [parent])
         except ImportError:
             _logger.error('Plugin not found: %s', path)
-        except Exception:
+        except Exception:  # noqa: BLE001
             _logger.exception('Failed to load plugin %s', path)
             continue
 

@@ -362,7 +362,7 @@ def parse_and_insert(
 
     try:
         message = create_message(line, database)
-    except Exception:
+    except Exception:  # noqa: BLE001
         _logger.exception("Unhandled exception during message parse: %s", line)
         return False
 
@@ -378,7 +378,7 @@ def parse_and_insert(
                 exceptiontype,
                 exceptiontypeorigin,
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             _logger.exception("Unhandled exception during message insert: %s", line)
             raise
 
@@ -511,7 +511,7 @@ def swallow_all_but_db_exceptions(func):
             return func(*args, **kwargs)
         except db.driver.Error:
             raise
-        except Exception:
+        except Exception:  # noqa: BLE001
             _logger.exception("Unhandled exception occurred, ignoring.")
 
     return _swallow

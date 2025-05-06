@@ -501,7 +501,7 @@ class AlertAddress(models.Model):
             )
             return False
 
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             _logger.exception(
                 'Unhandled error from %s (the handler has been blacklisted)', self.type
             )

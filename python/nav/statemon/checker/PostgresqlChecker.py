@@ -54,7 +54,7 @@ class PostgresqlChecker(AbstractChecker):
         # pylint: disable=W0703
         try:
             psycopg2.connect(**kwargs)
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             # Get first line of exception message
             msg = str(err).split('\n')[0]
             return Event.DOWN, msg

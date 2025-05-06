@@ -167,7 +167,7 @@ class AlertGenerator(dict):
                 alert.history = history
             try:
                 export.exporter.export(alert)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # we don't want to derail everything internally if external export fails
                 _logger.exception("Ignoring unhandled exception on alert export")
 

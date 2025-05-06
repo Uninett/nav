@@ -59,7 +59,7 @@ class BoostDispatcher(Dispatcher):
         # Initiate connector to Boost
         try:
             self.service = SOAPProxy(self.url)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             raise DispatcherError("Failed to initialize SOAPProxy: %s" % error)
 
     def sendsms(self, phone, msgs):
@@ -88,7 +88,7 @@ class BoostDispatcher(Dispatcher):
                 self.username, self.password, self.sender, phone, sms
             )
             self.logger.debug("BoostDispatcher result: %s", result)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             self.logger.exception(error)
 
         if result:

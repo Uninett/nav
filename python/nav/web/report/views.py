@@ -494,7 +494,7 @@ def report_cache(key_items, query_dict):
         def _cache_lookup(*args, **kwargs):
             try:
                 data = cache.get(cache_key)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 _logger.exception("Exception occurred while hitting the cache")
                 data = None
 
@@ -502,7 +502,7 @@ def report_cache(key_items, query_dict):
                 data = func(*args, **kwargs)
                 try:
                     cache.set(cache_key, data)
-                except Exception:
+                except Exception:  # noqa: BLE001
                     _logger.exception("Exception occurred while caching")
 
             return data

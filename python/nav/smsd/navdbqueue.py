@@ -40,7 +40,7 @@ class NAVDBQueue(object):
         # Open DB connection early so we can detect errors early
         try:
             self._connect()
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             self.logger.exception("Queue failed to initialize. Exiting. (%s)", error)
             sys.exit(1)
 
@@ -72,7 +72,7 @@ class NAVDBQueue(object):
                     minage,
                 )
                 return 0
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self.logger.exception(
                     "Unknown exception caught in " + "cancel(). Exiting."
                 )

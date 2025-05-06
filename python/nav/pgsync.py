@@ -250,7 +250,7 @@ def trap_and_die(exception, message, func, *args, **kwargs):
     """
     try:
         return func(*args, **kwargs)
-    except exception:
+    except exception:  # noqa: BLE001
         die(message)
 
 
