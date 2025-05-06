@@ -16,57 +16,49 @@
         <div class="alert-box {{ m.type }}">{{ m.message }}</div>
     {% endfor %}
 
-    <div class="row">
-        <div class="column medium-6 large-5">
+    <div class="medium-6 large-5">
 
-            <table class="vertitable full-width">
-                <caption>User information</caption>
-                <tr>
-                    <th>Login</th>
-                    <td>{{ account.login }}</td>
-                </tr>
-                <tr>
-                    <th>Name</th>
-                    <td>{{ account.name }}</td>
-                </tr>
-                <tr>
-                    <th>Groups</th>
-                    <td>
-                        {% if account.groups.all %}
-                            <ul class="inside">
-                                {% for g in account.groups.all %}
-                                    <li>{{ g }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            None
-                        {% endif %}
-                    </td>
-                </tr>
-                <tr>
-                    <th>Organizations</th>
-                    <td>
-                        {% if account.organizations.all %}
-                            <ul class="inside">
-                                {% for o in account.organizations.all %}
-                                    <li>{{ o }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            None
-                        {% endif %}
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="column medium-6 large-7">
-            {% include 'custom_crispy_templates/flat_form.html' with form=columns_form %}
-        </div>
-
+        <table class="vertitable full-width">
+            <caption>User information</caption>
+            <tr>
+                <th>Login</th>
+                <td>{{ account.login }}</td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td>{{ account.name }}</td>
+            </tr>
+            <tr>
+                <th>Groups</th>
+                <td>
+                    {% if account.groups.all %}
+                        <ul class="inside">
+                            {% for g in account.groups.all %}
+                                <li>{{ g }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        None
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Organizations</th>
+                <td>
+                    {% if account.organizations.all %}
+                        <ul class="inside">
+                            {% for o in account.organizations.all %}
+                                <li>{{ o }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        None
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
     </div>
-    <div class="row">
-        <div class="column medium-6 large-5">
+    <div class="medium-6 large-5">
 
     {% if account.ext_sync %}
         <p class='alert-box secondary'>
@@ -98,6 +90,5 @@
 
             </form>
         </div>
-    </div>
 
 {% endblock %}
