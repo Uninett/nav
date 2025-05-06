@@ -211,6 +211,24 @@ class Account(AbstractBaseUser):
         """Returns True if this represents an authenticated (non-anonymous) user"""
         return self.id != self.DEFAULT_ACCOUNT
 
+    @property
+    def is_staff(self):
+        """Returns True if this user is a staff member.
+
+        This is only here for compatibility with Django libraries that may expect this to be a django.contrib.auth
+        user model.  NAV has no concept of staff vs superuser.  Either the user is an admin, or they're not.
+        """
+        return self.is_admin()
+
+    @property
+    def is_superuser(self):
+        """Returns True if this user is a superuser.
+
+        This is only here for compatibility with Django libraries that may expect this to be a django.contrib.auth
+        user model.  NAV has no concept of staff vs superuser.  Either the user is an admin, or they're not.
+        """
+        return self.is_admin()
+
     @sensitive_variables('password')
     def set_password(self, password):
         """Sets user password. Copied from nav.db.navprofiles"""
