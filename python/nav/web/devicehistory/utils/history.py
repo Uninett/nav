@@ -208,7 +208,7 @@ def group_history_and_messages(history, messages, group_by=None):
 def describe_search_params(selection):
     data = {}
     for arg, model in (
-        ('room__location', Location),
+        ('loc', Location),
         ('room', Room),
         ('netbox', Netbox),
         ('groups', NetboxGroup),
