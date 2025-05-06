@@ -1319,6 +1319,11 @@ class JWTRefreshViewSet(APIView):
 
     def post(self, request):
         incoming_token = request.data.get('refresh_token')
+        if incoming_token is None:
+            return Response("Missing token", status=status.HTTP_400_BAD_REQUEST)
+        if not isinstance(incoming_token, str):
+            return Response("Invalid token", status=status.HTTP_400_BAD_REQUEST)
+
         token_hash = hash_token(incoming_token)
         try:
             # If hash exists in the database, then we know it is a real token
