@@ -66,9 +66,7 @@
             account is managed through an external system, known as "{{ account.ext_sync }}".
         </p>
     {% else %}
-        <form method="post" id="change-password-form" action="{% url 'webfront-preferences-changepassword' %}">
-          {% include 'custom_crispy_templates/_form_content.html' with form=password_form %}
-        </form>
+        {% include 'custom_crispy_templates/flat_form.html' with form=password_form %}
     {% endif %}
 
         </div>

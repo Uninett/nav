@@ -103,10 +103,7 @@
                   data-dashboard-url="{% url 'add-user-navlet-sensor' %}?sensor_id={{ sensor.pk }}">
             Add to dashboard
           </button>
-          <form method="post">
-            {% include 'custom_crispy_templates/_form_content.html' %}
-            <button type="submit" class="button small">Update settings</button>
-          </form>
+          {% include 'custom_crispy_templates/flat_form.html' %}
         {% else %}
           <h4>Gauge display ranges</h4>
           <div id="gauge-wrapper">
@@ -126,11 +123,7 @@
               Add to dashboard
             </button>
           </div>
-          <form method="post">
-            {% csrf_token %}
-            {{ form }}
-            <button type="submit" class="button small">Update range</button>
-          </form>
+          {% include 'custom_crispy_templates/flat_form.html' %}
         {% endif %}
     </div>
   </div>
