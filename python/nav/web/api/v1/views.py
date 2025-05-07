@@ -47,6 +47,7 @@ from rest_framework.serializers import ValidationError
 
 from oidc_auth.authentication import JSONWebTokenAuthentication
 
+from nav.macaddress import MacAddress
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
@@ -1191,10 +1192,15 @@ class VendorLookup(NAVAPIMixin, APIView):
         mac = request.GET.get('mac', None)
         if not mac:
             return Response("Missing MAC address", status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            results = get_vendor_names([mac])
+            validated_mac = MacAddress(mac)
         except ValueError:
-            return Response("Invalid MAC address", status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                f"Invalid MAC address: '{mac}'", status=status.HTTP_400_BAD_REQUEST
+            )
+
+        results = get_vendor_names([validated_mac])
         return Response(results)
 
     @staticmethod
@@ -1209,53 +1215,63 @@ class VendorLookup(NAVAPIMixin, APIView):
                 "JSON body must represent a list of MAC addresses",
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        try:
-            results = get_vendor_names(mac_addresses)
-        except ValueError:
-            return Response("Invalid MAC address", status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            validated_mac_addresses = validate_mac_addresses(mac_addresses)
+        except ValueError as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+        results = get_vendor_names(validated_mac_addresses)
         return Response(results)
 
 
 @django.db.transaction.atomic
-def get_vendor_names(mac_addresses: Sequence[str]) -> dict[str, str]:
-    """Get vendor names for a list of MAC addresses.
+def get_vendor_names(mac_addresses: Sequence[MacAddress]) -> dict[str, str]:
+    """Get vendor names for a sequence of MAC addresses.
 
     :param mac_addresses: Sequence of MAC addresses in a valid format
         (e.g., "aa:bb:cc:dd:ee:ff").
     :return: A dictionary mapping MAC addresses to vendor names. If the vendor for a
         given MAC address is not found, it will be omitted from the response.
     """
-    cursor = django.db.connection.cursor()
-    cursor.execute(
-        """
-        CREATE TEMPORARY TABLE temp_macaddrs (
-            mac macaddr PRIMARY KEY
-        )
-        """
-    )
-    # Convert list to format executemany needs
-    params = [(mac,) for mac in mac_addresses]
-    try:
-        cursor.executemany(
-            """
-            INSERT INTO temp_macaddrs (mac)
-                VALUES (%s)
-            ON CONFLICT (mac)
-                DO NOTHING
-            """,
-            params,
-        )
-    except django.db.utils.DataError as e:
-        # Invalid mac address
-        raise ValueError(str(e))
+    # Skip SQL query if no MAC addresses are provided
+    if not mac_addresses:
+        return {}
 
-    cursor.execute(
-        """
-        SELECT mac, vendor FROM temp_macaddrs INNER JOIN oui ON trunc(mac)=oui
-        """
-    )
+    # Generate the VALUES part of the SQL query dynamically
+    values = ", ".join(f"('{str(mac)}'::macaddr)" for mac in mac_addresses)
+
+    # Construct the full SQL query
+    query = f"""
+        SELECT mac, vendor
+        FROM (
+            VALUES
+                {values}
+        ) AS temp_macaddrs(mac)
+        INNER JOIN oui ON trunc(temp_macaddrs.mac) = oui.oui;
+    """
+
+    cursor = django.db.connection.cursor()
+    cursor.execute(query)
     rows = cursor.fetchall()
+    cursor.close()
 
     # row[0] is mac address, row[1] is vendor name
     return {str(row[0]): row[1] for row in rows}
+
+
+def validate_mac_addresses(mac_addresses: Sequence[str]) -> list[MacAddress]:
+    """Validates MAC addresses and returns them as MacAddress objects.
+
+    :param mac_addresses: MAC addresses as strings in a valid format
+        (e.g., "aa:bb:cc:dd:ee:ff").
+    :return: List of MacAddress objects.
+    :raises ValueError: If any MAC address is invalid.
+    """
+    validated_macs = []
+    for mac in mac_addresses:
+        try:
+            validated_macs.append(MacAddress(mac))
+        except ValueError:
+            raise ValueError(f"Invalid MAC address: '{mac}'")
+    return validated_macs
