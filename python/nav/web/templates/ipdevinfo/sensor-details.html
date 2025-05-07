@@ -126,11 +126,7 @@
               Add to dashboard
             </button>
           </div>
-          <form method="post">
-            {% csrf_token %}
-            {{ form }}
-            <button type="submit" class="button small">Update range</button>
-          </form>
+          {% include 'custom_crispy_templates/flat_form.html' %}
         {% endif %}
     </div>
   </div>
