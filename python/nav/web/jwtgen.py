@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import jwt
 
-from nav.jwtconf import JWTConf, ACCESS_TOKEN_EXPIRE_DELTA, REFRESH_TOKEN_EXPIRE_DELTA
+from nav.jwtconf import JWTConf
 
 # Alias for datetime.now for mocking purposes
 get_now = datetime.now
@@ -14,7 +14,8 @@ def generate_access_token(token_data: Optional[dict[str, Any]] = None) -> str:
     Will use `token_data` as a basis for claims in the the new token,
     but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`, `token_type`
     """
-    return _generate_token(token_data, ACCESS_TOKEN_EXPIRE_DELTA, "access_token")
+    expiry_delta = JWTConf().get_access_token_lifetime()
+    return _generate_token(token_data, expiry_delta, "access_token")
 
 
 def generate_refresh_token(token_data: Optional[dict[str, Any]] = None) -> str:
@@ -22,7 +23,8 @@ def generate_refresh_token(token_data: Optional[dict[str, Any]] = None) -> str:
     Will use `token_data` as a basis for claims in the the new token,
     but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`, `token_type`
     """
-    return _generate_token(token_data, REFRESH_TOKEN_EXPIRE_DELTA, "refresh_token")
+    expiry_delta = JWTConf().get_refresh_token_lifetime()
+    return _generate_token(token_data, expiry_delta, "refresh_token")
 
 
 def _generate_token(

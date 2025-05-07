@@ -1,3 +1,4 @@
+import datetime
 from mock import patch, mock_open
 from unittest import TestCase
 from nav.jwtconf import JWTConf
@@ -339,3 +340,63 @@ class TestJWTConf(TestCase):
         assert 'jwks-issuer' in settings
         assert 'pem-issuer' in settings
         assert 'local-issuer' in settings
+
+    def test_get_access_token_lifetime_should_return_configured_lifetime(self):
+        config = u"""
+        [nav]
+        private_key=key
+        public_key=key
+        name=nav
+        access_token_lifetime=2h
+        """
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            self.assertEqual(
+                jwtconf.get_access_token_lifetime(), datetime.timedelta(hours=2)
+            )
+
+    def test_get_refresh_token_lifetime_should_return_configured_lifetime(self):
+        config = u"""
+        [nav]
+        private_key=key
+        public_key=key
+        name=nav
+        refresh_token_lifetime=2d
+        """
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            self.assertEqual(
+                jwtconf.get_refresh_token_lifetime(), datetime.timedelta(days=2)
+            )
+
+    def test_if_lifetime_is_not_configured_then_get_access_token_lifetime_should_return_default_lifetime(
+        self,
+    ):
+        config = u"""
+        [nav]
+        private_key=key
+        public_key=key
+        name=nav
+        """
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            self.assertEqual(
+                jwtconf.get_access_token_lifetime(),
+                jwtconf.DEFAULT_ACCESS_TOKEN_LIFETIME,
+            )
+
+    def test_if_lifetime_is_not_configured_then_get_refresh_token_lifetime_should_return_default_lifetime(
+        self,
+    ):
+        config = u"""
+        [nav]
+        private_key=key
+        public_key=key
+        name=nav
+        """
+        with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
+            jwtconf = JWTConf()
+            self.assertEqual(
+                jwtconf.get_refresh_token_lifetime(),
+                jwtconf.DEFAULT_REFRESH_TOKEN_LIFETIME,
+            )
