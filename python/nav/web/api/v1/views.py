@@ -21,7 +21,7 @@ import logging
 from typing import Sequence
 
 from IPy import IP
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, QueryDict
 from django.db.models import Q
 from django.db.models.fields.related import ManyToOneRel as _RelatedObject
 from django.core.exceptions import FieldDoesNotExist
@@ -1205,16 +1205,19 @@ class VendorLookup(NAVAPIMixin, APIView):
 
     @staticmethod
     def post(request):
-        try:
-            mac_addresses = json.loads(request.body.decode('utf-8'))
-        except json.JSONDecodeError:
-            return Response("Invalid JSON", status=status.HTTP_400_BAD_REQUEST)
-
-        if not isinstance(mac_addresses, list):
-            return Response(
-                "JSON body must represent a list of MAC addresses",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        if isinstance(request.data, list):
+            mac_addresses = request.data
+        elif isinstance(request.data, QueryDict):
+            json_string = request.data.get('_content')
+            try:
+                mac_addresses = json.loads(json_string)
+            except json.JSONDecodeError:
+                return Response("Invalid JSON", status=status.HTTP_400_BAD_REQUEST)
+            if not isinstance(mac_addresses, list):
+                return Response(
+                    "JSON body must represent a list of MAC addresses",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         try:
             validated_mac_addresses = validate_mac_addresses(mac_addresses)
