@@ -27,7 +27,7 @@ jobs:
         id: ml
         # You can override MegaLinter flavor used to have faster performances
         # More info at https://megalinter.io/flavors/
-        uses: oxsecurity/megalinter/flavors/python@v8
+        uses: oxsecurity/megalinter/flavors/python@v8.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Validate whole codebase on pushes and only changes on pull requests
