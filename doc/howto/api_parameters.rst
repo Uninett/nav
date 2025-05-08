@@ -159,6 +159,7 @@ Provide access to NAVs unrecognized neighbor data.
 
 :Filters: netbox, source
 
+
 api/vendor/
 -----------
 Returns the vendor(s) for a given MAC address or list of MAC addresses.
