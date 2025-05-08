@@ -55,9 +55,6 @@ def test_allowed_endpoints(db, api_client, token, serializer_models, name, url):
     if name in ['arp', 'cam']:
         # ARP and CAM wants filters
         response = api_client.get("{}?active=1".format(url))
-    elif name == 'vendor':
-        # Vendor wants a MAC address
-        response = api_client.get("{}?mac=aa:bb:cc:dd:ee:ff".format(url))
     else:
         response = api_client.get(url)
     assert response.status_code == 200
@@ -382,11 +379,12 @@ class TestVendorLookupGet:
         response = api_client.get(f"{ENDPOINTS[vendor_endpoint]}?mac={test_mac}")
         assert response.status_code == 400
 
-    def test_if_mac_is_not_provided_it_should_return_400(
+    def test_if_mac_is_not_provided_it_should_return_empty_dict(
         self, db, api_client, vendor_endpoint
     ):
         response = api_client.get(ENDPOINTS[vendor_endpoint])
-        assert response.status_code == 400
+        assert response.status_code == 200
+        assert response.data == {}
 
 
 class TestVendorLookupPost:

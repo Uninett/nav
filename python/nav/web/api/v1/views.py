@@ -1175,6 +1175,7 @@ class VendorLookup(NAVAPIMixin, APIView):
     Responds with a JSON dict mapping the MAC addresses to the corresponding vendors.
     The MAC addresses will have the format `aa:bb:cc:dd:ee:ff`. If the vendor for a
     given MAC address is not found, it will be omitted from the response.
+    If no mac address was supplied, an empty dict will be returned.
 
     Example GET request: `/api/1/vendor/?mac=aa:bb:cc:dd:ee:ff`
 
@@ -1191,7 +1192,7 @@ class VendorLookup(NAVAPIMixin, APIView):
     def get(request):
         mac = request.GET.get('mac', None)
         if not mac:
-            return Response("Missing MAC address", status=status.HTTP_400_BAD_REQUEST)
+            return Response({})
 
         try:
             validated_mac = MacAddress(mac)
