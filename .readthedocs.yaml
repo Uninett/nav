@@ -4,15 +4,12 @@ sphinx:
     configuration: doc/conf.py
     builder: html
 
-python:
-    install:
-      - requirements: doc/requirements.txt
-      - method: pip
-        path: .
-        extra_requirements:
-          - setuptools_scm
-
 build:
   os: ubuntu-22.04
   tools:
-    python: "3.9"
+    python: "3.11"
+  apt_packages:
+    - libsnmp40
+  jobs:
+    post_create_environment:
+      - pip install -e . -r doc/requirements.txt --constraint constraints.txt
