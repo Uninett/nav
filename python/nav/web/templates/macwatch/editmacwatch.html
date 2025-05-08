@@ -3,6 +3,7 @@
 {% block content %}
 
 <form action="." method="post">
+  {% csrf_token %}
   <table class="vertitable">
   <caption>Edit mac watch</caption>
     {{ form.as_table }}

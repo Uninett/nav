@@ -20,6 +20,7 @@
           action="{% url 'devicehistory-module' %}"
             {% endif %}
             >
+      {% csrf_token %}
 
       {% include 'devicehistory/frag_moduletable.html' %}
 

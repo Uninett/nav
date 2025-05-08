@@ -3,6 +3,7 @@
 {% block content %}
   <div class="alert-box">Are you sure you want to cancel the task <b>{{ task.description }}</b>?</div>
   <form action="{% url 'maintenance-cancel' task.id %}" method="post">
+    {% csrf_token %}
     <input type="hidden" name="task_id" value="{{ task.id }}"/>
     <input type="submit" value="Yes, cancel it!" class="button small"/>
     <a href="{% url 'maintenance-active' %}" class="button small secondary">Do
