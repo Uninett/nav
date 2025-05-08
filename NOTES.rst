@@ -24,6 +24,7 @@ Python modules with changed version requirements:
 
 * :mod:`Django` (``>=4.2,<4.3``)
 * :mod:`djangorestframework` (``>=3.12`` - in practice, 3.15 at the time of release)
+* :mod:`napalm` (``>=5.0.0,<5.1.0``)
 
 OUI lookup in Machine Tracker searches
 --------------------------------------
