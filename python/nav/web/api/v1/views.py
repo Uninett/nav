@@ -1208,17 +1208,26 @@ class VendorLookup(NAVAPIMixin, APIView):
     def post(request):
         if isinstance(request.data, list):
             mac_addresses = request.data
+
+        # This adds support for requests via the browseable API
         elif isinstance(request.data, QueryDict):
             json_string = request.data.get('_content')
+            if not json_string:
+                return Response("Empty JSON body", status=status.HTTP_400_BAD_REQUEST)
             try:
                 mac_addresses = json.loads(json_string)
             except json.JSONDecodeError:
                 return Response("Invalid JSON", status=status.HTTP_400_BAD_REQUEST)
             if not isinstance(mac_addresses, list):
                 return Response(
-                    "JSON body must represent a list of MAC addresses",
+                    "Invalid request body. Must be a JSON array of MAC addresses",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+        else:
+            return Response(
+                "Invalid request body. Must be a JSON array of MAC addresses",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             validated_mac_addresses = validate_mac_addresses(mac_addresses)
