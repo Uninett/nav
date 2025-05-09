@@ -18,6 +18,7 @@
 import logging
 from datetime import datetime
 from urllib.parse import urlparse
+
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import TokenAuthentication, BaseAuthentication
@@ -65,6 +66,14 @@ class LoggedInPermission(BasePermission):
     def has_permission(self, request, _view):
         """If user is logged in, it is authorized"""
         return not request.account.is_default_account()
+
+
+class AdminPermission(BasePermission):
+    """Checks if the user is a NAV administrator"""
+
+    def has_permission(self, request, _view):
+        """If user is an admin, it is authorized"""
+        return request.account.is_admin()
 
 
 class TokenPermission(BasePermission):
@@ -157,14 +166,6 @@ class JWTPermission(BasePermission):
         return True
 
 
-class APIPermission(BasePermission):
-    """Checks for correct permissions when accessing the API"""
-
-    def has_permission(self, request, view):
-        """Checks if request is permissable
-        :type request: rest_framework.request.Request
-        """
-        return any(
-            permission().has_permission(request, view)
-            for permission in (LoggedInPermission, TokenPermission, JWTPermission)
-        )
+APITokensPermission = TokenPermission | JWTPermission
+DefaultPermission = AdminPermission | APITokensPermission
+RelaxedPermission = LoggedInPermission | APITokensPermission
