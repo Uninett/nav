@@ -173,3 +173,7 @@ POST: Returns the vendors for given MAC addresses. Requires the MAC addresses
        as a JSON array.
 
 In either case the MAC addresses must be in a valid format.
+Responds with a JSON dict mapping the MAC addresses to the corresponding vendors.
+The MAC addresses will have the format `aa:bb:cc:dd:ee:ff`. If the vendor for a
+given MAC address is not found, it will be omitted from the response.
+If no mac address was supplied, an empty dict will be returned.
