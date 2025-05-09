@@ -37,6 +37,10 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
   testing to Debian Bookworm / Python 3.11
   ([#3284](https://github.com/Uninett/nav/issues/3284))
 
+### Added
+
+- Added a report of software upgrade logs ([#2466](https://github.com/Uninett/nav/pull/2466), [#2457](https://github.com/Uninett/nav/issues/2457))
+
 ### Fixed
 
 - Fix minor incompatibilities with Django 4.2
