@@ -23,6 +23,7 @@
 {% if subscriptions %}
 
 <form action="{% url 'alertprofiles-profile-timeperiod-subscription-remove' %}" method="post">
+    {% csrf_token %}
     <table class="listtable full-width">
         <thead>
             <tr>
@@ -67,6 +68,7 @@
 
 <div class="addexpressionform">
     <form action="{% url 'alertprofiles-profile-timeperiod-subscription-add' %}" method="post">
+        {% csrf_token %}
         <h5>{{ editing|yesno:"Edit,Add new" }} subscription</h5>
         <div class="formcontainer">
 
