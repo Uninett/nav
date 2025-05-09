@@ -53,6 +53,7 @@
 
   {% if selected_group %}
     <form action="{% url 'alertprofiles-permissions-save' %}" method="post">
+      {% csrf_token %}
       <table class="listtable full-width">
         <caption>Set permissions for {{ selected_group.name }}</caption>
 
