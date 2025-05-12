@@ -54,9 +54,10 @@ from nav.web.api.v1 import serializers, alert_serializers
 from nav.web.status2 import STATELESS_THRESHOLD
 from nav.macaddress import MacPrefix
 from .auth import (
-    APIPermission,
     APIAuthentication,
+    DefaultPermission,
     NavBaseAuthentication,
+    RelaxedPermission,
 )
 from .helpers import prefix_collector
 from .filter_backends import (
@@ -68,7 +69,6 @@ from .filter_backends import (
 
 EXPIRE_DELTA = timedelta(days=365)
 MINIMUMPREFIXLENGTH = 4
-
 _logger = logging.getLogger(__name__)
 
 
@@ -209,7 +209,7 @@ class NAVAPIMixin(APIView):
         APIAuthentication,
         JSONWebTokenAuthentication,
     )
-    permission_classes = (APIPermission,)
+    permission_classes = (DefaultPermission,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
     filter_backends = (filters.SearchFilter, DjangoFilterBackend, RelatedOrderingFilter)
     ordering_fields = '__all__'
@@ -1028,6 +1028,8 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     """
 
     filter_backends = (AlertHistoryFilterBackend,)
+    # Logged-in users must be able to access this API to use the status tool
+    permission_classes = (RelaxedPermission,)
     model = event.AlertHistory
     serializer_class = alert_serializers.AlertHistorySerializer
     base_queryset = base = event.AlertHistory.objects.prefetch_related(
