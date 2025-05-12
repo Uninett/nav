@@ -187,8 +187,6 @@ exclude = [
     "python/nav/etc/geomap/config.py",                  # Not actually a Python file
     "python/nav/snmptrapd/handlers/handlertemplate.py"  # Not in production, just a template
 ]
-# Exclude files even when passed directly as argument (for MegaLinter)
-force-exclude = true
 
 [tool.ruff.lint]
 select = ["BLE001", "E4", "E7", "E9", "F"]
