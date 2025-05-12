@@ -159,7 +159,7 @@
                 {{ interface.to_netbox }}
               </a>
 
-              <span class="hidden" title="{{ maxtime }}"></span>
+              <span class="hidden" title="{{ maxtime|date:"Y-m-d H:i" }}"></span>
             </td>
           {% else %}
             {# If not connected to other equipment, use information from the cam table to indicate last used #}
@@ -173,7 +173,7 @@
 
               {% if not interface.trunk %}
                 {{ interface.last_cam|days_since }}
-                <span class="hidden" title="{{ interface.last_cam|default:'Never' }}"></span>
+                <span class="hidden" title="{{ interface.last_cam|date:"Y-m-d H:i"|default:'Never' }}"></span>
               {% endif %}
             </td>
           {% endif %}

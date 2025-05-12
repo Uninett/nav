@@ -11,6 +11,30 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [5.13.1] - 2025-05-12
+
+### Security
+
+- Lock down API access for unprivileged users
+
+  By default, NAV granted full API access to logged-in users, regardless of
+  their configured privilege level.  This would give unprivileged users access
+  to manipulate NAV configuration and even elevate their own user privileges to
+  administrator level.  [Read the full security advisory
+  here.](https://github.com/Uninett/nav/security/advisories/GHSA-gprr-5vvf-582g)
+
+### Changed
+
+- Update NAPALM dependency to 5.0 to keep NAV web GUI working
+  ([#2358](https://github.com/Uninett/nav/issues/2358))
+
+### Fixed
+
+- Fix filtering of 'Last seen' and sorting by 'Last active' in netbox
+  interfaces view in room info
+  ([#3329](https://github.com/Uninett/nav/issues/3329))
+
+
 ## [5.13.0] - 2025-03-07
 
 ### Security
