@@ -7,11 +7,12 @@ repos:
     -   id: mixed-line-ending
     -   id: end-of-file-fixer
         exclude: &exclude_pattern '^changelog.d/'
--   repo: https://github.com/psf/black
-    rev: 25.1.0
-    hooks:
-    -   id: black
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.8
+    rev: v0.11.9
     hooks:
-      - id: ruff
+      # Run the linter
+    -   id: ruff
+        name: "Ruff linting"
+        # Run the formatter
+    -   id: ruff-format
+        name: "Ruff formatting"
