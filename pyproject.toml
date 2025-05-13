@@ -194,6 +194,9 @@ force-exclude = true
 select = ["BLE001", "E4", "E7", "E9", "F"]
 ignore = ["E402", "E722", "E731", "F403"]
 
+[tool.ruff.format]
+quote-style = "preserve"
+
 [tool.towncrier]
 directory = "changelog.d"
 filename = "CHANGELOG.md"
