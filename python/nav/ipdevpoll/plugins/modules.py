@@ -25,6 +25,7 @@ entity and an interface from IF-MIB is kept.  For each mapping found,
 the interface will have its module set to be whatever the ancestor
 module of the physical entity is.
 """
+
 import configparser
 import re
 

@@ -17,6 +17,7 @@
 Utilities for authentication/authorization in NAV that is independent of
 login method.
 """
+
 import logging
 
 from nav.models.profiles import Account

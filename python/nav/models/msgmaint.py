@@ -62,7 +62,7 @@ class Message(models.Model):
         db_table = 'message'
 
     def __str__(self):
-        return u'"%s" by %s' % (self.title, self.author)
+        return '"%s" by %s' % (self.title, self.author)
 
 
 class MaintenanceTaskManager(models.Manager):
@@ -124,13 +124,13 @@ class MaintenanceTask(models.Model):
         db_table = 'maint_task'
 
     def __str__(self):
-        return u'"%s" by %s' % (self.description, self.author)
+        return '"%s" by %s' % (self.description, self.author)
 
     def full_representation(self):
         """
         Help function to represent a task with desc, start and end.
         """
-        return u'%s (%s - %s)' % (
+        return '%s (%s - %s)' % (
             self.description,
             self.start_time,
             ('No end time' if self.is_endless() else self.end_time),
@@ -189,7 +189,7 @@ class MaintenanceComponent(models.Model):
         unique_together = (('maintenance_task', 'key', 'value'),)  # Primary key
 
     def __str__(self):
-        return u'%s=%s' % (self.key, self.value)
+        return '%s=%s' % (self.key, self.value)
 
     def get_component_class(self) -> models.Model:
         """Returns a Model class based on the database table name stored in key"""
@@ -213,7 +213,7 @@ class MessageToMaintenanceTask(models.Model):
         unique_together = (('message', 'maintenance_task'),)  # Primary key
 
     def __str__(self):
-        return u'Message %s, connected to task %s' % (
+        return 'Message %s, connected to task %s' % (
             self.message,
             self.maintenance_task,
         )

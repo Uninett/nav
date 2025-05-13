@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ "bgpState event plugin"""
+
 from nav.eventengine.alerts import AlertGenerator
 from nav.eventengine.plugins import delayedstate
 

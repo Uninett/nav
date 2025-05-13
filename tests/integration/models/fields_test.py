@@ -10,7 +10,6 @@ from nav.models.logger import ErrorError
 
 class LegacyGenericForeignKeyTest(DjangoTransactionTestCase):
     def setUp(self):
-
         self.task = MaintenanceTask(
             start_time=dt(2018, 1, 1),
             end_time=dt(2018, 12, 1),

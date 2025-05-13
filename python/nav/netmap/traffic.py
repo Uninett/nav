@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Functions for attaching traffic metadata to netmap"""
+
 import logging
 from collections import defaultdict
 
@@ -50,8 +51,7 @@ class InterfaceLoad(object):
 
     def __repr__(self):
         return (
-            "<InterfaceLoad in_bps={0!r} out_bps={1!r} load_in_percent={2!r} "
-            "css={3!r}>"
+            "<InterfaceLoad in_bps={0!r} out_bps={1!r} load_in_percent={2!r} css={3!r}>"
         ).format(self.in_bps, self.out_bps, self.load_in_percent, self.rgb)
 
     def reversed(self):

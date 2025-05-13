@@ -29,7 +29,6 @@ order.
 
 """
 
-
 import re
 
 # This module is NOT deprecated, even though many of the functions in it are
@@ -259,7 +258,7 @@ class MacPrefix(object):
         digitpos = [pos for pos, char in enumerate(base) if char in string.hexdigits]
         digitpos = digitpos[self._mask_len - 1]
         base = base[: digitpos + 1]
-        return base.rstrip(u''.join(DELIMS_AND_STEPS.keys()))
+        return base.rstrip(''.join(DELIMS_AND_STEPS.keys()))
 
     def __repr__(self):
         return "MacPrefix(%r)" % str(self)

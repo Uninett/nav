@@ -24,6 +24,7 @@ by servicemon and pinger.
 Implements the singleton pattern ensuring only one
 instance created.
 """
+
 import os
 from nav.config import read_flat_config, NAV_CONFIG
 

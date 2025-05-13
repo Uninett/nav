@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utility methods to get extract extra characteristics from ports."""
+
 import logging
 from datetime import datetime
 from operator import attrgetter
@@ -426,16 +427,16 @@ def get_interface_counter_graph_url(
     out_series = 'alias({0},"Out")'.format(out_series)
 
     titlemap = dict(
-        octets=u'Traffic on {shortname}:{ifname} {ifalias}',
-        errors=u'Errors on {shortname}:{ifname} {ifalias}',
-        ucastpkts=u'Unicast packets on {shortname}:{ifname}',
-        multicastpkts=u'Multicast packets on {shortname}:{ifname}',
-        broadcastpkts=u'Broadcast packets on {shortname}:{ifname}',
-        discards=u'Discarded packets on {shortname}:{ifname}',
+        octets='Traffic on {shortname}:{ifname} {ifalias}',
+        errors='Errors on {shortname}:{ifname} {ifalias}',
+        ucastpkts='Unicast packets on {shortname}:{ifname}',
+        multicastpkts='Multicast packets on {shortname}:{ifname}',
+        broadcastpkts='Broadcast packets on {shortname}:{ifname}',
+        discards='Discarded packets on {shortname}:{ifname}',
     )
-    title = titlemap.get(kind.lower(), u'{ifname}').format(
+    title = titlemap.get(kind.lower(), '{ifname}').format(
         ifname=interface.ifname,
-        ifalias=(u"(%s)" % interface.ifalias) if interface.ifalias else u'',
+        ifalias=("(%s)" % interface.ifalias) if interface.ifalias else '',
         sysname=interface.netbox.sysname,
         shortname=interface.netbox.get_short_sysname(),
     )

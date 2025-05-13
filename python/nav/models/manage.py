@@ -622,7 +622,7 @@ class NetboxInfo(models.Model):
         unique_together = (('netbox', 'key', 'variable', 'value'),)
 
     def __str__(self):
-        return u'%s="%s"' % (self.variable, self.value)
+        return '%s="%s"' % (self.variable, self.value)
 
     @classmethod
     def cache_set(cls, netbox, key, variable, value):
@@ -841,7 +841,7 @@ class NetboxPrefix(models.Model):
         unique_together = (('netbox', 'prefix'),)
 
     def __str__(self):
-        return u'%s at %s' % (self.netbox.sysname, self.prefix.net_address)
+        return '%s at %s' % (self.netbox.sysname, self.prefix.net_address)
 
     def save(self, *_args, **_kwargs):
         """Does nothing, since this models a database view."""
@@ -944,7 +944,7 @@ class Module(models.Model):
         unique_together = (('netbox', 'name'),)
 
     def __str__(self):
-        return u'{name} at {netbox}'.format(
+        return '{name} at {netbox}'.format(
             name=self.name or self.module_number, netbox=self.netbox
         )
 
@@ -1053,7 +1053,7 @@ class Memory(models.Model):
 
     def __str__(self):
         if self.used is not None and self.size is not None and self.size != 0:
-            return u'%s, %d%% used' % (self.type, self.used * 100 // self.size)
+            return '%s, %d%% used' % (self.type, self.used * 100 // self.size)
         else:
             return self.type
 
@@ -1080,9 +1080,9 @@ class Room(models.Model):
 
     def __str__(self):
         if self.description:
-            return u'%s (%s)' % (self.id, self.description)
+            return '%s (%s)' % (self.id, self.description)
         else:
-            return u'%s' % (self.id)
+            return '%s' % (self.id)
 
     def get_absolute_url(self):
         return reverse('room-info', kwargs={'roomid': self.pk})
@@ -1147,9 +1147,9 @@ class Location(models.Model, TreeMixin):
 
     def __str__(self):
         if self.description:
-            return u'{} ({})'.format(self.id, self.description)
+            return '{} ({})'.format(self.id, self.description)
         else:
-            return u'{}'.format(self.id)
+            return '{}'.format(self.id)
 
     def get_all_rooms(self):
         """Return a queryset returning all rooms in this location and
@@ -1185,9 +1185,9 @@ class Organization(models.Model, TreeMixin):
 
     def __str__(self):
         if self.description:
-            return u'{o.id} ({o.description})'.format(o=self)
+            return '{o.id} ({o.description})'.format(o=self)
         else:
-            return u'{o.id}'.format(o=self)
+            return '{o.id}'.format(o=self)
 
     def extract_emails(self):
         """Naively extract email addresses from the contact string"""
@@ -1209,7 +1209,7 @@ class Category(models.Model):
         verbose_name_plural = 'categories'
 
     def __str__(self):
-        return u'%s (%s)' % (self.id, self.description)
+        return '%s (%s)' % (self.id, self.description)
 
     def is_gw(self):
         """Is this a router?"""
@@ -1279,7 +1279,7 @@ class NetboxCategory(models.Model):
         unique_together = (('netbox', 'category'),)  # Primary key
 
     def __str__(self):
-        return u'%s in category %s' % (self.netbox, self.category)
+        return '%s in category %s' % (self.netbox, self.category)
 
 
 class NetboxType(models.Model):
@@ -1302,7 +1302,7 @@ class NetboxType(models.Model):
         unique_together = (('vendor', 'name'),)
 
     def __str__(self):
-        return u'%s (%s from %s)' % (self.name, self.description, self.vendor)
+        return '%s (%s from %s)' % (self.name, self.description, self.vendor)
 
     def get_enterprise_id(self):
         """Returns the type's enterprise ID as an integer.
@@ -1432,7 +1432,7 @@ class Prefix(models.Model):
 
     def __str__(self):
         if self.vlan:
-            return u'%s (vlan %s)' % (self.net_address, self.vlan)
+            return '%s (vlan %s)' % (self.net_address, self.vlan)
         else:
             return self.net_address
 
@@ -1515,11 +1515,11 @@ class Vlan(models.Model):
         db_table = 'vlan'
 
     def __str__(self):
-        result = u''
+        result = ''
         if self.vlan:
-            result += u'%d' % self.vlan
+            result += '%d' % self.vlan
         else:
-            result += u'N/A'
+            result += 'N/A'
         if self.net_ident:
             result += ' (%s)' % self.net_ident
         return result
@@ -1595,7 +1595,7 @@ class PrefixUsage(models.Model):
         db_table = 'prefix_usage'
 
     def __str__(self):
-        return u"{}:{}".format(self.prefix.net_address, self.usage.id)
+        return "{}:{}".format(self.prefix.net_address, self.usage.id)
 
 
 class Usage(models.Model):
@@ -1611,7 +1611,7 @@ class Usage(models.Model):
         ordering = ['id']
 
     def __str__(self):
-        return u'%s (%s)' % (self.id, self.description)
+        return '%s (%s)' % (self.id, self.description)
 
 
 class Arp(models.Model):
@@ -1644,7 +1644,7 @@ class Arp(models.Model):
         db_table = 'arp'
 
     def __str__(self):
-        return u'%s to %s' % (self.ip, self.mac)
+        return '%s to %s' % (self.ip, self.mac)
 
 
 #######################################################################
@@ -1689,7 +1689,7 @@ class SwPortVlan(models.Model):
         unique_together = (('interface', 'vlan'),)
 
     def __str__(self):
-        return u'%s, on vlan %s' % (self.interface, self.vlan)
+        return '%s, on vlan %s' % (self.interface, self.vlan)
 
 
 class SwPortAllowedVlan(models.Model):
@@ -1749,7 +1749,7 @@ class SwPortAllowedVlan(models.Model):
         return set(bits.get_set_bits())
 
     def __str__(self):
-        return u'Allowed vlans for swport %s' % self.interface
+        return 'Allowed vlans for swport %s' % self.interface
 
 
 class SwPortBlocked(models.Model):
@@ -1818,7 +1818,7 @@ class AdjacencyCandidate(models.Model):
         )
 
     def __str__(self):
-        return u'%s:%s %s candidate %s:%s' % (
+        return '%s:%s %s candidate %s:%s' % (
             self.netbox,
             self.interface,
             self.source,
@@ -1848,7 +1848,7 @@ class NetboxVtpVlan(models.Model):
         unique_together = (('netbox', 'vtp_vlan'),)
 
     def __str__(self):
-        return u'%d, at %s' % (self.vtp_vlan, self.netbox)
+        return '%d, at %s' % (self.vtp_vlan, self.netbox)
 
 
 class Cam(models.Model):
@@ -1880,7 +1880,7 @@ class Cam(models.Model):
         )
 
     def __str__(self):
-        return u'%s, %s' % (self.mac, self.netbox)
+        return '%s, %s' % (self.mac, self.netbox)
 
 
 #######################################################################
@@ -1986,7 +1986,7 @@ class Interface(models.Model):
     gone_since = models.DateTimeField()
 
     class Meta(object):
-        db_table = u'interface'
+        db_table = 'interface'
         ordering = ('baseport', 'ifname')
 
     def __init__(self, *args, **kwargs):
@@ -1996,11 +1996,11 @@ class Interface(models.Model):
         self.time_since_activity_cache = {}
 
     def __str__(self):
-        return u'{ifname} at {netbox}'.format(ifname=self.ifname, netbox=self.netbox)
+        return '{ifname} at {netbox}'.format(ifname=self.ifname, netbox=self.netbox)
 
     @property
     def audit_logname(self):
-        template = u'{netbox}:{ifname}'
+        template = '{netbox}:{ifname}'
         return template.format(
             ifname=self.ifname, netbox=self.netbox.get_short_sysname()
         )
@@ -2231,7 +2231,7 @@ class InterfaceStack(models.Model):
     )
 
     class Meta(object):
-        db_table = u'interface_stack'
+        db_table = 'interface_stack'
 
 
 class InterfaceAggregate(models.Model):
@@ -2251,7 +2251,7 @@ class InterfaceAggregate(models.Model):
     )
 
     class Meta(object):
-        db_table = u'interface_aggregate'
+        db_table = 'interface_aggregate'
 
 
 class IanaIftype(models.Model):
@@ -2262,7 +2262,7 @@ class IanaIftype(models.Model):
     descr = VarcharField()
 
     class Meta(object):
-        db_table = u'iana_iftype'
+        db_table = 'iana_iftype'
 
 
 class RoutingProtocolAttribute(models.Model):
@@ -2279,7 +2279,7 @@ class RoutingProtocolAttribute(models.Model):
     metric = models.IntegerField()
 
     class Meta(object):
-        db_table = u'rproto_attr'
+        db_table = 'rproto_attr'
 
 
 class GatewayPeerSession(models.Model):
@@ -2310,7 +2310,7 @@ class GatewayPeerSession(models.Model):
     adminstatus = VarcharField()
 
     class Meta(object):
-        db_table = u'peersession'
+        db_table = 'peersession'
 
     def get_peer_as_netbox(self):
         """If the peer of this partner is a known Netbox, it is returned.
@@ -2526,7 +2526,7 @@ class Sensor(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return u"Sensor '{}' on {}".format(
+        return "Sensor '{}' on {}".format(
             self.human_readable or self.internal_name, self.netbox
         )
 
@@ -2641,10 +2641,10 @@ class Sensor(models.Model):
 
 
 class PowerSupplyOrFan(models.Model):
-    STATE_UP = u'y'
-    STATE_DOWN = u'n'
-    STATE_UNKNOWN = u'u'
-    STATE_WARNING = u'w'
+    STATE_UP = 'y'
+    STATE_DOWN = 'n'
+    STATE_UNKNOWN = 'u'
+    STATE_WARNING = 'w'
 
     STATE_CHOICES = (
         (STATE_UP, "Up"),
@@ -2732,7 +2732,7 @@ class UnrecognizedNeighbor(models.Model):
         ordering = ('remote_id',)
 
     def __str__(self):
-        return u'%s:%s %s neighbor %s (%s)' % (
+        return '%s:%s %s neighbor %s (%s)' % (
             self.netbox.sysname,
             self.interface.ifname,
             self.source,
@@ -2760,7 +2760,7 @@ class IpdevpollJobLog(models.Model):
         db_table = 'ipdevpoll_job_log'
 
     def __str__(self):
-        return u"Job %s for %s ended in %s at %s, after %s seconds" % (
+        return "Job %s for %s ended in %s at %s, after %s seconds" % (
             self.job_name,
             self.netbox.sysname,
             'success' if self.success else 'failure',

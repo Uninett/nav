@@ -41,7 +41,7 @@ _logger = logging.getLogger('nav.macwatch')
 
 # Occurences of the mac-address nearest to the edges has highest
 # priority
-LOCATION_PRIORITY = {u'GSW': 1, u'GW': 1, u'SW': 2, u'EDGE': 3}
+LOCATION_PRIORITY = {'GSW': 1, 'GW': 1, 'SW': 2, 'EDGE': 3}
 
 
 def prioritize_location(cam_objects):
@@ -175,7 +175,7 @@ def main():
                 # continue with next mac if not.
                 if len(macwatch_matches) == 1:
                     _logger.info(
-                        "Mac-address is active, but have not moved " "since last check"
+                        "Mac-address is active, but have not moved since last check"
                     )
                     continue
 
@@ -205,7 +205,7 @@ def main():
                     )
                     new_macwatch_match.save()
                 else:
-                    _logger.warning("Failed to post event, no alert will be " "given.")
+                    _logger.warning("Failed to post event, no alert will be given.")
 
     _logger.info(
         "--> Done checking for macs in %.3f seconds <--", time.time() - start_time

@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Utils for the image upload views"""
+
 import errno
 import hashlib
 import time

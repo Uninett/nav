@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Machine tracker forms"""
+
 from django import forms
 
 from nav.macaddress import MacPrefix
@@ -44,7 +45,7 @@ class MachineTrackerForm(forms.Form):
             # -1 has a specific meaning of "only active", for backwards
             # compatibility. Anything else is an error.
             raise forms.ValidationError(
-                "I can't see into the future. " "Please enter a positive number."
+                "I can't see into the future. Please enter a positive number."
             )
 
         validate_timedelta_for_overflow(days=data)

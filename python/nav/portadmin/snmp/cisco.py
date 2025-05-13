@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Cisco specific PortAdmin SNMP handling"""
+
 import logging
 from typing import Optional, Sequence
 

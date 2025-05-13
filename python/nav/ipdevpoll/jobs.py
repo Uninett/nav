@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Job handling."""
+
 import time
 import datetime
 import pprint
@@ -163,8 +164,7 @@ class JobHandler(object):
         )
         if list(invalid_plugins):
             self._logger.error(
-                "Non-existent plugins were configured for job "
-                "%r (ignoring them): %r",
+                "Non-existent plugins were configured for job %r (ignoring them): %r",
                 self.name,
                 list(invalid_plugins),
             )
@@ -217,7 +217,7 @@ class JobHandler(object):
                 )
             elif failure.check(SuggestedReschedule):
                 self._logger.debug(
-                    "Plugin %s suggested a reschedule in " "%d seconds",
+                    "Plugin %s suggested a reschedule in %d seconds",
                     plugin_instance,
                     failure.value.delay,
                 )
@@ -451,7 +451,7 @@ class JobHandler(object):
             raise
         except Exception:  # noqa: BLE001
             self._logger.exception(
-                "Caught exception during cleanup. " "Last manager = %r", manager
+                "Caught exception during cleanup. Last manager = %r", manager
             )
             import django.db
 
@@ -484,7 +484,7 @@ class JobHandler(object):
             raise
         except Exception:  # noqa: BLE001
             self._logger.exception(
-                "Caught exception during save. " "Last manager = %s. Last model = %s",
+                "Caught exception during save. Last manager = %s. Last model = %s",
                 manager,
                 getattr(manager, 'cls', None),
             )

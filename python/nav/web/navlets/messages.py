@@ -14,12 +14,12 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module comment"""
+
 from nav.web.navlets import Navlet
 from nav.web.webfront.utils import current_messages
 
 
 class MessagesNavlet(Navlet):
-
     title = 'Messages'
     description = 'Displays messages given by NAV admins'
     refresh_interval = 60 * 1000

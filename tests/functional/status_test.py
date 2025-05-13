@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Selenium tests for Status"""
+
 from time import sleep
 import pytest
 from selenium.webdriver.common.by import By
@@ -34,9 +35,9 @@ def test_panel_should_toggle_when_clicked(statuspage):
     panel, filter_toggle = statuspage
     initial_state = panel.is_displayed()
     filter_toggle.click()
-    assert (
-        initial_state != panel.is_displayed()
-    ), 'Clicking filter_toggle did not do anything'
+    assert initial_state != panel.is_displayed(), (
+        'Clicking filter_toggle did not do anything'
+    )
 
 
 def test_remember_last_panel_state(selenium, statuspage):

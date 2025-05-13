@@ -18,7 +18,7 @@ from nav.models.fields import PointField
 
 class TestCIDRField(object):
     def test_to_python_empty(self):
-        falsey = (None, u'', 0, False, [], {}, set(), 0.0)
+        falsey = (None, '', 0, False, [], {}, set(), 0.0)
         field = CIDRField()
         for value in falsey:
             result = field.to_python(value)
@@ -26,22 +26,22 @@ class TestCIDRField(object):
 
     def test_to_python_valid_cidr(self):
         field = CIDRField()
-        cidr4 = u'192.168.0.0/23'
+        cidr4 = '192.168.0.0/23'
         result4 = field.to_python(cidr4)
         assert cidr4 == result4
-        cidr6 = u'1234:dead:beef::/64'
+        cidr6 = '1234:dead:beef::/64'
         result6 = field.to_python(cidr6)
         assert cidr6 == result6
 
     def test_to_python_valid_ip(self):
         field = CIDRField()
-        ip4 = u'192.168.0.0'
+        ip4 = '192.168.0.0'
         result4 = field.to_python(ip4)
         assert ip4 == result4
         bip4 = b'192.168.0.0'
         bresult4 = field.to_python(bip4)
         assert ip4 == bresult4
-        ip6 = u'1234:dead:beef::63'
+        ip6 = '1234:dead:beef::63'
         result6 = field.to_python(ip6)
         assert ip6 == result6
         bip6 = b'1234:dead:beef::63'
@@ -50,7 +50,7 @@ class TestCIDRField(object):
 
     def test_to_python_invalid(self):
         field = CIDRField()
-        values = (u'333.222.999.0', u'blåbærsyltetøy', 300, 3.1415, [True])
+        values = ('333.222.999.0', 'blåbærsyltetøy', 300, 3.1415, [True])
         for value in values:
             with pytest.raises(exceptions.ValidationError):
                 field.to_python(value)
@@ -58,7 +58,7 @@ class TestCIDRField(object):
     def test_to_python_seemingly_valid(self):
         # IPY works on CIDRs for networks, not hosts
         field = CIDRField()
-        ip6 = u'1234:dead:beef::63/23'
+        ip6 = '1234:dead:beef::63/23'
         with pytest.raises(exceptions.ValidationError):
             field.to_python(ip6)
 
@@ -67,9 +67,9 @@ class TestDateTimeInfinityField(object):
     def test_get_db_prep_value_infinity(self):
         field = DateTimeInfinityField()
         result_min = field.get_db_prep_value(dt.min, connection)
-        assert result_min == u'-infinity'
+        assert result_min == '-infinity'
         result_max = field.get_db_prep_value(dt.max, connection)
-        assert result_max == u'infinity'
+        assert result_max == 'infinity'
 
     def test_get_db_prep_value_prepared_other(self):
         field = DateTimeInfinityField()
@@ -107,10 +107,10 @@ class TestDictAsJsonField(object):
 
     def test_to_python_json(self):
         field = DictAsJsonField()
-        value = u'{"a": "b"}'
+        value = '{"a": "b"}'
         result = field.to_python(value)
         assert result == {"a": "b"}
-        value = u'[1, 2, 3]'
+        value = '[1, 2, 3]'
         result = field.to_python(value)
         assert result == [1, 2, 3]
         value = b'[1, 2, 3]'
@@ -142,7 +142,7 @@ class TestDictAsJsonField(object):
     def test_get_prep_value_filled(self):
         field = DictAsJsonField()
         result = field.get_prep_value({'a': 'b'})
-        assert result == u'{"a": "b"}'
+        assert result == '{"a": "b"}'
 
 
 class TestLegacyGenericForeignKey(object):

@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Getting graphs of NAV-collected data from Graphite"""
+
 import re
 
 from django.urls import reverse
@@ -133,14 +134,14 @@ class Graph(object):
 
     def __init__(
         self,
-        title=u'',
+        title='',
         width=480,
         height=250,
         targets=None,
         magic_targets=None,
         **kwargs,
     ):
-        self.args = dict(template=u'nav', width=width, height=height)
+        self.args = dict(template='nav', width=width, height=height)
         self.args.update(kwargs)
         if title:
             self.args['title'] = title

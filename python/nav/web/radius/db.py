@@ -93,7 +93,6 @@ class LogDetailQuery(SQLQuery):
         self.parameters = (self.logid,)
 
     def _format(self, row):
-
         try:
             message = row[LOG_DETAILFIELDS.index('message')]
             return map(
@@ -213,7 +212,6 @@ class LogSearchQuery(SQLQuery):
         }
 
     def _format(self, row):
-
         try:
             message = row[LOG_SEARCHRESULTFIELDS.index('message')]
             return map(
@@ -392,7 +390,6 @@ class AcctSearchQuery(SQLQuery):
         #    interval.
 
         if timemode:
-
             # If we have already specified some criteria, we need to AND
             # it with the date search
             if self.query.find("WHERE", 0, -5) != -1:
@@ -422,9 +419,7 @@ class AcctSearchQuery(SQLQuery):
                         acctstarttime >= timestamp '%(searchstart)s')
                     )
                     )
-                    UNION """ % {
-                    "searchstart": searchstart
-                }
+                    UNION """ % {"searchstart": searchstart}
                 self.query += tmp_where_clause + self.query
                 self.parameters += self.parameters
                 self.query += """
@@ -436,12 +431,9 @@ class AcctSearchQuery(SQLQuery):
                         (acctstarttime + (acctsessiontime * interval '1 sec'
                         )) >= timestamp '%(searchstart)s')
                     )
-                                """ % {
-                    "searchstart": searchstart
-                }
+                                """ % {"searchstart": searchstart}
 
             if timemode == "timestamp":
-
                 if timestampslack == "":
                     timestampslack = 0
 
@@ -519,7 +511,6 @@ class AcctSearchQuery(SQLQuery):
             ]
 
     def make_stats(self):
-
         sessionstats = set()
         total_time, total_sent, total_received = 0, 0, 0
 
@@ -534,7 +525,6 @@ class AcctSearchQuery(SQLQuery):
         return total_time, total_sent, total_received
 
     def _format(self, row):
-
         if self.userdns and row[4]:
             self.ips_to_lookup.add(row[4])
         if self.nasdns and row[5]:
@@ -560,7 +550,6 @@ class AcctSearchQuery(SQLQuery):
         )
 
     def _replace_ip_with_hostname(self, result, lookup_result):
-
         useraddr = (
             lookup_result.get(result.framedipaddress, [''])[0]
             if self.userdns
@@ -608,7 +597,6 @@ class AcctDetailQuery(SQLQuery):
         self.parameters = (self.rad_acct_id,)
 
     def _format(self, row):
-
         fields = dict(zip(ACCT_DETAILSFIELDS, row))
 
         if 'nasipaddress' in fields:
@@ -698,7 +686,6 @@ class AcctChartsQuery(SQLQuery):
         # which probably differs by a few hundreds of a second, and doesn't
         # make any real difference here anyway.
         if chart == "sent" or chart == "recv" or chart == "sentrecv":
-
             self.query = """
                     SELECT
                     username,

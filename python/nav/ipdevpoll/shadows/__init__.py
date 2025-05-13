@@ -21,6 +21,7 @@ object", in the sense that access to member attributes will not result in
 database I/O.
 
 """
+
 from collections import defaultdict
 import IPy
 
@@ -223,7 +224,7 @@ class Module(Shadow):
                 other.device.serial,
             )
 
-            other.name = u"%s (%s)" % (other.name, other.device.serial)
+            other.name = "%s (%s)" % (other.name, other.device.serial)
             other.save()
 
     def _find_name_duplicates(self):
@@ -447,7 +448,7 @@ class Vlan(Shadow):
             )
             if vlans:
                 self._logger.debug(
-                    "get_existing_model: %d matches found for " "vlan+net_ident: %r",
+                    "get_existing_model: %d matches found for vlan+net_ident: %r",
                     len(vlans),
                     self,
                 )

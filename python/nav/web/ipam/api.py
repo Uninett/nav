@@ -20,7 +20,6 @@ API specific code for the private IPAM API. Exports a router for easy mounting.
 
 """
 
-
 from rest_framework import viewsets, status, routers
 from rest_framework import serializers
 from rest_framework.response import Response

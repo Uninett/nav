@@ -20,6 +20,7 @@ YAML-based definitions. These class definitions are dynamically inserted into th
 module's namespace.
 
 """
+
 from os.path import splitext
 import yaml
 from jnpr.junos.factory import FactoryLoader

@@ -29,7 +29,6 @@ STEP_SAVE = 2  # Update the objects
 
 
 def move(request, model, form_model, redirect, title_attr='id', extra_context=None):
-
     if not extra_context:
         extra_context = {}
 

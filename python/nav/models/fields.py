@@ -40,9 +40,9 @@ UNRESOLVED = Q(end_time__gte=INFINITY)
 class DateTimeInfinityField(models.DateTimeField):
     def get_db_prep_value(self, value, connection, prepared=False):
         if value == datetime.max:
-            value = u'infinity'
+            value = 'infinity'
         elif value == datetime.min:
-            value = u'-infinity'
+            value = '-infinity'
         else:
             return super(DateTimeInfinityField, self).get_db_prep_value(
                 value, connection, prepared=prepared
@@ -228,7 +228,7 @@ class LegacyGenericForeignKey(FieldCacheMixin):
 
     def __set__(self, instance, value):
         if instance is None:
-            raise AttributeError(u"%s must be accessed via instance" % self.name)
+            raise AttributeError("%s must be accessed via instance" % self.name)
 
         table_name = None
         fkey = None

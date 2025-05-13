@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms for seeddb netbox view"""
+
 import logging
 from socket import error as SocketError
 
@@ -81,8 +82,7 @@ class NetboxModelForm(forms.ModelForm):
             'profiles',
         ]
         help_texts = {
-            'master': 'Select a master device when this IP Device is a virtual'
-            ' instance'
+            'master': 'Select a master device when this IP Device is a virtual instance'
         }
 
     def __init__(self, *args, **kwargs):

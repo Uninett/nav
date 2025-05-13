@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """SMTP service checker"""
+
 import re
 import socket
 import smtplib

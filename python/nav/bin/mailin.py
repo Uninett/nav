@@ -131,7 +131,7 @@ def add_mailin_subsystem():
 
     cursor.execute("select * from subsystem where name='mailin'")
     if cursor.rowcount == 0:
-        cursor.execute("INSERT INTO subsystem (name, descr) " "VALUES ('mailin', '')")
+        cursor.execute("INSERT INTO subsystem (name, descr) VALUES ('mailin', '')")
     conn.commit()
 
 

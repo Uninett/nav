@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Template tags for the maintenance tool"""
+
 from django import template
 
 from nav.web.maintenance.utils import MissingComponent

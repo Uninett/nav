@@ -92,14 +92,14 @@ def get_sudoer(request):
 
 
 class SudoRecursionError(Exception):
-    msg = u"Already posing as another user"
+    msg = "Already posing as another user"
 
     def __str__(self):
         return self.msg
 
 
 class SudoNotAdminError(Exception):
-    msg = u"Not admin"
+    msg = "Not admin"
 
     def __str__(self):
         return self.msg

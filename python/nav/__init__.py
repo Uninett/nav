@@ -16,6 +16,7 @@
 """
 Provides a common root package for the NAV python library.
 """
+
 import time
 import warnings
 

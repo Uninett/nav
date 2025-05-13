@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Hewlett-Packard specific PortAdmin SNMP handling"""
+
 from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors
 from nav.enterprise.ids import VENDOR_ID_HEWLETT_PACKARD

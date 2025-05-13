@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ "moduleState event plugin"""
+
 import datetime
 
 from nav.eventengine.alerts import AlertGenerator
@@ -61,7 +62,7 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
     def _get_down_alert(self):
         if self._is_chassis_down():
             self._logger.info(
-                "%s: Containing chassis is down, not posting " "moduleDown",
+                "%s: Containing chassis is down, not posting moduleDown",
                 self.get_target(),
             )
             return
@@ -81,7 +82,7 @@ class ModuleStateHandler(delayedstate.DelayedStateHandler):
         """Posts the actual warning alert"""
         if self._is_chassis_down():
             self._logger.info(
-                "%s: Containing chassis is down, not posting " "moduleDownWarning",
+                "%s: Containing chassis is down, not posting moduleDownWarning",
                 self.get_target(),
             )
             return

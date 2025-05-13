@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """View controller for PortAdmin"""
+
 import logging
 import json
 
@@ -308,7 +309,7 @@ def fetch_voice_vlan_for_netbox(request: HttpRequest, handler: ManagementHandler
         # Should this be reported? At the moment I do not think so.
         return
     if len(voice_vlans_on_netbox) > 1:
-        messages.error(request, 'Multiple voice vlans configured on this ' 'netbox')
+        messages.error(request, 'Multiple voice vlans configured on this netbox')
         return
 
     return voice_vlans_on_netbox[0]
@@ -431,9 +432,9 @@ def set_ifalias(account, handler: ManagementHandler, interface, request):
                 interface.ifalias = ifalias
                 LogEntry.add_log_entry(
                     account,
-                    u'set-ifalias',
-                    u'{actor}: {object} - ifalias set to "%s"' % ifalias,
-                    subsystem=u'portadmin',
+                    'set-ifalias',
+                    '{actor}: {object} - ifalias set to "%s"' % ifalias,
+                    subsystem='portadmin',
                     object=interface,
                 )
                 _logger.info(
@@ -477,9 +478,9 @@ def set_vlan(account, handler: ManagementHandler, interface, request):
             interface.vlan = vlan
             LogEntry.add_log_entry(
                 account,
-                u'set-vlan',
-                u'{actor}: {object} - vlan set to "%s"' % vlan,
-                subsystem=u'portadmin',
+                'set-vlan',
+                '{actor}: {object} - vlan set to "%s"' % vlan,
+                subsystem='portadmin',
                 object=interface,
             )
             _logger.info(
@@ -564,9 +565,9 @@ def set_admin_status(handler: ManagementHandler, interface, request: HttpRequest
             if adminstatus == status_up:
                 LogEntry.add_log_entry(
                     account,
-                    u'enable-interface',
-                    u'{actor} enabled interface {object}',
-                    subsystem=u'portadmin',
+                    'enable-interface',
+                    '{actor} enabled interface {object}',
+                    subsystem='portadmin',
                     object=interface,
                 )
                 _logger.info(
@@ -579,9 +580,9 @@ def set_admin_status(handler: ManagementHandler, interface, request: HttpRequest
             elif adminstatus == status_down:
                 LogEntry.add_log_entry(
                     account,
-                    u'disable-interface',
-                    u'{actor} disabled interface {object}',
-                    subsystem=u'portadmin',
+                    'disable-interface',
+                    '{actor} disabled interface {object}',
+                    subsystem='portadmin',
                     object=interface,
                 )
                 _logger.info(
@@ -684,10 +685,10 @@ def handle_trunk_edit(request, agent, interface):
     )
     LogEntry.add_log_entry(
         request.account,
-        u'set-vlan',
-        u'{actor}: {object} - native vlan: "%s", trunk vlans: "%s"'
+        'set-vlan',
+        '{actor}: {object} - native vlan: "%s", trunk vlans: "%s"'
         % (native_vlan, trunked_vlans),
-        subsystem=u'portadmin',
+        subsystem='portadmin',
         object=interface,
     )
 

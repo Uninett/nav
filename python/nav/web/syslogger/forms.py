@@ -24,7 +24,7 @@ def _choice_values(model, field_name):
     choice_list = model.objects.values_list(field_name).distinct()
     choices = [(choice[0], choice[0]) for choice in choice_list]
     choices.sort()
-    choices.insert(0, ('', u'(All)'))
+    choices.insert(0, ('', '(All)'))
     return choices
 
 
@@ -36,7 +36,7 @@ class LoggerGroupSearchForm(forms.Form):
     mnemonic = forms.ChoiceField(required=False)
     origin = forms.ChoiceField(required=False)
     category = forms.ModelChoiceField(
-        queryset=LoggerCategory.objects.all(), required=False, empty_label=u'(All)'
+        queryset=LoggerCategory.objects.all(), required=False, empty_label='(All)'
     )
     timestamp_from = forms.DateTimeField(input_formats=DATEFORMAT)
     timestamp_to = forms.DateTimeField(input_formats=DATEFORMAT)

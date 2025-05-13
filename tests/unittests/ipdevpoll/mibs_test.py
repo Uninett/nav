@@ -284,7 +284,7 @@ def test_zero_dateandtime_parses_properly():
 
 
 def test_non_bytes_dateandtime_should_not_be_parsed():
-    parsed = parse_dateandtime_tc(u'\xdf\x07\x05\x0e\x0c\x1e*\x05+\x02\x00')
+    parsed = parse_dateandtime_tc('\xdf\x07\x05\x0e\x0c\x1e*\x05+\x02\x00')
     assert parsed is None
 
 

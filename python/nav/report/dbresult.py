@@ -64,8 +64,9 @@ class DatabaseResult(object):
 
         except psycopg2.DataError as error:
             self.error = (
-                "Data error! Some of your input data is of an "
-                "invalid type: {}".format(error)
+                "Data error! Some of your input data is of an invalid type: {}".format(
+                    error
+                )
             )
         else:
             self.error = report_config.error

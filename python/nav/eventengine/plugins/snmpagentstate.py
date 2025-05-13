@@ -42,7 +42,7 @@ class SnmpAgentStateHandler(DelayedStateHandler):
             return alert
         else:
             self._logger.info(
-                "%s has gone down in the meantime, " "not posting snmpAgentDown alert",
+                "%s has gone down in the meantime, not posting snmpAgentDown alert",
                 self.get_target(),
             )
 

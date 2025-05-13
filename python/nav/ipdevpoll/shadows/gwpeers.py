@@ -15,7 +15,6 @@
 #
 """Handling of gateway protocol state changes"""
 
-
 from functools import partial
 
 from django.db import transaction
@@ -72,7 +71,7 @@ class GatewayPeerSessionManager(DefaultManager):
     def cleanup(self):
         if self._sessions_to_remove:
             self._logger.info(
-                "Removing these peering sessions, that seem to " "have disappeared: %r",
+                "Removing these peering sessions, that seem to have disappeared: %r",
                 self._sessions_to_remove,
             )
             for session in self._sessions_to_remove:
@@ -160,7 +159,7 @@ class GatewayPeerSession(Shadow):
 
         proto = self._protocol_map.get(self.protocol, None)
         self._logger.info(
-            "dispatching event (%s) for %s %s state change" " from %s to %s",
+            "dispatching event (%s) for %s %s state change from %s to %s",
             event.varmap['alerttype'],
             proto,
             peerid,

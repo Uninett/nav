@@ -16,7 +16,6 @@
 #
 """Bulk import format parsers."""
 
-
 import csv
 import re
 import io

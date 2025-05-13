@@ -22,7 +22,6 @@ host. Useful for testing or debugging individual servicemon plugins.
 
 """
 
-
 import argparse
 import sys
 

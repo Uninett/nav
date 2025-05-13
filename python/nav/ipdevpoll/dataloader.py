@@ -33,6 +33,7 @@ from the database can be executed in a separate thread to avoid
 interfering with the daemon's asynchronous operations.
 
 """
+
 from collections import defaultdict
 import logging
 

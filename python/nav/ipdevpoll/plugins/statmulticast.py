@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Collect multicast statistics and send to Graphite"""
+
 import time
 import logging
 from collections import Counter

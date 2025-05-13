@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ "LLDP-MIB handling"""
+
 import socket
 from collections import namedtuple
 

@@ -24,6 +24,7 @@ Required reading list:
 * http://www.iana.org/assignments/icmpv6-parameters
 
 """
+
 import struct
 import array
 

@@ -136,9 +136,7 @@ def create_prefix_graph(request, prefixid):
 
     path = partial(metric_path_for_prefix, prefix.net_address)
     ip_count = (
-        'alpha('
-        'color(cactiStyle(alias(stacked({0}), "IP addresses ")), "green"),'
-        '0.8)'
+        'alpha(color(cactiStyle(alias(stacked({0}), "IP addresses ")), "green"),0.8)'
     ).format(path('ip_count'))
     ip_range = 'color(cactiStyle(alias({0}, "Max addresses")), "red")'.format(
         path('ip_range')

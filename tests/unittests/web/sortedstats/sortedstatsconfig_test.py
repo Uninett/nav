@@ -8,7 +8,7 @@ class TestSortedStatsConfif(TestCase):
         pass
 
     def test_correct_config_should_pass(self):
-        config = u"""
+        config = """
             [myreport]
             view=cpu_routers_highestmax
             timeframe=hour
@@ -27,7 +27,7 @@ class TestSortedStatsConfif(TestCase):
         self.assertEqual(reports, expected_reports)
 
     def test_config_ignores_other_timestamps(self):
-        config = u"""
+        config = """
             [myreport]
             view=cpu_routers_highestmax
             timeframe=day
@@ -39,7 +39,7 @@ class TestSortedStatsConfif(TestCase):
         self.assertEqual(reports, dict())
 
     def test_invalid_config_returns_no_report(self):
-        config = u"""
+        config = """
             [myreport]
             view=cpu_routers_highestmax
             timeframe=invalid

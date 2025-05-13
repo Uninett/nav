@@ -19,6 +19,7 @@
 Retrieves IANAs current list of assigned enterprise numbers, and outputs
 the data NAV wants, as Python code.
 """
+
 import sys
 import os
 from collections import namedtuple, Counter
@@ -82,7 +83,7 @@ def parse_enterprises(filehandle):
             organization = filehandle.readline().decode('utf-8').strip()
             contact = filehandle.readline().decode('utf-8').strip()
             email = filehandle.readline().decode('utf-8').strip().replace('&', '@')
-            if email == u'---none---':
+            if email == '---none---':
                 email = None
             yield Enterprise(decimal, organization, contact, email)
 

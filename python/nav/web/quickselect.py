@@ -51,7 +51,7 @@ class QuickSelect(object):
         self.module_multi = kwargs.pop('module_multiple', True)
 
         for key in kwargs:
-            raise TypeError('__init__() got an unexpected keyword argument ' '%s' % key)
+            raise TypeError('__init__() got an unexpected keyword argument %s' % key)
 
         self.netbox_set = (
             Netbox.objects.with_chassis_serials().order_by('sysname').values()

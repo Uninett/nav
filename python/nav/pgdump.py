@@ -17,6 +17,7 @@
 Program to dump the raw contents of the NAV PostgreSQL database,
 with optional data filtering.
 """
+
 import sys
 import os
 import subprocess

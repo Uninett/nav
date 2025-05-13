@@ -424,7 +424,6 @@ class Crontab(object):
         return self.content[pos[0] + 1 : pos[1]]
 
     def __setitem__(self, key, content):
-
         block = ['##block %s##' % key, '##end##']
         if isinstance(content, str):
             block[1:1] = content.split('\n')

@@ -47,7 +47,7 @@ class MacWatch(models.Model):
     prefix_length = models.IntegerField(db_column='prefix_length', null=True)
 
     class Meta(object):
-        db_table = u'macwatch'
+        db_table = 'macwatch'
         ordering = ('created',)
 
     def __str__(self):
@@ -95,10 +95,10 @@ class MacWatchMatch(models.Model):
     posted = models.DateTimeField(db_column='posted', auto_now_add=True)
 
     class Meta(object):
-        db_table = u'macwatch_match'
+        db_table = 'macwatch_match'
 
     def __str__(self):
-        return u'id=%s; macwatch = %s; cam = %s; posted = %s' % (
+        return 'id=%s; macwatch = %s; cam = %s; posted = %s' % (
             self.id,
             self.macwatch,
             self.cam,

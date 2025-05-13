@@ -48,18 +48,18 @@ def test_mac_address_address_contains_illegal_value():
 def test_mac_address_should_return_same_address_value_with_colon():
     param = 'e42f45726e76'
     mac_addr = MacAddress(param)
-    assert str(mac_addr) == u'e4:2f:45:72:6e:76'
+    assert str(mac_addr) == 'e4:2f:45:72:6e:76'
 
 
 def test_mac_address_mac_addres_as_parameter_should_return_same_address():
     param = 'e42f45726e76'
     ma = MacAddress(param)
     mac_addr = MacAddress(ma)
-    assert str(mac_addr) == u'e4:2f:45:72:6e:76'
+    assert str(mac_addr) == 'e4:2f:45:72:6e:76'
 
 
 def test_mac_address_return_same_address_value_with_colon():
-    param = u'e4:2f:45:72:6e:76'
+    param = 'e4:2f:45:72:6e:76'
     mac_addr = MacAddress(param)
     assert str(mac_addr) == param
 
@@ -67,31 +67,31 @@ def test_mac_address_return_same_address_value_with_colon():
 def test_mac_address_return_same_address_value_without_dash():
     param = 'e4-2f-45-72-6e-76'
     mac_addr = MacAddress(param)
-    assert str(mac_addr) == u'e4:2f:45:72:6e:76'
+    assert str(mac_addr) == 'e4:2f:45:72:6e:76'
 
 
 def test_mac_address_return_same_address_value_without_spaces():
     param = 'e4 2f 45 72 6e 76'
     mac_addr = MacAddress(param)
-    assert str(mac_addr) == u'e4:2f:45:72:6e:76'
+    assert str(mac_addr) == 'e4:2f:45:72:6e:76'
 
 
 def test_mac_address_return_same_address_value_without_dot():
     param = 'e42f.4572.6e76'
     mac_addr = MacAddress(param)
-    assert str(mac_addr) == u'e4:2f:45:72:6e:76'
+    assert str(mac_addr) == 'e4:2f:45:72:6e:76'
 
 
 def test_mac_address_return_same_address_value_when_byte_string():
     param = b'\xe4\x2f\x45\x72\x6e\x76'
     mac_addr = MacAddress(MacAddress.from_octets(param))
-    assert str(mac_addr) == u'e4:2f:45:72:6e:76'
+    assert str(mac_addr) == 'e4:2f:45:72:6e:76'
 
 
 def test_mac_address_with_byte_string_prefix_should_return_same_address():
     param = b'\xe4\x2f\x45\x72\x6e\x76'
     mac_addr = MacAddress(MacAddress.from_octets(param))
-    assert str(mac_addr) == u'e4:2f:45:72:6e:76'
+    assert str(mac_addr) == 'e4:2f:45:72:6e:76'
 
 
 def test_mac_address_to_string_without_delimiter_return_same_address():
@@ -121,7 +121,7 @@ def test_mac_address_to_string_with_dot_delimiter_return_same_address():
 def test_mac_address_param_as_int_should_return_same_in_hex():
     param = 11111110000
     mac_addr = MacAddress(param)
-    assert str(mac_addr) == u'00:02:96:46:15:70'
+    assert str(mac_addr) == '00:02:96:46:15:70'
 
 
 def test_mac_addresses_are_equal():
@@ -166,37 +166,37 @@ def test_mac_address_should_compare_with_string():
 def test_mac_address_with_byte_string_prefix_should_return_zero_padded_addr():
     param = b'\xe4\x2f\x45\x72'
     mac_addr = MacAddress.from_octets(param)
-    assert str(mac_addr) == u'00:00:e4:2f:45:72'
+    assert str(mac_addr) == '00:00:e4:2f:45:72'
 
 
 def test_macprefix_with_colon_prefix_should_return_same_prefix():
     param = 'e4:2f:45:f'
     mac_addr = MacPrefix(param)
-    assert str(mac_addr) == u'e4:2f:45:f'
+    assert str(mac_addr) == 'e4:2f:45:f'
 
 
 def test_macprefix_with_dash_prefix_should_return_same_prefix():
     param = 'e4-2f-45-f'
     mac_addr = MacPrefix(param)
-    assert str(mac_addr) == u'e4:2f:45:f'
+    assert str(mac_addr) == 'e4:2f:45:f'
 
 
 def test_macprefix_with_dot_prefix_should_return_same_prefix():
     param = 'e42f.45f'
     mac_addr = MacPrefix(param)
-    assert str(mac_addr) == u'e4:2f:45:f'
+    assert str(mac_addr) == 'e4:2f:45:f'
 
 
 def test_macprefix_should_return_zero_padded_when_address_start_with_zero():
-    param = u'01:01:01'
+    param = '01:01:01'
     mac_addr = MacPrefix(param)
-    assert str(mac_addr) == u'01:01:01'
+    assert str(mac_addr) == '01:01:01'
 
 
 def test_macprefix_should_return_zero_padded_when_address_start_with_5_zeros():
-    param = u'00:00:01'
+    param = '00:00:01'
     mac_addr = MacPrefix(param)
-    assert str(mac_addr) == u'00:00:01'
+    assert str(mac_addr) == '00:00:01'
 
 
 def test_macprefix_has_correct_length_with_prefix_length_six():
@@ -206,13 +206,13 @@ def test_macprefix_has_correct_length_with_prefix_length_six():
 
 
 def test_macprefix_has_correct_length_with_prefix_length_seven():
-    param = u'e4-2f-45-3'
+    param = 'e4-2f-45-3'
     mac_addr = MacPrefix(param)
     assert len(mac_addr) == 1048576
 
 
 def test_macprefix_has_correct_length_with_prefix_length_eigth():
-    param = u'e42f.453d'
+    param = 'e42f.453d'
     mac_addr = MacPrefix(param)
     assert len(mac_addr) == 65536
 
@@ -226,16 +226,16 @@ def test_macprefix_has_correct_length_with_full_length_address():
 def test_macprefix_should_return_correct_value_with_zero_key():
     param = 'e42f.45'
     mac_addr = MacPrefix(param)
-    assert str(mac_addr[0]) == u'e4:2f:45:00:00:00'
+    assert str(mac_addr[0]) == 'e4:2f:45:00:00:00'
 
 
 def test_macprefix_should_return_correct_value_with_key_equal_256():
-    param = u'e4:2f:45:3d'
+    param = 'e4:2f:45:3d'
     mac_addr = MacPrefix(param)
-    assert str(mac_addr[157]) == u'e4:2f:45:3d:00:9d'
+    assert str(mac_addr[157]) == 'e4:2f:45:3d:00:9d'
 
 
 def test_macprefix_should_return_correct_value_with_last_key():
     param = 'e4-2f-45'
     mac_addr = MacPrefix(param)
-    assert str(mac_addr[-1]) == u'e4:2f:45:ff:ff:ff'
+    assert str(mac_addr[-1]) == 'e4:2f:45:ff:ff:ff'

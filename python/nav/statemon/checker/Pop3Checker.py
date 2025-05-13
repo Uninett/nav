@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """POP3 service checker"""
+
 import socket
 import poplib
 

@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """FTP Service Checker"""
+
 import contextlib
 from ftplib import FTP
 

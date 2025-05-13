@@ -151,12 +151,10 @@ class Report(object):
         uri_new = {}
 
         for key, value in uri_hash.items():
-
             if self.fields.count(key):
                 key_index = self.fields.index(key)
 
                 if self.shown.count(key_index):
-
                     uri_new[key_index] = value
 
         return uri_new
@@ -218,7 +216,6 @@ class Report(object):
 
             # change if the name exist in the overrider hash
             if title in sums:
-
                 # Sum the results for a given title
                 part_sum = 0
                 for fmt in self.formatted:
@@ -268,16 +265,13 @@ class Report(object):
 
         newtable = Table()
         for line in self.formatted:
-
             newline = Row()
             for field in self.shown:
-
                 newfield = Cell()
 
                 # the number of fields shown may be larger than the size
                 # of the tuple returned from the database
                 try:
-
                     if self.extra.count(self.field_num_map[field]):
                         text = self.fields[field]
                     else:
@@ -289,7 +283,6 @@ class Report(object):
                 newfield.set_text(text)
 
                 if field in self.uri:
-
                     uri = self.uri[field]
 
                     links = link_pattern.findall(uri)
@@ -395,11 +388,11 @@ class Cell(object):
 
     text = uri = explanation = sum = None
 
-    def __init__(self, text=u"", uri=u"", explanation=u""):
+    def __init__(self, text="", uri="", explanation=""):
         self.set_text(text)
         self.set_hyperlink(uri)
         self.set_explanation(explanation)
-        self.sum = u""
+        self.sum = ""
 
     def set_text(self, text):
         """Sets the contents of the cell to the text specified

@@ -16,7 +16,6 @@
 #
 """High level synchronouse NAV API for NetSNMP"""
 
-
 from collections import namedtuple
 from ctypes import (
     c_int,

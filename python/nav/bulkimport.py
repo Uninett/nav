@@ -18,7 +18,6 @@
 # no importer implementations have public methods, disable R0903 warning
 # pylint: disable=R0903
 
-
 import json
 
 from django.core.exceptions import ValidationError

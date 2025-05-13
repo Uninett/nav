@@ -167,7 +167,7 @@ class TimePeriodForm(forms.ModelForm):
     start = forms.TimeField(
         initial='08:00',
         input_formats=['%H:%M:%S', '%H:%M', '%H'],
-        help_text=_(u'Valid time formats are HH:MM and HH'),
+        help_text=_('Valid time formats are HH:MM and HH'),
     )
 
     def __init__(self, *args, **kwargs):
@@ -286,7 +286,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                 error_messages={
                     'required': 'Alert address is a required field.',
                     'invalid_choice': (
-                        'The selected alert address is an ' 'invalid choice.'
+                        'The selected alert address is an invalid choice.'
                     ),
                 },
                 label='Send alerts to',
@@ -298,7 +298,7 @@ class AlertSubscriptionForm(forms.ModelForm):
                 error_messages={
                     'required': 'Filter group is a required field.',
                     'invalid_choice': (
-                        'The selected filter group is an ' 'invalid choice.'
+                        'The selected filter group is an invalid choice.'
                     ),
                 },
                 label='Watch',
@@ -310,9 +310,7 @@ class AlertSubscriptionForm(forms.ModelForm):
             )
             self.fields['type'].label = 'When'
             self.fields['type'].widget.attrs.update({"class": "select2"})
-            self.fields[
-                'type'
-            ].help_text = """
+            self.fields['type'].help_text = """
             <dl>
                 <dt>Immediately</dt>
                 <dd>Send the alert as soon as alertengine has processed it.</dd>
@@ -409,7 +407,7 @@ class FilterGroupForm(forms.Form):
     owner = forms.BooleanField(
         required=False,
         label='Private',
-        help_text=_(u'Uncheck to allow all users to use this filter group.'),
+        help_text=_('Uncheck to allow all users to use this filter group.'),
     )
     name = forms.CharField(required=True)
     description = forms.CharField(required=False)
@@ -457,8 +455,8 @@ class FilterForm(forms.Form):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
     owner = forms.BooleanField(
         required=False,
-        label=u'Private',
-        help_text=_(u'Uncheck to allow all users to use this filter.'),
+        label='Private',
+        help_text=_('Uncheck to allow all users to use this filter.'),
     )
     name = forms.CharField(required=True)
 
@@ -516,9 +514,9 @@ class MatchFieldForm(forms.ModelForm):
         ),
         initial=300,
         help_text=_(
-            u'Only this many options will be available in the '
-            u'list. Only does something when "Show list" is '
-            u'checked.'
+            'Only this many options will be available in the '
+            'list. Only does something when "Show list" is '
+            'checked.'
         ),
     )
 

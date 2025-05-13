@@ -33,13 +33,13 @@ class TemplateTagsTest(unittest.TestCase):
 
         self.assertEqual(time_since(None), "Never")
         self.assertEqual(
-            time_since(timestamp_calc(seconds=(10 * minute + 10))), u"10\xa0mins"
+            time_since(timestamp_calc(seconds=(10 * minute + 10))), "10\xa0mins"
         )
         self.assertEqual(
-            time_since(timestamp_calc(seconds=(1 * minute + 5))), u"1\xa0min"
+            time_since(timestamp_calc(seconds=(1 * minute + 5))), "1\xa0min"
         )
-        self.assertEqual(time_since(timestamp_calc(0)), u"Now")
-        self.assertEqual(time_since(datetime.max), u"Now")
+        self.assertEqual(time_since(timestamp_calc(0)), "Now")
+        self.assertEqual(time_since(datetime.max), "Now")
 
     def test_is_max_timestamp(self):
         self.assertTrue(is_max_timestamp(datetime.max))

@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a EtherLike-MIB MibRetriever and associated functionality."""
+
 from twisted.internet import defer
 from nav.smidumps import get_mib
 from . import mibretriever

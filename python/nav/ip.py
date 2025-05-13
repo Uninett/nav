@@ -18,6 +18,7 @@ This module exists only to work around deficiencies in IPy, but could
 potentially evolve to become a facade for other modules in the event of a
 transition away from the IPy library.
 """
+
 import IPy
 
 

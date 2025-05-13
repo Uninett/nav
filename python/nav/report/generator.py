@@ -97,7 +97,6 @@ class Generator(object):
 
 class ReportList(object):
     def __init__(self, config_files):
-
         self.reports = []
         report_dict = {}
 
@@ -194,7 +193,6 @@ class ConfigParser(object):
         config = self.configuration
 
         for line in conf_match:
-
             key = line[0]
             value = line[1].replace('\n', ' ').strip()
 
@@ -351,8 +349,7 @@ class ArgumentParser(object):
                     value = between
                 else:
                     self.config.error = (
-                        "The arguments to 'between' "
-                        "must be comma- or colon-separated"
+                        "The arguments to 'between' must be comma- or colon-separated"
                     )
                     value = [None, None]
 

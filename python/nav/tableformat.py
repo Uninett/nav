@@ -42,7 +42,7 @@ class SimpleTableFormatter(object):
     def _format_row(self, row, widths):
         new_row = []
         for index, cell in enumerate(row):
-            fmt = u"%%%ds" % widths[index]
+            fmt = "%%%ds" % widths[index]
             new_row.append(fmt % str(cell))
         return ' | '.join(new_row)
 

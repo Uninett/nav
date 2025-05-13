@@ -32,6 +32,7 @@ which is why the rest of NAV has completely moved to Django,
 with a suggested WSGI-based configuration.
 
 """
+
 import warnings
 import logging
 from http import cookies

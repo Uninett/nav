@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """netbox related shadow classes"""
+
 from typing import Union
 
 from django.db.models import Q

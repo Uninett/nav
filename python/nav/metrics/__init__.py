@@ -16,6 +16,7 @@
 This package encompasses all NAV APIs to send and retrieve metrics and
 graphs from Graphite.
 """
+
 from nav.config import NAVConfigParser
 
 
@@ -23,7 +24,7 @@ class GraphiteConfigParser(NAVConfigParser):
     """Parser for NAV's graphite related configuration"""
 
     DEFAULT_CONFIG_FILES = ['graphite.conf']
-    DEFAULT_CONFIG = u"""
+    DEFAULT_CONFIG = """
 [carbon]
 host = 127.0.0.1
 port = 2003

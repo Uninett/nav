@@ -227,8 +227,8 @@ class TestLdapUser(object):
                 ),
             }
         )
-        u = nav.web.auth.ldap.LDAPUser(u"zaphod", conn)
-        u.bind(u"æøå")
+        u = nav.web.auth.ldap.LDAPUser("zaphod", conn)
+        u.bind("æøå")
 
     @patch.dict(
         "nav.web.auth.ldap._config._sections",
@@ -256,7 +256,7 @@ class TestLdapUser(object):
                 'search_s.side_effect': fake_search,
             }
         )
-        u = nav.web.auth.ldap.LDAPUser(u"Ægir", conn)
+        u = nav.web.auth.ldap.LDAPUser("Ægir", conn)
         u.is_group_member('cn=noc-operators,cn=groups,dc=example,dc=com')
 
 
@@ -325,8 +325,8 @@ def user_zaphod():
         **{
             'search_s.return_value': [
                 (
-                    u'uid=zaphod,cn=users,dc=example,dc=org',
-                    {u'eduPersonEntitlement': [b'president', b'boss']},
+                    'uid=zaphod,cn=users,dc=example,dc=org',
+                    {'eduPersonEntitlement': [b'president', b'boss']},
                 )
             ]
         }
@@ -339,8 +339,8 @@ def user_marvin():
         **{
             'search_s.return_value': [
                 (
-                    u'uid=marvin,cn=users,dc=example,dc=org',
-                    {u'eduPersonEntitlement': [b'paranoid']},
+                    'uid=marvin,cn=users,dc=example,dc=org',
+                    {'eduPersonEntitlement': [b'paranoid']},
                 )
             ]
         }

@@ -179,7 +179,7 @@ def save_account_org(request, account, org_form):
     try:
         account.organizations.get(id=organization.id)
         messages.warning(
-            request, 'Organization was not added as it has ' 'already been added.'
+            request, 'Organization was not added as it has already been added.'
         )
     except Organization.DoesNotExist:
         account.organizations.add(organization)
@@ -205,7 +205,7 @@ def save_account_group(request, account, group_form):
         try:
             account.groups.get(id=group.id)
             messages.warning(
-                request, 'Group was not added as it has already ' 'been added.'
+                request, 'Group was not added as it has already been added.'
             )
         except AccountGroup.DoesNotExist:
             account.groups.add(group)
@@ -238,8 +238,7 @@ def account_delete(request, account_id):
     if account.is_system_account():
         messages.error(
             request,
-            'Account %s can not be deleted as it is a system '
-            'account.' % (account.name),
+            'Account %s can not be deleted as it is a system account.' % (account.name),
         )
         return HttpResponseRedirect(
             reverse('useradmin-account_detail', args=[account.id])
@@ -291,8 +290,8 @@ def account_organization_remove(request, account_id, org_id):
 
         LogEntry.add_log_entry(
             request.account,
-            u'edit-account-remove-org',
-            u'{actor} removed user {object} from organization {target}',
+            'edit-account-remove-org',
+            '{actor} removed user {object} from organization {target}',
             target=organization,
             object=account,
         )
@@ -360,8 +359,8 @@ def account_group_remove(request, account_id, group_id, caller='account'):
 
         LogEntry.add_log_entry(
             request.account,
-            u'edit-account-remove-group',
-            u'{actor} removed user {object} from group {target}',
+            'edit-account-remove-group',
+            '{actor} removed user {object} from group {target}',
             target=group,
             object=account,
         )
@@ -422,7 +421,7 @@ def group_detail(request, group_id=None):
                 try:
                     group.privileges.get(type=message_type, target=target)
                     messages.warning(
-                        request, 'Privilege was not added as it ' 'already exists.'
+                        request, 'Privilege was not added as it already exists.'
                     )
                 except Privilege.DoesNotExist:
                     group.privileges.create(type=message_type, target=target)
@@ -475,7 +474,7 @@ def group_delete(request, group_id):
 
     if group.is_system_group():
         messages.error(
-            request, 'Group %s is a system group and can not be ' 'deleted.' % (group)
+            request, 'Group %s is a system group and can not be deleted.' % (group)
         )
         return HttpResponseRedirect(reverse('useradmin-group_detail', args=[group.id]))
 
@@ -652,8 +651,8 @@ def log_account_change(actor, old, new):
 def log_add_account_to_group(request, group, account):
     LogEntry.add_log_entry(
         request.account,
-        u'edit-account-add-group',
-        u'{actor} added user {object} to group {target}',
+        'edit-account-add-group',
+        '{actor} added user {object} to group {target}',
         target=group,
         object=account,
     )
@@ -662,8 +661,8 @@ def log_add_account_to_group(request, group, account):
 def log_add_account_to_org(request, organization, account):
     LogEntry.add_log_entry(
         request.account,
-        u'edit-account-add-org',
-        u'{actor} added user {object} to organization {target}',
+        'edit-account-add-org',
+        '{actor} added user {object} to organization {target}',
         target=organization,
         object=account,
     )

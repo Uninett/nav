@@ -16,7 +16,6 @@
 #
 """Program to synchronize NAV database schema changes"""
 
-
 import sys
 import os
 import re
@@ -372,7 +371,7 @@ class Synchronizer(object):
     def is_legacy_database(self):
         """Returns True if the legacy nav_schema_version table is present"""
         self.cursor.execute(
-            "SELECT COUNT(*) FROM pg_tables " "WHERE tablename = 'nav_schema_version'"
+            "SELECT COUNT(*) FROM pg_tables WHERE tablename = 'nav_schema_version'"
         )
         count = self.cursor.fetchone()[0]
         return count == 1
@@ -380,7 +379,7 @@ class Synchronizer(object):
     def is_schema_logged(self):
         """Returns True if the schema_change_log table is present"""
         self.cursor.execute(
-            "SELECT COUNT(*) FROM pg_tables " "WHERE tablename = 'schema_change_log'"
+            "SELECT COUNT(*) FROM pg_tables WHERE tablename = 'schema_change_log'"
         )
         count = self.cursor.fetchone()[0]
         return count == 1
@@ -416,7 +415,7 @@ class Synchronizer(object):
                 "psql",
                 "--quiet",
                 "-c",
-                "CREATE EXTENSION hstore " "WITH SCHEMA manage;",
+                "CREATE EXTENSION hstore WITH SCHEMA manage;",
                 self.connect_options.dbname,
             ],
         )

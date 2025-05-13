@@ -48,9 +48,9 @@ class TestValidHStoreField(object):
     def test_bytes_json(self):
         input = b'{"a": "b"}'
         result = validate_hstore(input)
-        assert result == {u'a': u'b'}
+        assert result == {'a': 'b'}
 
     def test_good_json(self):
         input = '{"a": "b"}'
         result = validate_hstore(input)
-        assert result == {u'a': u'b'}
+        assert result == {'a': 'b'}

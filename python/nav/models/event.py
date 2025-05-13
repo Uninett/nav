@@ -192,8 +192,8 @@ class UnknownEventSubject(object):
         if descr:
             return descr
         else:
-            fmt = u"{0} ({1})"
-            return fmt.format(self.netbox or u"N/A", self.subid)
+            fmt = "{0} ({1})"
+            return fmt.format(self.netbox or "N/A", self.subid)
 
     def _get_description_from_message(self):
         if not hasattr(self._alert, 'messages'):
@@ -316,12 +316,12 @@ class ThresholdEvent(object):
         if self.rule:
             descr = self.rule.description or self.rule.alert
         else:
-            descr = u'Unknown rule'
+            descr = 'Unknown rule'
 
         if subject:
-            return u"{} ({})".format(subject, descr)
+            return "{} ({})".format(subject, descr)
         else:
-            return u"{} ({})".format(descr, subject)
+            return "{} ({})".format(descr, subject)
 
     def get_absolute_url(self):
         """Returns a URL to the metric subject, if one was found"""
@@ -395,8 +395,8 @@ class EventQueue(models.Model, EventMixIn):
         db_table = 'eventq'
 
     def __repr__(self):
-        return "<EventQueue: %s>" % u", ".join(
-            u"%s=%r" % (attr, getattr(self, attr))
+        return "<EventQueue: %s>" % ", ".join(
+            "%s=%r" % (attr, getattr(self, attr))
             for attr in (
                 'id',
                 'event_type_id',
@@ -465,7 +465,7 @@ class EventQueueVar(models.Model):
         unique_together = (('event_queue', 'variable'),)
 
     def __str__(self):
-        return u'%s=%s' % (self.variable, self.value)
+        return '%s=%s' % (self.variable, self.value)
 
 
 #######################################################################
@@ -545,7 +545,7 @@ class AlertQueue(models.Model, EventMixIn):
         db_table = 'alertq'
 
     def __str__(self):
-        return u'Source %s, state %s, severity %d' % (
+        return 'Source %s, state %s, severity %d' % (
             self.source,
             self.get_state_display(),
             self.severity,
@@ -579,7 +579,7 @@ class AlertType(models.Model):
         unique_together = (('event_type', 'name'),)
 
     def __str__(self):
-        return u'%s, of event type %s' % (self.name, self.event_type)
+        return '%s, of event type %s' % (self.name, self.event_type)
 
 
 class AlertQueueMessage(models.Model):
@@ -604,7 +604,7 @@ class AlertQueueMessage(models.Model):
         unique_together = (('alert_queue', 'type', 'language'),)
 
     def __str__(self):
-        return u'%s message in language %s' % (self.type, self.language)
+        return '%s message in language %s' % (self.type, self.language)
 
 
 class AlertQueueVariable(models.Model):
@@ -627,7 +627,7 @@ class AlertQueueVariable(models.Model):
         unique_together = (('alert_queue', 'variable'),)
 
     def __str__(self):
-        return u'%s=%s' % (self.variable, self.value)
+        return '%s=%s' % (self.variable, self.value)
 
 
 class AlertHistoryQuerySet(models.QuerySet):
@@ -703,7 +703,7 @@ class AlertHistory(models.Model, EventMixIn):
         db_table = 'alerthist'
 
     def __str__(self):
-        return u'Id %s Source %s, severity %d' % (self.id, self.source, self.severity)
+        return 'Id %s Source %s, severity %d' % (self.id, self.source, self.severity)
 
     def is_stateful(self):
         """Returns true if the alert is stateful."""
@@ -795,7 +795,7 @@ class AlertHistoryMessage(models.Model):
         unique_together = (('alert_history', 'state', 'type', 'language'),)
 
     def __str__(self):
-        return u'%s message in language %s' % (self.type, self.language)
+        return '%s message in language %s' % (self.type, self.language)
 
 
 class AlertHistoryVariable(models.Model):
@@ -825,7 +825,7 @@ class AlertHistoryVariable(models.Model):
         unique_together = (('alert_history', 'state', 'variable'),)
 
     def __str__(self):
-        return u'%s=%s' % (self.variable, self.value)
+        return '%s=%s' % (self.variable, self.value)
 
 
 class Acknowledgement(models.Model):
@@ -853,4 +853,4 @@ class Acknowledgement(models.Model):
         db_table = 'alerthist_ack'
 
     def __str__(self):
-        return u"%r acknowledged by %s at %s" % (self.alert, self.account, self.date)
+        return "%r acknowledged by %s at %s" % (self.alert, self.account, self.date)

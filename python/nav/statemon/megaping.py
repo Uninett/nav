@@ -156,7 +156,6 @@ class MegaPing(object):
     _requests = _sender = _getter = _sender_finished = None
 
     def __init__(self, sockets, conf=None):
-
         # Get config in /etc/pping.conf
         if conf is None:
             try:
@@ -244,7 +243,6 @@ class MegaPing(object):
         return self._elapsedtime
 
     def _send_requests(self):
-
         # Get ip addresses to ping
         hosts = self._hosts.values()
 
@@ -326,7 +324,7 @@ class MegaPing(object):
 
         if not pong.id == self._pid:
             _logger.debug(
-                "packet from %r doesn't match our id (%s): %r (raw " "packet: %r)",
+                "packet from %r doesn't match our id (%s): %r (raw packet: %r)",
                 sender,
                 self._pid,
                 pong,

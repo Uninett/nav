@@ -69,7 +69,7 @@ def test_get_module_view(netbox, perspective):
     "badname",
     [
         "02.44.02",  # Looks like an IP address
-        u"\x01\x9e$ü\x86",  # Cannot be encoded using IDNA for DNS lookups
+        "\x01\x9e$ü\x86",  # Cannot be encoded using IDNA for DNS lookups
     ],
 )
 def test_bad_name_should_not_crash_ipdevinfo(client, badname):

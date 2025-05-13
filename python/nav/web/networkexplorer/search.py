@@ -26,7 +26,6 @@ MacRE = re.compile(r'^([a-fA-F0-9]{2}[:|\-]?){6}$')
 
 
 def search(data):
-
     exact_results = data.get('exact_results', False)
     hide_ports = data.get('hide_ports', False)
     query = data['query'][0]

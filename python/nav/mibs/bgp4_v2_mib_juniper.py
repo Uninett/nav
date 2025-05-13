@@ -16,7 +16,6 @@
 #
 """Implements a BGP4-V2-MIB-JUNIPER MibRetriever w/associated functionality."""
 
-
 from nav.oidparsers import consume, TypedFixedInetAddress, Unsigned32
 from nav.smidumps import get_mib
 from .bgp4_mib import BGP4Mib

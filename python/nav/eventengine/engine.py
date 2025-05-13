@@ -22,6 +22,7 @@ SQL is needed::
     CREATE RULE eventq_notify AS ON INSERT TO eventq DO ALSO NOTIFY new_event;
 
 """
+
 import logging
 import sched
 import select
@@ -201,7 +202,7 @@ class EventEngine(object):
                     self.handle_event(event)
                 except Exception:  # noqa: BLE001
                     self._logger.exception(
-                        "Unhandled exception while " "handling %s, deleting event",
+                        "Unhandled exception while handling %s, deleting event",
                         event,
                     )
                     if event.id:
@@ -235,8 +236,7 @@ class EventEngine(object):
         if is_stateless or not alert.is_event_duplicate():
             if self._box_is_on_maintenance(event):
                 self._logger.debug(
-                    '%s is on maintenance, only posting to '
-                    'alert history for %s event',
+                    '%s is on maintenance, only posting to alert history for %s event',
                     event.netbox,
                     event.event_type,
                 )
@@ -278,7 +278,7 @@ class EventEngine(object):
                 handler.handle()
             except Exception:  # noqa: BLE001
                 self._logger.exception(
-                    "Unhandled exception in plugin " "%s; ignoring it", handler
+                    "Unhandled exception in plugin %s; ignoring it", handler
                 )
                 if len(queue) == 1 and event.id:
                     # there's only one handler and it failed,
@@ -287,7 +287,7 @@ class EventEngine(object):
 
         if event.id:
             self._logger.debug(
-                "event wasn't disposed of, " "maybe held for later processing? %r",
+                "event wasn't disposed of, maybe held for later processing? %r",
                 event,
             )
             self._unfinished.add(event.id)

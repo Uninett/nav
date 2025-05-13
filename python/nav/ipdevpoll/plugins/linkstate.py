@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Collects interface link states and dispatches NAV events on changes"""
+
 from twisted.internet.defer import inlineCallbacks
 
 from nav.mibs import reduce_index

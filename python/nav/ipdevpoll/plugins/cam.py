@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 "ipdevpoll plugin to collect switch forwarding tables and STP blocking ports"
+
 import re
 from collections import defaultdict
 

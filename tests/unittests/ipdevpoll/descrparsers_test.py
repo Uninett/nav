@@ -15,12 +15,10 @@
 #
 """Unit tests for descrparser module."""
 
-
 from nav.ipdevpoll import descrparsers
 
 
 class TestNtnuConvention(object):
-
     sysname = 'foo-sw'
 
     def test_lan(self):

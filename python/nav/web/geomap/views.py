@@ -16,7 +16,6 @@
 
 """Views for Geomap."""
 
-
 import logging
 from decimal import Decimal
 

@@ -21,7 +21,6 @@ A command line program to verify support for SNMP subtrees in sets of
 NAV-monitored devices.
 """
 
-
 import platform
 import sys
 from itertools import cycle

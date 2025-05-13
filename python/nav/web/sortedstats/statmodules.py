@@ -228,7 +228,7 @@ class StatCpuAverage(Stat):
     data_filter = 'highestAverage({serieslist}, {rows})'
     graph_filter = '{target}'
     serieslist = (
-        'group(nav.devices.*.cpu.*.loadavg5min,' 'nav.devices.*.cpu.cpu.utilization)'
+        'group(nav.devices.*.cpu.*.loadavg5min,nav.devices.*.cpu.cpu.utilization)'
     )
 
     def __init__(self, *args, **kwargs):

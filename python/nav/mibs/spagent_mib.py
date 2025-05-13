@@ -25,6 +25,7 @@ This implementation sticks with the easily graphable sensors,
 like temperature, humidity, voltages and currents.
 
 """
+
 from twisted.internet import defer
 from nav.mibs import reduce_index
 from nav.smidumps import get_mib

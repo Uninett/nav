@@ -82,9 +82,9 @@ class PrefixHeap(object):
 
     def add(self, node):
         "Add a node to the heap"
-        assert isinstance(
-            node, PrefixHeap
-        ), "Can only add classes inheriting from PrefixHeap"
+        assert isinstance(node, PrefixHeap), (
+            "Can only add classes inheriting from PrefixHeap"
+        )
         # first, try adding to children (recursively)
         i = bisect.bisect_left(self.children, node)
         if i > 0 and node in self.children[i - 1]:

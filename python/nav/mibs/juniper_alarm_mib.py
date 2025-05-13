@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """JUNIPER-ALARM-MIB MibRetriever"""
+
 from twisted.internet import defer
 
 from nav.smidumps import get_mib

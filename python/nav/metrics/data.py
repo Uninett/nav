@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Retrieval and calculations on raw numbers from Graphite metrics"""
+
 import codecs
 from datetime import datetime
 import json
@@ -131,7 +132,7 @@ def get_metric_data(target, start="-5min", end="now"):
         return json_data
     except HTTPError as err:
         _logger.error(
-            "Got a 500 error from graphite-web when fetching %s" "with data %s",
+            "Got a 500 error from graphite-web when fetching %swith data %s",
             err.url,
             query,
         )

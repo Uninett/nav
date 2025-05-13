@@ -64,11 +64,11 @@ def validate_hstore(value):
         else:
             dictionary = value
     except ValueError as e:
-        raise ValidationError(gettext(u'Invalid JSON: {0}').format(e))
+        raise ValidationError(gettext('Invalid JSON: {0}').format(e))
 
     # ensure is a dictionary
     if not isinstance(dictionary, dict):
-        raise ValidationError(gettext(u'No lists or values allowed, only dictionaries'))
+        raise ValidationError(gettext('No lists or values allowed, only dictionaries'))
 
     value = json.dumps(dictionary, cls=JSONBytesEncoder)
     dictionary = json.loads(value)

@@ -17,6 +17,7 @@
 """
 Provides common database functionality for NAV.
 """
+
 import atexit
 from functools import wraps
 import logging
@@ -117,7 +118,7 @@ def get_connection_parameters(script_name='default', database='nav'):
     user_option = 'script_%s' % script_name
     if user_option not in conf:
         _logger.debug(
-            "connection parameter for script %s doesn't exist, " "reverting to default",
+            "connection parameter for script %s doesn't exist, reverting to default",
             script_name,
         )
         user_option = 'script_default'
@@ -174,7 +175,7 @@ def getConnection(scriptName, database='nav'):
             get_connection_string((dbhost, port, dbname, user, password))
         )
         _logger.debug(
-            "Opened a new database connection, scriptName=%s, " "dbname=%s, user=%s",
+            "Opened a new database connection, scriptName=%s, dbname=%s, user=%s",
             scriptName,
             dbname,
             user,
@@ -233,7 +234,7 @@ def retry_on_db_loss(count=3, delay=2, fallback=None, also_handled=None):
                 except handled:
                     remaining -= 1
                     _logger.error(
-                        "cannot establish db connection. " "retries remaining: %d",
+                        "cannot establish db connection. retries remaining: %d",
                         remaining,
                     )
                     if remaining:

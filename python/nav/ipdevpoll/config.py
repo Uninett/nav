@@ -30,7 +30,7 @@ class IpdevpollConfig(NAVConfigParser):
     """ipdevpoll config parser"""
 
     DEFAULT_CONFIG_FILES = ('ipdevpoll.conf',)
-    DEFAULT_CONFIG = u"""
+    DEFAULT_CONFIG = """
 [ipdevpoll]
 logfile = ipdevpolld.log
 max_concurrent_jobs = 500

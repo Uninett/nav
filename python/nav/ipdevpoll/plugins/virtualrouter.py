@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ipdevpoll plugin to poll Cisco HSRP address information"""
+
 from IPy import IP
 from twisted.internet import defer
 
@@ -64,7 +65,7 @@ class VirtualRouter(Plugin):
 
     def gwportprefixes_found(self):
         if GwPortPrefix not in self.containers:
-            self._logger.debug("there are no collected GwPortPrefixes to " "update")
+            self._logger.debug("there are no collected GwPortPrefixes to update")
             return False
         else:
             return True

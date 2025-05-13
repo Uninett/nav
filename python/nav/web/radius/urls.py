@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Radius backend URL config."""
+
 from django.urls import re_path
 from nav.web.radius import views
 

@@ -112,7 +112,7 @@ def parse_args():
     args = parser.parse_args()
     if not (args.table or args.all):
         parser.error(
-            "Please specify which tables to dump, using either " "--table or --all"
+            "Please specify which tables to dump, using either --table or --all"
         )
     return args
 
@@ -128,13 +128,13 @@ def fail(resultcode, msg):
 
 def header(definition):
     """Output the header definition, possibly with replaced separators"""
-    definition = definition.replace(u":", SEPARATOR) + u'\n'
+    definition = definition.replace(":", SEPARATOR) + '\n'
     sys.stdout.write(definition)
 
 
 def lineout(line):
     """Output line, remove any : in strings"""
-    newline = (u'"%s"' % column if SEPARATOR in column else column for column in line)
+    newline = ('"%s"' % column if SEPARATOR in column else column for column in line)
     line = SEPARATOR.join(newline) + '\n'
     sys.stdout.write(line)
 
@@ -151,8 +151,8 @@ class Handlers(object):
             "devicegroup1:devicegroup2..]"
         )
         for box in manage.Netbox.objects.all():
-            profiles = u'|'.join(box.profiles.values_list('name', flat=True))
-            data = u'|'.join(u"%s=%s" % (k, v) for k, v in box.data.items())
+            profiles = '|'.join(box.profiles.values_list('name', flat=True))
+            data = '|'.join("%s=%s" % (k, v) for k, v in box.data.items())
             line = [
                 box.room_id,
                 box.ip,

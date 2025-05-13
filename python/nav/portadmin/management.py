@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This is a utility library made especially for PortAdmin."""
+
 from nav.errors import NoNetboxTypeError
 from nav.models import manage
 from nav.portadmin.handlers import ManagementHandler

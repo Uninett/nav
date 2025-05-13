@@ -36,13 +36,13 @@ class TestEnsureAccount:
     ):
         assert not hasattr(session_request, "account")
         ensure_account(session_request)
-        assert (
-            ACCOUNT_ID_VAR in session_request.session
-        ), 'Account id is not in the session'
+        assert ACCOUNT_ID_VAR in session_request.session, (
+            'Account id is not in the session'
+        )
         assert hasattr(session_request, 'account'), 'Account not set'
-        assert (
-            session_request.account.id == session_request.session[ACCOUNT_ID_VAR]
-        ), 'Correct user not set'
+        assert session_request.account.id == session_request.session[ACCOUNT_ID_VAR], (
+            'Correct user not set'
+        )
 
     def test_account_should_be_switched_to_default_if_locked(
         self, db, session_request, locked_account, default_account

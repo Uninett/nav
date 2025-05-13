@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """RADIUS service checker"""
+
 from nav.util import resource_filename
 
 # Python-radius specific modules. pyrad found at

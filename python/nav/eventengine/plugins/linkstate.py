@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ "linkState event plugin"""
+
 import copy
 
 from nav.config import ConfigurationError
@@ -87,7 +88,7 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
             )
         ):
             self._logger.info(
-                "%s: withholding %s alert because of unmatched " "criteria",
+                "%s: withholding %s alert because of unmatched criteria",
                 self.get_target(),
                 alert.alert_type,
             )
@@ -119,14 +120,14 @@ class LinkStateHandler(delayedstate.DelayedStateHandler):
             vlans = self._get_target_vlans()
             if vlans.intersection(limited_to_vlans):
                 self._logger.info(
-                    "%s vlans %r intersects with list of " "limited vlans %r",
+                    "%s vlans %r intersects with list of limited vlans %r",
                     self.get_target(),
                     vlans,
                     limited_to_vlans,
                 )
             elif vlans:
                 self._logger.info(
-                    "%s vlans %r does not intersect with list " "of limited vlans %r",
+                    "%s vlans %r does not intersect with list of limited vlans %r",
                     self.get_target(),
                     vlans,
                     limited_to_vlans,

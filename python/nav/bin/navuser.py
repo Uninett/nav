@@ -18,6 +18,7 @@
 """
 A command line interface to list and modify NAV web user accounts
 """
+
 import sys
 import argparse
 from getpass import getpass
@@ -41,9 +42,9 @@ def listusers(args):
     if args.verbose:
         longest1 = max(len(acc.login) for acc in accounts)
         longest2 = max(len(acc.name) for acc in accounts)
-        msg = u"{login:%ss}  {name:%ss}  {attrs}" % (longest1, longest2)
+        msg = "{login:%ss}  {name:%ss}  {attrs}" % (longest1, longest2)
     else:
-        msg = u"{login}"
+        msg = "{login}"
 
     for account in accounts:
         attrs = []
@@ -51,7 +52,7 @@ def listusers(args):
             attrs.append(account.ext_sync)
         if account.locked:
             attrs.append('locked')
-        attrs = u'[%s]' % ','.join(attrs) if attrs else ''
+        attrs = '[%s]' % ','.join(attrs) if attrs else ''
         print(msg.format(login=account.login, name=account.name, attrs=attrs).strip())
 
 

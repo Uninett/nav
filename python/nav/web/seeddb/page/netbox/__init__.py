@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controllers for the netbox part of seedDB"""
+
 import datetime
 from django.db import transaction
 from django.contrib.postgres.aggregates import ArrayAgg

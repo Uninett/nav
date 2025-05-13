@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms for the status page"""
+
 from collections import defaultdict
 from operator import itemgetter
 

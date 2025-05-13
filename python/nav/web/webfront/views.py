@@ -16,7 +16,6 @@
 #
 """Navbar (tools, preferences) and login related controllers"""
 
-
 from datetime import datetime
 import json
 import logging
@@ -78,7 +77,7 @@ def index(request, did=None):
         'dashboard': dashboard,
         'dashboards': dashboards,
         'navlets': list_navlets(),
-        'title': u'NAV - {}'.format(dashboard.name),
+        'title': 'NAV - {}'.format(dashboard.name),
     }
 
     if dashboards.count() > 1:
@@ -237,7 +236,7 @@ def do_login(request):
             else:
                 _logger.info("failed login: %r", username)
                 errors.append(
-                    'Username or password is incorrect, or the ' 'account is locked.'
+                    'Username or password is incorrect, or the account is locked.'
                 )
 
     # Something went wrong. Display login page with errors.
@@ -394,7 +393,7 @@ def set_default_dashboard(request, did):
         objs=old_defaults + [dash], fields=["is_default"]
     )
 
-    return HttpResponse(u'Default dashboard set to «{}»'.format(dash.name))
+    return HttpResponse('Default dashboard set to «{}»'.format(dash.name))
 
 
 @require_POST
@@ -429,7 +428,7 @@ def rename_dashboard(request, did):
     dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
     dash.name = request.POST.get('dashboard-name', dash.name)
     dash.save()
-    return HttpResponse(u'Dashboard renamed to «{}»'.format(dash.name))
+    return HttpResponse('Dashboard renamed to «{}»'.format(dash.name))
 
 
 @require_POST
@@ -454,4 +453,4 @@ def moveto_dashboard(request, did):
     )
     widget.dashboard = dashboard
     widget.save()
-    return HttpResponse(u'Widget moved to {}'.format(dashboard))
+    return HttpResponse('Widget moved to {}'.format(dashboard))

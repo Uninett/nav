@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Handling web requests for the Report subsystem."""
+
 import logging
 import hashlib
 from functools import wraps
@@ -309,7 +310,6 @@ def make_report(request, report_name, export_delimiter, query_dict, paginate=Tru
     if export_delimiter:
         return generate_export(report, report_name, export_delimiter)
     else:
-
         paginator = Paginator(report.table.rows, page_size)
         try:
             page = paginator.page(page_number)

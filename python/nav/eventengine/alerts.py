@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Alert generator functionality for the eventEngine"""
+
 from collections import namedtuple
 import logging
 import os
@@ -67,11 +68,11 @@ class AlertGenerator(dict):
     def __repr__(self):
         dictrepr = super(AlertGenerator, self).__repr__()
         attribs = [
-            u"{0}={1!r}".format(key, value)
+            "{0}={1!r}".format(key, value)
             for key, value in vars(self).items()
             if not key.startswith('_') and key != 'event'
         ]
-        return u"<AlertGenerator: {0} varmap={1}>".format(u" ".join(attribs), dictrepr)
+        return "<AlertGenerator: {0} varmap={1}>".format(" ".join(attribs), dictrepr)
 
     def __bool__(self):
         """AlertGenerator inherits from dict, but must always be
@@ -266,7 +267,7 @@ def render_templates(alert):
     ) or get_list_of_templates_for(alert.event_type.id)
     if not templates:
         _logger.error(
-            "no templates defined for %r, sending generic alert " "message", alert
+            "no templates defined for %r, sending generic alert message", alert
         )
         templates = [
             TemplateDetails("default-email.txt", "email", DEFAULT_LANGUAGE),

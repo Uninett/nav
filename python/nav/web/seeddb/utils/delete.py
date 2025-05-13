@@ -126,7 +126,7 @@ def _try_deleting(request, objects, pre_delete_operation=None, delete_operation=
     else:
         if delete_operation:
             new_message(request, "Deleted %i rows" % len(objects), Messages.SUCCESS)
-            log_deleted(request.account, objects, template=u'{actor} deleted {object}')
+            log_deleted(request.account, objects, template='{actor} deleted {object}')
         else:
             new_message(
                 request,
@@ -136,7 +136,7 @@ def _try_deleting(request, objects, pre_delete_operation=None, delete_operation=
             log_deleted(
                 request.account,
                 objects,
-                template=u'{actor} scheduled {object} for deletion',
+                template='{actor} scheduled {object} for deletion',
             )
         return True
     return False

@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Functions for updating the database's layer 2 topology"""
+
 import logging
 
 from django.db import transaction

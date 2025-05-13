@@ -16,6 +16,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Command line program to control NAV processes"""
+
 import sys
 import os
 import os.path
@@ -102,7 +103,7 @@ def _add_bespoke_subparsers(subparsers):
     config_sub = config.add_subparsers()
     where = config_sub.add_parser(
         "where",
-        help="find and report the location of the " "main NAV configuration file",
+        help="find and report the location of the main NAV configuration file",
     )
     where.set_defaults(func=command_config_where)
 
@@ -121,12 +122,12 @@ def _add_bespoke_subparsers(subparsers):
         "directory",
     )
     install.add_argument(
-        'target_directory', help="the directory in which to install the config " "files"
+        'target_directory', help="the directory in which to install the config files"
     )
     install.add_argument(
         '--overwrite',
         action="store_true",
-        help="overwrite existing config files in target " "directory",
+        help="overwrite existing config files in target directory",
     )
     install.add_argument(
         '--verbose',
@@ -300,8 +301,9 @@ def command_config_where(_args):
         print(path)
     else:
         sys.exit(
-            "Could not find nav.conf in any of these locations:\n"
-            "{}".format('\n'.join(CONFIG_LOCATIONS))
+            "Could not find nav.conf in any of these locations:\n{}".format(
+                '\n'.join(CONFIG_LOCATIONS)
+            )
         )
 
 

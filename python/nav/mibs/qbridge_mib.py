@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a Q-BRIDGE-MIB MibRetriever and associated functionality."""
+
 import re
 
 from twisted.internet import defer

@@ -143,7 +143,6 @@ class NodePositionUpdate(generics.UpdateAPIView):
     """View for updating node positions"""
 
     def update(self, request, *args, **kwargs):
-
         viewid = kwargs.pop('viewid')
         data = request.data.get('data', [])
         # nodes to be updated in the topology cache
@@ -182,7 +181,6 @@ class NetmapGraph(views.APIView):
     """View for building and providing topology data in graph form"""
 
     def get(self, request, **kwargs):
-
         load_traffic = 'traffic' in request.GET
         layer = int(kwargs.get('layer', 2))
         viewid = kwargs.get('viewid')

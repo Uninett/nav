@@ -282,7 +282,7 @@ def should_validate(page: Page):
 
 def filter_errors(errors):
     if errors:
-        return u"\n".join(msg for msg in errors.split(u'\n') if not _should_ignore(msg))
+        return "\n".join(msg for msg in errors.split('\n') if not _should_ignore(msg))
 
 
 def _should_ignore(msg):

@@ -13,7 +13,7 @@ class AuditlogModelTestCase(TestCase):
         self.justification = Justification.objects.create(name='testarossa')
 
     def test_str(self):
-        LogEntry.add_log_entry(self.justification, u'str test', 'foo')
+        LogEntry.add_log_entry(self.justification, 'str test', 'foo')
         log_entry = LogEntry.objects.filter(verb='str test').get()
         self.assertEqual(str(log_entry), 'foo')
         log_entry.delete()
@@ -21,11 +21,11 @@ class AuditlogModelTestCase(TestCase):
     def test_add_log_entry_bad_template(self):
         with self.assertLogs(level='ERROR') as log:
             LogEntry.add_log_entry(
-                self.justification, u'bad template test', u'this is a {bad} template'
+                self.justification, 'bad template test', 'this is a {bad} template'
             )
             log_entry = LogEntry.objects.filter(verb='bad template test').get()
             self.assertEqual(
-                log_entry.summary, u'Error creating summary - see error log'
+                log_entry.summary, 'Error creating summary - see error log'
             )
             log_entry.delete()
             self.assertEqual(len(log.output), 1)
@@ -34,22 +34,22 @@ class AuditlogModelTestCase(TestCase):
 
     def test_add_log_entry_actor_only(self):
         LogEntry.add_log_entry(
-            self.justification, u'actor test', u'actor "{actor}" only is tested'
+            self.justification, 'actor test', 'actor "{actor}" only is tested'
         )
         log_entry = LogEntry.objects.filter(verb='actor test').get()
-        self.assertEqual(log_entry.summary, u'actor "testarossa" only is tested')
+        self.assertEqual(log_entry.summary, 'actor "testarossa" only is tested')
         log_entry.delete()
 
     def test_add_create_entry(self):
         LogEntry.add_create_entry(self.justification, self.justification)
-        log_entry = LogEntry.objects.filter(verb=u'create-justification').get()
-        self.assertEqual(log_entry.summary, u'testarossa created testarossa')
+        log_entry = LogEntry.objects.filter(verb='create-justification').get()
+        self.assertEqual(log_entry.summary, 'testarossa created testarossa')
         log_entry.delete()
 
     def test_add_delete_entry(self):
         LogEntry.add_delete_entry(self.justification, self.justification)
-        log_entry = LogEntry.objects.filter(verb=u'delete-justification').get()
-        self.assertEqual(log_entry.summary, u'testarossa deleted testarossa')
+        log_entry = LogEntry.objects.filter(verb='delete-justification').get()
+        self.assertEqual(log_entry.summary, 'testarossa deleted testarossa')
         log_entry.delete()
 
     def test_compare_objects(self):
@@ -64,24 +64,22 @@ class AuditlogModelTestCase(TestCase):
             ('name', 'description'),
             ('description',),
         )
-        log_entry = LogEntry.objects.filter(verb=u'edit-justification-name').get()
+        log_entry = LogEntry.objects.filter(verb='edit-justification-name').get()
         self.assertEqual(
             log_entry.summary,
-            u'testarossa edited lambo: name changed' u" from 'ferrari' to 'lambo'",
+            'testarossa edited lambo: name changed from \'ferrari\' to \'lambo\'',
         )
         log_entry.delete()
-        log_entry = LogEntry.objects.filter(
-            verb=u'edit-justification-description'
-        ).get()
+        log_entry = LogEntry.objects.filter(verb='edit-justification-description').get()
         self.assertEqual(
-            log_entry.summary, u'testarossa edited lambo: description changed'
+            log_entry.summary, 'testarossa edited lambo: description changed'
         )
         log_entry.delete()
 
     def test_addLog_entry_before(self):
-        LogEntry.add_log_entry(self.justification, u'actor test', u'blbl', before=1)
+        LogEntry.add_log_entry(self.justification, 'actor test', 'blbl', before=1)
         log_entry = LogEntry.objects.filter(verb='actor test').get()
-        self.assertEqual(log_entry.before, u'1')
+        self.assertEqual(log_entry.before, '1')
         log_entry.delete()
 
     def test_find_name(self):
@@ -101,15 +99,15 @@ class AuditlogUtilsTestCase(TestCase):
         LogEntry.add_create_entry(self.justification, justification_1)
         LogEntry.add_log_entry(
             self.justification,
-            u'greet',
-            u'{actor} greets {object}',
+            'greet',
+            '{actor} greets {object}',
             object=justification_2,
             subsystem="hello",
         )
         LogEntry.add_log_entry(
             self.justification,
-            u'deliver',
-            u'{actor} delivers {object} to {target}',
+            'deliver',
+            '{actor} delivers {object} to {target}',
             object=justification_1,
             target=justification_2,
             subsystem='delivery',

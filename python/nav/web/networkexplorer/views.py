@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Network Explorer view functions"""
+
 from django.views.generic import TemplateView
 from django.views.generic import View
 from django.views.generic.list import BaseListView

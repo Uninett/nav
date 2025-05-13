@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A MySQL service checker"""
+
 import socket
 import struct
 

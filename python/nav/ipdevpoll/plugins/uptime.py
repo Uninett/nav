@@ -16,6 +16,7 @@
 # TODO: Add support for HOST-RESOURCES-MIB::hrSystemUptime as well
 #
 """Collects uptime ticks and interprets discontinuities as cold boots"""
+
 from datetime import timedelta, datetime
 
 from twisted.internet.defer import inlineCallbacks

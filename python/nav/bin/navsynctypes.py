@@ -18,6 +18,7 @@
 to synchronize the IP Device type registry of one NAV installation based on the
 information contained in another.
 """
+
 import argparse
 
 import nav.db

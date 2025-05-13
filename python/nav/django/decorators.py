@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Custom django related decorators"""
+
 from functools import wraps
 from django.http import HttpResponse
 

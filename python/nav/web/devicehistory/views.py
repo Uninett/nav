@@ -214,10 +214,7 @@ def register_error(request):
     if not error_comment and not confirmed:
         new_message(
             request,
-            _(
-                "There's no error message supplied. Are you "
-                "sure you want to continue?"
-            ),
+            _("There's no error message supplied. Are you sure you want to continue?"),
             Messages.WARNING,
         )
         return confirm_error_form(request)

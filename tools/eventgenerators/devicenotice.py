@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module comment"""
+
 from argparse import ArgumentParser
 
 from nav.bootstrap import bootstrap_django

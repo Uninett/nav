@@ -118,7 +118,6 @@ class ViewsTest(TestDataMixin, TestCase):
 
 class FormsTest(TestDataMixin, TestCase):
     def test_search_form(self):
-
         valid_form = NetworkSearchForm(self.valid_data)
         invalid_form = NetworkSearchForm(self.invalid_data)
 

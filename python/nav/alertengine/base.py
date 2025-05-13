@@ -18,7 +18,6 @@
 #
 """Alertengine base functionality"""
 
-
 import gc
 import logging
 from datetime import datetime, timedelta
@@ -420,7 +419,7 @@ def process_single_queued_notification(queued_alert, now):
 
     if subscription is None:
         _logger.info(
-            'Sending alert %d right away as the users profile has ' 'been disabled',
+            'Sending alert %d right away as the users profile has been disabled',
             queued_alert.alert_id,
         )
         send = True
@@ -444,7 +443,7 @@ def process_single_queued_notification(queued_alert, now):
 
     else:
         _logger.error(
-            'Account %s has an invalid subscription type in ' 'subscription %d',
+            'Account %s has an invalid subscription type in subscription %d',
             subscription.account,
             subscription.id,
         )
@@ -484,7 +483,7 @@ def _verify_daily_dispatch(queued_alert, now, _logger=_logger):
         now.date(), daily_time
     )
     _logger.debug(
-        'Tests: last sent %s, daily time %s, insertion time ' '%s',
+        'Tests: last sent %s, daily time %s, insertion time %s',
         last_sent_test,
         daily_time_test,
         insertion_time_test,
@@ -512,7 +511,7 @@ def _verify_weekly_dispatch(queued_alert, now, _logger=_logger):
     )
 
     _logger.debug(
-        'Tests: weekday %s, last sent %s, weekly time %s, ' 'insertion time %s',
+        'Tests: weekday %s, last sent %s, weekly time %s, insertion time %s',
         weekday_test,
         last_sent_test,
         weekly_time_test,

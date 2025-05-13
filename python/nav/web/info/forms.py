@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms for use in the info subsystem"""
+
 from django import forms
 
 from nav.web.crispyforms import (

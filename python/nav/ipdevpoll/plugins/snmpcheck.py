@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """snmp check plugin"""
+
 from pynetsnmp.netsnmp import SnmpTimeoutError
 from twisted.internet import error, defer
 

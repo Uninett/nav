@@ -78,7 +78,7 @@ class Prefix(Shadow):
             netbox = containers.get(None, Netbox).get_existing_model()
             if netbox.category_id not in PREFIX_AUTHORITATIVE_CATEGORIES:
                 self._logger.debug(
-                    "not updating existing prefix %s for box " "of category %s",
+                    "not updating existing prefix %s for box of category %s",
                     self.net_address,
                     netbox.category_id,
                 )
@@ -93,7 +93,7 @@ class Prefix(Shadow):
                     and existing.vlan.net_type.id != 'static'
                 ):
                     self._logger.info(
-                        "not changing existing prefix %s into " "static route",
+                        "not changing existing prefix %s into static route",
                         self.net_address,
                     )
                     return True

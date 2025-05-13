@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms and view functions for SeedDB's Management Profile view"""
+
 from django.db.models import Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import render

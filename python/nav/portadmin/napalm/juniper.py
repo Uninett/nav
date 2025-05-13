@@ -26,6 +26,7 @@ but many of the operations PortAdmin needs are not directly supported by the NAP
 so the underlying Juniper PyEZ library is utilized directly in most cases.
 
 """
+
 from operator import attrgetter
 from typing import Any, Optional, Sequence
 

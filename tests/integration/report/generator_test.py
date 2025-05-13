@@ -6,6 +6,7 @@ These tests simply enumerate all known reports and ensure that the dbresult is
 error free. This only ensures that the SQL can be run, no further verification
 is performed.
 """
+
 import pytest
 
 from django.http import QueryDict

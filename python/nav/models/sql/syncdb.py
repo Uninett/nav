@@ -4,6 +4,7 @@ This helper script is here for backwards compatibility; it lets the the
 current development schema be installed from anywhere within the NAV source
 code tree.
 """
+
 import sys
 import os
 

@@ -18,7 +18,6 @@
 Django ORM wrapper for the NAV logger database
 """
 
-
 from django.db import models
 
 from nav.models.fields import VarcharField
@@ -91,9 +90,7 @@ class LogMessageType(models.Model):
     mnemonic = VarcharField(db_column='mnemonic')
 
     def __str__(self):
-        return u"{0}-{1}-{2}".format(
-            self.facility, self.priority, self.mnemonic
-        ).upper()
+        return "{0}-{1}-{2}".format(self.facility, self.priority, self.mnemonic).upper()
 
     class Meta(object):
         db_table = '"logger"."log_message_type"'

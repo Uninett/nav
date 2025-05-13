@@ -60,6 +60,7 @@ This module should provide an API for evaluating threshold expressions.
 Alerting is outside of the scope of this module.
 
 """
+
 from datetime import timedelta
 from functools import partial
 import logging
@@ -140,7 +141,7 @@ class ThresholdEvaluator(object):
             self.target, start=start, end='now', ignore_unknown=True
         )
         _logger.debug(
-            "retrieved %d values from graphite for %r, " "period %s: %r",
+            "retrieved %d values from graphite for %r, period %s: %r",
             len(averages),
             self.target,
             self.period,

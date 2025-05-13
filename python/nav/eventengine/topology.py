@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Topology evaluation functions for event processing"""
+
 import logging
 import socket
 import datetime
@@ -34,7 +35,7 @@ def netbox_appears_reachable(netbox):
     nav = NAVServer.make_for(netbox.ip)
     nav_path = get_path_to_netbox(nav) if nav else True
     _logger.debug(
-        "reachability paths, target_path=%(target_path)r, " "nav_path=%(nav_path)r",
+        "reachability paths, target_path=%(target_path)r, nav_path=%(nav_path)r",
         locals(),
     )
     return bool(target_path and nav_path)

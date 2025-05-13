@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A class for extracting sensors from RFC1628 compatible UPSes"""
+
 from twisted.internet import defer
 
 from nav.mibs import reduce_index

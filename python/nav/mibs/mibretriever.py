@@ -409,7 +409,7 @@ class MibRetriever(object, metaclass=MibRetrieverMaker):
             # snmp library used
             if node.oid not in result and str(node.oid) not in result:
                 self._logger.debug(
-                    "%s (%s) seems to be unsupported, result " "keys were: %r",
+                    "%s (%s) seems to be unsupported, result keys were: %r",
                     column_name,
                     node.oid,
                     result.keys(),

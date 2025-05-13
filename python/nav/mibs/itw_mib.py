@@ -22,6 +22,7 @@ A class that tries to retrieve all sensors from WeatherGoose I.
 Uses the vendor-specifica IT-WATCHDOGS-MIB to detect and collect
 sensor-information.
 """
+
 from django.utils.encoding import smart_str
 from twisted.internet import defer
 

@@ -12,7 +12,7 @@ def test_public_namespace_should_be_empty():
                       ORDER BY nspname"""
     )
 
-    names = [n for n, in cursor.fetchall()]
-    assert (
-        len(names) == 0
-    ), "Objects have been defined in the public " "namespace: " + ".".join(names)
+    names = [n for (n,) in cursor.fetchall()]
+    assert len(names) == 0, (
+        "Objects have been defined in the public namespace: " + ".".join(names)
+    )

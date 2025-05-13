@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ "Superclass for plugins that use delayed handling of state events"""
+
 from nav.eventengine import unresolved
 
 from nav.eventengine.topology import netbox_appears_reachable

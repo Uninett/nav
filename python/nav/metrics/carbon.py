@@ -20,6 +20,7 @@ as it's the easiest to implement, and will also work without vodoo in
 asynchronous programs (i .e. such as ipdevpoll, which is implemented using
 Twisted).
 """
+
 import logging
 import socket
 import time

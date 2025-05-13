@@ -5,7 +5,7 @@ class NetmapConfig(NavConfigParserDefaultSection):
     """NetmapConfig"""
 
     DEFAULT_CONFIG_FILES = ('netmap.conf',)
-    DEFAULT_CONFIG = u"""
+    DEFAULT_CONFIG = """
 [netmap]
 API_DEBUG=False
 """

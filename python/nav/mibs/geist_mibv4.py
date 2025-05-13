@@ -27,6 +27,7 @@ sensors of the box are implemented. The box can be extended with additional
 external sensors, but these are not implemented because we did not have any
 external sensors available at the time of this implementation.
 """
+
 from nav.oids import OID
 from nav.smidumps import get_mib
 from .itw_mibv4 import ItWatchDogsMibV4

@@ -29,7 +29,7 @@ import configparser
 from nav.config import find_config_file, NAV_CONFIG
 
 DEFAULT_LOG_FORMATTER = logging.Formatter(
-    '%(asctime)s [%(levelname)s] ' '[%(name)s] %(message)s'
+    '%(asctime)s [%(levelname)s] [%(name)s] %(message)s'
 )
 LOGGING_CONF_VAR = 'NAV_LOGGING_CONF'
 LOGGING_CONF_FILE_DEFAULT = find_config_file('logging.conf') or ''

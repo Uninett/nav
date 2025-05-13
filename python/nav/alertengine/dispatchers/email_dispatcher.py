@@ -61,7 +61,7 @@ class Email(Dispatcher):
                 email.send(fail_silently=False)
             else:
                 _logger.debug(
-                    'alert %d: In testing mode, would have sent ' 'email to %s',
+                    'alert %d: In testing mode, would have sent email to %s',
                     alert.id,
                     address.address,
                 )

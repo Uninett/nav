@@ -76,7 +76,7 @@ class TestsAlertProfiles:
         request = factory.get(reverse('alertprofiles-profile-save'))
         request.account = admin_account
         request.session = MagicMock()
-        profile = AlertProfile(account=request.account, name=u'ÆØÅ')
+        profile = AlertProfile(account=request.account, name='ÆØÅ')
         profile.save()
 
         assert set_active_profile(request, profile) is None
@@ -1054,7 +1054,7 @@ class TestsFilterGroups:
 @pytest.fixture(scope='function')
 def dummy_profile(admin_account):
     account = admin_account
-    profile = AlertProfile(account=account, name=u'ÆØÅ Profile %d' % randint(1, 1000))
+    profile = AlertProfile(account=account, name='ÆØÅ Profile %d' % randint(1, 1000))
     profile.save()
     return profile
 

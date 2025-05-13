@@ -24,7 +24,6 @@ support.
 
 """
 
-
 import socket
 from itertools import cycle
 from collections import defaultdict

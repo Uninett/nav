@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 "ipdevpoll plugin to collect CDP (Cisco Discovery Protocol) information"
+
 import string
 
 from twisted.internet import defer

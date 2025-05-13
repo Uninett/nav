@@ -19,7 +19,6 @@
 Provides helpfunctions for Arnold web and script
 """
 
-
 import re
 import os
 import configparser

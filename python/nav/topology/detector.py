@@ -15,7 +15,6 @@
 #
 """NAV network topology detection program"""
 
-
 from argparse import ArgumentParser
 from functools import wraps
 import inspect
@@ -79,7 +78,7 @@ def int_list(value):
 def make_option_parser():
     """Sets up and returns a command line option parser."""
     parser = ArgumentParser(
-        description=("Detects and updates the network topology in your NAV " "database")
+        description=("Detects and updates the network topology in your NAV database")
     )
     parser.add_argument(
         '--version', action='version', version='NAV ' + buildconf.VERSION

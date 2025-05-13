@@ -25,6 +25,7 @@ Please note!
 -- not a complete implementation of the mib --
 
 """
+
 from twisted.internet import defer
 
 from nav.mibs import reduce_index

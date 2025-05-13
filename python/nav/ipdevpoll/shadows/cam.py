@@ -43,6 +43,7 @@ found again within MAX_MISS_COUNT collector runs, the existing record can be
 reclaimed by resetting end_time to infinity.
 
 """
+
 import datetime
 import logging
 from collections import namedtuple
@@ -115,7 +116,7 @@ class CamManager(DefaultManager):
             1 for cam in self._previously_open.values() if cam.end_time < INFINITY
         )
         self._logger.debug(
-            "existing=%d (reclaimable=%d) / " "found=%d (known=%d new=%d missing=%d)",
+            "existing=%d (reclaimable=%d) / found=%d (known=%d new=%d missing=%d)",
             len(self._previously_open),
             reclaimable_count,
             len(self._now_open),

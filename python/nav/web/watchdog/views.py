@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controllers for WatchDog requests"""
+
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.db import connection

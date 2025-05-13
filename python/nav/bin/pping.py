@@ -21,7 +21,6 @@
 Pings multiple hosts in parallel
 """
 
-
 import os
 import sys
 import signal
@@ -103,7 +102,7 @@ class Pinger(object):
                 # new netbox. Be sure to get it's state
                 if netbox.up != 'y':
                     _logger.debug(
-                        "Got new netbox, %s, currently " "marked down in navDB",
+                        "Got new netbox, %s, currently marked down in navDB",
                         netbox.ip,
                     )
                     self.down.append(netbox.netboxid)
@@ -192,8 +191,7 @@ class Pinger(object):
             elapsedtime = self.pinger.ping()
             self.generate_events()
             _logger.info(
-                "%i hosts checked in %03.3f secs. %i hosts "
-                "currently marked as down.",
+                "%i hosts checked in %03.3f secs. %i hosts currently marked as down.",
                 len(self.netboxmap),
                 elapsedtime,
                 len(self.down),

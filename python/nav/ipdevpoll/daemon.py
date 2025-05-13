@@ -20,7 +20,6 @@ This is the daemon program that runs the IP device poller.
 
 """
 
-
 import sys
 import os
 import logging
@@ -280,8 +279,7 @@ class CommandProcessor(object):
     def make_option_parser(self):
         """Sets up and returns a command line option parser."""
         parser = argparse.ArgumentParser(
-            epilog="This program runs SNMP polling jobs for IP devices "
-            "monitored by NAV"
+            epilog="This program runs SNMP polling jobs for IP devices monitored by NAV"
         )
         opt = parser.add_argument
 
@@ -366,8 +364,7 @@ class CommandProcessor(object):
             "--clean",
             action="store_true",
             dest="clean",
-            help="cleans/purges old job log entries from the database and then "
-            "exits",
+            help="cleans/purges old job log entries from the database and then exits",
         )
         opt(
             "--threadpoolsize",

@@ -20,7 +20,6 @@ This program dispatches maintenance events according to the maintenance
 schedule in NAVdb.
 """
 
-
 import time
 import logging
 

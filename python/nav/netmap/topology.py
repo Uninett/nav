@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """netmap's topology functions"""
+
 from collections import defaultdict
 import logging
 
@@ -39,7 +40,6 @@ def _get_vlans_map_layer2(graph):
     for swpv in SwPortVlan.objects.filter(
         interface__in=list(interface_id_list)
     ).select_related():
-
         vlan_by_interface[swpv.interface].append(swpv)
 
         # unique storing on internal nav vlan id
@@ -161,7 +161,6 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False, vie
     # Make a copy of the graph, and add edge meta data
     graph = nx.Graph()
     for gwpp_u, gwpp_v, prefix in topology_without_metadata.edges(keys=True):
-
         netbox_u = gwpp_u.interface.netbox
         netbox_v = gwpp_v.interface.netbox
 
@@ -185,7 +184,7 @@ def build_netmap_layer3_graph(topology_without_metadata, load_traffic=False, vie
             )
             additional_metadata = edge_metadata_layer3((u, v), gwpp_u, gwpp_v, traffic)
             assert gwpp_u.prefix.vlan.id == gwpp_v.prefix.vlan.id, (
-                "GwPortPrefix must reside inside VLan for given Prefix, " "bailing!"
+                "GwPortPrefix must reside inside VLan for given Prefix, bailing!"
             )
             metadata = metadata_dict.setdefault('metadata', defaultdict(list))
             metadata[gwpp_u.prefix.vlan.id].append(additional_metadata)

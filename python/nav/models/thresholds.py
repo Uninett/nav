@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Metric threshold related models"""
+
 from datetime import timedelta
 from django.db import models
 from nav.metrics.graphs import extract_series_name, translate_serieslist_to_regex
