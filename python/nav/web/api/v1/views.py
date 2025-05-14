@@ -515,6 +515,9 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filter_backends = NAVAPIMixin.filter_backends + (IfClassFilter, NaturalIfnameFilter)
     filterset_class = InterfaceFilterClass
 
+    # Logged-in users must be able to access this API to use the ipdevinfo ports tool
+    permission_classes = (RelaxedPermission,)
+
     def get_serializer_class(self):
         request = self.request
         if request.query_params.get('last_used'):
