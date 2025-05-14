@@ -921,6 +921,9 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
     # RelatedOrderingFilter does not work with the custom pagination
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
 
+    # Logged-in users must be able to access this API to use the subnet matrix tool
+    permission_classes = (RelaxedPermission,)
+
     def get(self, request, *args, **kwargs):
         """Override get method to verify url parameters"""
         get_times(request)
