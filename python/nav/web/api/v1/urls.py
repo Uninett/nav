@@ -73,4 +73,5 @@ urlpatterns = [
         name="prefix-usage-detail",
     ),
     re_path(r'^', include(router.urls)),
+    re_path(r'^vendor/?$', views.VendorLookup.as_view(), name='vendor'),
 ]
