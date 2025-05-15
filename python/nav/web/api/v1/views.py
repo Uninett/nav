@@ -331,6 +331,7 @@ class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     serializer_class = serializers.RoomSerializer
     filterset_fields = ('location', 'description')
     lookup_value_regex = '[^/]+'
+    permission_classes = (RelaxedReadPermission,)
 
 
 class LocationViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
