@@ -57,7 +57,7 @@ from .auth import (
     APIAuthentication,
     DefaultPermission,
     NavBaseAuthentication,
-    RelaxedPermission,
+    RelaxedReadPermission,
 )
 from .helpers import prefix_collector
 from .filter_backends import (
@@ -516,7 +516,7 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filterset_class = InterfaceFilterClass
 
     # Logged-in users must be able to access this API to use the ipdevinfo ports tool
-    permission_classes = (RelaxedPermission,)
+    permission_classes = (RelaxedReadPermission,)
 
     def get_serializer_class(self):
         request = self.request
@@ -922,7 +922,7 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
 
     # Logged-in users must be able to access this API to use the subnet matrix tool
-    permission_classes = (RelaxedPermission,)
+    permission_classes = (RelaxedReadPermission,)
 
     def get(self, request, *args, **kwargs):
         """Override get method to verify url parameters"""
@@ -1035,7 +1035,7 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     filter_backends = (AlertHistoryFilterBackend,)
     # Logged-in users must be able to access this API to use the status tool
-    permission_classes = (RelaxedPermission,)
+    permission_classes = (RelaxedReadPermission,)
     model = event.AlertHistory
     serializer_class = alert_serializers.AlertHistorySerializer
     base_queryset = base = event.AlertHistory.objects.prefetch_related(
