@@ -36,7 +36,7 @@ def get_auditlog_entries(
     Limit results to <pks>, <queryset> and/or <subsystem>
     """
     assert modelname or queryset, (
-        "At least one of <modelname> or " "<queryset> must be given"
+        "At least one of <modelname> or <queryset> must be given"
     )
     if pks is None:
         pks = []

@@ -37,5 +37,5 @@ class TestSimpleTableFormatter(TestCase):
         data = (('1234', '12345', '1234567'), ('123', '12', '123456'))
         s = SimpleTableFormatter(data)
         self.assertEqual(
-            s.get_formatted_table(), "1234 | 12345 | 1234567\n" " 123 |    12 |  123456"
+            s.get_formatted_table(), "1234 | 12345 | 1234567\n 123 |    12 |  123456"
         )

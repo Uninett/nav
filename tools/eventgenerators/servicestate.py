@@ -21,7 +21,6 @@ testing purposes only.
 
 """
 
-
 import sys
 from optparse import OptionParser
 

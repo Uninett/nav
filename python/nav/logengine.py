@@ -42,7 +42,6 @@ files, one of which this program will have exclusive access to.
 # TODO: Possible future enhancement is the ability to tail a log file
 # continually, instead of reading and truncating as a cron job.
 
-
 import re
 import fcntl
 import sys
@@ -65,7 +64,6 @@ _logger = logging.getLogger("nav.logengine")
 
 
 def get_exception_dicts(config):
-
     options = config.options("priorityexceptions")
 
     exceptionorigin = {}
@@ -139,7 +137,6 @@ _type_match_re = re.compile(r"\w+-\d+-?\S*:")
 
 
 def create_message(line, database=None):
-
     typicalmatch = _typical_match_re.search(line)
     match = typicalmatch or _not_so_typical_match_re.search(line)
 
@@ -166,7 +163,7 @@ def create_message(line, database=None):
     # if this message shows sign of cisco format, put it in the error log
     typematch = _type_match_re.search(line)
     if typematch and database:
-        database.execute("INSERT INTO errorerror (message) " "VALUES (%s)", (line,))
+        database.execute("INSERT INTO errorerror (message) VALUES (%s)", (line,))
 
 
 class Message(object):
@@ -328,7 +325,6 @@ def read_log_lines(config):
 
     # if the file exists
     if logfile:
-
         # lock logfile
         fcntl.flock(logfile, fcntl.LOCK_EX)
 
@@ -438,7 +434,7 @@ def insert_message(
 
 
 def add_category(category, categories, database):
-    database.execute("INSERT INTO category (category) " "VALUES (%s)", (category,))
+    database.execute("INSERT INTO category (category) VALUES (%s)", (category,))
     categories[category] = category
 
 
@@ -447,7 +443,7 @@ def add_origin(origin, category, origins, database):
     originid = database.fetchone()[0]
     assert isinstance(originid, int)
     database.execute(
-        "INSERT INTO origin (origin, name, " "category) VALUES (%s, %s, %s)",
+        "INSERT INTO origin (origin, name, category) VALUES (%s, %s, %s)",
         (originid, origin, category),
     )
     origins[origin] = originid

@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """HTTP Service Checker"""
+
 import contextlib
 import socket
 import base64
@@ -70,7 +71,6 @@ class HttpChecker(AbstractChecker):
             port = int(port)
 
         with contextlib.closing(self.connect(ip, port or self.PORT)) as i:
-
             if vhost:
                 i.host = vhost
 

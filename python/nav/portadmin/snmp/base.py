@@ -436,9 +436,7 @@ class SNMPHandler(ManagementHandler):
                 if bitvector[bitvector_index]:
                     vlans.append(vlan)
             except IndexError:
-                _logger.error(
-                    'Baseport index was out of bounds ' 'for StaticEgressPorts'
-                )
+                _logger.error('Baseport index was out of bounds for StaticEgressPorts')
 
         return native_vlan, vlans
 

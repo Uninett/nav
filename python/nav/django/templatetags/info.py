@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Template tags used in info subsystem"""
+
 from datetime import datetime, timedelta
 import time
 

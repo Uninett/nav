@@ -23,6 +23,7 @@ Which MibRetriever classes to use for each type of device is configured
 in the [sensors] and [sensors:vendormibs] sections of ipdevpoll.conf.
 
 """
+
 import importlib
 import logging
 import os
@@ -169,7 +170,7 @@ def get_mib_map(config):
         for mib in names:
             if mib not in candidate_classes:
                 raise ConfigurationError(
-                    "No known MIB implementation with " "sensor support: %s", mib
+                    "No known MIB implementation with sensor support: %s", mib
                 )
             cls = candidate_classes[mib]
             mib_map[enterprise].append(cls)

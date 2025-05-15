@@ -30,9 +30,7 @@ Oct 28 13:15:46 10.0.42.103 1041: Oct 28 13:15:46.379 CEST: %LINEPROTO-5-UPDOWN:
 Oct 28 13:15:52 10.0.42.103 1042: Oct 28 13:15:51.915 CEST: %LINK-3-UPDOWN: Interface GigabitEthernet1/0/30, changed state to up
 Oct 28 13:15:52 10.0.128.13 71781: *Oct 28 2010 12:08:49 CET: %MV64340_ETHERNET-5-LATECOLLISION: GigabitEthernet0/1, late collision error
 Oct 28 13:15:58 10.0.42.103 1043: Oct 28 13:15:57.560 CEST: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/30, changed state to up
-""".strip().split(
-        "\n"
-    )
+""".strip().split("\n")
 
 
 def test_parse_without_exceptions(loglines):
@@ -93,7 +91,7 @@ class TestParsing(object):
     priority = 5
     mnemonic = 'UPDOWN'
     description = (
-        "Line protocol on Interface GigabitEthernet1/0/30," " changed state to up"
+        "Line protocol on Interface GigabitEthernet1/0/30, changed state to up"
     )
 
     def test_should_parse_without_exception(self):

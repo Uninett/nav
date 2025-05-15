@@ -24,6 +24,7 @@ An example of how to naturally sort a directory listing:
   foo = os.listdir('/path/to/bar')
   foo.sort(key=natsort.split)
 """
+
 import re
 from functools import total_ordering
 

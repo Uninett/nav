@@ -50,8 +50,10 @@ class ThresholdForm(forms.ModelForm):
         super(ThresholdForm, self).__init__(*args, **kwargs)
         self.fields['alert'].label = 'Alert threshold'
         self.fields['clear'].label = 'Clear alert'
-        self.fields['raw'].help_text = (
-            "(Advanced): Do not transform the " "target according to NAV's own rules"
+        self.fields[
+            'raw'
+        ].help_text = (
+            "(Advanced): Do not transform the target according to NAV's own rules"
         )
 
         if self.instance.pk is None:

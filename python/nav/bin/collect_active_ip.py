@@ -17,7 +17,6 @@
 #
 """A wrapper for prefix_ip_collector"""
 
-
 import argparse
 import logging
 import time

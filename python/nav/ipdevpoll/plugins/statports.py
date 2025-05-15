@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Collects port traffic counters and pushes to Graphite"""
+
 import time
 import logging
 
@@ -144,7 +145,7 @@ class StatPorts(Plugin):
         if self._logger.isEnabledFor(logging.DEBUG):
             master, ifcs = yield db.run_in_thread(_get_master_and_instance_list)
             self._logger.debug(
-                "local interfaces (that do not exist on master " "%s): %r", master, ifcs
+                "local interfaces (that do not exist on master %s): %r", master, ifcs
             )
 
 

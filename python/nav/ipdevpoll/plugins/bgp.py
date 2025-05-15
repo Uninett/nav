@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """BGP peer state monitor plugin for ipdevpoll"""
+
 from twisted.internet.defer import inlineCallbacks
 
 from nav.ipdevpoll import Plugin

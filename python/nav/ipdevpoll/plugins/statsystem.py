@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Collects system statistics and pushes to Graphite"""
+
 import time
 
 from twisted.internet import defer

@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """SNMP timestamps and sysUpTime comparisons"""
+
 import json
 
 from twisted.internet import defer
@@ -155,7 +156,7 @@ class TimestampChecker(object):
             return True
         if uptime_deviation is None:
             self._logger.debug(
-                "%r: unable to calculate uptime deviation for " "old/new: %r/%r",
+                "%r: unable to calculate uptime deviation for old/new: %r/%r",
                 self.var_name,
                 old_times,
                 new_times,
@@ -171,7 +172,7 @@ class TimestampChecker(object):
             return True
         elif abs(uptime_deviation) > max_deviation:
             self._logger.debug(
-                "%r: sysUpTime deviation detected, possible " "reboot", self.var_name
+                "%r: sysUpTime deviation detected, possible reboot", self.var_name
             )
             return True
         else:

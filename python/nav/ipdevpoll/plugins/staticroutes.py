@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ipdevpoll plugin to find and store static routes from routing tables"""
+
 import configparser
 
 from twisted.internet import defer
@@ -100,7 +101,7 @@ class StaticRoutes(Plugin):
         vlan = self.containers.factory(route.destination, Vlan)
         vlan.net_type = NetType.get('static')
         sysname = self.netbox.sysname.split('.')[0]
-        vlan.net_ident = u"{},{}".format(sysname, route.nexthop)
+        vlan.net_ident = "{},{}".format(sysname, route.nexthop)
         if descr:
             vlan.description = descr
 

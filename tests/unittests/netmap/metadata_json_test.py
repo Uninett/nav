@@ -148,7 +148,7 @@ class SharedJsonMetadataTests:
     def test_json_room_is_included_in_metadata_from_node(self):
         foo = metadata.Node(self.a, self.nx_edge_metadata).to_json()['2']
         self.assertTrue('room' in foo)
-        self.assertEqual(u'Pegasus (room description)', foo['room'])
+        self.assertEqual('Pegasus (room description)', foo['room'])
 
     def test_json_is_elink_node_is_included_in_metadata_from_node(self):
         foo = metadata.Node(self.a, self.nx_edge_metadata).to_json()['2']
@@ -209,7 +209,7 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
 
         self.assertEqual(1, len(edge_json_metadata['edges']))
         self.assertEqual(
-            u'158.38.0.0/30',
+            '158.38.0.0/30',
             edge_json_metadata['edges'][2111][0]['prefix']['net_address'],
         )
 
@@ -220,7 +220,7 @@ class Layer3JsonMetadataTests(SharedJsonMetadataTests, TopologyLayer3TestCase):
 
         self.assertEqual(1, len(edge_json_metadata['edges']))
         self.assertEqual(2, len(edge_json_metadata['edges'][2112]))
-        expected_prefixes = (u'158.38.0.4/30', u'feed:dead:cafe:babe::/64')
+        expected_prefixes = ('158.38.0.4/30', 'feed:dead:cafe:babe::/64')
         for i, prefix in enumerate(expected_prefixes):
             self.assertEqual(
                 edge_json_metadata['edges'][2112][i]['prefix']['net_address'], prefix

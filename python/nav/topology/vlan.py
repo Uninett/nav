@@ -322,7 +322,7 @@ class RoutedVlanTopologyAnalyzer(object):
         if reverse_edge:
             dest, _source, dest_ifc = reverse_edge
             _logger.info(
-                "at least one of %s (%s) <-> %s (%s) is blocked " "on VLAN %s",
+                "at least one of %s (%s) <-> %s (%s) is blocked on VLAN %s",
                 source.sysname,
                 source_ifc.ifname,
                 dest.sysname,
@@ -449,7 +449,7 @@ class VlanTopologyUpdater(object):
         to_delete = existing_interfaceids.difference(touched_interfaceids)
         if to_delete:
             _logger.debug(
-                "deleting obsolete swpvlan records for these ifcs: " "%s", to_delete
+                "deleting obsolete swpvlan records for these ifcs: %s", to_delete
             )
             SwPortVlan.objects.filter(interface__id__in=to_delete).delete()
 
@@ -531,7 +531,6 @@ def build_layer3_graph(related_extra=None):
                     graph.add_edge(this, gwpp, key=this.prefix)
 
     for prefix in prefixes:
-
         gwportprefixes = router_ports_prefix_map.get(prefix)
         if gwportprefixes:
             if prefix.vlan.net_type.id == 'elink':
@@ -570,11 +569,9 @@ def build_layer3_graph(related_extra=None):
                         )
                         _add_edge(gwportprefixes)
                 else:
-
                     fictive_gwportprefix = stubs.GwPortPrefix()
                     fictive_netbox = stubs.Netbox()
                     if gwportprefixes[0].prefix.vlan.net_ident:
-
                         fictive_netbox.sysname = str(
                             gwportprefixes[0].prefix.vlan.net_ident
                         )
@@ -588,7 +585,7 @@ def build_layer3_graph(related_extra=None):
                     fictive_interface = stubs.Interface()
                     fictive_interface.netbox = fictive_netbox
                     fictive_interface.ifname = (
-                        u"N/A (peer of %s)" % gwportprefixes[0].gw_ip
+                        "N/A (peer of %s)" % gwportprefixes[0].gw_ip
                     )
                     fictive_interface.speed = None
 

@@ -20,6 +20,7 @@ This file contains functions which I wish were in the standard
 library.
 
 """
+
 import math
 from itertools import groupby
 from functools import reduce

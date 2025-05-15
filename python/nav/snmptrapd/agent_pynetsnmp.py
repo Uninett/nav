@@ -212,8 +212,7 @@ class TrapSession(netsnmp.Session):
             lib.netsnmp_udp6_ctor()
         else:
             _logger.warning(
-                "Cannot find constructor function for UDP/IPv6 "
-                "transport domain object."
+                "Cannot find constructor function for UDP/IPv6 transport domain object."
             )
 
     def callback(self, pdu):

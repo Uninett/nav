@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A MibRetriever implementation for IP-FORWARD-MIB"""
+
 from collections import defaultdict
 from itertools import chain
 from collections import namedtuple

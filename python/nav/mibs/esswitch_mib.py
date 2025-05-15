@@ -17,6 +17,7 @@
 Grand Junction Networks)
 
 """
+
 from twisted.internet import defer
 from nav.smidumps import get_mib
 from nav.mibs import mibretriever

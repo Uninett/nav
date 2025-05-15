@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """radius accounting interface views"""
+
 from django.shortcuts import render
 from django.urls import reverse
 from nav.web.utils import create_title

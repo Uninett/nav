@@ -101,7 +101,6 @@ def test_cancel(localhost, ipdevpoll_test_config, pool):
 @pytest.fixture(params=["WorkerPool", "InlinePool"])
 def pool(request):
     with patch('nav.ipdevpoll.control.get_process_command') as gpc:
-
         gpc.return_value = 'ipdevpolld'
         if request.param == "WorkerPool":
             yield WorkerPool(1, 1)

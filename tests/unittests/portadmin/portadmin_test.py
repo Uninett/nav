@@ -57,9 +57,9 @@ class TestPortadminResponseHP:
         snmp_read_only_handler.set = Mock(return_value=None)
         interface = Mock()
         interface.ifindex = 1
-        assert (
-            handler_hp.set_interface_description(interface, "punkt1") is None
-        ), "setIfAlias failed"
+        assert handler_hp.set_interface_description(interface, "punkt1") is None, (
+            "setIfAlias failed"
+        )
 
 
 class TestPortadminResponseCisco:

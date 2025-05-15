@@ -62,7 +62,7 @@ def register_error_events(request, **kwargs):
 
     for key in kwargs:
         raise TypeError(
-            'register_error_events() got an unexpected keyword ' 'argument %s' % key
+            'register_error_events() got an unexpected keyword argument %s' % key
         )
 
     # Data that will be inserted into the eventq table.

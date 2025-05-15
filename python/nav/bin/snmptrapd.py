@@ -17,7 +17,6 @@
 #
 """NAV daemon to receive and act upon SNMP traps."""
 
-
 import logging
 import os
 import re
@@ -174,7 +173,7 @@ def parse_args():
         "-c",
         "--community",
         default="public",
-        help="Which SNMP community incoming traps must use. " "The default is 'public'",
+        help="Which SNMP community incoming traps must use. The default is 'public'",
     )
     parser.add_argument("address", nargs="*", type=Address, default=DEFAULT_ADDRESSES)
 

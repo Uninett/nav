@@ -45,11 +45,11 @@ class Cabling(models.Model):
         unique_together = (('room', 'jack'),)
 
     def __str__(self):
-        return u'jack %s, in room %s' % (self.jack, self.room.id)
+        return 'jack %s, in room %s' % (self.jack, self.room.id)
 
     def verbose(self):
         """Returns a more verbose description of this cable"""
-        return u'jack {}'.format(
+        return 'jack {}'.format(
             ", ".join(
                 [
                     x
@@ -89,4 +89,4 @@ class Patch(models.Model):
         unique_together = (('interface', 'cabling'),)
 
     def __str__(self):
-        return u'%s, patched to %s' % (self.interface, self.cabling)
+        return '%s, patched to %s' % (self.interface, self.cabling)

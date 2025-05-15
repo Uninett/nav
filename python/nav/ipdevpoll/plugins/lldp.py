@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ipdevpoll plugin to collect LLDP neighbors"""
+
 from pprint import pformat
 
 from django.db.models import Q

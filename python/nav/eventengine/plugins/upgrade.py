@@ -25,7 +25,6 @@ class UpgradeHandler(EventHandler):
     handled_types = ('deviceNotice',)
 
     def handle(self):
-
         event = self.event
 
         if event.state != event.STATE_STATELESS:

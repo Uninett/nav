@@ -69,7 +69,7 @@ def main():
     )
 
     if len(identities) <= 0:
-        _logger.info("No detained ports in database where lastchanged > 1 " "hour.")
+        _logger.info("No detained ports in database where lastchanged > 1 hour.")
         sys.exit(0)
 
     for identity in identities:

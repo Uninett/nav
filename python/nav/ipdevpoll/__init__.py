@@ -20,6 +20,7 @@ Packages:
   plugins -- polling plugin system
 
 """
+
 from nav.models import manage
 from nav.ipdevpoll.config import IpdevpollConfig
 from .log import ContextLogger, ContextFormatter

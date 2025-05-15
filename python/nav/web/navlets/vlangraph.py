@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Navlet for displaying a graph giving ip count for a vlan"""
+
 import logging
 
 from django.http import HttpResponse

@@ -124,4 +124,4 @@ def _cache_key(*args):
             return str(thing)
 
     args = (stringify(a).replace(' ', '-') for a in args)
-    return u'netmap:' + u':'.join(args)
+    return 'netmap:' + ':'.join(args)

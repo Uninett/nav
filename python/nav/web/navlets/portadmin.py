@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Contains the class for the PortAdmin navlet"""
+
 from nav.web.navlets import Navlet
 from nav.web.portadmin.forms import SearchForm
 

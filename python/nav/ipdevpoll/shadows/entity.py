@@ -77,8 +77,7 @@ class EntityManager(DefaultManager):
         if self.missing:
             w_serial = sum(int(m.device is not None) for m in self.missing)
             self._logger.info(
-                "%d entities have disappeared, %d of which have "
-                "known serial numbers",
+                "%d entities have disappeared, %d of which have known serial numbers",
                 len(self.missing),
                 w_serial,
             )

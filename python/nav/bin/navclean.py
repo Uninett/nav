@@ -19,6 +19,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Cleans old data from the NAV database"""
+
 import argparse
 import sys
 

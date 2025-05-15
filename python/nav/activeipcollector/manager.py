@@ -16,6 +16,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Manage collection and storing of active ip-addresses statistics"""
+
 import datetime
 import logging
 import time

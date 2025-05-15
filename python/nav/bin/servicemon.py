@@ -19,6 +19,7 @@
 """
 This program controls the service monitoring in NAV.
 """
+
 import os
 import sys
 import time
@@ -96,7 +97,7 @@ class Controller:
             wait = self._looptime - (time.time() - start)
             if wait <= 0:
                 _logger.warning(
-                    "System clock has drifted backwards, " "resetting loop delay"
+                    "System clock has drifted backwards, resetting loop delay"
                 )
                 wait = self._looptime
             if self._checkers:
@@ -111,7 +112,7 @@ class Controller:
             _logger.debug("Waiting %i seconds.", wait)
             if wait <= 0:
                 _logger.critical(
-                    "Only superman can do this. Humans cannot " "wait for %i seconds.",
+                    "Only superman can do this. Humans cannot wait for %i seconds.",
                     wait,
                 )
                 wait %= self._looptime
@@ -166,7 +167,7 @@ def main(args=None):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Service monitor for NAV (Network Administration " "Visualized)"
+        description="Service monitor for NAV (Network Administration Visualized)"
     )
     parser.add_argument(
         '--version', action='version', version='NAV ' + buildconf.VERSION

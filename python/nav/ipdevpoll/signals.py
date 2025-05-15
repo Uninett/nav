@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """ipdevpoll signals, using Django signals framework."""
+
 import django.dispatch
 
 # providing args: "netbox_id", "new_type"

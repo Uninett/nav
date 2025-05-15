@@ -16,7 +16,6 @@
 #
 """Simple tools for terminal color support"""
 
-
 import os
 import sys
 from functools import wraps

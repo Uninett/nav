@@ -50,9 +50,9 @@ class TestThatSeverityParser:
         rules = SeverityRules._parse_raw_severity_rules(simple_severity_ruleset)
         _ = next(rules)  # toss default severity level rule
         expressions, modifier = next(rules)
-        assert expressions == (
-            Expression("foo", "perfectly-cromulent"),
-        ), "the second rule in the ruleset was not parsed correctly"
+        assert expressions == (Expression("foo", "perfectly-cromulent"),), (
+            "the second rule in the ruleset was not parsed correctly"
+        )
         assert callable(modifier)
 
     def test_should_parse_nested_rule_correctly(self, nested_severity_ruleset):
@@ -81,12 +81,12 @@ class TestThatSeverityParser:
         for expressions, modifier in SeverityRules._parse_raw_severity_rules(
             nested_severity_ruleset
         ):
-            assert callable(
-                modifier
-            ), f"modifier isn't callable for rule {expressions!r}"
-            assert isinstance(
-                modifier(Severity(3)), int
-            ), f"modifier does not follow protocol for rule {expressions!r}"
+            assert callable(modifier), (
+                f"modifier isn't callable for rule {expressions!r}"
+            )
+            assert isinstance(modifier(Severity(3)), int), (
+                f"modifier does not follow protocol for rule {expressions!r}"
+            )
 
 
 class TestThatModifierParser:

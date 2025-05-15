@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements an EXTREME-VLAN-MIB MibRetriever"""
+
 from nav.smidumps import get_mib
 from nav.mibs.qbridge_mib import portlist
 from nav.mibs import reduce_index

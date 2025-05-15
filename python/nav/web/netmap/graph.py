@@ -233,11 +233,9 @@ def get_layer3_traffic(location_or_room_id=None):
     traffic = []
 
     for prefix in prefixes:
-
         gwport_prefixes = router_ports_prefix_map[prefix]
 
         if gwport_prefixes and prefix.vlan.net_type.id != 'elink':
-
             for gwport_prefix_a in gwport_prefixes:
                 for gwport_prefix_b in gwport_prefixes:
                     if gwport_prefix_a is not gwport_prefix_b:

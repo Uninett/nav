@@ -6,7 +6,6 @@ from unittest import TestCase
 
 class DBTestcase(TestCase):
     def test_build_host_query(self):
-
         db_instance = db()
 
         # Make groups

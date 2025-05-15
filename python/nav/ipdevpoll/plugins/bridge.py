@@ -21,6 +21,7 @@ BRIDGE-MIB instances if they are listed as logical entities in
 ENTITY-MIB. The plugin also fetches the base bridge address from the bridge mib
 
 """
+
 from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin

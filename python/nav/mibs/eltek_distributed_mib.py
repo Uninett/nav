@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """MibRetriever implementation for Eltek 48V rectifier devices"""
+
 from twisted.internet.defer import inlineCallbacks
 from nav.smidumps import get_mib
 from nav.mibs.mibretriever import MibRetriever

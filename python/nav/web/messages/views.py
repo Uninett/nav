@@ -13,6 +13,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Controller functions for Messages"""
+
 import datetime
 
 from django.db.models import Q

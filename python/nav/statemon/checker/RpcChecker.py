@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """RPC portmapper service checker"""
+
 import os
 import subprocess
 from nav.statemon.abstractchecker import AbstractChecker
@@ -28,7 +29,7 @@ class RpcChecker(AbstractChecker):
     OPTARGS = (
         (
             'required',
-            'A comma separated list of require services. Example: ' 'nfs,nlockmgr',
+            'A comma separated list of require services. Example: nfs,nlockmgr',
         ),
     )
 

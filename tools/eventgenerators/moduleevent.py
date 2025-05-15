@@ -16,13 +16,11 @@
 #
 "Script to simulate up/down module events from moduleMon"
 
-
 import sys
 from nav import db
 
 
 def handler(cursor, boxlist, state):
-
     for deviceid, netboxid, subid in boxlist:
         sql = """INSERT INTO eventq
                    (source, target, deviceid, netboxid, subid, eventtypeid,

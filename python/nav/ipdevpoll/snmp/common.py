@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 "common AgentProxy mixin"
+
 import time
 import logging
 from dataclasses import dataclass

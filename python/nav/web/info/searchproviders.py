@@ -244,7 +244,7 @@ class PrefixSearchProvider(SearchProvider):
 class UnrecognizedNeighborSearchProvider(SearchProvider):
     """Search provider for Unrecognized neighbor entries"""
 
-    name = u"Unrecognized neighbors"
+    name = "Unrecognized neighbors"
     headers = [
         ('Remote id', 'remote_id'),
         ('Remote name', 'remote_name'),
@@ -267,7 +267,7 @@ class UnrecognizedNeighborSearchProvider(SearchProvider):
 class DevicegroupSearchProvider(SearchProvider):
     """Searchprovider for device group entries"""
 
-    name = u"Device groups"
+    name = "Device groups"
     headers = [('Device Group', 'id'), ('# netboxes', 'num_netboxes')]
     link = 'Device Group'
 

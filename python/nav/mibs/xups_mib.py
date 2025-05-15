@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A class for extracting sensors from EATON UPSes."""
+
 from nav.smidumps import get_mib
 from nav.mibs.ups_mib import UpsMib
 from nav.models.manage import Sensor

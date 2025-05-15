@@ -19,6 +19,7 @@ ipdevpoll plugin to perform reverse DNS lookups on netbox IP addresses.
 Will generate events if there are mismatches between device sysname
 and dnsname.
 """
+
 from itertools import cycle
 
 from IPy import IP

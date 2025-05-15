@@ -81,7 +81,7 @@ class TestCreateChoices(unittest.TestCase):
     def test_root_node(self):
         self.my_setup()
         result = create_choices(self.root, [], is_last_child=True)
-        self.assertEqual(result, [('root', u'root')])
+        self.assertEqual(result, [('root', 'root')])
 
     def test_one_child(self):
         self.my_setup([MagicMock(pk='child1')])

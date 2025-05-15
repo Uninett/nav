@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """stp blocked ports storage and handling"""
+
 from nav.models import manage
 
 from nav.ipdevpoll.storage import Shadow, DefaultManager

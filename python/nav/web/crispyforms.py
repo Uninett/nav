@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """A collection of forms inspired by the django crispy forms framework"""
+
 from types import SimpleNamespace
 from typing import Optional
 

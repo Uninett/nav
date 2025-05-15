@@ -118,7 +118,6 @@ class DispatcherHandler(object):
         """
 
         for i, (dispatchername, dispatcher) in enumerate(self.dispatchers):
-
             try:
                 self.logger.debug("Trying %s...", dispatchername)
                 (sms, sent, ignored, result, smsid) = dispatcher.sendsms(phone, msgs)

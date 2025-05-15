@@ -15,7 +15,6 @@
 #
 """Diff stored and current topology"""
 
-
 from nav.models.manage import Interface
 
 from .analyze import (

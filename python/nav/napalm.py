@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """This module contains NAPALM connectivity interfaces for NAV"""
+
 import weakref
 from tempfile import NamedTemporaryFile
 from typing import TypeVar

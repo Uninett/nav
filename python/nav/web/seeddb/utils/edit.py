@@ -65,7 +65,6 @@ def render_edit(
     if request.method == 'POST':
         form = form_model(request.POST, instance=obj)
         if form.is_valid():
-
             # TODO: It's kinda hackish to put this here. Discuss during review
             # Store devices in group when editing a device group (which we
             # have no idea if we are doing or not)

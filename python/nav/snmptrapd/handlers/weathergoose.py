@@ -17,6 +17,7 @@
 Climate Monitor, versions 1 and 2.
 
 """
+
 import re
 import logging
 from collections import defaultdict

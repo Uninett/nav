@@ -166,7 +166,6 @@ class ExpandGWPortMixin(object):
                 .filter(interface__netbox=gwport.netbox)
                 .order_by('interface__ifname')
             ):
-
                 # Check if port is spanningtreeblocked
                 if vlan.interface.blocked_swports.filter(
                     vlan=vlan.vlan.vlan  # really!
@@ -220,7 +219,6 @@ class ExpandGWPortMixin(object):
             c.update({'switch_id': interface.to_netbox.id, 'vlan_id': vlan.vlan.id})
 
         if not has_children:
-
             if connected_interface and connected_interface.netbox.services.count():
                 has_children = True
 
@@ -311,9 +309,7 @@ class ExpandSWPortContextMixin(object):
                     host_string = """
                         {0} ({1}) [<a href="/machinetracker/mac?mac={2}&days=7"
                                     target="_blank">{3}</a>]
-                        """.format(
-                        hostname, arp_entry.ip, mac.mac, mac.mac
-                    )
+                        """.format(hostname, arp_entry.ip, mac.mac, mac.mac)
                 hosts_behind_port.add(host_string)
             if not arp_entries and mac.mac not in hosts_behind_port:
                 hosts_behind_port.add(mac.mac)

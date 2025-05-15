@@ -108,7 +108,7 @@ class TestAddMaintenanceTask:
         last_netbox_id = getattr(Netbox.objects.last(), "pk", 0)
         url = (
             reverse('maintenance-new')
-            + f'?netbox={last_netbox_id+1}&netbox={last_netbox_id+2}'
+            + f'?netbox={last_netbox_id + 1}&netbox={last_netbox_id + 2}'
         )
 
         response = client.get(url, follow=True)

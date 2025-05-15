@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Simple TCP port service checker"""
+
 import select
 import socket
 

@@ -22,6 +22,7 @@ Uses the vendor-specific GEIST-MIB-V3 (derived from the IT-WATCHDOGS-MIB-V3)
 to detect and collect sensor-information.
 
 """
+
 from nav.oids import OID
 from nav.smidumps import get_mib
 from .itw_mibv3 import ItWatchDogsMibV3

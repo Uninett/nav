@@ -18,6 +18,7 @@
 This package contains plugins submodules as distributed with NAV.
 
 """
+
 import inspect
 import logging
 
@@ -43,7 +44,7 @@ def import_plugins():
         plugin_counter += 1
 
     _logger.info(
-        'Imported %d plugin classes, ' '%d classes in plugin registry',
+        'Imported %d plugin classes, %d classes in plugin registry',
         plugin_counter,
         len(plugin_registry),
     )

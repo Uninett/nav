@@ -15,7 +15,6 @@
 #
 """macwatch form definitions"""
 
-
 from django import forms
 from nav.web.crispyforms import set_flat_form_attributes, FlatFieldset, SubmitField
 from nav.web.macwatch.models import MacWatch

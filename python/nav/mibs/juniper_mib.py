@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """JUNIPER-MIB MibRetriever"""
+
 from twisted.internet import defer
 
 from nav.oids import OID

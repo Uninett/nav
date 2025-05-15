@@ -10,7 +10,7 @@ class TestJWTConf(TestCase):
         pass
 
     def test_issuer_settings_include_valid_jwks_issuer(self):
-        config = u"""
+        config = """
             [jwks-issuer]
             keytype=JWKS
             aud=nav
@@ -34,7 +34,7 @@ class TestJWTConf(TestCase):
         self.assertEqual(settings['jwks-issuer'], expected_settings)
 
     def test_issuer_settings_include_valid_pem_issuer(self):
-        config = u"""
+        config = """
             [pem-issuer]
             keytype=PEM
             aud=nav
@@ -59,7 +59,7 @@ class TestJWTConf(TestCase):
         self.assertEqual(settings['pem-issuer'], expected_settings)
 
     def test_issuer_settings_include_valid_local_issuer(self):
-        config = u"""
+        config = """
             [nav]
             private_key=key
             public_key=key
@@ -85,7 +85,7 @@ class TestJWTConf(TestCase):
         self.assertEqual(settings['nav'], expected_settings)
 
     def test_invalid_config_for_internal_tokens_should_return_empty_dict(self):
-        config = u"""
+        config = """
             [wrong-section-name]
             private_key=key
             public_key=key
@@ -102,7 +102,7 @@ class TestJWTConf(TestCase):
         self.assertEqual(settings, dict())
 
     def test_invalid_config_for_external_tokens_should_return_empty_dict(self):
-        config = u"""
+        config = """
             [pem-issuer]
             keytype=INVALID
             aud=nav
@@ -158,7 +158,7 @@ class TestJWTConf(TestCase):
         self.assertEqual(validated_type, type)
 
     def test_validate_issuer_should_fail_if_external_name_matches_local_name(self):
-        config = u"""
+        config = """
         [nav]
         private_key=key
         public_key=key
@@ -185,7 +185,7 @@ class TestJWTConf(TestCase):
             jwtconf._validate_issuer("")
 
     def test_get_nav_private_key_returns_correct_private_key(self):
-        config = u"""
+        config = """
         [nav]
         private_key=key
         public_key=key
@@ -202,7 +202,7 @@ class TestJWTConf(TestCase):
                 self.assertEqual(jwtconf.get_nav_private_key(), key)
 
     def test_get_nav_public_key_returns_correct_public_key(self):
-        config = u"""
+        config = """
         [nav]
         private_key=key
         public_key=key
@@ -219,7 +219,7 @@ class TestJWTConf(TestCase):
                 self.assertEqual(jwtconf.get_nav_public_key(), key)
 
     def test_get_nav_name_should_raise_error_if_name_empty(self):
-        config = u"""
+        config = """
         [nav]
         private_key=key
         public_key=key
@@ -231,7 +231,7 @@ class TestJWTConf(TestCase):
                 jwtconf.get_nav_name()
 
     def test_get_nav_name_returns_configured_name(self):
-        config = u"""
+        config = """
         [nav]
         private_key=key
         public_key=key
@@ -242,7 +242,7 @@ class TestJWTConf(TestCase):
             self.assertEqual(jwtconf.get_nav_name(), "nav")
 
     def test_missing_option_should_raise_error(self):
-        config_with_missing_keytype = u"""
+        config_with_missing_keytype = """
             [pem-issuer]
             aud=nav
             key=key_path
@@ -258,7 +258,7 @@ class TestJWTConf(TestCase):
                     jwtconf._get_settings_for_external_tokens()
 
     def test_non_existing_file_should_raise_error(self):
-        config = u"""
+        config = """
             [pem-issuer]
             aud=nav
             key=key_path
@@ -275,7 +275,7 @@ class TestJWTConf(TestCase):
             self.assertEqual(jwtconf._read_key_from_path("path"), mock_key)
 
     def test_file_with_permission_problems_should_raise_error(self):
-        config = u"""
+        config = """
             [pem-issuer]
             aud=nav
             key=key_path
@@ -288,7 +288,7 @@ class TestJWTConf(TestCase):
                     jwtconf._read_key_from_path("fakepath")
 
     def test_empty_config_should_give_empty_issuer_settings(self):
-        config = u"""
+        config = """
             """
         expected_settings = {}
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
@@ -297,7 +297,7 @@ class TestJWTConf(TestCase):
         self.assertEqual(settings, expected_settings)
 
     def test_empty_config_should_give_empty_external_settings(self):
-        config = u"""
+        config = """
             """
         expected_settings = {}
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
@@ -306,7 +306,7 @@ class TestJWTConf(TestCase):
         self.assertEqual(settings, expected_settings)
 
     def test_empty_config_should_give_empty_local_settings(self):
-        config = u"""
+        config = """
             """
         expected_settings = {}
         with patch.object(JWTConf, 'DEFAULT_CONFIG', config):
@@ -315,7 +315,7 @@ class TestJWTConf(TestCase):
         self.assertEqual(settings, expected_settings)
 
     def test_settings_should_include_local_and_external_settings(self):
-        config = u"""
+        config = """
             [nav]
             private_key=key
             public_key=key
@@ -342,7 +342,7 @@ class TestJWTConf(TestCase):
         assert 'local-issuer' in settings
 
     def test_get_access_token_lifetime_should_return_configured_lifetime(self):
-        config = u"""
+        config = """
         [nav]
         private_key=key
         public_key=key
@@ -356,7 +356,7 @@ class TestJWTConf(TestCase):
             )
 
     def test_get_refresh_token_lifetime_should_return_configured_lifetime(self):
-        config = u"""
+        config = """
         [nav]
         private_key=key
         public_key=key
@@ -372,7 +372,7 @@ class TestJWTConf(TestCase):
     def test_if_lifetime_is_not_configured_then_get_access_token_lifetime_should_return_default_lifetime(
         self,
     ):
-        config = u"""
+        config = """
         [nav]
         private_key=key
         public_key=key
@@ -388,7 +388,7 @@ class TestJWTConf(TestCase):
     def test_if_lifetime_is_not_configured_then_get_refresh_token_lifetime_should_return_default_lifetime(
         self,
     ):
-        config = u"""
+        config = """
         [nav]
         private_key=key
         public_key=key

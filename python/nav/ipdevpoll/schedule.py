@@ -107,7 +107,7 @@ class NetboxJobScheduler(object):
             )
         else:
             self._logger.debug(
-                "cancel: Job %r cancelled for %s, " "though no next run was scheduled",
+                "cancel: Job %r cancelled for %s, though no next run was scheduled",
                 self.job.name,
                 self.netbox.sysname,
             )
@@ -124,7 +124,7 @@ class NetboxJobScheduler(object):
     def run_job(self, dummy=None):
         if self.is_running():
             self._logger.info(
-                "Previous %r job is still running for %s, " "not running again now.",
+                "Previous %r job is still running for %s, not running again now.",
                 self.job.name,
                 self.netbox.sysname,
             )
@@ -132,7 +132,7 @@ class NetboxJobScheduler(object):
 
         if self.is_job_limit_reached():
             self._logger.debug(
-                "intensity limit reached for %s - waiting to " "run for %s",
+                "intensity limit reached for %s - waiting to run for %s",
                 self.job.name,
                 self.netbox.sysname,
             )
@@ -141,7 +141,7 @@ class NetboxJobScheduler(object):
 
         if self.is_global_limit_reached():
             self._logger.debug(
-                "global intensity limit reached - waiting to " "run for %s",
+                "global intensity limit reached - waiting to run for %s",
                 self.netbox.sysname,
             )
             self.queue_myself(self.global_job_queue)
@@ -179,7 +179,6 @@ class NetboxJobScheduler(object):
         if failure.check(AbortedJobError) and isinstance(
             failure.value.cause, SnmpError
         ):
-
             open_sessions = AgentProxy.count_open_sessions()
             new_limit = int(ceil(open_sessions * 0.90))
             if new_limit < cls.global_intensity:

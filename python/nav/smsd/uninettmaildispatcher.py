@@ -21,6 +21,7 @@ the text message in the body. The mail must be sent from a uninett.no host,
 so this is of little use for others, unless they have a similar interface.
 
 """
+
 import smtplib
 
 from django.core.mail import EmailMessage

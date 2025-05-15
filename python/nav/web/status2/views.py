@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """NAV status app views"""
+
 import base64
 import datetime
 import logging

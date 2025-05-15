@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Template tags related to manipulation of URLs with query parameters"""
+
 from django import template
 
 from nav.django.utils import reverse_with_query

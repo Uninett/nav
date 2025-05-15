@@ -82,7 +82,7 @@ class LogEntry(models.Model):
         self = cls()
         dict = {'actor': actor, 'object': object, 'target': target}
         for k, v in dict.items():
-            dict[k] = getattr(v, 'audit_logname', u'%s' % v)
+            dict[k] = getattr(v, 'audit_logname', '%s' % v)
         try:
             self.summary = template.format(**dict)
         except KeyError as error:
@@ -111,8 +111,8 @@ class LogEntry(models.Model):
         model = obj.__class__.__name__.lower()
         LogEntry.add_log_entry(
             actor,
-            u'create-{}'.format(model),
-            u'{actor} created {object}',
+            'create-{}'.format(model),
+            '{actor} created {object}',
             after=obj,
             object=obj,
         )
@@ -121,9 +121,9 @@ class LogEntry(models.Model):
     def add_delete_entry(actor, obj, template=None):
         """Add log entry for deleted objects"""
         model = obj.__class__.__name__.lower()
-        template = template or u'{actor} deleted {object}'
+        template = template or '{actor} deleted {object}'
         LogEntry.add_log_entry(
-            actor, u'delete-{}'.format(model), template, before=obj, object=obj
+            actor, 'delete-{}'.format(model), template, before=obj, object=obj
         )
 
     @staticmethod
@@ -137,10 +137,10 @@ class LogEntry(models.Model):
             """
             {"a": "b", "c": "d"} => "a=b, c=d"
             """
-            return u", ".join(u"{}={}".format(x, y) for x, y in d.items())
+            return ", ".join("{}={}".format(x, y) for x, y in d.items())
 
         model = new.__class__.__name__.lower()
-        prefix = u'{actor} edited {object}'
+        prefix = '{actor} edited {object}'
         old_value = getattr(old, attribute)
         new_value = getattr(new, attribute)
         if include_values:
@@ -149,16 +149,16 @@ class LogEntry(models.Model):
                 old_value = dict_to_string(old_value)
             if isinstance(new_value, dict):
                 new_value = dict_to_string(new_value)
-            summary = u"{} changed from '{}' to '{}'".format(
+            summary = "{} changed from '{}' to '{}'".format(
                 attribute, old_value, new_value
             )
         else:
-            summary = u"{} changed".format(attribute)
+            summary = "{} changed".format(attribute)
 
         LogEntry.add_log_entry(
             actor,
-            u'edit-{}-{}'.format(model, attribute),
-            u'{}: {}'.format(prefix, summary),
+            'edit-{}-{}'.format(model, attribute),
+            '{}: {}'.format(prefix, summary),
             before=old,
             after=new,
             object=new,

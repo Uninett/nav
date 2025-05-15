@@ -16,7 +16,6 @@
 #
 """Django URL configuration"""
 
-
 from django.urls import re_path
 from nav.web.info.vlan import views
 

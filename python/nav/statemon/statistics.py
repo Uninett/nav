@@ -21,6 +21,7 @@ whose call signature has been kept to remain compatible with the rest of
 the statemon subsystem.
 
 """
+
 import time
 
 from nav.metrics.carbon import send_metrics

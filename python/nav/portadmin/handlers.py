@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Interface definition for PortAdmin management handlers"""
+
 import time
 from typing import Any, Optional, Sequence, Union
 import logging

@@ -16,7 +16,6 @@
 #
 """Simple API to interface with NAVs event queue."""
 
-
 from django.db import transaction
 
 import nav.db
@@ -168,7 +167,7 @@ class EventQ(object):
 
         # Prepare an SQL statement to post the variables, if any
         if event:
-            varsql = "INSERT INTO eventqvar (eventqid, var, val)" "VALUES (%s, %s, %s)"
+            varsql = "INSERT INTO eventqvar (eventqid, var, val)VALUES (%s, %s, %s)"
             values = [(eventqid,) + i for i in event.items()]
             cursor.executemany(varsql, values)
 

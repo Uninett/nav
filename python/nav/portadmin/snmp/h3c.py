@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """H3C specific PortAdmin SNMP handling"""
+
 from nav import Snmp
 from nav.oids import OID
 from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors

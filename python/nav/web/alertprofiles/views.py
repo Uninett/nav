@@ -228,7 +228,7 @@ def set_active_profile(request, profile):
     preference.save()
     new_message(
         request,
-        u'Active profile automatically set to {}'.format(profile.name),
+        'Active profile automatically set to {}'.format(profile.name),
         Messages.NOTICE,
     )
 
@@ -299,7 +299,7 @@ def profile_save(request):
     if 'template' in request.POST:
         create_time_periods(request, profile)
 
-    new_message(request, u'Saved profile {}'.format(profile.name), Messages.SUCCESS)
+    new_message(request, 'Saved profile {}'.format(profile.name), Messages.SUCCESS)
 
     return HttpResponseRedirect(
         reverse('alertprofiles-profile-detail', args=(profile.id,))
@@ -360,7 +360,7 @@ def profile_remove(request):
                     request, _('You do not own this profile.')
                 )
             if profile == active_profile:
-                warnings.append({'message': u'This is the currently active profile.'})
+                warnings.append({'message': 'This is the currently active profile.'})
 
             queued = AccountAlertQueue.objects.filter(
                 subscription__time_period__profile=profile
@@ -519,7 +519,7 @@ def profile_time_period_add(request):
     time_period = time_period_form.save()
     new_message(
         request,
-        _('Saved time period %(time)s for %(during)s to profile ' '%(profile)s')
+        _('Saved time period %(time)s for %(during)s to profile %(profile)s')
         % {
             'time': time_period.start,
             'during': time_period.get_valid_during_display(),
@@ -599,9 +599,7 @@ def profile_time_period_remove(request):
                 return alertprofiles_response_forbidden(
                     request, _('You do not own this profile.')
                 )
-            description = _(
-                u'From %(time)s for %(profile)s during %(valid_during)s'
-            ) % {
+            description = _('From %(time)s for %(profile)s during %(valid_during)s') % {
                 'time': period.start,
                 'profile': period.profile.name,
                 'valid_during': period.get_valid_during_display(),
@@ -614,10 +612,10 @@ def profile_time_period_remove(request):
             if queued > 0:
                 warnings.append(
                     {
-                        'message': u"There are %(queued)s queued alerts on a "
-                        u"subscription under this time period. Deleting "
-                        u"this time period will delete those alerts as "
-                        u"well." % {'queued': queued}
+                        'message': "There are %(queued)s queued alerts on a "
+                        "subscription under this time period. Deleting "
+                        "this time period will delete those alerts as "
+                        "well." % {'queued': queued}
                     }
                 )
             elements.append(
@@ -700,7 +698,7 @@ def profile_time_period_setup(request, time_period_id=None):
             ('Profiles', reverse('alertprofiles-profile')),
             (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
             (
-                str(time_period.start) + u', ' + time_period.get_valid_during_display(),
+                str(time_period.start) + ', ' + time_period.get_valid_during_display(),
                 None,
             ),
         ],
@@ -793,7 +791,7 @@ def profile_time_period_subscription_edit(request, subscription_id=None):
             (profile.name, reverse('alertprofiles-profile-detail', args=(profile.id,))),
             (
                 str(subscription.time_period.start)
-                + u', '
+                + ', '
                 + subscription.time_period.get_valid_during_display(),
                 reverse(
                     'alertprofiles-profile-timeperiod-setup',
@@ -867,16 +865,16 @@ def profile_time_period_subscription_remove(request):
             if queued > 0:
                 warnings.append(
                     {
-                        'message': u"There are %(queued)s queued alert(s) on this "
-                        u"subscription.  If you delete this "
-                        u"subscription, those alerts will be deleted as "
-                        u"well." % {'queued': queued},
+                        'message': "There are %(queued)s queued alert(s) on this "
+                        "subscription.  If you delete this "
+                        "subscription, those alerts will be deleted as "
+                        "well." % {'queued': queued},
                     }
                 )
 
             description = _(
-                u"Watch %(fg)s, send to %(address)s %(dispatch)s, from "
-                u"%(time)s for %(profile)s during %(during)s"
+                "Watch %(fg)s, send to %(address)s %(dispatch)s, from "
+                "%(time)s for %(profile)s during %(during)s"
             ) % {
                 'fg': sub.filter_group.name,
                 'address': sub.alert_address.address,
@@ -910,7 +908,7 @@ def profile_time_period_subscription_remove(request):
                     reverse('alertprofiles-profile-detail', args=(period.profile.id,)),
                 ),
                 (
-                    str(period.start) + u', ' + period.get_valid_during_display(),
+                    str(period.start) + ', ' + period.get_valid_during_display(),
                     reverse(
                         'alertprofiles-profile-timeperiod-setup', args=(period.id,)
                     ),
@@ -1115,8 +1113,8 @@ def address_remove(request):
             for sub in subscriptions:
                 warnings.append(
                     {
-                        'message': u'Address used in subscription "watch %(fg)s '
-                        u'from %(time)s for profile %(profile)s".'
+                        'message': 'Address used in subscription "watch %(fg)s '
+                        'from %(time)s for profile %(profile)s".'
                         % {
                             'fg': sub.filter_group.name,
                             'time': sub.time_period.start,
@@ -1133,14 +1131,14 @@ def address_remove(request):
                 if queued > 0:
                     warnings.append(
                         {
-                            'message': u"There are %(queued)s queued alerts on "
-                            u"this subscription. Deleting this time "
-                            u"period will delete those alerts as "
-                            u"well." % {'queued': queued}
+                            'message': "There are %(queued)s queued alerts on "
+                            "this subscription. Deleting this time "
+                            "period will delete those alerts as "
+                            "well." % {'queued': queued}
                         }
                     )
 
-            description = _(u'''%(type)s address %(address)s''') % {
+            description = _('''%(type)s address %(address)s''') % {
                 'type': addr.type.name,
                 'address': addr.address,
             }
@@ -1462,9 +1460,9 @@ def filter_remove(request):
             except Account.DoesNotExist:
                 warnings.append(
                     {
-                        'message': u'This filter is public. Deleting it will '
-                        u'make it unavailable for all users of this '
-                        u'system.'
+                        'message': 'This filter is public. Deleting it will '
+                        'make it unavailable for all users of this '
+                        'system.'
                     }
                 )
 
@@ -1474,7 +1472,7 @@ def filter_remove(request):
             for fgroup in filter_groups:
                 warnings.append(
                     {
-                        'message': u'Used in filter group %(name)s.'
+                        'message': 'Used in filter group %(name)s.'
                         % {'name': fgroup.name},
                         'link': reverse(
                             'alertprofiles-filter_groups-detail', args=(fgroup.id,)
@@ -1647,8 +1645,8 @@ def filter_removeexpression(request):
         elements = []
         for expr in expressions:
             description = _(
-                u"Expression, %(match_field)s %(operator)s %(value)s, used in "
-                u"filter %(filter)s"
+                "Expression, %(match_field)s %(operator)s %(value)s, used in "
+                "filter %(filter)s"
             ) % {
                 'match_field': expr.match_field.name,
                 'operator': expr.get_operator_display(),
@@ -1930,17 +1928,16 @@ def filter_group_remove(request):
             except Account.DoesNotExist:
                 warnings.append(
                     {
-                        'message': u"This is a public filter group. Deleting it "
-                        u"will make it unavailable for all other users "
-                        u"of this system.",
+                        'message': "This is a public filter group. Deleting it "
+                        "will make it unavailable for all other users "
+                        "of this system.",
                     }
                 )
 
             for profile in profiles:
                 warnings.append(
                     {
-                        'message': u'Used in profile %(name)s.'
-                        % {'name': profile.name},
+                        'message': 'Used in profile %(name)s.' % {'name': profile.name},
                         'link': reverse(
                             'alertprofiles-profile-detail', args=(profile.id,)
                         ),
@@ -2110,8 +2107,8 @@ def filter_group_removefilter(request):
             new_message(
                 request,
                 _(
-                    u"You are now editing a public filter group. This will "
-                    u"affect all users who uses this filter group."
+                    "You are now editing a public filter group. This will "
+                    "affect all users who uses this filter group."
                 ),
                 Messages.WARNING,
             )

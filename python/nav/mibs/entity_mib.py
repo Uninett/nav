@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a MibRetriever for the ENTITY-MIB, as well as helper classes."""
+
 from collections import defaultdict
 from itertools import chain
 from operator import itemgetter

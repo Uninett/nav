@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module comment"""
+
 import math
 
 from nav.config import read_flat_config
@@ -22,7 +23,6 @@ from nav.web.webfront import NAV_LINKS_PATH
 
 
 class LinkListNavlet(Navlet):
-
     title = "Links"
     description = "Displays a list of links from the admins"
 

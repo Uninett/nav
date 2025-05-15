@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Alert stream export functionality"""
+
 import logging
 import json
 import subprocess

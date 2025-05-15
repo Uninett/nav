@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Netmap views"""
+
 import json
 
 from django.db.models import Q
@@ -42,7 +43,6 @@ class IndexView(DefaultNetmapViewMixin, TemplateView):
     template_name = 'netmap/netmap.html'
 
     def get_context_data(self, **kwargs):
-
         user = get_account(self.request)
 
         context = super(IndexView, self).get_context_data(user=user, **kwargs)

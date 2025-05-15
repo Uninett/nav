@@ -16,7 +16,6 @@
 #
 """Threshold monitoring program"""
 
-
 import logging
 from optparse import OptionParser
 from collections import defaultdict

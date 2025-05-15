@@ -200,7 +200,7 @@ class TestNoRouterInterfaces(Test):
     """Test if any router has no router-interfaces"""
 
     name = 'Router interface count'
-    description = 'Tests if there are routers that do not have any router ' 'interfaces'
+    description = 'Tests if there are routers that do not have any router interfaces'
 
     def _get_errors(self):
         """Fetches routers with no router interfaces"""
@@ -217,7 +217,7 @@ class TestNoSwitchPorts(Test):
     """Test if any switch has no switch ports"""
 
     name = 'Switch port count'
-    description = 'Tests if there are any switches that do not have any ' 'switch ports'
+    description = 'Tests if there are any switches that do not have any switch ports'
 
     def _get_errors(self):
         """Fetches switches with no switch ports"""
@@ -238,9 +238,9 @@ class TestAbnormalInterfaceCount(Test):
     # But what is the case where this test is needed?
     abnormal_amount = 5000
     name = 'Total interface count'
-    description = (
-        'Tests if there are IP Devices with more than {} ' 'interfaces'
-    ).format(abnormal_amount)
+    description = ('Tests if there are IP Devices with more than {} interfaces').format(
+        abnormal_amount
+    )
 
     def _get_errors(self):
         """Fetches netboxes with an abnormal amount of interfaces"""
@@ -260,7 +260,7 @@ class TestNewCamAndArpRecords(Test):
     slack = 60 * 60  # 1 hour in seconds
     name = "ARP and CAM"
     description = (
-        u"Tests whether any ARP or CAM records have been collected " "the last hour"
+        "Tests whether any ARP or CAM records have been collected the last hour"
     )
 
     def _get_errors(self):
@@ -287,9 +287,9 @@ class TestNewCamAndArpRecords(Test):
             else:
                 cam_diff = now - latest_cam.start_time
             if cam_diff > recently:
-                descr = (
-                    u'CAM records have not been collected in the last ' '{}'
-                ).format(timesince(latest_cam.start_time))
+                descr = ('CAM records have not been collected in the last {}').format(
+                    timesince(latest_cam.start_time)
+                )
                 return TestResult(descr, latest_cam)
 
     def test_arp(self):
@@ -303,9 +303,9 @@ class TestNewCamAndArpRecords(Test):
             else:
                 arp_diff = now - latest_arp.start_time
             if arp_diff > recently:
-                descr = (
-                    u'ARP records have not been collected in the last ' '{}'
-                ).format(timesince(latest_arp.start_time))
+                descr = ('ARP records have not been collected in the last {}').format(
+                    timesince(latest_arp.start_time)
+                )
                 return TestResult(descr, latest_arp)
 
     @staticmethod

@@ -19,6 +19,7 @@ Collects sysObjectId and compares with the registered type of the
 netbox.
 
 """
+
 from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin, shadows, signals, db

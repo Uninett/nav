@@ -43,7 +43,7 @@ class BitVectorTestCase(unittest.TestCase):
 
     def test_modified_binary_string(self):
         self.assertEqual(
-            '00000100000000000000000000000000' '00000000000000000010000000000000',
+            '0000010000000000000000000000000000000000000000000010000000000000',
             self.somebits.to_binary(),
         )
 

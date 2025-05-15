@@ -50,7 +50,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
         sudo_operator = get_sudoer(request)  # Account or None
         logged_in = sudo_operator or account
         _logger.debug(
-            ('AuthenticationMiddleware ' '(logged_in: "%s" acting as "%s") from "%s"'),
+            ('AuthenticationMiddleware (logged_in: "%s" acting as "%s") from "%s"'),
             logged_in.login,
             account.login,
             request.get_full_path(),
@@ -59,7 +59,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
         remote_username = remote_user.get_username(request)
         if remote_username:
             _logger.debug(
-                ('AuthenticationMiddleware: ' '(REMOTE_USER: "%s") from "%s"'),
+                ('AuthenticationMiddleware: (REMOTE_USER: "%s") from "%s"'),
                 remote_username,
                 request.get_full_path(),
             )

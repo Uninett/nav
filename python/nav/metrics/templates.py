@@ -18,6 +18,7 @@
 Metric naming templates for various things that NAV sends/retrieves from
 Graphite.
 """
+
 from nav.metrics.names import escape_metric_name
 
 # pylint: disable=C0111

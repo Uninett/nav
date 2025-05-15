@@ -18,6 +18,7 @@
 ipdevpoll plugin to collect information about physical entities, if any,
 within a Netbox, from the ENTITY-MIB::entPhysicalTable (RFC 4133 and RFC 6933)
 """
+
 from twisted.internet import defer
 
 from nav.Snmp import safestring

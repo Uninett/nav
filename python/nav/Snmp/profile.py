@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Helper functions to build SNMP sessions from NAV ManagementProfile instances"""
+
 from functools import partial
 from typing import Callable
 

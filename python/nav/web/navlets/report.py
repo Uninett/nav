@@ -15,6 +15,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Report widget"""
+
 from django.http import HttpResponse, JsonResponse, QueryDict
 from nav.models.profiles import AccountNavlet
 from nav.web.report.views import CONFIG_DIR, make_report

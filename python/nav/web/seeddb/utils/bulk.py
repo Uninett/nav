@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module for handling bulk import requests"""
+
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse

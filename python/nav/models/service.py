@@ -60,7 +60,7 @@ class Service(models.Model):
         ordering = ('handler',)
 
     def __str__(self):
-        return u"{handler} at {netbox}".format(handler=self.handler, netbox=self.netbox)
+        return "{handler} at {netbox}".format(handler=self.handler, netbox=self.netbox)
 
     def get_statistics(self):
         args = (self.netbox.sysname, self.handler, self.id)
@@ -124,8 +124,8 @@ class Service(models.Model):
 
         The description is defined in the service checker
         """
-        classname = u"{}Checker".format(str(self.handler).capitalize())
-        modulename = u"nav.statemon.checker.{}".format(classname)
+        classname = "{}Checker".format(str(self.handler).capitalize())
+        modulename = "nav.statemon.checker.{}".format(classname)
         checker = __import__(modulename, globals(), locals(), [classname], 0)
         klass = getattr(checker, classname)
         return getattr(klass, 'DESCRIPTION', '')
@@ -152,4 +152,4 @@ class ServiceProperty(models.Model):
         unique_together = (('service', 'property'),)  # Primary key
 
     def __str__(self):
-        return u'%s=%s, for %s' % (self.property, self.value, self.service)
+        return '%s=%s, for %s' % (self.property, self.value, self.service)

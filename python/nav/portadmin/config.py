@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Tools to handle PortAdmin configuration database/file"""
+
 from os.path import join
 
 from nav.config import NAVConfigParser

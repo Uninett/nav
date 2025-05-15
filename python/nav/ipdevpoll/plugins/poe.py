@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Collects power over ethernet information"""
+
 from collections import defaultdict
 from twisted.internet.defer import inlineCallbacks
 

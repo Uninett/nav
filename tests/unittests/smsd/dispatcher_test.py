@@ -16,7 +16,6 @@
 #
 """Unit tests for the dispatcher module."""
 
-
 import types
 
 import pytest

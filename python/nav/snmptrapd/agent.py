@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Trap manager functionality for snmptrapd."""
+
 from nav.Snmp import BACKEND
 
 if BACKEND == 'pynetsnmp':

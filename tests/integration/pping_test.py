@@ -160,9 +160,7 @@ packetsize = 64
 timeout = 1
 nrping = 2
 delay = 2
-""".format(
-                user=getpass.getuser()
-            )
+""".format(user=getpass.getuser())
         )
     yield configfile
     print("restoring ping config")

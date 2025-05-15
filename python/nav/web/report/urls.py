@@ -16,7 +16,6 @@
 #
 """Report backend URL config."""
 
-
 from django.urls import re_path
 from nav.web.report import views
 

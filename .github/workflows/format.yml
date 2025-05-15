@@ -1,4 +1,5 @@
-name: Verify linting
+name: Verify formatting
+
 on:
   push:
     branches: master
@@ -7,9 +8,11 @@ on:
 jobs:
   ruff:
     runs-on: ubuntu-latest
-    name: Lint Python
+    name: Verify Python formatting
     steps:
     - uses: actions/checkout@v4
+
     - uses: astral-sh/ruff-action@v3
       with:
         version: "0.11.9"
+        args: "format --check"

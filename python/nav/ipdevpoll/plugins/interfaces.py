@@ -20,6 +20,7 @@ The plugin uses IF-MIB to retrieve generic interface data, and
 EtherLike-MIB to retrieve duplex status for ethernet interfaces.
 
 """
+
 from twisted.internet import defer
 
 from nav.Snmp import safestring

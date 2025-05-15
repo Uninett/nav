@@ -118,7 +118,7 @@ class Account(models.Model):
     sudo_operator = None
 
     class Meta(object):
-        db_table = u'account'
+        db_table = 'account'
         ordering = ('login',)
 
     def __str__(self):
@@ -323,7 +323,7 @@ class AccountGroup(models.Model):
     )
 
     class Meta(object):
-        db_table = u'accountgroup'
+        db_table = 'accountgroup'
         ordering = ('name',)
 
     def __str__(self):
@@ -359,7 +359,7 @@ class NavbarLink(models.Model):
     uri = models.CharField('URL', blank=False, max_length=100)
 
     class Meta(object):
-        db_table = u'navbarlink'
+        db_table = 'navbarlink'
         ordering = ('id',)
 
     def __str__(self):
@@ -384,7 +384,7 @@ class Privilege(models.Model):
     target = VarcharField()
 
     class Meta(object):
-        db_table = u'accountgroupprivilege'
+        db_table = 'accountgroupprivilege'
 
     def __str__(self):
         return '%s for %s' % (self.type, self.target)
@@ -397,7 +397,7 @@ class PrivilegeType(models.Model):
     name = models.CharField(max_length=30, db_column='privilegename')
 
     class Meta(object):
-        db_table = u'privilege'
+        db_table = 'privilege'
 
     def __str__(self):
         return self.name
@@ -426,7 +426,7 @@ class AlertAddress(models.Model):
     address = VarcharField()
 
     class Meta(object):
-        db_table = u'alertaddress'
+        db_table = 'alertaddress'
 
     def __str__(self):
         return self.type.scheme() + self.address
@@ -521,11 +521,11 @@ class AlertSender(models.Model):
 
     _handlers = {}
 
-    EMAIL = u'Email'
-    SMS = u'SMS'
-    SLACK = u'Slack'
+    EMAIL = 'Email'
+    SMS = 'SMS'
+    SLACK = 'Slack'
 
-    SCHEMES = {EMAIL: u'mailto:', SMS: u'sms:', SLACK: u'slack:'}
+    SCHEMES = {EMAIL: 'mailto:', SMS: 'sms:', SLACK: 'slack:'}
 
     def __str__(self):
         return self.name
@@ -570,7 +570,7 @@ class AlertSender(models.Model):
         self.save()
 
     def scheme(self):
-        return self.SCHEMES.get(self.name, u'')
+        return self.SCHEMES.get(self.name, '')
 
     class Meta(object):
         db_table = 'alertsender'
@@ -597,7 +597,7 @@ class AlertPreference(models.Model):
     last_sent_week = models.DateTimeField(db_column='lastsentweek')
 
     class Meta(object):
-        db_table = u'alertpreference'
+        db_table = 'alertpreference'
 
     def __str__(self):
         return 'preferences for %s' % self.account
@@ -641,7 +641,7 @@ class AlertProfile(models.Model):
     weekly_dispatch_time = models.TimeField(default='08:00')
 
     class Meta(object):
-        db_table = u'alertprofile'
+        db_table = 'alertprofile'
 
     def __str__(self):
         return self.name
@@ -714,10 +714,10 @@ class TimePeriod(models.Model):
     valid_during = models.IntegerField(choices=VALID_DURING_CHOICES, default=ALL_WEEK)
 
     class Meta(object):
-        db_table = u'timeperiod'
+        db_table = 'timeperiod'
 
     def __str__(self):
-        return u'from %s for %s profile on %s' % (
+        return 'from %s for %s profile on %s' % (
             self.start,
             self.profile,
             self.get_valid_during_display(),
@@ -763,7 +763,7 @@ class AlertSubscription(models.Model):
     ignore_resolved_alerts = models.BooleanField(default=False)
 
     class Meta(object):
-        db_table = u'alertsubscription'
+        db_table = 'alertsubscription'
 
     def delete(self):
         for a in self.queued_alerts.all():
@@ -817,7 +817,7 @@ class FilterGroupContent(models.Model):
     )
 
     class Meta(object):
-        db_table = u'filtergroupcontent'
+        db_table = 'filtergroupcontent'
         ordering = ['priority']
 
     def __str__(self):
@@ -909,11 +909,11 @@ class Operator(models.Model):
     )
 
     class Meta(object):
-        db_table = u'operator'
+        db_table = 'operator'
         unique_together = (('type', 'match_field'),)
 
     def __str__(self):
-        return u'%s match on %s' % (self.get_type_display(), self.match_field)
+        return '%s match on %s' % (self.get_type_display(), self.match_field)
 
     def get_operator_mapping(self):
         """Returns the Django query operator represented by this instance."""
@@ -944,7 +944,7 @@ class Expression(models.Model):
     value = VarcharField()
 
     class Meta(object):
-        db_table = u'expression'
+        db_table = 'expression'
 
     def __str__(self):
         return '%s match on %s against %s' % (
@@ -973,7 +973,7 @@ class Filter(models.Model):
     name = VarcharField()
 
     class Meta(object):
-        db_table = u'filter'
+        db_table = 'filter'
 
     def __str__(self):
         return self.name
@@ -1112,7 +1112,7 @@ class FilterGroup(models.Model):
     )
 
     class Meta(object):
-        db_table = u'filtergroup'
+        db_table = 'filtergroup'
 
     def __str__(self):
         return self.name
@@ -1239,58 +1239,58 @@ class MatchField(models.Model):
     value_help = VarcharField(
         blank=True,
         help_text=_(
-            u'Help text for the match field. Displayed by the value '
-            u'input box in the GUI to help users enter sane values.'
+            'Help text for the match field. Displayed by the value '
+            'input box in the GUI to help users enter sane values.'
         ),
     )
     value_id = VarcharField(
         choices=CHOICES,
         help_text=_(
-            u'The "match field". This is the actual database field '
-            u'alert engine will watch.'
+            'The "match field". This is the actual database field '
+            'alert engine will watch.'
         ),
     )
     value_name = VarcharField(
         choices=CHOICES,
         blank=True,
         help_text=_(
-            u'When "show list" is checked, the list will be populated '
-            u'with data from this column as well as the "value id" '
-            u'field. Does nothing else than provide a little more '
-            u'info for the users in the GUI.'
+            'When "show list" is checked, the list will be populated '
+            'with data from this column as well as the "value id" '
+            'field. Does nothing else than provide a little more '
+            'info for the users in the GUI.'
         ),
     )
     value_sort = VarcharField(
         choices=CHOICES,
         blank=True,
         help_text=_(
-            u'Options in the list will be ordered by this field (if '
-            u'not set, options will be ordered by primary key). Only '
-            u'does something when "Show list" is checked.'
+            'Options in the list will be ordered by this field (if '
+            'not set, options will be ordered by primary key). Only '
+            'does something when "Show list" is checked.'
         ),
     )
     list_limit = models.IntegerField(
         blank=True,
         help_text=_(
-            u'Only this many options will be available in the list. '
-            u'Only does something when "Show list" is checked.'
+            'Only this many options will be available in the list. '
+            'Only does something when "Show list" is checked.'
         ),
     )
     data_type = models.IntegerField(
-        choices=DATA_TYPES, help_text=_(u'The data type of the match field.')
+        choices=DATA_TYPES, help_text=_('The data type of the match field.')
     )
     show_list = models.BooleanField(
         blank=True,
         default=False,
         help_text=_(
-            u'If unchecked values can be entered into a text input. '
-            u'If checked values must be selected from a list '
-            u'populated by data from the match field selected above.'
+            'If unchecked values can be entered into a text input. '
+            'If checked values must be selected from a list '
+            'populated by data from the match field selected above.'
         ),
     )
 
     class Meta(object):
-        db_table = u'matchfield'
+        db_table = 'matchfield'
 
     def __str__(self):
         return self.name
@@ -1347,7 +1347,7 @@ class SMSQueue(models.Model):
     severity = models.IntegerField()
 
     class Meta(object):
-        db_table = u'smsq'
+        db_table = 'smsq'
 
     def __str__(self):
         return '"%s" to %s, sent: %s' % (self.message, self.phone, self.sent)
@@ -1384,7 +1384,7 @@ class AccountAlertQueue(models.Model):
     insertion_time = models.DateTimeField(auto_now_add=True)
 
     class Meta(object):
-        db_table = u'accountalertqueue'
+        db_table = 'accountalertqueue'
 
     def delete(self, *args, **kwargs):
         """Deletes the alert from the user's alert queue.
@@ -1475,7 +1475,7 @@ class NetmapView(models.Model):
     )
 
     def __str__(self):
-        return u'%s (%s)' % (self.viewid, self.title)
+        return '%s (%s)' % (self.viewid, self.title)
 
     def topology_unicode(self):
         return dict(LINK_TYPES).get(self.topology)
@@ -1488,7 +1488,7 @@ class NetmapView(models.Model):
         return reverse('netmap-api-netmap-defaultview-global')
 
     class Meta(object):
-        db_table = u'netmap_view'
+        db_table = 'netmap_view'
 
 
 class NetmapViewDefaultView(models.Model):
@@ -1509,7 +1509,7 @@ class NetmapViewDefaultView(models.Model):
     )
 
     class Meta(object):
-        db_table = u'netmap_view_defaultview'
+        db_table = 'netmap_view_defaultview'
 
     def __repr__(self):
         return "{name}{args!r}".format(
@@ -1535,10 +1535,10 @@ class NetmapViewCategories(models.Model):
     )
 
     def __str__(self):
-        return u'%s in category %s' % (self.view, self.category)
+        return '%s in category %s' % (self.view, self.category)
 
     class Meta(object):
-        db_table = u'netmap_view_categories'
+        db_table = 'netmap_view_categories'
         unique_together = (('view', 'category'),)  # Primary key
 
 
@@ -1562,7 +1562,7 @@ class NetmapViewNodePosition(models.Model):
     y = models.IntegerField()
 
     class Meta(object):
-        db_table = u'netmap_view_nodeposition'
+        db_table = 'netmap_view_nodeposition'
 
 
 class AccountTool(models.Model):
@@ -1583,7 +1583,7 @@ class AccountTool(models.Model):
         return "%s - %s" % (self.toolname, self.account)
 
     class Meta(object):
-        db_table = u'accounttool'
+        db_table = 'accounttool'
 
 
 class AccountDashboard(models.Model):
@@ -1682,17 +1682,17 @@ class ReportSubscription(models.Model):
     exclude_maintenance = models.BooleanField()
 
     class Meta(object):
-        db_table = u'report_subscription'
+        db_table = 'report_subscription'
 
     def __str__(self):
         if self.report_type == self.LINK:
-            return u"{} report for {} sent to {}".format(
+            return "{} report for {} sent to {}".format(
                 self.get_period_description(self.period),
                 self.get_type_description(self.report_type),
                 self.address.address,
             )
 
-        return u"{} report for {} ({} time in maintenance) sent to {}".format(
+        return "{} report for {} ({} time in maintenance) sent to {}".format(
             self.get_period_description(self.period),
             self.get_type_description(self.report_type),
             'excluding' if self.exclude_maintenance else 'including',

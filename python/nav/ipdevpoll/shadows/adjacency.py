@@ -43,6 +43,7 @@ A sentinel record is an AdjacencyCandidate or UnrecognizedNeighbor instance whos
 interface attribute is None, and whose source attribute is a non-empty string.
 
 """
+
 from nav.models import manage
 from nav.ipdevpoll.storage import Shadow, DefaultManager
 from nav.ipdevpoll.utils import is_invalid_database_string

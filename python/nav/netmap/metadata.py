@@ -16,6 +16,7 @@
 #
 """Handles attaching and converting metadata in a netmap networkx toplogy
 graph"""
+
 from collections import defaultdict
 from django.urls import reverse, NoReverseMatch
 
@@ -76,7 +77,6 @@ class Node(object):
                     }
                 )
             if 'vlans' in self.metadata:  # Layer2 metadata
-
                 json.update(
                     {
                         'vlans': [
@@ -229,7 +229,7 @@ class Edge(object):
             return 3
         else:
             raise NetmapException(
-                "Could not determine layer for this edge." " This should _not_ happend"
+                "Could not determine layer for this edge. This should _not_ happend"
             )
 
     def _same_layer(self, source, target):
@@ -255,7 +255,7 @@ class Edge(object):
                     "GwPortPrefixes in layer3 graph"
                 )
         elif meta_u is None and meta_v is None:
-            raise GraphException("meta_u and meta_v can't both be None! " "Bailing!")
+            raise GraphException("meta_u and meta_v can't both be None! Bailing!")
 
         self.errors = []
         self.u = self.v = self.vlan = self.prefix = None

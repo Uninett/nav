@@ -62,7 +62,7 @@ class L2TraceForm(forms.Form):
         try:
             self.l2tracer.trace()
         except MultipleObjectsReturned:
-            msg = u"Input was ambiguous, matching multiple hosts"
+            msg = "Input was ambiguous, matching multiple hosts"
             raise forms.ValidationError(msg)
 
         return cleaned_data

@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Defines types and enumerations for SNMP communication parameters"""
+
 from enum import Enum
 
 

@@ -16,7 +16,6 @@
 #
 """Django form field types for NAV"""
 
-
 import json
 
 from django import forms
@@ -56,7 +55,7 @@ class JSONWidget(Textarea):
                 value, sort_keys=True, indent=4, cls=validators.JSONBytesEncoder
             )
         else:
-            value = u''
+            value = ''
         return value
 
     def render(self, name, value, attrs=None, renderer=None):

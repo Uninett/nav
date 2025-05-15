@@ -15,7 +15,6 @@
 #
 """Module for emailing status reports"""
 
-
 import logging
 from collections import namedtuple
 from datetime import date, datetime, timedelta

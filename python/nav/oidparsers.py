@@ -23,6 +23,7 @@ as defined by PEP-8, because their names are derived directly from SNMP MIB
 objects. Pylint messages about this are therefore disabled in this file.
 
 """
+
 import array
 from functools import partial
 from itertools import islice

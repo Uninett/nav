@@ -16,6 +16,7 @@
 """
 Support logging in by having the web server set the REMOTE_USER header.
 """
+
 import logging
 from os.path import join
 import secrets
@@ -31,7 +32,7 @@ __all__ = []
 
 class RemoteUserConfigParser(NAVConfigParser):
     DEFAULT_CONFIG_FILES = [join('webfront', 'webfront.conf')]
-    DEFAULT_CONFIG = u"""
+    DEFAULT_CONFIG = """
 [remote-user]
 enabled=no
 login-url=

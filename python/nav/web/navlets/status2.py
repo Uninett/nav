@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Status2 widget"""
+
 from datetime import datetime
 from operator import itemgetter
 

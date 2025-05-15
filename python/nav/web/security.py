@@ -6,7 +6,7 @@ from nav.config import NavConfigParserDefaultSection
 class WebSecurityConfigParser(NavConfigParserDefaultSection):
     SECTION = "security"
     DEFAULT_CONFIG_FILES = [str(Path('webfront') / 'webfront.conf')]
-    DEFAULT_CONFIG = u"""
+    DEFAULT_CONFIG = """
 [security]
 needs_tls=no
 allow_frames=self

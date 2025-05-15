@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Layer 2 trace views"""
+
 from django.shortcuts import render
 
 from .forms import L2TraceForm

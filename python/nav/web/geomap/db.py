@@ -549,7 +549,7 @@ def _get_metric_average(targets, time_interval):
         return data
     except GraphiteUnreachableError as err:
         _logger.error(
-            "graphite unreachable on load query for %s targets " "(%r): %s",
+            "graphite unreachable on load query for %s targets (%r): %s",
             len(targets),
             time_interval,
             err,

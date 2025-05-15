@@ -18,6 +18,7 @@ WSGI application definition for serving the NAV web application and static
 files under gunicorn for the CI test environment.
 
 """
+
 from whitenoise import WhiteNoise
 from nav.wsgi import application
 

@@ -5,7 +5,7 @@ from mock import Mock
 
 def test_get_interface_counter_graph_url_should_handle_utf8():
     ifc = Mock()
-    ifc.netbox.sysname = u"example-sw.example.org"
-    ifc.ifname = u"Ethernet1/1"
-    ifc.ifalias = u"æøå"
+    ifc.netbox.sysname = "example-sw.example.org"
+    ifc.ifname = "Ethernet1/1"
+    ifc.ifalias = "æøå"
     assert get_interface_counter_graph_url(ifc) != ""

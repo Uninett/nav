@@ -45,9 +45,7 @@ CONFIG_LOCATIONS = [
 # If running inside a virtualenv, add that virtualenv to the search path as well:
 _base_prefix = (
     # Detect the base prefix in a manner compatible with both old and new virtualenv
-    getattr(sys, "base_prefix", None)
-    or getattr(sys, "real_prefix", None)
-    or sys.prefix
+    getattr(sys, "base_prefix", None) or getattr(sys, "real_prefix", None) or sys.prefix
 )
 _venv = sys.prefix if sys.prefix != _base_prefix else None
 if _venv:
@@ -147,7 +145,7 @@ class NAVConfigParser(configparser.ConfigParser):
 
     """
 
-    DEFAULT_CONFIG = u""
+    DEFAULT_CONFIG = ""
     DEFAULT_CONFIG_FILES = ()
 
     def __init__(self, default_config=None, default_config_files=None):

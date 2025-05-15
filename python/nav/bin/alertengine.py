@@ -154,7 +154,7 @@ def main():
 
         except DatabaseError as err:
             _logger.error(
-                'Database error, closing the DB connection just in ' 'case:\n%s', err
+                'Database error, closing the DB connection just in case:\n%s', err
             )
             _logger.debug('', exc_info=True)
             if connection.queries:
@@ -233,7 +233,7 @@ def loginitsmtp(loglevel, mailaddr, fromaddr, mailserver):
             mailserver, fromaddr, mailaddr, 'NAV alertengine warning from ' + hostname
         )
         mailformat = (
-            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] ' '%(message)s'
+            '[%(asctime)s] [%(levelname)s] [pid=%(process)d %(name)s] %(message)s'
         )
         mailformatter = logging.Formatter(mailformat)
         mailhandler.setFormatter(mailformatter)

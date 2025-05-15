@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Implements a MibRetriever for Hewlett Packard's POWERSUPPLY-MIB."""
+
 from operator import attrgetter
 
 from twisted.internet import defer

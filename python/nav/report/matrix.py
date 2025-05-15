@@ -61,7 +61,6 @@ class Matrix(object):
     Node = namedtuple('Node', 'net subnets')
 
     def __init__(self, start_net, end_net=None, bits_in_matrix=3):
-
         if end_net is None:
             end_net = IPtools.getLastSubnet(start_net)
         self.start_net = start_net

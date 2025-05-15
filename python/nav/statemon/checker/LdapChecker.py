@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """LDAP service checker"""
+
 from IPy import IP
 import ldap
 import ldapurl

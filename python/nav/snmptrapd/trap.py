@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Trap related data structures."""
+
 import string
 import logging
 from collections import namedtuple

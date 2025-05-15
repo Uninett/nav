@@ -18,6 +18,7 @@
 This reactor inherits Twisted's original epollrecator, but overrides the one
 part that seems incompatible with pynetsnmp, which is central to ipdevpoll.
 """
+
 import errno
 import logging
 

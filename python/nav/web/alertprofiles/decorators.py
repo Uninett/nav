@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Alert Profiles helper decorators."""
+
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.functional import wraps

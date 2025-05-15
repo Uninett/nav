@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Views for ipdevinfo"""
+
 import re
 import logging
 import datetime as dt
@@ -95,8 +96,7 @@ def find_netboxes(errors, query):
             netboxes = Netbox.objects.filter(sysname__icontains=query)
     else:
         errors.append(
-            'The query does not seem to be a valid IP address'
-            ' (v4 or v6) or a hostname.'
+            'The query does not seem to be a valid IP address (v4 or v6) or a hostname.'
         )
 
     return netboxes

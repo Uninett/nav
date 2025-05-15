@@ -12,7 +12,7 @@ if not found:
 
 class LdapTestConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = []
-    DEFAULT_CONFIG = u"""
+    DEFAULT_CONFIG = """
 [ldap]
 basedn=cn=people,dc=example,dc=org
 uid_attr=samAccountName
@@ -29,22 +29,22 @@ def test_ldapuser_search_dn_decode_regression():
     connection = Mock()
     connection.search_s.return_value = [
         (
-            u'CN=Zaphod Beeblebr\xf6x,CN=people,DC=example,DC=org',
+            'CN=Zaphod Beeblebr\xf6x,CN=people,DC=example,DC=org',
             {
-                u'cn': b'Zaphod Beeblebr\xc3\xb6x',
-                u'displayName': b'Zaphod Beeblebr\xc3\xb6x',
+                'cn': b'Zaphod Beeblebr\xc3\xb6x',
+                'displayName': b'Zaphod Beeblebr\xc3\xb6x',
             },
         )
     ]
 
     user = LDAPUser('zaphod', connection)
     dn, uid = user.search_dn()
-    assert dn == u'CN=Zaphod Beeblebr\xf6x,CN=people,DC=example,DC=org'
+    assert dn == 'CN=Zaphod Beeblebr\xf6x,CN=people,DC=example,DC=org'
 
 
 class LdapOpenTestConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = []
-    DEFAULT_CONFIG = u"""
+    DEFAULT_CONFIG = """
 [ldap]
 server=ldap.example.org
 port=636
@@ -62,7 +62,7 @@ def test_open_ldap_should_run_without_error():
 
 class LdapOpenTestInvalidEncryptionConfig(NAVConfigParser):
     DEFAULT_CONFIG_FILES = []
-    DEFAULT_CONFIG = u"""
+    DEFAULT_CONFIG = """
 [ldap]
 server=ldap.example.org
 port=636

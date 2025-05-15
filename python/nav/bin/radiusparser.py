@@ -29,7 +29,6 @@ server.  It has been written to not require any NAV libraries.
 It will require psycopg, a PostgreSQL driver for Python.
 """
 
-
 import psycopg2
 import sys
 import os
@@ -64,12 +63,11 @@ def main(args=None):
     try:
         db_params = (dbhost, dbport, dbname, dbuser, dbpasswd)
         connection = psycopg2.connect(
-            "host=%s port=%s dbname=%s user=%s " "password=%s" % db_params
+            "host=%s port=%s dbname=%s user=%s password=%s" % db_params
         )
     except psycopg2.OperationalError as e:
         print(
-            "An error occured while connecting to the database:\n\n\'%s\'"
-            % (str(e)[:-1])
+            "An error occured while connecting to the database:\n\n'%s'" % (str(e)[:-1])
         )
         sys.exit(1)
 
@@ -94,7 +92,6 @@ def main(args=None):
         f.write("\n\n\n\n****************** Script restarted *****************\n")
 
         for line in t:
-
             # Check if the line is parseable
             try:
                 row = Row(parse_line(line))

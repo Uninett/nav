@@ -19,7 +19,7 @@ def profile():
 @pytest.fixture
 def netbox_hp(profile):
     vendor = Mock()
-    vendor.id = u'hp'
+    vendor.id = 'hp'
 
     netbox_type = Mock()
     netbox_type.vendor = vendor
@@ -37,7 +37,7 @@ def netbox_hp(profile):
 @pytest.fixture
 def netbox_cisco(profile):
     vendor = Mock()
-    vendor.id = u'cisco'
+    vendor.id = 'cisco'
 
     netbox_type = Mock()
     netbox_type.vendor = vendor

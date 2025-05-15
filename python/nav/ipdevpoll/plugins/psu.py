@@ -36,6 +36,7 @@ instances for Cisco and HP:
 - get_fan_status()
 
 """
+
 from twisted.internet import defer
 
 from nav.ipdevpoll import Plugin

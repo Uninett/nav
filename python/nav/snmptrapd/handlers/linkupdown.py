@@ -17,6 +17,7 @@
 network equipment.
 
 """
+
 import logging
 import nav.errors
 

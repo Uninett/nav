@@ -15,6 +15,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """HP STATISTICS-MIB"""
+
 from collections import namedtuple
 from IPy import IP
 from twisted.internet import defer

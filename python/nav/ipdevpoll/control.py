@@ -15,7 +15,6 @@
 #
 "Process control for multi-process invocation of ipdevpoll"
 
-
 import sys
 
 

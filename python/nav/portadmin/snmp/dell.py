@@ -14,6 +14,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Dell specific PortAdmin SNMP handling"""
+
 import logging
 
 from nav.portadmin.snmp.base import SNMPHandler, translate_protocol_errors

@@ -16,6 +16,7 @@
 # along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """syslogger view definitions"""
+
 import json
 import datetime
 from configparser import ConfigParser
@@ -68,7 +69,6 @@ def _build_context(request):
 
         form = LoggerGroupSearchForm(query_dict)
         if form.is_valid():
-
             results = LogMessage.objects.filter(
                 time__gte=form.cleaned_data['timestamp_from'],
                 time__lte=form.cleaned_data['timestamp_to'],

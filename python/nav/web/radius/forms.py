@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Forms for the radius tool"""
+
 from datetime import datetime
 
 from django import forms
@@ -70,12 +71,10 @@ class MultitypeQueryWidget(forms.MultiWidget):
 
     def format_output(self, rendered_widgets):
         """Place the assumed two widgets side by side"""
-        output = u"""<div class="row collapse">
+        output = """<div class="row collapse">
         <div class="medium-6 column">{0:s}</div>
         <div class="medium-6 column">{1:s}</div>
-        </div>""".format(
-            *rendered_widgets
-        )
+        </div>""".format(*rendered_widgets)
         return output
 
 

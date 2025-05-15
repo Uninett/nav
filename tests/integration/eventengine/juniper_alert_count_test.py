@@ -49,9 +49,9 @@ class TestBlackBox:
             "juniperYellowAlarmState"
         ).filter(variables__isnull=False)
         alert_count = alerts.count()
-        assert (
-            alert_count == 1
-        ), "more or less than one unresolved alerts exist after changing alarm count"
+        assert alert_count == 1, (
+            "more or less than one unresolved alerts exist after changing alarm count"
+        )
         variables = alerts.first().variables.all()
         assert int(variables.get(variable="count").value) == new_count
 
@@ -95,9 +95,9 @@ class TestBlackBox:
             "juniperRedAlarmState"
         ).filter(variables__isnull=False)
         alert_count = alerts.count()
-        assert (
-            alert_count == 1
-        ), "more or less than one unresolved alerts exist after changing alarm count"
+        assert alert_count == 1, (
+            "more or less than one unresolved alerts exist after changing alarm count"
+        )
         variables = alerts.first().variables.all()
         assert int(variables.get(variable="count").value) == new_count
 

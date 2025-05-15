@@ -30,14 +30,14 @@ class TestThatDecodeSmsToUnicode:
         assert sms == unicode_sms
 
     def test_should_decode_string_to_comparable_string(self):
-        sms = u'A m\xf8\xf8se once bit my sister'
+        sms = 'A m\xf8\xf8se once bit my sister'
         unicode_sms = decode_sms_to_unicode(sms)
         assert sms == unicode_sms
 
     def test_should_decode_utf8_string_properly(self):
         sms = b'A m\xc3\xb8\xc3\xb8se once bit my sister'
         unicode_sms = decode_sms_to_unicode(sms)
-        expected = u'A m\xf8\xf8se once bit my sister'
+        expected = 'A m\xf8\xf8se once bit my sister'
         assert unicode_sms == expected
 
 

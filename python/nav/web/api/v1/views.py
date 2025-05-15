@@ -74,13 +74,13 @@ _logger = logging.getLogger(__name__)
 
 class Iso8601ParseError(exceptions.ParseError):
     default_detail = (
-        'Wrong format on timestamp. See ' 'https://pypi.python.org/pypi/iso8601'
+        'Wrong format on timestamp. See https://pypi.python.org/pypi/iso8601'
     )
 
 
 class IPParseError(exceptions.ParseError):
     default_detail = (
-        'ip field must be a valid IPv4 or IPv6 host address or ' 'network prefix'
+        'ip field must be a valid IPv4 or IPv6 host address or network prefix'
     )
 
 
@@ -611,7 +611,7 @@ class CablingViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-SQL_OVERLAPS = "(start_time, end_time) OVERLAPS " "('{}'::TIMESTAMP, '{}'::TIMESTAMP)"
+SQL_OVERLAPS = "(start_time, end_time) OVERLAPS ('{}'::TIMESTAMP, '{}'::TIMESTAMP)"
 SQL_BETWEEN = "'{}'::TIMESTAMP BETWEEN start_time AND end_time"
 
 

@@ -14,6 +14,7 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """IMAP over SSL service checker"""
+
 import contextlib
 import socket
 import imaplib

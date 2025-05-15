@@ -27,6 +27,7 @@ Then, given an alert object you wish to assign a new severity value to:
     alert.save()
 
 """
+
 from operator import attrgetter
 import logging
 import typing
