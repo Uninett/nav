@@ -28,6 +28,10 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 - Update NAPALM dependency to 5.0 to keep NAV web GUI working
   ([#2358](https://github.com/Uninett/nav/issues/2358))
 
+### Added
+
+- Added a report of software upgrade logs ([#2466](https://github.com/Uninett/nav/pull/2466), [#2457](https://github.com/Uninett/nav/issues/2457))
+
 ### Fixed
 
 - Fix filtering of 'Last seen' and sorting by 'Last active' in netbox
