@@ -11,6 +11,21 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [5.13.2] - 2025-05-16
+
+### Fixed
+
+- Relax API permissions for endpoints used by NAV web GUI tools intended for
+  non-admin users.  Several tools stopped working for non-admin users as a
+  result of the permissions lockdown in the 5.13.1 security fix.
+  - Relax permissions for API interface view endpoint
+    ([#3373](https://github.com/Uninett/nav/issues/3373))
+  - Relax permissions for API prefix usage view endpoint
+    ([#3374](https://github.com/Uninett/nav/issues/3374))
+  - Relax permissions for API list room endpoint
+    ([#3375](https://github.com/Uninett/nav/issues/3375))
+
+
 ## [5.13.1] - 2025-05-12
 
 ### Security
