@@ -57,7 +57,7 @@ from .auth import (
     APIAuthentication,
     DefaultPermission,
     NavBaseAuthentication,
-    RelaxedPermission,
+    RelaxedReadPermission,
 )
 from .helpers import prefix_collector
 from .filter_backends import (
@@ -331,6 +331,7 @@ class RoomViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
     serializer_class = serializers.RoomSerializer
     filterset_fields = ('location', 'description')
     lookup_value_regex = '[^/]+'
+    permission_classes = (RelaxedReadPermission,)
 
 
 class LocationViewSet(LoggerMixin, NAVAPIMixin, viewsets.ModelViewSet):
@@ -514,6 +515,9 @@ class InterfaceViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     # NaturalIfnameFilter returns a list, so IfClassFilter needs to come first
     filter_backends = NAVAPIMixin.filter_backends + (IfClassFilter, NaturalIfnameFilter)
     filterset_class = InterfaceFilterClass
+
+    # Logged-in users must be able to access this API to use the ipdevinfo ports tool
+    permission_classes = (RelaxedReadPermission,)
 
     def get_serializer_class(self):
         request = self.request
@@ -920,6 +924,9 @@ class PrefixUsageList(NAVAPIMixin, ListAPIView):
     # RelatedOrderingFilter does not work with the custom pagination
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
 
+    # Logged-in users must be able to access this API to use the subnet matrix tool
+    permission_classes = (RelaxedReadPermission,)
+
     def get(self, request, *args, **kwargs):
         """Override get method to verify url parameters"""
         get_times(request)
@@ -1031,7 +1038,7 @@ class AlertHistoryViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
 
     filter_backends = (AlertHistoryFilterBackend,)
     # Logged-in users must be able to access this API to use the status tool
-    permission_classes = (RelaxedPermission,)
+    permission_classes = (RelaxedReadPermission,)
     model = event.AlertHistory
     serializer_class = alert_serializers.AlertHistorySerializer
     base_queryset = base = event.AlertHistory.objects.prefetch_related(

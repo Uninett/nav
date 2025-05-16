@@ -60,12 +60,18 @@ class NavBaseAuthentication(BaseAuthentication):
             return request.account, None
 
 
-class LoggedInPermission(BasePermission):
-    """Checks if the user is logged in"""
+class ReadOnlyNonAdminPermission(BasePermission):
+    """
+    Gives non-admin users read-only permission and admin users read-write permission
+    """
 
     def has_permission(self, request, _view):
-        """If user is logged in, it is authorized"""
-        return not request.account.is_default_account()
+        """If user is logged in and it is a safe method, it is authorized"""
+        if request.method in SAFE_METHODS and not request.account.is_default_account():
+            return True
+        if request.account.is_admin():
+            return True
+        return False
 
 
 class AdminPermission(BasePermission):
@@ -168,4 +174,4 @@ class JWTPermission(BasePermission):
 
 APITokensPermission = TokenPermission | JWTPermission
 DefaultPermission = AdminPermission | APITokensPermission
-RelaxedPermission = LoggedInPermission | APITokensPermission
+RelaxedReadPermission = ReadOnlyNonAdminPermission | APITokensPermission
