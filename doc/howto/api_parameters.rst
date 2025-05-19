@@ -118,7 +118,7 @@ Provides access to NAVs prefix data
 
     .. NOTE:: The vlan__vlan is used to filter on vlan number as the vlan field
               references the primary key only.
-              e.g. :kbd:`prefix?vlan__vlan=<vlan-number>`
+              e.g. :code:`prefix?vlan__vlan=<vlan-number>`
 
 
 api/prefix/routed

@@ -141,7 +141,7 @@ This may require knowledge of NAV's data model before you proceed. If you know
 your way around SQL, you can even enact more advanced content filters using
 the `-f` or `--filter` option.
 
-.. tip:: See the output of :kbd:`navpgdump --help` for a complete overview of
+.. tip:: See the output of :code:`navpgdump --help` for a complete overview of
          the supported options.
 
 Restoring

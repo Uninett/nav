@@ -57,7 +57,7 @@ marked as down in its *ipdevinfo* page, without an actual alert having been
 posted yet.
 
 If things still seem to not work, ensure both :program:`pping` and
-:program:`eventengine` are running, using the :kbd:`nav status` command. Then
+:program:`eventengine` are running, using the :code:`nav status` command. Then
 check the logs of these programs to see whether they have detected the
 situation. :file:`pping.log` should indicate whether pping has failed to get a
 ping response from the device. :file:`eventengine.log` should indicate whether
@@ -66,7 +66,7 @@ the *event engine* has detected *pping*'s notice of this.
 A device is down, I see it on the status page, my profile should cover the event, but I am not alerted. Why?
 --------------------------------------------------------------------------------------------------------------
 
-First, verify that the alert engine (:kbd:`nav status alertengine`) is
+First, verify that the alert engine (:code:`nav status alertengine`) is
 running. Use :file:`alertengine.log` to verify that alert engine processed
 such an alert. Did it cover your user? If not, double check your active
 profile. You may want to make a new profile that covers every alarm, to see if

@@ -222,16 +222,16 @@ Users that have been created locally in NAV will not be authenticated with the
 LDAP server when LDAP authentication is enabled at a later time.  The only way
 to do this is to tinker with the SQL database.
 
-Run :kbd:`psql nav nav`, use the password from :file:`db.conf`.  List the
+Run :code:`psql nav nav`, use the password from :file:`db.conf`.  List the
 existing accounts::
 
   nav=# select * from account;
-    id  |  login  |       name        | password | ext_sync 
+    id  |  login  |       name        | password | ext_sync
   ------+---------+-------------------+----------+----------
-      0 | default | Default User      |          | 
-      1 | admin   | NAV Administrator | password | 
-   1000 | foo     | Foo Bar           | password | 
-   1001 | arthur  | A. Dent           | password | 
+      0 | default | Default User      |          |
+      1 | admin   | NAV Administrator | password |
+   1000 | foo     | Foo Bar           | password |
+   1001 | arthur  | A. Dent           | password |
    1002 | zaphod  | Z. Beeblebrox     | password | ldap
   (5 rows)
 

@@ -12,7 +12,7 @@ The nav command
 The :program:`nav` program is used to start, stop and query the running state
 of NAV's backend processes.
 
-:kbd:`nav list` lists all back-end processes. :kbd:`nav status` reports their
+:code:`nav list` lists all back-end processes. :code:`nav status` reports their
 current running state. With reference to the list, jump directly to the
 relevant section in this document:
 
