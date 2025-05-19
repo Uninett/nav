@@ -8,9 +8,9 @@ ready, you can use the included Makefile to build a Docker test environment
 image and to run NAV's full test suite inside it - excellent for use on a
 minimally provisioned CI server.
 
-To build the Docker image, issue the :kbd:`make` command. To run the full test
-suite on your checked out source code, inside a container, use :kbd:`make
-check`. You can also enter a CI environment interactively using :kbd:`make
+To build the Docker image, issue the :code:`make` command. To run the full test
+suite on your checked out source code, inside a container, use :code:`make
+check`. You can also enter a CI environment interactively using :code:`make
 shell`.
 
 Minimum requirements for a CI server

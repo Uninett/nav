@@ -36,9 +36,9 @@ before running NAV:
   in various situations. Here are three suggestions for generating a suitable
   string of random characters, depending on what tools you have available:
 
-    1. :kbd:`gpg -a --gen-random 1 51`
-    2. :kbd:`makepasswd --chars 51`
-    3. :kbd:`pwgen -s 51 1`
+    1. :code:`gpg -a --gen-random 1 51`
+    2. :code:`makepasswd --chars 51`
+    3. :code:`pwgen -s 51 1`
 
   Please see the
   `Django secret key documentation <https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-SECRET_KEY>`_
@@ -80,10 +80,10 @@ multiple processes.  While Apache serves the frontend, the backend
 processes can be controlled using the :program:`nav` command.
 
 The backend processes consist of some daemon processes, and some cron jobs.
-Running :kbd:`nav start` will start all the daemon processes in the
+Running :code:`nav start` will start all the daemon processes in the
 background, and install all the cron jobs in the ``navcron`` user's crontab.
 
-Depending on your OS of choice, you should configure it to run :kbd:`nav
+Depending on your OS of choice, you should configure it to run :code:`nav
 start` on boot.
 
 
@@ -273,7 +273,7 @@ the fields listed in square brackets are optional. Optional fields can be
 omitted or left blank. A line beginning with a ``#`` sign will be regarded as a
 comment and ignored. Thus, for adding some switch using the default SNMP
 management profile you added earlier, and a function description of
-:kbd:`Packet switching`, this line would do it::
+``Packet switching``, this line would do it::
 
   myroom:10.0.1.42:myorg:SW:Default SNMP v2c read-only profile::Packet switching
 

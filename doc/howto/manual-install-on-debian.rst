@@ -143,7 +143,7 @@ It'll respond with something like:
     Type 'yes' to continue, or 'no' to cancel:
 
 Take note of the path (:file:`/usr/share/nav/www`, without the ``static``
-subdir), as you'll need it in the next step and type :kbd:`yes` and hit
+subdir), as you'll need it in the next step and type :code:`yes` and hit
 :kbd:`Enter`.
 
 This will copy static files (css, javascript, images, fonts and similar) into

@@ -79,7 +79,7 @@ to ``cleese-sw``'s port *Gi2/1*. Do the following:
 2. Under the :guilabel:`Connection` table, in the row titled :guilabel:`To IP
    device` there should be a small, clickable icon to browse the *Neighbor
    candidates* report for port 26. Click on it:
-   
+
    .. image:: link-to-neighbor-candidates.png
 
    You might then see something like this:
@@ -114,7 +114,7 @@ neighbor candidates for each of the ports in your monitored network.
 
 Whereas protocols like CDP and LLDP, if supported and enabled, can usually
 provide a pretty precise indication of what a port's next-hop neighbor is, NAV
-can usually also detect topology without them. 
+can usually also detect topology without them.
 
 .. NOTE:: Also, proprietary protocols, such as CDP, can also be imprecise in
           heterogeneous networking environments, as CDP packets will be
@@ -141,5 +141,5 @@ for discerning which of the candidates are true next-hop neighbors.
 
 In a case where you have made changes to which devices are monitored by NAV,
 you can run the command manually, once `ipdevpoll` has finished it's `topo`
-job for any new devices. The command :kbd:`navtopology --l2` will run a
+job for any new devices. The command :code:`navtopology --l2` will run a
 physical topology analysis, and should be pretty quick.

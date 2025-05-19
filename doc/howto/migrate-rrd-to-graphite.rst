@@ -61,7 +61,7 @@ placed.
 
 When conversion is complete and the Whisper files are on the target server,
 ensure they are readable/writable by the user that runs the Carbon daemon
-(e.g. :kbd:`chmod -R graphite:graphite /opt/graphite/storage/whisper/nav`).
+(e.g. :code:`chmod -R graphite:graphite /opt/graphite/storage/whisper/nav`).
 
 Runtime considerations
 ~~~~~~~~~~~~~~~~~~~~~~

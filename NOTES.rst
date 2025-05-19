@@ -2369,9 +2369,9 @@ installation. This is used by the Django framework for cryptographic signing
 in various situations. Here are three suggestions for generating a suitable
 string of random characters, depending on what tools you have available:
 
-    1. :kbd:`gpg -a --gen-random 1 51`
-    2. :kbd:`makepasswd --chars 51`
-    3. :kbd:`pwgen -s 51 1`
+    1. :code:`gpg -a --gen-random 1 51`
+    2. :code:`makepasswd --chars 51`
+    3. :code:`pwgen -s 51 1`
 
 Please see
 https://docs.djangoproject.com/en/1.4/ref/settings/#std:setting-SECRET_KEY if
