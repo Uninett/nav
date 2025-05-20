@@ -221,6 +221,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django_filters',
     'rest_framework',
+    'drf_spectacular',
     'nav.auditlog',
     'nav.web.macwatch',
     'nav.web.geomap',
@@ -235,6 +236,12 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_PAGINATION_CLASS': 'nav.web.api.v1.NavPageNumberPagination',
     'UNAUTHENTICATED_USER': 'nav.django.utils.default_account',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'NAV API',
+    'PREPROCESSING_HOOKS': ['nav.web.api.schema.public_schema_filter'],
 }
 
 # Classes that implement a search engine for the web navbar
