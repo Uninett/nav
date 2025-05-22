@@ -64,7 +64,7 @@ program. To dump all seed data to the current working directory:
 
 .. code-block:: console
 
-  $ /usr/lib/nav/navdump  -a
+  $ navdump  -a
   Dumping vendor.txt
   Dumping room.txt
   Dumping service.txt
@@ -170,8 +170,8 @@ machine/testing server, and wish to copy most of your production data (but not
 your years of machine tracker logs) to it, you can do the full migration in
 one single command line on the test server like this::
 
-  ssh production-nav /usr/lib/nav/navpgdump --only-open-arp --only-open-cam | \
-    /usr/lib/nav/navsyncdb --drop-database --create --restore -
+  ssh production-nav navpgdump --only-open-arp --only-open-cam | \
+    navsyncdb --drop-database --create --restore -
 
 This command is repeatable; when run, it will destroy the running test
 database and restore the current production data into a new test database.
