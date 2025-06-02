@@ -17,7 +17,8 @@
 # pylint: disable=E1101
 """Urlconf for the NAV REST api"""
 
-from django.urls import re_path, include
+from django.urls import path, re_path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
 from nav.auditlog import api as auditlogapi
@@ -54,8 +55,17 @@ router.register(
 router.register(r'auditlog', auditlogapi.LogEntryViewSet, basename='auditlog')
 router.register(r'module', views.ModuleViewSet, basename='module')
 
+openapi_urls = [
+    path('', SpectacularAPIView.as_view(api_version="1"), name='schema'),
+    path(
+        "swagger-ui/",
+        SpectacularSwaggerView.as_view(url_name="api:1:openapi:schema"),
+        name="swagger-ui",
+    ),
+]
 
 urlpatterns = [
+    path("schema/", include((openapi_urls, "openapi"))),
     re_path(r'^$', views.api_root),
     re_path(r'^token/$', views.get_or_create_token, name="token"),
     re_path(r'^version/$', views.get_nav_version, name="version"),
