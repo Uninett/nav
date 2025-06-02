@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: kenchan0130/actions-system-info@6a1e7522ec3f38a344c8ea597867a012c3e691a8
+      - uses: kenchan0130/actions-system-info@f052b582679c1c21444b04822a375533585dac32
         id: system-info
 
       - name: "Cache pip packages"
