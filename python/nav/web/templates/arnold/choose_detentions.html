@@ -3,7 +3,7 @@
 {% block tabcontent %}
 
     <form action="{% url 'arnold-lift-detentions' %}" method="POST">
-
+        {% csrf_token %}
         <table class="listtable">
             <caption>
                 Choose which ports to open
