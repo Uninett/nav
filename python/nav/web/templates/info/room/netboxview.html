@@ -92,6 +92,7 @@
       </label>
 
       <form id="csv-download-form" action="{% url 'room-csv' %}" method="POST">
+        {% csrf_token %}
         <input type="hidden" name="rows" value="">
         <input type="hidden" name="roomid" value="{{ room.id }}">
         <input type="submit" class="button small secondary" value="Download as CSV">
