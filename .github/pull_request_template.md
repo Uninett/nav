@@ -26,7 +26,7 @@ More information about contributing to NAV can be found in the
 * [ ] Added/changed documentation
 * [ ] Linted/formatted the code with black and ruff, easiest by using [pre-commit](https://nav.readthedocs.io/en/latest/hacking/hacking.html#pre-commit-hooks-and-black)
 * [ ] The first line of the commit message continues the sentence "If applied, this commit will ...", starts with a capital letter, does not end with punctuation and is 50 characters or less long. See https://cbea.ms/git-commit/
-* [ ] Based this on the right branch: For a patch/bugfix affecting the latest stable series based it on that series' branch (`<major>.<minor>.x`), for a new feature and other additions based them on `master`
+* [ ] This pull request is based on the correct upstream branch: For a patch/bugfix affecting the latest stable version, it should be based on that version's branch (`<major>.<minor>.x`). For a new feature or other additions, it should be based on `master`.
 * [ ] If applicable: Created new issues if this PR does not fix the issue completely/there is further work to be done
 * [ ] If this results in changes in the UI: Added screenshots of the before and after
 * [ ] If this adds a new Python source code file: Added the [boilerplate header](https://nav.readthedocs.io/en/latest/hacking/hacking.html#python-boilerplate-headers) to that file
