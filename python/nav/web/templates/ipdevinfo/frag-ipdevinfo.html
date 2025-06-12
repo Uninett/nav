@@ -461,7 +461,10 @@
                     </td>
                     <td class="cell-center">
                       <button class="table-button secondary"
-                              hx-get="{% url 'refresh-ipdevinfo-job' netbox_sysname=netbox.sysname job_name=job.job_name %}">
+                              hx-get="{% url 'refresh-ipdevinfo-job' netbox_sysname=netbox.sysname job_name=job.job_name %}"
+                              hx-target="#deviceinfo"
+                              hx-swap="innerHTML"
+                              hx-select="#deviceinfo > *">
                         Refresh
                       </button>
                     </td>
