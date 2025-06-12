@@ -1,4 +1,5 @@
 <form class="sumform" method="post" action="{% url 'room-info-racks-save-sensor' room.pk %}">
+  {% csrf_token %}
   <label>Title<input type="text" name="title" placeholder="Sum of sensors"></label>
   <label>
     {{ sensortype }}
