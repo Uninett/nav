@@ -923,8 +923,13 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         )
         return HttpResponse(status=500)
 
+    job_descriptions = get_job_descriptions()
+
     return render(
         request,
         'ipdevinfo/frag-ipdevinfo.html',
-        {'netbox': netbox},
+        {
+            'netbox': netbox,
+            "job_descriptions": job_descriptions,
+        },
     )
