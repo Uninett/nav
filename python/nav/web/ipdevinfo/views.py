@@ -50,6 +50,7 @@ from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
 from nav.web.utils import create_title, SubListView
 from nav.metrics.graphs import Graph
+from nav.event2 import EventFactory
 
 from nav.web.ipdevinfo.forms import (
     SearchForm,
@@ -905,3 +906,30 @@ def save_port_layout_pref(request):
         'ipdevinfo-details-by-id', kwargs={'netbox_id': request.GET.get('netboxid')}
     )
     return redirect("{}#!ports".format(url))
+
+
+def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
+    RefreshEvent = EventFactory("devBrowse", "ipdevpoll", event_type="notification")
+    netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
+
+    try:
+        _logger.debug(f"Sending refresh event for {netbox_sysname} job {job_name}")
+        event = RefreshEvent.notify(netbox=netbox, subid=job_name)
+        event.save()
+
+    except Exception as e:  # noqa
+        _logger.error(
+            f"Failed to send refresh event for {netbox_sysname} job {job_name}: {e}"
+        )
+        return HttpResponse(status=500)
+
+    job_descriptions = get_job_descriptions()
+
+    return render(
+        request,
+        'ipdevinfo/frag-ipdevinfo.html',
+        {
+            'netbox': netbox,
+            "job_descriptions": job_descriptions,
+        },
+    )

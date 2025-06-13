@@ -422,6 +422,7 @@
                   <th>End time</th>
                   <th>Duration</th>
                   <th class="cell-center">Status</th>
+                  <th class="cell-center">Actions</th>
                 </tr>
               </thead>
 
@@ -457,6 +458,15 @@
                                alt="N/A" title="Not applicable">
                         {% endif %}
                       {% endif %}
+                    </td>
+                    <td class="cell-center">
+                      <button class="table-button secondary"
+                              hx-get="{% url 'refresh-ipdevinfo-job' netbox_sysname=netbox.sysname job_name=job.job_name %}"
+                              hx-target="#deviceinfo"
+                              hx-swap="innerHTML"
+                              hx-select="#deviceinfo > *">
+                        Refresh
+                      </button>
                     </td>
                   </tr>
                 {% endfor %}
