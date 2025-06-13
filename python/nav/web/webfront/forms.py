@@ -85,6 +85,8 @@ class ChangePasswordForm(forms.Form):
         super(ChangePasswordForm, self).__init__(*args, **kwargs)
 
         self.attrs = set_flat_form_attributes(
+            form_id="change-password-form",
+            form_action='webfront-preferences-changepassword',
             form_fields=[
                 FlatFieldset(
                     legend='Change password',
