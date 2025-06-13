@@ -2,6 +2,7 @@
 
 {% block navlet-content %}
   <form action="{% url 'get-user-navlet' navlet.navlet_id %}">
+    {% csrf_token %}
 
     <div class="row">
       <div class="medium-8 column">

@@ -4,6 +4,7 @@
 {% block navlet-content %}
 
   <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post" class="panel">
+    {% csrf_token %}
     <label>
       {{ form.show_graph }}
       {{ form.show_graph.label }}
