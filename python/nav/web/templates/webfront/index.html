@@ -115,6 +115,7 @@
             method="post"
             data-dashboard="{{ dashboard.pk }}"
             action="{% url 'rename-dashboard' dashboard.pk %}" >
+        {% csrf_token %}
         <input type="submit" class="small button right" value="Rename dashboard">
         <label>
           <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
