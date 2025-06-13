@@ -107,16 +107,16 @@ services of the following devices.
 
 .. image:: http-rest-api-profile-example.png
 
-If you have a Palo Alto firewall running on a netbox managed by NAV,
+If you have a Palo Alto PAN-OS firewall running on a netbox managed by NAV,
 with a secret API key of ``762e87e0ec051a1c5211a08dd48e7a93720eee63``,
 you can configure NAV to fetch ARP information from this firewall by
 creating a new management profile with
 
-* protocol set to ``HTTP API``,
+* Protocol set to ``HTTP API``,
 
 * API key set to ``762e87e0ec051a1c5211a08dd48e7a93720eee63``,
 
-* service set to ``Palo Alto ARP``,
+* Service set to ``Palo Alto ARP``,
 
 and then add this management profile to the netbox.
 
