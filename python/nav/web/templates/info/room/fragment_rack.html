@@ -21,6 +21,7 @@
   <form action="{% url 'room-info-racks-rename-rack' room.pk rack.pk %}"
         method="post"
         class="rename-rack-form block-when-edit">
+    {% csrf_token %}
     <label>
       Change rack name
       <small class="icon-container">
@@ -89,6 +90,7 @@
   <div class="block-when-edit">
     <h6>Set background color</h6>
     <form class="color-chooser">
+      {% csrf_token %}
       {% for color_class in color_classes %}
         <label>
           <span class="color-indicator {{ color_class }}"></span>
