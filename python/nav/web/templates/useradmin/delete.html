@@ -12,6 +12,7 @@
     </p>
 
     <form action="" method="post">
+      {% csrf_token %}
       {% if type and id %}
         <input type="hidden" name="{{ type }}" value="{{ id }}"/>
       {% endif %}
