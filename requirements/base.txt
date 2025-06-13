@@ -24,6 +24,7 @@ dnspython<3.0.0,>=2.1.0
 
 django-filter>=2
 djangorestframework>=3.12
+django-htmx
 
 # REST framework
 iso8601
