@@ -1282,9 +1282,12 @@ def validate_mac_addresses(mac_addresses: Sequence[str]) -> list[MacAddress]:
     :raises ValueError: If any MAC address is invalid.
     """
     validated_macs = []
+    invalid_macs = []
     for mac in mac_addresses:
         try:
             validated_macs.append(MacAddress(mac))
         except ValueError:
-            raise ValueError(f"Invalid MAC address: '{mac}'")
+            invalid_macs.append(mac)
+    if invalid_macs:
+        raise ValueError(f"Invalid MAC address(es): {', '.join(invalid_macs)}")
     return validated_macs
