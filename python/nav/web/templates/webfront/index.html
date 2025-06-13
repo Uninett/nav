@@ -130,6 +130,7 @@
             <div class="alert-box">This is the default dashboard</div>
             <form id="form-set-default-dashboard" method="post"
                   action="{% url 'set-default-dashboard' dashboard.pk %}">
+              {% csrf_token %}
               <input type="submit" value="Set as default dashboard"
                      class="small button secondary expand">
             </form>
