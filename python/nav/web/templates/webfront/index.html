@@ -96,6 +96,7 @@
         <div data-alert class="alert-box warning hidden">
         </div>
         <form action="{% url 'import-dashboard' %}">
+            {% csrf_token %}
             <fieldset>
                 <legend>Select file to import</legend>
                 <input name="file" type="file" id="dashboard-import-file">
