@@ -1252,7 +1252,7 @@ def get_vendor_names(mac_addresses: Sequence[MacAddress]) -> dict[str, str]:
         return {}
 
     # Generate the VALUES part of the SQL query dynamically
-    values = ", ".join(f"('{str(mac)}'::macaddr)" for mac in mac_addresses)
+    values = ", ".join(f"('{mac}'::macaddr)" for mac in mac_addresses)
 
     # Construct the full SQL query
     query = f"""
