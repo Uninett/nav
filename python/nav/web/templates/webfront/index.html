@@ -175,6 +175,7 @@
          data-dropdown-content
          class="f-dropdown content small right-action-content">
       <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
+        {% csrf_token %}
         <label>
           Add dashboard
           <input type="text" name="dashboard-name" placeholder="Dashboard name">
