@@ -15,6 +15,7 @@
   {% endif %}
 
   <form action="{{ request.path }}" method="post">
+    {% csrf_token %}
     {% if not hide_move or not hide_delete %}
       <div>
         {% if not hide_move %}

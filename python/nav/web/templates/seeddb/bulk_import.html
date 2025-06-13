@@ -7,6 +7,7 @@
   <h4>Bulk import</h4>
 
     <form enctype="multipart/form-data" action="" method="post">
+        {% csrf_token %}
         {% if form.non_field_errors %}
             <div class="alert-box alert">{{ form.non_field_errors }}</div>
         {% endif %}
