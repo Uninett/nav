@@ -926,26 +926,22 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         )
         return HttpResponse(status=500)
 
-    job_descriptions = get_job_descriptions()
-
     try:
         last_refreshed = request.session['ipdevinfo-refresh'][netbox.id][job_name]
     except KeyError:
         last_refreshed = dt.datetime.min
 
-    last_jobs = {job.job_name: job.end_time for job in netbox.get_last_jobs()}
-    if last_jobs[job_name] > last_refreshed:
-        button_text = "Refresh"
+    last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
+    if last_job.end_time > last_refreshed:
+        button_template = "ipdevinfo/frag-ipdevinfo-refresh-button.html"
     else:
-        button_text = "Refreshing..."
+        button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
-    return HttpResponse(button_text)
     return render(
         request,
-        'ipdevinfo/frag-ipdevinfo.html',
+        button_template,
         {
             'netbox': netbox,
-            "button_text": button_text,
-            "job_descriptions": job_descriptions,
+            'job': last_job,
         },
     )
