@@ -24,6 +24,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django_htmx.http import HttpResponseClientRefresh
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
@@ -934,7 +935,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
     last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
     if last_job.end_time > last_refreshed:
-        button_template = "ipdevinfo/frag-ipdevinfo-refresh-button.html"
+        return HttpResponseClientRefresh()
     else:
         button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
