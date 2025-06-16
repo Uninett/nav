@@ -916,6 +916,9 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         _logger.debug(f"Sending refresh event for {netbox_sysname} job {job_name}")
         event = RefreshEvent.notify(netbox=netbox, subid=job_name)
         event.save()
+        request.session.setdefault('ipdevinfo-refresh', {}).setdefault(netbox.id, {})[
+            job_name
+        ] = dt.datetime.now()
 
     except Exception as e:  # noqa
         _logger.error(
@@ -925,11 +928,24 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
     job_descriptions = get_job_descriptions()
 
+    try:
+        last_refreshed = request.session['ipdevinfo-refresh'][netbox.id][job_name]
+    except KeyError:
+        last_refreshed = dt.datetime.min
+
+    last_jobs = {job.job_name: job.end_time for job in netbox.get_last_jobs()}
+    if last_jobs[job_name] > last_refreshed:
+        button_text = "Refresh"
+    else:
+        button_text = "Refreshing..."
+
+    return HttpResponse(button_text)
     return render(
         request,
         'ipdevinfo/frag-ipdevinfo.html',
         {
             'netbox': netbox,
+            "button_text": button_text,
             "job_descriptions": job_descriptions,
         },
     )
