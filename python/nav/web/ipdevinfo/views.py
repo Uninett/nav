@@ -919,6 +919,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         request.session.setdefault('ipdevinfo-refresh', {}).setdefault(netbox.id, {})[
             job_name
         ] = dt.datetime.now()
+        request.session.modified = True
 
     except Exception as e:  # noqa
         _logger.error(
