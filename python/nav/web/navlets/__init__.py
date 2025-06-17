@@ -418,12 +418,6 @@ def add_user_navlet_graph(request):
     return HttpResponse(status=400)
 
 
-ALERT_TYPES = {
-    Sensor.ALERT_TYPE_WARNING: 'warning',
-    Sensor.ALERT_TYPE_ALERT: 'alert',
-}
-
-
 def add_user_navlet_sensor(request):
     """Add a sensor widget with sensor id set"""
     if request.method == 'POST':
@@ -436,7 +430,7 @@ def add_user_navlet_sensor(request):
                 'on_message': sensor.on_message,
                 'off_message': sensor.off_message,
                 'on_state': sensor.on_state,
-                'alert_type': ALERT_TYPES[sensor.alert_type],
+                'alert_type': sensor.alert_type_class,
             }
         else:
             navlet = 'nav.web.navlets.sensor.SensorWidget'
