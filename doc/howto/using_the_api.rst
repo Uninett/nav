@@ -56,6 +56,14 @@ JWTs must include valid ``exp``, ``nbf``, ``iss`` and ``aud`` claims in order to
 ``iss`` and ``aud`` must match the :doc:`configuration <../reference/jwt>`, while ``exp`` must
 be in the future and ``nbf`` must be in the past.
 
+The ``permissions`` and ``write`` claims are optional claims that are used to determine what
+resources the token has access to.
+The ``permissions`` claim should contain a list of endpoints that the token has access to.
+If ``permissions`` is an empty list or omitted, the token will not have access to any endpoints.
+The ``write`` claim should be a boolean indicating whether the token has write access to the endpoints.
+If ``write`` is ``false`` or omitted, the token will only have read access to the endpoints listed in ``permissions``.
+
+
 Browsing the API
 ================
 
