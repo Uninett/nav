@@ -13,6 +13,10 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 ## [5.13.2] - 2025-05-16
 
+### Added
+
+- Added a report of software upgrade logs ([#2466](https://github.com/Uninett/nav/pull/2466), [#2457](https://github.com/Uninett/nav/issues/2457))
+
 ### Fixed
 
 - Relax API permissions for endpoints used by NAV web GUI tools intended for
