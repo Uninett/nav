@@ -146,3 +146,71 @@ def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netbo
     )
     post("")
     assert len(NetboxInfo.objects.filter(netbox=netbox, variable='function')) == 0
+
+
+def test_generating_qr_codes_for_netboxes_should_succeed(client, netbox):
+    url = reverse('seeddb-netbox')
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "qr_code": "Generate+QR+codes+for+selected",
+            "object": [netbox.id],
+        },
+    )
+
+    assert response.status_code == 200
+    assert 'Download generated QR Codes' in smart_str(response.content)
+
+
+def test_generating_qr_codes_for_no_selected_netboxes_should_show_error(client, netbox):
+    url = reverse('seeddb-netbox')
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "qr_code": "Generate+QR+codes+for+selected",
+        },
+    )
+
+    assert response.status_code == 200
+    assert (
+        'You need to select at least one object to generate qr codes for'
+        in smart_str(response.content)
+    )
+
+
+def test_generating_qr_codes_for_rooms_should_succeed(client):
+    url = reverse('seeddb-room')
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "qr_code": "Generate+QR+codes+for+selected",
+            "object": ["myroom"],
+        },
+    )
+
+    assert response.status_code == 200
+    assert 'Download generated QR Codes' in smart_str(response.content)
+
+
+def test_generating_qr_codes_for_no_selected_rooms_should_show_error(client, netbox):
+    url = reverse('seeddb-room')
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "qr_code": "Generate+QR+codes+for+selected",
+        },
+    )
+
+    assert response.status_code == 200
+    assert (
+        'You need to select at least one object to generate qr codes for'
+        in smart_str(response.content)
+    )
