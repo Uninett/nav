@@ -914,6 +914,27 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
 
     try:
+        # TODO: Add saving how many tries we've done and time out
+        last_refreshed = request.session['ipdevinfo-refresh'][netbox.id][job_name]
+    except KeyError:
+        last_refreshed = dt.datetime.max
+
+    last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
+
+    if last_job.end_time > last_refreshed:
+        try:
+            del request.session['ipdevinfo-refresh'][netbox.id][job_name]
+            request.session.modified = True
+        except KeyError:
+            pass
+
+        return HttpResponseClientRefresh()
+
+    # TODO: Disable all buttons
+    button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
+
+    try:
+        # TODO: Is job already running? What will a refresh event do then?
         _logger.debug(f"Sending refresh event for {netbox_sysname} job {job_name}")
         event = RefreshEvent.notify(netbox=netbox, subid=job_name)
         event.save()
@@ -927,17 +948,6 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
             f"Failed to send refresh event for {netbox_sysname} job {job_name}: {e}"
         )
         return HttpResponse(status=500)
-
-    try:
-        last_refreshed = request.session['ipdevinfo-refresh'][netbox.id][job_name]
-    except KeyError:
-        last_refreshed = dt.datetime.min
-
-    last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
-    if last_job.end_time > last_refreshed:
-        return HttpResponseClientRefresh()
-    else:
-        button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
     return render(
         request,
