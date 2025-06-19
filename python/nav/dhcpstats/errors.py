@@ -17,5 +17,6 @@
 
 from nav.errors import GeneralException
 
+
 class CommunicationError(GeneralException):
     """Communication error"""
