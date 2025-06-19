@@ -1,0 +1,1 @@
+Add link to My Stuff that leads to a generated QR Code linking to the page it is called from
