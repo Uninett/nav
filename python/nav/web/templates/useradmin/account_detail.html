@@ -29,6 +29,7 @@
             {% if current_user_data.account.id != account.id %}
               <li>
                 <form action="." method="post">
+                  {% csrf_token %}
                   <input type="hidden" name="account" value="{{ account.id }}"/>
                   <input type="submit" value="Operate as this user"
                          name="submit_sudo" class="button small"/>
