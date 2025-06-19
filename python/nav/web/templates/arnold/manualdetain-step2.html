@@ -19,6 +19,7 @@
       It is not feasible to add all the information to the labels otherwise.
       {% endcomment %}
       <form action="" method="POST" class="manualDetentionForm">
+        {% csrf_token %}
         <fieldset>
           <legend>Manual detention of {{ target }}</legend>
 
