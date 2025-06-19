@@ -24,6 +24,11 @@ from django.urls import reverse
 
 from nav.models.service import Service, ServiceProperty
 from nav.models.manage import Netbox
+from nav.web.crispyforms import (
+    FlatFieldset,
+    SubmitField,
+    set_flat_form_attributes,
+)
 from nav.web.servicecheckers import get_description, load_checker_classes
 from nav.web.message import new_message, Messages
 from nav.web.seeddb.page.service import ServiceInfo
@@ -42,6 +47,20 @@ class ServiceChoiceForm(forms.Form):
         self.fields['service'] = forms.ChoiceField(
             choices=sorted(self._build_checker_choices()),
             widget=forms.Select(attrs={'class': 'select2'}),
+        )
+
+        self.attrs = set_flat_form_attributes(
+            form_fields=[
+                FlatFieldset(
+                    legend="Add new service checker",
+                    fields=[
+                        self["netbox"],
+                        self["service"],
+                        SubmitField(value="Continue", css_classes='small'),
+                    ],
+                )
+            ],
+            form_id="service_checker_add_form",
         )
 
     @staticmethod

@@ -12,13 +12,7 @@
     <div class="column large-6 small-12">
 
       {# This form is ONLY FOR ADDING new service checkers (netbox-service combo) #}
-      <form id="service_checker_add_form" action="" method="post">
-        <fieldset>
-          <legend>Add new service checker</legend>
-          {% include 'custom_crispy_templates/_form_content.html' with form=choice_form %}
-          <input type="submit" value="Continue" class="button small"/>
-        </fieldset>
-      </form>
+      {% include 'custom_crispy_templates/flat_form.html' with form=choice_form %}
 
     </div>
   </div>
