@@ -3,6 +3,7 @@
 {% block navlet-content %}
 
   <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post">
+    {% csrf_token %}
     {{ form }}
     <input type="submit" class="button tiny" value="Save">
   </form>

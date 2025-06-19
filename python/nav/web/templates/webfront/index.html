@@ -77,6 +77,7 @@
           <li>
             <div class="panel">
               <form class="add-user-navlet right" action="{% url 'add-user-navlet' dashboard.pk %}" method="post">
+                {% csrf_token %}
                 <input type="hidden" name="navlet" value="{{ navlet.get_class }}">
                 <input type="submit" class="button tiny" value="Add">
               </form>
@@ -95,6 +96,7 @@
         <div data-alert class="alert-box warning hidden">
         </div>
         <form action="{% url 'import-dashboard' %}">
+            {% csrf_token %}
             <fieldset>
                 <legend>Select file to import</legend>
                 <input name="file" type="file" id="dashboard-import-file">
@@ -113,6 +115,7 @@
             method="post"
             data-dashboard="{{ dashboard.pk }}"
             action="{% url 'rename-dashboard' dashboard.pk %}" >
+        {% csrf_token %}
         <input type="submit" class="small button right" value="Rename dashboard">
         <label>
           <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
@@ -127,6 +130,7 @@
             <div class="alert-box">This is the default dashboard</div>
             <form id="form-set-default-dashboard" method="post"
                   action="{% url 'set-default-dashboard' dashboard.pk %}">
+              {% csrf_token %}
               <input type="submit" value="Set as default dashboard"
                      class="small button secondary expand">
             </form>
@@ -146,6 +150,7 @@
         <div class="column medium-4">
           {% if request.account.account_dashboards.count > 1 and not dashboard.is_default %}
             <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}">
+              {% csrf_token %}
               <input type="submit" class="small button alert expand" value="Delete dashboard">
             </form>
             {% endif %}
@@ -170,6 +175,7 @@
          data-dropdown-content
          class="f-dropdown content small right-action-content">
       <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
+        {% csrf_token %}
         <label>
           Add dashboard
           <input type="text" name="dashboard-name" placeholder="Dashboard name">
