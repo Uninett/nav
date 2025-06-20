@@ -934,7 +934,6 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
     try:
-        # TODO: Is job already running? What will a refresh event do then?
         _logger.debug(f"Sending refresh event for {netbox_sysname} job {job_name}")
         event = RefreshEvent.notify(netbox=netbox, subid=job_name)
         event.save()
