@@ -108,4 +108,9 @@ urlpatterns = [
         views.unrecognized_neighbors,
         name='ipdevinfo-unrecognized_neighbors',
     ),
+    re_path(
+        r'^(?P<netbox_sysname>[^/]+)/(?P<job_name>[^/]+)/refresh_job',
+        views.refresh_ipdevinfo_job,
+        name='refresh-ipdevinfo-job',
+    ),
 ]

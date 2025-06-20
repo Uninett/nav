@@ -24,6 +24,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django_htmx.http import HttpResponseClientRefresh
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
@@ -50,6 +51,7 @@ from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
 from nav.web.utils import create_title, SubListView
 from nav.metrics.graphs import Graph
+from nav.event2 import EventFactory
 
 from nav.web.ipdevinfo.forms import (
     SearchForm,
@@ -905,3 +907,54 @@ def save_port_layout_pref(request):
         'ipdevinfo-details-by-id', kwargs={'netbox_id': request.GET.get('netboxid')}
     )
     return redirect("{}#!ports".format(url))
+
+
+def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
+    RefreshEvent = EventFactory("devBrowse", "ipdevpoll", event_type="notification")
+    netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
+
+    try:
+        # TODO: Add saving how many tries we've done and time out
+        # TODO show hint to user about ipdevpoll potentially not running
+        # can save id of RefreshEvent and check if it's still existing (which means the job has not started)
+        last_refreshed = request.session['ipdevinfo-refresh'][netbox.id][job_name]
+    except KeyError:
+        last_refreshed = dt.datetime.max
+
+    last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
+
+    if last_job.end_time > last_refreshed:
+        try:
+            del request.session['ipdevinfo-refresh'][netbox.id][job_name]
+            request.session.modified = True
+        except KeyError:
+            pass
+
+        return HttpResponseClientRefresh()
+
+    # TODO: Disable all buttons
+    button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
+
+    try:
+        _logger.debug(f"Sending refresh event for {netbox_sysname} job {job_name}")
+        event = RefreshEvent.notify(netbox=netbox, subid=job_name)
+        event.save()
+        request.session.setdefault('ipdevinfo-refresh', {}).setdefault(netbox.id, {})[
+            job_name
+        ] = dt.datetime.now()
+        request.session.modified = True
+
+    except Exception as e:  # noqa
+        _logger.error(
+            f"Failed to send refresh event for {netbox_sysname} job {job_name}: {e}"
+        )
+        return HttpResponse(status=500)
+
+    return render(
+        request,
+        button_template,
+        {
+            'netbox': netbox,
+            'job': last_job,
+        },
+    )
