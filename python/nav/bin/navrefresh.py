@@ -16,7 +16,6 @@
 #
 """A command line interface to send refresh commands to a running ipdevpoll daemon"""
 
-
 import argparse
 import sys
 
