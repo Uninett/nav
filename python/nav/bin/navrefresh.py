@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- testargs: -h -*-
 #
 # Copyright 2025 Sikt
 #
