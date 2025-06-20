@@ -44,7 +44,7 @@ dependencies = [
 
     "napalm>=5.0.0,<5.1.0",
 
-    "drf-oidc-auth @ git+https://github.com/Uninett/drf-oidc-auth@v4.0",
+    "drf-jwt-multi-auth",
 
     "requests",
 
