@@ -584,14 +584,22 @@ def _reschedule_jobs(boxes_to_reschedule: dict[tuple[int, str], list[EventQueue]
         first_event = events[0]
         job_scheduler = job_schedulers[job_name]
         netbox_scheduler = job_scheduler.active_netboxes[netbox_id]
-        _logger.info(
-            "Re-scheduling immediate %s run for %s as requested by %s",
-            first_event.netbox,
-            job_name,
-            first_event.source,
-        )
-        # Ensure all re-scheduling happens in the main reactor thread:
-        reactor.callFromThread(netbox_scheduler.reschedule, 0)
+        if netbox_scheduler.is_running():
+            _logger.debug(
+                "Ignoring request to re-schedule %s run for %s, job is already running",
+                job_name,
+                first_event.netbox,
+                first_event.source,
+            )
+        else:
+            _logger.info(
+                "Re-scheduling immediate %s run for %s as requested by %s",
+                job_name,
+                first_event.netbox,
+                first_event.source,
+            )
+            # Ensure all re-scheduling happens in the main reactor thread:
+            reactor.callFromThread(netbox_scheduler.reschedule, 0)
         # now we can safely delete all the events
         for event in events:
             event.delete()
