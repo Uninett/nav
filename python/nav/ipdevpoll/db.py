@@ -196,7 +196,7 @@ def resubscribe_to_event_notifications():
         """
         try:
             subscribe_to_event_notifications(trigger)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             _logger.debug(
                 "unable to resubscribe to events (%s), retrying in 1 second",
                 str(error).strip(),
