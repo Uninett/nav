@@ -34,7 +34,7 @@ def set_account(request, account, cycle_session_id=True):
     Cycles the session ID by default to avoid session fixation.
     """
     request.session[ACCOUNT_ID_VAR] = account.id
-    request.account = account
+    request.account = request.user = account
     _logger.debug('Set active account to "%s"', account.login)
     if cycle_session_id:
         request.session.cycle_key()
@@ -45,6 +45,8 @@ def clear_session(request):
     """Clears the session and logs out the current account"""
     if hasattr(request, "account"):
         del request.account
+    if hasattr(request, "user"):
+        del request.user
     request.session.flush()
     request.session.save()
 

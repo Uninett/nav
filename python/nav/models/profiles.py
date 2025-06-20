@@ -26,6 +26,7 @@ from datetime import datetime
 import re
 import json
 
+from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.postgres.fields import HStoreField
 from django.db import models, transaction
 from django.forms.models import model_to_dict
@@ -83,9 +84,11 @@ _ = lambda a: a
 ### Account models
 
 
-class Account(models.Model):
+class Account(AbstractBaseUser):
     """NAV's basic account model"""
 
+    USERNAME_FIELD = 'login'
+    EMAIL_FIELD = 'email'
     DEFAULT_ACCOUNT = 0
     ADMIN_ACCOUNT = 1
 
@@ -102,6 +105,7 @@ class Account(models.Model):
 
     login = VarcharField(unique=True)
     name = VarcharField()
+    email = models.EmailField(null=True, blank=True)  # Not currently used by NAV
     password = VarcharField()
     ext_sync = VarcharField(blank=True)
     preferences = HStoreField(default=dict)
@@ -197,6 +201,34 @@ class Account(models.Model):
     def is_admin(self):
         """Has this user administrator rights?"""
         return self.has_perm(None, None)
+
+    @property
+    def is_anonymous(self):
+        """Returns True if this user represents NAV's anonymous user"""
+        return self.id == self.DEFAULT_ACCOUNT
+
+    @property
+    def is_authenticated(self):
+        """Returns True if this represents an authenticated (non-anonymous) user"""
+        return self.id != self.DEFAULT_ACCOUNT
+
+    @property
+    def is_staff(self):
+        """Returns True if this user is a staff member.
+
+        This is only here for compatibility with Django libraries that may expect this to be a django.contrib.auth
+        user model.  NAV has no concept of staff vs superuser.  Either the user is an admin, or they're not.
+        """
+        return self.is_admin()
+
+    @property
+    def is_superuser(self):
+        """Returns True if this user is a superuser.
+
+        This is only here for compatibility with Django libraries that may expect this to be a django.contrib.auth
+        user model.  NAV has no concept of staff vs superuser.  Either the user is an admin, or they're not.
+        """
+        return self.is_admin()
 
     @sensitive_variables('password')
     def set_password(self, password):
