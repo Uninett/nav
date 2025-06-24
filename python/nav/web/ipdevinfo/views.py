@@ -932,7 +932,6 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
         return HttpResponseClientRefresh()
 
-    # TODO: Disable all buttons
     button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
     try:
