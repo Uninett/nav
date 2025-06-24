@@ -24,7 +24,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django_htmx.http import HttpResponseClientRefresh
+from django_htmx.http import reswap, retarget, HttpResponseClientRefresh
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
@@ -45,7 +45,7 @@ from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
 from nav.models.profiles import Account
-from nav.models.event import AlertHistory
+from nav.models.event import AlertHistory, EventQueue
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
@@ -912,14 +912,36 @@ def save_port_layout_pref(request):
 def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     RefreshEvent = EventFactory("devBrowse", "ipdevpoll", event_type="notification")
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
+    refresh_event_exists = False
 
     try:
         # TODO: Add saving how many tries we've done and time out
         # TODO show hint to user about ipdevpoll potentially not running
         # can save id of RefreshEvent and check if it's still existing (which means the job has not started)
         last_refreshed = request.session['ipdevinfo-refresh'][netbox.id][job_name]
+        refresh_event_exists = EventQueue.objects.filter(
+            source_id="devBrowse",
+            target_id="ipdevpoll",
+            event_type_id="notification",
+            netbox=netbox,
+            subid=job_name,
+            state=EventQueue.STATE_STATELESS,
+            time__gte=last_refreshed,
+        ).exists()
+
     except KeyError:
         last_refreshed = dt.datetime.max
+
+    if refresh_event_exists:
+        response = render(
+            request,
+            "ipdevinfo/frag-ipdevinfo-alert-box.html",
+            context={
+                "alert_level": "warning",
+                "alert_message": f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
+            },
+        )
+        return response
 
     last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
 
@@ -938,9 +960,10 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         _logger.debug(f"Sending refresh event for {netbox_sysname} job {job_name}")
         event = RefreshEvent.notify(netbox=netbox, subid=job_name)
         event.save()
+        # TODO: document why this needs to be exactly the same (finding refresh event)
         request.session.setdefault('ipdevinfo-refresh', {}).setdefault(netbox.id, {})[
             job_name
-        ] = dt.datetime.now()
+        ] = event.time
         request.session.modified = True
 
     except Exception as e:  # noqa
