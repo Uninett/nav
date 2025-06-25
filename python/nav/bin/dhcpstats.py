@@ -52,8 +52,8 @@ def parse_args():
     (For now, this is called solely to support the --help option.)
     """
     parser = argparse.ArgumentParser(
-        description="Collects statistics from DHCP servers and sends them to the Carbon "
-        "backend",
+        description="Collects statistics from DHCP servers and sends them to the "
+        "Carbon backend",
         epilog="Statistics are collected from each DHCP API endpoint configured in "
         "'CONFDIR/dhcpstats.conf', and then sent to the Carbon backend configured in "
         "'CONFDIR/graphite.conf'.",
@@ -141,8 +141,8 @@ def get_endpoint_clients(config):
             client = cls(endpoint_name, **kwargs)
         except (ConfigurationError, TypeError) as err:
             _logger.warning(
-                "Endpoint type '%s' defined in config section [%s] is badly configured: "
-                "%s, skipping endpoint...",
+                "Endpoint type '%s' defined in config section [%s] is badly "
+                "configured: %s, skipping endpoint...",
                 endpoint_type,
                 section,
                 err,

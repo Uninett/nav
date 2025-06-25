@@ -101,8 +101,8 @@ class Client:
         self._start_time: float = time.time()
 
         if dhcp_version == 4:
-            # self._api_namings is a map between how stats are named in NAV and how stats
-            # are named in Kea.
+            # self._api_namings is a map between how stats are named in NAV and how
+            # stats are named in Kea.
             self._api_namings = (
                 ("total", "total-addresses"),
                 ("assigned", "assigned-addresses"),
@@ -345,8 +345,8 @@ class Client:
             _logger.debug("Using client certificate authentication")
             if not https:
                 raise ConfigurationError(
-                    "Authentication using client certificates is only available for urls "
-                    "with HTTPS scheme"
+                    "Authentication using client certificates is only available for "
+                    "urls with HTTPS scheme"
                 )
             _logger.debug("Certificate path: '%s'", self._client_cert_path)
             if self._client_key_path:
@@ -361,8 +361,8 @@ class Client:
 
     def _subnets_of_kea_config(self, config: dict) -> Iterator[dict]:
         """
-        Returns one subnet-dict per subnet configured under "subnet" or under "shared-networks"
-        of a Kea DHCP configuration.
+        Returns one subnet-dict per subnet configured under "subnet" or under
+        "shared-networks" of a Kea DHCP configuration.
         """
         subnetkey = f"subnet{self._dhcp_version}"
 
@@ -398,9 +398,9 @@ class Client:
                 )
             except (AttributeError, KeyError, TypeError, ValueError):
                 _logger.error(
-                    'Could not parse pool in subnet %d from %s, skipping pool...  (make '
-                    'sure every pool has "pool-id" and "pool" configured in the Kea DHCP '
-                    'configuration)',
+                    'Could not parse pool in subnet %d from %s, skipping pool... '
+                    '(make sure every pool has "pool-id" and "pool" configured in the '
+                    'Kea DHCP configuration)',
                     subnet_id,
                     self._url,
                 )
