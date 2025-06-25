@@ -322,7 +322,6 @@ class Client:
         if https:
             _logger.debug("Using HTTPS")
         else:
-            _logger.debug("Using HTTP")
             _logger.warning(
                 "Using HTTP to request potentially sensitive data such as API passwords"
             )
@@ -376,7 +375,7 @@ class Client:
         try:
             subnet_id = int(subnet["id"])
         except (KeyError, TypeError, ValueError):
-            _logger.info(
+            _logger.error(
                 "Misconfigured subnet from %s, skipping subnet...",
                 self._url,
             )
@@ -391,7 +390,7 @@ class Client:
                     fallback=f"pool-{pool_start.strNormal()}-{pool_end.strNormal()}",
                 )
             except (AttributeError, KeyError, TypeError, ValueError):
-                _logger.info(
+                _logger.error(
                     'Could not parse pool in subnet %d from %s, skipping pool...  (make '
                     'sure every pool has "pool-id" and "pool" configured in the Kea DHCP '
                     'configuration)',
