@@ -30,7 +30,14 @@ from requests import RequestException, JSONDecodeError, Session
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
-from nav.dhcpstats.errors import CommunicationError
+from nav.dhcpstats.errors import (
+    CommunicationError,
+    KeaEmpty,
+    KeaError,
+    KeaConflict,
+    KeaUnexpected,
+    KeaUnsupported,
+)
 from nav.errors import ConfigurationError
 from nav.metrics.templates import metric_path_for_dhcp_pool
 
@@ -520,29 +527,6 @@ class Client:
             end_time - start_time,
             self._url,
         )
-
-
-class KeaUnexpected(CommunicationError):
-    """An unexpected error occurred when communicating with Kea"""
-
-
-class KeaError(CommunicationError):
-    """Kea API failed during command processing"""
-
-
-class KeaUnsupported(CommunicationError):
-    """Command not supported by Kea API"""
-
-
-class KeaEmpty(CommunicationError):
-    """Requested resource not found by Kea API"""
-
-
-class KeaConflict(CommunicationError):
-    """
-    Kea API failed to apply requested changes due to conflicts with
-    its internal state
-    """
 
 
 class _KeaStatus(IntEnum):

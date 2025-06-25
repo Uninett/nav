@@ -20,3 +20,26 @@ from nav.errors import GeneralException
 
 class CommunicationError(GeneralException):
     """Communication error"""
+
+
+class KeaUnexpected(CommunicationError):
+    """An unexpected error occurred when communicating with Kea"""
+
+
+class KeaError(CommunicationError):
+    """Kea API failed during command processing"""
+
+
+class KeaUnsupported(CommunicationError):
+    """Command not supported by Kea API"""
+
+
+class KeaEmpty(CommunicationError):
+    """Requested resource not found by Kea API"""
+
+
+class KeaConflict(CommunicationError):
+    """
+    Kea API failed to apply requested changes due to conflicts with
+    its internal state
+    """
