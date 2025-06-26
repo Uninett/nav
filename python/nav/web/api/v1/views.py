@@ -18,13 +18,16 @@
 
 from datetime import datetime, timedelta
 import logging
+from typing import Sequence
 
 from IPy import IP
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, QueryDict
 from django.db.models import Q
 from django.db.models.fields.related import ManyToOneRel as _RelatedObject
 from django.core.exceptions import FieldDoesNotExist
+import django.db
 import iso8601
+import json
 
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 from django_filters.filters import ModelMultipleChoiceFilter, CharFilter
@@ -44,6 +47,7 @@ from rest_framework.serializers import ValidationError
 
 from oidc_auth.authentication import JSONWebTokenAuthentication
 
+from nav.macaddress import MacAddress
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.servicecheckers import load_checker_classes
@@ -162,6 +166,7 @@ def get_endpoints(request=None, version=1):
         'vlan': reverse_lazy('{}vlan-list'.format(prefix), **kwargs),
         'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
         'module': reverse_lazy('{}module-list'.format(prefix), **kwargs),
+        'vendor': reverse_lazy('{}vendor'.format(prefix), **kwargs),
     }
 
 
@@ -1164,3 +1169,136 @@ class ModuleViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
         'device__serial',
     )
     serializer_class = serializers.ModuleSerializer
+
+
+class VendorLookup(NAVAPIMixin, APIView):
+    """Lookup vendor names for MAC addresses.
+
+    This endpoint allows you to look up vendor names for MAC addresses.
+    It can be used with either a GET or POST request.
+
+    For GET requests, the MAC address must be provided via the query parameter `mac`.
+    This only supports one MAC address at a time.
+
+    For POST requests, the MAC addresses must be provided in the request body
+    as a JSON array. This supports multiple MAC addresses.
+
+    Responds with a JSON dict mapping the MAC addresses to the corresponding vendors.
+    The MAC addresses will have the format `aa:bb:cc:dd:ee:ff`. If the vendor for a
+    given MAC address is not found, it will be omitted from the response.
+    If no mac address was supplied, an empty dict will be returned.
+
+    Example GET request: `/api/1/vendor/?mac=aa:bb:cc:dd:ee:ff`
+
+    Example GET response: `{"aa:bb:cc:dd:ee:ff": "Vendor A"}`
+
+    Example POST request:
+        `/api/1/vendor/` with body `["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"]`
+
+    Example POST response:
+        `{"aa:bb:cc:dd:ee:ff": "Vendor A", "11:22:33:44:55:66": "Vendor B"}`
+    """
+
+    @staticmethod
+    def get(request):
+        mac = request.GET.get('mac', None)
+        if not mac:
+            return Response({})
+
+        try:
+            validated_mac = MacAddress(mac)
+        except ValueError:
+            return Response(
+                f"Invalid MAC address: '{mac}'", status=status.HTTP_400_BAD_REQUEST
+            )
+
+        results = get_vendor_names([validated_mac])
+        return Response(results)
+
+    @staticmethod
+    def post(request):
+        if isinstance(request.data, list):
+            mac_addresses = request.data
+
+        # This adds support for requests via the browseable API
+        elif isinstance(request.data, QueryDict):
+            json_string = request.data.get('_content')
+            if not json_string:
+                return Response("Empty JSON body", status=status.HTTP_400_BAD_REQUEST)
+            try:
+                mac_addresses = json.loads(json_string)
+            except json.JSONDecodeError:
+                return Response("Invalid JSON", status=status.HTTP_400_BAD_REQUEST)
+            if not isinstance(mac_addresses, list):
+                return Response(
+                    "Invalid request body. Must be a JSON array of MAC addresses",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            return Response(
+                "Invalid request body. Must be a JSON array of MAC addresses",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            validated_mac_addresses = validate_mac_addresses(mac_addresses)
+        except ValueError as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+        results = get_vendor_names(validated_mac_addresses)
+        return Response(results)
+
+
+@django.db.transaction.atomic
+def get_vendor_names(mac_addresses: Sequence[MacAddress]) -> dict[str, str]:
+    """Get vendor names for a sequence of MAC addresses.
+
+    :param mac_addresses: Sequence of MAC addresses in a valid format
+        (e.g., "aa:bb:cc:dd:ee:ff").
+    :return: A dictionary mapping MAC addresses to vendor names. If the vendor for a
+        given MAC address is not found, it will be omitted from the response.
+    """
+    # Skip SQL query if no MAC addresses are provided
+    if not mac_addresses:
+        return {}
+
+    # Generate the VALUES part of the SQL query dynamically
+    values = ", ".join(f"('{mac}'::macaddr)" for mac in mac_addresses)
+
+    # Construct the full SQL query
+    query = f"""
+        SELECT mac, vendor
+        FROM (
+            VALUES
+                {values}
+        ) AS temp_macaddrs(mac)
+        INNER JOIN oui ON trunc(temp_macaddrs.mac) = oui.oui;
+    """
+
+    cursor = django.db.connection.cursor()
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    cursor.close()
+
+    # row[0] is mac address, row[1] is vendor name
+    return {str(row[0]): row[1] for row in rows}
+
+
+def validate_mac_addresses(mac_addresses: Sequence[str]) -> list[MacAddress]:
+    """Validates MAC addresses and returns them as MacAddress objects.
+
+    :param mac_addresses: MAC addresses as strings in a valid format
+        (e.g., "aa:bb:cc:dd:ee:ff").
+    :return: List of MacAddress objects.
+    :raises ValueError: If any MAC address is invalid.
+    """
+    validated_macs = []
+    invalid_macs = []
+    for mac in mac_addresses:
+        try:
+            validated_macs.append(MacAddress(mac))
+        except ValueError:
+            invalid_macs.append(mac)
+    if invalid_macs:
+        raise ValueError(f"Invalid MAC address(es): {', '.join(invalid_macs)}")
+    return validated_macs
