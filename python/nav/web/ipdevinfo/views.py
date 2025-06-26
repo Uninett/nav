@@ -930,7 +930,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         ).exists()
 
     except KeyError:
-        last_refreshed = dt.datetime.max
+        last_refreshed = None
 
     if refresh_event_exists:
         response = render(
@@ -948,7 +948,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
     last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
 
-    if last_job.end_time > last_refreshed:
+    if last_refreshed and last_job.end_time > last_refreshed:
         try:
             del request.session['ipdevinfo-refresh'][netbox.id][job_name]
             request.session.modified = True
@@ -957,9 +957,33 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
         return HttpResponseClientRefresh()
 
+    job_count = 30
+    avg_jobtime = (
+        sum(duration for _, duration in last_job.get_last_runtimes(job_count))
+        / job_count
+    )
+    _logger.warning(f"Avg jobtime {avg_jobtime}, last refreshed {last_refreshed}.")
+    if (
+        last_refreshed
+        and (last_refreshed - dt.datetime.now()).total_seconds() > avg_jobtime * 5
+    ):
+        response = render(
+            request,
+            "ipdevinfo/frag-ipdevinfo-alert-box.html",
+            context={
+                "alert_level": "error",
+                "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
+            },
+        )
+        # TODO: Fix placement, .row + css-fixed does not work as intended
+        retarget(response, ".row")
+        reswap(response, "beforeend")
+        return response
+
     button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
     try:
+        # TODO check whether job is running and only post a refresh event if not
         _logger.debug(f"Sending refresh event for {netbox_sysname} job {job_name}")
         event = RefreshEvent.notify(netbox=netbox, subid=job_name)
         event.save()
