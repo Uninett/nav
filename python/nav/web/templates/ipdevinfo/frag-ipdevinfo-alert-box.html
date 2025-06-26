@@ -1,1 +1,1 @@
-<div class="alert-box with-icon inside-table {{ alert_level }}">{{ alert_message }}</div>
+<div class="fixed-alert alert-box with-icon inside-table {{ alert_level }}">{{ alert_message }}<span class="close" hx-on:click="htmx.remove(this.closest('.alert-box'))">x</span></div>

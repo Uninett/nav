@@ -941,6 +941,9 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
                 "alert_message": f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
             },
         )
+        # TODO: Fix placement, .row + css-fixed does not work as intended
+        retarget(response, ".row")
+        reswap(response, "beforeend")
         return response
 
     last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
