@@ -916,8 +916,6 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
     try:
         # TODO: Add saving how many tries we've done and time out
-        # TODO show hint to user about ipdevpoll potentially not running
-        # can save id of RefreshEvent and check if it's still existing (which means the job has not started)
         last_refreshed = request.session['ipdevinfo-refresh'][netbox.id][job_name]
         refresh_event_exists = EventQueue.objects.filter(
             source_id="devBrowse",
