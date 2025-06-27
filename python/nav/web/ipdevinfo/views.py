@@ -913,6 +913,11 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
     refresh_event_exists = False
 
+    # TODO: Johanna: split up into managable sub-functions
+    # TODO: Johanna: set load interval to less than 5 sec = 2 s
+    # TODO: Simon: make bug report saying that ipdevpoll does not pick up events from queue
+    # after restart
+
     try:
         last_refreshed = request.session['last-ipdevinfo-refresh'][netbox.id][job_name]
         refresh_event_exists = EventQueue.objects.filter(
@@ -928,6 +933,10 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     except KeyError:
         last_refreshed = None
 
+    # TODO: Johanna: mention that ipdevpoll picks up events basicallly instantaneously and if
+    # after reloading and polling once we still have an event on the event queue there
+    # might be a problem with ipdevpoll
+
     if last_refreshed and refresh_event_exists:
         response = render(
             request,
@@ -937,7 +946,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
                 "alert_message": f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
             },
         )
-        # TODO: Fix placement, .row + css-fixed does not work as intended
+        # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
         retarget(response, ".row")
         reswap(response, "beforeend")
         return response
@@ -983,7 +992,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         )
         event = refresh_event.notify(netbox=netbox, subid=job_name)
         event.save()
-        # TODO: document why this needs to be exactly the same (finding refresh event)
+        # TODO: Johanna: document why this needs to be exactly the same (finding refresh event)
         request.session.setdefault('last-ipdevinfo-refresh', {}).setdefault(
             netbox.id, {}
         )[job_name] = event.time
