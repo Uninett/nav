@@ -937,23 +937,8 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         time__gte=last_refreshed,
     ).exists()
 
-    # TODO: Johanna: mention that ipdevpoll picks up events basicallly instantaneously and if
-    # after reloading and polling once we still have an event on the event queue there
-    # might be a problem with ipdevpoll
-
     if refresh_event_exists:
-        response = render(
-            request,
-            "ipdevinfo/frag-ipdevinfo-alert-box.html",
-            context={
-                "alert_level": "warning",
-                "alert_message": f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
-            },
-        )
-        # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
-        retarget(response, ".row")
-        reswap(response, "beforeend")
-        return response
+        return show_error_message_for_existing_refresh_event(request, job_name)
 
     if last_job.end_time > last_refreshed:
         try:
@@ -1030,3 +1015,27 @@ def post_refresh_event(request, netbox: Netbox, last_job) -> HttpResponse:
             'job': last_job,
         },
     )
+
+
+def show_error_message_for_existing_refresh_event(
+    request, job_name: str
+) -> HttpResponse:
+    """
+    Returns a HTTPResponse showing an alert box indicating a problem with ipdevpoll
+
+    Ipdevpoll picks up events from the event queue basically instantaneously, so if
+    next time the endpoint is called after having posted the event it means ipdevpoll
+    might not be running or there is another problem with it
+    """
+    response = render(
+        request,
+        "ipdevinfo/frag-ipdevinfo-alert-box.html",
+        context={
+            "alert_level": "warning",
+            "alert_message": f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
+        },
+    )
+    # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
+    retarget(response, ".row")
+    reswap(response, "beforeend")
+    return response
