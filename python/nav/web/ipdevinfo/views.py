@@ -912,6 +912,7 @@ def save_port_layout_pref(request):
 def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
     refresh_event_exists = False
+    last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
 
     # TODO: Johanna: split up into managable sub-functions
     # TODO: Johanna: set load interval to less than 5 sec = 2 s
@@ -920,6 +921,13 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
     try:
         last_refreshed = request.session['last-ipdevinfo-refresh'][netbox.id][job_name]
+    except KeyError:
+        last_refreshed = None
+
+    if not last_refreshed:
+        return post_refresh_event(request, netbox, last_job)
+
+    if last_refreshed:
         refresh_event_exists = EventQueue.objects.filter(
             source_id="devBrowse",
             target_id="ipdevpoll",
@@ -929,9 +937,6 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
             state=EventQueue.STATE_STATELESS,
             time__gte=last_refreshed,
         ).exists()
-
-    except KeyError:
-        last_refreshed = None
 
     # TODO: Johanna: mention that ipdevpoll picks up events basicallly instantaneously and if
     # after reloading and polling once we still have an event on the event queue there
@@ -950,8 +955,6 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         retarget(response, ".row")
         reswap(response, "beforeend")
         return response
-
-    last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
 
     if last_refreshed and last_job.end_time > last_refreshed:
         try:
@@ -985,18 +988,41 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
     button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
-    if not last_refreshed:
-        _logger.debug(f"Sending refresh event for {netbox_sysname} job {job_name}")
-        refresh_event = EventFactory(
-            "devBrowse", "ipdevpoll", event_type="notification"
-        )
-        event = refresh_event.notify(netbox=netbox, subid=job_name)
-        event.save()
-        # TODO: Johanna: document why this needs to be exactly the same (finding refresh event)
-        request.session.setdefault('last-ipdevinfo-refresh', {}).setdefault(
-            netbox.id, {}
-        )[job_name] = event.time
-        request.session.modified = True
+    return render(
+        request,
+        button_template,
+        {
+            'netbox': netbox,
+            'job': last_job,
+        },
+    )
+
+
+def post_refresh_event(request, netbox: Netbox, last_job) -> HttpResponse:
+    """
+    Posts a refresh event to the event queue, which will trigger ipdevpoll to start the
+    given job on the given netbox
+
+    Also adds the parameter 'last-ipdevinfo-refresh' to the session to save when such
+    an event was last posted, which is used to check for timeouts or ipdevpoll not
+    running
+
+    Returns an HTTPResponse with a loading spinner to show that the job is running
+    """
+    _logger.debug(f"Sending refresh event for {netbox.sysname} job {last_job.job_name}")
+
+    refresh_event = EventFactory("devBrowse", "ipdevpoll", event_type="notification")
+    event = refresh_event.notify(netbox=netbox, subid=last_job.job_name)
+    event.save()
+
+    # this needs to be event.time, not now() so that we can later find the event again
+    # if it has not been taken by ipdevpoll
+    request.session.setdefault('last-ipdevinfo-refresh', {}).setdefault(netbox.id, {})[
+        last_job.job_name
+    ] = event.time
+    request.session.modified = True
+
+    button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
     return render(
         request,
