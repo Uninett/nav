@@ -914,11 +914,6 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     refresh_event_exists = False
     last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
 
-    # TODO: Johanna: split up into managable sub-functions
-    # TODO: Johanna: set load interval to less than 5 sec = 2 s
-    # TODO: Simon: make bug report saying that ipdevpoll does not pick up events from queue
-    # after restart
-
     try:
         last_refreshed = request.session['last-ipdevinfo-refresh'][netbox.id][job_name]
     except KeyError:
