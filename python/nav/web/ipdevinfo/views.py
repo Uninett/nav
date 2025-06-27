@@ -950,16 +950,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     if job_running_longer_than_expected:
         return show_error_message_for_timeout(request, job_name)
 
-    button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
-
-    return render(
-        request,
-        button_template,
-        {
-            'netbox': netbox,
-            'job': last_job,
-        },
-    )
+    return show_loading_indicator_on_refresh_ongoing(request, netbox, last_job)
 
 
 def post_refresh_event(request, netbox: Netbox, last_job) -> HttpResponse:
@@ -986,16 +977,7 @@ def post_refresh_event(request, netbox: Netbox, last_job) -> HttpResponse:
     ] = event.time
     request.session.modified = True
 
-    button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
-
-    return render(
-        request,
-        button_template,
-        {
-            'netbox': netbox,
-            'job': last_job,
-        },
-    )
+    return show_loading_indicator_on_refresh_ongoing(request, netbox, last_job)
 
 
 def show_error_message_for_existing_refresh_event(
@@ -1079,3 +1061,18 @@ def show_error_message_for_timeout(request, job_name: str) -> HttpResponse:
     retarget(response, ".row")
     reswap(response, "beforeend")
     return response
+
+
+def show_loading_indicator_on_refresh_ongoing(
+    request, netbox: Netbox, last_job
+) -> HttpResponse:
+    button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
+
+    return render(
+        request,
+        button_template,
+        {
+            'netbox': netbox,
+            'job': last_job,
+        },
+    )
