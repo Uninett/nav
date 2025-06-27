@@ -35,6 +35,7 @@ dependencies = [
 
     "Django>=4.2,<4.3",
     "django-filter>=2",
+    "django-htmx",
     "djangorestframework>=3.12",
     "pytz",
 

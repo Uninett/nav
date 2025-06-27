@@ -24,6 +24,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django_htmx.http import reswap, retarget, HttpResponseClientRefresh
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.metrics.errors import GraphiteUnreachableError
@@ -44,12 +45,13 @@ from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
 from nav.models.profiles import Account
-from nav.models.event import AlertHistory
+from nav.models.event import AlertHistory, EventQueue
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
 from nav.web.utils import create_title, SubListView
 from nav.metrics.graphs import Graph
+from nav.event2 import EventFactory
 
 from nav.web.ipdevinfo.forms import (
     SearchForm,
@@ -905,3 +907,166 @@ def save_port_layout_pref(request):
         'ipdevinfo-details-by-id', kwargs={'netbox_id': request.GET.get('netboxid')}
     )
     return redirect("{}#!ports".format(url))
+
+
+def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
+    netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
+    last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
+
+    try:
+        last_refreshed = request.session['last-ipdevinfo-refresh'][netbox.id][job_name]
+    except KeyError:
+        last_refreshed = None
+
+    if not last_refreshed:
+        return post_refresh_event(request, netbox, last_job)
+
+    if last_job.end_time > last_refreshed:
+        return refresh_on_job_finished(request, netbox.id, job_name)
+
+    refresh_event_exists = EventQueue.objects.filter(
+        source_id="devBrowse",
+        target_id="ipdevpoll",
+        event_type_id="notification",
+        netbox=netbox,
+        subid=job_name,
+        state=EventQueue.STATE_STATELESS,
+        time__gte=last_refreshed,
+    ).exists()
+
+    if refresh_event_exists:
+        return show_error_message_for_existing_refresh_event(request, job_name)
+
+    job_running_longer_than_expected = check_if_job_is_running_longer_than_expected(
+        last_job, last_refreshed
+    )
+
+    if job_running_longer_than_expected:
+        return show_error_message_for_timeout(request, job_name)
+
+    return show_loading_indicator_on_refresh_ongoing(request, netbox, last_job)
+
+
+def post_refresh_event(request, netbox: Netbox, last_job) -> HttpResponse:
+    """
+    Posts a refresh event to the event queue, which will trigger ipdevpoll to start the
+    given job on the given netbox
+
+    Also adds the parameter 'last-ipdevinfo-refresh' to the session to save when such
+    an event was last posted, which is used to check for timeouts or ipdevpoll not
+    running
+
+    Returns an HTTPResponse with a loading spinner to show that the job is running
+    """
+    _logger.debug(f"Sending refresh event for {netbox.sysname} job {last_job.job_name}")
+
+    refresh_event = EventFactory("devBrowse", "ipdevpoll", event_type="notification")
+    event = refresh_event.notify(netbox=netbox, subid=last_job.job_name)
+    event.save()
+
+    # this needs to be event.time, not now() so that we can later find the event again
+    # if it has not been taken by ipdevpoll
+    request.session.setdefault('last-ipdevinfo-refresh', {}).setdefault(netbox.id, {})[
+        last_job.job_name
+    ] = event.time
+    request.session.modified = True
+
+    return show_loading_indicator_on_refresh_ongoing(request, netbox, last_job)
+
+
+def show_error_message_for_existing_refresh_event(
+    request, job_name: str
+) -> HttpResponse:
+    """
+    Returns a HTTPResponse showing an alert box indicating a problem with ipdevpoll
+
+    Ipdevpoll picks up events from the event queue basically instantaneously, so if
+    next time the endpoint is called after having posted the event it means ipdevpoll
+    might not be running or there is another problem with it
+    """
+    response = render(
+        request,
+        "ipdevinfo/frag-ipdevinfo-alert-box.html",
+        context={
+            "alert_level": "warning",
+            "alert_message": f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
+        },
+    )
+    # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
+    retarget(response, ".row")
+    reswap(response, "beforeend")
+    return response
+
+
+def refresh_on_job_finished(
+    request, netbox_id: int, job_name: str
+) -> HttpResponseClientRefresh:
+    """
+    Returns a trigger to reload the current page
+
+    When a job that was triggered by clicking the 'Refresh' button is finished the page
+    should be reloaded to show the potentially new data collected by it
+
+    The parameter 'last-ipdevinfo-refresh' also needs to be deleted from the session
+    since that refresh job is finished and it should be possible to trigger a new one
+    """
+    try:
+        del request.session['last-ipdevinfo-refresh'][netbox_id][job_name]
+        request.session.modified = True
+    except KeyError:
+        pass
+
+    return HttpResponseClientRefresh()
+
+
+def check_if_job_is_running_longer_than_expected(
+    job, last_refreshed: dt.datetime
+) -> bool:
+    """
+    Check if the given job has been running for much longer than expected
+
+    This is calculated by comparing the current runtime with the last runtimes of that
+    job plus some margin
+
+    """
+
+    job_count = 30
+    avg_jobtime = (
+        sum(duration for _, duration in job.get_last_runtimes(job_count)) / job_count
+    )
+    current_runtime = (dt.datetime.now() - last_refreshed).total_seconds()
+    return current_runtime > (avg_jobtime * 5)
+
+
+def show_error_message_for_timeout(request, job_name: str) -> HttpResponse:
+    """
+    Returns a HTTPResponse showing an alert box indicating a problem with the job
+    running for much longer than expected
+    """
+    response = render(
+        request,
+        "ipdevinfo/frag-ipdevinfo-alert-box.html",
+        context={
+            "alert_level": "alert",
+            "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
+        },
+    )
+    # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
+    retarget(response, ".row")
+    reswap(response, "beforeend")
+    return response
+
+
+def show_loading_indicator_on_refresh_ongoing(
+    request, netbox: Netbox, last_job
+) -> HttpResponse:
+    button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
+
+    return render(
+        request,
+        button_template,
+        {
+            'netbox': netbox,
+            'job': last_job,
+        },
+    )
