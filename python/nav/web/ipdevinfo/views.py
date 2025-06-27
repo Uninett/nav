@@ -943,25 +943,12 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     if refresh_event_exists:
         return show_error_message_for_existing_refresh_event(request, job_name)
 
-    job_count = 30
-    avg_jobtime = (
-        sum(duration for _, duration in last_job.get_last_runtimes(job_count))
-        / job_count
+    job_running_longer_than_expected = check_if_job_is_running_longer_than_expected(
+        last_job, last_refreshed
     )
-    current_runtime = (dt.datetime.now() - last_refreshed).total_seconds()
-    if current_runtime > (avg_jobtime * 5):
-        response = render(
-            request,
-            "ipdevinfo/frag-ipdevinfo-alert-box.html",
-            context={
-                "alert_level": "alert",
-                "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
-            },
-        )
-        # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
-        retarget(response, ".row")
-        reswap(response, "beforeend")
-        return response
+
+    if job_running_longer_than_expected:
+        return show_error_message_for_timeout(request, job_name)
 
     button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
@@ -1054,3 +1041,41 @@ def refresh_on_job_finished(
         pass
 
     return HttpResponseClientRefresh()
+
+
+def check_if_job_is_running_longer_than_expected(
+    job, last_refreshed: dt.datetime
+) -> bool:
+    """
+    Check if the given job has been running for much longer than expected
+
+    This is calculated by comparing the current runtime with the last runtimes of that
+    job plus some margin
+
+    """
+
+    job_count = 30
+    avg_jobtime = (
+        sum(duration for _, duration in job.get_last_runtimes(job_count)) / job_count
+    )
+    current_runtime = (dt.datetime.now() - last_refreshed).total_seconds()
+    return current_runtime > (avg_jobtime * 5)
+
+
+def show_error_message_for_timeout(request, job_name: str) -> HttpResponse:
+    """
+    Returns a HTTPResponse showing an alert box indicating a problem with the job
+    running for much longer than expected
+    """
+    response = render(
+        request,
+        "ipdevinfo/frag-ipdevinfo-alert-box.html",
+        context={
+            "alert_level": "alert",
+            "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
+        },
+    )
+    # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
+    retarget(response, ".row")
+    reswap(response, "beforeend")
+    return response
