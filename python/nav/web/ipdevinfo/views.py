@@ -927,22 +927,21 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     if not last_refreshed:
         return post_refresh_event(request, netbox, last_job)
 
-    if last_refreshed:
-        refresh_event_exists = EventQueue.objects.filter(
-            source_id="devBrowse",
-            target_id="ipdevpoll",
-            event_type_id="notification",
-            netbox=netbox,
-            subid=job_name,
-            state=EventQueue.STATE_STATELESS,
-            time__gte=last_refreshed,
-        ).exists()
+    refresh_event_exists = EventQueue.objects.filter(
+        source_id="devBrowse",
+        target_id="ipdevpoll",
+        event_type_id="notification",
+        netbox=netbox,
+        subid=job_name,
+        state=EventQueue.STATE_STATELESS,
+        time__gte=last_refreshed,
+    ).exists()
 
     # TODO: Johanna: mention that ipdevpoll picks up events basicallly instantaneously and if
     # after reloading and polling once we still have an event on the event queue there
     # might be a problem with ipdevpoll
 
-    if last_refreshed and refresh_event_exists:
+    if refresh_event_exists:
         response = render(
             request,
             "ipdevinfo/frag-ipdevinfo-alert-box.html",
@@ -956,7 +955,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         reswap(response, "beforeend")
         return response
 
-    if last_refreshed and last_job.end_time > last_refreshed:
+    if last_job.end_time > last_refreshed:
         try:
             del request.session['last-ipdevinfo-refresh'][netbox.id][job_name]
             request.session.modified = True
@@ -965,26 +964,25 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
         return HttpResponseClientRefresh()
 
-    if last_refreshed:
-        job_count = 30
-        avg_jobtime = (
-            sum(duration for _, duration in last_job.get_last_runtimes(job_count))
-            / job_count
+    job_count = 30
+    avg_jobtime = (
+        sum(duration for _, duration in last_job.get_last_runtimes(job_count))
+        / job_count
+    )
+    current_runtime = (dt.datetime.now() - last_refreshed).total_seconds()
+    if current_runtime > (avg_jobtime * 5):
+        response = render(
+            request,
+            "ipdevinfo/frag-ipdevinfo-alert-box.html",
+            context={
+                "alert_level": "alert",
+                "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
+            },
         )
-        current_runtime = (dt.datetime.now() - last_refreshed).total_seconds()
-        if current_runtime > (avg_jobtime * 5):
-            response = render(
-                request,
-                "ipdevinfo/frag-ipdevinfo-alert-box.html",
-                context={
-                    "alert_level": "alert",
-                    "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
-                },
-            )
-            # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
-            retarget(response, ".row")
-            reswap(response, "beforeend")
-            return response
+        # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
+        retarget(response, ".row")
+        reswap(response, "beforeend")
+        return response
 
     button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
