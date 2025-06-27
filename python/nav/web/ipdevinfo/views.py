@@ -911,7 +911,6 @@ def save_port_layout_pref(request):
 
 def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
-    refresh_event_exists = False
     last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
 
     try:
