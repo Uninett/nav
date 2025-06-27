@@ -941,13 +941,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         return show_error_message_for_existing_refresh_event(request, job_name)
 
     if last_job.end_time > last_refreshed:
-        try:
-            del request.session['last-ipdevinfo-refresh'][netbox.id][job_name]
-            request.session.modified = True
-        except KeyError:
-            pass
-
-        return HttpResponseClientRefresh()
+        return refresh_on_job_finished(request, netbox.id, job_name)
 
     job_count = 30
     avg_jobtime = (
@@ -1039,3 +1033,24 @@ def show_error_message_for_existing_refresh_event(
     retarget(response, ".row")
     reswap(response, "beforeend")
     return response
+
+
+def refresh_on_job_finished(
+    request, netbox_id: int, job_name: str
+) -> HttpResponseClientRefresh:
+    """
+    Returns a trigger to reload the current page
+
+    When a job that was triggered by clicking the 'Refresh' button is finished the page
+    should be reloaded to show the potentially new data collected by it
+
+    The parameter 'last-ipdevinfo-refresh' also needs to be deleted from the session
+    since that refresh job is finished and it should be possible to trigger a new one
+    """
+    try:
+        del request.session['last-ipdevinfo-refresh'][netbox_id][job_name]
+        request.session.modified = True
+    except KeyError:
+        pass
+
+    return HttpResponseClientRefresh()
