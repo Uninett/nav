@@ -910,13 +910,11 @@ def save_port_layout_pref(request):
 
 
 def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
-    RefreshEvent = EventFactory("devBrowse", "ipdevpoll", event_type="notification")
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
     refresh_event_exists = False
 
     try:
-        # TODO: Add saving how many tries we've done and time out
-        last_refreshed = request.session['ipdevinfo-refresh'][netbox.id][job_name]
+        last_refreshed = request.session['last-ipdevinfo-refresh'][netbox.id][job_name]
         refresh_event_exists = EventQueue.objects.filter(
             source_id="devBrowse",
             target_id="ipdevpoll",
@@ -930,7 +928,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     except KeyError:
         last_refreshed = None
 
-    if refresh_event_exists:
+    if last_refreshed and refresh_event_exists:
         response = render(
             request,
             "ipdevinfo/frag-ipdevinfo-alert-box.html",
@@ -948,54 +946,48 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
     if last_refreshed and last_job.end_time > last_refreshed:
         try:
-            del request.session['ipdevinfo-refresh'][netbox.id][job_name]
+            del request.session['last-ipdevinfo-refresh'][netbox.id][job_name]
             request.session.modified = True
         except KeyError:
             pass
 
         return HttpResponseClientRefresh()
 
-    job_count = 30
-    avg_jobtime = (
-        sum(duration for _, duration in last_job.get_last_runtimes(job_count))
-        / job_count
-    )
-    _logger.warning(f"Avg jobtime {avg_jobtime}, last refreshed {last_refreshed}.")
-    if (
-        last_refreshed
-        and (last_refreshed - dt.datetime.now()).total_seconds() > avg_jobtime * 5
-    ):
-        response = render(
-            request,
-            "ipdevinfo/frag-ipdevinfo-alert-box.html",
-            context={
-                "alert_level": "error",
-                "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
-            },
+    if last_refreshed:
+        job_count = 30
+        avg_jobtime = (
+            sum(duration for _, duration in last_job.get_last_runtimes(job_count))
+            / job_count
         )
-        # TODO: Fix placement, .row + css-fixed does not work as intended
-        retarget(response, ".row")
-        reswap(response, "beforeend")
-        return response
+        current_runtime = (dt.datetime.now() - last_refreshed).total_seconds()
+        if current_runtime > (avg_jobtime * 5):
+            response = render(
+                request,
+                "ipdevinfo/frag-ipdevinfo-alert-box.html",
+                context={
+                    "alert_level": "alert",
+                    "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
+                },
+            )
+            # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
+            retarget(response, ".row")
+            reswap(response, "beforeend")
+            return response
 
     button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
-    try:
-        # TODO check whether job is running and only post a refresh event if not
+    if not last_refreshed:
         _logger.debug(f"Sending refresh event for {netbox_sysname} job {job_name}")
-        event = RefreshEvent.notify(netbox=netbox, subid=job_name)
+        refresh_event = EventFactory(
+            "devBrowse", "ipdevpoll", event_type="notification"
+        )
+        event = refresh_event.notify(netbox=netbox, subid=job_name)
         event.save()
         # TODO: document why this needs to be exactly the same (finding refresh event)
-        request.session.setdefault('ipdevinfo-refresh', {}).setdefault(netbox.id, {})[
-            job_name
-        ] = event.time
+        request.session.setdefault('last-ipdevinfo-refresh', {}).setdefault(
+            netbox.id, {}
+        )[job_name] = event.time
         request.session.modified = True
-
-    except Exception as e:  # noqa
-        _logger.error(
-            f"Failed to send refresh event for {netbox_sysname} job {job_name}: {e}"
-        )
-        return HttpResponse(status=500)
 
     return render(
         request,
