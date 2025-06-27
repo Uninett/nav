@@ -927,6 +927,9 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     if not last_refreshed:
         return post_refresh_event(request, netbox, last_job)
 
+    if last_job.end_time > last_refreshed:
+        return refresh_on_job_finished(request, netbox.id, job_name)
+
     refresh_event_exists = EventQueue.objects.filter(
         source_id="devBrowse",
         target_id="ipdevpoll",
@@ -939,9 +942,6 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
     if refresh_event_exists:
         return show_error_message_for_existing_refresh_event(request, job_name)
-
-    if last_job.end_time > last_refreshed:
-        return refresh_on_job_finished(request, netbox.id, job_name)
 
     job_count = 30
     avg_jobtime = (
