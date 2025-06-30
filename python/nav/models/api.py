@@ -80,12 +80,23 @@ class JWTRefreshToken(models.Model):
     generate an access token.
     """
 
+    permission_choices = (('read', 'Read'), ('write', 'Write'))
+    permission_help_text = (
+        "Read means that this token can be used for reading only. Write means that "
+        "this token can be used to create new, update and delete objects as well as "
+        "reading."
+    )
+
     name = VarcharField(unique=True)
     description = models.TextField(null=True, blank=True)
     expires = models.DateTimeField()
     activates = models.DateTimeField()
     last_used = models.DateTimeField(null=True, blank=True)
     revoked = models.BooleanField(default=False)
+    endpoints = HStoreField(null=True, blank=True, default=dict)
+    permission = VarcharField(
+        choices=permission_choices, help_text=permission_help_text, default='read'
+    )
     hash = VarcharField()
 
     def __str__(self):
