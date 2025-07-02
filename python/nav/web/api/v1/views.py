@@ -1302,3 +1302,20 @@ def validate_mac_addresses(mac_addresses: Sequence[str]) -> list[MacAddress]:
     if invalid_macs:
         raise ValueError(f"Invalid MAC address(es): {', '.join(invalid_macs)}")
     return validated_macs
+
+
+class NetboxEntityViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    A simple ViewSet for viewing NetboxEntities.
+
+    Filters
+    -------
+    - netbox
+    - physical_class
+
+    Example: `/api/netboxentity/?netbox=109&physical_class=3`
+    """
+
+    queryset = manage.NetboxEntity.objects.all()
+    serializer_class = serializers.NetboxEntitySerializer
+    filterset_fields = ['netbox', 'physical_class']
