@@ -518,3 +518,11 @@ class ServiceHandlerSerializer(serializers.Serializer):
 
     class Meta(object):
         fields = '__all__'
+
+
+class NetboxEntitySerializer(serializers.ModelSerializer):
+    """Serializer for the NetboxEntity model"""
+
+    class Meta(object):
+        model = manage.NetboxEntity
+        fields = '__all__'
