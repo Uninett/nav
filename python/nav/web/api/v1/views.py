@@ -167,6 +167,7 @@ def get_endpoints(request=None, version=1):
         'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
         'module': reverse_lazy('{}module-list'.format(prefix), **kwargs),
         'vendor': reverse_lazy('{}vendor'.format(prefix), **kwargs),
+        'netboxentity': reverse_lazy('{}netboxentity-list'.format(prefix), **kwargs),
     }
 
 
