@@ -992,7 +992,6 @@ def show_error_message_for_existing_refresh_event(
             "alert_message": f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
         },
     )
-    # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
     retarget(response, ".row")
     reswap(response, "beforeend")
     return response
@@ -1051,7 +1050,6 @@ def show_error_message_for_timeout(request, job_name: str) -> HttpResponse:
             "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
         },
     )
-    # TODO: Ilona: Fix placement, .row + css-fixed does not work as intended
     retarget(response, ".row")
     reswap(response, "beforeend")
     return response
