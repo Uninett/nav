@@ -33,6 +33,18 @@ class JWTConf(NAVConfigParser):
             _logger.error('Error reading jwtconfig: %s', error)
             return dict()
 
+    def local_tokens_are_configured(self) -> bool:
+        """Returns True if local tokens are configured, including
+        name, private key and public key.
+        """
+        try:
+            self.get_nav_name()
+            self.get_nav_private_key()
+            self.get_nav_public_key()
+        except ConfigurationError:
+            return False
+        return True
+
     def _get_settings_for_external_tokens(self):
         settings = dict()
         try:
