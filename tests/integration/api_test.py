@@ -426,21 +426,6 @@ class TestVendorLookupPost:
         assert response.status_code == 400
 
 
-@pytest.fixture()
-def oui(db):
-    oui = OUI(oui='aa:bb:cc:00:00:00', vendor='myvendor')
-    oui.save()
-    yield oui
-    oui.delete()
-
-
-@pytest.fixture()
-def vendor_endpoint(db, token):
-    endpoint = 'vendor'
-    create_token_endpoint(token, endpoint)
-    return endpoint
-
-
 # Helpers
 
 
@@ -556,3 +541,18 @@ def serializer_models(localhost, admin_account):
     auditlog.LogEntry.add_log_entry(admin_account, verb='verb', template='asd')
     manage.Usage(id='ans', description='Ansatte').save()
     manage.Usage(id='student', description='Studenter').save()
+
+
+@pytest.fixture()
+def oui(db):
+    oui = OUI(oui='aa:bb:cc:00:00:00', vendor='myvendor')
+    oui.save()
+    yield oui
+    oui.delete()
+
+
+@pytest.fixture()
+def vendor_endpoint(db, token):
+    endpoint = 'vendor'
+    create_token_endpoint(token, endpoint)
+    return endpoint
