@@ -97,6 +97,16 @@ Provides access to NAVs netbox data
 :Filters: ip, sysname, room, organization, category
 
 
+api/netboxentity/[<id>]
+---------------
+
+Provides access to NAVs NetboxEntity data
+
+:Search: None
+
+:Filters: netbox, physical_class
+
+
 api/room/[<id>]
 ---------------
 
