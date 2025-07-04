@@ -10,6 +10,7 @@ from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
 from nav.models.oui import OUI
+from nav.models.manage import NetboxEntity, Netbox
 
 
 ENDPOINTS = {name: force_str(url) for name, url in get_endpoints().items()}
@@ -426,6 +427,24 @@ class TestVendorLookupPost:
         assert response.status_code == 400
 
 
+class TestNetboxEntityViewSet:
+    def test_should_return_list_of_entities(
+        self, db, api_client, netboxentity_endpoint, netboxentity
+    ):
+        endpoint = netboxentity_endpoint
+        response = get(api_client, endpoint)
+        assert response.status_code == 200
+        assert response.data["results"][0]['id'] == netboxentity.id
+
+    def test_should_get_correct_entity_when_accessing_with_id(
+        self, db, api_client, netboxentity_endpoint, netboxentity
+    ):
+        endpoint = netboxentity_endpoint
+        response = get(api_client, endpoint, id=netboxentity.id)
+        assert response.status_code == 200
+        assert response.data['id'] == netboxentity.id
+
+
 # Helpers
 
 
@@ -556,3 +575,32 @@ def vendor_endpoint(db, token):
     endpoint = 'vendor'
     create_token_endpoint(token, endpoint)
     return endpoint
+
+
+@pytest.fixture()
+def netboxentity_endpoint(db, token):
+    endpoint = 'netboxentity'
+    create_token_endpoint(token, endpoint)
+    return endpoint
+
+
+@pytest.fixture()
+def netbox(db):
+    netbox = Netbox(
+        ip="10.0.0.1",
+        sysname="fw1.example.org",
+        organization_id="myorg",
+        room_id="myroom",
+        category_id="SW",
+    )
+    netbox.save()
+    yield netbox
+    netbox.delete()
+
+
+@pytest.fixture()
+def netboxentity(db, netbox):
+    netbox_entity = NetboxEntity(netbox=netbox, index=0)
+    netbox_entity.save()
+    yield netbox_entity
+    netbox_entity.delete()
