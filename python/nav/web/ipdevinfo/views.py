@@ -910,6 +910,11 @@ def save_port_layout_pref(request):
 
 
 def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
+    # TODO merge show_error_message_for_existing_refresh_event() and show_error_message_for_timeout() helpers
+    #   since logic there is way too similar. Just update the function signature to accommodate for both cases.
+    # TODO move helpers definitions to inside of the refresh_ipdevinfo_job().
+    # TODO fix bug with timeout alert being shown too soon.
+    # TODO fix bug where timeout alert is shown instead of the "ipdevpoll not running" warning.
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
     last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
 
