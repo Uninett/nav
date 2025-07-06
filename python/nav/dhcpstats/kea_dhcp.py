@@ -70,7 +70,7 @@ class Client:
           multiple servers share the same lease database because the standard
           commands issue the cache, not the DB. This client does not support the
           hook. Anyhow, the hook doesn't support fetching statistics on a
-          per-pool basis, only per-subnet pasis, which is too coarse for us.
+          per-pool basis, only per-subnet basis, which is too coarse for us.
           See https://kea.readthedocs.io/en/kea-2.6.3/arm/hooks.html#libdhcp-stat-cmds-so-statistics-commands-for-supplemental-lease-statistics.
     """
 
@@ -129,7 +129,7 @@ class Client:
           (Named "assigned" addresses in NAV.)
 
         * The amount of declined addresses in that pool. That is, addresses in
-          that pool that is erroneously used by unkown entities and therefore
+          that pool that are erroneously used by unknown entities and therefore
           not available for assignment. The set of declined addresses is a
           subset of the set of assigned addresses.
           (Named "declined" addresses in NAV.)
@@ -216,17 +216,17 @@ class Client:
         function will be passed along as arguments to the command.
 
         Communication errors (HTTP errors, JSON errors, access control errors,
-        unrecognized json response formats) causes a CommunicationError to be
+        unrecognized json response formats) cause a CommunicationError to be
         raised. If possible, it is reraised from a more descriptive error such
         as an HTTPError.
 
-        Valid Kea API responses that indicate a failure on the server-end causes
+        Valid Kea API responses that indicate a failure on the server-end cause
         a descriptive Kea-specific subclass of CommunicationError to be raised.
 
         A ConfigurationError is raised if this client is configured in such a
         way that it can't be consistent with its own configuration while still
         properly communicating with the Kea API (for example when the use of
-        client certificates, which require TLS, are enabled but HTTPS is
+        client certificates, which require TLS, is enabled but HTTPS is
         disabled).
         """
         session = self._session or self._create_session()
@@ -416,7 +416,7 @@ class Client:
 
     def _stats_of_pool(self, raw_stats: dict, pool: Pool) -> Iterator[GraphiteMetric]:
         """
-        Return as graphite metric tuples the most recent stats of interest in
+        Returns as graphite metric tuples the most recent stats of interest in
         raw_stats, for the given pool.
 
         raw_stats is a dictionary representing the result of the Kea API command
@@ -469,8 +469,8 @@ class Client:
         else:
             # x.x.x.x/m
             ip = IP(pool_range.strip())
-            range_start = IP(ip[0])
-            range_end = IP(ip[-1])
+            range_start = ip[0]
+            range_end = ip[-1]
         return range_start, range_end
 
     def _name_of_pool(self, pool: dict, fallback: str) -> str:
@@ -510,7 +510,7 @@ class Client:
             _logger.warning(
                 "The DHCP server's address pool configuration was modified while stats "
                 "were being fetched. This may cause stats collected during this run to "
-                "be associated with wrong address pool."
+                "be associated with the wrong address pool."
             )
 
     def _log_runtime(
@@ -521,7 +521,7 @@ class Client:
         run and the amount of pools and stats seen.
         """
         _logger.debug(
-            "Fetched %d stats(s) from %d pool(s) in %.2f seconds from %s",
+            "Fetched %d stats from %d pool(s) in %.2f seconds from %s",
             n_stats,
             n_pools,
             end_time - start_time,
@@ -562,4 +562,4 @@ def _raise_for_kea_status(status: int):
     elif status == _KeaStatus.CONFLICT:
         raise KeaConflict
     else:
-        raise KeaUnexpected("Unkown response status")
+        raise KeaUnexpected("Unknown response status")
