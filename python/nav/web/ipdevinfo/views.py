@@ -910,8 +910,6 @@ def save_port_layout_pref(request):
 
 
 def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
-    # TODO merge show_error_message_for_existing_refresh_event() and show_error_message_for_timeout() helpers
-    #   since logic there is way too similar. Just update the function signature to accommodate for both cases.
     # TODO fix bug with timeout alert being shown too soon.
     # TODO fix bug where timeout alert is shown instead of the "ipdevpoll not running" warning.
 
@@ -945,22 +943,19 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
 
         return show_loading_indicator_on_refresh_ongoing(request, netbox, last_job)
 
-    def show_error_message_for_existing_refresh_event(
-        request, job_name: str
+    def show_error_message(
+        request, alert_level: str, alert_message: str
     ) -> HttpResponse:
         """
-        Returns a HTTPResponse showing an alert box indicating a problem with ipdevpoll
-
-        Ipdevpoll picks up events from the event queue basically instantaneously, so if
-        next time the endpoint is called after having posted the event it means ipdevpoll
-        might not be running or there is another problem with it
+        Returns a HTTPResponse showing an alert box indicating a problem with running
+        a job again
         """
         response = render(
             request,
             "ipdevinfo/frag-ipdevinfo-alert-box.html",
             context={
-                "alert_level": "warning",
-                "alert_message": f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
+                "alert_level": alert_level,
+                "alert_message": alert_message,
             },
         )
         retarget(response, ".row")
@@ -1006,23 +1001,6 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
         current_runtime = (dt.datetime.now() - last_refreshed).total_seconds()
         return current_runtime > (avg_jobtime * 5)
 
-    def show_error_message_for_timeout(request, job_name: str) -> HttpResponse:
-        """
-        Returns a HTTPResponse showing an alert box indicating a problem with the job
-        running for much longer than expected
-        """
-        response = render(
-            request,
-            "ipdevinfo/frag-ipdevinfo-alert-box.html",
-            context={
-                "alert_level": "alert",
-                "alert_message": f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
-            },
-        )
-        retarget(response, ".row")
-        reswap(response, "beforeend")
-        return response
-
     def show_loading_indicator_on_refresh_ongoing(
         request, netbox: Netbox, last_job
     ) -> HttpResponse:
@@ -1062,13 +1040,24 @@ def refresh_ipdevinfo_job(request, netbox_sysname, job_name):
     ).exists()
 
     if refresh_event_exists:
-        return show_error_message_for_existing_refresh_event(request, job_name)
+        # Ipdevpoll picks up events from the event queue basically instantaneously, so if
+        # next time the endpoint is called after having posted the event it means ipdevpoll
+        # might not be running or there is another problem with it
+        return show_error_message(
+            request,
+            alert_level="warning",
+            alert_message=f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
+        )
 
     job_running_longer_than_expected = check_if_job_is_running_longer_than_expected(
         last_job, last_refreshed
     )
 
     if job_running_longer_than_expected:
-        return show_error_message_for_timeout(request, job_name)
+        return show_error_message(
+            request,
+            alert_level="alert",
+            alert_message=f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
+        )
 
     return show_loading_indicator_on_refresh_ongoing(request, netbox, last_job)
