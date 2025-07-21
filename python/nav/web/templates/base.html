@@ -165,7 +165,7 @@
 
 
   {% if current_user_data.sudoer %}
-    <div class="sudoer-bar">
+    <div class="info-bar">
         <form action="{% url 'webfront-logout' %}" method="post">
             {% csrf_token %}
             <img src="{{ STATIC_URL }}images/main/emblem-important.png"
@@ -178,7 +178,7 @@
 {% endif %}
 
 {% if current_user_data.password_issues %}
-    <div id="password-issues-bar">
+    <div id="password-issues-bar" class="info-bar">
         <img src="{{ STATIC_URL }}images/main/emblem-important.png"/>
         {{ current_user_data.password_issues.message }}
         <a href="{{ current_user_data.password_issues.link }}">{{ current_user_data.password_issues.link_message }}</a>
