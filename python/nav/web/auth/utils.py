@@ -87,3 +87,16 @@ def authorization_not_required(fullpath):
         if fullpath.startswith(url):
             _logger.debug('authorization_not_required: %s', url)
             return True
+
+
+def get_number_of_accounts_with_password_issues() -> int:
+    number_of_accounts_with_password_issues = 0
+    for account in Account.objects.all():
+        if not account.is_default_account() and (
+            account.has_plaintext_password()
+            or account.has_old_style_password_hash()
+            or account.has_deprecated_password_hash_method()
+        ):
+            number_of_accounts_with_password_issues += 1
+
+    return number_of_accounts_with_password_issues
