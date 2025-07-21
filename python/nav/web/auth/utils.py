@@ -20,6 +20,8 @@ login method.
 
 import logging
 
+from django.core.cache import cache
+
 from nav.models.profiles import Account
 
 
@@ -27,6 +29,7 @@ _logger = logging.getLogger(__name__)
 
 
 ACCOUNT_ID_VAR = 'account_id'
+PASSWORD_ISSUES_CACHE_KEY = "auth:accounts_password_issues"
 
 
 def set_account(request, account, cycle_session_id=True):
@@ -90,13 +93,18 @@ def authorization_not_required(fullpath):
 
 
 def get_number_of_accounts_with_password_issues() -> int:
-    number_of_accounts_with_password_issues = 0
-    for account in Account.objects.all():
-        if not account.is_default_account() and (
-            account.has_plaintext_password()
-            or account.has_old_style_password_hash()
-            or account.has_deprecated_password_hash_method()
-        ):
-            number_of_accounts_with_password_issues += 1
+    number_of_accounts_with_password_issues = cache.get(
+        PASSWORD_ISSUES_CACHE_KEY, default=None
+    )
+    if number_of_accounts_with_password_issues is None:
+        number_of_accounts_with_password_issues = 0
+        for account in Account.objects.all():
+            if not account.is_default_account() and (
+                account.has_plaintext_password()
+                or account.has_old_style_password_hash()
+                or account.has_deprecated_password_hash_method()
+            ):
+                number_of_accounts_with_password_issues += 1
+        cache.set(PASSWORD_ISSUES_CACHE_KEY, number_of_accounts_with_password_issues)
 
     return number_of_accounts_with_password_issues
