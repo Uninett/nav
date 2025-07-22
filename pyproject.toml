@@ -36,6 +36,7 @@ dependencies = [
     "Django>=4.2,<4.3",
     "django-filter>=2",
     "djangorestframework>=3.12",
+    "drf-spectacular",
     "pytz",
 
     "iso8601",
