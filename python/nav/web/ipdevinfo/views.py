@@ -24,8 +24,10 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django_htmx.http import HttpResponseClientRefresh
 
 from nav.django.templatetags.thresholds import find_rules
+from nav.event2 import EventFactory
 from nav.metrics.errors import GraphiteUnreachableError
 from nav.metrics.graphs import get_simple_graph_url
 
@@ -905,3 +907,62 @@ def save_port_layout_pref(request):
         'ipdevinfo-details-by-id', kwargs={'netbox_id': request.GET.get('netboxid')}
     )
     return redirect("{}#!ports".format(url))
+
+
+def _show_loading_indicator_on_refresh_ongoing(
+    request, netbox_sysname: str, job_name: str, job_started_timestamp: str
+) -> HttpResponse:
+    """
+    Returns the template with a spinner to show that the triggered job is ongoing
+    """
+    button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
+
+    return render(
+        request,
+        button_template,
+        {
+            'netbox_sysname': netbox_sysname,
+            'job_name': job_name,
+            'job_started_timestamp': job_started_timestamp,
+        },
+    )
+
+
+def refresh_ipdevinfo_job(request, netbox_sysname: str, job_name: str):
+    """
+    Posts a refresh event to the event queue triggering ipdevpoll to start the job and
+    returns template with spinner
+    """
+    netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
+
+    _logger.debug(f"Sending refresh event for {netbox.sysname} job {job_name}")
+
+    refresh_event = EventFactory("devBrowse", "ipdevpoll", event_type="notification")
+    event = refresh_event.notify(netbox=netbox, subid=job_name)
+    event.save()
+
+    return _show_loading_indicator_on_refresh_ongoing(
+        request, netbox_sysname, job_name, str(event.time)
+    )
+
+
+def refresh_ipdevinfo_job_status_query(
+    request, netbox_sysname: str, job_name: str, job_started_timestamp: str
+):
+    """
+    Checks the status of the ongoing job
+
+    Reloads the page on job finished,
+    shows error messages on job running for too long or idpdevpoll not running
+    or shows the loading spinner to wait and check again soon
+    """
+    netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
+    last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
+    job_started_timestamp = dt.datetime.fromisoformat(job_started_timestamp)
+
+    if last_job.end_time > job_started_timestamp:
+        return HttpResponseClientRefresh()
+
+    return _show_loading_indicator_on_refresh_ongoing(
+        request, netbox_sysname, job_name, job_started_timestamp
+    )
