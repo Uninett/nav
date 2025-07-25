@@ -3,6 +3,7 @@
 {% block navlet-content %}
 
     <form action="{% url 'get-user-navlet' navlet.navlet_id %}" method="post" class="custom">
+        {% csrf_token %}
         <input type="hidden" name="id" value="{{ navlet.navlet_id }}">
         <select name="vlanid">
             <option value="-1">---Select vlan---</option>
