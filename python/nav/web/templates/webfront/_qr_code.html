@@ -1,0 +1,7 @@
+<div id="qr-code-modal">
+    <div class="modal-underlay" hx-on:click="htmx.remove(this.closest('#qr-code-modal'))"></div>
+    <div class="modal-content">
+        <a class="button small" hx-on:click="htmx.remove(this.closest('#qr-code-modal'))">x</a>
+        <img src="data:image/png;base64,{{qr_code}}" alt="QR Code linking to current side">
+    </div>
+</div>
