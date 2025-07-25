@@ -24,7 +24,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django_htmx.http import HttpResponseClientRefresh
+from django_htmx.http import reswap, retarget, HttpResponseClientRefresh
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.event2 import EventFactory
@@ -46,7 +46,7 @@ from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
 from nav.models.profiles import Account
-from nav.models.event import AlertHistory
+from nav.models.event import AlertHistory, EventQueue
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
@@ -956,12 +956,53 @@ def refresh_ipdevinfo_job_status_query(
     shows error messages on job running for too long or idpdevpoll not running
     or shows the loading spinner to wait and check again soon
     """
+
+    def show_error_message(
+        request, alert_level: str, alert_message: str
+    ) -> HttpResponse:
+        """
+        Returns a HTTPResponse showing an alert box indicating a problem with running
+        a job again
+        """
+        response = render(
+            request,
+            "ipdevinfo/frag-ipdevinfo-alert-box.html",
+            context={
+                "alert_level": alert_level,
+                "alert_message": alert_message,
+            },
+        )
+        retarget(response, ".row")
+        reswap(response, "beforeend")
+        return response
+
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
     last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
     job_started_timestamp = dt.datetime.fromisoformat(job_started_timestamp)
 
     if last_job.end_time > job_started_timestamp:
         return HttpResponseClientRefresh()
+
+    refresh_event_exists = EventQueue.objects.filter(
+        source_id="devBrowse",
+        target_id="ipdevpoll",
+        event_type_id="notification",
+        netbox=netbox,
+        subid=job_name,
+        state=EventQueue.STATE_STATELESS,
+        time__gte=job_started_timestamp,
+    ).exists()
+
+    if refresh_event_exists:
+        # Ipdevpoll picks up events from the event queue basically instantaneously, so
+        # if next time the endpoint is called after having posted the event it means
+        # ipdevpoll might not be running or there is another problem with it
+        return show_error_message(
+            request,
+            alert_level="warning",
+            alert_message=f"Job '{job_name}' was not started. Make sure that "
+            "ipdevpoll is running.",
+        )
 
     return _show_loading_indicator_on_refresh_ongoing(
         request, netbox_sysname, job_name, job_started_timestamp
