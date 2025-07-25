@@ -72,6 +72,9 @@ COUNTER_TYPES = (
     'BroadcastPkts',
 )
 
+NUMBER_OF_JOBS_TO_AVERAGE = 30
+ACCEPTABLE_RUNTIME_INCREASE_FACTOR = 0.1
+
 
 _logger = logging.getLogger('nav.web.ipdevinfo')
 
@@ -976,6 +979,29 @@ def refresh_ipdevinfo_job_status_query(
         reswap(response, "beforeend")
         return response
 
+    def check_if_job_is_running_longer_than_expected(
+        job, job_started_timestamp: dt.datetime
+    ) -> bool:
+        """
+        Check if the given job has been running for much longer than expected
+
+        This is calculated by comparing the current runtime with the last runtimes of
+        that job plus some margin
+
+        """
+
+        avg_jobtime = (
+            sum(
+                duration
+                for _, duration in job.get_last_runtimes(NUMBER_OF_JOBS_TO_AVERAGE)
+            )
+            / NUMBER_OF_JOBS_TO_AVERAGE
+        )
+        current_runtime = (dt.datetime.now() - job_started_timestamp).total_seconds()
+        return current_runtime > (
+            avg_jobtime * (1 + ACCEPTABLE_RUNTIME_INCREASE_FACTOR)
+        )
+
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
     last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
     job_started_timestamp = dt.datetime.fromisoformat(job_started_timestamp)
@@ -1002,6 +1028,18 @@ def refresh_ipdevinfo_job_status_query(
             alert_level="warning",
             alert_message=f"Job '{job_name}' was not started. Make sure that "
             "ipdevpoll is running.",
+        )
+
+    job_running_longer_than_expected = check_if_job_is_running_longer_than_expected(
+        last_job, job_started_timestamp
+    )
+
+    if job_running_longer_than_expected:
+        return show_error_message(
+            request,
+            alert_level="alert",
+            alert_message=f"Job '{job_name}' has been running for an unusually long "
+            "time. Check the log messages for eventual errors.",
         )
 
     return _show_loading_indicator_on_refresh_ongoing(
