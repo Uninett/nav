@@ -1,4 +1,5 @@
 <form method="post" action="{% url 'room-info-racks-save-sensor' room.pk %}">
+  {% csrf_token %}
   <label>
     Primary {{ sensortype }}
     <select class="sensordropdown" name="minuendid">
