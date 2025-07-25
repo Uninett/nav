@@ -34,6 +34,10 @@ require([
         loadSensorValues();
     });
 
+    document.querySelector("#deviceinfo").addEventListener("htmx:afterSwap", function(){
+        addSparkLinesToJobs();
+    });
+
     function loadSensorValues() {
         var metricMap = {};
         $('.sensor-value').each(function(i, element) {

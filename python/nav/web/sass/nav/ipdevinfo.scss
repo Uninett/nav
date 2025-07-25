@@ -223,3 +223,15 @@ table.module td div.portcell span.oplayer {
         list-style-type: none;
     }
 }
+
+.fixed-alert {
+    position: fixed;
+    z-index: 10;
+    right: 1rem;
+    bottom: 0.5rem;
+}
+
+.refresh-button {
+    height: 100%;
+    width: 100%;
+}
