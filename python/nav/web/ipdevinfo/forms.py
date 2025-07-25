@@ -95,6 +95,14 @@ class SensorRangesForm(forms.Form):
     minimum = forms.FloatField(label='Minimum', required=False)
     maximum = forms.FloatField(label='Maximum', required=False)
 
+    def __init__(self, *args, **kwargs):
+        super(SensorRangesForm, self).__init__(*args, **kwargs)
+
+        self.attrs = set_flat_form_attributes(
+            form_method="post",
+            submit_field=SubmitField(value="Update range", css_classes='small'),
+        )
+
 
 class BooleanSensorForm(forms.Form):
     """Form for configuring boolean sensor display"""
@@ -112,3 +120,11 @@ class BooleanSensorForm(forms.Form):
     alert_type = forms.ChoiceField(
         label='What to display in "on" state', choices=Sensor.ALERT_TYPE_CHOICES
     )
+
+    def __init__(self, *args, **kwargs):
+        super(BooleanSensorForm, self).__init__(*args, **kwargs)
+
+        self.attrs = set_flat_form_attributes(
+            form_method="post",
+            submit_field=SubmitField(value="Update settings", css_classes='small'),
+        )
