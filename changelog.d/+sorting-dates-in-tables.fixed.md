@@ -1,1 +1,1 @@
-Fixed tables using tablesort.js so that date columns are sorted by their numeric time value instead of string value
+Fixed sorting threshold table and useradmin API-token table by columns using timestamps
