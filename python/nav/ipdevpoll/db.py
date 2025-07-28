@@ -30,6 +30,7 @@ from django.db.utils import OperationalError as DjangoOperationalError
 from django.db.utils import InterfaceError as DjangoInterfaceError
 from psycopg2 import InterfaceError, OperationalError
 
+from nav.models.event import EventQueue
 
 _logger = logging.getLogger(__name__)
 _query_logger = logging.getLogger(".".join((__name__, "query")))
@@ -161,6 +162,22 @@ def purge_old_job_log_entries():
               WHERE ipdevpoll_job_log.id = ranked.id AND rank > 100;
         """
     )
+
+
+@transaction.atomic()
+def delete_stale_job_refresh_notifications():
+    """ "Deletes stalv job refresh events from the database, typically at process
+    startup time.
+
+    All events in the queue can be considered stale at process startup, since all
+    jobs will be re-run at startup anyway.
+    """
+    count, _ = EventQueue.objects.filter(target='ipdevpoll').delete()
+    if count:
+        _logger.info(
+            "Deleted %d stale job refresh notifications from the database",
+            count,
+        )
 
 
 def subscribe_to_event_notifications(trigger: Optional[Callable] = None):

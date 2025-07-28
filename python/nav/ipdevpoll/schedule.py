@@ -608,8 +608,6 @@ def _event_pre_filter(event: EventQueue):
         return False
     if not _is_refresh_event_for_me(event):
         return False
-    # TODO: Should also delete events that seem to be stale.  If the requested job is
-    #  logged as having run after the event's timestamp, the event is stale.
     return True
 
 
