@@ -127,3 +127,18 @@ def test_non_expired_session_id_should_not_be_changed_on_request_unrelated_to_lo
     client.get(index_url)
     session_id_post_login = client.session.session_key
     assert session_id_post_login == session_id_pre_login
+
+
+def test_show_qr_code_returns_fragment_with_qr_code(client):
+    """
+    Tests that calling the qr_code view will return a fragment with a generated QR
+    code
+    """
+    url = reverse("webfront-qr-code")
+    header = {'HTTP_REFERER': 'www.example.com'}
+    response = client.get(url, follow=True, **header)
+
+    assert response.status_code == 200
+    assert "qr-code-modal" in smart_str(response.content)
+    assert "img" in smart_str(response.content)
+    assert "QR Code linking to current page" in smart_str(response.content)
