@@ -1006,13 +1006,14 @@ def refresh_ipdevinfo_job_status_query(
     ).exists()
 
     if refresh_event_exists:
-        # Ipdevpoll picks up events from the event queue basically instantaneously, so if
-        # next time the endpoint is called after having posted the event it means ipdevpoll
-        # might not be running or there is another problem with it
+        # Ipdevpoll picks up events from the event queue basically instantaneously, so
+        # if next time the endpoint is called after having posted the event it means
+        # ipdevpoll might not be running or there is another problem with it
         return show_error_message(
             request,
             alert_level="warning",
-            alert_message=f"Job '{job_name}' was not started. Make sure that ipdevpoll is running.",
+            alert_message=f"Job '{job_name}' was not started. Make sure that "
+            "ipdevpoll is running.",
         )
 
     job_running_longer_than_expected = check_if_job_is_running_longer_than_expected(
