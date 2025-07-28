@@ -971,8 +971,8 @@ def refresh_ipdevinfo_job_status_query(
         """
         Check if the given job has been running for much longer than expected
 
-        This is calculated by comparing the current runtime with the last runtimes of that
-        job plus some margin
+        This is calculated by comparing the current runtime with the last runtimes of
+        that job plus some margin
 
         """
 
@@ -1024,7 +1024,8 @@ def refresh_ipdevinfo_job_status_query(
         return show_error_message(
             request,
             alert_level="alert",
-            alert_message=f"Job '{job_name}' has been running for an unusually long time. Check the log messages for eventual errors.",
+            alert_message=f"Job '{job_name}' has been running for an unusually long "
+            "time. Check the log messages for eventual errors.",
         )
 
     return show_loading_indicator_on_refresh_ongoing(
