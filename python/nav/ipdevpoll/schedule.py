@@ -611,18 +611,26 @@ def _event_pre_filter(event: EventQueue):
     return True
 
 
-def _is_valid_refresh_event(event: EventQueue):
+def _is_valid_refresh_event(event: EventQueue) -> bool:
+    """Returns True if the event seems to be a vallid refresh event for ipdevpoll."""
     if event.event_type_id != 'notification':
         _logger.info("Ignoring non-notification event from %s", event.source)
         return False
 
-    if not event.subid:
+    if event.subid not in _get_valid_job_names():
         _logger.info(
-            "Ignoring notification event from %s with blank job name", event.source
+            "Ignoring notification event from %s with unknown job name %r",
+            event.source,
+            event.subid,
         )
         return False
 
     return True
+
+
+def _get_valid_job_names() -> set[str]:
+    """Returns a set of job names that exist in the ipdevpoll configuration"""
+    return set(job.name for job in config.get_jobs())
 
 
 def _is_refresh_event_for_me(event: EventQueue):
