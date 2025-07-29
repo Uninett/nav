@@ -55,6 +55,7 @@
     {% if object %}
       {# Display button for revoking a token #}
       <form action="{% url 'useradmin-token_expire' object.pk %}" method="post">
+        {% csrf_token %}
         <input type="submit" value="Expire token" class="button small">
       </form>
 
@@ -68,7 +69,8 @@
       <div id="confirm-token-delete" class="f-dropdown content">
         <form id="delete-token-form"
               action="{% url 'useradmin-token_delete' object.pk %}"
-              method="post">{% csrf_token %}
+              method="post">
+          {% csrf_token %}
           <input type="submit" value="Yes, delete" class="button small alert expand">
         </form>
         <span class="button secondary small close-button expand">No, don't delete</span>
