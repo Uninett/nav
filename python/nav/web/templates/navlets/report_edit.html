@@ -3,7 +3,7 @@
 {% block navlet-content %}
 
   <form action="{% url 'get-user-navlet' navlet.navlet_id %}">
-
+    {% csrf_token %}
     <label>
       Choose report
       <select name="report_id">

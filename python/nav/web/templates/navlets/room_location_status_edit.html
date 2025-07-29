@@ -3,6 +3,7 @@
 {% block navlet-content %}
 
   <form action="{% url 'get-user-navlet' navlet.navlet_id %}">
+    {% csrf_token %}
     {% include 'custom_crispy_templates/_form_content.html' %}
   </form>
 
