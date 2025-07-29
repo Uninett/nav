@@ -915,6 +915,9 @@ def save_port_layout_pref(request):
 def _show_loading_indicator_on_refresh_ongoing(
     request, netbox_sysname: str, job_name: str, job_started_timestamp: str
 ) -> HttpResponse:
+    """
+    Returns the template with a spinner to show that the triggered job is ongoing
+    """
     button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
 
     return render(
@@ -929,11 +932,14 @@ def _show_loading_indicator_on_refresh_ongoing(
 
 
 def refresh_ipdevinfo_job(request, netbox_sysname: str, job_name: str):
+    """
+    Posts a refresh event to the event queue triggering ipdevpoll to start the job and
+    returns template with spinner
+    """
     netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
 
     _logger.debug(f"Sending refresh event for {netbox.sysname} job {job_name}")
 
-    # Post a refresh event to the event queue triggering ipdevpoll to start the job
     refresh_event = EventFactory("devBrowse", "ipdevpoll", event_type="notification")
     event = refresh_event.notify(netbox=netbox, subid=job_name)
     event.save()
@@ -946,6 +952,14 @@ def refresh_ipdevinfo_job(request, netbox_sysname: str, job_name: str):
 def refresh_ipdevinfo_job_status_query(
     request, netbox_sysname: str, job_name: str, job_started_timestamp: str
 ):
+    """
+    Checks the status of the ongoing job
+
+    Reloads the page on job finished,
+    shows error messages on job running for too long or idpdevpoll not running
+    or shows the loading spinner to wait and check again soon
+    """
+
     def show_error_message(
         request, alert_level: str, alert_message: str
     ) -> HttpResponse:
