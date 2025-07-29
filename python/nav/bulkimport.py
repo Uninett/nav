@@ -15,8 +15,6 @@
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
 """Import seed data in bulk."""
-# no importer implementations have public methods, disable R0903 warning
-# pylint: disable=R0903
 
 import json
 

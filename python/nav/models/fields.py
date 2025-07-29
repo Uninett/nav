@@ -71,7 +71,6 @@ class DictAsJsonField(models.TextField):
     def db_type(self, connection):
         return 'varchar'
 
-    # pylint: disable=unused-argument
     def from_db_value(self, value, expression, connection):
         return self.to_python(value)
 
@@ -144,9 +143,6 @@ class PointField(models.CharField):
         return super(PointField, self).formfield(**defaults)
 
 
-# this interfaces with Django model protocols, which generates unnecessary
-# pylint violations:
-# pylint: disable=W0201,W0212
 class LegacyGenericForeignKey(FieldCacheMixin):
     """Generic foreign key for legacy NAV database.
 

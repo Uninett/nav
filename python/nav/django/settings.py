@@ -274,11 +274,9 @@ X_FRAME_OPTIONS = _websecurity_config.get_x_frame_options()
 if _config_dir:
     sys.path.append(os.path.join(_config_dir, "python"))
 try:
-    # pylint: disable=E0602
     LOCAL_SETTINGS
 except NameError:
     try:
-        # pylint: disable=F0401
         from local_settings import *
     except ImportError:
         pass

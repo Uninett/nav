@@ -51,8 +51,6 @@ class Snmpv2Mib(mibretriever.MibRetriever):
                 if oid == OID(key):
                     return value
 
-    # pylint: disable=C0103
-
     def get_sysObjectID(self):
         """Retrieves the sysObjectID of the first agent instance."""
         return self._get_sysvariable('sysObjectID')

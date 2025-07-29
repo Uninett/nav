@@ -33,10 +33,6 @@ from .serializers import NetmapViewSerializer
 from .graph import get_traffic_gradient
 
 
-# Ignore linting errors from DRF class hierarchy
-# pylint: disable=R0901,R0904
-
-
 class IndexView(DefaultNetmapViewMixin, TemplateView):
     """Main view for Netmap"""
 

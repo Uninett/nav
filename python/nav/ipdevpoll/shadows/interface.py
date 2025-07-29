@@ -35,8 +35,6 @@ from .netbox import Netbox
 MISSING_THRESHOLD = datetime.timedelta(days=1)
 INFINITY = datetime.datetime.max
 
-# pylint: disable=C0111
-
 
 class InterfaceManager(DefaultManager):
     _found_existing_map = {}
@@ -296,8 +294,6 @@ class InterfaceManager(DefaultManager):
             return link_filter
 
 
-# pylint is unable to see which members are created dynamically by metaclass:
-# pylint: disable=W0201,E0203
 class Interface(Shadow):
     __shadowclass__ = manage.Interface
     manager = InterfaceManager

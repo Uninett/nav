@@ -16,8 +16,6 @@
 
 """Controls add and edit of ip devices"""
 
-# pylint: disable=F0401
-
 import copy
 import socket
 from socket import error as SocketError

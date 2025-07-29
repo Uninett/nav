@@ -208,7 +208,6 @@ def get_logfile_from_logger(logger=logging.root):
     """
     for handler in logger.handlers:
         if isinstance(handler, logging.FileHandler):
-            # pylint: disable=no-member
             return handler.stream
 
 

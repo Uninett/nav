@@ -79,9 +79,6 @@ __all__ = [
 # Shadow classes.  Not all of these will be used to store data, but
 # may be used to retrieve and cache existing database records.
 
-# Shadow classes usually don't need docstrings - these can be found in the
-# Django models being shadowed:
-# pylint: disable=C0111
 
 ALERT_TYPE_MAPPING = {
     "hardware_version": "deviceHwUpgrade",
@@ -140,8 +137,6 @@ class Vendor(Shadow):
     __shadowclass__ = manage.Vendor
 
 
-# pylint is unable to see which members are created dynamically by metaclass:
-# pylint: disable=E0203,W0201
 class Module(Shadow):
     __shadowclass__ = manage.Module
     __lookups__ = [('netbox', 'device'), ('netbox', 'name')]
