@@ -7,6 +7,7 @@
 
 
   <form action="{% url 'alertprofiles-profile-remove' %}" method="post">
+    {% csrf_token %}
     <table class="listtable">
       <thead>
       <tr>

@@ -50,6 +50,7 @@
       <div class="column medium-4">
         <h5>Alert language</h5>
         <form action="{% url 'alertprofiles-language-save' %}" method="post" class="inline-form custom">
+          {% csrf_token %}
           {{ language_form.language }}
           <input type="submit" value="Save changes" class="button tiny"/>
         </form>
@@ -65,4 +66,3 @@
   </div>
 
 {% endblock %}
-

@@ -39,6 +39,7 @@
           {% endblock %}
         </h5>
         <form action="{% block url_remove_expression %}{% endblock %}" method="post">
+            {% csrf_token %}
             <table class="listtable">
                 <thead>
                     <tr>
@@ -67,6 +68,7 @@
 
     <div class="addexpressionform">
         <form action="{% block url_add_expression %}{% endblock %}" method="post">
+        {% csrf_token %}
         {% block addexpression %}
             <p>
                 <input type="hidden" name="id" value="{{ detail_id }}" />

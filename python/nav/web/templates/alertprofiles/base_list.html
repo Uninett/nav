@@ -6,6 +6,7 @@
 {% endblock %}
 
 <form action="{{ form_action }}" method="post">
+  {% csrf_token %}
 
   <h4>{% block captioncontent %}{% endblock %}</h4>
 
