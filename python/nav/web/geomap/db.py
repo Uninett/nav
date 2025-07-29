@@ -85,7 +85,8 @@ LAYER_3_QUERY = """
     JOIN room USING (roomid)
     LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
     LEFT JOIN vlan USING (vlanid)
-    WHERE interface_gwport.interfaceid <> remote_gwportid AND vlan.nettype NOT IN ('static', 'lan')
+    WHERE interface_gwport.interfaceid <> remote_gwportid
+      AND vlan.nettype NOT IN ('static', 'lan')
       AND ((room.position[1] >= %s AND room.position[0] >= %s AND
             room.position[1] <= %s AND room.position[0] <= %s)
            OR
@@ -121,17 +122,21 @@ LAYER_2_QUERY_1 = """
     FROM interface_gwport
      JOIN netbox ON (interface_gwport.netboxid=netbox.netboxid)
 
-     LEFT JOIN gwportprefix ON (gwportprefix.interfaceid = interface_gwport.interfaceid)
+     LEFT JOIN gwportprefix
+     ON (gwportprefix.interfaceid = interface_gwport.interfaceid)
      LEFT JOIN prefix ON  (prefix.prefixid = gwportprefix.prefixid)
      LEFT JOIN vlan USING (vlanid)
 
-     JOIN interface_swport ON (interface_swport.interfaceid = interface_gwport.to_interfaceid)
-     JOIN netbox AS swport_netbox ON (interface_swport.netboxid = swport_netbox.netboxid)
+     JOIN interface_swport
+     ON (interface_swport.interfaceid = interface_gwport.to_interfaceid)
+     JOIN netbox AS swport_netbox
+     ON (interface_swport.netboxid = swport_netbox.netboxid)
 
      JOIN room AS gwport_room ON (netbox.roomid = gwport_room.roomid)
      JOIN room AS swport_room ON (swport_netbox.roomid = swport_room.roomid)
 
-     WHERE interface_gwport.to_interfaceid IS NOT NULL AND interface_gwport.to_interfaceid = interface_swport.interfaceid
+     WHERE interface_gwport.to_interfaceid IS NOT NULL
+       AND interface_gwport.to_interfaceid = interface_swport.interfaceid
        AND ((gwport_room.position[1] >= %s AND gwport_room.position[0] >= %s AND
              gwport_room.position[1] <= %s AND gwport_room.position[0] <= %s)
             OR

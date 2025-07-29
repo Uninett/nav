@@ -34,7 +34,7 @@ def get_snmp_session_for_profile(profile: ManagementProfile) -> Callable:
     >>> session.get()
     b'Linux 16e2ac5c6456 6.1.60 #1-NixOS SMP PREEMPT_DYNAMIC Wed Oct 25 10:03:17 UTC 2023 x86_64'
     >>>
-    """
+    """  # noqa: E501
     if not profile.is_snmp:
         raise ValueError("Cannot create SNMP session from non-SNMP management profile")
 

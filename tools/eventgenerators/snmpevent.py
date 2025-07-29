@@ -47,7 +47,10 @@ nbdup = set()
 sysnames = []
 
 for ii in range(1, len(sys.argv) - 1):
-    sql = "SELECT netboxid,sysname,typeid FROM netbox JOIN room USING(roomid) WHERE ip IS NOT NULL"
+    sql = (
+        "SELECT netboxid,sysname,typeid FROM netbox JOIN room USING(roomid) "
+        "WHERE ip IS NOT NULL"
+    )
     qn = sys.argv[ii]
     if (
         qn.startswith("_")

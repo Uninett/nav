@@ -10,9 +10,9 @@ repos:
 -   repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.0
     hooks:
-      # Run the linter
-    -   id: ruff
-        name: "Ruff linting"
         # Run the formatter
     -   id: ruff-format
         name: "Ruff formatting"
+      # Run the linter
+    -   id: ruff
+        name: "Ruff linting"

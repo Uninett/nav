@@ -136,7 +136,10 @@ class ReportList(object):
 
 
 class ConfigParser(object):
-    """Loads the configuration files, parses the contents, and returns the results as a ReportConfig object instance"""
+    """
+    Loads the configuration files, parses the contents, and returns the results as a
+    ReportConfig object instance
+    """
 
     def __init__(self, config_files):
         """Loads the configuration files"""

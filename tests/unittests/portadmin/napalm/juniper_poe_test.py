@@ -150,7 +150,8 @@ def xml(interface1_mock):
 
 @pytest.fixture()
 def xml_bulk_wrong_format(interface1_mock, interface2_mock):
-    """Creates a ElementTree with the format meant for a single interface in the response,
+    """
+    Creates a ElementTree with the format meant for a single interface in the response,
     but it contains poe information for two interfaces
     """
     tree_string = f"""
