@@ -37,8 +37,9 @@ class TestICMPPacket:
         packet.sequence = 3
         packet = packet.assemble()
 
-        # Mocking the IP header and prepending it to the packet so disassembling of packet works
-        IP_header = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        # Mocking the IP header and prepending it to the packet so disassembling of
+        # packet works
+        IP_header = b'\x00' * 20
         packet = IP_header + packet
 
         # Make Packet object which disassembles the raw packet

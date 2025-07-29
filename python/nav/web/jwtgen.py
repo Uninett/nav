@@ -12,7 +12,8 @@ get_now = datetime.now
 def generate_access_token(token_data: Optional[dict[str, Any]] = None) -> str:
     """Generates and returns an access token in JWT format.
     Will use `token_data` as a basis for claims in the the new token,
-    but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`, `token_type`
+    but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`,
+    `token_type`
     """
     expiry_delta = JWTConf().get_access_token_lifetime()
     return _generate_token(token_data, expiry_delta, "access_token")
@@ -21,7 +22,8 @@ def generate_access_token(token_data: Optional[dict[str, Any]] = None) -> str:
 def generate_refresh_token(token_data: Optional[dict[str, Any]] = None) -> str:
     """Generates and returns a refresh token in JWT format.
     Will use `token_data` as a basis for claims in the the new token,
-    but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`, `token_type`
+    but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`,
+    `token_type`
     """
     expiry_delta = JWTConf().get_refresh_token_lifetime()
     return _generate_token(token_data, expiry_delta, "refresh_token")
@@ -32,7 +34,8 @@ def _generate_token(
 ) -> str:
     """Generates and returns a token in JWT format.
     Will use `token_data` as a basis for claims in the the new token,
-    but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`, `token_type`
+    but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`,
+    `token_type`
     """
     if token_data is None:
         new_token = dict()

@@ -448,7 +448,8 @@ class TestsAddExpressions:
                 "filter": dummy_filter.pk,
                 "match_field": ip_match_field.pk,
                 "operator": Operator.IN,
-                "value": "172.0.0.1 2001:db8:3333:4444:5555:6666:7777:8888 129.241.190.0/24",
+                "value": "172.0.0.1 2001:db8:3333:4444:5555:6666:7777:8888 "
+                "129.241.190.0/24",
             }
             response = client.post(url, data=data, follow=True)
             assert response.status_code == 200
@@ -963,8 +964,8 @@ class TestsAlertAddresses:
         client,
     ):
         """
-        Tests that a valid phone number with a country code with double zero (00xx) can be
-        added"""
+        Tests that a valid phone number with a country code with double zero (00xx) can
+        be added"""
         valid_phone_number = "004747474747"
         sms = AlertSender.objects.get(name=AlertSender.SMS)
         url = reverse("alertprofiles-address-save")

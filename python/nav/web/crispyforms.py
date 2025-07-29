@@ -90,7 +90,8 @@ class FormRow:
     Row is not a functional element in forms, but a visual one.
 
     :param fields: A list of fields to include in the row.
-    :param css_classes: Additional CSS classes to apply to the row. Defaults to an empty string.
+    :param css_classes: Additional CSS classes to apply to the row. Defaults to an
+    empty string.
     """
 
     def __init__(self, fields: list, css_classes: Optional[str] = None):
@@ -105,7 +106,8 @@ class FormColumn:
     Column is not a functional element in forms, but a visual one.
 
     :param fields: A list of fields to include in the column.
-    :param css_classes: Additional CSS classes to apply to the column. Defaults to an empty string.
+    :param css_classes: Additional CSS classes to apply to the column. Defaults to
+    an empty string.
     """
 
     def __init__(self, fields: list, css_classes: str = ''):
@@ -121,7 +123,8 @@ class SubmitField:
     :param name: The name attribute of the submit field.
     :param value: The display text of the submit button.
     :param css_classes: Additional CSS classes to apply to the submit button.
-    :param has_empty_label: If an empty label is added above the submit button to align it within a row.
+    :param has_empty_label: If an empty label is added above the submit button to align
+    it within a row.
     :ivar input_type: The type of input, which is 'submit' for this class.
     :type input_type: str
     """

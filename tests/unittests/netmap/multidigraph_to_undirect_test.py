@@ -12,7 +12,8 @@ class Layer2MultiGraphToUndirectTests(TopologyLayer2TestCase):
         self.assertEqual(
             self.b1.netbox,
             self.b2.netbox,
-            msg="Critical, interfaces connected to same netbox must be of the same netbox instance",
+            msg="Critical, interfaces connected to same netbox must be of the same"
+            "netbox instance",
         )
 
     # This is basically what a standard NAV topology graph looks like...

@@ -122,7 +122,8 @@ class TestEndToEnd:
         expected arp mappings are assigned afterwards.
         """
 
-        # Using SeedDB, edit a blank profile so that it now configures access to Palo Alto ARP
+        # Using SeedDB, edit a blank profile so that it now configures access to Palo
+        # Alto ARP
         profile = blank_management_profile
         management_profile_url = reverse(
             "seeddb-management-profile-edit", args=(profile.id,)
@@ -139,7 +140,8 @@ class TestEndToEnd:
             },
         )
 
-        # Using SeedDB, add the profile to a netbox with no prior Palo Alto ARP management profile
+        # Using SeedDB, add the profile to a netbox with no prior Palo Alto ARP
+        # management profile
         netbox = no_http_api_netbox
         netbox_url = reverse("seeddb-netbox-edit", args=(netbox.id,))
         client.post(

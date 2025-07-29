@@ -8,7 +8,10 @@ from nav.web.jwtgen import generate_access_token, generate_refresh_token, is_act
 
 
 class TestTokenGeneration:
-    """Tests behaviour that should be identical for both access and refresh token generation"""
+    """
+    Tests behaviour that should be identical for both access and refresh token
+    generation
+    """
 
     @pytest.mark.parametrize("func", [generate_access_token, generate_refresh_token])
     def test_nbf_should_be_in_the_past(self, func):
@@ -79,7 +82,8 @@ class TestIsActive:
     def test_when_nbf_is_now_and_exp_is_in_the_future_it_should_return_true(self):
         now = datetime.now()
         exp = now + timedelta(hours=1)
-        # Make sure the value we use for `nbf` here matches the `now` value in jwtgen.is_active
+        # Make sure the value we use for `nbf` here matches the `now` value in
+        # jwtgen.is_active
         with patch('nav.web.jwtgen.get_now', return_value=now):
             assert is_active(exp.timestamp(), now.timestamp())
 

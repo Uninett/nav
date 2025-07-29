@@ -100,7 +100,8 @@ def test_post_device_error_without_comment_should_succeed_with_confirmation(
 def test_get_location_history_should_succeed(client, localhost):
     url = reverse('devicehistory-view')
     response = client.get(
-        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all&loc={localhost.room.location.id}&submit_module=View+location+history"
+        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all"
+        f"&loc={localhost.room.location.id}&submit_module=View+location+history"
     )
 
     assert response.status_code == 200
@@ -119,7 +120,8 @@ def test_get_location_history_with_only_location_parameter_should_succeed(
 def test_get_room_history_should_succeed(client, localhost):
     url = reverse('devicehistory-view')
     response = client.get(
-        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all&room={localhost.room.id}&submit_module=View+room+history"
+        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all"
+        f"&room={localhost.room.id}&submit_module=View+room+history"
     )
 
     assert response.status_code == 200
@@ -128,7 +130,8 @@ def test_get_room_history_should_succeed(client, localhost):
 def test_get_ip_device_history_should_succeed(client, localhost):
     url = reverse('devicehistory-view')
     response = client.get(
-        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all&netbox={localhost.id}&submit_module=View+IP+device+history"
+        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all"
+        f"&netbox={localhost.id}&submit_module=View+IP+device+history"
     )
 
     assert response.status_code == 200
@@ -137,7 +140,9 @@ def test_get_ip_device_history_should_succeed(client, localhost):
 def test_get_device_group_history_should_succeed(client, localhost):
     url = reverse('devicehistory-view')
     response = client.get(
-        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all&netboxgroup={NetboxGroup.objects.first()}&submit_module=View+device+group+history"
+        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all"
+        f"&netboxgroup={NetboxGroup.objects.first()}"
+        "&submit_module=View+device+group+history"
     )
 
     assert response.status_code == 200
@@ -151,7 +156,8 @@ def test_get_module_history_should_succeed(db, client, localhost):
 
     url = reverse('devicehistory-view')
     response = client.get(
-        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all&module={module.id}&submit_module=View+romoduleom+history"
+        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all"
+        f"&module={module.id}&submit_module=View+romoduleom+history"
     )
 
     assert response.status_code == 200
@@ -168,7 +174,11 @@ def test_device_history_view_filter_with_initial_values_is_same_as_same_get_para
     form = DeviceHistoryViewFilter(initial_values)
     form.is_valid()
 
-    query_string = f"from_date={str(initial_values['from_date'])}&to_date={str(initial_values['to_date'])}&eventtype={initial_values['eventtype']}"
+    query_string = (
+        f"from_date={str(initial_values['from_date'])}"
+        f"&to_date={str(initial_values['to_date'])}"
+        f"&eventtype={initial_values['eventtype']}"
+    )
     form_get_parameters = DeviceHistoryViewFilter(QueryDict(query_string))
     form_get_parameters.is_valid()
 

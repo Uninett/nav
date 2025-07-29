@@ -185,6 +185,9 @@ def is_list(value):
 
 @register.filter
 def dunderless(mapping):
-    """Returns a mapping with all elements of the input mapping except for ones whose key starts with dunder"""
+    """
+    Returns a mapping with all elements of the input mapping except for ones whose key
+    starts with dunder
+    """
     mapping = {k: v for k, v in mapping.items() if not k.startswith('__')}
     return mapping
