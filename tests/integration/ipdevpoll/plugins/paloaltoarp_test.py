@@ -37,7 +37,7 @@ class TestCanHandleNetbox:
     )
     @pytest.mark.twisted
     @pytest_twisted.inlineCallbacks
-    def test_it_should_not_accept_netbox_without_any_paloalto_http_api_management_profile(
+    def test_it_should_not_accept_netbox_without_any_paloalto_http_api_management_profile(  # noqa: E501
         self, netbox, request
     ):
         netbox = request.getfixturevalue(netbox)
@@ -58,7 +58,7 @@ class TestGetArpMappings:
     )
     @pytest.mark.twisted
     @pytest_twisted.inlineCallbacks
-    def test_it_should_get_arp_mappings_of_netbox_having_some_paloalto_management_profile_with_valid_api_key(
+    def test_it_should_get_arp_mappings_of_netbox_having_some_paloalto_management_profile_with_valid_api_key(  # noqa: E501
         self, netbox, monkeypatch, request
     ):
         netbox = request.getfixturevalue(netbox)
@@ -91,7 +91,7 @@ class TestGetArpMappings:
     )
     @pytest.mark.twisted
     @pytest_twisted.inlineCallbacks
-    def test_it_should_not_get_arp_mappings_of_netbox_without_any_paloalto_http_api_management_profile_with_valid_api_key(
+    def test_it_should_not_get_arp_mappings_of_netbox_without_any_paloalto_http_api_management_profile_with_valid_api_key(  # noqa: E501
         self, netbox, monkeypatch, request
     ):
         netbox = request.getfixturevalue(netbox)
@@ -113,7 +113,7 @@ class TestEndToEnd:
 
     @pytest.mark.twisted
     @pytest_twisted.inlineCallbacks
-    def test_it_should_get_arp_mappings_of_netbox_configured_with_paloalto_management_profile_using_seeddb(
+    def test_it_should_get_arp_mappings_of_netbox_configured_with_paloalto_management_profile_using_seeddb(  # noqa: E501
         self, client, no_http_api_netbox, blank_management_profile, monkeypatch
     ):
         """

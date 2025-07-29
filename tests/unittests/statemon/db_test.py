@@ -1,4 +1,5 @@
 # Copyright (C) 2020 Universitetet i Oslo
+# ruff: noqa E501
 
 from nav.statemon.db import db
 from unittest import TestCase

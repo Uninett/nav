@@ -82,7 +82,7 @@ A8C647     (base 16)		Extreme Networks Headquarters
                             2121 RDU Center Drive
                             Morrisville  NC  27560
                             US
-    """
+    """  # noqa: E501
     download_file_mock = Mock(return_value=mocked_oui_data)
     monkeypatch.setattr("nav.bin.update_ouis._download_oui_file", download_file_mock)
 

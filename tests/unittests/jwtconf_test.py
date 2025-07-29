@@ -369,7 +369,7 @@ class TestJWTConf(TestCase):
                 jwtconf.get_refresh_token_lifetime(), datetime.timedelta(days=2)
             )
 
-    def test_if_lifetime_is_not_configured_then_get_access_token_lifetime_should_return_default_lifetime(
+    def test_if_lifetime_is_not_configured_then_get_access_token_lifetime_should_return_default_lifetime(  # noqa: E501
         self,
     ):
         config = """
@@ -385,7 +385,7 @@ class TestJWTConf(TestCase):
                 jwtconf.DEFAULT_ACCESS_TOKEN_LIFETIME,
             )
 
-    def test_if_lifetime_is_not_configured_then_get_refresh_token_lifetime_should_return_default_lifetime(
+    def test_if_lifetime_is_not_configured_then_get_refresh_token_lifetime_should_return_default_lifetime(  # noqa: E501
         self,
     ):
         config = """

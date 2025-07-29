@@ -46,7 +46,7 @@ class SnmpTestPynetsnmp(SnmpTestCase):
 
 
 class OtherSnmpTests(SnmpTestCase):
-    def test_raise_no_supported_snmp_backend_found_raised_if_no_snmp_libraries_are_available(
+    def test_raise_no_supported_snmp_backend_found_raised_if_no_snmp_libraries_are_available(  # noqa: E501
         self,
     ):
         modules = {

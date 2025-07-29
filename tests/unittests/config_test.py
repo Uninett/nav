@@ -5,7 +5,7 @@ from unittest import TestCase
 
 
 class TestConfigResourceWalk(TestCase):
-    def test_should_read_relative_paths_as_strings_from_nav_package_and_return_a_long_list_of_strings(
+    def test_should_read_relative_paths_as_strings_from_nav_package_and_return_a_long_list_of_strings(  # noqa: E501
         self,
     ):
         # result should be many, many relative paths as strings

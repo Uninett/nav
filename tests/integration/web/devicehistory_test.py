@@ -163,7 +163,7 @@ def test_device_history_view_filter_with_initial_values_is_valid():
     assert form.is_valid()
 
 
-def test_device_history_view_filter_with_initial_values_is_same_as_same_get_parameters():
+def test_device_history_view_filter_with_initial_values_is_same_as_same_get_parameters():  # noqa: E501
     initial_values = DeviceHistoryViewFilter.get_initial()
     form = DeviceHistoryViewFilter(initial_values)
     form.is_valid()

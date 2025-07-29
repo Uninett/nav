@@ -826,7 +826,7 @@ class TestsAlertAddresses:
         ).exists()
         assert f"Saved address {valid_url}" in smart_str(response.content)
 
-    def test_alertprofiles_add_slack_address_with_a_valid_but_not_absolute_url_should_fail(
+    def test_alertprofiles_add_slack_address_with_a_valid_but_not_absolute_url_should_fail(  # noqa: E501
         self,
         client,
     ):
@@ -919,7 +919,7 @@ class TestsAlertAddresses:
         ).exists()
         assert f"Saved address {valid_phone_number}" in smart_str(response.content)
 
-    def test_alertprofiles_add_valid_non_norwegian_phone_number_without_country_code_should_succeed(
+    def test_alertprofiles_add_valid_non_norwegian_phone_number_without_country_code_should_succeed(  # noqa: E501
         self,
         client,
     ):
@@ -958,7 +958,7 @@ class TestsAlertAddresses:
         ).exists()
         assert f"Saved address {valid_phone_number}" in smart_str(response.content)
 
-    def test_alertprofiles_add_valid_phone_number_with_double_zero_country_code_should_succeed(
+    def test_alertprofiles_add_valid_phone_number_with_double_zero_country_code_should_succeed(  # noqa: E501
         self,
         client,
     ):

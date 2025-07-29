@@ -20,7 +20,7 @@ class TestGetPreferredSnmpProfiles:
         )
         assert profile.name.startswith("v2 write")
 
-    def test_when_write_required_is_false_it_should_return_a_writable_profile_of_a_higher_snmp_version(
+    def test_when_write_required_is_false_it_should_return_a_writable_profile_of_a_higher_snmp_version(  # noqa: E501
         self, mocked_netbox
     ):
         profiles = mocked_netbox.profiles.filter()

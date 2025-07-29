@@ -1,3 +1,5 @@
+# ruff: noqa: E501
+
 import datetime
 import pytest
 from mock import Mock

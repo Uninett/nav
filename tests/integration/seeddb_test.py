@@ -110,7 +110,7 @@ def test_log_netbox_change_should_not_crash(admin_account, netbox):
     assert log_netbox_change(admin_account, old, new) is None
 
 
-def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netboxinfo_instance(
+def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netboxinfo_instance(  # noqa: E501
     netbox, db, client
 ):
     """
