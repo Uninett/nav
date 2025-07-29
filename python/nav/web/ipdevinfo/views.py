@@ -912,7 +912,7 @@ def save_port_layout_pref(request):
     return redirect("{}#!ports".format(url))
 
 
-def show_loading_indicator_on_refresh_ongoing(
+def _show_loading_indicator_on_refresh_ongoing(
     request, netbox_sysname: str, job_name: str, job_started_timestamp: str
 ) -> HttpResponse:
     button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
@@ -938,7 +938,7 @@ def refresh_ipdevinfo_job(request, netbox_sysname: str, job_name: str):
     event = refresh_event.notify(netbox=netbox, subid=job_name)
     event.save()
 
-    return show_loading_indicator_on_refresh_ongoing(
+    return _show_loading_indicator_on_refresh_ongoing(
         request, netbox_sysname, job_name, str(event.time)
     )
 
@@ -1028,6 +1028,6 @@ def refresh_ipdevinfo_job_status_query(
             "time. Check the log messages for eventual errors.",
         )
 
-    return show_loading_indicator_on_refresh_ongoing(
+    return _show_loading_indicator_on_refresh_ongoing(
         request, netbox_sysname, job_name, job_started_timestamp
     )
