@@ -23,7 +23,7 @@ feedparser==6.0.8
 dnspython<3.0.0,>=2.1.0
 
 django-filter>=2
-djangorestframework>=3.12
+djangorestframework>=3.14
 django-htmx
 
 # REST framework
