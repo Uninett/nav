@@ -175,7 +175,7 @@
 {% endif %}
 
 {% if current_user_data.password_issues %}
-    <div class="password-issues-bar">
+    <div id="password-issues-bar">
         <img src="{{ STATIC_URL }}images/main/emblem-important.png"
                  alt="Important information"/>
         {{ current_user_data.password_issues.message }}
