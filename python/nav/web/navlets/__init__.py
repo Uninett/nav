@@ -435,7 +435,9 @@ def add_user_navlet_sensor(request):
                 'on_message': sensor.on_message,
                 'off_message': sensor.off_message,
                 'on_state': sensor.on_state,
-                'alert_type': ALERT_TYPES[sensor.alert_type],
+                'alert_type': ALERT_TYPES.get(
+                    sensor.alert_type, ALERT_TYPES[Sensor.ALERT_TYPE_WARNING]
+                ),
             }
         else:
             navlet = 'nav.web.navlets.sensor.SensorWidget'
