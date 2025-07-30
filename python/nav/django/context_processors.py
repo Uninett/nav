@@ -93,7 +93,8 @@ def account_processor(request):
             )
             if number_accounts_with_password_issues > 0:
                 password_issues["message"] = (
-                    f"There are {number_accounts_with_password_issues} accounts that have insecure or old passwords."
+                    f"There are {number_accounts_with_password_issues} accounts that "
+                    "have insecure or old passwords."
                 )
                 password_issues["link"] = reverse("useradmin")
                 password_issues["link_message"] = "See which users are affected here."
