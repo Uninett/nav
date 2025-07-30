@@ -50,6 +50,7 @@ class RoomInfo(SeeddbInfo):
     add_url = reverse_lazy('seeddb-room-edit')
     bulk_url = reverse_lazy('seeddb-room-bulk')
     copy_url_name = 'seeddb-room-copy'
+    hide_qr_code = False
 
 
 def room(request):
