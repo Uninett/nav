@@ -139,8 +139,8 @@ def generate_qr_codes_as_zip_response(url_dict: dict[str, str]) -> FileResponse:
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for image_name, bytes_stream in qr_codes_dict.items():
-            zf.writestr(image_name + ".png", bytes_stream.getvalue())
+        for image_name, qr_code_bytes in qr_codes_dict.items():
+            zf.writestr(image_name + ".png", qr_code_bytes)
     buf.seek(0)
 
     return FileResponse(buf, as_attachment=True, filename="nav_qr_codes.zip")
