@@ -15,6 +15,7 @@
       <h3>Interface {{ interface }}</h3>
 
       <form action="" method="post">
+        {% csrf_token %}
         <table id="portadmin-trunktable" class="listtable highlightover">
           <caption>Configure trunk</caption>
           <thead>

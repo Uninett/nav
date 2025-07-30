@@ -117,6 +117,7 @@
                 </a>
               {% else %}
                 <form class="custom">
+                  {% csrf_token %}
                   <select class="vlanlist" name="{{ interface.ifname }}">
                     {% for vlan in allowed_vlans %}
                       {% if not interface.voice_activated or vlan.vlan != voice_vlan %}
@@ -172,6 +173,7 @@
         <div class="medium-1 small-4 column">
           {% if interface.supports_poe %}
             <form class="custom">
+              {% csrf_token %}
               <select class="poelist" name="{{ interface.ifname }}">
                 {% for poe_option in poe_options %}
                   <option value="{{ poe_option.name }}" label="{{ poe_option.name }}"

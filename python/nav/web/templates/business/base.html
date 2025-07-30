@@ -39,6 +39,7 @@
         The first day of a new period an email containing last periods report will be sent to you.
       </p>
       <form id="subscription-form" class="inline-form" method="post" action="{% url 'save-report-subscription' %}">
+        {% csrf_token %}
         <input type="hidden" name="report_type" value="{{ report_type }}"/>
         Send
         <select name="period">
