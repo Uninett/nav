@@ -248,6 +248,7 @@
   {# Acknowledge alert #}
   <div id="actions-acknowledge" class="action-container">
     <form action="{% url 'status2_acknowledge_alert' %}">
+      {% csrf_token %}
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
 
       <label>
@@ -276,6 +277,7 @@
   {# Resolve/clear alert #}
   <div id="actions-resolve" class="action-container">
     <form action="{% url 'status2_clear_alert' %}">
+      {% csrf_token %}
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
       <a data-dropdown="resolve-info" aria-controls="resolve-info" aria-expanded="false">About</a>
       <input type="submit" class="button small secondary right" value="Clear alert" />
@@ -301,6 +303,7 @@
   {# Put on maintenance #}
   <div id="actions-maintenance" class="action-container">
     <form action="{% url 'status2_put_on_maintenance' %}">
+      {% csrf_token %}
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
       <label>
         Description
@@ -328,6 +331,7 @@
   {# Delete module or chassis #}
   <div id="actions-delete" class="action-container">
     <form action="{% url 'status2_delete_module_or_chassis' %}">
+      {% csrf_token %}
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
       <input type="submit" class="button small secondary full-width" value="Delete module or chassis" />
     </form>
