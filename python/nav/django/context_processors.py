@@ -79,11 +79,7 @@ def account_processor(request):
     tools = sorted(tool_list(account), key=attrgetter('name'))
 
     password_issues = dict()
-    if account.is_authenticated and (
-        account.has_plaintext_password()
-        or account.has_old_style_password_hash()
-        or account.has_deprecated_password_hash_method()
-    ):
+    if account.has_password_issues():
         password_issues["message"] = (
             "Your account has an insecure or old password. It should be reset."
         )
