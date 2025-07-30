@@ -1,3 +1,6 @@
+import io
+from zipfile import ZipFile
+
 from django.urls import reverse
 from django.http import Http404
 from django.test.client import RequestFactory
@@ -149,3 +152,87 @@ def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netbo
     )
     post("")
     assert len(NetboxInfo.objects.filter(netbox=netbox, variable='function')) == 0
+
+
+def test_generating_qr_codes_for_netboxes_should_succeed(client, netbox):
+    url = reverse('seeddb-netbox')
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "qr_code": "Generate+QR+codes+for+selected",
+            "object": [netbox.id],
+        },
+    )
+
+    # Check response headers
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/zip"
+    assert int(response.headers["Content-Length"]) > 0
+    assert "attachment" in response.headers["Content-Disposition"]
+    assert "qr_codes.zip" in response.headers["Content-Disposition"]
+
+    # Check response content
+    buf = io.BytesIO(b"".join(response.streaming_content))
+    assert ZipFile(buf, "r").namelist() == [f"{netbox.sysname}.png"]
+
+
+def test_generating_qr_codes_for_no_selected_netboxes_should_show_error(client, netbox):
+    url = reverse('seeddb-netbox')
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "qr_code": "Generate+QR+codes+for+selected",
+        },
+    )
+
+    assert response.status_code == 200
+    assert (
+        'You need to select at least one object to generate QR codes for'
+        in smart_str(response.content)
+    )
+
+
+def test_generating_qr_codes_for_rooms_should_succeed(client):
+    url = reverse('seeddb-room')
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "qr_code": "Generate+QR+codes+for+selected",
+            "object": ["myroom"],
+        },
+    )
+
+    # Check response headers
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/zip"
+    assert int(response.headers["Content-Length"]) > 0
+    assert "attachment" in response.headers["Content-Disposition"]
+    assert "qr_codes.zip" in response.headers["Content-Disposition"]
+
+    # Check response content
+    buf = io.BytesIO(b"".join(response.streaming_content))
+    assert ZipFile(buf, "r").namelist() == ["myroom.png"]
+
+
+def test_generating_qr_codes_for_no_selected_rooms_should_show_error(client, netbox):
+    url = reverse('seeddb-room')
+
+    response = client.post(
+        url,
+        follow=True,
+        data={
+            "qr_code": "Generate+QR+codes+for+selected",
+        },
+    )
+
+    assert response.status_code == 200
+    assert (
+        'You need to select at least one object to generate QR codes for'
+        in smart_str(response.content)
+    )
