@@ -99,11 +99,7 @@ def get_number_of_accounts_with_password_issues() -> int:
     if number_of_accounts_with_password_issues is None:
         number_of_accounts_with_password_issues = 0
         for account in Account.objects.all():
-            if not account.is_default_account() and (
-                account.has_plaintext_password()
-                or account.has_old_style_password_hash()
-                or account.has_deprecated_password_hash_method()
-            ):
+            if account.has_password_issues():
                 number_of_accounts_with_password_issues += 1
         cache.set(PASSWORD_ISSUES_CACHE_KEY, number_of_accounts_with_password_issues)
 
