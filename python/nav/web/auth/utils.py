@@ -93,6 +93,10 @@ def authorization_not_required(fullpath):
 
 
 def get_number_of_accounts_with_password_issues() -> int:
+    """
+    Returns the number of accounts that have password issues like old style password
+    hashes, plaintext passwords or deprecated password hash methods
+    """
     number_of_accounts_with_password_issues = cache.get(
         PASSWORD_ISSUES_CACHE_KEY, default=None
     )
