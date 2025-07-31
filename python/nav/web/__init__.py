@@ -22,6 +22,7 @@ import sys
 import os.path
 
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 import nav.logs
 from nav.config import NAVConfigParser
@@ -58,6 +59,7 @@ file_format = png
 webfrontConfig = WebfrontConfigParser()
 
 
+@csrf_exempt
 def refresh_session(request):
     """Forces a refresh of the session by setting the modified flag"""
     request.session.modified = True
