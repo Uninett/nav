@@ -293,6 +293,18 @@ class Account(AbstractBaseUser):
             return self.password_hash.method != nav.pwhash.DEFAULT_METHOD
         return False
 
+    def has_password_issues(self):
+        """Returns True if this account has password issues
+
+        Problems can be an old style password hash, a plaintext password or a deprecated
+        password hash method
+        """
+        return self.is_authenticated and (
+            self.has_plaintext_password()
+            or self.has_old_style_password_hash()
+            or self.has_deprecated_password_hash_method()
+        )
+
     @sensitive_variables('password')
     def _verify_old_password_hash_and_rehash(self, password):
         """Verifies an old-style MD5 password hash, and if there is a match,

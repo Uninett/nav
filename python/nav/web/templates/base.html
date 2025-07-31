@@ -176,6 +176,14 @@
     </div>
 {% endif %}
 
+{% if current_user_data.password_issues %}
+    <div id="password-issues-bar">
+        <img src="{{ STATIC_URL }}images/main/emblem-important.png"/>
+        {{ current_user_data.password_issues.message }}
+        <a href="{{ current_user_data.password_issues.link }}">{{ current_user_data.password_issues.link_message }}</a>
+    </div>
+{% endif %}
+
 {% comment %} BREADCRUMB {% endcomment %}
 <ul id="nav-breadcrumbs" class="breadcrumbs">
   {% for element in navpath %}

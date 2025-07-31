@@ -22,6 +22,7 @@ import os
 from operator import attrgetter
 
 from django.conf import settings
+from django.urls import reverse
 
 from nav.config import find_config_file
 from nav.web.auth import get_login_url, get_logout_url
@@ -77,6 +78,14 @@ def account_processor(request):
 
     tools = sorted(tool_list(account), key=attrgetter('name'))
 
+    password_issues = dict()
+    if account.has_password_issues():
+        password_issues["message"] = (
+            "Your account has an insecure or old password. It should be reset."
+        )
+        password_issues["link"] = reverse("webfront-preferences")
+        password_issues["link_message"] = "Change your password here."
+
     current_user_data = {
         'account': account,
         'is_admin': admin,
@@ -85,6 +94,7 @@ def account_processor(request):
         'my_links': my_links,
         'tools': tools,
         'split_tools': split_tools(tools),
+        'password_issues': password_issues,
     }
     return {
         'current_user_data': current_user_data,
