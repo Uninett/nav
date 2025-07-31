@@ -287,6 +287,14 @@ class DeviceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class DeviceInlineSerializer(serializers.ModelSerializer):
+    """Serializer for the device model"""
+
+    class Meta(object):
+        model = manage.Device
+        fields = ('id', 'serial')
+
+
 class ModuleInlineSerializer(serializers.ModelSerializer):
     """Serializer for including module information in other serializers"""
 
@@ -516,4 +524,14 @@ class ServiceHandlerSerializer(serializers.Serializer):
     description = serializers.CharField()
 
     class Meta(object):
+        fields = '__all__'
+
+
+class NetboxEntitySerializer(serializers.ModelSerializer):
+    """Serializer for the NetboxEntity model"""
+
+    device = DeviceInlineSerializer()
+
+    class Meta(object):
+        model = manage.NetboxEntity
         fields = '__all__'
