@@ -1,61 +1,30 @@
 #qr-code-modal {
-    /* Underlay covers entire screen. */
-    position: fixed;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-
-    /* Flexbox centers the .modal-content vertically and horizontally */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    /* Animate when opening */
-    animation-name: fadeIn;
-    animation-duration: 150ms;
-    animation-timing-function: ease;
-
     .modal-underlay {
-        /* underlay takes up the entire viewport. To click to dismiss the popup */
-        position: absolute;
-        z-index: -1;
-        top: 0px;
-        bottom: 0px;
-        left: 0px;
-        right: 0px;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba($black, .45);
+        z-index: 1004;
     }
 
     .modal-content {
-        /* Position visible dialog near the top of the window */
-        margin-top: 10vh;
-
-        /* Sizing for visible dialog */
-        width: 80%;
-        max-width: 600px;
-
-        /* Display properties for visible dialog */
-        border: solid 1px #999;
-        border-radius: 8px;
-        box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.3);
-        background-color: white;
-        padding: 20px;
-
-        /* Animate when opening */
-        animation-name: zoomIn;
-        animation-duration: 150ms;
-        animation-timing-function: ease;
+        position: absolute;
+        z-index: 1005;
+        width: 30%;
+        top:0;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        border-radius: $global-radius;
+        box-shadow: 0 0 10px rgba($black,.4);
+        background-color: $white;
+        padding: rem-calc(20);
 
         /* Center qr code */
         text-align: center;
 
-    .close {
-        /* Close button top right */
-        position: relative;
-        float: right;
-        font-size:x-large;
-      }
+    .close-reveal-modal { @include reveal-close; }
     }
 }
