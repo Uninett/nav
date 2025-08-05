@@ -169,7 +169,66 @@ class JWTPermission(BasePermission):
         token = request.auth  # type: JWTToken
         if not token or not isinstance(token, JWTToken):
             return False
-        return True
+
+        endpoints_ok = self._check_endpoints(request, token)
+        req_method_ok = self._check_read_write(request, token)
+        permissions_ok = endpoints_ok and req_method_ok
+        if not permissions_ok:
+            _logger.warning(
+                'JWT token %s not permitted to access endpoint %s', token, request.path
+            )
+        return permissions_ok
+
+    @staticmethod
+    def _check_read_write(request, token):
+        """Verify that the token permission matches the method"""
+        return token.get('write', False) or request.method in SAFE_METHODS
+
+    @staticmethod
+    def _check_endpoints(request, token):
+        """Verify that this token has permission to access the request path
+        :type request: rest_framework.request.Request
+        :type token: JWTToken
+
+        NB: This will fail if the version is not specified in the request url
+        """
+        endpoints = token.get('endpoints', [])
+        if not endpoints:
+            return False
+
+        return JWTPermission.is_path_in_endpoints(request.path, endpoints)
+
+    @staticmethod
+    def is_path_in_endpoints(request_path, endpoints):
+        """
+        :param str request_path: the request path
+        :param list endpoints: the endpoints available for a token as a list
+        :return: if the path is in one of the endpoints for this token
+        """
+        # Create prefix for the current api version
+        prefix = '/'.join([JWTPermission.url_prefix, str(JWTPermission.version)])
+        # Cut prefix from path
+        request_path = JWTPermission._ensure_trailing_slash(
+            request_path.replace(prefix, '').replace(JWTPermission.url_prefix, '')
+        )
+        # Create a list of endpoints and remove prefix from them
+        endpoints = [e.replace(prefix, '') for e in endpoints]
+        # Check if path is in one of the endpoints
+        return any(
+            [
+                request_path.startswith(
+                    JWTPermission._ensure_trailing_slash(urlparse(endpoint).path)
+                )
+                for endpoint in endpoints
+            ]
+        )
+
+    @staticmethod
+    def _ensure_trailing_slash(path):
+        """Ensure that the path ends with a slash
+        :type path: str
+        """
+        return path if path.endswith('/') else path + '/'
 
 
 APITokensPermission = TokenPermission | JWTPermission
