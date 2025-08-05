@@ -2,14 +2,24 @@ import io
 import zipfile
 
 from nav.web.utils import (
-    generate_qr_code,
+    generate_png_qr_code,
+    generate_svg_qr_code,
     generate_qr_code_as_string,
     generate_qr_codes_as_zip_response,
 )
 
 
-def test_generate_qr_code_returns_bytes():
-    qr_code = generate_qr_code(url="www.example.com", caption="buick.lab.uninett.no")
+def test_generate_png_qr_code_returns_bytes():
+    qr_code = generate_png_qr_code(
+        url="www.example.com", caption="buick.lab.uninett.no"
+    )
+    assert isinstance(qr_code, bytes)
+
+
+def test_generate_svg_qr_code_returns_bytes():
+    qr_code = generate_svg_qr_code(
+        url="www.example.com", caption="buick.lab.uninett.no"
+    )
     assert isinstance(qr_code, bytes)
 
 
