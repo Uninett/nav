@@ -171,7 +171,9 @@ def generate_qr_code_as_string(
     return base64.b64encode(qr_code_bytes).decode('utf-8')
 
 
-def generate_qr_codes_as_zip_response(url_dict: dict[str, str]) -> FileResponse:
+def generate_qr_codes_as_zip_response(
+    url_dict: dict[str, str], file_format: Literal["png", "svg"] = "png"
+) -> FileResponse:
     """
     Takes a dict of the form {name:url} and returns a FileResponse object that
     represents a ZIP file consisting of named PNG images of QR codes which map
@@ -182,12 +184,15 @@ def generate_qr_codes_as_zip_response(url_dict: dict[str, str]) -> FileResponse:
     """
     qr_codes_dict = dict()
     for caption, url in url_dict.items():
-        qr_codes_dict[caption] = generate_png_qr_code(url=url, caption=caption)
+        if file_format == "png":
+            qr_codes_dict[caption] = generate_png_qr_code(url=url, caption=caption)
+        elif file_format == "svg":
+            qr_codes_dict[caption] = generate_svg_qr_code(url=url, caption=caption)
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for image_name, qr_code_bytes in qr_codes_dict.items():
-            zf.writestr(image_name + ".png", qr_code_bytes)
+            zf.writestr(image_name + "." + file_format, qr_code_bytes)
     buf.seek(0)
 
     return FileResponse(buf, as_attachment=True, filename="nav_qr_codes.zip")
