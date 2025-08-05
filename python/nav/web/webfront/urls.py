@@ -92,4 +92,5 @@ urlpatterns = [
         views.set_account_preference,
         name='set-account-preference',
     ),
+    re_path(r'^qr-code/$', views.qr_code, name='webfront-qr-code'),
 ]

@@ -101,6 +101,7 @@
               <li><a href="{{ link.uri }}">{{ link.name }}</a></li>
             {% endfor %}
             <li class="divider"><a href="{% url 'webfront-preferences' %}">My account <i class="fa fa-gear"></i></a></li>
+            <li class="divider"><a hx-get="{% url 'webfront-qr-code' %}" hx-target="body" hx-swap="beforeend">QR Code <i class="fa fa-qrcode"></i></a></li>
           </ul>
         </li>
       {% endif %}
