@@ -100,7 +100,8 @@ Provides access to NAVs netbox data
 api/netboxentity/[<id>]
 ---------------
 
-Provides access to NAVs NetboxEntity data
+Provides access to NAV's collected physical entities information
+(I.e. physical contents of IP Devices, in most cases collected from `ENTITY-MIB::entPhysicalTable`)
 
 :Search: None
 
