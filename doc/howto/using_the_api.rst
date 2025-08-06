@@ -72,11 +72,11 @@ NAV will soon support generating JWT tokens for local use, as opposed to tokens 
 You will be able to generate refresh tokens via the frontend which can be used to obtain access tokens
 that can be used as described :ref:`above <jwt-token>`.
 
-In order to create access tokens you must use the refresh token endpoint, which is available at ``/api/refresh/``.
+In order to create access tokens you must use the refresh token endpoint, which is available at ``/api/jwt/refresh/``.
 The endpoint takes a JSON object with a single key, ``refresh_token``, which should contain the
 token you wish to use::
 
-  curl -X POST -H "Content-type: application/json" http://localhost:80/api/refresh/ -d '{"refresh_token": "<refresh_token>"}'
+  curl -X POST -H "Content-type: application/json" http://localhost:80/api/jwt/refresh/ -d '{"refresh_token": "<refresh_token>"}'
 
 The response will contain an access token and a new refresh token::
 
