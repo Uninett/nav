@@ -1328,6 +1328,7 @@ class JWTRefreshViewSet(APIView):
         token_hash = hash_token(incoming_token)
         try:
             # If hash exists in the database, then we know it is a real token
+            # This means that we do not need to verify the signature of the token
             db_token = JWTRefreshToken.objects.get(hash=token_hash)
         except JWTRefreshToken.DoesNotExist:
             return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
