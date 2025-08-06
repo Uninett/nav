@@ -47,7 +47,11 @@ TEST_DATA = {
 @pytest.mark.parametrize("url", ENDPOINTS.values())
 def test_forbidden_endpoints(db, api_client, url):
     response = api_client.get(url)
-    assert response.status_code == 403
+    if url == ENDPOINTS['jwt_refresh']:
+        # JWT refresh endpoint only accepts POST requests
+        assert response.status_code == 405
+    else:
+        assert response.status_code == 403
 
 
 @pytest.mark.parametrize("name, url", ENDPOINTS.items())

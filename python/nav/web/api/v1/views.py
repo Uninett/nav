@@ -1330,14 +1330,39 @@ class NetboxEntityViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
     filterset_fields = ['netbox', 'physical_class']
 
 
-class JWTRefreshViewSet(APIView):
+class JWTRefreshViewSet(NAVAPIMixin, APIView):
     """
     Accepts a valid refresh token.
     Returns a new refresh token and an access token.
     """
 
     def post(self, request):
-        incoming_token = request.data.get('refresh_token')
+        # This adds support for requests via the browseable API.
+        # Browseble API sends QueryDict with _content key.
+        # Tests send QueryDict without _content key so it can be treated
+        # as a regular dict.
+        if isinstance(request.data, QueryDict) and '_content' in request.data:
+            json_string = request.data.get('_content')
+            if not json_string:
+                return Response("Empty JSON body", status=status.HTTP_400_BAD_REQUEST)
+            try:
+                data = json.loads(json_string)
+            except json.JSONDecodeError:
+                return Response("Invalid JSON", status=status.HTTP_400_BAD_REQUEST)
+            if not isinstance(data, dict):
+                return Response(
+                    "Invalid request body. Must be a JSON dict",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        elif isinstance(request.data, dict):
+            data = request.data
+        else:
+            return Response(
+                "Invalid request body. Must be a JSON dict",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        incoming_token = data.get('refresh_token')
         if incoming_token is None:
             return Response("Missing token", status=status.HTTP_400_BAD_REQUEST)
         if not isinstance(incoming_token, str):
