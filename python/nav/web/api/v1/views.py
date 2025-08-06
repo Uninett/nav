@@ -175,6 +175,7 @@ def get_endpoints(request=None, version=1):
         'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
         'module': reverse_lazy('{}module-list'.format(prefix), **kwargs),
         'vendor': reverse_lazy('{}vendor'.format(prefix), **kwargs),
+        'jwt_refresh': reverse_lazy('{}jwt-refresh'.format(prefix), **kwargs),
     }
 
 
