@@ -53,5 +53,5 @@ The keypair can be generated like so::
 
 This keypair should ideally only be used for JWT token generation in one NAV instance.
 If you are using the same keypair for multiple instances, you should use different issuer names for each instance.
-That is important because the NAV token validation uses the pulbic key and the ``aud`` claim to decide if the token is valid,
+That is important because the NAV token validation uses the public key and the ``aud`` claim to decide if the token is valid,
 so if someone else can generate tokens using the same keypair and the same ``aud`` claim they can also gain access to your NAV instance.
