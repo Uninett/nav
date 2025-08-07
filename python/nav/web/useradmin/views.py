@@ -769,7 +769,7 @@ class JWTDelete(generic.DeleteView):
 
 @require_POST
 def jwt_revoke(request, pk):
-    """Revokea jwt token
+    """Revoke a jwt token
     :param pk: Primary key
     :type request: django.http.request.HttpRequest
     """
