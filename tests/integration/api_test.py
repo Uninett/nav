@@ -57,6 +57,9 @@ def test_allowed_endpoints(db, api_client, token, serializer_models, name, url):
         response = api_client.get("{}?active=1".format(url))
     else:
         response = api_client.get(url)
+    if name == 'jwt_refresh':
+        # JWT refresh endpoint only accepts POST requests
+        assert response.status_code == 405
     assert response.status_code == 200
 
 
