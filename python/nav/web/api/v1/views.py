@@ -1336,6 +1336,8 @@ class JWTRefreshViewSet(NAVAPIMixin, APIView):
     Returns a new refresh token and an access token.
     """
 
+    permission_classes = []
+
     def post(self, request):
         # This adds support for requests via the browseable API.
         # Browseble API sends QueryDict with _content key.
