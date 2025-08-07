@@ -12,14 +12,14 @@ class TestIsPathInEndpoints:
         endpoints = ['/api/1/netbox/']
         assert not JWTPermission.is_path_in_endpoints(path, endpoints)
 
-    def test_when_endpoint_matches_path_except_endpoint_lacks_trailing_slash_then_it_should_return_true(
+    def test_when_endpoint_matches_path_except_endpoint_lacks_trailing_slash_then_it_should_return_true(  # noqa: E501
         self,
     ):
         path = '/api/1/room/'
         endpoints = ['/api/1/room']
         assert JWTPermission.is_path_in_endpoints(path, endpoints)
 
-    def test_when_endpoint_matches_path_except_path_lacks_version_then_it_should_return_true(
+    def test_when_endpoint_matches_path_except_path_lacks_version_then_it_should_return_true(  # noqa: E501
         self,
     ):
         path = '/api/room/'
@@ -39,7 +39,7 @@ class TestIsPathInEndpoints:
 
         assert JWTPermission.is_path_in_endpoints(path, endpoints)
 
-    def test_when_path_is_not_in_list_with_multiple_endpoints_then_it_should_return_false(
+    def test_when_path_is_not_in_list_with_multiple_endpoints_then_it_should_return_false(  # noqa: E501
         self,
     ):
         path = '/api/1/alert/'
