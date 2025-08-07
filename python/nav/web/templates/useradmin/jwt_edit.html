@@ -1,10 +1,9 @@
 {% extends "useradmin/base.html" %}
 
-
 {% block base_header_additional_head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/multi-select.css">
   <style>
-    #edit-token-form input[type=submit] { float:left; margin-right: 1.25rem }
+    #edit-jwt-form input[type=submit] { float:left; margin-right: 1.25rem }
     label[for='id_endpoints'] { display: none; }
   </style>
   <script>
@@ -34,9 +33,9 @@
 {% block content %}
 
   Back to
-  <a href="{% url 'useradmin-token_list' %}">token list</a>
+  <a href="{% url 'useradmin-jwt_list' %}">token list</a>
   {% if object %}
-    | <a href="{% url 'useradmin-token_detail' object.pk %}">token details</a>
+    | <a href="{% url 'useradmin-jwt_detail' object.pk %}">token details</a>
   {% endif %}
 
   <div id="form-panel" class="panel white">
@@ -55,9 +54,13 @@
 
     {% if object %}
       {# Display button for revoking a token #}
-      <form action="{% url 'useradmin-token_expire' object.pk %}" method="post">
-        {% csrf_token %}
-        <input type="submit" value="Expire token" class="button small">
+      <form action="{% url 'useradmin-jwt_revoke' object.pk %}" method="post">
+        <input type="submit" value="Revoke token" class="button small">
+      </form>
+
+      {# Display button for recreating a token #}
+      <form action="{% url 'useradmin-jwt_recreate' object.pk %}" method="post">
+        <input type="submit" value="Recreate token" class="button small">
       </form>
 
       {# Display form for deleting a token #}
@@ -69,9 +72,8 @@
 
       <div id="confirm-token-delete" class="f-dropdown content">
         <form id="delete-token-form"
-              action="{% url 'useradmin-token_delete' object.pk %}"
-              method="post">
-          {% csrf_token %}
+              action="{% url 'useradmin-jwt_delete' object.pk %}"
+              method="post">{% csrf_token %}
           <input type="submit" value="Yes, delete" class="button small alert expand">
         </form>
         <span class="button secondary small close-button expand">No, don't delete</span>
