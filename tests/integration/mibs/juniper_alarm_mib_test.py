@@ -37,7 +37,7 @@ class TestJuniperAlarmMib:
 
     @pytest.mark.twisted
     @pytest_twisted.inlineCallbacks
-    def test_get_alarm_count_should_get_the_correct_red_and_yellow_alarm_counts_for_result_None(
+    def test_get_alarm_count_should_get_the_correct_red_and_yellow_alarm_counts_for_result_None(  # noqa: E501
         self, snmp_agent_proxy
     ):
         snmp_agent_proxy.community = 'juniper-alarm-none'

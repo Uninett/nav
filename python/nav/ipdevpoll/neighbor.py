@@ -96,7 +96,6 @@ INVALID_IPS = (
 )
 
 
-# pylint: disable=R0903
 class Neighbor(object):
     "Abstract base class for neigbor identification"
 

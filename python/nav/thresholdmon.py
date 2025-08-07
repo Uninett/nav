@@ -74,7 +74,6 @@ def scan():
     _logger.info("done")
 
 
-# pylint: disable=W0703
 def evaluate_rule(rule, alerts):
     """
     Evaluates the current status of a single rule and posts events if

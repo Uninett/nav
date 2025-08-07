@@ -37,7 +37,6 @@ Netbox' own interfaces.
 Port nodes can have outgoing edges to other Port nodes, or to Netbox nodes
 
 """
-# pylint: disable=R0903
 
 from collections import defaultdict
 from itertools import chain

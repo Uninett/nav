@@ -53,7 +53,6 @@ encoding=utf-8
 
 _config = WebfrontConfigParser()
 
-# pylint: disable=C0103
 try:
     import ldap
 except ImportError as err:

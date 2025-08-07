@@ -52,7 +52,6 @@ CONFIGFILE = os.path.join("arnold", "arnold.conf")
 NONBLOCKFILE = os.path.join("arnold", "nonblock.conf")
 _logger = logging.getLogger(__name__)
 
-# pylint: disable=C0103
 Candidate = namedtuple("Candidate", "camid ip mac interface endtime")
 
 
@@ -532,7 +531,6 @@ def get_host_name(ip):
     return hostname
 
 
-# pylint: disable=E1103
 def get_netbios(ip):
     """Get netbiosname of computer with ip"""
 

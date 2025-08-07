@@ -19,6 +19,7 @@
 
 <div id="navigation-view">
   <form id="netmap-view-create-form" style="display: none">
+    {% csrf_token %}
     <input type="text" name="viewname" placeholder="View name" required>
     <textarea name="viewdescription" placeholder="View description"></textarea>
     <label><input type="checkbox" name="public" checked>Public</label>
@@ -27,6 +28,7 @@
 
   {% comment %} jQuery UI is kinda stupid (or maybe we are), so we need two forms {% endcomment %}
   <form id="netmap-view-edit-form" style="display: none">
+    {% csrf_token %}
     <input type="text" name="viewname" placeholder="View name" required>
     <textarea name="viewdescription" placeholder="View description"></textarea>
     <label><input type="checkbox" name="public" checked>Public</label>

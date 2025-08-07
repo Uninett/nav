@@ -32,7 +32,6 @@ from nav.macaddress import MacAddress
 
 SPLITCHAR = '!'
 
-# pylint: disable=C0103
 NetbiosResult = namedtuple('NetbiosResult', 'ip name server username mac')
 
 _logger = logging.getLogger(__name__)

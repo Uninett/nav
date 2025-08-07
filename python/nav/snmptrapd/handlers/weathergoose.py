@@ -229,7 +229,6 @@ class GeistWeatherGoose(WeatherGoose2):
 HANDLER_CLASSES = (WeatherGoose1, WeatherGoose2, GeistWeatherGoose)
 
 
-# pylint: disable=unused-argument
 def handleTrap(trap, config=None):
     """This function is called from snmptrapd"""
 

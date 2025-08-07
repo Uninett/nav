@@ -23,6 +23,7 @@
 <div id="rackmodal" class="reveal-modal small" data-reveal role="dialog">
   <h3>Add new rack</h3>
   <form action="{% url 'room-info-racks-add-rack' room.pk %}" method="post">
+    {% csrf_token %}
     <input type="hidden" name="roomid" value="{{ room.pk }}">
     <label>
       Rack name

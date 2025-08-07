@@ -33,10 +33,8 @@ from twisted.names import dns
 from twisted.names import client
 from twisted.internet import defer, task
 
-# pylint: disable=E1101
 from twisted.internet import reactor
 
-# pylint: disable=W0611
 from twisted.names.error import DNSUnknownError
 from twisted.names.error import DomainError, AuthoritativeDomainError
 from twisted.names.error import DNSQueryTimeoutError, DNSFormatError

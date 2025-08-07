@@ -535,10 +535,6 @@ def group_privilege_remove(request, group_id, privilege_id):
     return render(request, 'useradmin/delete.html', context)
 
 
-# The Django generic views are heavy on mixins - disable warning about ancestors
-# pylint: disable=too-many-ancestors
-
-
 class NavPathMixin(object):
     def get_context_data(self, **kwargs):
         context = super(NavPathMixin, self).get_context_data(**kwargs)

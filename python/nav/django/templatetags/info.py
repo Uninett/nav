@@ -22,7 +22,6 @@ import time
 from django import template
 from django.utils.timesince import timesince
 
-# pylint: disable=C0103
 register = template.Library()
 
 
@@ -185,6 +184,9 @@ def is_list(value):
 
 @register.filter
 def dunderless(mapping):
-    """Returns a mapping with all elements of the input mapping except for ones whose key starts with dunder"""
+    """
+    Returns a mapping with all elements of the input mapping except for ones whose key
+    starts with dunder
+    """
     mapping = {k: v for k, v in mapping.items() if not k.startswith('__')}
     return mapping

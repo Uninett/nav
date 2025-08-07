@@ -29,7 +29,10 @@ def test_editing_deleted_netboxes_should_raise_404(admin_account):
 
 def test_adding_netbox_with_invalid_ip_should_fail(db, client):
     url = reverse('seeddb-netbox-edit')
-    ip = "195.88.54.16'))) OR 2121=(SELECT COUNT(*) FROM GENERATE_SERIES(1,15000000)) AND ((('FRyc' LIKE 'FRyc"
+    ip = (
+        "195.88.54.16'))) OR 2121=(SELECT COUNT(*) FROM GENERATE_SERIES(1,15000000)) "
+        "AND ((('FRyc' LIKE 'FRyc"
+    )
 
     response = client.post(
         url,
@@ -110,7 +113,7 @@ def test_log_netbox_change_should_not_crash(admin_account, netbox):
     assert log_netbox_change(admin_account, old, new) is None
 
 
-def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netboxinfo_instance(
+def test_empty_function_field_in_netbox_edit_form_should_delete_respective_netboxinfo_instance(  # noqa: E501
     netbox, db, client
 ):
     """

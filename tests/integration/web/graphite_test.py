@@ -28,7 +28,14 @@ def test_graphite_proxy_should_not_log_503_error_from_graphite_web(
 ):
     from django.conf import settings
 
-    url = "/graphite/render/?width=815&height=364&_salt=1400078618.531&from=-1hours&target=alias%28sumSeries%28group%28carbon.agents.%2A.metricsReceived%29%29%2C%22Metrics+received%22%29&target=alias%28sumSeries%28group%28carbon.agents.%2A.committedPoints%29%29%2C%22Committed+points%22%29&target=alias%28secondYAxis%28sumSeries%28group%28carbon.agents.%2A.cache.size%29%29%29%2C%22Cache+size%22%29"
+    url = (
+        "/graphite/render/?width=815&height=364&_salt=1400078618.531&from=-1hours"
+        "&target=alias%28sumSeries%28group%28carbon.agents.%2A.metricsReceived%29%29%2C%"
+        "22Metrics+received%22%29&target=alias%28sumSeries%28group%28carbon.agents.%2A."
+        "committedPoints%29%29%2C%22Committed+points%22%29&target=alias%28secondYAxis"
+        "%28sumSeries%28group%28carbon.agents.%2A.cache.size%29%29%29%2C%22Cache+size"
+        "%22%29"
+    )
     monkeypatch.setattr(
         settings, "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
     )
@@ -42,7 +49,14 @@ def test_graphite_proxy_should_not_log_503_error_from_graphite_web(
 def test_graphite_proxy_should_respond_with_graphite_web_status_code(
     client, mock_graphite_config, fake_graphite_web_server
 ):
-    url = "/graphite/render/?width=815&height=364&_salt=1400078618.531&from=-1hours&target=alias%28sumSeries%28group%28carbon.agents.%2A.metricsReceived%29%29%2C%22Metrics+received%22%29&target=alias%28sumSeries%28group%28carbon.agents.%2A.committedPoints%29%29%2C%22Committed+points%22%29&target=alias%28secondYAxis%28sumSeries%28group%28carbon.agents.%2A.cache.size%29%29%29%2C%22Cache+size%22%29"
+    url = (
+        "/graphite/render/?width=815&height=364&_salt=1400078618.531&from=-1hours"
+        "&target=alias%28sumSeries%28group%28carbon.agents.%2A.metricsReceived"
+        "%29%29%2C%22Metrics+received%22%29&target=alias%28sumSeries%28group%28"
+        "carbon.agents.%2A.committedPoints%29%29%2C%22Committed+points%22%29"
+        "&target=alias%28secondYAxis%28sumSeries%28group%28carbon.agents.%2A.cache."
+        "size%29%29%29%2C%22Cache+size%22%29"
+    )
     response = client.get(url)
     assert response.status_code == 503
 

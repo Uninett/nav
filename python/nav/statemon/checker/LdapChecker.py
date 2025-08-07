@@ -83,7 +83,6 @@ class LdapChecker(AbstractChecker):
             filtr = args.get("filter", "objectClass=*")
             try:
                 conn.search_ext_s(base, scope, filterstr=filtr, timeout=self.timeout)
-                # pylint: disable=W0703
             except Exception as err:  # noqa: BLE001
                 return (
                     Event.DOWN,

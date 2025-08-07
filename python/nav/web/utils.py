@@ -65,7 +65,6 @@ def require_param(parameter):
     Will check both GET and POST querydict for the parameter.
     """
 
-    # pylint: disable=missing-docstring
     def wrap(func):
         def wrapper(request, *args, **kwargs):
             if parameter in request.GET or parameter in request.POST:

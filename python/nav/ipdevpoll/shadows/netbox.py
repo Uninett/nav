@@ -25,7 +25,6 @@ from nav.models import manage
 from nav.ipdevpoll.storage import Shadow
 
 
-# pylint: disable=C0111
 class Netbox(Shadow):
     __shadowclass__ = manage.Netbox
     __lookups__ = ['sysname', 'ip']

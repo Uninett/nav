@@ -105,13 +105,11 @@ class CacheableObject(object):
         """Returns True if this object is stored in an ObjectCache dictionary"""
         return self._cache is not None
 
-    # pylint: disable=R0201
     def is_invalid(self):
         """Returns True if this object is too old (or invalid in some
         other way) to remain in the cache."""
         return False
 
-    # pylint: disable=R0201
     def refresh(self):
         """Refresh the object, if possible"""
         return False

@@ -88,6 +88,7 @@
     <h4>Add patch</h4>
     Connect interface <em class="interfacename"></em> to
     <form>
+      {% csrf_token %}
       <input id="cable-search" name="cableid" type="text" placeholder="Search for cable">
       <input name="split" type="text" placeholder="Split" value="">
       <input class="interfaceid" name="interfaceid" type="hidden" value="">
@@ -103,6 +104,7 @@
     Remove patch from interface <em class="interfacename"></em>?
     <div>
       <form class="left">
+        {% csrf_token %}
         <input class="interfaceid" type="hidden" name="interfaceid" value="">
         <button id="remove-patch-button" class="button small warning">Yes</button>
       </form>

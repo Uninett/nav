@@ -32,7 +32,6 @@ NODES = MIB['nodes']
 TRAPS = MIB['notifications']
 
 
-# pylint: disable=unused-argument
 def handleTrap(trap, config=None):
     # Two interesting traps:
     # bsnAPAssociated and bsnAPDisassociated

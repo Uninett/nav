@@ -109,7 +109,7 @@ def collect_active_ip(prefix, starttime=None, endtime=None):
         query = (
             basequery
             + """
-        WHERE (ip << %s AND end_time = 'infinity')
+        WHERE (ip << %s AND end_time >= 'infinity')
         """
         )
         cursor.execute(query, (prefix,))

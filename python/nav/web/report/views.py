@@ -29,8 +29,6 @@ from os.path import join
 
 from IPy import IP
 
-# this is just here to make sure Django finds NAV's settings file
-# pylint: disable=W0611
 from django.core.cache import cache
 from django.core.paginator import Paginator, InvalidPage
 from django.shortcuts import render

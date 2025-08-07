@@ -143,8 +143,9 @@ def main(args=None):
             if row.message != "rlm_eap_mschapv2: Issuing Challenge":
                 if row.status != "Login OK":
                     sqlQuery = (
-                        "INSERT INTO %s (time, type, message, status, username, client, port) VALUES (timestamp '%%s', %%s, %%s, %%s, %%s, %%s, %%s)"
-                        % (db_radiuslog_table)
+                        "INSERT INTO %s (time, type, message, status, username, "
+                        "client, port) VALUES (timestamp '%%s', %%s, %%s, %%s, %%s, "
+                        "%%s, %%s)" % (db_radiuslog_table)
                     )
                     sqlParameters = (
                         row.time,
@@ -396,7 +397,8 @@ class Tail(object):
 ###############################################################################
 
 auth_pattern = re.compile(
-    '^(?P<time>.*) : (?P<type>Auth): (?P<message>(?P<status>.*?): \[(?P<user>.*?)\] \(from client (?P<client>[^ ]+) port (?P<port>[^ ]+)( cli (?P<cli>[^ ]+)|)\))\s*$'
+    '^(?P<time>.*) : (?P<type>Auth): (?P<message>(?P<status>.*?): \[(?P<user>.*?)\] '
+    '\(from client (?P<client>[^ ]+) port (?P<port>[^ ]+)( cli (?P<cli>[^ ]+)|)\))\s*$'
 )
 other_pattern = re.compile('^(?P<time>.*) : (?P<type>[^:]+): (?P<message>.*?)\s*$')
 ignore_rlmsql = re.compile('Error: rlm_sql')

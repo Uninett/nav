@@ -86,5 +86,4 @@ class CiscoCDPMib(mibretriever.MibRetriever):
         return CDPNeighbor(ifindex, ip, deviceid, deviceport)
 
 
-# pylint: disable=C0103
 CDPNeighbor = namedtuple('CDPNeighbor', 'ifindex ip deviceid deviceport')

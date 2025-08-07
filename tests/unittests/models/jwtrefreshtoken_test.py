@@ -25,7 +25,7 @@ class TestIsActive:
         )
         assert not token.is_active()
 
-    def test_when_token_activated_in_the_past_and_expires_in_the_future_it_should_return_true(
+    def test_when_token_activated_in_the_past_and_expires_in_the_future_it_should_return_true(  # noqa: E501
         self,
     ):
         now = datetime.now()

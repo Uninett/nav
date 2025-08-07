@@ -26,7 +26,10 @@ def test_all_unique_ouis_should_be_registered(db, mock_oui_file):
 
 
 def test_duplicate_ouis_should_not_be_registered(db, mock_duplicate_oui_file):
-    """The OUI file we use is known to have duplicate OUIs, but only one should be registered"""
+    """
+    The OUI file we use is known to have duplicate OUIs, but only one should be
+    registered
+    """
     update_ouis()
     assert OUI.objects.count() == 1
 
@@ -82,7 +85,7 @@ A8C647     (base 16)		Extreme Networks Headquarters
                             2121 RDU Center Drive
                             Morrisville  NC  27560
                             US
-    """
+    """  # noqa: E501
     download_file_mock = Mock(return_value=mocked_oui_data)
     monkeypatch.setattr("nav.bin.update_ouis._download_oui_file", download_file_mock)
 

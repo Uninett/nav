@@ -132,6 +132,7 @@ MIDDLEWARE = (
     'nav.web.auth.middleware.AuthorizationMiddleware',
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
 )
 
 SESSION_SERIALIZER = 'nav.web.session_serializer.PickleSerializer'
@@ -160,6 +161,7 @@ TIME_FORMAT = 'H:i:s'
 SHORT_TIME_FORMAT = 'H:i'  # Use template filter to access this
 DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, TIME_FORMAT)
 SHORT_DATETIME_FORMAT = '%s %s' % (DATE_FORMAT, SHORT_TIME_FORMAT)
+USE_L10N = False
 
 TIME_ZONE = NAV_CONFIG.get('TIME_ZONE', 'Europe/Oslo')
 DOMAIN_SUFFIX = NAV_CONFIG.get('DOMAIN_SUFFIX', None)
@@ -220,6 +222,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.humanize',
     'django_filters',
+    'django_htmx',
     'rest_framework',
     'nav.auditlog',
     'nav.web.macwatch',
@@ -272,11 +275,9 @@ X_FRAME_OPTIONS = _websecurity_config.get_x_frame_options()
 if _config_dir:
     sys.path.append(os.path.join(_config_dir, "python"))
 try:
-    # pylint: disable=E0602
     LOCAL_SETTINGS
 except NameError:
     try:
-        # pylint: disable=F0401
         from local_settings import *
     except ImportError:
         pass

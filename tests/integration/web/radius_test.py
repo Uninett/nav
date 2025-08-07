@@ -17,7 +17,8 @@ def test_account_log_search_should_not_crash_on_big_days(db, client, admin_usern
     url = reverse('radius-account_search')
     url = (
         url
-        + f'?query_0=username&query_1={admin_username}&time_0=days&time_1=123123123123123&port_type=&send=Search'
+        + f'?query_0=username&query_1={admin_username}&time_0=days'
+        + '&time_1=123123123123123&port_type=&send=Search'
     )
     response = client.get(url)
 
@@ -27,9 +28,9 @@ def test_account_log_search_should_not_crash_on_big_days(db, client, admin_usern
 
 def test_error_log_search_should_not_crash_on_big_hours(db, client, admin_username):
     url = reverse('radius-log_search')
-    url = (
-        url
-        + f'?query_0=username&query_1={admin_username}&log_entry_type=&time_0=hours&time_1=123123123123123&send=Search'
+    url += (
+        f'?query_0=username&query_1={admin_username}&log_entry_type=&time_0=hours'
+        '&time_1=123123123123123&send=Search'
     )
     response = client.get(url)
 

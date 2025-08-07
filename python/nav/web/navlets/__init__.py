@@ -13,7 +13,6 @@
 # more details.  You should have received a copy of the GNU General Public
 # License along with NAV. If not, see <http://www.gnu.org/licenses/>.
 #
-# pylint: disable=E1101
 """Navlets - the NAV version of portlets
 
 To use create a Navlet do the following:
@@ -436,7 +435,9 @@ def add_user_navlet_sensor(request):
                 'on_message': sensor.on_message,
                 'off_message': sensor.off_message,
                 'on_state': sensor.on_state,
-                'alert_type': ALERT_TYPES[sensor.alert_type],
+                'alert_type': ALERT_TYPES.get(
+                    sensor.alert_type, ALERT_TYPES[Sensor.ALERT_TYPE_WARNING]
+                ),
             }
         else:
             navlet = 'nav.web.navlets.sensor.SensorWidget'

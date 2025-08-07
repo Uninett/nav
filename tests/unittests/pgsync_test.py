@@ -5,7 +5,7 @@ from unittest import TestCase
 
 
 class TestChangeScriptFinder(TestCase):
-    def test_init_should_read_sql_filenames_from_package_and_return_list_of_relative_filenames(
+    def test_init_should_read_sql_filenames_from_package_and_return_list_of_relative_filenames(  # noqa: E501
         self,
     ):
         csf = ChangeScriptFinder('nav.models')

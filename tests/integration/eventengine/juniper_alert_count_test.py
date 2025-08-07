@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class TestBlackBox:
-    def test_eventengine_should_copy_alert_count_to_alert_history_on_yellow_start_event(
+    def test_eventengine_should_copy_alert_count_to_alert_history_on_yellow_start_event(  # noqa:E501
         self,
         netbox_having_new_alarm_count,
     ):
@@ -36,7 +36,7 @@ class TestBlackBox:
         variables = alert.variables.all()
         assert int(variables.get(variable="count").value) == count
 
-    def test_eventengine_should_create_new_alert_history_entry_on_second_yellow_start_event_with_changed_count(
+    def test_eventengine_should_create_new_alert_history_entry_on_second_yellow_start_event_with_changed_count(  # noqa:E501
         self,
         netbox_having_new_alarm_count,
     ):
@@ -82,7 +82,7 @@ class TestBlackBox:
         variables = alert.variables.all()
         assert int(variables.get(variable="count").value) == count
 
-    def test_eventengine_should_create_new_alert_history_entry_on_second_red_start_event_with_changed_count(
+    def test_eventengine_should_create_new_alert_history_entry_on_second_red_start_event_with_changed_count(  # noqa:E501
         self,
         netbox_having_new_alarm_count,
     ):

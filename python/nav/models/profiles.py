@@ -17,8 +17,6 @@
 #
 """Django ORM wrapper for profiles in NAV"""
 
-# pylint: disable=R0903
-
 from hashlib import md5
 import itertools
 import logging
@@ -216,8 +214,9 @@ class Account(AbstractBaseUser):
     def is_staff(self):
         """Returns True if this user is a staff member.
 
-        This is only here for compatibility with Django libraries that may expect this to be a django.contrib.auth
-        user model.  NAV has no concept of staff vs superuser.  Either the user is an admin, or they're not.
+        This is only here for compatibility with Django libraries that may expect this
+        to be a django.contrib.auth user model.  NAV has no concept of staff vs
+        superuser.  Either the user is an admin, or they're not.
         """
         return self.is_admin()
 
@@ -225,8 +224,9 @@ class Account(AbstractBaseUser):
     def is_superuser(self):
         """Returns True if this user is a superuser.
 
-        This is only here for compatibility with Django libraries that may expect this to be a django.contrib.auth
-        user model.  NAV has no concept of staff vs superuser.  Either the user is an admin, or they're not.
+        This is only here for compatibility with Django libraries that may expect this
+        to be a django.contrib.auth user model.  NAV has no concept of staff vs
+        superuser.  Either the user is an admin, or they're not.
         """
         return self.is_admin()
 

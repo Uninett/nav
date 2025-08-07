@@ -23,7 +23,6 @@ from nav.statemon.abstractchecker import AbstractChecker
 from nav.statemon.event import Event
 
 
-# pylint: disable=R0904
 class IMAPConnection(imaplib.IMAP4):
     """Customized IMAP protocol interface"""
 
@@ -31,7 +30,6 @@ class IMAPConnection(imaplib.IMAP4):
         self.timeout = timeout
         imaplib.IMAP4.__init__(self, host, port)
 
-    # pylint: disable=W0222
     def open(self, host, port):
         self.sock = socket.create_connection((host, port), self.timeout)
         self.file = self.sock.makefile("rb")

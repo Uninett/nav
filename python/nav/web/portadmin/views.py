@@ -228,8 +228,8 @@ def populate_infodict(request, netbox, interfaces):
         readonly = True
         messages.error(
             request,
-            "%s did not respond within the set timeouts. Values displayed are from database"
-            % netbox.sysname,
+            "%s did not respond within the set timeouts. Values displayed are from "
+            "database" % netbox.sysname,
         )
         if (
             isinstance(handler, SNMPHandler)

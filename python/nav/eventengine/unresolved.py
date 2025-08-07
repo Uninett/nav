@@ -31,8 +31,6 @@ def get_map():
 
 def update():
     """Updates the map of unresolved alerts from the database"""
-    # yes mr. pylint, we use global state, this module acts as a singleton
-    # pylint: disable=W0603
     global _unresolved_alerts_map
     unresolved = AlertHistory.objects.filter(end_time__gte=INFINITY)
     _unresolved_alerts_map = dict((alert.get_key(), alert) for alert in unresolved)

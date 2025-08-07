@@ -17,8 +17,6 @@
 #
 """Alert Profiles url config."""
 
-# pylint: disable=W0614,W0401
-
 from django.urls import re_path
 from nav.web.alertprofiles import views
 

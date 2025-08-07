@@ -135,7 +135,6 @@ class JobHandler(amp.CommandLocator):
         self.done = True
         return {}
 
-    # pylint: disable=no-self-use
     @Ping.responder
     def ping(self):
         """Returns the string "pong" as a response to a ping"""
@@ -280,7 +279,6 @@ class Worker(object):
         """Returns the PID number of the worker process, if started"""
         try:
             if not self._pid:
-                # pylint: disable=protected-access
                 self._pid = self.process.transport._process.pid
         except AttributeError:
             return None

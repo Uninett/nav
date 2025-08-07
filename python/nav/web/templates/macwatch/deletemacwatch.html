@@ -10,6 +10,7 @@
             </p>
 
             <form action="." method="post">
+                {% csrf_token %}
                 <input type="submit" name="submit" class="button small alert"
                        value="Yes">
                 <input type="submit" name="submit"

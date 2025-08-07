@@ -263,8 +263,6 @@ atexit.register(closeConnections)
 class ConnectionParameters(object):
     """Database Connection parameters"""
 
-    # this data container class needs all these args, period.
-    # pylint: disable=R0913
     def __init__(self, dbhost, dbport, dbname, user, password):
         self.dbhost = dbhost
         self.dbport = dbport

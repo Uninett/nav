@@ -371,7 +371,6 @@ class MibRetriever(object, metaclass=MibRetrieverMaker):
         super(MibRetriever, self).__init__()
         self.agent_proxy = agent_proxy
         # touch _logger to initialize logging context right away
-        # pylint: disable=W0104
         self._logger
 
     def get_module_name(self):

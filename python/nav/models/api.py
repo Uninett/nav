@@ -34,7 +34,11 @@ class APIToken(models.Model):
     """
 
     permission_choices = (('read', 'Read'), ('write', 'Write'))
-    permission_help_text = "Read means that this token can be used for reading only. Write means that this token can be used to create new, update and delete objects as well as reading."
+    permission_help_text = (
+        "Read means that this token can be used for reading only. Write means that "
+        "this token can be used to create new, update and delete objects as well as "
+        "reading."
+    )
 
     token = VarcharField()
     expires = models.DateTimeField()

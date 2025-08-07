@@ -51,7 +51,6 @@ class Plugin(object):
         self.containers = containers
         self.config = config
         # touch _logger to initialize logging context right away
-        # pylint: disable=W0104
         self._logger
 
     def __str__(self):
@@ -64,8 +63,6 @@ class Plugin(object):
         """Handle plugin business, return a deferred."""
         raise NotImplementedError
 
-    # this is an API, so netbox goes unused in the base class:
-    # pylint: disable=W0613
     @classmethod
     def can_handle(cls, netbox):
         """Verifies whether this plugin can/wants to handle polling for this
