@@ -504,6 +504,21 @@ of these are automatically run every time a change is pushed to a branch
 in the offical NAV Github repository, or when a pull request is opened
 against this repository.
 
+Development environments
+========================
+
+A complete NAV development environment has many dependencies, and not all are
+necessarily easy to satisfy on an arbitrary developer's computer.  We have
+therefore built two different development environment specifications based on
+Docker Compose, which should make running NAV for development smoother.
+
+1. The oldest of these is a plain Docker Compose specification. Read
+   :doc:`using-docker` for further instructions.
+2. The newest of them is a `devcontainers`_ specification, which should
+   integrate more smoothly into most popular IDEs for Python developers (such
+   as PyCharm or VS Code).  Read :doc:`using-devcontainers` for further
+   instructions.
+
 Tips and tricks
 ===============
 
@@ -551,3 +566,4 @@ __ Github_
 .. _pre-commit: https://pre-commit.com/
 .. _Ruff: https://docs.astral.sh/ruff/
 .. _SonarCloud: https://sonarcloud.io/
+.. _devcontainers: https://containers.dev/

@@ -23,6 +23,13 @@ docclean:
 	-rm -rf doc/_build
 
 doc: doc/reference/alerttypes.rst
+	sphinx-build doc/ build/sphinx/html/
+
+docwatch:
+	@while inotifywait -e modify -e move -e create -e delete -r --exclude \# doc/ NOTES.rst; \
+	do \
+	  sphinx-build doc/ build/sphinx/html/ ;\
+	done \
 
 doc/reference/alerttypes.rst: .FORCE
 	python3 doc/exts/alerttypes.py > $@

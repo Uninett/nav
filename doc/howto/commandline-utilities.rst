@@ -249,6 +249,7 @@ Usage
 ~~~~~
 .. program-output:: navsynctypes --help
 
+.. _navuser-usage:
 ------------------
 :command:`navuser`
 ------------------
