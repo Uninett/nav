@@ -23,6 +23,7 @@ import configparser
 import os.path
 
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
 import nav.logs
 from nav.config import find_config_file
@@ -36,6 +37,7 @@ if _configfile:
     webfrontConfig.read(_configfile)
 
 
+@csrf_exempt
 def refresh_session(request):
     """Forces a refresh of the session by setting the modified flag"""
     request.session.modified = True
