@@ -1,16 +1,13 @@
-import io
-
-from nav.web.utils import generate_qr_code, generate_qr_codes_as_byte_strings
+from nav.web.utils import generate_qr_code, generate_qr_code_as_string
 
 
-def test_generate_qr_code_returns_byte_buffer():
+def test_generate_qr_code_returns_bytes():
     qr_code = generate_qr_code(url="www.example.com", caption="buick.lab.uninett.no")
-    assert isinstance(qr_code, io.BytesIO)
+    assert isinstance(qr_code, bytes)
 
 
-def test_generate_qr_codes_as_byte_strings_returns_list_of_byte_strings():
-    qr_codes = generate_qr_codes_as_byte_strings(
-        {"buick.lab.uninett.no": "www.example.com"}
+def test_generate_qr_code_as_string_returns_string():
+    qr_code = generate_qr_code_as_string(
+        url="www.example.com", caption="buick.lab.uninett.no"
     )
-    assert isinstance(qr_codes, list)
-    assert isinstance(qr_codes[0], str)
+    assert isinstance(qr_code, str)
