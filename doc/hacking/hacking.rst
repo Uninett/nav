@@ -451,7 +451,7 @@ versions. For the time being, our test suite is divided into three parts
 (``unittests``, ``integration`` and ``functional``).  The unit test suite can
 usually be run just fine from your local computer as long as tox_ and pytest_
 are available, but the integration and functional test suites have lots of
-external requirements that make them best suited to be run in a containarized
+external requirements that make them best suited to be run in a containerized
 environment (we are, however, working on rebuilding this so the necessary
 environments are easier to achieve on your local computer.  Please see `PR#3248
 <https://github.com/Uninett/nav/pull/3248>`_ for ongoing work).
