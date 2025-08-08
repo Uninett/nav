@@ -16,13 +16,16 @@
 
   <form action="{{ request.path }}" method="post">
     {% csrf_token %}
-    {% if not hide_move or not hide_delete %}
+    {% if not hide_move or not hide_delete or not hide_qr_code %}
       <div>
         {% if not hide_move %}
           <input type="submit" name="move" value="Move selected" class="button small secondary" />
         {% endif %}
         {% if not hide_delete %}
           <input type="submit" name="delete" value="Delete selected" class="button small secondary"/>
+        {% endif %}
+        {% if not hide_qr_code %}
+          <input type="submit" name="qr_code" value="Download QR codes for selected" class="button small secondary"/>
         {% endif %}
       </div>
     {% endif %}

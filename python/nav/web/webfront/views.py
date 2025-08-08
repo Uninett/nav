@@ -38,9 +38,10 @@ from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web.auth import logout as auth_logout
-from nav.web import auth
+from nav.web import auth, webfrontConfig
 from nav.web.auth import ldap
 from nav.web.auth.utils import set_account
+from nav.web.utils import generate_qr_code_as_string
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
 from nav.web.webfront.forms import (
@@ -318,6 +319,19 @@ def preferences(request):
     context = _create_preference_context(request)
 
     return render(request, 'webfront/preferences.html', context)
+
+
+def qr_code(request):
+    """Show qr code linking to current page"""
+    url = request.headers.get("referer")
+    file_format = webfrontConfig.get("qr_codes", "file_format", fallback="png")
+    qr_code = generate_qr_code_as_string(url=url, caption=url, file_format=file_format)
+
+    return render(
+        request,
+        'webfront/_qr_code.html',
+        {'qr_code': qr_code, 'file_format': file_format},
+    )
 
 
 @sensitive_post_parameters('old_password', 'new_password1', 'new_password2')
