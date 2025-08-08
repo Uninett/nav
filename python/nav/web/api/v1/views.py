@@ -1321,8 +1321,11 @@ class JWTRefreshViewSet(NAVAPIMixin, APIView):
     permission_classes = []
 
     def post(self, request):
-        # This adds support for requests via the browseable API
-        if isinstance(request.data, QueryDict):
+        # This adds support for requests via the browseable API.
+        # Browseble API sends QueryDict with _content key.
+        # Tests send QueryDict without _content key so it can be treated
+        # as a regular dict.
+        if isinstance(request.data, QueryDict) and '_content' in request.data:
             json_string = request.data.get('_content')
             if not json_string:
                 return Response("Empty JSON body", status=status.HTTP_400_BAD_REQUEST)
