@@ -434,10 +434,10 @@ employed or commissioned by Sikt.
 Testing and Continuous Integration
 ==================================
 
-Much of NAV is **legacy code**, as defined by *Michael C. Feathers*:
-"Code that has no tests".  We have been making an effort to introduce
-automated tests into the codebase the past several years, and hope
-to improve coverage over time.
+Much of NAV is **legacy code**, as defined by *Michael C. Feathers*: "Code that
+has no tests".  Our goal is to improve this, and since about 2010 our test
+coverage has been slowly increasing. As of September 2024, our coverage is
+over 60%, and we aim to increase it further.
 
 All test suites (except those for Javascript) are located in the
 :file:`tests/` subdirectory.
@@ -445,10 +445,20 @@ All test suites (except those for Javascript) are located in the
 Running tests
 -------------
 
-We use a combination of pytest_ and tox_ to run the test suite.
+We use pytest_ as our test runner, and tox_ to enable running the test suites
+in matrix environments for different combinations of Python and Django
+versions. For the time being, our test suite is divided into three parts
+(``unittests``, ``integration`` and ``functional``).  The unit test suite can
+usually be run just fine from your local computer as long as tox_ and pytest_
+are available, but the integration and functional test suites have lots of
+external requirements that make them best suited to be run in a containerized
+environment (we are, however, working on rebuilding this so the necessary
+environments are easier to achieve on your local computer.  Please see `PR#3248
+<https://github.com/Uninett/nav/pull/3248>`_ for ongoing work).
 
-There's also a script to produce an entire test environment as a Docker
-image and to run the entire test suite inside a Docker container created
+
+For now, there is a script to produce an entire test environment as a Docker
+image, and to run the entire test suite inside a Docker container created
 from that image. Take a look in the :file:`tests/docker/` directory.
 
 For an interactive testing session with tox_, you can utilize the Docker image
