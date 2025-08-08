@@ -67,7 +67,6 @@ docs = ["sphinx_rtd_theme>=2.0.0"]
 
 [dependency-groups]
 dev = [
-    "black",
     "isort",
     "ruff",
     "towncrier",
