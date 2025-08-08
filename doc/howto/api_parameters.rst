@@ -97,6 +97,17 @@ Provides access to NAVs netbox data
 :Filters: ip, sysname, room, organization, category
 
 
+api/netboxentity/[<id>]
+---------------
+
+Provides access to NAV's collected physical entities information
+(I.e. physical contents of IP Devices, in most cases collected from `ENTITY-MIB::entPhysicalTable`)
+
+:Search: None
+
+:Filters: netbox, physical_class
+
+
 api/room/[<id>]
 ---------------
 

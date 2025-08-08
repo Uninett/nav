@@ -10,6 +10,7 @@ from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
 from nav.models.oui import OUI
+from nav.models.manage import NetboxEntity
 
 
 ENDPOINTS = {name: force_str(url) for name, url in get_endpoints().items()}
@@ -426,19 +427,22 @@ class TestVendorLookupPost:
         assert response.status_code == 400
 
 
-@pytest.fixture()
-def oui(db):
-    oui = OUI(oui='aa:bb:cc:00:00:00', vendor='myvendor')
-    oui.save()
-    yield oui
-    oui.delete()
+class TestNetboxEntityViewSet:
+    def test_should_return_list_of_entities(
+        self, db, api_client, netboxentity_endpoint, netboxentity
+    ):
+        endpoint = netboxentity_endpoint
+        response = get(api_client, endpoint)
+        assert response.status_code == 200
+        assert response.data['results'][0]['id'] == netboxentity.id
 
-
-@pytest.fixture()
-def vendor_endpoint(db, token):
-    endpoint = 'vendor'
-    create_token_endpoint(token, endpoint)
-    return endpoint
+    def test_should_get_correct_entity_when_accessing_with_id(
+        self, db, api_client, netboxentity_endpoint, netboxentity
+    ):
+        endpoint = netboxentity_endpoint
+        response = get(api_client, endpoint, id=netboxentity.id)
+        assert response.status_code == 200
+        assert response.data['id'] == netboxentity.id
 
 
 # Helpers
@@ -556,3 +560,33 @@ def serializer_models(localhost, admin_account):
     auditlog.LogEntry.add_log_entry(admin_account, verb='verb', template='asd')
     manage.Usage(id='ans', description='Ansatte').save()
     manage.Usage(id='student', description='Studenter').save()
+
+
+@pytest.fixture()
+def oui(db):
+    oui = OUI(oui='aa:bb:cc:00:00:00', vendor='myvendor')
+    oui.save()
+    yield oui
+    oui.delete()
+
+
+@pytest.fixture()
+def vendor_endpoint(db, token):
+    endpoint = 'vendor'
+    create_token_endpoint(token, endpoint)
+    return endpoint
+
+
+@pytest.fixture()
+def netboxentity_endpoint(db, token):
+    endpoint = 'netboxentity'
+    create_token_endpoint(token, endpoint)
+    return endpoint
+
+
+@pytest.fixture()
+def netboxentity(db, localhost):
+    netbox_entity = NetboxEntity(netbox=localhost, index=0)
+    netbox_entity.save()
+    yield netbox_entity
+    netbox_entity.delete()
