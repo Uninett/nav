@@ -155,6 +155,7 @@ def test_last_used_should_be_updated_after_token_is_used(
             'refresh_token': active_token,
         },
     )
+    assert response.status_code == 200
     new_token = response.data.get("refresh_token")
     new_hash = hashlib.sha256(new_token.encode('utf-8')).hexdigest()
     assert JWTRefreshToken.objects.get(hash=new_hash).last_used is not None
