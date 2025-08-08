@@ -7,6 +7,7 @@
 
    hacking
    hacking-with-pycharm
+   using-devcontainers
    using-docker
    javascript
    release-procedure
