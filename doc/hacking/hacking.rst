@@ -194,7 +194,7 @@ are immortalized in :pep:`257`.
 Much of the legacy NAV code was, however, written without using any specific
 guidelines for coding style. While all the old code has been formatted
 automatically using Ruff_, other :pep:`8` conventions aren't necessarily
-enfored here. We always accept patches that clean existing code.
+enforced here. We always accept patches that clean existing code.
 
 Pre-commit hooks and Ruff
 -------------------------
