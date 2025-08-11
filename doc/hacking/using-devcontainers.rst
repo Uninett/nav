@@ -185,5 +185,18 @@ necessary to have, it should be added to the relevant dependency groups in in
 the ``dependency-groups`` section of :file:`pyproject.toml`.
 
 
+PyCharm oddities
+================
+
+PyCharm seems to have problems with properly detecting the correct Python
+interpreter when running inside the devcontainer. When started, it lists the
+project as having *no interpreter*, and the only way to fix it is to manually
+select an existing interpreter (specifically,
+:file:`/home/vscode/.venv/bin/python`). Unfortunately, this choice does not
+seem to be persisted anywhere, so every time PyCharm is re-opened inside the
+container, this interpreter selection procedure needs to be repeated.
+
+
+
 .. _Docker Compose: https://docs.docker.com/compose/
 .. _uv: https://docs.astral.sh/uv/
