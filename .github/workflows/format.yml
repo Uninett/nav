@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Verify Python formatting
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - uses: astral-sh/ruff-action@v3
       with:
