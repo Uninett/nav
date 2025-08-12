@@ -10,9 +10,9 @@
    :target: https://codecov.io/gh/Uninett/nav
 .. image:: https://readthedocs.org/projects/nav/badge/?version=latest&style=flat
    :target: https://nav.readthedocs.io/en/latest/
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :alt: Code style: black
-   :target: https://github.com/psf/black
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+   :alt: Linting and formatting
+   :target: https://github.com/astral-sh/ruff
 
 
 This is NAV - Network Administration Visualized - an advanced software suite
