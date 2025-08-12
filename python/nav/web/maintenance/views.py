@@ -18,6 +18,7 @@
 import logging
 import time
 from datetime import datetime
+from typing import Optional
 
 from django.db import connection, transaction
 from django.db.models import Count, Model, Q
@@ -353,14 +354,15 @@ def edit(request, task_id=None, start_time=None, **_):
 @require_http_methods(["POST"])
 def component_search(request):
     """HTMX endpoint for component searches from maintenance task form"""
-    search = request.POST.get("search")
-    if not search or search == '':
+    raw_search = request.POST.get("search")
+    search = raw_search.strip() if raw_search else ''
+    if not search:
         return render(
             request, 'maintenance/_component-search-results.html', {'results': {}}
         )
 
     results = {}
-    searches: list[tuple[type[Model], Q, type[Model] | None]] = [
+    searches: list[tuple[type[Model], Q, Optional[Model]]] = [
         (Location, Q(id__icontains=search), None),
         (Room, Q(id__icontains=search), Location),
         (Netbox, Q(sysname__icontains=search), Room),

@@ -19,7 +19,7 @@ import pytest
 from django.urls import reverse
 
 from django.utils.encoding import smart_str
-from nav.models.manage import Netbox
+from nav.models.manage import Netbox, Room, Location
 from nav.models.msgmaint import MaintenanceTask
 
 
@@ -152,6 +152,81 @@ class TestEditMaintenanceTask:
         assert empty_maintenance_task.description in smart_str(response.content)
 
 
+class TestSearchMaintenanceComponents:
+    def test_given_an_existing_room_then_component_search_should_return_results(
+        self, db, client, new_room
+    ):
+        url = reverse('maintenance-component-search')
+        response = client.post(url, {'search': new_room.id})
+        assert response.status_code == 200
+        assert new_room.id in smart_str(response.content)
+
+    def test_given_a_non_existing_component_then_component_search_should_return_no_hits(
+        self, client
+    ):
+        url = reverse('maintenance-component-search')
+        response = client.post(url, {'search': 'nonexistent-component'})
+        assert response.status_code == 200
+        assert "No hits" in smart_str(response.content)
+
+    def test_given_an_empty_query_then_component_search_should_return_no_hits(
+        self, client
+    ):
+        url = reverse('maintenance-component-search')
+        response = client.post(url, {'search': ''})
+        assert response.status_code == 200
+        assert "No hits" in smart_str(response.content)
+
+
+class TestSelectMaintenanceComponents:
+    def test_given_an_existing_room_then_component_select_should_return_results(
+        self, db, client, new_room
+    ):
+        url = reverse('maintenance-component-select')
+        response = client.post(
+            url,
+            {
+                'room': new_room.id,
+            },
+        )
+        assert response.status_code == 200
+        assert f"name=\"room\" value=\"{new_room.id}\"" in smart_str(response.content)
+
+    def test_should_remove_given_room_from_response(self, db, client, new_room):
+        url = reverse('maintenance-component-select')
+        response = client.post(
+            url,
+            {
+                'room': new_room.id,
+                'remove_room': new_room.id,
+                'remove': [''],
+            },
+        )
+        assert response.status_code == 200
+        assert f"name=\"room\" value=\"{new_room.id}\"" not in smart_str(
+            response.content
+        )
+
+    def test_when_given_all_components_to_remove_then_it_should_return_none(
+        self, db, client, new_room
+    ):
+        url = reverse('maintenance-component-select')
+        room = new_room
+        location_id = room.location.id
+        response = client.post(
+            url,
+            {
+                'room': room.id,
+                'remove_room': room.id,
+                'location': location_id,
+                'remove_location': location_id,
+                'remove': [''],
+            },
+        )
+        assert response.status_code == 200
+        assert "(none)" in smart_str(response.content)
+
+
 @pytest.fixture
 def empty_maintenance_task(db):
     now = datetime.datetime.now()
@@ -163,3 +238,14 @@ def empty_maintenance_task(db):
     task.save()
     yield task
     task.delete()
+
+
+@pytest.fixture
+def new_room(db):
+    location = Location(id="testlocation")
+    location.save()
+    room = Room(id="123", description="Test Room", location=location)
+    room.save()
+    yield room
+    room.delete()
+    location.delete()
