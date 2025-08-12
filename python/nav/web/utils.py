@@ -18,15 +18,15 @@
 import base64
 import io
 import os
+import zipfile
 from datetime import datetime, timedelta
 
 from django import forms
-from django.http import HttpResponse, HttpRequest
+from django.http import FileResponse, HttpRequest, HttpResponse
 from django.views.generic.list import ListView
 
 import qrcode
 from PIL import ImageDraw, ImageFont
-import qrcode.image.pil
 
 
 def is_ajax(request: HttpRequest) -> bool:
@@ -122,6 +122,28 @@ def generate_qr_code_as_string(url: str, caption: str = "") -> str:
     """
     qr_code_bytes = generate_qr_code(url=url, caption=caption)
     return base64.b64encode(qr_code_bytes).decode('utf-8')
+
+
+def generate_qr_codes_as_zip_response(url_dict: dict[str, str]) -> FileResponse:
+    """
+    Takes a dict of the form {name:url} and returns a FileResponse object that
+    represents a ZIP file consisting of named PNG images of QR codes which map
+    each name of the element to its url
+
+    Returning the FileResponse in a Django view causes the ZIP file to be delivered
+    in the form of a download attachment in web browsers
+    """
+    qr_codes_dict = dict()
+    for caption, url in url_dict.items():
+        qr_codes_dict[caption] = generate_qr_code(url=url, caption=caption)
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for image_name, qr_code_bytes in qr_codes_dict.items():
+            zf.writestr(image_name + ".png", qr_code_bytes)
+    buf.seek(0)
+
+    return FileResponse(buf, as_attachment=True, filename="nav_qr_codes.zip")
 
 
 def validate_timedelta_for_overflow(days: int = 0, hours: int = 0):

@@ -17,12 +17,14 @@
 #
 """Forms and view functions for SeedDB's Room view"""
 
-from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
+from django.urls import reverse, reverse_lazy
 
 from nav.models.manage import Room
 from nav.bulkparse import RoomBulkParser
 from nav.bulkimport import RoomImporter
 
+from nav.web.message import new_message, Messages
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher
@@ -31,6 +33,9 @@ from nav.web.seeddb.utils.edit import render_edit
 from nav.web.seeddb.utils.delete import render_delete
 from nav.web.seeddb.utils.move import move
 from nav.web.seeddb.utils.bulk import render_bulkimport
+from nav.web.utils import (
+    generate_qr_codes_as_zip_response,
+)
 
 from ..forms import RoomForm, RoomFilterForm, RoomMoveForm
 
@@ -50,12 +55,17 @@ class RoomInfo(SeeddbInfo):
     add_url = reverse_lazy('seeddb-room-edit')
     bulk_url = reverse_lazy('seeddb-room-bulk')
     copy_url_name = 'seeddb-room-copy'
+    hide_qr_code = False
 
 
 def room(request):
     """Controller for listing, moving and deleting rooms"""
     return view_switcher(
-        request, list_view=room_list, move_view=room_move, delete_view=room_delete
+        request,
+        list_view=room_list,
+        move_view=room_move,
+        delete_view=room_delete,
+        download_qr_codes_view=room_download_qr_codes,
     )
 
 
@@ -81,6 +91,26 @@ def room_move(request):
     return move(
         request, Room, RoomMoveForm, 'seeddb-room', extra_context=info.template_context
     )
+
+
+def room_download_qr_codes(request):
+    """Controller for downloading qr codes for rooms"""
+    if not request.POST.getlist('object'):
+        new_message(
+            request,
+            "You need to select at least one object to generate QR codes for",
+            Messages.ERROR,
+        )
+        return HttpResponseRedirect(reverse('seeddb-room'))
+
+    url_dict = dict()
+    ids = request.POST.getlist('object')
+
+    for id in ids:
+        url = request.build_absolute_uri(reverse('room-info', kwargs={'roomid': id}))
+        url_dict[id] = url
+
+    return generate_qr_codes_as_zip_response(url_dict=url_dict)
 
 
 def room_delete(request, object_id=None):
