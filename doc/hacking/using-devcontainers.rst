@@ -31,7 +31,7 @@ definitions when you open the NAV project in them. They should typically prompt
 you and ask if you want to start the devcontainer and re-open the IDE inside
 it.
 
-The devcontainer only provides and environment for development, it doesn't do
+The devcontainer only provides an environment for development, it doesn't do
 much magic in the background.
 
 TL;DR
@@ -104,7 +104,7 @@ Preparing the database schema
 
 When you start the devcontainer for the first time, the database may be
 completely empty.  You will need to run the :samp:`navsyncdb` command in order
-to initialize and/or migrate NAV's database schema, before any NAV program are
+to initialize and/or migrate NAV's database schema, before any NAV programs are
 usable within the container.
 
 
@@ -181,7 +181,7 @@ Please be aware, though, that these packages will potentially be removed any
 time :samp:`uv sync` is rerun.  If a package is a new runtime dependency for
 code you're working on, it should be added to the ``project.dependencies`` list
 of :file:`pyproject.toml` ASAP.  If it's a development tool that is nice or
-necessary to have, it should be added to the relevant dependency groups in in
+necessary to have, it should be added to the relevant dependency groups in
 the ``dependency-groups`` section of :file:`pyproject.toml`.
 
 
