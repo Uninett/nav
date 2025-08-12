@@ -1,6 +1,6 @@
 # Full integration test image for NAV
 #
-FROM ubuntu:24.04
+FROM --platform=linux/amd64 ubuntu:24.04
 # We're using mount caches, so don't clean the apt cache after every apt command!
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
