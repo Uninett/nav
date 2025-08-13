@@ -4,7 +4,7 @@ Configuring JWT authentication
 -----------------------------
 
 The NAV API supports authentication with JSON Web Tokens (JWT). JWT issuers that your NAV instance should
-accept tokens from can be configured in :file:`jwt.conf`. The public key for the issuer is required,
+accept tokens from can be configured in :file:`webfront/jwt.conf`. The public key for the issuer is required,
 and can be configured either directly as a PEM file or via a JWKS endpoint.
 
 A configuration for two issuers may look like this::
@@ -30,12 +30,15 @@ In other words, anyone using the same token issuer could generate tokens and gai
 .. _local-jwt-configuration:
 Configuring local JWT token generation
 --------------------------------------
-Local JWT token generation is configured in the ``nav`` section of :file:`jwt.conf`.
+Local JWT token generation is configured in the ``nav`` section of :file:`webfront/jwt.conf`.
 
 You must configure three things: a private key, a public key, and the issuer name.
 The keys must be a private/public RSA keypair in PEM format.
 The issuer name is used for the ``iss`` and ``aud`` claims of generated tokens.
 The issuer name can be whatever you want, but a natural choice is the domain name of your NAV instance (e.g. ``nav.example.com``).
+Optionally, you can also configure the lifetime of access tokens and refresh tokens.
+These can be configured using the units s=seconds, m=minutes, h=hours or d=days.
+Default values are 1 hour for access tokens and 24 hours for refresh tokens.
 An example configuration is shown below::
 
   [nav]
@@ -45,6 +48,9 @@ An example configuration is shown below::
   public_key=/path/to/jwtRS256.key.pub
   # Used for the 'iss' and 'aud' claims of generated tokens.
   name=nav
+  #access_token_lifetime=1h
+  #refresh_token_lifetime=24h
+
 
 The keypair can be generated like so::
 
