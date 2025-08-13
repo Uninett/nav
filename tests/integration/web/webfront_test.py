@@ -2,7 +2,8 @@ from mock import Mock
 
 from django.urls import reverse
 from django.utils.encoding import smart_str
-from nav.models.profiles import AccountDashboard
+
+from nav.models.profiles import Account, AccountDashboard
 from nav.web.webfront.utils import tool_list
 
 
@@ -140,6 +141,29 @@ def test_shows_password_issue_banner_on_own_password_issues(db, client):
     assert (
         "Your account has an insecure or old password. It should be reset."
         in smart_str(response.content)
+    )
+
+
+def test_shows_password_issue_banner_to_admins_on_other_users_password_issues(
+    db, client, admin_account
+):
+    """
+    If other users have insecure or old passwords a banner should be shown to admins
+    """
+
+    # Admin account has a password with outdated password hashing method
+    # This needs to be fixed, otherwise the "Your password is insecure..." banner will
+    # be shown
+    admin_account.set_password("new_password")
+    admin_account.save()
+
+    Account.objects.create(login="plaintext_pw_user", password="plaintext_pw")
+
+    index_url = reverse('webfront-index')
+    response = client.get(index_url)
+
+    assert "There are 1 accounts that have insecure or old passwords." in smart_str(
+        response.content
     )
 
 

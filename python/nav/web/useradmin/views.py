@@ -19,6 +19,7 @@ import copy
 from datetime import datetime
 
 from django.contrib import messages
+from django.core.cache import cache
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -245,9 +246,13 @@ def account_delete(request, account_id):
         )
 
     if request.method == 'POST':
+        from nav.web.auth.utils import PASSWORD_ISSUES_CACHE_KEY
+
         account.delete()
         LogEntry.add_delete_entry(request.account, account)
         messages.success(request, 'Account %s has been deleted.' % (account.name))
+        # Delete cache entry of how many accounts have password issues
+        cache.delete(PASSWORD_ISSUES_CACHE_KEY)
         return HttpResponseRedirect(reverse('useradmin-account_list'))
 
     context = {

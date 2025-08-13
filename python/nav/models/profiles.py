@@ -26,6 +26,7 @@ import json
 
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.postgres.fields import HStoreField
+from django.core.cache import cache
 from django.db import models, transaction
 from django.forms.models import model_to_dict
 from django.urls import reverse
@@ -233,11 +234,16 @@ class Account(AbstractBaseUser):
     @sensitive_variables('password')
     def set_password(self, password):
         """Sets user password. Copied from nav.db.navprofiles"""
+        from nav.web.auth.utils import PASSWORD_ISSUES_CACHE_KEY
+
         if password.strip():
             pw_hash = nav.pwhash.Hash(password=password)
             self.password = str(pw_hash)
         else:
             self.password = ''
+
+        # Delete cache entry of how many accounts have password issues
+        cache.delete(PASSWORD_ISSUES_CACHE_KEY)
 
     @sensitive_variables('password')
     def check_password(self, password):

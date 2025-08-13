@@ -1,8 +1,13 @@
+from django.core.cache import cache
+from django.urls import reverse
+
 from nav.web.auth.utils import (
     set_account,
     clear_session,
     ACCOUNT_ID_VAR,
     ensure_account,
+    get_number_of_accounts_with_password_issues,
+    PASSWORD_ISSUES_CACHE_KEY,
 )
 
 
@@ -67,3 +72,41 @@ class TestEnsureAccount:
         assert session_request.account == default_account
         post_session_id = session_request.session.session_key
         assert post_session_id != pre_session_id
+
+
+class TestGetNumberOfAccountsWithPasswordIssues:
+    def test_returns_correct_number_of_accounts_with_password_issues(self, db):
+        cache.delete(PASSWORD_ISSUES_CACHE_KEY)
+
+        # Admin user in tests has deprecated password hash method
+        assert get_number_of_accounts_with_password_issues() == 1
+
+    def test_ignores_default_account(self, db, default_account):
+        cache.delete(PASSWORD_ISSUES_CACHE_KEY)
+
+        # Admin user in tests has deprecated password hash method
+        assert get_number_of_accounts_with_password_issues() == 1
+
+    def test_sets_cache_on_function_call(self, db, account):
+        cache.delete(PASSWORD_ISSUES_CACHE_KEY)
+
+        get_number_of_accounts_with_password_issues()
+
+        assert cache.get(PASSWORD_ISSUES_CACHE_KEY) is not None
+
+    def test_cache_entry_gets_deleted_on_password_change(self, db, account):
+        get_number_of_accounts_with_password_issues()
+
+        account.set_password("new_password")
+        account.save()
+
+        assert cache.get(PASSWORD_ISSUES_CACHE_KEY) is None
+
+    def test_cache_entry_gets_deleted_on_user_deletion(self, db, client, account):
+        get_number_of_accounts_with_password_issues()
+
+        url = reverse('useradmin-account_delete', args=(account.id,))
+
+        client.post(url, follow=True)
+
+        assert cache.get(PASSWORD_ISSUES_CACHE_KEY) is None
