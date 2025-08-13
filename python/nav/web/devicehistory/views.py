@@ -21,13 +21,13 @@ from django.db import connection, transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 
 from nav.event2 import EventFactory
 from nav.models.fields import INFINITY
-from nav.models.manage import Netbox, Module
+from nav.models.manage import Netbox, Module, Room, Location, NetboxGroup
 from nav.models.event import AlertHistory
 from nav.web.message import new_message, Messages
-from nav.web.quickselect import QuickSelect
 from nav.web.devicehistory.utils.history import (
     fetch_history,
     get_messages_for_history,
@@ -35,24 +35,11 @@ from nav.web.devicehistory.utils.history import (
     describe_search_params,
     add_descendants,
 )
+from nav.web.devicehistory.utils.componentsearch import get_component_search_results
 from nav.web.devicehistory.utils.error import register_error_events
 from nav.web.devicehistory.forms import DeviceHistoryViewFilter
 
 device_event = EventFactory('ipdevpoll', 'eventEngine', 'deviceState')
-
-DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS = {
-    'button': 'View %s history',
-    'module': True,
-    'netbox_label': '%(sysname)s [%(ip)s - %(chassis_serial)s]',
-}
-DEVICEQUICKSELECT_POST_ERROR_KWARGS = {
-    'button': 'Add %s error event',
-    'location': False,
-    'room': False,
-    'module': True,
-    'netbox_label': '%(sysname)s [%(ip)s - %(chassis_serial)s]',
-}
-
 
 # Often used timelimits, in seconds:
 ONE_DAY = 24 * 3600
@@ -66,8 +53,6 @@ _ = lambda a: a
 
 def devicehistory_search(request):
     """Implements the device history landing page / search form"""
-    device_quickselect = QuickSelect(**DEVICEQUICKSELECT_VIEW_HISTORY_KWARGS)
-
     if 'from_date' in request.GET:
         form = DeviceHistoryViewFilter(request.GET)
         if form.is_valid():
@@ -77,12 +62,27 @@ def devicehistory_search(request):
 
     info_dict = {
         'active': {'device': True},
-        'quickselect': device_quickselect,
         'navpath': [('Home', '/'), ('Device History', '')],
         'title': 'NAV - Device History',
         'form': form,
     }
     return render(request, 'devicehistory/history_search.html', info_dict)
+
+
+@require_http_methods(["POST"])
+def devicehistory_component_search(request):
+    """HTMX endpoint for component searches from device history form"""
+    raw_search = request.POST.get("search")
+    search = raw_search.strip() if raw_search else ''
+    if not search:
+        return render(
+            request, 'devicehistory/_component-search-results.html', {'results': {}}
+        )
+
+    results = get_component_search_results(search)
+    return render(
+        request, 'devicehistory/_component-search-results.html', {'results': results}
+    )
 
 
 def devicehistory_view_location(request, location_id):
@@ -152,7 +152,6 @@ def devicehistory_view(request, **_):
 
 def error_form(request):
     """Implements the 'register error event' form"""
-    device_quickselect = QuickSelect(**DEVICEQUICKSELECT_POST_ERROR_KWARGS)
     error_comment = request.POST.get('error_comment', "")
 
     return render(
@@ -161,7 +160,6 @@ def error_form(request):
         {
             'active': {'error': True},
             'confirm': False,
-            'quickselect': device_quickselect,
             'error_comment': error_comment,
             'title': 'NAV - Device History - Register error',
             'navpath': [
@@ -169,6 +167,24 @@ def error_form(request):
                 ('Register error event', ''),
             ],
         },
+    )
+
+
+@require_http_methods(["POST"])
+def registererror_component_search(request):
+    """HTMX endpoint for component searches from device history form"""
+    raw_search = request.POST.get("search")
+    search = raw_search.strip() if raw_search else ''
+    if not search:
+        return render(
+            request, 'devicehistory/_component-search-results.html', {'results': {}}
+        )
+
+    results = get_component_search_results(
+        search, 'error event', [Room, Location, NetboxGroup]
+    )
+    return render(
+        request, 'devicehistory/_component-search-results.html', {'results': results}
     )
 
 
