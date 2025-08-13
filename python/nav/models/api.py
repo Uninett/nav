@@ -81,7 +81,11 @@ class JWTRefreshToken(models.Model):
     """
 
     permission_choices = (('read', 'Read'), ('write', 'Write'))
-    permission_help_text = "Read means that this token can be used for reading only. Write means that this token can be used to create new, update and delete objects as well as reading."
+    permission_help_text = (
+        "Read means that this token can be used for reading only. Write means that "
+        "this token can be used to create new, update and delete objects as well as "
+        "reading."
+    )
 
     name = VarcharField(unique=True)
     description = models.TextField(null=True, blank=True)
