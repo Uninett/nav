@@ -166,6 +166,7 @@ def get_endpoints(request=None, version=1):
         'rack': reverse_lazy('{}rack-list'.format(prefix), **kwargs),
         'module': reverse_lazy('{}module-list'.format(prefix), **kwargs),
         'vendor': reverse_lazy('{}vendor'.format(prefix), **kwargs),
+        'netboxentity': reverse_lazy('{}netboxentity-list'.format(prefix), **kwargs),
     }
 
 
@@ -1301,3 +1302,20 @@ def validate_mac_addresses(mac_addresses: Sequence[str]) -> list[MacAddress]:
     if invalid_macs:
         raise ValueError(f"Invalid MAC address(es): {', '.join(invalid_macs)}")
     return validated_macs
+
+
+class NetboxEntityViewSet(NAVAPIMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    A simple ViewSet for viewing NetboxEntities.
+
+    Filters
+    -------
+    - netbox
+    - physical_class
+
+    Example: `/api/netboxentity/?netbox=109&physical_class=3`
+    """
+
+    queryset = manage.NetboxEntity.objects.all()
+    serializer_class = serializers.NetboxEntitySerializer
+    filterset_fields = ['netbox', 'physical_class']

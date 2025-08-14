@@ -52,6 +52,7 @@ router.register(
 )
 router.register(r'auditlog', auditlogapi.LogEntryViewSet, basename='auditlog')
 router.register(r'module', views.ModuleViewSet, basename='module')
+router.register(r'netboxentity', views.NetboxEntityViewSet, basename='netboxentity')
 
 
 urlpatterns = [
