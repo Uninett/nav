@@ -5,7 +5,7 @@ from nav.models.manage import Netbox, Module, Location, NetboxGroup, Room
 
 
 def get_component_search_results(
-    search: str, button_suffix: str = '', exclude: list[Model] = []
+    search: str, button_suffix: str = '', exclude: list[type[Model]] = []
 ):
     """
     Retrieves grouped search results for component types based on a search query.
@@ -50,6 +50,11 @@ def get_component_search_results(
 
 
 def _get_search_queries(search: str, exclude: list[Model] = []):
+    """
+    Constructs a list of search queries for different component types.
+
+    Excludes specified component types if provided.
+    """
     searches: list[tuple[type[Model], Q, type[Model] | None]] = [
         (Location, Q(id__icontains=search), None),
         (Room, Q(id__icontains=search), Location),
@@ -71,6 +76,10 @@ def _get_search_queries(search: str, exclude: list[Model] = []):
 
 
 def _get_component_query(component_type: Model, query: Q):
+    """
+    Constructs a query result for the specified component type based on
+    the provided query.
+    """
     if component_type._meta.db_table == "netbox":
         return Netbox.objects.with_chassis_serials().filter(query)
     return component_type.objects.filter(query)
@@ -79,6 +88,13 @@ def _get_component_query(component_type: Model, query: Q):
 def _prefetch_and_group_components(
     component_type: Model, query_results: QuerySet, group_by: Union[Model, None] = None
 ):
+    """
+    Prefetches related objects and groups the results by the specified group_by model.
+
+    If group_by is None, returns a flat list of component IDs and labels.
+    If group_by is specified, groups the results by the related model's
+    string representation.
+    """
     if group_by is None or not hasattr(component_type, group_by._meta.db_table):
         return [
             (component.id, _get_option_label(component)) for component in query_results
@@ -99,6 +115,9 @@ def _prefetch_and_group_components(
 
 
 def _get_option_label(component: Model):
+    """
+    Returns a string representation of the component for use in option labels.
+    """
     if component._meta.db_table == 'netbox':
         return '%(sysname)s [%(ip)s - %(chassis_serial)s]' % component.__dict__
     return str(component)
