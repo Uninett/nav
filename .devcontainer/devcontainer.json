@@ -9,7 +9,7 @@
     },
 	"service": "nav",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-    "postCreateCommand": "uv sync --all-extras; git config --global --add safe.directory /workspaces/${localWorkspaceFolderBasename}",
+    "postCreateCommand": "uv sync --all-extras --all-groups; git config --global --add safe.directory /workspaces/${localWorkspaceFolderBasename}",
     "postStartCommand": "uvx pre-commit install; bash /workspaces/${localWorkspaceFolderBasename}/.devcontainer/scripts/init-nav-config.sh",
     "forwardPorts": [8000],
 	// Features to add to the dev container. More info: https://containers.dev/features.
