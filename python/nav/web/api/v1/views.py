@@ -45,7 +45,9 @@ from rest_framework.generics import ListAPIView, get_object_or_404
 from rest_framework.serializers import ValidationError
 
 from oidc_auth.authentication import JSONWebTokenAuthentication
+import jwt
 
+from nav.django.settings import JWT_PUBLIC_KEY, JWT_NAME
 from nav.macaddress import MacAddress
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.api import JWTRefreshToken
@@ -61,7 +63,6 @@ from nav.web.jwtgen import (
     generate_access_token,
     generate_refresh_token,
     hash_token,
-    is_active,
 )
 from nav.macaddress import MacPrefix
 from .auth import (
@@ -1372,20 +1373,37 @@ class JWTRefreshViewSet(NAVAPIMixin, APIView):
 
         token_hash = hash_token(incoming_token)
         try:
-            # If hash exists in the database, then we know it is a real token
-            # This means that we do not need to verify the signature of the token
+            # Hash must be in the database for the token to be valid
             db_token = JWTRefreshToken.objects.get(hash=token_hash)
         except JWTRefreshToken.DoesNotExist:
             return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
-
-        claims = decode_token(incoming_token)
-        if not is_active(claims['exp'], claims['nbf']):
-            return Response("Inactive token", status=status.HTTP_403_FORBIDDEN)
 
         if db_token.revoked:
             return Response(
                 "This token has been revoked", status=status.HTTP_403_FORBIDDEN
             )
+
+        try:
+            claims = jwt.decode(
+                incoming_token,
+                JWT_PUBLIC_KEY,
+                audience=JWT_NAME,
+                issuer=JWT_NAME,
+                algorithms=["RS256"],
+            )
+        except jwt.InvalidSignatureError:
+            return Response("Invalid signature", status=status.HTTP_403_FORBIDDEN)
+        except jwt.InvalidAudienceError:
+            return Response("Invalid audience", status=status.HTTP_403_FORBIDDEN)
+        except jwt.InvalidIssuerError:
+            return Response("Invalid issuer", status=status.HTTP_403_FORBIDDEN)
+        except jwt.ExpiredSignatureError:
+            return Response("Token has expired", status=status.HTTP_403_FORBIDDEN)
+        except jwt.ImmatureSignatureError:
+            return Response("Token is not yet active", status=status.HTTP_403_FORBIDDEN)
+        # base exception for jwt.decode
+        except jwt.InvalidTokenError:
+            return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
 
         access_token = generate_access_token(claims)
         refresh_token = generate_refresh_token(claims)

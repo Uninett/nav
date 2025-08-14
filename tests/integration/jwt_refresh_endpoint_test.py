@@ -204,10 +204,18 @@ def jwt_private_key_mock(rsa_private_key) -> Generator[str, None, None]:
 
 
 @pytest.fixture(scope="module", autouse=True)
+def jwt_public_key_mock(rsa_public_key) -> Generator[str, None, None]:
+    """Mocks the JWT_PUBLIC_KEY setting"""
+    with patch("nav.web.api.v1.views.JWT_PUBLIC_KEY", rsa_public_key):
+        yield rsa_public_key
+
+
+@pytest.fixture(scope="module", autouse=True)
 def jwt_name_mock(nav_name) -> Generator[str, None, None]:
     """Mocks the JWT_NAME setting"""
     with patch("nav.web.jwtgen.JWT_NAME", nav_name):
-        yield nav_name
+        with patch("nav.web.api.v1.views.JWT_NAME", nav_name):
+            yield nav_name
 
 
 @pytest.fixture(scope="module", autouse=True)
