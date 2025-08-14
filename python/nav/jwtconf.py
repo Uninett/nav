@@ -2,13 +2,25 @@ import logging
 from os.path import join
 from functools import partial
 import configparser
-from typing import Any
+from typing import Any, Optional
+from dataclasses import dataclass
 from datetime import timedelta
 
 from nav.config import ConfigurationError, NAVConfigParser
 from nav.util import parse_interval
 
 _logger = logging.getLogger('nav.jwtconf')
+
+
+@dataclass
+class LocalJWTConfig:
+    """Local JWT configuration data"""
+
+    private_key: Optional[str] = None
+    public_key: Optional[str] = None
+    name: Optional[str] = None
+    access_token_lifetime: Optional[timedelta] = None
+    refresh_token_lifetime: Optional[timedelta] = None
 
 
 class JWTConf(NAVConfigParser):
@@ -32,6 +44,25 @@ class JWTConf(NAVConfigParser):
         except ConfigurationError as error:
             _logger.error('Error reading jwtconfig: %s', error)
             return dict()
+
+    def get_local_config(self) -> LocalJWTConfig:
+        """Returns dataclass containing the local JWT configuration data.
+        Data will be None if local tokens are not configured or the config is invalid.
+        Logs an error if the config is invalid.
+        """
+        if not self.has_section(self.NAV_SECTION):
+            return LocalJWTConfig()
+        try:
+            return LocalJWTConfig(
+                private_key=self.get_nav_private_key(),
+                public_key=self.get_nav_public_key(),
+                name=self.get_nav_name(),
+                access_token_lifetime=self.get_access_token_lifetime(),
+                refresh_token_lifetime=self.get_refresh_token_lifetime(),
+            )
+        except ConfigurationError as error:
+            _logger.error('Error reading NAV section of jwtconfig: %s', error)
+            return LocalJWTConfig()
 
     def _get_settings_for_external_tokens(self):
         settings = dict()

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from typing import Any
-from unittest.mock import Mock, patch
+from typing import Any, Generator
+from unittest.mock import patch
 
 import jwt
 import pytest
@@ -105,17 +105,33 @@ class TestDecodeToken:
 
 
 @pytest.fixture(scope="module", autouse=True)
-def jwtconf_mock(rsa_private_key, nav_name) -> str:
-    """Mocks the get_nav_name and get_nav_private_key functions for
-    the JWTConf class
-    """
-    with patch("nav.web.jwtgen.JWTConf") as _jwtconf_mock:
-        instance = _jwtconf_mock.return_value
-        instance.get_nav_name = Mock(return_value=nav_name)
-        instance.get_nav_private_key = Mock(return_value=rsa_private_key)
-        instance.get_access_token_lifetime = Mock(return_value=timedelta(hours=1))
-        instance.get_refresh_token_lifetime = Mock(return_value=timedelta(days=1))
-        yield _jwtconf_mock
+def jwt_private_key_mock(rsa_private_key) -> Generator[str, None, None]:
+    """Mocks the JWT_PRIVATE_KEY setting"""
+    with patch("nav.web.jwtgen.JWT_PRIVATE_KEY", rsa_private_key):
+        yield rsa_private_key
+
+
+@pytest.fixture(scope="module", autouse=True)
+def jwt_name_mock(nav_name) -> Generator[str, None, None]:
+    """Mocks the JWT_NAME setting"""
+    with patch("nav.web.jwtgen.JWT_NAME", nav_name):
+        yield nav_name
+
+
+@pytest.fixture(scope="module", autouse=True)
+def jwt_access_token_lifetime_mock() -> Generator[timedelta, None, None]:
+    """Mocks the JWT_ACCESS_TOKEN_LIFETIME setting"""
+    lifetime = timedelta(hours=1)
+    with patch("nav.web.jwtgen.JWT_ACCESS_TOKEN_LIFETIME", lifetime):
+        yield lifetime
+
+
+@pytest.fixture(scope="module", autouse=True)
+def jwt_refresh_token_lifetime_mock() -> Generator[timedelta, None, None]:
+    """Mocks the JWT_REFRESH_TOKEN_LIFETIME setting"""
+    lifetime = timedelta(days=1)
+    with patch("nav.web.jwtgen.JWT_REFRESH_TOKEN_LIFETIME", lifetime):
+        yield lifetime
 
 
 @pytest.fixture(scope="module")
