@@ -282,8 +282,19 @@ except NameError:
     except ImportError:
         pass
 
-_issuers_setting = JWTConf().get_issuers_setting()
+_jwtconf = JWTConf()
 
+# JWT settings are made available here so that they are read once on startup
+# instead of being read on-demand.
+# This is to combat inconsistencies that can occur if the config changes during runtime.
+_local_config = _jwtconf.get_local_config()
+JWT_PRIVATE_KEY = _local_config.private_key
+JWT_PUBLIC_KEY = _local_config.public_key
+JWT_NAME = _local_config.name
+JWT_ACCESS_TOKEN_LIFETIME = _local_config.access_token_lifetime
+JWT_REFRESH_TOKEN_LIFETIME = _local_config.refresh_token_lifetime
+
+_issuers_setting = _jwtconf.get_issuers_setting()
 OIDC_AUTH = {
     'JWT_ISSUERS': _issuers_setting,
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
