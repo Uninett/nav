@@ -24,6 +24,7 @@ from collections import defaultdict
 from random import randint
 from math import ceil
 
+from django.db.transaction import atomic
 from twisted.python.failure import Failure
 from twisted.internet import task, reactor
 from twisted.internet.defer import Deferred
@@ -41,7 +42,9 @@ from nav.ipdevpoll.utils import log_unhandled_failure
 
 from . import shadows, config, signals
 from .dataloader import NetboxLoader
+from .db import run_in_thread
 from .jobs import JobHandler, AbortedJobError, SuggestedReschedule
+from ..models.event import EventQueue
 
 _logger = logging.getLogger(__name__)
 
@@ -349,9 +352,17 @@ class JobScheduler(object):
         self.job = job
         self.pool = pool
         self.netboxes = NetboxLoader()
-        self.active_netboxes = {}
+        self.active_netboxes: dict[int, NetboxJobScheduler] = {}
 
         self.active_schedulers.add(self)
+
+    def __repr__(self):
+        return "<{} job={}>".format(self.__class__.__name__, self.job.name)
+
+    @classmethod
+    def get_job_schedulers_by_name(cls) -> dict[str, 'JobScheduler']:
+        """Returns the names of actively scheduled jobs in this process"""
+        return {scheduler.job.name: scheduler for scheduler in cls.active_schedulers}
 
     @classmethod
     def initialize_from_config_and_run(cls, pool, onlyjob=None):
@@ -543,3 +554,97 @@ class CounterFlusher(defaultdict):
 
 
 _COUNTERS = CounterFlusher()
+
+
+def handle_incoming_events():
+    """Checks the event queue for events addressed to ipdevpoll and handles them"""
+    # Since this extensively accesses the database, it needs to run in a thread:
+    return run_in_thread(_handle_incoming_events)
+
+
+@atomic
+def _handle_incoming_events():
+    events = EventQueue.objects.filter(target='ipdevpoll')
+    # Filter out (and potentially delete) events not worthy of our attention
+    events = [event for event in events if _event_pre_filter(event)]
+
+    boxes_to_reschedule = defaultdict(list)
+    # There may be multiple notifications queued for the same request, so group them
+    # by netbox+jobname
+    for event in events:
+        boxes_to_reschedule[(event.netbox_id, event.subid)].append(event)
+    _logger.debug("boxes_to_reschedule: %r", boxes_to_reschedule)
+
+    _reschedule_jobs(boxes_to_reschedule)
+
+
+def _reschedule_jobs(boxes_to_reschedule: dict[tuple[int, str], list[EventQueue]]):
+    job_schedulers = JobScheduler.get_job_schedulers_by_name()
+    for (netbox_id, job_name), events in boxes_to_reschedule.items():
+        first_event = events[0]
+        job_scheduler = job_schedulers[job_name]
+        netbox_scheduler = job_scheduler.active_netboxes[netbox_id]
+        _logger.info(
+            "Re-scheduling immediate %s run for %s as requested by %s",
+            first_event.netbox,
+            job_name,
+            first_event.source,
+        )
+        # Ensure all re-scheduling happens in the main reactor thread:
+        reactor.callFromThread(netbox_scheduler.reschedule, 0)
+        # now we can safely delete all the events
+        for event in events:
+            event.delete()
+
+
+def _event_pre_filter(event: EventQueue):
+    """Returns True if this event is worthy of this process' attention. If the event
+    isn't worthy of *any* ipdevpoll process' attention, we delete it from the database
+    too.
+    """
+    _logger.debug("Found event on queue: %r", event)
+    if not _is_valid_refresh_event(event):
+        event.delete()
+        return False
+    if not _is_refresh_event_for_me(event):
+        return False
+    return True
+
+
+def _is_valid_refresh_event(event: EventQueue) -> bool:
+    """Returns True if the event seems to be a valid refresh event for ipdevpoll."""
+    if event.event_type_id != 'notification':
+        _logger.info("Ignoring non-notification event from %s", event.source)
+        return False
+
+    if event.subid not in _get_valid_job_names():
+        _logger.info(
+            "Ignoring notification event from %s with unknown job name %r",
+            event.source,
+            event.subid,
+        )
+        return False
+
+    return True
+
+
+def _get_valid_job_names() -> set[str]:
+    """Returns a set of job names that exist in the ipdevpoll configuration"""
+    return set(job.name for job in config.get_jobs())
+
+
+def _is_refresh_event_for_me(event: EventQueue):
+    schedulers = JobScheduler.get_job_schedulers_by_name()
+    if event.subid not in schedulers:
+        _logger.debug(
+            "This process does not schedule %s, %r is not for us", event.subid, event
+        )
+        return False
+
+    if event.netbox_id not in schedulers[event.subid].netboxes:
+        _logger.debug(
+            "This process does not poll from %s, %r is not for us", event.netbox, event
+        )
+        return False
+
+    return True
