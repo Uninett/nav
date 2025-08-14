@@ -42,7 +42,7 @@ def main():
 
 @transaction.atomic
 def send_refresh_events(netboxes: list[Netbox], job: str):
-    """Sends refresh events for all selected netboxes and jobs"""
+    """Sends refresh events for all selected netboxes for the selected job"""
     for netbox in netboxes:
         print(f"Sending refresh event for {netbox.sysname} job {job}")
         event = RefreshEvent.notify(netbox=netbox, subid=job)

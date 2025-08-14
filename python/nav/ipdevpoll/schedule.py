@@ -612,7 +612,7 @@ def _event_pre_filter(event: EventQueue):
 
 
 def _is_valid_refresh_event(event: EventQueue) -> bool:
-    """Returns True if the event seems to be a vallid refresh event for ipdevpoll."""
+    """Returns True if the event seems to be a valid refresh event for ipdevpoll."""
     if event.event_type_id != 'notification':
         _logger.info("Ignoring non-notification event from %s", event.source)
         return False

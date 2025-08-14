@@ -166,7 +166,7 @@ def purge_old_job_log_entries():
 
 @transaction.atomic()
 def delete_stale_job_refresh_notifications():
-    """ "Deletes stalv job refresh events from the database, typically at process
+    """Deletes stale job refresh events from the database, typically at process
     startup time.
 
     All events in the queue can be considered stale at process startup, since all
