@@ -174,6 +174,12 @@ def get_component_keys(post):
 
 
 def get_component_name(model: models.Model):
+    """Returns a short name for the component type based on its model class.
+
+    Used as the input name for component keys in forms and APIs.
+
+    Location is abbreviated to 'loc' to avoid XSS issues.
+    """
     if model._meta.db_table == 'location':
         return 'loc'
     return model._meta.db_table
