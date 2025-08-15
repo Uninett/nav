@@ -18,14 +18,17 @@
 import base64
 import io
 import os
+import xml.etree.ElementTree as ET
 import zipfile
 from datetime import datetime, timedelta
+from typing import Literal
 
 from django import forms
 from django.http import FileResponse, HttpRequest, HttpResponse
 from django.views.generic.list import ListView
 
 import qrcode
+import qrcode.image.svg
 from PIL import ImageDraw, ImageFont
 
 
@@ -79,11 +82,11 @@ def require_param(parameter):
     return wrap
 
 
-def generate_qr_code(url: str, caption: str = "") -> bytes:
+def generate_png_qr_code(url: str, caption: str = "") -> bytes:
     """
     Generate a QR code from a given url, and, if given, adds a caption to it
 
-    Returns the generated image as bytes
+    Returns the generated png image as bytes
     """
     # Creating QR code
     qr = qrcode.QRCode(box_size=10)
@@ -116,15 +119,61 @@ def generate_qr_code(url: str, caption: str = "") -> bytes:
     return file_object.getvalue()
 
 
-def generate_qr_code_as_string(url: str, caption: str = "") -> str:
+def generate_svg_qr_code(url: str, caption: str = "") -> bytes:
     """
-    Takes an url and an optional caption and returns a QR code as a string
+    Generate a QR code from a given url, and, if given, adds a caption to it
+
+    Returns the generated svg image as bytes
     """
-    qr_code_bytes = generate_qr_code(url=url, caption=caption)
+    img = qrcode.make(url, image_factory=qrcode.image.svg.SvgPathImage)
+
+    root = ET.fromstring(img.to_string(encoding="unicode"))
+    if caption:
+        if len(caption) < 25:
+            font_size = "3"
+        elif len(caption) < 50:
+            font_size = "1.5"
+        else:
+            font_size = "1"
+        text = ET.SubElement(
+            root,
+            "text",
+            {
+                "x": "50%",
+                "y": "96%",
+                "text-anchor": "middle",
+                "font-size": font_size,
+            },
+        )
+        text.text = caption
+
+    del root.attrib["height"]
+    del root.attrib["width"]
+
+    ET.register_namespace("", "http://www.w3.org/2000/svg")
+
+    return ET.tostring(root)
+
+
+def generate_qr_code_as_string(
+    url: str, caption: str = "", file_format: Literal["png", "svg"] = "png"
+) -> str:
+    """
+    Takes an url, a caption (optional) and which file format the QR code should be and
+    returns a QR code as string
+    """
+    qr_code_bytes = b""
+    if file_format == "png":
+        qr_code_bytes = generate_png_qr_code(url=url, caption=caption)
+    elif file_format == "svg":
+        qr_code_bytes = generate_svg_qr_code(url=url, caption=caption)
+
     return base64.b64encode(qr_code_bytes).decode('utf-8')
 
 
-def generate_qr_codes_as_zip_response(url_dict: dict[str, str]) -> FileResponse:
+def generate_qr_codes_as_zip_response(
+    url_dict: dict[str, str], file_format: Literal["png", "svg"] = "png"
+) -> FileResponse:
     """
     Takes a dict of the form {name:url} and returns a FileResponse object that
     represents a ZIP file consisting of named PNG images of QR codes which map
@@ -135,12 +184,15 @@ def generate_qr_codes_as_zip_response(url_dict: dict[str, str]) -> FileResponse:
     """
     qr_codes_dict = dict()
     for caption, url in url_dict.items():
-        qr_codes_dict[caption] = generate_qr_code(url=url, caption=caption)
+        if file_format == "png":
+            qr_codes_dict[caption] = generate_png_qr_code(url=url, caption=caption)
+        elif file_format == "svg":
+            qr_codes_dict[caption] = generate_svg_qr_code(url=url, caption=caption)
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for image_name, qr_code_bytes in qr_codes_dict.items():
-            zf.writestr(image_name + ".png", qr_code_bytes)
+            zf.writestr(image_name + "." + file_format, qr_code_bytes)
     buf.seek(0)
 
     return FileResponse(buf, as_attachment=True, filename="nav_qr_codes.zip")
