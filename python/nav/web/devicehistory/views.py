@@ -131,7 +131,7 @@ def devicehistory_view(request, **_):
             form.cleaned_data['group_by'],
         )
 
-        # Quickselect expects 'loc' and not 'location'
+        # Use 'loc' instead of 'location' to avoid noscript XSS protection issues
         selection['loc'] = selection['room__location']
         del selection['room__location']
 

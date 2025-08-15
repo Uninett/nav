@@ -1,14 +1,13 @@
 require([
     'plugins/seeddb_datatables',
     'plugins/checkbox_selector',
-    'plugins/quickselect',
     'plugins/seeddb_hstore',
     'plugins/seeddb_management_profile',
     'plugins/netbox_connectivity_checker',
     'plugins/ip_chooser',
     'plugins/seeddb_map',
     'libs/modernizr'],
-function (datatables, CheckboxSelector, QuickSelect, FormFuck, ManagementProfile, connectivityChecker, IpChooser, seedDBRoomMap) {
+function (datatables, CheckboxSelector, FormFuck, ManagementProfile, connectivityChecker, IpChooser, seedDBRoomMap) {
 
     function executeOnLoad() {
         /**
@@ -49,8 +48,6 @@ function (datatables, CheckboxSelector, QuickSelect, FormFuck, ManagementProfile
         }
 
         new CheckboxSelector('#select', '.selector').add();
-        var _quickselect = new QuickSelect('.quickselect');
-
 
         /* Add form to hstore fields in room */
         var $textarea = $('textarea#id_data');
