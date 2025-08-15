@@ -27,7 +27,7 @@ _logger = logging.getLogger(__name__)
 
 
 # Set default config params and read rest from file
-class WebfrontConfigParser(NAVConfigParser):
+class LdapWebfrontConfigParser(NAVConfigParser):
     DEFAULT_CONFIG_FILES = [join('webfront', 'webfront.conf')]
     DEFAULT_CONFIG = """
 [ldap]
@@ -51,7 +51,7 @@ encoding=utf-8
 """
 
 
-_config = WebfrontConfigParser()
+_config = LdapWebfrontConfigParser()
 
 try:
     import ldap

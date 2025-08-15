@@ -19,21 +19,43 @@
 import logging
 import sys
 
-import configparser
 import os.path
 
 from django.http import HttpResponse
 
 import nav.logs
-from nav.config import find_config_file
+from nav.config import NAVConfigParser
 
 
 _logger = logging.getLogger(__name__)
 
-webfrontConfig = configparser.ConfigParser()
-_configfile = find_config_file(os.path.join('webfront', 'webfront.conf'))
-if _configfile:
-    webfrontConfig.read(_configfile)
+# Set default config params and read rest from file
+
+
+class WebfrontConfigParser(NAVConfigParser):
+    DEFAULT_CONFIG_FILES = [os.path.join('webfront', 'webfront.conf')]
+    DEFAULT_CONFIG = """
+[qr_codes]
+file_format = png
+"""
+
+    def __init__(self):
+        super(WebfrontConfigParser, self).__init__()
+
+        self.validate_qr_codes_config()
+
+    def validate_qr_codes_config(self):
+        allowed_file_formats = ["png", "svg"]
+
+        file_format = self.get("qr_codes", "file_format")
+        file_format = file_format.lower()
+
+        if file_format not in allowed_file_formats:
+            file_format = "png"
+        self.set("qr_codes", "file_format", file_format)
+
+
+webfrontConfig = WebfrontConfigParser()
 
 
 def refresh_session(request):
