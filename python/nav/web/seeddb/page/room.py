@@ -24,6 +24,7 @@ from nav.models.manage import Room
 from nav.bulkparse import RoomBulkParser
 from nav.bulkimport import RoomImporter
 
+from nav.web import webfrontConfig
 from nav.web.message import new_message, Messages
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
@@ -110,7 +111,9 @@ def room_download_qr_codes(request):
         url = request.build_absolute_uri(reverse('room-info', kwargs={'roomid': id}))
         url_dict[id] = url
 
-    return generate_qr_codes_as_zip_response(url_dict=url_dict)
+    file_format = webfrontConfig.get("qr_codes", "file_format")
+
+    return generate_qr_codes_as_zip_response(url_dict=url_dict, file_format=file_format)
 
 
 def room_delete(request, object_id=None):
