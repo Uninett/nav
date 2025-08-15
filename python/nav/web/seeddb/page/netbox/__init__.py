@@ -27,6 +27,7 @@ from nav.models.manage import Netbox
 from nav.bulkparse import NetboxBulkParser
 from nav.bulkimport import NetboxImporter
 
+from nav.web import webfrontConfig
 from nav.web.message import new_message, Messages
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
@@ -143,7 +144,9 @@ def netbox_download_qr_codes(request):
         )
         url_dict[str(netbox)] = url
 
-    return generate_qr_codes_as_zip_response(url_dict=url_dict)
+    file_format = webfrontConfig.get("qr_codes", "file_format")
+
+    return generate_qr_codes_as_zip_response(url_dict=url_dict, file_format=file_format)
 
 
 def netbox_move(request):
