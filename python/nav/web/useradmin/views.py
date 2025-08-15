@@ -32,11 +32,11 @@ from nav.models.profiles import Account, AccountGroup, Privilege
 from nav.models.manage import Organization
 from nav.models.api import APIToken, JWTRefreshToken
 
-from nav.jwtconf import JWTConf
 from nav.web.auth.sudo import sudo
 from nav.web.useradmin import forms
 from nav.web.jwtgen import generate_refresh_token, hash_token, decode_token
 from nav.config import ConfigurationError
+from nav.django.settings import LOCAL_JWT_IS_CONFIGURED
 
 
 DEFAULT_NAVPATH = {'navpath': [('Home', '/'), ('User Administration',)]}
@@ -680,7 +680,7 @@ class JWTList(NavPathMixin, generic.ListView):
 
     def get_context_data(self, **kwargs):
         context = super(JWTList, self).get_context_data(**kwargs)
-        context['is_configured'] = JWTConf().local_tokens_are_configured()
+        context['is_configured'] = LOCAL_JWT_IS_CONFIGURED
         context['active'] = {'jwt_list': True}
         return context
 
