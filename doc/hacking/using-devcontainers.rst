@@ -189,35 +189,8 @@ Dumping/loading data from remote production server
 --------------------------------------------------
 
 For some development tasks, it is useful to initialize the development database
-with a database snapshot from a production server. The :file:`tools/` directory
-contains shell scripts to streamline this operation somewhat:
-
-:file:`tools/dump-remote-db.sh`
-    Runs the :program:`navpgdump` program over an *SSH connection* to a remote
-    host and dumps the output to ``stdout``.
-
-:file:`tools/restore-db.sh`
-    Stops NAV processes, drops the NAV database and re-initializes it with an
-    SQL dump read from ``stdin``.
-
-:file:`tools/reset-db-from-remote.sh`
-    Combines the two previous programs into a single operation, for
-    convenience.
-
-Usage examples
-~~~~~~~~~~~~~~
-
-.. code-block:: sh
-   :caption: Initialize database from remote server ``prefect.example.org``, as user ``ford``
-
-   tools/reset-db-from-remote.sh ford@prefect.example.org
-
-
-.. code-block:: sh
-   :caption: Save a remote database dump to a file and re-use it later
-
-   tools/dump-remote-db.sh ford@prefect.example.org > mydump.sql
-   cat mydump.sql | tools/restore-db.sh
+with a database snapshot from a production server. You can read more about
+:ref:`migrating_prod_db_to_dev`.
 
 
 PyCharm oddities
