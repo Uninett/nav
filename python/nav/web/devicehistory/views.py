@@ -79,7 +79,7 @@ def devicehistory_component_search(request):
             request, 'devicehistory/_component-search-results.html', {'results': {}}
         )
 
-    results = get_component_search_results(search)
+    results = get_component_search_results(search, "View %s history")
     return render(
         request, 'devicehistory/_component-search-results.html', {'results': results}
     )
@@ -181,7 +181,7 @@ def registererror_component_search(request):
         )
 
     results = get_component_search_results(
-        search, 'error event', [Room, Location, NetboxGroup]
+        search, 'Add %s error event', [Room, Location, NetboxGroup]
     )
     return render(
         request, 'devicehistory/_component-search-results.html', {'results': results}

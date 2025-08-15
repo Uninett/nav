@@ -5,27 +5,28 @@ from nav.models.manage import Netbox, Module, Location, NetboxGroup, Room
 
 
 def get_component_search_results(
-    search: str, button_suffix: str = '', exclude: list[type[Model]] = []
+    search: str, button_text: str, exclude: list[type[Model]] = []
 ):
     """
     Retrieves grouped search results for component types based on a search query.
 
-    Args:
-        search (str): The search term to filter components.
-        button_suffix (str, optional): A suffix to append to the button label.
-            Defaults to an empty string.
+    :param search: The search term to filter components.
+    :param button_text: A format string for the button label, which will be formatted
+        with the component type label. It should contain exactly one '%s' placeholder.
 
-        exclude (list[Model], optional): A list of component types to exclude
-            from the search. Defaults to an empty list.
+    :param exclude: A list of component types to exclude from the search.
+        Defaults to an empty list.
+    :returns: Dictionary mapping component names to dictionaries with the
+        following keys:
 
-    Returns:
-        dict: A dictionary where keys are component names and values are dictionaries
-            containing:
-            - 'label': The display label for the component type.
-            - 'values': The grouped or ungrouped search results.
-            - 'has_grouping': A boolean indicating if the results are grouped.
-            - 'button': The label for the associated action button.
+        - **label** (*str*): Display label for the component type.
+        - **has_grouping** (*bool*): Indicates if the results are grouped.
+        - **values** (*list or list of tuples*): Grouped or ungrouped search results.
+        - **button** (*str*): Label for the associated action button.
     """
+    if button_text.count('%s') != 1:
+        raise ValueError("button_text must contain exactly one '%s' placeholder")
+
     results = {}
     searches = _get_search_queries(search, exclude)
 
@@ -42,9 +43,7 @@ def get_component_search_results(
                 'label': component_label,
                 'values': component_results,
                 'has_grouping': group_by is not None,
-                'button': f"Add {component_label} {button_suffix}"
-                if button_suffix
-                else f"Add {component_label}",
+                'button': button_text % component_label,
             }
     return results
 
@@ -58,11 +57,16 @@ def _get_search_queries(search: str, exclude: list[Model] = []):
     searches: list[tuple[type[Model], Q, type[Model] | None]] = [
         (Location, Q(id__icontains=search), None),
         (Room, Q(id__icontains=search), Location),
-        (Netbox, Q(sysname__icontains=search), Room),
+        (
+            Netbox,
+            Q(sysname__icontains=search)
+            | Q(entities__device__serial__icontains=search),
+            Room,
+        ),
         (NetboxGroup, Q(id__icontains=search), None),
         (
             Module,
-            Q(name__icontains=search),
+            Q(name__icontains=search) | Q(device__serial__icontains=search),
             Netbox,
         ),
     ]
@@ -81,7 +85,7 @@ def _get_component_query(component_type: Model, query: Q):
     the provided query.
     """
     if component_type._meta.db_table == "netbox":
-        return Netbox.objects.with_chassis_serials().filter(query)
+        return Netbox.objects.with_chassis_serials().filter(query).distinct()
     return component_type.objects.filter(query)
 
 
