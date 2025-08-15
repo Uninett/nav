@@ -31,6 +31,10 @@ NAV directly from the checked out source code, and as such it defines an
 environment for developers, not for production use of NAV.  The alternative is
 to manage all the dependencies and integrations on your own host machine.
 
+.. tip:: Be mindful that :doc:`a devcontainer-based solution
+         <using-devcontainers>` is largely superseding this way of working with
+         NAV development—at least for developers who prefer using IDEs.
+
 The quickest way to build the container images and start all the services for
 the first time is by running these commands::
 
@@ -218,6 +222,15 @@ definitions for your own purposes during development, you can usually do so
 without patching the :file:`docker-compose.yml` file. You can "patch" the
 definitions via `Docker Compose's override mechanism`_: Simply add a
 :file:`docker-compose.override.yml` to the top-level source directory.
+
+
+Dumping/loading data from remote production server
+--------------------------------------------------
+
+For some development tasks, it is useful to initialize the development database
+with a database snapshot from a production server. You can read more about
+:ref:`migrating_prod_db_to_dev`.
+
 
 Preventing NAV backend services from starting at container startup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
