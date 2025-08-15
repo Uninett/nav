@@ -126,7 +126,15 @@ define([
 
         toggleNetmapViewPanel: function (e) {
             $('#netmap-view-panel').toggle(function () {
-                $(document).foundation('equalizer', 'reflow');
+                $('[data-equalizer]').each(function () {
+                    var $watched = $(this).find('[data-equalizer-watch]');
+                    var maxHeight = 0;
+                    $watched.css('height', 'auto');
+                    $watched.each(function () {
+                        maxHeight = Math.max(maxHeight, $(this).outerHeight());
+                    });
+                    $watched.css('height', maxHeight);
+                });
             });
             this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
         },
