@@ -18,6 +18,8 @@
     {% comment %} Javascript global variables {% endcomment %}
     <script src="{{ STATIC_URL }}js/libs/jquery.js"></script>
     <script src="{{ STATIC_URL }}js/libs/htmx-2.0.4.min.js"></script>
+    <!-- Include in header temporarily -->
+    <script src="{{ STATIC_URL }}js/libs/hyperscript-0.9.14.js"></script>
     {% include 'navurls.html' %}
     <script src="{{ STATIC_URL }}js/require_config.js"></script>
     {% if debug %}
