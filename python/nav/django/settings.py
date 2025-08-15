@@ -283,11 +283,18 @@ except NameError:
         pass
 
 _jwtconf = JWTConf()
+_issuers_setting = _jwtconf.get_issuers_setting()
+
+# If _issuer_setting is an empty dict, it means neither external nor local tokens
+# are configured (or theres an error), so we dont need to read the local config.
+if not _issuers_setting:
+    _local_config = LocalJWTConfig()
+else:
+    _local_config = _jwtconf.get_local_config()
 
 # JWT settings are made available here so that they are read once on startup
 # instead of being read on-demand.
 # This is to combat inconsistencies that can occur if the config changes during runtime.
-_local_config = _jwtconf.get_local_config()
 JWT_PRIVATE_KEY = _local_config.private_key
 JWT_PUBLIC_KEY = _local_config.public_key
 JWT_NAME = _local_config.name
@@ -297,7 +304,6 @@ JWT_REFRESH_TOKEN_LIFETIME = _local_config.refresh_token_lifetime
 # not configured or the config is invalid.
 LOCAL_JWT_IS_CONFIGURED = _local_config != LocalJWTConfig()
 
-_issuers_setting = _jwtconf.get_issuers_setting()
 OIDC_AUTH = {
     'JWT_ISSUERS': _issuers_setting,
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
