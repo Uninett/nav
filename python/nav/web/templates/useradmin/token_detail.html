@@ -3,15 +3,9 @@
 
 {#  Display information about a single token #}
 
-
 {% block base_header_additional_head %}
-  <style>
-    .token-card { max-width: 470px; }
-    .token-card .label { cursor: help; margin-bottom: 1px; }
-    .token-card code { display: inline-block; width: 100%; }
-  </style>
+  {% include "useradmin/token_card_style.html" %}
 {% endblock %}
-
 
 {% block content %}
 
