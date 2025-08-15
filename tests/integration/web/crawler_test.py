@@ -42,7 +42,7 @@ TIDY_OPTIONS = {
     'doctype': 'auto',
     'output_xhtml': True,
     'input_encoding': 'utf8',
-    'show-warnings': False,
+    'show-warnings': True,
 }
 
 TIDY_IGNORE = [
