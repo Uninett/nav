@@ -183,3 +183,8 @@ def metric_path_for_multicast_usage(group, sysname):
         group=metric_prefix_for_multicast_group(group),
         sysname=escape_metric_name(sysname),
     )
+
+
+def metric_path_for_vlan_dhcp(vlan, metric_name):
+    tmpl = "nav.dhcp.vlan{vlan}.{metric_name}"
+    return tmpl.format(vlan=vlan, metric_name=metric_name)
