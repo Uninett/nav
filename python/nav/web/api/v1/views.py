@@ -47,7 +47,7 @@ from rest_framework.serializers import ValidationError
 from oidc_auth.authentication import JSONWebTokenAuthentication
 import jwt
 
-from nav.django.settings import JWT_PUBLIC_KEY, JWT_NAME
+from nav.django.settings import JWT_PUBLIC_KEY, JWT_NAME, LOCAL_JWT_IS_CONFIGURED
 from nav.macaddress import MacAddress
 from nav.models import manage, event, cabling, rack, profiles
 from nav.models.api import JWTRefreshToken
@@ -1340,6 +1340,8 @@ class JWTRefreshViewSet(NAVAPIMixin, APIView):
     permission_classes = []
 
     def post(self, request):
+        if not LOCAL_JWT_IS_CONFIGURED:
+            return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
         # This adds support for requests via the browseable API.
         # Browseble API sends QueryDict with _content key.
         # Tests send QueryDict without _content key so it can be treated

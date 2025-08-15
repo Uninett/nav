@@ -27,7 +27,7 @@ from django.utils.log import DEFAULT_LOGGING
 from nav.config import NAV_CONFIG, getconfig, find_config_dir
 from nav.db import get_connection_parameters
 import nav.buildconf
-from nav.jwtconf import JWTConf
+from nav.jwtconf import JWTConf, LocalJWTConfig
 from nav.web.security import WebSecurityConfigParser
 
 ALLOWED_HOSTS = ['*']
@@ -293,6 +293,9 @@ JWT_PUBLIC_KEY = _local_config.public_key
 JWT_NAME = _local_config.name
 JWT_ACCESS_TOKEN_LIFETIME = _local_config.access_token_lifetime
 JWT_REFRESH_TOKEN_LIFETIME = _local_config.refresh_token_lifetime
+# If the local config is empty, we assume that local JWT tokens are
+# not configured or the config is invalid.
+LOCAL_JWT_IS_CONFIGURED = _local_config != LocalJWTConfig()
 
 _issuers_setting = _jwtconf.get_issuers_setting()
 OIDC_AUTH = {
