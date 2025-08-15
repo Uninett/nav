@@ -1,0 +1,35 @@
+{% if results %}
+    {% for component_type, result in results.items %}
+        <div>
+            <label for="id_{{ component_type }}" style="font-weight: bold;">{{ result.label }}</label>
+            <select multiple id="id_{{ component_type }}" name="{{ component_type }}">
+                {% if result.has_grouping %}
+                    {% for optgroup, options in result.values %}
+                        <optgroup label="{{ optgroup }}">
+                            {% for id, label in options %}
+                                <option value="{{ id }}">{{ label }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                {% else %}
+                    {% for id, label in result.values %}
+                        <option value="{{ id }}">{{ label }}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+            <div class="row">
+                <button type="submit" class="small secondary" name="submit_{component_type}">
+                    {{ result.button }}
+                </button>
+                <button
+                    type="button" class="secondary small"
+                    onclick="Array.from(document.getElementById('id_{{ component_type }}').options).forEach(opt => opt.selected = true);"
+                >
+                    Select all
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <strong>No hits</strong>
+{% endif %}

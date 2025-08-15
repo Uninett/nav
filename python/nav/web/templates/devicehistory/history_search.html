@@ -2,21 +2,14 @@
 
 {% block tabcontent %}
     <p class="panel">
-        Select and view device history for a location, room, box or module. Use
-        quicksearch to search for a (partial) serialnumber, hostname, IP or
-        room.
+        Search for a location, room, box, module, serial number, hostname, or IP to view device history. No components are shown until you search.
     </p>
-
     <form action="{% url 'devicehistory-search' %}" method="get">
         <div class="row">
             <div class="large-8 column">
               {% include 'custom_crispy_templates/_form_content.html' %}
             </div>
         </div>
-        <div class="row">
-            <div class="large-8 column">
-                {{ quickselect|safe }}
-            </div>
-        </div>
+        {% include 'devicehistory/_component_search_input.html' with post_url='devicehistory-component-search' %}
     </form>
 {% endblock %}
