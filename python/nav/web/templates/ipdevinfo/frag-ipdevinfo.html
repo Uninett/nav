@@ -422,6 +422,7 @@
                   <th>End time</th>
                   <th>Duration</th>
                   <th class="cell-center">Status</th>
+                  <th class="cell-center">Actions</th>
                 </tr>
               </thead>
 
@@ -457,6 +458,9 @@
                                alt="N/A" title="Not applicable">
                         {% endif %}
                       {% endif %}
+                    </td>
+                    <td class="cell-center">
+                        {% include "ipdevinfo/frag-ipdevinfo-refresh-button.html" %}
                     </td>
                   </tr>
                 {% endfor %}
