@@ -32,6 +32,12 @@ urlpatterns = [
     re_path(r'^active/$', views.active, name='maintenance-active'),
     re_path(r'^planned/$', views.planned, name='maintenance-planned'),
     re_path(r'^historic/$', views.historic, name='maintenance-historic'),
+    re_path(r'^search/$', views.component_search, name='maintenance-component-search'),
+    re_path(
+        r'^selectcomponents/$',
+        views.component_select,
+        name='maintenance-component-select',
+    ),
     re_path(r'^new/$', views.edit, name='maintenance-new'),
     re_path(
         r'^new/(?P<start_time>\d{4}-\d{2}-\d{2})/$',

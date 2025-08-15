@@ -1,0 +1,42 @@
+{% if results %}
+    {% for component_type, result in results.items %}
+        <div class="component-group">
+            <label for="id_{{ component_type }}" style="font-weight: bold;">{{ result.label }}</label>
+            <select multiple id="id_{{ component_type }}" name="{{ component_type }}">
+                {% if result.has_grouping %}
+                    {% for optgroup, options in result.values %}
+                        <optgroup label="{{ optgroup }}">
+                            {% for option in options %}
+                                <option value="{{ option.id }}">{{ option }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                {% else %}
+                    {% for option in result.values %}
+                        <option value="{{ option.id }}">{{ option }}</option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+            <div class="row">
+                <button
+                    type="button"
+                    class="button secondary small"
+                    hx-post="{% url 'maintenance-component-select' %}"
+                    hx-target="#selected-components"
+                    hx-include="#id_{{ component_type }}, #selected-components input"
+                    hx-on::after-request="document.getElementById('id_{{ component_type }}').selectedIndex = -1;"
+                >
+                    Add {{ result.label }}
+                </button>
+                <button
+                    type="button" class="button secondary small"
+                    onclick="Array.from(document.getElementById('id_{{ component_type }}').options).forEach(opt => opt.selected = true);"
+                >
+                    Select all
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <strong>No hits</strong>
+{% endif %}

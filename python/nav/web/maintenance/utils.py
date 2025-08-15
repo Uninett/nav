@@ -173,6 +173,18 @@ def get_component_keys(post):
     return component_keys, errors
 
 
+def get_component_name(model: models.Model):
+    """Returns a short name for the component type based on its model class.
+
+    Used as the input name for component keys in forms and APIs.
+
+    Location is abbreviated to 'loc' to avoid XSS issues.
+    """
+    if model._meta.db_table == 'location':
+        return 'loc'
+    return model._meta.db_table
+
+
 def get_components_from_keydict(
     component_keys: dict[str, List[Union[int, str]]],
 ) -> tuple[List[ComponentType], List[str]]:
@@ -204,6 +216,36 @@ def get_components_from_keydict(
                 f"{key}: no elements with the given identifiers found"
             )
     return components, component_data_errors
+
+
+def prefetch_and_group_components(
+    component_type: models.Model,
+    query_results: models.QuerySet,
+    group_by: Union[models.Model, None] = None,
+):
+    """
+    Prefetches the related model and groups components by the related model name.
+    """
+    if not group_by:
+        return query_results
+
+    group_by_name = group_by._meta.db_table
+
+    if hasattr(query_results, 'prefetch_related') and hasattr(
+        component_type, group_by_name
+    ):
+        query_results = query_results.prefetch_related(group_by_name)
+
+    grouped_results = {}
+    for component in query_results:
+        group_by_model = getattr(component, group_by_name)
+        group_name = str(group_by_model)
+
+        if group_name not in grouped_results:
+            grouped_results[group_name] = []
+        grouped_results[group_name].append(component)
+
+    return [(group, components) for group, components in grouped_results.items()]
 
 
 class MaintenanceCalendar(HTMLCalendar):
