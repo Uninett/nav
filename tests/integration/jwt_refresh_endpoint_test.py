@@ -234,6 +234,13 @@ def jwt_refresh_token_lifetime_mock() -> Generator[timedelta, None, None]:
         yield lifetime
 
 
+@pytest.fixture(scope="module", autouse=True)
+def jwt_is_configured_mock() -> Generator[timedelta, None, None]:
+    """Mocks the LOCAL_JWT_IS_CONFIGURED setting"""
+    with patch("nav.web.api.v1.views.LOCAL_JWT_IS_CONFIGURED", True):
+        yield True
+
+
 @pytest.fixture(scope="module")
 def nav_name() -> str:
     return "nav"

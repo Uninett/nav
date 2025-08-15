@@ -50,19 +50,26 @@ class JWTConf(NAVConfigParser):
         Data will be None if local tokens are not configured or the config is invalid.
         Logs an error if the config is invalid.
         """
-        if not self.has_section(self.NAV_SECTION):
-            return LocalJWTConfig()
         try:
-            return LocalJWTConfig(
-                private_key=self.get_nav_private_key(),
-                public_key=self.get_nav_public_key(),
-                name=self.get_nav_name(),
-                access_token_lifetime=self.get_access_token_lifetime(),
-                refresh_token_lifetime=self.get_refresh_token_lifetime(),
-            )
+            return self._get_local_config()
         except ConfigurationError as error:
             _logger.error('Error reading NAV section of jwtconfig: %s', error)
             return LocalJWTConfig()
+
+    def _get_local_config(self) -> LocalJWTConfig:
+        """Internal method without error handling to get
+        the local JWT configuration data.
+        Returns empty LocalJWTConfig if the NAV section is not present.
+        """
+        if not self.has_section(self.NAV_SECTION):
+            return LocalJWTConfig()
+        return LocalJWTConfig(
+            private_key=self.get_nav_private_key(),
+            public_key=self.get_nav_public_key(),
+            name=self.get_nav_name(),
+            access_token_lifetime=self.get_access_token_lifetime(),
+            refresh_token_lifetime=self.get_refresh_token_lifetime(),
+        )
 
     def _get_settings_for_external_tokens(self):
         settings = dict()
@@ -184,17 +191,17 @@ class JWTConf(NAVConfigParser):
         return timedelta(seconds=lifetime)
 
     def _get_settings_for_nav_issued_tokens(self):
-        if not self.has_section(self.NAV_SECTION):
+        local_config = self._get_local_config()
+        if local_config == LocalJWTConfig():
             return {}
-        name = self.get_nav_name()
         claims_options = {
-            'aud': {'values': [name], 'essential': True},
+            'aud': {'values': [local_config.name], 'essential': True},
             'token_type': {'values': ['access_token'], 'essential': True},
         }
         settings = {
-            name: {
+            local_config.name: {
                 'type': "PEM",
-                'key': self.get_nav_public_key(),
+                'key': local_config.public_key,
                 'claims_options': claims_options,
             }
         }
