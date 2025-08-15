@@ -66,14 +66,13 @@ def reactor_main(boxes, baseoid):
     return df.addCallback(endit)
 
 
-@defer.inlineCallbacks
-def verify(netbox, oid):
+async def verify(netbox, oid):
     """Verifies a GETNEXT response from below the oid subtree"""
     agent = _create_agentproxy(netbox)
     if not agent:
         return False
 
-    result = yield agent.walk(str(oid))
+    result = await agent.walk(str(oid))
     agent.close()
 
     if hasattr(result, 'items'):
@@ -113,7 +112,7 @@ def parse_args():
 def parallel(iterable, count, func, *args, **kwargs):
     """Limits the number of parallel requests to count"""
     coop = task.Cooperator()
-    work = (func(elem, *args, **kwargs) for elem in iterable)
+    work = (defer.ensureDeferred(func(elem, *args, **kwargs)) for elem in iterable)
     return defer.DeferredList(
         [coop.coiterate(work) for _ in range(count)], consumeErrors=True
     )
