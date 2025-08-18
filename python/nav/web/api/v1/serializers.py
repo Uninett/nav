@@ -531,6 +531,7 @@ class NetboxEntitySerializer(serializers.ModelSerializer):
     """Serializer for the NetboxEntity model"""
 
     device = DeviceInlineSerializer()
+    physical_class_name = serializers.CharField(source='get_physical_class_display')
 
     class Meta(object):
         model = manage.NetboxEntity
