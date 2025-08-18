@@ -185,6 +185,14 @@ necessary to have, it should be added to the relevant dependency groups in
 the ``dependency-groups`` section of :file:`pyproject.toml`.
 
 
+Dumping/loading data from remote production server
+--------------------------------------------------
+
+For some development tasks, it is useful to initialize the development database
+with a database snapshot from a production server. You can read more about
+:ref:`migrating_prod_db_to_dev`.
+
+
 PyCharm oddities
 ================
 
