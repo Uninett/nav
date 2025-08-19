@@ -395,7 +395,6 @@ require([
         addCreateDashboardListener(feedback);
         addRenameDashboardListener(feedback);
         addDeleteDashboardListener(feedback);
-
     });
 
 });

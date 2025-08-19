@@ -1,0 +1,12 @@
+<dialog
+        id="{{ modal_id }}"
+        class="nav-modal "
+        tabindex="-1"
+>
+    <div class="modal-underlay" hx-on:click="htmx.remove(this.closest('#{{ modal_id }}'))"></div>
+    <div class="modal-content{% if modal_size %} {{ modal_size }}{% endif %}">
+        <a class="close-reveal-modal" aria-label="Close" hx-on:click="htmx.remove(this.closest('#{{ modal_id }}'))">&#215;</a>
+        {% include content_template %}
+        <div id="{{ modal_id }}-alert"></div>
+    </div>
+</dialog>
