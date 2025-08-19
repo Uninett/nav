@@ -47,7 +47,6 @@ dependencies = [
     "drf-oidc-auth @ git+https://github.com/Uninett/drf-oidc-auth@v4.0",
 
     "requests",
-    "urllib3",
 
     "pyjwt>=2.6.0",
 

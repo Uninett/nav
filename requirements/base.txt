@@ -44,6 +44,5 @@ PyOpenSSL==23.3.0
 service-identity==21.1.0
 
 requests
-urllib3
 
 pyjwt>=2.6.0

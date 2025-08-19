@@ -27,8 +27,7 @@ from typing import Optional, Iterator
 
 from IPy import IP
 from requests import RequestException, JSONDecodeError, Session
-from requests.adapters import HTTPAdapter
-from urllib3.util import Retry
+from requests.adapters import HTTPAdapter, Retry
 
 from nav.dhcpstats.errors import (
     CommunicationError,
