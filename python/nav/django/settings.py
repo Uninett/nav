@@ -27,7 +27,7 @@ from django.utils.log import DEFAULT_LOGGING
 from nav.config import NAV_CONFIG, getconfig, find_config_dir
 from nav.db import get_connection_parameters
 import nav.buildconf
-from nav.jwtconf import JWTConf
+from nav.jwtconf import JWTConf, LocalJWTConfig
 from nav.web.security import WebSecurityConfigParser
 
 ALLOWED_HOSTS = ['*']
@@ -282,7 +282,27 @@ except NameError:
     except ImportError:
         pass
 
-_issuers_setting = JWTConf().get_issuers_setting()
+_jwtconf = JWTConf()
+_issuers_setting = _jwtconf.get_issuers_setting()
+
+# If _issuer_setting is an empty dict, it means neither external nor local tokens
+# are configured (or theres an error), so we dont need to read the local config.
+if not _issuers_setting:
+    _local_config = LocalJWTConfig()
+else:
+    _local_config = _jwtconf.get_local_config()
+
+# JWT settings are made available here so that they are read once on startup
+# instead of being read on-demand.
+# This is to combat inconsistencies that can occur if the config changes during runtime.
+JWT_PRIVATE_KEY = _local_config.private_key
+JWT_PUBLIC_KEY = _local_config.public_key
+JWT_NAME = _local_config.name
+JWT_ACCESS_TOKEN_LIFETIME = _local_config.access_token_lifetime
+JWT_REFRESH_TOKEN_LIFETIME = _local_config.refresh_token_lifetime
+# If the local config is empty, we assume that local JWT tokens are
+# not configured or the config is invalid.
+LOCAL_JWT_IS_CONFIGURED = _local_config != LocalJWTConfig()
 
 OIDC_AUTH = {
     'JWT_ISSUERS': _issuers_setting,
