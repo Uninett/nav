@@ -16,7 +16,14 @@ Dependency changes
 
 Python modules with changed version requirements:
 
+* :mod:`djangorestframework` (``>=3.14``)
 * :mod:`napalm` (``>=5.0.0,<5.1.0``)
+* :mod:`twisted` (``>=24.7``)
+
+These Python modules are new requirements:
+
+* :mod:`django-htmx`
+
 
 IP Device Info refresh
 ----------------------
