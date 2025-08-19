@@ -21,6 +21,7 @@ Collects statistics from DHCP servers and sends them to the Carbon backend.
 import argparse
 import logging
 from functools import partial
+import sys
 
 from nav.config import getconfig
 from nav.dhcpstats import kea_dhcp
@@ -28,10 +29,12 @@ from nav.dhcpstats.errors import CommunicationError
 from nav.errors import ConfigurationError
 from nav.logs import init_generic_logging
 from nav.metrics import carbon
+import nav.daemon
 
 _logger = logging.getLogger("nav.dhcpstats")
 LOGFILE = "dhcpstats.log"
 CONFIGFILE = "dhcpstats.conf"
+PIDFILE = "dhcpstats.pid"
 
 ENDPOINT_CLIENTS = {
     "kea-dhcp4": partial(kea_dhcp.Client, dhcp_version=4),
@@ -47,6 +50,7 @@ def main():
         stderr_level="ERROR",
         read_config=True,
     )
+    exit_if_already_running()
     try:
         config = getconfig(CONFIGFILE)
     except OSError as error:
@@ -158,6 +162,22 @@ def get_endpoint_clients(config):
             )
         else:
             yield client
+
+
+def exit_if_already_running():
+    try:
+        nav.daemon.justme(PIDFILE)
+        nav.daemon.writepidfile(PIDFILE)
+    except nav.daemon.AlreadyRunningError:
+        _logger.error(
+            "Attempted to start a new dhcp stats collection process while another is "
+            "running. This is likely due to stats collection taking longer than the "
+            "cron interval"
+        )
+        sys.exit(1)
+    except nav.daemon.DaemonError as error:
+        _logger.error("%s", error)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
