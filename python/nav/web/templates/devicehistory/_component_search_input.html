@@ -1,0 +1,20 @@
+<div class="row">
+    <div class="large-8 column">
+        <label for="component-search" style="font-weight: bold;">Search</label>
+        <input
+            id="component-search"
+            name="search"
+            class="form-control"
+            type="search"
+            placeholder="Begin typing to search for components..."
+            hx-post="{% url post_url %}"
+            hx-trigger="input changed delay:500ms, search"
+            hx-target="#search-results"
+            hx-indicator=".htmx-indicator"
+        />
+        <span class="htmx-indicator">
+            <img src="/static/images/select2/select2-spinner.gif" alt="Loading spinner" /> Searching...
+        </span>
+        <div id="search-results"></div>
+    </div>
+</div>
