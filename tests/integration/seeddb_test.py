@@ -7,7 +7,8 @@ from django.test.client import RequestFactory
 from mock import MagicMock
 
 from django.utils.encoding import smart_str
-from nav.models.manage import Netbox, Room, NetboxInfo
+from nav.models.manage import Interface, Netbox, NetboxInfo, Room
+from nav.models.cabling import Cabling, Patch
 from nav.web.seeddb.page.netbox.edit import netbox_edit, log_netbox_change
 from nav.web.seeddb.utils.delete import dependencies
 
@@ -85,7 +86,6 @@ def netbox(management_profile):
     )
     box.save()
     yield box
-    print("teardown test device")
     box.delete()
 
 
@@ -236,3 +236,179 @@ def test_generating_qr_codes_for_no_selected_rooms_should_show_error(client, net
         'You need to select at least one object to generate QR codes for'
         in smart_str(response.content)
     )
+
+
+class TestPatchModalViews:
+    """Integration tests for showing add and remove patch modals"""
+
+    def test_should_render_add_patch_modal(self, client, interface):
+        url = (
+            reverse('seeddb-show-patch-modal')
+            + f'?interfaceid={interface.id}&modal=add'
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'Add patch' in smart_str(response.content)
+
+    def test_add_patch_modal_should_include_interface_name(self, client, interface):
+        url = (
+            reverse('seeddb-show-patch-modal')
+            + f'?interfaceid={interface.id}&modal=add'
+        )
+        response = client.get(url)
+        assert interface.ifname in smart_str(response.content)
+        assert interface.ifalias in smart_str(response.content)
+
+    def test_add_patch_modal_should_include_interface_id(self, client, interface):
+        url = (
+            reverse('seeddb-show-patch-modal')
+            + f'?interfaceid={interface.id}&modal=add'
+        )
+        response = client.get(url)
+        assert f'value="{interface.id}"' in smart_str(response.content)
+
+    def test_add_patch_modal_should_include_cable_search(self, client, interface):
+        url = (
+            reverse('seeddb-show-patch-modal')
+            + f'?interfaceid={interface.id}&modal=add'
+        )
+        response = client.get(url)
+        assert 'id="cable-search"' in smart_str(response.content)
+
+    def test_add_patch_modal_should_include_cableid(self, client, interface):
+        url = (
+            reverse('seeddb-show-patch-modal')
+            + f'?interfaceid={interface.id}&modal=add'
+        )
+        response = client.get(url)
+        assert 'name="cableid"' in smart_str(response.content)
+
+    def test_should_render_remove_patch_modal(self, client, interface):
+        url = (
+            reverse('seeddb-show-patch-modal')
+            + f'?interfaceid={interface.id}&modal=remove'
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'Remove patch' in smart_str(response.content)
+
+    def test_remove_patch_modal_should_include_interface_id(self, client, interface):
+        url = (
+            reverse('seeddb-show-patch-modal')
+            + f'?interfaceid={interface.id}&modal=remove'
+        )
+        response = client.get(url)
+        assert f'value="{interface.id}"' in smart_str(response.content)
+
+    def test_remove_patch_modal_should_include_interface_name(self, client, interface):
+        url = (
+            reverse('seeddb-show-patch-modal')
+            + f'?interfaceid={interface.id}&modal=remove'
+        )
+        response = client.get(url)
+        assert interface.ifname in smart_str(response.content)
+        assert interface.ifalias in smart_str(response.content)
+
+
+class TestSavePatchView:
+    """Integration tests for adding patches"""
+
+    def test_given_valid_data_then_create_patch(self, client, interface, cable):
+        url = reverse('seeddb-patch-save')
+        data = {
+            'interfaceid': interface.id,
+            'cableid': cable.id,
+        }
+        response = client.post(url, data=data)
+        assert response.status_code == 200
+        assert Patch.objects.filter(interface=interface, cabling=cable).exists()
+
+    def test_given_invalid_data_then_return_alert(self, client):
+        url = reverse('seeddb-patch-save')
+        data = {}
+        response = client.post(url, data=data)
+        assert 'patch-modal-alert' in smart_str(response.content)
+
+    def test_given_valid_data_then_return_updated_patch_row(
+        self, client, interface, cable
+    ):
+        url = reverse('seeddb-patch-save')
+        data = {
+            'interfaceid': interface.id,
+            'cableid': cable.id,
+        }
+        response = client.post(url, data=data)
+        assert response.status_code == 200
+        assert f'tr data-interfaceid="{interface.pk}"' in smart_str(response.content)
+
+
+class TestRemovePatchView:
+    """Integration tests for removing patches"""
+
+    def test_given_existing_patch_then_remove_from_interface(
+        self, client, interface, cable
+    ):
+        # First create a patch to remove
+        patch = Patch.objects.create(interface=interface, cabling=cable)
+
+        url = reverse('seeddb-patch-remove')
+        data = {
+            'interfaceid': interface.id,
+        }
+        client.post(url, data=data)
+        assert not Patch.objects.filter(id=patch.id).exists()
+
+    def test_given_existing_patch_then_return_updated_patch_row(
+        self, client, interface, cable
+    ):
+        Patch.objects.create(interface=interface, cabling=cable)
+
+        url = reverse('seeddb-patch-remove')
+        data = {
+            'interfaceid': interface.id,
+        }
+        response = client.post(url, data=data)
+        assert f'tr data-interfaceid="{interface.pk}"' in smart_str(response.content)
+
+    # When removing a non-existing patch, the response should still be 200 OK
+    # The test should return an updated patch row with an 'Add patch' button
+    def test_given_non_existing_patch_then_return_add_patch_row(
+        self, client, interface
+    ):
+        url = reverse('seeddb-patch-remove')
+        data = {
+            'interfaceid': interface.id,
+        }
+        response = client.post(url, data=data)
+        assert f'tr data-interfaceid="{interface.pk}"' in smart_str(response.content)
+        assert 'Add patch' in smart_str(response.content)
+
+
+@pytest.fixture
+def interface(localhost):
+    """Create a test interface"""
+    interface = Interface(
+        netbox=localhost,
+        ifname='GigabitEthernet0/1',
+        ifalias='Test Interface',
+        ifindex=1,
+        iftype=6,
+    )
+    interface.save()
+    yield interface
+    interface.delete()
+
+
+@pytest.fixture
+def cable(localhost):
+    """Create a test cable"""
+    cable = Cabling(
+        room=localhost.room,
+        jack='sparrow',
+        building='TestBuilding',
+        target_room='TestTargetRoom',
+        description='Test Cable',
+    )
+    cable.save()
+    yield cable
+    cable.delete()

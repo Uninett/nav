@@ -1,0 +1,14 @@
+<h4>Remove patch</h4>
+<p>Remove patch from interface <em class="interfacename">{{ interface_name }}</em>?</p>
+<form
+        hx-post="{% url 'seeddb-patch-remove' %}"
+        class="left"
+        hx-target="tr[data-interfaceid='{{ interface_id }}']"
+        hx-swap="outerHTML"
+>
+    {% csrf_token %}
+    <input class="interfaceid" type="hidden" name="interfaceid" value="{{ interface_id }}">
+    <button type="submit" class="button small warning">Yes</button>
+    <button type="button" class="button small secondary" hx-on:click="htmx.remove(this.closest('.nav-modal'))">No</button>
+</form>
+<div class="alert-box alert" style="display: none">Error removing patch</div>

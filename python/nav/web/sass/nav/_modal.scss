@@ -38,6 +38,7 @@ $default-width: 30%;
 .modal-content {
     &.tiny {
         width: 95%;
+        max-width: rem-calc(400);
         padding: rem-calc(15);
 
         @media #{$medium-up} {
@@ -48,6 +49,7 @@ $default-width: 30%;
 
     &.small {
         width: 95%;
+        max-width: rem-calc(500);
         padding: rem-calc(15);
 
         @media #{$medium-up} {
@@ -58,6 +60,7 @@ $default-width: 30%;
 
     &.medium {
         width: 95%;
+        max-width: rem-calc(700);
         padding: rem-calc(20);
 
         @media #{$medium-up} {
@@ -68,6 +71,7 @@ $default-width: 30%;
 
     &.large {
         width: 95%;
+        max-width: rem-calc(900);
         padding: rem-calc(20);
 
         @media #{$medium-up} {
