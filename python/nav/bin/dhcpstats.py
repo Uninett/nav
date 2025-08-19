@@ -40,14 +40,18 @@ ENDPOINT_CLIENTS = {
 
 def main():
     """Start collecting statistics."""
+    parse_args()
     init_generic_logging(
         logfile=LOGFILE,
         stderr=True,
         stderr_level="ERROR",
         read_config=True,
     )
-    parse_args()
-    config = getconfig(CONFIGFILE)
+    try:
+        config = getconfig(CONFIGFILE)
+    except OSError as error:
+        _logger.warning(error)
+        config = {}
     collect_stats(config)
 
 
