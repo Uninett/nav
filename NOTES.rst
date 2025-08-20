@@ -112,6 +112,21 @@ dynamically search the NAV database for matching components as you type into
 the search bar.
 
 
+Collecting DHCP pool statistics from KEA DHCP servers
+-----------------------------------------------------
+
+This release adds a new program (and cronjob) to collect DHCP pool
+usage/utilization stats from a KEA DHCP server API (:program:`navdhcpstats`)
+every five minutes and store these as time series data in NAV's associated
+Graphite server.  This program is intended to be extensible, so that
+implementations for other APIs can be added as plugins.
+
+We are working on graphing these statistics in the *Prefix* and *Vlan* detail
+pages in the NAV web UI, and expect to include this feature in the next
+release.  Until then, the only documentation for this new command is in the
+comments of its configuration file, :file:`dhcpstats.conf`.
+
+
 NAV 5.13
 ========
 
