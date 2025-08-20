@@ -52,6 +52,7 @@
               <th>Permission</th>
               <th>Activates</th>
               <th>Expires</th>
+              <th class="show-for-large-up">Created</th>
               <th class="show-for-large-up">Last used</th>
               <th class="show-for-medium-up">Endpoints</th>
               <th>Status</th>
@@ -81,6 +82,9 @@
                 <td>
                  {{ token.expires}}
                 </td>
+
+                {# Created #}
+                <td class="show-for-large-up" data-sort-value="{{ token.created|date:'c'|default:'last' }}">{{ token.created|default:'' }}</td>
 
                 {# Last used #}
                 <td class="show-for-large-up" data-sort-value="{{ token.last_used|date:'c'|default:'last' }}">{{ token.last_used|default:'Never' }}</td>

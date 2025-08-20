@@ -91,6 +91,7 @@ class JWTRefreshToken(models.Model):
     description = models.TextField(null=True, blank=True)
     expires = models.DateTimeField()
     activates = models.DateTimeField()
+    created = models.DateTimeField(auto_now_add=True)
     last_used = models.DateTimeField(null=True, blank=True)
     revoked = models.BooleanField(default=False)
     endpoints = HStoreField(null=True, blank=True, default=dict)
