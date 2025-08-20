@@ -33,6 +33,10 @@ Currently active contributors/maintainers
   HTTP/REST API management profiles for Palo Alto API implementations, among
   other things.
 
+* Simen Abelsen <simen.abelsen at sikt.no>
+  Joined in August 2025, working on cleanup and modernization of the front-end
+  codebase.
+
 Other contributors and previous maintainers
 -------------------------------------------
 * Vidar Faltinsen <vidar.faltinsen at sikt.no>
