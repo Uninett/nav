@@ -6,7 +6,7 @@ import json
 import logging
 import pytest
 from requests.exceptions import JSONDecodeError
-from typing import Callable
+from typing import Callable, Union
 
 import requests
 
@@ -832,7 +832,7 @@ def api_mock(monkeypatch):
     """
     command_requests: dict[str, list[tuple[dict, list]]] = {}
     command_responses: dict[
-        str, deque[tuple[str | Callable[[dict, list], str], dict]]
+        str, deque[tuple[Union[str, Callable[[dict, list], str]], dict]]
     ] = {}
     unknown_command_response = """[
   {{
