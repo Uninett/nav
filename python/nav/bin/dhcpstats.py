@@ -47,7 +47,7 @@ def main():
     init_generic_logging(
         logfile=LOGFILE,
         stderr=True,
-        stderr_level="ERROR",
+        stderr_level=logging.ERROR,
         read_config=True,
     )
     exit_if_already_running()
