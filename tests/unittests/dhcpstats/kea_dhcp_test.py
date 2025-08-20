@@ -147,7 +147,7 @@ class TestExpectedAPIResponses:
     @pytest.mark.parametrize(
         "kea_status", [status for status in _KeaStatus if status != _KeaStatus.SUCCESS]
     )
-    def test_fetch_stats_should_raise_an_exception_on_error_status_in_config_api_response(
+    def test_fetch_stats_should_raise_an_exception_on_error_status_in_config_api_response(  # noqa: E501
         self, valid_dhcp4, api_mock, kea_status
     ):
         """
@@ -174,7 +174,7 @@ class TestExpectedAPIResponses:
             if status not in (_KeaStatus.SUCCESS, _KeaStatus.EMPTY)
         ],
     )
-    def test_fetch_stats_should_raise_an_exception_on_error_status_in_statistic_api_response(
+    def test_fetch_stats_should_raise_an_exception_on_error_status_in_statistic_api_response(  # noqa: E501
         self, valid_dhcp4, api_mock, status
     ):
         """
@@ -201,7 +201,7 @@ class TestExpectedAPIResponses:
             if status not in (_KeaStatus.SUCCESS, _KeaStatus.UNSUPPORTED)
         ],
     )
-    def test_fetch_stats_should_raise_an_exception_on_error_status_in_config_hash_api_response(
+    def test_fetch_stats_should_raise_an_exception_on_error_status_in_config_hash_api_response(  # noqa: E501
         self, valid_dhcp4, api_mock, status
     ):
         """
@@ -261,7 +261,7 @@ class TestUnexpectedAPIResponses:
     way.
     """
 
-    def test_fetch_stats_should_raise_an_exception_on_unrecognizable_config_api_response(
+    def test_fetch_stats_should_raise_an_exception_on_unrecognizable_config_api_response(  # noqa: E501
         self, valid_dhcp4, api_mock, invalid_response
     ):
         config, statistics, expected_stats = valid_dhcp4
@@ -272,7 +272,7 @@ class TestUnexpectedAPIResponses:
         with pytest.raises(KeaUnexpected):
             client.fetch_stats()
 
-    def test_fetch_stats_should_raise_an_exception_on_unrecognizable_statistic_api_response(
+    def test_fetch_stats_should_raise_an_exception_on_unrecognizable_statistic_api_response(  # noqa: E501
         self, valid_dhcp4, api_mock, invalid_response
     ):
         config, statistics, expected_stats = valid_dhcp4
@@ -283,7 +283,7 @@ class TestUnexpectedAPIResponses:
         with pytest.raises(KeaUnexpected):
             client.fetch_stats()
 
-    def test_fetch_stats_should_raise_an_exception_on_unrecognizable_config_hash_api_response(
+    def test_fetch_stats_should_raise_an_exception_on_unrecognizable_config_hash_api_response(  # noqa: E501
         self, valid_dhcp4, api_mock, invalid_response
     ):
         config, statistics, expected_stats = valid_dhcp4
@@ -849,7 +849,8 @@ def api_mock(monkeypatch):
             data = data.decode("utf8")
         if not isinstance(data, str):
             pytest.fail(
-                f"data argument to the mocked requests.post() is of unknown type {type(data)}"
+                f"data argument to the mocked requests.post() is of unknown type "
+                f"{type(data)}"
             )
 
         try:
@@ -915,7 +916,8 @@ def api_mock(monkeypatch):
 
             def config_response(arguments, service):
                 assert service == [expected_service], (
-                    f"API Client for service '{expected_service}' should not send requests to service '{service}'"
+                    f"API Client for service '{expected_service}' should not send "
+                    f"requests to service '{service}'"
                 )
                 return make_api_response(config)
 
@@ -925,7 +927,8 @@ def api_mock(monkeypatch):
 
             def statistic_response(arguments, service):
                 assert service == [expected_service], (
-                    f"API Client for service '{expected_service}' should not send requests to service '{service}'"
+                    f"API Client for service '{expected_service}' should not send "
+                    f"requests to service '{service}'"
                 )
                 return make_api_response(statistics)
 

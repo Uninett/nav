@@ -191,7 +191,10 @@ def metric_path_for_multicast_usage(group, sysname):
 def metric_path_for_dhcp_pool(
     ip_version, server_name, pool_name, range_start, range_end, metric_name
 ):
-    tmpl = "nav.dhcp.{ip_version}.pool.{server_name}.{pool_name}.{range_start}.{range_end}.{metric_name}"
+    tmpl = (
+        "nav.dhcp.{ip_version}.pool.{server_name}.{pool_name}."
+        "{range_start}.{range_end}.{metric_name}"
+    )
     range_start = IPy.IP(range_start).strNormal()
     range_end = IPy.IP(range_end).strNormal()
     return tmpl.format(
