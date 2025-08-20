@@ -20,6 +20,7 @@ Graphite.
 """
 
 from nav.metrics.names import escape_metric_name
+import IPy
 
 
 def metric_prefix_for_ipdevpoll_job(sysname, job_name):
@@ -182,4 +183,23 @@ def metric_path_for_multicast_usage(group, sysname):
     return tmpl.format(
         group=metric_prefix_for_multicast_group(group),
         sysname=escape_metric_name(sysname),
+    )
+
+
+def metric_path_for_dhcp_pool(
+    ip_version, server_name, pool_name, range_start, range_end, metric_name
+):
+    tmpl = (
+        "nav.dhcp.{ip_version}.pool.{server_name}.{pool_name}."
+        "{range_start}.{range_end}.{metric_name}"
+    )
+    range_start = IPy.IP(range_start).strNormal()
+    range_end = IPy.IP(range_end).strNormal()
+    return tmpl.format(
+        ip_version=escape_metric_name(str(ip_version)),
+        server_name=escape_metric_name(server_name),
+        pool_name=escape_metric_name(pool_name),
+        range_start=escape_metric_name(range_start),
+        range_end=escape_metric_name(range_end),
+        metric_name=escape_metric_name(metric_name),
     )

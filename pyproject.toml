@@ -135,6 +135,7 @@ start_arnold = "nav.bin.start_arnold:main"
 t1000 = "nav.bin.t1000:main"
 thresholdmon = "nav.bin.thresholdmon:main"
 navoui = "nav.bin.update_ouis:main"
+navdhcpstats = "nav.bin.dhcpstats:main"
 
 [tool.setuptools]
 include-package-data = true
