@@ -68,8 +68,8 @@ Locally issued JSON Web Tokens
 ------------------------------
 Local JSON Web Tokens (JWTs) must be :ref:`configured <local-jwt-configuration>` before they can be used.
 
-NAV will soon support generating JWT tokens for local use, as opposed to tokens generated externally.
-You will be able to generate refresh tokens via the frontend which can be used to obtain access tokens
+NAV supports generating JWT tokens for local use, as opposed to tokens generated externally.
+You can generate refresh tokens via the frontend which can be used to obtain access tokens
 that can be used as described :ref:`above <jwt-token>`.
 
 In order to create access tokens you must use the refresh token endpoint, which is available at ``/api/jwt/refresh/``.

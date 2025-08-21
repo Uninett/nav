@@ -1,0 +1,99 @@
+{% extends "useradmin/base.html" %}
+{% load info %}
+
+{#  Display information about a single Json Web Token #}
+
+{% block base_header_additional_head %}
+  {% include "useradmin/token_card_style.html" %}
+{% endblock %}
+
+{% block content %}
+
+  <a href="{% url 'useradmin-jwt_list' %}">Back to token list</a>
+
+  <div class="row">
+    <div class="column small-12">
+
+      <div class="token-card panel white">
+        <a href="{% url 'useradmin-jwt_edit' object.pk %}" class="right">Edit token</a>
+
+        <h3>Token details</h3>
+
+        <h5>Name</h5>
+        <p>
+          <code>{{ object.name }}</code>
+        </p>
+
+        {% if object.description %}
+          <h5>Description</h5>
+          <div class="panel">
+            <p>
+              {{ object.description }}
+            </p>
+          </div>
+        {% endif %}
+
+        <h5>Status:
+          {% if object.revoked %}
+            <span class="label alert" title="Token Revoked">
+              Revoked
+            </span>
+          {% elif not object.is_active%}
+          <span class="label warning" title="Token Inactive">
+            Inactive
+          </span>
+          {% else %}
+          <span class="label success" title="Token Active">
+            Active
+          </span>
+          {% endif %}
+        </h5>
+
+        {% if object.revoked %}
+        <div class="alert-box warning with-icon">
+          This token has been revoked
+        </div>
+        {% else %}
+        <div class="alert-box {% if not object.is_active %}warning with-icon{% endif %}">
+          Active from {{ object.activates }} to {{ object.expires }}
+        </div>
+        {% endif %}
+
+        <h5>Permission:
+          {{ object.permission }}
+          <i class="fa fa-info-circle"
+             title="{{ object.permission_help_text }}"
+             style="cursor: pointer"
+          ></i>
+        </h5>
+
+        <h5>Endpoints:</h5>
+        <p>
+        {% if object.endpoints %}
+          {% for key, value in object.endpoints|sortdict  %}
+            <span class="label" title="{{ value }}">
+              {{ key }}
+            </span>
+          {% endfor %}
+        {% else %}
+            No endpoints set
+        {% endif %}
+        </p>
+
+
+        <ul class="no-bullet">
+          <li>
+              <small>Created: {{ object.created|default:'N/A' }}</small>
+          </li>
+          <li>
+            <small>Last successfully used: {{ object.last_used|default:'Never' }}</small>
+          </li>
+        </ul>
+
+      </div> {# end panel #}
+
+
+    </div> {# end column #}
+  </div> {# end row #}
+
+{% endblock %}

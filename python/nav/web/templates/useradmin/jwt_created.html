@@ -1,0 +1,35 @@
+{% extends "useradmin/base.html" %}
+
+{% block base_header_additional_head %}
+  {% include "useradmin/token_card_style.html" %}
+{% endblock %}
+
+
+{% block content %}
+
+  Back to
+  <a href="{% url 'useradmin-jwt_list' %}">token list</a>
+
+  <div id="form-panel" class="token-card panel white">
+
+    <h3>
+        {{ object.name }}
+    </h3>
+
+    <code id="token" style="display:block; white-space:pre-wrap">{{ token }}</code>
+
+    <button onclick="myFunction()">Copy to clipboard</button>
+
+    <script>
+        function myFunction() {
+        var copyText = document.getElementById("token");
+        navigator.clipboard.writeText(copyText.innerHTML);
+        }
+    </script>
+
+
+    <div class="float-clear"></div>
+
+  </div>
+
+{% endblock %}
