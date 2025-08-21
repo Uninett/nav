@@ -1,1 +1,0 @@
-Add button to SeedDB that downloads a ZIP file with QR Codes linking to the selected netboxes/rooms
