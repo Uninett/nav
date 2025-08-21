@@ -98,6 +98,13 @@ The container also provides common text editors like :program:`vim` and
 :program:`nano`, which should enable you to edit the configuration files if
 necessary.
 
+Configuring JWT signing keys for the API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are working with the API, the script :file:`tools/reset-jwt-keys.sh` can
+be used to quickly generate new RSA signing keys and configure NAV to use them.
+See :ref:`local-jwt-configuration` for more details.
+
 
 Preparing the database schema
 -----------------------------
