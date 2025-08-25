@@ -23,14 +23,24 @@
         {% include 'custom_crispy_templates/flat_form.html' %}
       </div>
       {% if id %}
-      <a href="#" data-dropdown="confirm-delete" class="button alert">Delete</a>
-      <div id="confirm-delete" data-dropdown-content class="f-dropdown content">
-          <h5>Delete this rule?</h5>
-          <form action="{% url 'threshold-delete' id %}" method="POST">
-              {% csrf_token %}
-              <input type="submit" value="Yes" class="button small alert left">
-          </form>
-          <span class="button small secondary close-button left">No way!</span>
+      <div id="confirm-delete" class="popover with-arrow">
+          <button
+              data-popover-target="#confirm-delete"
+              aria-haspopup="true"
+              aria-expanded="false"
+              class="button alert"
+              style="margin-bottom: 0;"
+          >
+              Delete
+          </button>
+          <div class="popover-content tiny" style="width: 200px;">
+              <h5>Delete this rule?</h5>
+              <form action="{% url 'threshold-delete' id %}" method="POST">
+                  {% csrf_token %}
+                  <input type="submit" value="Yes" class="button small alert left">
+                  <button type="button" class="button small secondary close-button left" close-popover>No way!</button>
+              </form>
+          </div>
       </div>
       {% endif %}
     </div>

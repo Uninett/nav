@@ -10,17 +10,23 @@
 </td>
 
 <td class="toggle-info-cell">
-  <a data-dropdown="drop-{{id}}"><i class="fa fa-info-circle"></i></a>
-  <div id="drop-{{id}}" data-dropdown-content class="f-dropdown content medium">
-    <ul>
-      <li><a href="{{event_details_url}}">Event details</a></li>
-      <li><a href="{{event_history_url}}">History for {{alert_type.name}}</a></li>
-      {{#if netbox_history_url}}
-      <li><a href="{{netbox_history_url}}">History for {{subject}}</a></li>
-      {{/if}}
-    </ul>
-    <div class='api-html'></div>
-  </div>
+    <div id="popover-info-{{id}}" class="popover with-arrow">
+        <a
+            data-popover-target="#popover-info-{{id}}"
+            aria-expanded="false"
+            aria-haspopup="true"
+            ><i class="fa fa-info-circle"></i></a>
+        <div class="popover-content medium">
+            <ul>
+              <li><a href="{{event_details_url}}">Event details</a></li>
+              <li><a href="{{event_history_url}}">History for {{alert_type.name}}</a></li>
+              {{#if netbox_history_url}}
+              <li><a href="{{netbox_history_url}}">History for {{subject}}</a></li>
+              {{/if}}
+            </ul>
+            <div class='api-html'></div>
+        </div>
+   </div>
 </td>
 
 <td>

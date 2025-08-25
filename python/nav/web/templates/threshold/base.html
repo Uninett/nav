@@ -49,14 +49,23 @@
           <td class="hide-for-medium-down">{{ rule.creator.name }}</td>
           <td class="hide-for-medium-down" data-sort-value="{{ rule.created|date:'c' }}">{{ rule.created }}</td>
           <td>
-            <i href="#" class="fa fa-times-circle deleteicon" data-dropdown="delete-drop-{{ rule.id }}"></i>
-            <div id="delete-drop-{{ rule.id }}" data-dropdown-content class="f-dropdown content">
-              <h5>Delete this rule?</h5>
-              <form action="{% url 'threshold-delete' rule.id %}" method="POST">
-                {% csrf_token %}
-                <input type="submit" value="Yes" class="button small alert left">
-              </form>
-              <span class="button small secondary close-button left">No way!</span>
+            <div id="delete-popover-{{ rule.id }}" class="popover with-arrow" data-align="end">
+              <a
+                  href="#"
+                  data-popover-target="#delete-popover-{{ rule.id }}"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+              >
+                  <i class="fa fa-times-circle deleteicon"></i>
+              </a>
+              <div class="popover-content tiny">
+                <h5>Delete this rule?</h5>
+                <form action="{% url 'threshold-delete' rule.id %}" method="POST">
+                  {% csrf_token %}
+                  <input type="submit" value="Yes" class="button small alert left" />
+                  <button type="button" class="button small secondary close-button left" close-popover>No way!</button>
+                </form>
+              </div>
             </div>
           </td>
         </tr>
