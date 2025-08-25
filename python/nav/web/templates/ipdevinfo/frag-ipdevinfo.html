@@ -103,10 +103,13 @@
                           (serial: {{ chass.device.serial|default:"N/A" }},
                           {% if chass.model_name %}
                             model:
-                            <span data-tooltip
-                                  class="has-tip"
-                                  title="{{ chass.descr }}">
-                              {{ chass.model_name }}
+                            <span class="nav-tooltip">
+                                <span aria-describedby="model-description-tooltip">
+                                  {{ chass.model_name }}
+                                </span>
+                                <span id="model-description-tooltip" role="tooltip">
+                                    {{ chass.descr }}
+                                </span>
                             </span>,
                           {% endif %}
                           software: {{ chass.get_software_revision|default:"N/A" }})
@@ -352,15 +355,15 @@
                             {{ task.end_time }}
                           {% endif %})
                           {% if not netbox.is_on_maintenance %}
-                            <i class="fa fa-exclamation-triangle has-tip" style="color:#8a6d3b;" data-tooltip
-                               title="
-                                      &lt;ul style=&quot;list-style-type:none;&quot;&gt;
-                                      &lt;li&gt;Task not yet active&lt;/li&gt;
-                                      &lt;li&gt;(Maintenance tasks are activated by default in 5 minute intervals)&lt;/li&gt;
-                                      &lt;/ul&gt;
-                                      "
-                            >
-                            </i>
+                            <div class="nav-tooltip">
+                                <i class="fa fa-exclamation-triangle" aria-describedby="task-not-yet-active" style="color:#8a6d3b;"></i>
+                                <div id="task-not-yet-active" role="tooltip">
+                                    <ul style="list-style-type:none">
+                                        <li>Task not yet active</li>
+                                        <li>(Maintenance tasks are activated by default in 5 minute intervals)</li>
+                                    </ul>
+                                </div>
+                            </div>
                           {% endif %}
                         </div>
                       </li>
