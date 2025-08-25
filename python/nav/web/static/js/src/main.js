@@ -7,6 +7,7 @@ require([
     'libs/foundation.min',
     'libs/select2.min',
     'plugins/megadrop',
+    'plugins/tooltip',
     'libs/underscore'
 ], function (accordionMaker) {
 

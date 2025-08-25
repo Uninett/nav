@@ -50,9 +50,13 @@
   {% if owner %}
     <h5>
       Add another expression to this filter
-      <i data-tooltip class="fa fa-info-circle" 
-         title="Expressions are ANDed together.<br /> This means that an alert must match
-                all the above expressions to match this filter."></i>
+        <span class="nav-tooltip">
+            <i class="fa fa-info-circle" aria-describedby="expressions-tooltip"></i>
+            <span id="expressions-tooltip" class="small" role="tooltip">
+                Expressions are ANDed together.<br /> This means that an alert must match
+                all the above expressions to match this filter.
+            </span>
+        </span>
     </h5>
 
     <div class="row">
