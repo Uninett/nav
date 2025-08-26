@@ -35,6 +35,10 @@
     <input type="submit" class="button small" value="Save">
   </form>
 
+  <form id="netmap-view-delete-form" style="display: none">
+    {% csrf_token %}
+  </form>
+
 
   <div id="graph-navigation" class="row">
 
@@ -103,6 +107,7 @@
               <a id="netmap-view-edit"
                  class="expand button secondary small">Edit view
               </a>
+
 
               <a id="netmap-view-delete"
                  class="expand button alert small">Delete view

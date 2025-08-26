@@ -103,7 +103,7 @@ define([
                 title: 'Create new view'
             });
 
-            this.createNewViewForm.submit(function(e){
+            this.createNewViewForm.submit(function (e) {
                 e.preventDefault();
                 self.createView.call(self);
             });
@@ -116,7 +116,7 @@ define([
                 title: 'Edit ' + this.currentView.get('title')
             });
 
-            this.editViewForm.submit(function(e){
+            this.editViewForm.submit(function (e) {
                 e.preventDefault();
                 self.editCurrentView.call(self);
             });
@@ -223,9 +223,18 @@ define([
             this.currentView.baseZoom = this.currentView.get('zoom');
             var isNew = this.currentView.isNew();
 
+            // Get CSRF token from the appropriate form
+            const csrfToken = isNew
+                ? $('#netmap-view-create-form input[name=csrfmiddlewaretoken]').val()
+                : $('#netmap-view-edit-form input[name=csrfmiddlewaretoken]').val();
+            this.currentView.set('csrfmiddlewaretoken', csrfToken);
+
             var self = this;
             this.currentView.save(this.currentView.attributes,
                 {
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                    },
                     success: function (model) {
                         Backbone.EventBroker.trigger('netmap:saveNodePositions', model, {'isNew': isNew}, self.middleAlertContainer);
                     },
@@ -288,8 +297,11 @@ define([
             if(confirm('Delete this view?')) {
                 if (!this.currentView.isNew()) {
                     var self = this;
-                    console.log('We want to delete view with id ' + this.currentView.id);
+                    const csrfToken = $('#netmap-view-delete-form input[name=csrfmiddlewaretoken]').val();
                     this.currentView.destroy({
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                        },
                         success: function () {
                             self.deleteSuccessful.call(self, false);
                         },
@@ -320,27 +332,27 @@ define([
                 url: 'views/default/' + window.netmapData.userID + '/',
                 data: {view: this.currentView.id, owner: window.netmapData.userID}
             })
-            .done(function () {
-                var alert = self.leftAlertContainer.html(
-                    '<span class="alert-box success">View set as default</span>'
-                );
-                setTimeout(function () {
-                    $('span', alert).fadeOut(function () {
-                        this.remove();
+                .done(function () {
+                    var alert = self.leftAlertContainer.html(
+                        '<span class="alert-box success">View set as default</span>'
+                    );
+                    setTimeout(function () {
+                        $('span', alert).fadeOut(function () {
+                            this.remove();
+                        });
+                    }, 3000);
+                })
+                .fail(function () {
+                    var alert = self.leftAlertContainer.html(
+                        '<span class="alert-box alert">Error setting default view' +
+                        '<a href="#" class="close">&times;</a></span>'
+                    );
+                    $(alert).click(function () {
+                        $(alert).fadeOut(function () {
+                            this.remove();
+                        });
                     });
-                }, 3000);
-            })
-            .fail(function () {
-                var alert = self.leftAlertContainer.html(
-                    '<span class="alert-box alert">Error setting default view' +
-                    '<a href="#" class="close">&times;</a></span>'
-                );
-                $(alert).click(function () {
-                    $(alert).fadeOut(function () {
-                        this.remove();
-                    }) ;
                 });
-            });
         },
 
         displayCreateView: function () {
@@ -457,29 +469,31 @@ define([
             }, 3000);
         },
 
-        saveError: function (resp) { console.log(resp);
+        saveError: function (resp) {
+            console.log(resp);
 
             var alert = this.leftAlertContainer.html(
                 '<span class="alert-box alert">Save unsuccessful!' +
-                    '<a href="#" class="close">&times;</a></span>'
+                '<a href="#" class="close">&times;</a></span>'
             );
             $('span a', alert).click(function () {
                 $('span', alert).fadeOut(function () {
                     this.remove();
-                }) ;
+                });
             });
         },
 
-        deleteError: function (resp) { console.log(resp);
+        deleteError: function (resp) {
+            console.log(resp);
 
             var alert = this.leftAlertContainer.html(
                 '<span class="alert-box alert">Delete unsuccessful!' +
-                    '<a href="#" class="close">&times;</a></span>'
+                '<a href="#" class="close">&times;</a></span>'
             );
             $('span a', alert).click(function () {
                 $('span', alert).fadeOut(function () {
                     this.remove();
-                }) ;
+                });
             });
         },
 
@@ -553,18 +567,18 @@ define([
                 this.setUpdateFavoriteViewEnables(false);
                 this.setSaveDeleteViewEnabled(false);
 
-            // User does not own selected view
+                // User does not own selected view
             } else if (!window.netmapData.admin &&
-                    this.currentView.get('owner') !== window.netmapData.userLogin) {
+                this.currentView.get('owner') !== window.netmapData.userLogin) {
                 this.setUpdateFavoriteViewEnables(true);
                 this.setSaveDeleteViewEnabled(false);
 
-            // View is unsaved
+                // View is unsaved
             } else if (this.currentView.isNew()) {
                 this.setUpdateFavoriteViewEnables(false);
                 this.setSaveDeleteViewEnabled(true);
 
-            // User owns the selected view
+                // User owns the selected view
             } else {
                 this.setUpdateFavoriteViewEnables(true);
                 this.setSaveDeleteViewEnabled(true);
