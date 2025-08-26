@@ -806,6 +806,7 @@ def jwt_recreate(request, pk):
     token.expires = datetime.fromtimestamp(claims['exp'], tz=timezone.utc)
     token.activates = datetime.fromtimestamp(claims['nbf'], tz=timezone.utc)
     token.hash = hash_token(encoded_token)
+    token.revoked = False
     token.save()
 
     LogEntry.add_log_entry(
