@@ -2,65 +2,66 @@
 {% load tools %}
 
 {% block base_header_additional_head %}
-  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/neighbors.css">
-  <script>
-   require(['src/neighbors']);
-   NAV.urls.neighbors = {
-       "neighbors_set_state": "{% url 'neighbors-set-state' %}"
-   }
-  </script>
+<link rel="stylesheet" href="{{ STATIC_URL }}css/nav/neighbors.css">
+<script>
+    require(['src/neighbors']);
+    NAV.urls.neighbors = {
+        "neighbors_set_state": "{% url 'neighbors-set-state' %}"
+    }
+</script>
 {% endblock %}
 
 
 {% block base_content %}
 
-  {# Heading #}
-  <div class="row">
+{# Heading #}
+<div class="row">
     <div class="small-12 columns">
-      {% with tool=current_user_data.tools|get_tool:'Unrecognized Neighbors' %}
+        {% with tool=current_user_data.tools|get_tool:'Unrecognized Neighbors' %}
         {% include 'nav_header.html' %}
-      {% endwith %}
+        {% endwith %}
     </div>
-  </div>
+</div>
+<form method="POST">
+    {% csrf_token %}
+    <div>
+        <ul id="action-buttons" class="button-group">
+            <li>
+                <button id="ignore-selected" class="tiny" type="button">Ignore selected</button>
+            </li>
+            <li>
+                <button id="unignore-selected" class="tiny" type="button">Unignore selected</button>
+            </li>
+        </ul>
 
-  <div>
-    <ul id="action-buttons" class="button-group">
-      <li>
-        <button id="ignore-selected" class="tiny">Ignore selected</button>
-      </li>
-      <li>
-        <button id="unignore-selected" class="tiny">Unignore selected</button>
-      </li>
-    </ul>
+        <span id="ignored-feedback" class="alert-box inside-table">Test</span>
+    </div>
 
-    <span id="ignored-feedback" class="alert-box inside-table">Test</span>
+    <div>
+        <label style="display: inline">
+            <input id="toggle-ignored" type="checkbox">
+            Show ignored neighbors
+        </label>
+    </div>
 
-  </div>
-
-  <div>
-    <label style="display: inline">
-      <input id="toggle-ignored" type="checkbox">
-      Show ignored neighbors
-    </label>
-  </div>
-
-  {# Unrecognized neighbors #}
-  <table id="unrecognized-neighbors-table" class="listtable hover">
-    <thead>
-      <tr>
-        <th><input id="select_all" type="checkbox"></th>
-        <th>Remote ID</th>
-        <th>Remote Name</th>
-        <th>Seen on interface</th>
-        <th>Source</th>
-        <th>First seen</th>
-        <th>
-          Ignored since
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      {% include 'neighbors/frag-tbody.html' %}
-    </tbody>
-  </table>
+    {# Unrecognized neighbors #}
+    <table id="unrecognized-neighbors-table" class="listtable hover">
+        <thead>
+        <tr>
+            <th><input id="select_all" type="checkbox"></th>
+            <th>Remote ID</th>
+            <th>Remote Name</th>
+            <th>Seen on interface</th>
+            <th>Source</th>
+            <th>First seen</th>
+            <th>
+                Ignored since
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% include 'neighbors/frag-tbody.html' %}
+        </tbody>
+    </table>
+</form>
 {% endblock %}
