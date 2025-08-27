@@ -6,7 +6,7 @@
     NAV.urls.seeddb = NAV.urls.seeddb || {};
     NAV.urls.get_readonly = "{% url 'seeddb-netbox-get-readonly' %}";
     NAV.urls.seeddb.verifyAddress = "{% url 'seeddb-netbox-get-address-info' %}";
-    require(['src/seeddb_netbox']);
+    require(['src/seeddb_netbox', 'src/seeddb_netbox_wizard']);
   </script>
 {% endblock %}
 
@@ -56,65 +56,4 @@
     {% endif %}
   </ul>
   {% endif %}
-
-  <ol class="joyride-list" data-joyride>
-    <li>
-      <p>Use the Seed Database tool to enable NAV to collect information from
-        your managed network devices.</p>
-      <p>
-        Let's take a look at the most important bit: Adding IP Devices to NAV.
-      </p>
-    </li>
-    <li data-id="add-netbox-form" data-options="tip_location:top;">
-      <p>To enable NAV to collect information from an IP Device, you need to
-        give some basic information about it.</p>
-    </li>
-    <li data-id="id_ip">
-      <p>The IP address of the device is needed. Both IPv4 and IPv6 addresses
-        are supported.</p>
-    </li>
-    <li data-id="id_room">
-      <p>The room is the physical location/wiring closet of the device. You can add more
-        rooms by clicking the <em>"Room"</em> tab.</p>
-      <p>
-        A room can be given a position that enables map placement in some of NAV's tools.
-      </p>
-    </li>
-    <li data-id="id_category">
-      <p>The category determines how NAV collects data from the device. More
-        information about categories can be found
-        <a href="/doc/intro/getting-started.html#selecting-a-device-category"
-           target="_blank" title="Selecting a device category">in the documentation</a>.
-      </p>
-    </li>
-    <li data-id="id_organization">
-      <p>The organization indicates who is operationally responsible for the equipment.</p>
-    </li>
-    <li data-id="div_id_profiles">
-      <p>Selecting a management profile is essential. Without the correct profile,
-        NAV has no means to collect information from the device.</p>
-      <p>Management profiles can be configured in a separate SeedDB tab. For example,
-        you can create an SNMP v2c management profile that can be shared among many
-        of your devices.</p>
-    </li>
-    <li>
-      <p>
-        If you have a big network with many devices you should check out the
-        <a href="/doc/intro/getting-started.html#importing-multiple-devices-in-bulk" target="_blank"
-           title="Link to bulk import information">bulk import</a> functionality
-        in NAV. Bulk import enables you to import all your devices from comma (or colon) separated text files.
-      </p>
-    </li>
-    <li data-button="End">
-      <p>
-        If you want more information about using the Seed Database tool to organize your data, please read the
-        <a href="/doc/intro/getting-started.html" title="Getting started" target="_blank">&laquo;Getting started&raquo;</a>
-        and the
-        <a href="/doc/intro/getting-organized.html" title="Getting organized" target="_blank">&laquo;Getting organized&raquo;</a>
-        guides.
-      </p>
-      <p>We wish you a great NAV experience!</p>
-    </li>
-  </ol>
-
 {% endblock %}
