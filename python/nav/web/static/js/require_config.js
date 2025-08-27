@@ -21,7 +21,8 @@ var require = {
         "backbone": "libs/backbone",
         "underscore": "libs/underscore",
         "marionette": "libs/backbone.marionette.min",
-        "vue": "libs/vue.min"
+        "vue": "libs/vue.min",
+        "driver": "libs/driver-1.3.6.min"
     },
     shim: {
         'libs/foundation.min': ['libs/modernizr', 'libs/fastclick'],
