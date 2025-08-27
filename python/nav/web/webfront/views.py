@@ -22,7 +22,6 @@ import logging
 from operator import attrgetter
 from urllib.parse import quote as urlquote
 
-from django_htmx.http import reswap
 from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
@@ -57,7 +56,6 @@ from nav.web.webfront import (
     WELCOME_ANONYMOUS_PATH,
     WELCOME_REGISTERED_PATH,
 )
-from typing import Optional
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -334,56 +332,6 @@ def qr_code(request):
         'webfront/_qr_code.html',
         {'qr_code': qr_code, 'file_format': file_format},
     )
-
-
-DEFAULT_MODAL_ID = 'modal'
-DEFAULT_MODAL_SIZE = 'tiny'
-
-
-def render_modal(
-    request,
-    template_name: str,
-    context: Optional[dict] = None,
-    modal_id: Optional[str] = DEFAULT_MODAL_ID,
-    size: Optional[str] = DEFAULT_MODAL_SIZE,
-):
-    """Render a modal dialog with the given template and context"""
-
-    if context is None:
-        context = {}
-    modal_context = {
-        'modal_id': modal_id,
-        'content_template': template_name,
-        'modal_size': size,
-        **context,
-    }
-    return render(request, 'webfront/_nav_modal.html', modal_context)
-
-
-def resolve_modal(
-    request,
-    template_name: Optional[str] = None,
-    context: Optional[dict] = None,
-    modal_id: Optional[str] = DEFAULT_MODAL_ID,
-):
-    """Resolve a modal dialog with the given template and context"""
-    if context is None:
-        context = {}
-    modal_context = {'modal_id': modal_id, 'content_template': template_name, **context}
-    return render(request, 'webfront/_nav_modal_resolve.html', modal_context)
-
-
-def render_modal_alert(
-    request, message: str, modal_id: Optional[str] = DEFAULT_MODAL_ID
-):
-    """Render an alert box with the given message and swaps the modal content"""
-    context = {
-        'message': message,
-        'modal_id': modal_id,
-    }
-    response = render(request, 'webfront/_nav_modal_alert.html', context)
-    reswap(response, modal_id + "-alert")
-    return response
 
 
 @sensitive_post_parameters('old_password', 'new_password1', 'new_password2')

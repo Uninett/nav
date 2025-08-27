@@ -1,24 +1,24 @@
+from unittest.mock import patch
 from django.test import RequestFactory
 from django.http import HttpResponse
-from unittest.mock import patch
 
-from nav.web.webfront.views import (
+from nav.web.modals import (
+    DEFAULT_MODAL_ID,
+    DEFAULT_MODAL_SIZE,
     render_modal,
     resolve_modal,
     render_modal_alert,
-    DEFAULT_MODAL_ID,
-    DEFAULT_MODAL_SIZE,
 )
 
 
 class TestModalUtilities:
-    """Test caes for modal utility functions"""
+    """Test case for modal utility functions"""
 
     def setup_method(self):
         self.factory = RequestFactory()
         self.request = self.factory.get('/')
 
-    @patch('nav.web.webfront.views.render')
+    @patch('nav.web.modals.render')
     def test_should_render_modal_with_defaults(self, mock_render):
         mock_render.return_value = HttpResponse('modal content')
         result = render_modal(self.request, 'test_template.html')
@@ -30,11 +30,11 @@ class TestModalUtilities:
         }
 
         mock_render.assert_called_once_with(
-            self.request, 'webfront/_nav_modal.html', expected_context
+            self.request, 'modals/_nav_modal.html', expected_context
         )
         assert result == mock_render.return_value
 
-    @patch('nav.web.webfront.views.render')
+    @patch('nav.web.modals.render')
     def test_should_render_modal_with_custom_context(self, mock_render):
         mock_render.return_value = HttpResponse('modal content')
         template_name = 'custom_template.html'
@@ -51,10 +51,10 @@ class TestModalUtilities:
         }
 
         mock_render.assert_called_once_with(
-            self.request, 'webfront/_nav_modal.html', expected_context
+            self.request, 'modals/_nav_modal.html', expected_context
         )
 
-    @patch('nav.web.webfront.views.render')
+    @patch('nav.web.modals.render')
     def test_should_render_modal_with_custom_size(self, mock_render):
         """Test render_modal with custom size"""
         mock_render.return_value = HttpResponse('modal content')
@@ -70,10 +70,10 @@ class TestModalUtilities:
         }
 
         mock_render.assert_called_once_with(
-            self.request, 'webfront/_nav_modal.html', expected_context
+            self.request, 'modals/_nav_modal.html', expected_context
         )
 
-    @patch('nav.web.webfront.views.render')
+    @patch('nav.web.modals.render')
     def test_resolve_modal_with_defaults(self, mock_render):
         """Test resolve_modal with default parameters"""
         mock_render.return_value = HttpResponse('modal content')
@@ -84,10 +84,10 @@ class TestModalUtilities:
             'content_template': None,
         }
         mock_render.assert_called_once_with(
-            self.request, 'webfront/_nav_modal_resolve.html', expected_context
+            self.request, 'modals/_nav_modal_resolve.html', expected_context
         )
 
-    @patch('nav.web.webfront.views.render')
+    @patch('nav.web.modals.render')
     def test_resolve_modal_with_custom_template(self, mock_render):
         """Test resolve_modal with template and context"""
         mock_render.return_value = HttpResponse('resolve content')
@@ -103,10 +103,10 @@ class TestModalUtilities:
             'success': True,
         }
         mock_render.assert_called_once_with(
-            self.request, 'webfront/_nav_modal_resolve.html', expected_context
+            self.request, 'modals/_nav_modal_resolve.html', expected_context
         )
 
-    @patch('nav.web.webfront.views.render')
+    @patch('nav.web.modals.render')
     def test_render_modal_alert_custom_modal_id(self, mock_render):
         """Test render_modal_alert with custom modal_id"""
         mock_render.return_value = HttpResponse('alert content')
@@ -117,5 +117,5 @@ class TestModalUtilities:
 
         expected_context = {'message': message, 'modal_id': modal_id}
         mock_render.assert_called_once_with(
-            self.request, 'webfront/_nav_modal_alert.html', expected_context
+            self.request, 'modals/_nav_modal_alert.html', expected_context
         )

@@ -28,7 +28,7 @@ from nav.models.manage import Netbox, Interface, Room
 from nav.bulkparse import PatchBulkParser
 from nav.bulkimport import PatchImporter
 
-from nav.web.webfront.views import render_modal, resolve_modal, render_modal_alert
+from nav.web.modals import render_modal, render_modal_alert, resolve_modal
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher, not_implemented
