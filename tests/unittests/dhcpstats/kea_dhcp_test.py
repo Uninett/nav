@@ -502,6 +502,7 @@ class TestHTTPSession:
 
 
 TestData = namedtuple("TestData", ["config", "statistics", "expected_stats"])
+TestData.__test__ = False  # pytest: this is not a test case
 
 
 @pytest.fixture
