@@ -77,7 +77,7 @@ RUN cd /tmp && \
 
 # Install chromedriver to properly run Selenium tests in Chrome, if need be
 # Ref: https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
-ENV CHROMEDRIVERVERSION=133.0.6943.126
+ENV CHROMEDRIVERVERSION=139.0.7258.154
 RUN cd /tmp && \
     wget https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVERVERSION/linux64/chromedriver-linux64.zip && \
     unzip chromedriver-linux64.zip && \
