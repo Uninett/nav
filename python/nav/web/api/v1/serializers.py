@@ -360,6 +360,7 @@ class InterfaceSerializer(serializers.ModelSerializer):
         source='get_bundled_interfaces', many=True
     )
     netbox = SubNetboxSerializer()
+    vlan_netident = serializers.CharField(read_only=True)
 
     class Meta(object):
         model = manage.Interface
