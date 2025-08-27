@@ -30,6 +30,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
       python3.10-dbg python3.10-dev python3.10-venv \
       python3.11-dbg python3.11-dev python3.11-venv \
       python3.12-dbg python3.12-dev python3.12-venv \
+      python3.13-dbg python3.13-dev python3.13-venv \
       python3-pip
 
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
