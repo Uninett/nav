@@ -10060,7 +10060,7 @@ The switch remembers the last file name used.
 File path can be appended to the file name if the string is less than 17
 characters. Otherwise, the File Path field will need to be used and the
 File Name will be appended to the File Path as is. An example would be
-File Path set to c:\\tftp\code\\ and File Name set to e1r1v1.opr.
+File Path set to c:\\tftp\\code\\ and File Name set to e1r1v1.opr.
 Note: File Name, File Path, and TFTP Server IP Address are applicable
 only if the Transfer Mode is TFTP.""",
         }, # scalar
