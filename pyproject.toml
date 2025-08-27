@@ -17,7 +17,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "asciitree==0.3.3",
-    "psycopg2==2.9.9",
+    "psycopg2==2.9.10",
     "IPy==1.01",
     "pyaml",
     "twisted>=24.7",
@@ -30,7 +30,7 @@ dependencies = [
     "sphinxcontrib-django",
     "Markdown==3.3.6",
 
-    "feedparser==6.0.8",
+    "feedparser==6.0.11",
     "dnspython<3.0.0,>=2.1.0",
 
     "Django>=4.2,<4.3",
@@ -43,7 +43,7 @@ dependencies = [
 
     "pynetsnmp-2>=0.1.10",
 
-    "napalm>=5.0.0,<5.1.0",
+    "napalm>=5.1.0,<5.2.0",
 
     "drf-jwt-multi-auth",
 
