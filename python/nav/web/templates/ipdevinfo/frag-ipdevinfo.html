@@ -136,6 +136,17 @@
             </tr>
 
             <tr>
+              <th>MAC address</th>
+              <td>
+                {% if mac %}
+                    {{ mac }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </td>
+            </tr>
+
+            <tr>
               <th>Prefix</th>
               <td>
                 {% with netbox.get_filtered_prefix as prefix %}

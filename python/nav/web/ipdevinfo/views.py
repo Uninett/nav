@@ -287,6 +287,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     system_metrics = netbox_availability = []
     sensor_metrics = []
     graphite_error = False
+    mac = None
 
     # Invalid IP address
     if not name and not addr_valid:
@@ -331,6 +332,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         netboxgroups = netbox.netboxcategory_set.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
         job_descriptions = get_job_descriptions()
+        if arp := get_arp_info(netbox.ip):
+            mac = arp.mac
 
         try:
             system_metrics = netbox.get_system_metrics()
@@ -400,6 +403,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'future_maintenance_tasks': relevant_future_tasks,
             'sensor_metrics': sensor_metrics,
             'display_services_tab': display_services_tab,
+            'mac': mac,
         },
     )
 
