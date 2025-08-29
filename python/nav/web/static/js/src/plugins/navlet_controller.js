@@ -198,7 +198,16 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
 
                 $confirmButton.click(function () {
                     modal.find('.alert-box').remove();
-                    var request = $.post(that.removeUrl, {'navletid': that.navlet.id});
+                    const csrfToken = $('#navlets-action-form input[name="csrfmiddlewaretoken"]').val();
+                    const request = $.ajax({
+                       url: that.removeUrl,
+                       type: 'POST',
+                       data: {'navletid': that.navlet.id},
+                       contentType: 'application/json',
+                       headers: {
+                           'X-CSRFToken': csrfToken
+                       }
+                    })
                     request.fail(function () {
                         $('<div class="alert-box alert">Could not remove widget, maybe try again?</div>').appendTo(modal);
                     });
@@ -283,14 +292,20 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                 $container.append($input);
                 $input.on('keydown', function (event) {
                     if (event.which === 13) {
-                        var request = $.post($header.attr('data-set-title'),
-                            {
+                        const csrfToken = $('#navlets-action-form input[name="csrfmiddlewaretoken"]').val();
+                        const request = $.post({
+                            url: $header.attr('data-set-title'),
+                            type: 'POST',
+                            data: {
                                 'id': self.navlet.id,
                                 'preferences': JSON.stringify({
                                     'title': $input.val()
                                 })
+                            },
+                            headers: {
+                                'X-CSRFToken': csrfToken
                             }
-                        );
+                        });
                         request.done(function () {
                             $header.find('.navlet-title').text($input.val());
                         });

@@ -63,8 +63,8 @@
     </table>
 
     {# Panel to do stuff with selected alerts #}
-    <div id="action-panel-revised" class="row">
-
+    <form id="action-panel-revised" class="row" method="POST">
+      {% csrf_token %}
       <div class="column medium-8 large-4">
         <label data-tooltip
                title="&lt;h5&gt;Acknowledge the alerts&lt;/h5&gt;
@@ -122,9 +122,7 @@
 
       </div>
 
-    </div>
-
-
+    </form>
   </div>
 
 {% endblock %}
