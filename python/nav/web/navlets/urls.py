@@ -21,6 +21,7 @@ from . import (
     get_user_navlets,
     add_user_navlet,
     add_user_navlet_graph,
+    add_navlet_modal,
     remove_user_navlet,
     remove_user_navlet_modal,
     dispatcher,
@@ -43,6 +44,11 @@ urlpatterns = [
         r'^add-user-navlet/(?P<dashboard_id>\d+)/$',
         add_user_navlet,
         name='add-user-navlet',
+    ),
+    re_path(
+        r'^add-navlet-modal/(?P<dashboard_id>\d+)/$',
+        add_navlet_modal,
+        name='add-navlet-modal',
     ),
     re_path(
         r'^add-user-navlet/graph/$', add_user_navlet_graph, name='add-user-navlet-graph'

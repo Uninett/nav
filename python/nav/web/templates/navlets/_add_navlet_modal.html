@@ -1,0 +1,16 @@
+<h4>Add a widget to your page</h4>
+    <ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-3">
+    {% for navlet in navlets %}
+      <li>
+        <div class="panel">
+          <form class="add-user-navlet right" action="{% url 'add-user-navlet' dashboard_id %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="navlet" value="{{ navlet.get_class }}">
+            <input type="submit" class="button tiny" value="Add">
+          </form>
+          <h5>{{ navlet.title }}</h5>
+          <span>{{ navlet.description }}</span>
+        </div>
+      </li>
+    {% endfor %}
+</ul>

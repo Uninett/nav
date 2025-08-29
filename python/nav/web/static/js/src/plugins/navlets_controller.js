@@ -84,14 +84,17 @@ define(['plugins/navlet_controller'], function (NavletController) {
         },
         addAddNavletListener: function () {
             var that = this;
-            $('.add-user-navlet').submit(function (event) {
+            $(document).on('submit', '.add-user-navlet', function (event) {
                 event.preventDefault();
-                var request = $.post($(this).attr('action'), $(this).serialize(), 'json');
+                var $form = $(this);
+                var request = $.post($form.attr('action'), $form.serialize(), 'json');
+
                 request.done(function (data) {
                     that.addNavlet(data, true);
                     that.saveOrder(that.findOrder());
-                    $('#navlet-list').foundation('reveal', 'close');
+                    $('#navlet-list').remove();
                 });
+
                 request.fail(function () {
                     alert('Failed to add widget');
                 });

@@ -49,7 +49,7 @@ from nav.web.webfront.forms import (
     NavbarLinkFormSet,
     ChangePasswordForm,
 )
-from nav.web.navlets import list_navlets, can_modify_navlet
+from nav.web.navlets import can_modify_navlet
 from nav.web.message import new_message, Messages
 from nav.web.webfront import (
     find_dashboard,
@@ -77,7 +77,6 @@ def index(request, did=None):
         'welcome': welcome,
         'dashboard': dashboard,
         'dashboards': dashboards,
-        'navlets': list_navlets(),
         'title': 'NAV - {}'.format(dashboard.name),
     }
 
