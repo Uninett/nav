@@ -197,16 +197,36 @@ define([
 
         events: {
             'click .submit-action': 'submitAction',
-            'change select': 'showOrHideCommentField'
+            'change select': 'showOrHideCommentField',
+            'click .help-toggle': 'toggleHelp'
         },
-
+        helpToggleText: {
+            show: 'Show action details',
+            hide: 'Hide action details'
+        },
         initialize: function () {
             this.actionSelect = this.$('select');
             this.comment = this.$('.usercomment');
             this.commentWrapper = this.$('.usercomment-wrapper');
             this.feedback = this.$('.feedback');
+            this.helpContent = this.$('#action-help-content');
+            this.helpToggle = this.$('.help-toggle');
+            this.helpText = this.$('.help-text');
         },
+        toggleHelp: function(event) {
+            event.preventDefault();
+            const self = this;
 
+            this.helpContent.slideToggle(200, function() {
+                if (self.helpContent.is(':visible')) {
+                    self.helpText.text(self.helpToggleText.hide);
+                    self.helpToggle.attr('aria-expanded', 'true');
+                } else {
+                    self.helpText.text(self.helpToggleText.show);
+                    self.helpToggle.attr('aria-expanded', 'false');
+                }
+            });
+        },
         submitAction: function() {
             var self = this,
                 action = this.actionSelect.val();
