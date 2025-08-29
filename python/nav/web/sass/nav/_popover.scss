@@ -1,0 +1,101 @@
+.popover {
+  position: relative;
+  width: fit-content;
+
+  // Alignment classes on the popover wrapper
+  &[data-align="end"] .popover-content {
+    right: 0;
+    left: unset;
+  }
+
+  &[data-align="center"] .popover-content {
+    left: 50%;
+    transform: translate(-50%, 10px);
+  }
+
+  // Arrow positioning based on popover alignment
+  &.with-arrow {
+    .popover-content {
+      &:before {
+        position: absolute;
+        content: '';
+        width: 0;
+        height: 0;
+        border: inset 6px;
+        border-color: rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) #fff rgba(0, 0, 0, 0);
+        border-bottom-style: solid;
+        top: -12px;
+        left: 10px;
+        z-index: 2;
+      }
+
+      &:after {
+        content: '';
+        display: block;
+        width: 0;
+        height: 0;
+        border: inset 7px;
+        border-color: rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) #ccc rgba(0, 0, 0, 0);
+        border-bottom-style: solid;
+        position: absolute;
+        top: -14px;
+        left: 9px;
+        z-index: 1;
+      }
+    }
+
+    &[data-align="end"] .popover-content {
+      &:before {
+        right: 10px;
+        left: unset;
+      }
+      &:after {
+        right: 9px;
+        left: unset;
+      }
+    }
+
+    &[data-align="center"] .popover-content {
+      &:before {
+        left: calc(50% - 6px);
+      }
+      &:after {
+        left: calc(50% - 7px);
+      }
+    }
+  }
+}
+
+.popover-content {
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(0, 5px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+  position: absolute;
+  left: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 1.25rem;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+  width: max-content;
+
+  &.tiny {
+    max-width: 200px;
+  }
+  &.small {
+    max-width: 300px;
+  }
+  &.medium {
+    max-width: 500px;
+  }
+  &.large {
+    max-width: 800px;
+  }
+}
+
+.popover.open .popover-content {
+  opacity: 1;
+  transform: translate(0, 10px);
+  visibility: visible;
+}
