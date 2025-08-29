@@ -277,6 +277,20 @@ def add_user_navlet(request, dashboard_id=None):
     return HttpResponse(status=400)
 
 
+def add_navlet_modal(request, dashboard_id):
+    """Render modal with list of available navlets"""
+
+    return render_modal(
+        request,
+        'navlets/_add_navlet_modal.html',
+        context={
+            'dashboard_id': dashboard_id,
+            'navlets': list_navlets(),
+        },
+        modal_id='navlet-list',
+    )
+
+
 def add_navlet(account, navlet, preferences=None, dashboard=None):
     """Create new accountnavlet based on request data"""
     if preferences is None:
