@@ -12,9 +12,12 @@
             <label for="{{ field.id_for_label }}" {% if field.field.required %}class="requiredField"{% endif %}>
               {{ field.label|safe }}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}
               {% if field.help_text %}
-                  &nbsp;<i id="hint_{{ field.auto_id }}" class="fa fa-info-circle" data-tooltip title="
-                  {{ field.help_text }}
-                  "></i>
+                  <span class="nav-tooltip">
+                      &nbsp;<i aria-describedby="hint_{{ field.auto_id }}" class="fa fa-info-circle" ></i>
+                      <span id="hint_{{ field.auto_id }}" role="tooltip">
+                          {{ field.help_text }}
+                      </span>
+                  </span>
               {% endif %}
             </label>
         {% endif %}
