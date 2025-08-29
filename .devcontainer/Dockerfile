@@ -54,3 +54,5 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 ENV UV_PROJECT_ENVIRONMENT=/home/vscode/.venv
 ENV UV_PYTHON=${MAIN_PYTHON_VERSION}
 ENV PATH="${UV_PROJECT_ENVIRONMENT}/bin:${PATH}"
+
+RUN echo "This is the original base image for NAV devcontainer" > /README.TXT
