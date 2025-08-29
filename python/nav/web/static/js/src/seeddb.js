@@ -29,8 +29,6 @@ function (datatables, CheckboxSelector, FormFuck, ManagementProfile, connectivit
             initSearchForIpDevice();
         }
 
-        initJoyride();  /* Start joyride if url endswith #joyride */
-
         if ($('#map').length && $('#id_position').length) {
             seedDBRoomMap('map', 'id_position', 'get_location_trigger');
         }
@@ -116,28 +114,6 @@ function (datatables, CheckboxSelector, FormFuck, ManagementProfile, connectivit
             $formElement.val($searchField.select2('val'));
         });
     }
-
-    function initJoyride() {
-        /* Start joyride if url endswith #joyride */
-        if (location.hash === '#joyride') {
-            $(document).foundation({
-                'joyride': {
-                    'pre_ride_callback': function () {
-                        var cards = $('.joyride-tip-guide').find('.joyride-content-wrapper');
-                        cards.each(function (index, element) {
-                            var counter = $('<small>')
-                                    .attr('style', 'position:absolute;bottom:1.5rem;right:1.25rem')
-                                    .html(index + 1 + ' of ' + cards.length);
-                            $(element).append(counter);
-                        });
-                    },
-                    'modal': false
-                }
-            });
-            $(document).foundation('joyride', 'start');
-        }
-    }
-
 
     function activateIpDeviceFormPlugins() {
         // The connectivity checker
