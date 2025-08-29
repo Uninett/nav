@@ -3,10 +3,6 @@
 {
   "name": "Network Administration Visualized",
   "dockerComposeFile": "docker-compose.yml",
-  "args": {
-    "DEBIAN_VERSION": "bookworm",
-    "MAIN_PYTHON_VERSION": "3.11"
-  },
   "service": "nav",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "postCreateCommand": "uv sync --all-extras --all-groups; git config --global --add safe.directory /workspaces/${localWorkspaceFolderBasename}",
