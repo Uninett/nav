@@ -52,13 +52,14 @@ from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic.base import TemplateView
 
 from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
 from nav.web.auth.sudo import get_sudoer
 from nav.django.utils import get_account
+from nav.web.modals import render_modal, render_modal_alert, resolve_modal
 from nav.web.utils import require_param
 from nav.web.webfront import find_dashboard
 
@@ -336,20 +337,45 @@ def modify_navlet(func, account, request, error_message):
         return HttpResponse(status=403)
 
 
+@require_GET
+def remove_user_navlet_modal(request, navlet_id):
+    """Render modal asking user to confirm removal of a navlet"""
+    return render_modal(
+        request,
+        'navlets/_remove_modal_form.html',
+        {'navlet_id': navlet_id},
+        _get_remove_modal_id(navlet_id),
+    )
+
+
+@require_POST
 def remove_user_navlet(request):
     """Remove a navlet-subscription from this user"""
-    if request.method == 'POST' and 'navletid' in request.POST:
-        account = get_account(request)
-        return modify_navlet(remove_navlet, account, request, "Error removing Navlet")
+    if 'navletid' not in request.POST:
+        return HttpResponse(status=400)
 
-    return HttpResponse(status=400)
-
-
-def remove_navlet(account, request):
-    """Remove accountnavlet based on request data"""
+    account = get_account(request)
     navlet_id = int(request.POST.get('navletid'))
-    accountnavlet = AccountNavlet(pk=navlet_id, account=account)
-    accountnavlet.delete()
+    modal_id = _get_remove_modal_id(navlet_id)
+
+    if not can_modify_navlet(account, request):
+        return render_modal_alert(
+            request, 'You are not permitted to remove this widget', modal_id
+        )
+
+    try:
+        account_navlet = AccountNavlet.objects.get(pk=navlet_id, account=account)
+        account_navlet.delete()
+        return resolve_modal(request, modal_id=modal_id)
+    except AccountNavlet.DoesNotExist:
+        return render_modal_alert(
+            request, 'This widget no longer exists. Try refreshing the page.', modal_id
+        )
+
+
+def _get_remove_modal_id(navlet_id):
+    """Get the modal id for the remove navlet modal"""
+    return "remove-navlet-modal-" + str(navlet_id)
 
 
 def save_navlet_order(request):
