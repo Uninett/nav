@@ -202,14 +202,14 @@ define([
         },
         helpToggleText: {
             show: 'Show action details',
-            hide: 'Hide details'
+            hide: 'Hide action details'
         },
         initialize: function () {
             this.actionSelect = this.$('select');
             this.comment = this.$('.usercomment');
             this.commentWrapper = this.$('.usercomment-wrapper');
             this.feedback = this.$('.feedback');
-            this.helpContent = this.$('#action-help-content');  // Add this line
+            this.helpContent = this.$('#action-help-content');
             this.helpToggle = this.$('.help-toggle');
             this.helpText = this.$('.help-text');
         },
