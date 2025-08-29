@@ -84,6 +84,13 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
         },
         handleSuccessfulRequest: function (html, mode) {
             this.node.html(html);
+
+            /*
+            Process the new navlet with htmx to initialize any hx-* attributes
+            Required because content loaded via jQuery AJAX is not automatically processed by htmx.
+            */
+            htmx.process(this.node.get(0));
+
             if (this.forceFirst) {
                 this.node.addClass('mark-new');
             }
@@ -159,7 +166,6 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
         applyListeners: function () {
             /* Applies listeners to the relevant elements */
             this.applyModeListener();
-            this.applyRemoveListener();
 //            this.applyReloadListener();
             this.applySubmitListener();
             if (this.navlet.is_title_editable && this.node.find('.subheader[data-set-title]').get(0)) {
@@ -180,45 +186,6 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                     that.renderNavlet(mode);
                 });
             }
-        },
-        applyRemoveListener: function () {
-            /* Removes the navlet when user clicks the remove button */
-            var that = this,
-                removeButton = this.node.find('.navlet-remove-button');
-
-            removeButton.click(function () {
-                var $cancelButton = $('<button class="button small secondary full-width">No</button>');
-                var $confirmButton = $('<button class="button small full-width">Yes</button>');
-                var modal = $('<div class="reveal-modal remove-widget" data-reveal><p>Remove the widget from the page?</p></div>');
-                modal.append($cancelButton, $confirmButton).appendTo('body');
-
-                $cancelButton.click(function () {
-                    $(modal).foundation('reveal', 'close');
-                });
-
-                $confirmButton.click(function () {
-                    modal.find('.alert-box').remove();
-                    var request = $.post(that.removeUrl, {'navletid': that.navlet.id});
-                    request.fail(function () {
-                        $('<div class="alert-box alert">Could not remove widget, maybe try again?</div>').appendTo(modal);
-                    });
-                    request.done(function () {
-                        if (that.refresh) {
-                            clearTimeout(that.refresh);
-                            clearInterval(that.refresh);
-                        }
-                        that.node.remove();
-                        that.container.trigger('nav.navlet.removed');
-                        $(modal).foundation('reveal', 'close');
-                    });
-                });
-
-                $(modal).foundation('reveal', 'open');
-                $(document).on('closed.fndtn.reveal', '[data-reveal]', function () {
-                    modal.remove();
-                });
-
-            });
         },
         applyReloadListener: function () {
             var that = this,

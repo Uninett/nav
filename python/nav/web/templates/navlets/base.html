@@ -27,7 +27,13 @@
           </li>
         {% endif %}
         <li>
-          <a href="javascript:void(0);" class="navlet-remove-button right">
+          <a
+              class="right"
+              hx-get="{% url 'remove-user-navlet-modal' navlet.navlet_id %}"
+              hx-trigger="click"
+              hx-target="body"
+              hx-swap="beforeend"
+          >
             <i class="fa fa-times-circle" title="Remove"></i>
           </a>
         </li>
