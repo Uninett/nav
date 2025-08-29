@@ -1,0 +1,64 @@
+<h4>Add patch</h4>
+<p>Connect interface <em class="interfacename">{{ interface_name }}</em> to</p>
+<form
+        hx-post="{% url 'seeddb-patch-save' %}"
+        hx-target="tr[data-interfaceid='{{ interface_id }}']"
+        hx-swap="outerHTML"
+>
+    {% csrf_token %}
+    <input id="cable-search" name="cableid" type="text" placeholder="Search for cable">
+    <input name="split" type="text" placeholder="Split" value="">
+    <input class="interfaceid" name="interfaceid" type="hidden" value="{{ interface_id }}">
+    <button id="save-patch-button" class="button small">Save patch</button>
+</form>
+
+{% block base_header_additional_head %}
+<script>
+    require(['libs/select2.min'], function () {
+        $(document).ready(function () {
+            $('#cable-search').select2({
+                ajax: {
+                    url: '/api/1/cabling/',
+                    dataType: 'json',
+                    data: getDataPayload,
+                    results: handleResults
+                },
+                minimumInputLength: 2
+            });
+        })
+
+        function getDataPayload(term) {
+            return {
+                search: term,
+                room: NAV.seeddb_add_patch.room,
+                available: 1
+            };
+        }
+
+        function handleResults(data) {
+            return {
+                results: processSearchResults(data),
+            };
+        }
+
+        function processSearchResults(data) {
+            return data.results.map(function (obj) {
+                return {
+                    id: obj.id,
+                    text: getSearchResultsText(obj),
+                };
+            });
+        }
+
+        function getSearchResultsText(result) {
+            const baseText = 'Jack ' + result.jack;
+            const details = [result.building, result.target_room, result.description]
+                .filter(function (x) {
+                    return Boolean(x);
+                }).join(', ');
+            return [baseText, details].join(' - ');
+
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+<tr data-interfaceid="{{ interface.pk }}">
+  <td>{{ interface.ifname }}</td>
+  <td>{{ interface.ifalias }}</td>
+  <td class="patch-cell">
+    {% include 'seeddb/fragments/patches.html' %}
+  </td>
+  <td class="patch-button-cell">
+    {% if interface.patches.all %}
+      <button
+              class="table-button secondary"
+              hx-get="{% url 'seeddb-show-patch-modal'%}?modal=remove&interfaceid={{interface.pk}}"
+              hx-target="body"
+              hx-swap="beforeend"
+      >
+        Remove patch
+      </button>
+    {% else %}
+      <button
+          class="table-button"
+          hx-get="{% url 'seeddb-show-patch-modal' %}?modal=add&interfaceid={{interface.pk}}"
+          hx-target="body"
+          hx-swap="beforeend"
+      >
+        Add patch
+      </button>
+    {% endif %}
+  </td>
+</tr>
