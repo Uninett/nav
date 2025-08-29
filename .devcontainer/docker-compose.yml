@@ -3,8 +3,6 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
-      args:
-        REMOTE_USER: nav
 
     volumes:
       # MacOS users may want to add a :cached flag to the volume
