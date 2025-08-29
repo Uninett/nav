@@ -48,6 +48,14 @@ class StatusView(View):
         )
         if preferences:
             try:
+                if preferences.startswith("b'") and preferences.endswith("'"):
+                    # Status filter was incorrectly saved as a string representation of
+                    # bytes without being decoded ("b'1234", instead of "1234")
+                    preferences = preferences[2:-1]
+                    self.request.account.preferences[
+                        self.request.account.PREFERENCE_KEY_STATUS
+                    ] = preferences
+                    self.request.account.save()
                 data = base64.b64decode(preferences)
                 return pickle.loads(data)
             except Exception:  # noqa: BLE001 - maybe an old, none-base64 pickle
@@ -107,7 +115,7 @@ def save_status_preferences(request):
     form = forms.StatusPanelForm(request.POST)
     if form.is_valid():
         account = request.account
-        datastring = base64.b64encode(pickle.dumps(form.cleaned_data))
+        datastring = base64.b64encode(pickle.dumps(form.cleaned_data)).decode()
         account.preferences[account.PREFERENCE_KEY_STATUS] = datastring
         account.save()
         return HttpResponse()
