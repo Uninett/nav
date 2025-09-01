@@ -19,8 +19,9 @@ Django middleware for handling login, authentication and authorization for NAV.
 
 import logging
 import os
+from typing import Optional
 
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.deprecation import MiddlewareMixin
 
 from nav.models.profiles import Account
@@ -37,7 +38,7 @@ _logger = logging.getLogger(__name__)
 
 
 class AuthenticationMiddleware(MiddlewareMixin):
-    def process_request(self, request):
+    def process_request(self, request: HttpRequest) -> None:
         _logger.debug(
             'AuthenticationMiddleware ENTER (session: %s, account: %s) from "%s"',
             dict(request.session),
@@ -85,7 +86,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
 
 
 class AuthorizationMiddleware(MiddlewareMixin):
-    def process_request(self, request):
+    def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
         account = request.account
 
         authorized = authorization_not_required(
@@ -102,7 +103,7 @@ class AuthorizationMiddleware(MiddlewareMixin):
             elif 'REMOTE_USER' in os.environ:
                 del os.environ['REMOTE_USER']
 
-    def redirect_to_login(self, request):
+    def redirect_to_login(self, request: HttpRequest) -> HttpResponse:
         """Redirects a request to the NAV login page, unless it was detected
         to be an AJAX request, in which case return a 401 Not Authorized
         response.
