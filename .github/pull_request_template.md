@@ -2,8 +2,8 @@
 
 Fixes #<!-- ISSUE-ID -->. Dependent on #<!-- PULL-REQUEST-ID -->. <!-- Reference: https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue -->
 
-Add a description of what this PR does and why it is needed. If a linked ticket(s) fully
-cover it, you can omit this.
+<!-- Add a description of what this PR does and why it is needed. If a linked ticket(s)
+fully cover it, you can omit this. -->
 
 <!-- remove things that do not apply -->
 ### This pull request
