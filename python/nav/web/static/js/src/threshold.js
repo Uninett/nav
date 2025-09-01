@@ -46,17 +46,6 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         $refreshButton.on('click', function () {
             displayMetricInfo($inputElement.val());
         });
-
-        /* Closes dialog for deleting rules when button inside dialog is clicked */
-        $('#thresholdrules').on('click', '.f-dropdown .close-button', function () {
-            var $element = $(this),
-                $parent = $element.parents('.f-dropdown').first();
-
-            if ($parent.hasClass('open')) {
-                $(document).foundation('dropdown', 'close', $parent);
-            }
-        });
-
     });
 
     function handleSelect(event, ui) {

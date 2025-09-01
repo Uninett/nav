@@ -167,8 +167,6 @@ define([
             request.done(function () {
                 console.log('data fetched');
                 stopSpinner();
-                // Reflow for foundation to enable dropdown content
-                $(document).foundation('dropdown', 'reflow');
             });
             request.fail(function () {
                 console.log('Failed to fetch data');
