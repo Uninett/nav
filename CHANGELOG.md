@@ -11,6 +11,16 @@ This project uses [*towncrier*](https://towncrier.readthedocs.io/) and the chang
 
 <!-- towncrier release notes start -->
 
+## [5.14.1] - 2025-09-01
+
+### Fixed
+
+- Correctly display current chosen filter in Status tool
+  ([#3442](https://github.com/Uninett/nav/issues/3442))
+- Fixed showing activity graphs in port details in ipdevinfo
+  ([#3484](https://github.com/Uninett/nav/issues/3484))
+
+
 ## [5.14.0] - 2025-08-21
 
 ### Added
