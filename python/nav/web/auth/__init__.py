@@ -18,14 +18,20 @@ Contains web authentication and login functionality for NAV.
 """
 
 import logging
+import typing
+from typing import Optional
 
 from urllib import parse
 
+from django.http import HttpRequest
 from django.urls import reverse
 
 from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account, AccountGroup
 from nav.web.auth import ldap, remote_user
+
+if typing.TYPE_CHECKING:
+    from nav.web.auth.ldap import LDAPUser
 from nav.web.auth.sudo import desudo
 from nav.web.auth.utils import clear_session
 
@@ -43,7 +49,7 @@ LOGIN_URL = '/index/login/'
 LOGOUT_URL = '/index/logout/'
 
 
-def authenticate(username, password):
+def authenticate(username: str, password: str) -> Optional[Account]:
     """Authenticate username and password against database.
     Returns account object if user was authenticated, else None.
     """
@@ -101,7 +107,7 @@ def authenticate(username, password):
         return None
 
 
-def _handle_ldap_admin_status(ldap_user, nav_account):
+def _handle_ldap_admin_status(ldap_user: "LDAPUser", nav_account: Account) -> None:
     is_admin = ldap_user.is_admin()
     # Only modify admin status if an entitlement is configured in webfront.conf
     if is_admin is not None:
@@ -112,7 +118,7 @@ def _handle_ldap_admin_status(ldap_user, nav_account):
             nav_account.groups.remove(admin_group)
 
 
-def get_login_url(request):
+def get_login_url(request: HttpRequest) -> str:
     """Calculate which login_url to use"""
     path = parse.quote(request.get_full_path())
     if path == "/":
@@ -123,13 +129,13 @@ def get_login_url(request):
     return remote_loginurl if remote_loginurl else default_new_url
 
 
-def get_post_logout_redirect_url(request):
+def get_post_logout_redirect_url(request: HttpRequest) -> str:
     default = "/"
     redirect_url = remote_user.get_post_logout_redirect_url(request)
     return redirect_url if redirect_url else default
 
 
-def get_logout_url(request):
+def get_logout_url(request: HttpRequest) -> str:
     """Calculate which logout_url to use"""
     remote_logouturl = remote_user.get_logouturl(request)
     if remote_logouturl and remote_logouturl.endswith('='):
@@ -137,7 +143,7 @@ def get_logout_url(request):
     return remote_logouturl if remote_logouturl else LOGOUT_URL
 
 
-def logout(request, sudo=False):
+def logout(request: HttpRequest, sudo=False) -> Optional[str]:
     """Log out a user from a request
 
     Returns a safe, public path useful for callers building a redirect."""
