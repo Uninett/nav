@@ -34,9 +34,12 @@ require([
         loadSensorValues();
     });
 
-    document.querySelector("#deviceinfo").addEventListener("htmx:afterSwap", function(){
-        addSparkLinesToJobs();
-    });
+    const ipdevpollJobsContainer = document.querySelector("#ipdevpoll-jobs");
+    if (ipdevpollJobsContainer) {
+        ipdevpollJobsContainer.addEventListener("htmx:afterSwap", function() {
+            addSparkLinesToJobs();
+        });
+    }
 
     function loadSensorValues() {
         var metricMap = {};
