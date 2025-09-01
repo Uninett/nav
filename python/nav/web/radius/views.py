@@ -18,6 +18,7 @@
 
 from django.shortcuts import render
 from django.urls import reverse
+from nav.web.modals import render_modal
 from nav.web.utils import create_title
 from .forms import AccountChartsForm, AccountLogSearchForm, ErrorLogSearchForm
 
@@ -59,6 +60,16 @@ def index(request):
         return log_search(request)
     else:
         return account_search(request)
+
+
+def account_log_hints_modal(request):
+    """Displays a modal with hints for account log search"""
+    return render_modal(
+        request,
+        'radius/_account_log_hints_modal.html',
+        modal_id="account-log-hints",
+        size="large",
+    )
 
 
 def log_search(request):
@@ -114,6 +125,16 @@ def log_search(request):
     )
 
     return render(request, 'radius/error_log.html', context)
+
+
+def log_search_hints_modal(request):
+    """Displays a modal with hints for log search"""
+    return render_modal(
+        request,
+        'radius/_error_log_hints_modal.html',
+        modal_id="error-log-hints",
+        size="large",
+    )
 
 
 def log_detail_page(request, accountid):
@@ -177,6 +198,16 @@ def account_charts(request):
     )
 
     return render(request, 'radius/account_charts.html', context)
+
+
+def account_chart_hints_modal(request):
+    """Displays a modal with hints for account charts"""
+    return render_modal(
+        request,
+        'radius/_account_chart_hints_modal.html',
+        modal_id="account-chart-hints",
+        size="large",
+    )
 
 
 def account_detail_page(request, accountid):
