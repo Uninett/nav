@@ -254,12 +254,12 @@ class EventMixIn(object):
 
             subid = self.subid
             if self.event_type_id in self.SUBID_MAP:
-                model = apps.get_model('models', self.SUBID_MAP[self.event_type_id])
+                model = apps.get_model('nav_models', self.SUBID_MAP[self.event_type_id])
             elif (
                 self.event_type_id == 'maintenanceState'
                 and 'service' in self.varmap.get(EventQueue.STATE_START, {})
             ):
-                model = apps.get_model('models', 'Service')
+                model = apps.get_model('nav_models', 'Service')
             elif self.event_type_id == 'thresholdState':
                 return ThresholdEvent(self)
             else:
@@ -296,7 +296,7 @@ class ThresholdEvent(object):
             ruleid = event.subid
             self.metric = None
 
-        klass = apps.get_model('models', 'ThresholdRule')
+        klass = apps.get_model('nav_models', 'ThresholdRule')
         try:
             self.rule = klass.objects.get(pk=ruleid)
         except (klass.DoesNotExist, ValueError):
@@ -357,14 +357,14 @@ class EventQueue(models.Model, EventMixIn):
         related_name='target_of_events',
     )
     device = models.ForeignKey(
-        'models.Device',
+        'nav_models.Device',
         on_delete=models.CASCADE,
         db_column='deviceid',
         null=True,
         related_name="events",
     )
     netbox = models.ForeignKey(
-        'models.Netbox',
+        'nav_models.Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
         null=True,
@@ -491,14 +491,14 @@ class AlertQueue(models.Model, EventMixIn):
         related_name="alerts",
     )
     device = models.ForeignKey(
-        'models.Device',
+        'nav_models.Device',
         on_delete=models.CASCADE,
         db_column='deviceid',
         null=True,
         related_name="alerts",
     )
     netbox = models.ForeignKey(
-        'models.Netbox',
+        'nav_models.Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
         null=True,
@@ -660,14 +660,14 @@ class AlertHistory(models.Model, EventMixIn):
         related_name="alert_history_set",
     )
     device = models.ForeignKey(
-        'models.Device',
+        'nav_models.Device',
         on_delete=models.CASCADE,
         db_column='deviceid',
         null=True,
         related_name="alert_history_set",
     )
     netbox = models.ForeignKey(
-        'models.Netbox',
+        'nav_models.Netbox',
         on_delete=models.CASCADE,
         db_column='netboxid',
         null=True,
