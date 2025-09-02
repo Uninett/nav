@@ -30,7 +30,7 @@ class WelcomeNavlet(Navlet):
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         account = get_account(request)
-        if account.is_default_account():
+        if account.is_anonymous:
             welcome = quick_read(WELCOME_ANONYMOUS_PATH)
         else:
             welcome = quick_read(WELCOME_REGISTERED_PATH)
