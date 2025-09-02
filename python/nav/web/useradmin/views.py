@@ -203,7 +203,7 @@ def save_account_group(request, account, group_form):
 
     special_case = (
         group.is_admin_group() or group.is_protected_group()
-    ) and account.is_default_account()
+    ) and account.is_anonymous
 
     if special_case:
         messages.error(request, 'Default user may not be added to "%s" group.' % group)

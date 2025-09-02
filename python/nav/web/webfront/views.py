@@ -74,7 +74,7 @@ def index(request, did=None):
     """Controller for main page."""
     # Read files that will be displayed on front page
     account = get_account(request)
-    if account.is_default_account():
+    if account.is_anonymous:
         welcome = quick_read(WELCOME_ANONYMOUS_PATH)
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
@@ -314,7 +314,7 @@ def login(request):
     origin = request.GET.get('origin', '').strip()
     if 'noaccess' in request.GET:
         account = get_account(request)
-        if account.is_default_account():
+        if account.is_anonymous:
             errors = ['You need to log in to access this resource']
         else:
             errors = [
@@ -478,7 +478,7 @@ def change_password(request):
     context = _create_preference_context(request)
     account = get_account(request)
 
-    if account.is_default_account():
+    if account.is_anonymous:
         return render(request, 'useradmin/not-logged-in.html', {})
 
     if request.method == 'POST':

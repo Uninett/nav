@@ -81,7 +81,7 @@
 
       <li class="hide-for-small text-center"><a id="megadroptoggler" href="javascript:void(0);">Tools <i class="fa fa-caret-down"></i></a></li>
 
-      {% if not current_user_data.account.is_default_account %}
+      {% if not current_user_data.account.is_anonymous %}
         <li class="has-dropdown">
           <a href="javascript:void(0);">
             My stuff
@@ -95,7 +95,7 @@
           </ul>
         </li>
       {% endif %}
-      {% if current_user_data.account.is_default_account %}
+      {% if current_user_data.account.is_anonymous %}
         <li>
             <a class="navbar login button secondary" href="{{ login_url }}">Login</a>
         </li>
@@ -207,7 +207,7 @@
 
   {% block base_debug %}
     {% if debug %}
-      {% if not current_user_data.account.is_default_account %}
+      {% if not current_user_data.account.is_anonymous %}
         {% include "debug.html" %}
       {% endif %}
     {% endif %}

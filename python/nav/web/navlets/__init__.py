@@ -354,7 +354,7 @@ def find_new_placement():
 
 def can_modify_navlet(account, request):
     """Determine if this account can modify navlets"""
-    return not (account.is_default_account() and not get_sudoer(request))
+    return not (account.is_anonymous and not get_sudoer(request))
 
 
 def modify_navlet(func, account, request, error_message):
