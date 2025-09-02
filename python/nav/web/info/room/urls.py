@@ -26,6 +26,11 @@ urlpatterns = [
         r'^(?P<roomid>.+)/netboxes/', views.render_netboxes, name='room-info-netboxes'
     ),
     re_path(
+        r'aboutthesearch/',
+        views.render_about_the_search_modal,
+        name='room-info-about-the-search',
+    ),
+    re_path(
         r'^(?P<roomid>.+)/deviceinfo/',
         views.render_deviceinfo,
         name='room-info-deviceinfo',

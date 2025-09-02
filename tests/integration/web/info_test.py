@@ -5,8 +5,10 @@ import os
 import pytest
 from django.test import RequestFactory
 from django.urls import reverse
+from django.utils.encoding import smart_str
 from mock import MagicMock
 
+from nav.models.manage import Location, Room
 from nav.web.info.images.utils import save_thumbnail
 from nav.web.info.room.views import create_csv
 from nav.web.info.searchproviders import SearchProvider
@@ -59,6 +61,29 @@ def test_save_thumbnail_should_produce_a_file(tmpdir):
     assert os.path.exists(os.path.join(tmpdir, image))
 
 
+class TestImageUploadHeader:
+    def test_when_rendering_location_image_upload_then_include_location_id(
+        self, client, new_location
+    ):
+        url = reverse('location-info-upload', args=[new_location.id])
+        response = client.get(url)
+        assert f'Images for &laquo;{new_location.id}&raquo;' in smart_str(
+            response.content
+        )
+
+    def test_when_rendering_room_image_upload_then_include_room_id(
+        self, client, new_room
+    ):
+        url = reverse('room-info-upload', args=[new_room.id])
+        response = client.get(url)
+        assert f'Images for &laquo;{new_room.id}&raquo;' in smart_str(response.content)
+
+    def test_should_render_image_help_modal(self, client):
+        url = reverse('info-image-help-modal')
+        response = client.get(url)
+        assert 'id="image-help"' in smart_str(response.content)
+
+
 ############
 # Fixtures #
 ############
@@ -90,3 +115,19 @@ class FailingSearchProvider(SearchProvider):
 
     def fetch_results(self):
         raise Exception("Riddikulus")
+
+
+@pytest.fixture
+def new_location(db):
+    location = Location(id="testlocation")
+    location.save()
+    yield location
+    location.delete()
+
+
+@pytest.fixture
+def new_room(db, new_location):
+    room = Room(id="123", description="Test Room", location=new_location)
+    room.save()
+    yield room
+    room.delete()

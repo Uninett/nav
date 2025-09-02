@@ -28,23 +28,7 @@
 
 {% block base_content %}
 
-  <div class="row">
-    <div class="column small-12">
-      <a href="#" data-reveal-id="add_image_help" class="small secondary button right" data-reveal>Help</a>
-      <h3>Images for &laquo;{{ object.id }}&raquo;</h3>
-    </div>
-  </div>
-
-  <div id="add_image_help" class="reveal-modal" data-reveal>
-    <ul class="inside">
-      <li>
-        Add an image by clicking the file dialog, locating the image you want and clicking "Upload image"
-      </li>
-      <li>
-        Sort the images by dragging the <i class="fa fa-arrows"></i> (if more than 1 image)
-      </li>
-    </ul>
-  </div>
+  {% include "info/_image_upload_header.html" with id=object.id %}
 
   <p><a href="{% url 'location-info' object.id %}">Back to location</a></p>
 

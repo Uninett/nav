@@ -17,7 +17,7 @@
 """Django URL configuration"""
 
 from django.urls import re_path, include
-from nav.web.info.views import index
+from nav.web.info.views import index, image_help_modal
 
 urlpatterns = [
     re_path(r'^$', index, name="info-search"),
@@ -28,4 +28,5 @@ urlpatterns = [
     re_path(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
     re_path(r'^image/', include('nav.web.info.images.urls')),
     re_path(r'^event/', include('nav.web.info.event.urls')),
+    re_path(r'^image-help-modal/$', image_help_modal, name='info-image-help-modal'),
 ]

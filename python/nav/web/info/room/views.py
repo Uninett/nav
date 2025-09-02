@@ -38,6 +38,7 @@ from nav.models.rack import (
 )
 from nav.web.info.forms import SearchForm
 from nav.web.info.images.upload import handle_image_upload
+from nav.web.modals import render_modal
 from nav.web.utils import create_title
 from nav.metrics.data import get_netboxes_availability
 
@@ -232,6 +233,16 @@ def render_netboxes(request, roomid):
         request,
         "info/room/netboxview.html",
         {"netboxes": netboxes, "maxtime": datetime.datetime.max, "room": room},
+    )
+
+
+def render_about_the_search_modal(request):
+    """Renders the about the search modal"""
+    return render_modal(
+        request,
+        'info/room/_about_the_search_modal.html',
+        modal_id="about-the-search",
+        size="medium",
     )
 
 

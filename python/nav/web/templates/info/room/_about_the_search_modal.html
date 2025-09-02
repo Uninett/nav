@@ -1,0 +1,37 @@
+<h4>About the search</h4>
+
+<p>
+    The search text matches the whole row, including some of the HTML. You can,
+    for instance, search for <em>"down"</em> to see all interfaces with status
+    down.
+</p>
+
+<p>
+    To improve the filtering you can use the other search boxes that filter on
+    specific columns.
+</p>
+
+<p>
+    You can also use predefined keywords in the main search box to filter what
+    you want to see. The following keywords are currently supported:
+</p>
+<ul>
+    <li>
+        <code>$vlan</code> -
+        Example: <code>$vlan:130</code> -
+        Only show interfaces on vlan 130
+    </li>
+    <li>
+        <code>$days</code> -
+        Example: <code>$days:5</code> -
+        Only show rows where <em>"last active"</em> is 5 days or more
+    </li>
+</ul>
+
+
+<p>
+    You can combine the filters if you want to, by separating each search term
+    with spaces. <code>fa1/2 $days:5 $vlan:10</code> is a valid filter.
+    Combining keywords and search boxes also works, but keywords take
+    precedence.
+</p>
