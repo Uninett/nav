@@ -22,6 +22,7 @@ import logging
 from operator import attrgetter
 from urllib.parse import quote as urlquote
 
+from django.contrib.auth import authenticate, login as django_login
 from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
@@ -39,8 +40,7 @@ from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web.auth import logout as auth_logout
-from nav.web import auth, webfrontConfig
-from nav.web.auth import ldap
+from nav.web import webfrontConfig
 from nav.web.auth.utils import set_account
 from nav.web.utils import generate_qr_code_as_string
 from nav.web.utils import require_param
@@ -220,25 +220,22 @@ def do_login(request: HttpRequest) -> HttpResponse:
         username = form.cleaned_data['username']
         password = form.cleaned_data['password']
 
-        try:
-            account = auth.authenticate(username, password)
-        except ldap.Error as error:
-            errors.append('Error while talking to LDAP:\n%s' % error)
+        account = authenticate(request, username=username, password=password)
+        if account is not None:
+            LogEntry.add_log_entry(
+                account, 'log-in', '{actor} logged in', before=account
+            )
+            django_login(request, account)
+            set_account(request, account)  # NAV legacy specific
+            _logger.info("%s successfully logged in", account.login)
+            if not origin:
+                origin = reverse('webfront-index')
+            return HttpResponseRedirect(origin)
         else:
-            if account:
-                LogEntry.add_log_entry(
-                    account, 'log-in', '{actor} logged in', before=account
-                )
-                set_account(request, account)
-                _logger.info("%s successfully logged in", account.login)
-                if not origin:
-                    origin = reverse('webfront-index')
-                return HttpResponseRedirect(origin)
-            else:
-                _logger.info("failed login: %r", username)
-                errors.append(
-                    'Username or password is incorrect, or the account is locked.'
-                )
+            _logger.info("failed login: %r", username)
+            errors.append(
+                'Username or password is incorrect, or the account is locked.'
+            )
 
     # Something went wrong. Display login page with errors.
     return render(
