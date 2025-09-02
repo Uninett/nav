@@ -218,6 +218,8 @@ INSTALLED_APPS = (
     'nav.models',
     'nav.web',
     'nav.django',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
     'django.contrib.staticfiles',
     'django.contrib.sessions',
     'django.contrib.humanize',
