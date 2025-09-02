@@ -1,0 +1,36 @@
+{% load tools %}
+<div class="row">
+    <div class="column medium-4">
+        <h5>Groups you are member of</h5>
+        <ul>
+            {% for group in groups %}
+            <li><em>{{ group.name }}</em><br/>{{ group.description }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="column medium-4">
+        <h5>Alerts you have permissions to receive</h5>
+        <ul>
+            {% for filter_group in filter_groups %}
+            <li><em>{{ filter_group.name }}</em><br/>{{ filter_group.description }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="column medium-4">
+        <h5>Alert language</h5>
+        <form action="{% url 'alertprofiles-language-save' %}" method="post" class="inline-form custom">
+            {% csrf_token %}
+            {{ language_form.language }}
+            <input type="submit" value="Save changes" class="button tiny"/>
+        </form>
+        <p>
+            <img
+                src="{{ STATIC_URL }}images/lys/{{ sms_privilege|yesno:'green,red' }}.png"
+                alt="{{ sms_privilege|yesno:'SMS permissions enabled,SMS permissions disabled'}}"
+            />
+            You {% if not sms_privilege %}<em>do not</em> {% endif %}have
+            permissions to be alerted by SMS.
+        </p>
+    </div>
+
+</div>

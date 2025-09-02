@@ -24,6 +24,12 @@ from nav.web.alertprofiles import views
 urlpatterns = [
     # Overview
     re_path(r'^$', views.overview, name='alertprofiles-overview'),
+    # alert profiles groups and permissions modal
+    re_path(
+        r'^groupsandpermissions/$',
+        views.groups_and_permissions_modal,
+        name='alertprofiles-groups-and-permissions',
+    ),
     # User settings
     re_path(r'^profile/$', views.show_profile, name='alertprofiles-profile'),
     re_path(r'^profile/new/$', views.profile_new, name='alertprofiles-profile-new'),

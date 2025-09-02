@@ -1,68 +1,34 @@
 {% extends "alertprofiles/base.html" %}
 
 {% block tabcontent %}
+<a
+    class="right"
+    hx-get="{% url 'alertprofiles-groups-and-permissions' %}"
+    hx-target="body"
+    hx-swap="beforeend"
+>
+    Groups and permissions
+</a>
 
-  <a href="#" class="right" data-reveal-id="account_details" data-reveal>Groups and permissions</a>
-
-  {% if active_profile %}
-    <h4>Active profile:
-      <a href="{% url 'alertprofiles-profile-detail' active_profile.id %}">
+{% if active_profile %}
+<h4>Active profile:
+    <a href="{% url 'alertprofiles-profile-detail' active_profile.id %}">
         {{ active_profile.name }}
-      </a>
-    </h4>
-    {% include "alertprofiles/timeperiods.html" %}
-  {% else %}
-    <h4>Account details</h4>
-    <p>
-      There is no active profile set.
-    </p>
+    </a>
+</h4>
+{% include "alertprofiles/timeperiods.html" %}
+{% else %}
+<h4>Account details</h4>
+<p>
+    There is no active profile set.
+</p>
 
-      <a href="{% url 'alertprofiles-profile' %}" class="button small">
-          Activate an existing one
-      </a>
-      <a href="{% url 'alertprofiles-profile-new' %}" class="button small">
-          Create a new profile
-      </a>
+<a href="{% url 'alertprofiles-profile' %}" class="button small">
+    Activate an existing one
+</a>
+<a href="{% url 'alertprofiles-profile-new' %}" class="button small">
+    Create a new profile
+</a>
 
-  {% endif %}
-
-  <div id="account_details" class="reveal-modal" data-reveal>
-    <div class="row">
-
-      <div class="column medium-4">
-        <h5>Groups you are member of</h5>
-        <ul>
-          {% for group in groups %}
-            <li><em>{{ group.name }}</em><br/>{{ group.description }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-
-      <div class="column medium-4">
-        <h5>Alerts you have permissions to recieve</h5>
-        <ul>
-          {% for filter_group in filter_groups %}
-            <li><em>{{ filter_group.name }}</em><br/>{{ filter_group.description }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-
-      <div class="column medium-4">
-        <h5>Alert language</h5>
-        <form action="{% url 'alertprofiles-language-save' %}" method="post" class="inline-form custom">
-          {% csrf_token %}
-          {{ language_form.language }}
-          <input type="submit" value="Save changes" class="button tiny"/>
-        </form>
-
-        <p>
-        <img src="{{ STATIC_URL }}images/lys/{{ sms_privilege|yesno:"green,red" }}.png"/>
-        You {% if not sms_privilege %}<em>do not</em> {% endif %}have
-        permissions to be alerted by SMS.
-        </p>
-      </div>
-
-    </div>
-  </div>
-
+{% endif %}
 {% endblock %}

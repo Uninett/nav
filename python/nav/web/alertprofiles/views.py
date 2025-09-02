@@ -30,6 +30,7 @@ from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse
 
+from nav.web.modals import render_modal
 from nav.web.utils import SubListView
 
 from nav.models.profiles import (
@@ -82,11 +83,7 @@ def overview(request):
     account = get_account(request)
 
     # Get information about user
-    groups = account.groups.all()
-    try:
-        active_profile = account.get_active_profile()
-    except ObjectDoesNotExist:
-        active_profile = None
+    active_profile = _get_active_profile(account)
 
     if not active_profile:
         subscriptions = None
@@ -94,22 +91,9 @@ def overview(request):
         periods = TimePeriod.objects.filter(profile=active_profile).order_by('start')
         subscriptions = alert_subscriptions_table(periods)
 
-    # Get information about users privileges
-    sms_privilege = account.has_perm('alert_by', 'sms')
-
-    filter_dict = {'group_permissions__in': [g.id for g in groups]}
-    filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
-
-    language = account.preferences.get(account.PREFERENCE_KEY_LANGUAGE, 'en')
-    language_form = LanguageForm(initial={'language': language})
-
     info_dict = {
         'active': {'overview': True},
-        'groups': groups,
         'active_profile': active_profile,
-        'sms_privilege': sms_privilege,
-        'filter_groups': filter_groups,
-        'language_form': language_form,
         'alert_subscriptions': subscriptions,
         'navpath': [
             ('Home', '/'),
@@ -118,6 +102,45 @@ def overview(request):
         'title': 'NAV - Alert profiles',
     }
     return render(request, 'alertprofiles/account_detail.html', info_dict)
+
+
+def groups_and_permissions_modal(request):
+    """Render a modal with information about groups and permissions"""
+    account = get_account(request)
+
+    # Get information about user
+    groups = account.groups.all()
+    active_profile = _get_active_profile(account)
+
+    # Get information about users privileges
+    sms_privilege = account.has_perm('alert_by', 'sms')
+    filter_dict = {'group_permissions__in': [g.id for g in groups]}
+    filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
+
+    language = account.preferences.get(account.PREFERENCE_KEY_LANGUAGE, 'en')
+    language_form = LanguageForm(initial={'language': language})
+
+    return render_modal(
+        request,
+        'alertprofiles/_groups_and_permissions_modal.html',
+        context={
+            'active_profile': active_profile,
+            'filter_groups': filter_groups,
+            'groups': groups,
+            'language_form': language_form,
+            'sms_privilege': sms_privilege,
+        },
+        modal_id="groups-and-permissions",
+        size="large",
+    )
+
+
+def _get_active_profile(account: Account):
+    """Returns the active profile for the given account if it exists"""
+    try:
+        return account.get_active_profile()
+    except ObjectDoesNotExist:
+        return None
 
 
 def show_profile(request):

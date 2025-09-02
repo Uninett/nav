@@ -55,6 +55,12 @@ class TestsOverview:
         assert response.status_code == 200
         assert activated_dummy_profile.name in smart_str(response.content)
 
+    def test_when_no_active_profile_is_set_show_message(self, db, client):
+        response = client.get(reverse('alertprofiles-overview'))
+
+        assert response.status_code == 200
+        assert "There is no active profile set" in smart_str(response.content)
+
     def test_show_subscriptions(
         self,
         db,
@@ -68,6 +74,19 @@ class TestsOverview:
         assert response.status_code == 200
         assert dummy_alert_address.address in smart_str(response.content)
         assert str(dummy_filter_group) in smart_str(response.content)
+
+    def test_should_include_modal_trigger(self, client):
+        url = reverse('alertprofiles-overview')
+        modal_url = reverse('alertprofiles-groups-and-permissions')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert f'hx-get="{modal_url}"' in smart_str(response.content)
+
+    def test_should_render_permissions_modal(self, client):
+        url = reverse('alertprofiles-groups-and-permissions')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'id="groups-and-permissions"' in smart_str(response.content)
 
 
 class TestsAlertProfiles:
