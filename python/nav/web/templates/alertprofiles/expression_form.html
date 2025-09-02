@@ -20,7 +20,11 @@
         <tr>
           <th>
             <label for="id_operator">{{ form.operator.label }}
-              <a href="#" data-reveal-id="operator-help" data-reveal>
+              <a
+                  hx-get="{% url 'alertprofiles-filters-addexpression-operator-help' %}"
+                  hx-target="body"
+                  hx-swap="beforeend"
+              >
                 <i class="fa fa-info-circle"></i>
               </a>
             </label>
@@ -60,102 +64,4 @@
       </tbody>
     </table>
   </form>
-
-  <div id="operator-help" class="reveal-modal" data-reveal>
-    <h5>
-      Operators
-    </h5>
-    <p>
-      Below are short descriptions for each available operator. Note that for
-      lists only "equals" and "in" makes sense.
-    </p>
-    <p>
-      An admin can make every operator available for any matchfield, even the
-      ones that allows for list selection.
-    </p>
-    <table class="vertitable">
-      <tbody>
-        <tr>
-          <th>Equals</th>
-          <td>
-            Exact match
-          </td>
-        </tr>
-        <tr>
-          <th>Is greater</th>
-          <td>
-            Match field value must be greater than entered value.
-          </td>
-        </tr>
-        <tr>
-          <th>Is greater or equal</th>
-          <td>
-            Match field value must be greater than or equal entered value.
-          </td>
-        </tr>
-        <tr>
-          <th>Is less</th>
-          <td>
-            Match field value must be less than entered value.
-          </td>
-        </tr>
-        <tr>
-          <th>Is less or equal</th>
-          <td>
-            Match field value must be less than or equal entered value.
-          </td>
-        </tr>
-        <tr>
-          <th>Not equals</th>
-          <td>
-            Oposite of equals. Match field value and entered value must not be
-            the same.
-          </td>
-        </tr>
-        <tr>
-          <th>Starts with</th>
-          <td>
-            Match field value must start with entered value. Will also return
-            true if match field and entered value are the same.
-          </td>
-        </tr>
-        <tr>
-          <th>Ends with</th>
-          <td>
-            Match field value must end with entered value. Will also return true
-            if match field and entered value are the same.
-          </td>
-        </tr>
-        <tr>
-          <th>Contains</th>
-          <td>
-            Somewhere in the match field value the entered value must
-            appear. Will also return true if match field and entered value are
-            the same.
-          </td>
-        </tr>
-        <tr>
-          <th>Regexp</th>
-          <td>
-            Enter a regular expression to compare against the match field value.
-          </td>
-        </tr>
-        <tr>
-          <th>Wildcard</th>
-          <td>
-            Same as equals, except you can use wildcards (? or *) to denote
-            "anything goes here".
-          </td>
-        </tr>
-        <tr>
-          <th>In</th>
-          <td>
-            Match field value must be one of the selected values. For lists,
-            just select multiple values, for text fields you can separate the
-            different values with space.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 {% endblock %}

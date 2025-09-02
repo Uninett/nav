@@ -111,6 +111,11 @@ urlpatterns = [
         name='alertprofiles-filters-addexpression',
     ),
     re_path(
+        r'^filters/add-expression/operatorhelp$',
+        views.filter_addexpression_operator_help_modal,
+        name='alertprofiles-filters-addexpression-operator-help',
+    ),
+    re_path(
         r'^filters/save-expression/$',
         views.filter_saveexpression,
         name='alertprofiles-filters-saveexpression',

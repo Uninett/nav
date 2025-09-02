@@ -1567,6 +1567,16 @@ def filter_addexpression(request):
     return render(request, 'alertprofiles/expression_form.html', info_dict)
 
 
+def filter_addexpression_operator_help_modal(request):
+    """Renders a modal with descriptions of all available operators"""
+    return render_modal(
+        request,
+        'alertprofiles/_add_expression_operator_help_modal.html',
+        modal_id='operator-help',
+        size='large',
+    )
+
+
 @requires_post('alertprofiles-filters')
 def filter_saveexpression(request):
     """Saves an expression to a filter"""

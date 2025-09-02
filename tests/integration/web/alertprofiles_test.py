@@ -811,6 +811,14 @@ class TestsAddExpressions:
         )
 
 
+class TestsAddExpressionsHelpModal:
+    def test_should_render_add_expression_help_modal(self, client):
+        url = reverse('alertprofiles-filters-addexpression-operator-help')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'id="operator-help"' in smart_str(response.content)
+
+
 class TestsPermissions:
     def test_set_accountgroup_permissions_should_not_crash(self, db, client):
         """Regression test for #2281"""
