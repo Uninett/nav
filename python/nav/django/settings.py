@@ -239,7 +239,8 @@ INSTALLED_APPS = (
 )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-AUTH_USER_MODEL = "nav.models.Account"
+AUTH_USER_MODEL = 'nav_models.Account'
+
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),

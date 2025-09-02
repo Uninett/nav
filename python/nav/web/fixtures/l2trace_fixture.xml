@@ -1,91 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <django-objects version="1.0">
-    <object pk="somewhere" model="models.location">
+    <object pk="somewhere" model="nav_models.location">
         <field type="CharField" name="description"></field>
     </object>
-    <object pk="testroom" model="models.room">
-        <field to="models.location" name="location" rel="ManyToOneRel">somewhere</field>
+    <object pk="testroom" model="nav_models.room">
+        <field to="nav_models.location" name="location" rel="ManyToOneRel">somewhere</field>
         <field type="CharField" name="description"></field>
     </object>
-    <object pk="testorg" model="models.organization">
-        <field to="models.organization" name="parent" rel="ManyToOneRel"><None></None></field>
+    <object pk="testorg" model="nav_models.organization">
+        <field to="nav_models.organization" name="parent" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="description"></field>
     </object>
-    <object pk="1" model="models.netbox">
+    <object pk="1" model="nav_models.netbox">
         <field type="IPAddressField" name="ip">10.0.0.1</field>
-        <field to="models.room" name="room" rel="ManyToOneRel">testroom</field>
-        <field to="models.netboxtype" name="type" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.room" name="room" rel="ManyToOneRel">testroom</field>
+        <field to="nav_models.netboxtype" name="type" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="sysname">foo-gw.example.org</field>
-        <field to="models.category" name="category" rel="ManyToOneRel">GSW</field>
-        <field to="models.organization" name="organization" rel="ManyToOneRel">testorg</field>
+        <field to="nav_models.category" name="category" rel="ManyToOneRel">GSW</field>
+        <field to="nav_models.organization" name="organization" rel="ManyToOneRel">testorg</field>
         <field type="CharField" name="up">y</field>
         <field type="DateTimeField" name="up_since">2010-10-06 11:40:36</field>
         <field type="BooleanField" name="up_to_date">False</field>
         <field type="DateTimeField" name="discovered"><None></None></field>
     </object>
-    <object pk="2" model="models.netbox">
+    <object pk="2" model="nav_models.netbox">
         <field type="IPAddressField" name="ip">10.0.0.11</field>
-        <field to="models.room" name="room" rel="ManyToOneRel">testroom</field>
-        <field to="models.netboxtype" name="type" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.room" name="room" rel="ManyToOneRel">testroom</field>
+        <field to="nav_models.netboxtype" name="type" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="sysname">foo-sw1.example.org</field>
-        <field to="models.category" name="category" rel="ManyToOneRel">SW</field>
-        <field to="models.organization" name="organization" rel="ManyToOneRel">testorg</field>
+        <field to="nav_models.category" name="category" rel="ManyToOneRel">SW</field>
+        <field to="nav_models.organization" name="organization" rel="ManyToOneRel">testorg</field>
         <field type="CharField" name="up">y</field>
         <field type="DateTimeField" name="up_since">2010-10-06 11:40:36</field>
         <field type="BooleanField" name="up_to_date">False</field>
         <field type="DateTimeField" name="discovered"><None></None></field>
     </object>
-    <object pk="1" model="models.vlan">
+    <object pk="1" model="nav_models.vlan">
         <field type="IntegerField" name="vlan"><None></None></field>
-        <field to="models.nettype" name="net_type" rel="ManyToOneRel">scope</field>
-        <field to="models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
-        <field to="models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.nettype" name="net_type" rel="ManyToOneRel">scope</field>
+        <field to="nav_models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="net_ident">scope</field>
         <field type="CharField" name="description"></field>
     </object>
-    <object pk="2" model="models.vlan">
+    <object pk="2" model="nav_models.vlan">
         <field type="IntegerField" name="vlan">10</field>
-        <field to="models.nettype" name="net_type" rel="ManyToOneRel">lan</field>
-        <field to="models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
-        <field to="models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.nettype" name="net_type" rel="ManyToOneRel">lan</field>
+        <field to="nav_models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="net_ident">adminvlan</field>
         <field type="CharField" name="description"></field>
     </object>
-    <object pk="3" model="models.vlan">
+    <object pk="3" model="nav_models.vlan">
         <field type="IntegerField" name="vlan">20</field>
-        <field to="models.nettype" name="net_type" rel="ManyToOneRel">lan</field>
-        <field to="models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
-        <field to="models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.nettype" name="net_type" rel="ManyToOneRel">lan</field>
+        <field to="nav_models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="net_ident">employeevlan</field>
         <field type="CharField" name="description"></field>
     </object>
-    <object pk="4" model="models.vlan">
+    <object pk="4" model="nav_models.vlan">
         <field type="IntegerField" name="vlan">30</field>
-        <field to="models.nettype" name="net_type" rel="ManyToOneRel">lan</field>
-        <field to="models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
-        <field to="models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.nettype" name="net_type" rel="ManyToOneRel">lan</field>
+        <field to="nav_models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="net_ident">studentvlan</field>
         <field type="CharField" name="description"></field>
     </object>
-    <object pk="1" model="models.prefix">
+    <object pk="1" model="nav_models.prefix">
         <field type="TextField" name="net_address">10.0.0.0/8</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">1</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">1</field>
     </object>
-    <object pk="2" model="models.prefix">
+    <object pk="2" model="nav_models.prefix">
         <field type="TextField" name="net_address">10.0.0.0/24</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">2</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">2</field>
     </object>
-    <object pk="3" model="models.prefix">
+    <object pk="3" model="nav_models.prefix">
         <field type="TextField" name="net_address">10.0.20.0/24</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">3</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">3</field>
     </object>
-    <object pk="4" model="models.prefix">
+    <object pk="4" model="nav_models.prefix">
         <field type="TextField" name="net_address">10.0.30.0/24</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">4</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">4</field>
     </object>
-    <object pk="5" model="models.interface">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">2</field>
-        <field to="models.module" name="module" rel="ManyToOneRel"><None></None></field>
+    <object pk="5" model="nav_models.interface">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">2</field>
+        <field to="nav_models.module" name="module" rel="ManyToOneRel"><None></None></field>
         <field type="IntegerField" name="ifindex">1</field>
         <field type="CharField" name="ifname">Gi0/1</field>
         <field type="CharField" name="ifdescr"></field>
@@ -103,13 +103,13 @@
         <field type="IntegerField" name="vlan">1</field>
         <field type="BooleanField" name="trunk">True</field>
         <field type="CharField" name="duplex"><None></None></field>
-        <field to="models.netbox" name="to_netbox" rel="ManyToOneRel">1</field>
-        <field to="models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.netbox" name="to_netbox" rel="ManyToOneRel">1</field>
+        <field to="nav_models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
         <field type="DateTimeField" name="gone_since"><None></None></field>
     </object>
-    <object pk="3" model="models.interface">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">2</field>
-        <field to="models.module" name="module" rel="ManyToOneRel"><None></None></field>
+    <object pk="3" model="nav_models.interface">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">2</field>
+        <field to="nav_models.module" name="module" rel="ManyToOneRel"><None></None></field>
         <field type="IntegerField" name="ifindex">10</field>
         <field type="CharField" name="ifname">Gi0/10</field>
         <field type="CharField" name="ifdescr"></field>
@@ -127,13 +127,13 @@
         <field type="IntegerField" name="vlan">20</field>
         <field type="BooleanField" name="trunk">False</field>
         <field type="CharField" name="duplex"><None></None></field>
-        <field to="models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
-        <field to="models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
         <field type="DateTimeField" name="gone_since"><None></None></field>
     </object>
-    <object pk="4" model="models.interface">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">1</field>
-        <field to="models.module" name="module" rel="ManyToOneRel"><None></None></field>
+    <object pk="4" model="nav_models.interface">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">1</field>
+        <field to="nav_models.module" name="module" rel="ManyToOneRel"><None></None></field>
         <field type="IntegerField" name="ifindex">13</field>
         <field type="CharField" name="ifname">Gi0/13</field>
         <field type="CharField" name="ifdescr"></field>
@@ -151,13 +151,13 @@
         <field type="IntegerField" name="vlan">1</field>
         <field type="BooleanField" name="trunk">True</field>
         <field type="CharField" name="duplex"><None></None></field>
-        <field to="models.netbox" name="to_netbox" rel="ManyToOneRel">2</field>
-        <field to="models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.netbox" name="to_netbox" rel="ManyToOneRel">2</field>
+        <field to="nav_models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
         <field type="DateTimeField" name="gone_since"><None></None></field>
     </object>
-    <object pk="2" model="models.interface">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">1</field>
-        <field to="models.module" name="module" rel="ManyToOneRel"><None></None></field>
+    <object pk="2" model="nav_models.interface">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">1</field>
+        <field to="nav_models.module" name="module" rel="ManyToOneRel"><None></None></field>
         <field type="IntegerField" name="ifindex">10</field>
         <field type="CharField" name="ifname">Vl10</field>
         <field type="CharField" name="ifdescr"></field>
@@ -175,13 +175,13 @@
         <field type="IntegerField" name="vlan"><None></None></field>
         <field type="BooleanField" name="trunk">False</field>
         <field type="CharField" name="duplex"><None></None></field>
-        <field to="models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
-        <field to="models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
         <field type="DateTimeField" name="gone_since"><None></None></field>
     </object>
-    <object pk="1" model="models.interface">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">1</field>
-        <field to="models.module" name="module" rel="ManyToOneRel"><None></None></field>
+    <object pk="1" model="nav_models.interface">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">1</field>
+        <field to="nav_models.module" name="module" rel="ManyToOneRel"><None></None></field>
         <field type="IntegerField" name="ifindex">20</field>
         <field type="CharField" name="ifname">Vl20</field>
         <field type="CharField" name="ifdescr"></field>
@@ -199,13 +199,13 @@
         <field type="IntegerField" name="vlan"><None></None></field>
         <field type="BooleanField" name="trunk">False</field>
         <field type="CharField" name="duplex"><None></None></field>
-        <field to="models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
-        <field to="models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
         <field type="DateTimeField" name="gone_since"><None></None></field>
     </object>
-    <object pk="6" model="models.interface">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">2</field>
-        <field to="models.module" name="module" rel="ManyToOneRel"><None></None></field>
+    <object pk="6" model="nav_models.interface">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">2</field>
+        <field to="nav_models.module" name="module" rel="ManyToOneRel"><None></None></field>
         <field type="IntegerField" name="ifindex">11</field>
         <field type="CharField" name="ifname">Gi0/11</field>
         <field type="CharField" name="ifdescr"></field>
@@ -223,13 +223,13 @@
         <field type="IntegerField" name="vlan">20</field>
         <field type="BooleanField" name="trunk">False</field>
         <field type="CharField" name="duplex"><None></None></field>
-        <field to="models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
-        <field to="models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
         <field type="DateTimeField" name="gone_since"><None></None></field>
     </object>
-    <object pk="7" model="models.interface">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">1</field>
-        <field to="models.module" name="module" rel="ManyToOneRel"><None></None></field>
+    <object pk="7" model="nav_models.interface">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">1</field>
+        <field to="nav_models.module" name="module" rel="ManyToOneRel"><None></None></field>
         <field type="IntegerField" name="ifindex">30</field>
         <field type="CharField" name="ifname">Vl30</field>
         <field type="CharField" name="ifdescr"></field>
@@ -247,13 +247,13 @@
         <field type="IntegerField" name="vlan"><None></None></field>
         <field type="BooleanField" name="trunk">False</field>
         <field type="CharField" name="duplex"><None></None></field>
-        <field to="models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
-        <field to="models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
         <field type="DateTimeField" name="gone_since"><None></None></field>
     </object>
-    <object pk="8" model="models.interface">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">2</field>
-        <field to="models.module" name="module" rel="ManyToOneRel"><None></None></field>
+    <object pk="8" model="nav_models.interface">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">2</field>
+        <field to="nav_models.module" name="module" rel="ManyToOneRel"><None></None></field>
         <field type="IntegerField" name="ifindex">12</field>
         <field type="CharField" name="ifname">Gi0/12</field>
         <field type="CharField" name="ifdescr"></field>
@@ -271,84 +271,84 @@
         <field type="IntegerField" name="vlan">30</field>
         <field type="BooleanField" name="trunk">False</field>
         <field type="CharField" name="duplex"><None></None></field>
-        <field to="models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
-        <field to="models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.netbox" name="to_netbox" rel="ManyToOneRel"><None></None></field>
+        <field to="nav_models.interface" name="to_interface" rel="ManyToOneRel"><None></None></field>
         <field type="DateTimeField" name="gone_since"><None></None></field>
     </object>
-    <object pk="1" model="models.swportvlan">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">3</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">3</field>
+    <object pk="1" model="nav_models.swportvlan">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">3</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">3</field>
         <field type="CharField" name="direction">n</field>
     </object>
-    <object pk="2" model="models.swportvlan">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">4</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">2</field>
+    <object pk="2" model="nav_models.swportvlan">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">4</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">2</field>
         <field type="CharField" name="direction">n</field>
     </object>
-    <object pk="3" model="models.swportvlan">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">4</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">3</field>
+    <object pk="3" model="nav_models.swportvlan">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">4</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">3</field>
         <field type="CharField" name="direction">n</field>
     </object>
-    <object pk="4" model="models.swportvlan">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">5</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">2</field>
+    <object pk="4" model="nav_models.swportvlan">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">5</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">2</field>
         <field type="CharField" name="direction">o</field>
     </object>
-    <object pk="5" model="models.swportvlan">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">5</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">3</field>
+    <object pk="5" model="nav_models.swportvlan">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">5</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">3</field>
         <field type="CharField" name="direction">o</field>
     </object>
-    <object pk="6" model="models.swportvlan">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">6</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">3</field>
+    <object pk="6" model="nav_models.swportvlan">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">6</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">3</field>
         <field type="CharField" name="direction">n</field>
     </object>
-    <object pk="7" model="models.swportvlan">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">4</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">4</field>
+    <object pk="7" model="nav_models.swportvlan">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">4</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">4</field>
         <field type="CharField" name="direction">n</field>
     </object>
-    <object pk="8" model="models.swportvlan">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">5</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">4</field>
+    <object pk="8" model="nav_models.swportvlan">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">5</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">4</field>
         <field type="CharField" name="direction">o</field>
     </object>
-    <object pk="9" model="models.swportvlan">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">8</field>
-        <field to="models.vlan" name="vlan" rel="ManyToOneRel">4</field>
+    <object pk="9" model="nav_models.swportvlan">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">8</field>
+        <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">4</field>
         <field type="CharField" name="direction">d</field>
     </object>
-    <object pk="1" model="models.arp">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">1</field>
-        <field to="models.prefix" name="prefix" rel="ManyToOneRel"><None></None></field>
+    <object pk="1" model="nav_models.arp">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">1</field>
+        <field to="nav_models.prefix" name="prefix" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="sysname">foo-gw.example.org</field>
         <field type="IPAddressField" name="ip">10.0.20.10</field>
         <field type="CharField" name="mac">00:01:02:03:04:05</field>
         <field type="DateTimeField" name="start_time">2010-10-06 11:40:36</field>
         <field type="DateTimeField" name="end_time">9999-12-31 23:59:59.999999</field>
     </object>
-    <object pk="2" model="models.arp">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">1</field>
-        <field to="models.prefix" name="prefix" rel="ManyToOneRel"><None></None></field>
+    <object pk="2" model="nav_models.arp">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">1</field>
+        <field to="nav_models.prefix" name="prefix" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="sysname">foo-gw.example.org</field>
         <field type="IPAddressField" name="ip">10.0.20.90</field>
         <field type="CharField" name="mac">00:01:02:03:04:90</field>
         <field type="DateTimeField" name="start_time">2010-10-06 10:13:20</field>
         <field type="DateTimeField" name="end_time">9999-12-31 23:59:59.999999</field>
     </object>
-    <object pk="3" model="models.arp">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">1</field>
-        <field to="models.prefix" name="prefix" rel="ManyToOneRel"><None></None></field>
+    <object pk="3" model="nav_models.arp">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">1</field>
+        <field to="nav_models.prefix" name="prefix" rel="ManyToOneRel"><None></None></field>
         <field type="CharField" name="sysname">foo-gw.example.org</field>
         <field type="IPAddressField" name="ip">10.0.30.13</field>
         <field type="CharField" name="mac">00:01:02:03:04:13</field>
         <field type="DateTimeField" name="start_time">2010-10-06 09:13:20</field>
         <field type="DateTimeField" name="end_time">9999-12-31 23:59:59.999999</field>
     </object>
-    <object pk="1" model="models.cam">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">2</field>
+    <object pk="1" model="nav_models.cam">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">2</field>
         <field type="CharField" name="sysname">foo-sw1.example.org</field>
         <field type="IntegerField" name="ifindex">10</field>
         <field type="CharField" name="module"></field>
@@ -358,8 +358,8 @@
         <field type="IntegerField" name="miss_count">0</field>
         <field type="CharField" name="mac">00:01:02:03:04:05</field>
     </object>
-    <object pk="2" model="models.cam">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">2</field>
+    <object pk="2" model="nav_models.cam">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">2</field>
         <field type="CharField" name="sysname">foo-sw1.example.org</field>
         <field type="IntegerField" name="ifindex">11</field>
         <field type="CharField" name="module"></field>
@@ -369,8 +369,8 @@
         <field type="IntegerField" name="miss_count">0</field>
         <field type="CharField" name="mac">00:01:02:03:04:90</field>
     </object>
-    <object pk="3" model="models.cam">
-        <field to="models.netbox" name="netbox" rel="ManyToOneRel">2</field>
+    <object pk="3" model="nav_models.cam">
+        <field to="nav_models.netbox" name="netbox" rel="ManyToOneRel">2</field>
         <field type="CharField" name="sysname">foo-sw1.example.org</field>
         <field type="IntegerField" name="ifindex">12</field>
         <field type="CharField" name="module"></field>
@@ -380,19 +380,19 @@
         <field type="IntegerField" name="miss_count">0</field>
         <field type="CharField" name="mac">00:01:02:03:04:13</field>
     </object>
-    <object pk="10.0.1.1" model="models.gwportprefix">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">2</field>
-        <field to="models.prefix" name="prefix" rel="ManyToOneRel">2</field>
+    <object pk="10.0.1.1" model="nav_models.gwportprefix">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">2</field>
+        <field to="nav_models.prefix" name="prefix" rel="ManyToOneRel">2</field>
         <field type="BooleanField" name="virtual">False</field>
     </object>
-    <object pk="10.0.20.1" model="models.gwportprefix">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">1</field>
-        <field to="models.prefix" name="prefix" rel="ManyToOneRel">3</field>
+    <object pk="10.0.20.1" model="nav_models.gwportprefix">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">1</field>
+        <field to="nav_models.prefix" name="prefix" rel="ManyToOneRel">3</field>
         <field type="BooleanField" name="virtual">False</field>
     </object>
-    <object pk="10.0.30.1" model="models.gwportprefix">
-        <field to="models.interface" name="interface" rel="ManyToOneRel">1</field>
-        <field to="models.prefix" name="prefix" rel="ManyToOneRel">4</field>
+    <object pk="10.0.30.1" model="nav_models.gwportprefix">
+        <field to="nav_models.interface" name="interface" rel="ManyToOneRel">1</field>
+        <field to="nav_models.prefix" name="prefix" rel="ManyToOneRel">4</field>
         <field type="BooleanField" name="virtual">False</field>
     </object>
 </django-objects>
