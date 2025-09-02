@@ -101,7 +101,7 @@ class AuthorizationMiddleware(MiddlewareMixin):
             )
             return self.redirect_to_login(request)
         else:
-            if not account.is_default_account():
+            if not account.is_anonymous:
                 os.environ['REMOTE_USER'] = account.login
             elif 'REMOTE_USER' in os.environ:
                 del os.environ['REMOTE_USER']
