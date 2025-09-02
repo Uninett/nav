@@ -22,7 +22,7 @@
     </div>
   </nav>
   {% if debug %}
-    {% if not current_user_data.account.is_default_account %}
+    {% if not current_user_data.account.is_anonymous %}
       {% include "debug.html" %}
     {% endif %}
   {% endif %}
