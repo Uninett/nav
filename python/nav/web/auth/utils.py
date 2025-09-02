@@ -20,8 +20,11 @@ login method.
 
 import logging
 
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import get_user as django_get_user
 from django.core.cache import cache
 
+from nav.django.utils import default_account
 from nav.models.profiles import Account
 
 
@@ -109,3 +112,11 @@ def get_number_of_accounts_with_password_issues() -> int:
         cache.set(PASSWORD_ISSUES_CACHE_KEY, number_of_accounts_with_password_issues)
 
     return number_of_accounts_with_password_issues
+
+
+def get_user(request):
+    "Replace Django's AnonymousUser with NAV's database backed default account"
+    user = django_get_user(request)
+    if isinstance(user, AnonymousUser):
+        user = default_account()
+    return user

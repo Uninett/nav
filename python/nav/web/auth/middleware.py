@@ -22,16 +22,15 @@ import os
 from typing import Optional
 
 from django.core.exceptions import ImproperlyConfigured
-from django.contrib.auth.middleware import get_user
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.deprecation import MiddlewareMixin
-from django.utils.functional import SimpleLazyObject
 
 from nav.models.profiles import Account
 from nav.web.auth import remote_user, get_login_url, logout
 from nav.web.auth.utils import (
     ensure_account,
     authorization_not_required,
+    get_user,
 )
 from nav.web.auth.sudo import get_sudoer
 from nav.web.utils import is_ajax
@@ -129,5 +128,7 @@ class NAVAuthenticationMiddleware(MiddlewareMixin):
                 "'django.contrib.sessions.middleware.SessionMiddleware' before "
                 "'nav.web.auth.middleware.NAVAuthenticationMiddleware'."
             )
-        request.user = SimpleLazyObject(lambda: get_user(request))
-        request.account = request.user  # remove this eventually
+
+        user = get_user(request)  # NOT lazy!
+        request.user = user
+        request.account = user  # remove this eventually
