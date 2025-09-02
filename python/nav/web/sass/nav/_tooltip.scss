@@ -43,6 +43,14 @@
     transform: translateY(0);
     transition: opacity 0.2s ease, transform 0.2s ease;
 
+    & > * {
+      font-size: 0.875rem;
+    }
+
+    & > *:last-child {
+      margin-bottom: 0;
+    }
+
     &:before {
       content: '';
       left: 5px;
