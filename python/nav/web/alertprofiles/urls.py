@@ -135,6 +135,11 @@ urlpatterns = [
         name='alertprofiles-filter_groups-detail',
     ),
     re_path(
+        r'^filter-groups/operatorhelp/$',
+        views.filter_group_operator_help_modal,
+        name='alertprofiles-filter_groups-operator-help',
+    ),
+    re_path(
         r'^filter-groups/new/$',
         views.filter_group_detail,
         name='alertprofiles-filter_groups-new',

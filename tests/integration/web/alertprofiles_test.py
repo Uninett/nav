@@ -1086,6 +1086,21 @@ class TestsFilterGroups:
         )
         assert response.status_code in (200, 404)
 
+    def test_should_include_operator_help_trigger(self, client, dummy_filter_group):
+        url = reverse(
+            'alertprofiles-filter_groups-detail', args=[dummy_filter_group.pk]
+        )
+        modal_url = reverse('alertprofiles-filter_groups-operator-help')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert f'hx-get="{modal_url}"' in smart_str(response.content)
+
+    def test_should_render_operator_help_modal(self, client):
+        url = reverse('alertprofiles-filter_groups-operator-help')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'id="operator-help"' in smart_str(response.content)
+
 
 #
 # fixtures and helpers

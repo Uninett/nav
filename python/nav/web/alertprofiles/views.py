@@ -1856,6 +1856,16 @@ def filter_group_detail(request, filter_group_id=None):
     return filter_group_show_form(request, filter_group_id)
 
 
+def filter_group_operator_help_modal(request):
+    """Renders a modal with descriptions of all available operators"""
+    return render_modal(
+        request,
+        'alertprofiles/_filter_group_operator_help_modal.html',
+        modal_id='operator-help',
+        size="large",
+    )
+
+
 @requires_post('alertprofiles-filter_groups')
 def filter_group_save(request):
     """Saves a filter group"""
