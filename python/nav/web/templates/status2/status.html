@@ -66,50 +66,56 @@
     <div id="action-panel-revised" class="row">
 
       <div class="column medium-8 large-4">
-        <label data-tooltip
-               title="&lt;h5&gt;Acknowledge the alerts&lt;/h5&gt;
-
-                      &lt;p&gt;Acknowledged alerts will be hidden for all users, but not
-                      removed. When an end event arrives the alert will be cleared
-                      normally.&lt;/p&gt;
-
-                      &lt;p&gt;Acknowledged alerts can be still be viewed by checking the
-                      &lt;em&gt;Acknowledged&lt;/em&gt; checkbox in your status
-                      filter.&lt;/p&gt;
-
-                      &lt;h5&gt;Clear the alerts&lt;/h5&gt;
-
-                      &lt;p&gt; Clearing an alert will set its end time, thereby closing it and
-                      removing it from the list of problems. Use this to remove alerts that have
-                      become invalid, where there is no way for NAV to automatically detect
-                      this.&lt;/p&gt;
-
-                      &lt;p&gt;Be aware that if the root cause of the alert is still there, NAV
-                      may end up posting a new alert for the same issue. &lt;/p&gt;
-
-                      &lt;h5&gt;Put on maintenance&lt;/h5&gt;
-
-                      &lt;p&gt;Putting an alert on maintenance is only meaningful if the
-                      subject can be put on maintenance, for instance IP Devices and
-                      Services.&lt;/p&gt;
-
-                      &lt;h5&gt;Delete module or chassis&lt;/h5&gt;
-
-                      &lt;p&gt;NAV does not know if a module or chassis that has disappeared did so
-                      because of an error or because it was removed on purpose. Thus, modules
-                      and chassis that disappear are all listed in status until manually
-                      deleted from NAV by a manual module/chassis delete.&lt;/p&gt;
-                      ">
-          Select action for chosen alerts <span class="fa fa-info-circle"></span>
+        <label for="alert-action-select">
+            Select action for chosen alerts
+            <a
+                href="#"
+                class="help-toggle right"
+                aria-describedby="help-toggle-description"
+                aria-controls="action-help-content"
+                aria-expanded="false"
+            >
+              <span class="fa fa-question-circle"></span>
+              <span class="help-text">Show action details</span>
+              <span id="help-toggle-description" class="sr-only">Toggle help content for alert action descriptions</span>
+            </a>
         </label>
-        <select>
+        <div id="action-help-content" class="hidden" aria-label="Alert action descriptions">
+          <h5>Acknowledge the alerts</h5>
+          <p>
+              Acknowledged alerts will be hidden for all users, but not removed. When an end event arrives the alert
+              will be cleared normally. Acknowledged alerts can still be viewed by checking the
+              <em>Acknowledged</em> checkbox in your status filter.
+          </p>
+          <h5>Clear the alerts</h5>
+          <p>
+              Clearing an alert will set its end time, thereby closing it and removing it from the list of problems.
+              Use this to remove alerts that have become invalid, where there is no way for NAV to automatically
+              detect this.
+          </p>
+          <p>
+              <strong>Note:</strong> Be aware that if the root cause of the alert is still there, NAV
+              may end up posting a new alert for the same issue.
+          </p>
+          <h5>Put on maintenance</h5>
+          <p>Putting an alert on maintenance is only meaningful if the subject can be put on maintenance, for
+              instance IP Devices and Services.
+          </p>
+          <h5>Delete module or chassis</h5>
+          <p>
+              NAV does not know if a module or chassis that has disappeared did so
+              because of an error or because it was removed on purpose. Thus, modules
+              and chassis that disappear are all listed in status until manually
+              deleted from NAV by a manual module/chassis delete.
+          </p>
+        </div>
+        <select id="alert-action-select" aria-describedby="action-help-content">
           <option value="">--- Choose action ---</option>
           <option value="acknowledge">Acknowledge the alerts</option>
           <option value="clear">Clear the alerts</option>
           <option value="maintenance">Put on maintenance</option>
           <option value="delete">Delete module or chassis</option>
         </select>
-
         <div style="display: none" class="usercomment-wrapper">
           <label>Description
             <input type="text" placeholder="Write a description" class="usercomment">
@@ -117,11 +123,9 @@
         </div>
 
         <a href="javascript:void(0);" class="button small submit-action">Do it</a>
-
         <div style="display: none" class="feedback with-icon alert-box"></div>
 
       </div>
-
     </div>
 
 

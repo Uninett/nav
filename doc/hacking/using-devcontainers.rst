@@ -98,6 +98,13 @@ The container also provides common text editors like :program:`vim` and
 :program:`nano`, which should enable you to edit the configuration files if
 necessary.
 
+Configuring JWT signing keys for the API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are working with the API, the script :file:`tools/reset-jwt-keys.sh` can
+be used to quickly generate new RSA signing keys and configure NAV to use them.
+See :ref:`local-jwt-configuration` for more details.
+
 
 Preparing the database schema
 -----------------------------
@@ -183,6 +190,14 @@ code you're working on, it should be added to the ``project.dependencies`` list
 of :file:`pyproject.toml` ASAP.  If it's a development tool that is nice or
 necessary to have, it should be added to the relevant dependency groups in
 the ``dependency-groups`` section of :file:`pyproject.toml`.
+
+
+Dumping/loading data from remote production server
+--------------------------------------------------
+
+For some development tasks, it is useful to initialize the development database
+with a database snapshot from a production server. You can read more about
+:ref:`migrating_prod_db_to_dev`.
 
 
 PyCharm oddities

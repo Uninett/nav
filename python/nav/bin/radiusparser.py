@@ -397,10 +397,10 @@ class Tail(object):
 ###############################################################################
 
 auth_pattern = re.compile(
-    '^(?P<time>.*) : (?P<type>Auth): (?P<message>(?P<status>.*?): \[(?P<user>.*?)\] '
-    '\(from client (?P<client>[^ ]+) port (?P<port>[^ ]+)( cli (?P<cli>[^ ]+)|)\))\s*$'
+    r'^(?P<time>.*) : (?P<type>Auth): (?P<message>(?P<status>.*?): \[(?P<user>.*?)\] '
+    r'\(from client (?P<client>[^ ]+) port (?P<port>[^ ]+)( cli (?P<cli>[^ ]+)|)\))\s*$'
 )
-other_pattern = re.compile('^(?P<time>.*) : (?P<type>[^:]+): (?P<message>.*?)\s*$')
+other_pattern = re.compile(r'^(?P<time>.*) : (?P<type>[^:]+): (?P<message>.*?)\s*$')
 ignore_rlmsql = re.compile('Error: rlm_sql')
 
 unknown = []

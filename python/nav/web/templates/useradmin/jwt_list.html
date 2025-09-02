@@ -1,0 +1,142 @@
+{% extends "useradmin/base.html" %}
+{% load info %}
+
+{% block base_header_additional_head %}
+  <style>
+    #jwt-list-table .label { cursor: help; margin-bottom: 1px; }
+  </style>
+  <script>
+    require(['libs/jquery.tablesorter.min'], function() {
+      $(function() {
+        var $table = $('#jwt-list-table');
+        if ($table.length && $table.find('tbody tr').length > 0) {
+          $table.tablesorter({
+            sortList: [[2, 0]],
+            headers: {
+              5: {sorter: false},
+              6: {sorter: false},
+            }
+          });
+        }
+      });
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
+
+  <div class="tabs">
+    {% include 'useradmin/tabs.html' %}
+
+    <div class="tabcontent">
+
+      {% if not is_configured %}
+        {% include 'useradmin/jwt_not_enabled_content.html' %}
+      {% else %}
+
+      <a href="{% url 'useradmin-jwt_create' %}" class="button small">
+        Create new token
+      </a>
+
+      {# Show table with tokens if there are any #}
+      {% if object_list %}
+
+        <table id="jwt-list-table" class="listtable hover tablesorter">
+          <caption>
+            List of issued API tokens
+          </caption>
+
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Permission</th>
+              <th>Activates</th>
+              <th>Expires</th>
+              <th class="show-for-large-up">Created</th>
+              <th class="show-for-large-up">Last used</th>
+              <th class="show-for-medium-up">Endpoints</th>
+              <th>Status</th>
+              <th>&nbsp;</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for token in object_list %}
+              <tr>
+                {# Name #}
+                <td>
+                  <a href="{% url 'useradmin-jwt_detail' token.pk %}" title="Details">{{ token.name }}</a>
+                </td>
+
+                {# Permission #}
+                <td>
+                  {{ token.permission }}
+                </td>
+
+                {# Activates #}
+                <td>
+                  {{ token.activates }}
+                </td>
+
+                {# Expires #}
+                <td>
+                 {{ token.expires}}
+                </td>
+
+                {# Created #}
+                <td class="show-for-large-up" data-sort-value="{{ token.created|date:'c'|default:'last' }}">{{ token.created|default:'' }}</td>
+
+                {# Last used #}
+                <td class="show-for-large-up" data-sort-value="{{ token.last_used|date:'c'|default:'last' }}">{{ token.last_used|default:'Never' }}</td>
+
+                {# Endpoints #}
+                <td class="show-for-medium-up">
+                {% if token.endpoints %}
+                  {% for key, value in token.endpoints|sortdict %}
+                    <span class="label endpoint" title="{{ value }}">
+                      {{ key }}
+                    </span>
+                  {% endfor %}
+                {% endif %}
+                </td>
+
+                {# Status #}
+                <td>
+                    {% if token.revoked %}
+                      <span class="label alert" title="Token Revoked">
+                        Revoked
+                      </span>
+                    {% elif not token.is_active %}
+                      <span class="label warning" title="Token Inactive">
+                        Inactive
+                      </span>
+                    {% else %}
+                      <span class="label success" title="Token Active">
+                        Active
+                      </span>
+                    {% endif %}
+                </td>
+
+                {# Link to token edit #}
+                <td>
+                  <a href="{% url 'useradmin-jwt_edit' token.pk %}" title="Edit this token">Edit</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      {% else %}
+
+        {# If there are no tokens, show information about creating one #}
+        <div class="alert-box info">No tokens are issued. Do you want to
+          <a href="{% url 'useradmin-jwt_create' %}">create one</a>?
+        </div>
+
+      {% endif %}
+
+    </div>  {# .tabcontent #}
+    {% endif %}
+  </div>  {# .tabs #}
+
+{% endblock %}

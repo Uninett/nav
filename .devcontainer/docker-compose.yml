@@ -4,7 +4,8 @@ services:
       context: ..
       dockerfile: .devcontainer/Dockerfile
       args:
-        REMOTE_USER: nav
+        DEBIAN_VERSION: "bookworm"
+        MAIN_PYTHON_VERSION: "3.11"
 
     volumes:
       # MacOS users may want to add a :cached flag to the volume

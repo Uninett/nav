@@ -9,23 +9,21 @@
   <div class="row">
     {% if request.account.is_admin %}
       <div class="column medium-6">
-        <a id="joyrideme" href="javascript:void(0);"
-           class="button small full-width">
+        <button id="getting-started-wizard" class="button small full-width">
           Take the 30 second tour
-        </a>
+        </button>
       </div>
       <div class="column medium-6">
-        <a href="{% url 'seeddb-netbox-edit' %}#joyride"
+        <a href="{% url 'seeddb-netbox-edit' %}?guide=true"
            class="button small secondary full-width">
           Take me to the setup guide
         </a>
       </div>
     {% else %}
       <div class="column small-12">
-        <a id="joyrideme" href="javascript:void(0);"
-           class="button small full-width">
+        <button id="getting-started-wizard" class="button small full-width">
           Take the 30 second tour
-        </a>
+        </button>
       </div>
     {% endif %}
   </div>

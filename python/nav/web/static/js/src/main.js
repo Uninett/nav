@@ -7,10 +7,9 @@ require([
     'libs/foundation.min',
     'libs/select2.min',
     'plugins/megadrop',
+    'plugins/popover',
     'libs/underscore'
-], function (accordionMaker) {
-
-
+], function (accordionMaker, popover) {
     /** Enable slash to navigate to search, whereas escape removes focus from search */
     function addSearchFocusHandlers() {
         var $searchInput = $('#query');
@@ -55,7 +54,21 @@ require([
         return o;
     };
 
-
+    function addTopbarHandlers() {
+        // Toggle topbar on small screens
+        $('.top-bar').on('click', '.toggle-topbar', function (e) {
+            e.preventDefault();
+            const $this = $(this);
+            const $topbar = $this.closest('.top-bar');
+            $topbar.toggleClass('expanded');
+        });
+        // Cleanup topbar if we resize to large screen
+        $(window).on('resize', _.throttle(function () {
+            if (window.matchMedia('(min-width: 40em)').matches) {
+                $('.top-bar').removeClass('expanded');
+            }
+        }, 200));
+    }
 
     $(function () {
         /* Add redirect to login on AJAX-requests if session has timed out */
@@ -70,6 +83,7 @@ require([
         $('select.select2').select2();
 
         // addSearchFocusHandlers();  Fix this to not grab every / before activating
+        addTopbarHandlers();
 
         // Refresh session on page load and then periodically
         var ten_minutes = 10 * 60 * 1000;

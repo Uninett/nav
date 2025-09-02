@@ -1,0 +1,52 @@
+{% load maintenance %}
+{% for key, identifiers in selected.items %}
+  {% for id in identifiers %}
+    <input type="hidden" name="{{ key }}" value="{{ id }}"/>
+  {% endfor %}
+{% endfor %}
+{% if components %}
+  <div class="row">
+      <button
+          type="button"
+          class="button tiny secondary"
+          onclick="document.querySelectorAll('#component-list input[type=checkbox]').forEach(cb => cb.checked = true);"
+      >
+        Select all
+      </button>
+      <button
+          type="button"
+          class="button tiny secondary"
+          onclick="document.querySelectorAll('#component-list input[type=checkbox]').forEach(cb => cb.checked = false);"
+      >
+        Unselect all
+      </button>
+  </div>
+  <ul id="component-list" class="no-bullet">
+    {% for trail in components %}
+        {% with trail|last as component %}
+          <li>
+            <div>
+              <input type="hidden" name="{{ component|component_db_table }}" value="{{ component.pk }}"/>
+              <input type="checkbox" name="remove_{{ component|component_db_table }}" value="{{ component.pk }}"/>
+                {{ component|model_verbose_name }}:
+            </div>
+            <div>
+              {% include "maintenance/frag-component-trail.html" %}
+            </div>
+          </li>
+        {% endwith %}
+    {% endfor %}
+  </ul>
+  <button
+      name="remove"
+      hx-post="{% url 'maintenance-component-select' %}"
+      hx-target="#selected-components"
+      hx-include="#selected-components input"
+      class="button small secondary"
+  >
+      Remove selected
+  </button>
+{% else %}
+  <p>(none)</p>
+  <button disabled="disabled" class="button small secondary">Remove selected</button>
+{% endif %}

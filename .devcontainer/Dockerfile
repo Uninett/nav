@@ -1,9 +1,9 @@
 ARG DEBIAN_VERSION=bookworm
 ARG MAIN_PYTHON_VERSION=3.11
 
-FROM ghcr.io/astral-sh/uv:$DEBIAN_VERSION AS uv
-
 FROM mcr.microsoft.com/devcontainers/python:1-${MAIN_PYTHON_VERSION}-${DEBIAN_VERSION}
+ARG DEBIAN_VERSION
+ARG MAIN_PYTHON_VERSION
 
 ENV PYTHONUNBUFFERED=1
 
@@ -51,6 +51,8 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
        snmp \
        netcat-openbsd
 
-COPY --from=uv --chown=vscode: /usr/local/bin/uv /usr/local/bin/uvx /usr/local/bin/
 ENV UV_PROJECT_ENVIRONMENT=/home/vscode/.venv
+ENV UV_PYTHON=${MAIN_PYTHON_VERSION}
 ENV PATH="${UV_PROJECT_ENVIRONMENT}/bin:${PATH}"
+
+RUN echo "This is the original base image for NAV devcontainer" > /README.TXT

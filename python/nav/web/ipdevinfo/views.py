@@ -24,8 +24,10 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django_htmx.http import reswap, retarget, HttpResponseClientRefresh
 
 from nav.django.templatetags.thresholds import find_rules
+from nav.event2 import EventFactory
 from nav.metrics.errors import GraphiteUnreachableError
 from nav.metrics.graphs import get_simple_graph_url
 
@@ -44,7 +46,7 @@ from nav.models.msgmaint import MaintenanceTask
 from nav.models.arnold import Identity
 from nav.models.service import Service
 from nav.models.profiles import Account
-from nav.models.event import AlertHistory
+from nav.models.event import AlertHistory, EventQueue
 from nav.ipdevpoll.config import get_job_descriptions
 from nav.util import is_valid_ip
 from nav.web.ipdevinfo.utils import create_combined_urls
@@ -69,6 +71,9 @@ COUNTER_TYPES = (
     'MulticastPkts',
     'BroadcastPkts',
 )
+
+NUMBER_OF_JOBS_TO_AVERAGE = 30
+ACCEPTABLE_RUNTIME_INCREASE_FACTOR = 0.1
 
 
 _logger = logging.getLogger('nav.web.ipdevinfo')
@@ -282,6 +287,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
     system_metrics = netbox_availability = []
     sensor_metrics = []
     graphite_error = False
+    mac = None
 
     # Invalid IP address
     if not name and not addr_valid:
@@ -326,6 +332,8 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
         netboxgroups = netbox.netboxcategory_set.all()
         navpath = NAVPATH + [(netbox.sysname, '')]
         job_descriptions = get_job_descriptions()
+        if arp := get_arp_info(netbox.ip):
+            mac = arp.mac
 
         try:
             system_metrics = netbox.get_system_metrics()
@@ -395,6 +403,7 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
             'future_maintenance_tasks': relevant_future_tasks,
             'sensor_metrics': sensor_metrics,
             'display_services_tab': display_services_tab,
+            'mac': mac,
         },
     )
 
@@ -905,3 +914,138 @@ def save_port_layout_pref(request):
         'ipdevinfo-details-by-id', kwargs={'netbox_id': request.GET.get('netboxid')}
     )
     return redirect("{}#!ports".format(url))
+
+
+def _show_loading_indicator_on_refresh_ongoing(
+    request, netbox_sysname: str, job_name: str, job_started_timestamp: str
+) -> HttpResponse:
+    """
+    Returns the template with a spinner to show that the triggered job is ongoing
+    """
+    button_template = "ipdevinfo/frag-ipdevinfo-refresh-ongoing-button.html"
+
+    return render(
+        request,
+        button_template,
+        {
+            'netbox_sysname': netbox_sysname,
+            'job_name': job_name,
+            'job_started_timestamp': job_started_timestamp,
+        },
+    )
+
+
+def refresh_ipdevinfo_job(request, netbox_sysname: str, job_name: str):
+    """
+    Posts a refresh event to the event queue triggering ipdevpoll to start the job and
+    returns template with spinner
+    """
+    netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
+
+    _logger.debug(f"Sending refresh event for {netbox.sysname} job {job_name}")
+
+    refresh_event = EventFactory("devBrowse", "ipdevpoll", event_type="notification")
+    event = refresh_event.notify(netbox=netbox, subid=job_name)
+    event.save()
+
+    return _show_loading_indicator_on_refresh_ongoing(
+        request, netbox_sysname, job_name, str(event.time)
+    )
+
+
+def refresh_ipdevinfo_job_status_query(
+    request, netbox_sysname: str, job_name: str, job_started_timestamp: str
+):
+    """
+    Checks the status of the ongoing job
+
+    Reloads the page on job finished,
+    shows error messages on job running for too long or idpdevpoll not running
+    or shows the loading spinner to wait and check again soon
+    """
+
+    def show_error_message(
+        request, alert_level: str, alert_message: str
+    ) -> HttpResponse:
+        """
+        Returns a HTTPResponse showing an alert box indicating a problem with running
+        a job again
+        """
+        response = render(
+            request,
+            "ipdevinfo/frag-ipdevinfo-alert-box.html",
+            context={
+                "alert_level": alert_level,
+                "alert_message": alert_message,
+            },
+        )
+        retarget(response, ".row")
+        reswap(response, "beforeend")
+        return response
+
+    def check_if_job_is_running_longer_than_expected(
+        job, job_started_timestamp: dt.datetime
+    ) -> bool:
+        """
+        Check if the given job has been running for much longer than expected
+
+        This is calculated by comparing the current runtime with the last runtimes of
+        that job plus some margin
+
+        """
+
+        avg_jobtime = (
+            sum(
+                duration
+                for _, duration in job.get_last_runtimes(NUMBER_OF_JOBS_TO_AVERAGE)
+            )
+            / NUMBER_OF_JOBS_TO_AVERAGE
+        )
+        current_runtime = (dt.datetime.now() - job_started_timestamp).total_seconds()
+        return current_runtime > (
+            avg_jobtime * (1 + ACCEPTABLE_RUNTIME_INCREASE_FACTOR)
+        )
+
+    netbox = get_object_or_404(Netbox, sysname=netbox_sysname)
+    last_job = [job for job in netbox.get_last_jobs() if job.job_name == job_name].pop()
+    job_started_timestamp = dt.datetime.fromisoformat(job_started_timestamp)
+
+    if last_job.end_time > job_started_timestamp:
+        return HttpResponseClientRefresh()
+
+    refresh_event_exists = EventQueue.objects.filter(
+        source_id="devBrowse",
+        target_id="ipdevpoll",
+        event_type_id="notification",
+        netbox=netbox,
+        subid=job_name,
+        state=EventQueue.STATE_STATELESS,
+        time__gte=job_started_timestamp,
+    ).exists()
+
+    if refresh_event_exists:
+        # Ipdevpoll picks up events from the event queue basically instantaneously, so
+        # if next time the endpoint is called after having posted the event it means
+        # ipdevpoll might not be running or there is another problem with it
+        return show_error_message(
+            request,
+            alert_level="warning",
+            alert_message=f"Job '{job_name}' was not started. Make sure that "
+            "ipdevpoll is running.",
+        )
+
+    job_running_longer_than_expected = check_if_job_is_running_longer_than_expected(
+        last_job, job_started_timestamp
+    )
+
+    if job_running_longer_than_expected:
+        return show_error_message(
+            request,
+            alert_level="alert",
+            alert_message=f"Job '{job_name}' has been running for an unusually long "
+            "time. Check the log messages for eventual errors.",
+        )
+
+    return _show_loading_indicator_on_refresh_ongoing(
+        request, netbox_sysname, job_name, job_started_timestamp
+    )

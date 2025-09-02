@@ -30,9 +30,7 @@
 
   <div class="panel white">
     <form id="new-task-form" action="{{ request.path }}" method="post">
-
       <div class="row">
-
         <div class="large-4 columns">
           <fieldset>
             <legend>Details</legend>
@@ -41,46 +39,37 @@
         </div>
 
         <div class="large-4 columns">
-          <fieldset>
-            <legend>Select components</legend>
-            {{ quickselect }}
-          </fieldset>
+            <fieldset>
+                <legend>Select components</legend>
+                <label for="component-search">
+                    Search
+                </label>
+                <input
+                    id="component-search"
+                    class="form-control" type="search"
+                    name="search"
+                    placeholder="Begin typing to search for components..."
+                    hx-post="{% url 'maintenance-component-search' %}"
+                    hx-trigger="input changed delay:500ms, search"
+                    hx-target="#search-results"
+                    hx-indicator=".htmx-indicator"
+                />
+                <span class="htmx-indicator">
+                    <img src="/static/images/select2/select2-spinner.gif" alt="Loading spinner" /> Searching...
+                </span>
+                <div id="search-results"></div>
+            </fieldset>
+
         </div>
 
         <div class="large-4 columns">
           <fieldset>
             <legend>Selected components</legend>
-            {% for key, identifiers in selected.items %}
-              {% for id in identifiers %}
-                <input type="hidden" name="{{ key }}" value="{{ id }}"/>
-              {% endfor %}
-            {% endfor %}
-
-            {% if components %}
-              <ul id="component-list" class="no-bullet">
-                {% for trail in components %}
-                    {% with trail|last as component %}
-                      <li>
-                        <div>
-                          <input type="hidden" name="{{ component|component_db_table }}" value="{{ component.pk }}"/>
-                          <input type="checkbox" name="remove_{{ component|component_db_table }}" value="{{ component.pk }}"/>
-                            {{ component|model_verbose_name }}:
-                        </div>
-                        <div>
-                          {% include "maintenance/frag-component-trail.html" %}
-                        </div>
-                      </li>
-                    {% endwith %}
-                {% endfor %}
-              </ul>
-              <input type="submit" name="remove"
-                     value="Remove selected" class="button small secondary"/>
-            {% else %}
-              <p>(none)</p>
-              <input type="submit" name="remove"
-                     value="Remove selected" disabled="disabled" class="button small secondary"/>
-            {% endif %}
+            <div id="selected-components">
+            {% include 'maintenance/_selected-components-list.html' with components=components selected=selected %}
+            </div>
           </fieldset>
+
         </div> {# column #}
       </div> {# row #}
 

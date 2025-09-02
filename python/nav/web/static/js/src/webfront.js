@@ -4,7 +4,8 @@ require([
     'plugins/sensors_controller',
     'plugins/fullscreen',
     'libs/jquery-ui.min',
-], function (RoomMapper, NavletsController, SensorsController, fullscreen) {
+    'src/getting_started_wizard'
+], function (RoomMapper, NavletsController, SensorsController, fullscreen, _, GettingStartedWizard) {
     'use strict';
 
     var $navletsContainer = $('#navlets');
@@ -350,17 +351,8 @@ require([
 
 
         /* Add click listener to joyride button */
-        $navletsContainer.on('click', '#joyrideme', function () {
-            var menu = $('.toggle-topbar'),
-                is_small_screen = menu.is(':visible');
-
-            if (is_small_screen) {
-                $('#joyride_for_desktop').remove();
-            } else {
-                $('#joyride_for_mobile').remove();
-            }
-
-            $(document).foundation('joyride', 'start');
+        $navletsContainer.on('click', '#getting-started-wizard', function () {
+            GettingStartedWizard.start();
         });
 
         /* Need some way of doing javascript stuff on widgets */

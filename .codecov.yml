@@ -5,4 +5,5 @@ coverage:
   status:
     project:
       default:
+        target: auto
         threshold: 0.1  # Allow PRs to drop overall coverage no more than 0.1%

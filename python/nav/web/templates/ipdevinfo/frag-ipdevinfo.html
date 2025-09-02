@@ -136,6 +136,17 @@
             </tr>
 
             <tr>
+              <th>MAC address</th>
+              <td>
+                {% if mac %}
+                    {{ mac }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </td>
+            </tr>
+
+            <tr>
               <th>Prefix</th>
               <td>
                 {% with netbox.get_filtered_prefix as prefix %}
@@ -422,6 +433,7 @@
                   <th>End time</th>
                   <th>Duration</th>
                   <th class="cell-center">Status</th>
+                  <th class="cell-center">Actions</th>
                 </tr>
               </thead>
 
@@ -457,6 +469,9 @@
                                alt="N/A" title="Not applicable">
                         {% endif %}
                       {% endif %}
+                    </td>
+                    <td class="cell-center">
+                        {% include "ipdevinfo/frag-ipdevinfo-refresh-button.html" %}
                     </td>
                   </tr>
                 {% endfor %}

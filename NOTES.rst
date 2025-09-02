@@ -8,15 +8,123 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
-Unreleased
-==========
+NAV 5.14
+========
 
 Dependency changes
 ------------------
 
 Python modules with changed version requirements:
 
+* :mod:`djangorestframework` (``>=3.14``)
 * :mod:`napalm` (``>=5.0.0,<5.1.0``)
+* :mod:`twisted` (``>=24.7``)
+
+These Python modules are new requirements:
+
+* :mod:`django-htmx`
+
+
+IP Device Info refresh
+----------------------
+
+Each IP Device's *IP Device Info* page shows an ipdevpoll job status list in
+the lower right corner. This NAV release finally adds the much-discussed
+**Refresh** button to these entries.
+
+The **Refresh** button will ask the :doc:`/reference/ipdevpoll` background
+process to schedule the selected job for an immediate re-run. Once the refresh
+is complete, the entire page will reload to show the potentially updated
+information.
+
+
+Issuing API JSON Web tokens (JWT)
+---------------------------------
+
+Since version 5.11, NAV has provided simple support for authorizing access to
+the API using JSON Web Token signed by authorized third parties.  This release
+adds two new, important features to complement this:
+
+* Signed JWTs can now include claims about read/write-level access and which
+  API endpoints it should be authorized to access
+* NAV can now issue its own JSON Web Tokens, through the *User and API
+  Administration* tool.
+
+More information about creating the necessary keys and configuring NAV to issue
+JWTs can be found in :ref:`local-jwt-configuration`.
+
+We expect to deprecate and remove the old opaque token system in future
+releases, once JWT support stabilizes.
+
+
+QR code generation
+------------------
+
+This release adds two new QR code generation features:
+
+* A new item ``QR Code`` has been added to the ``My stuff`` dropdown menu
+  present on every NAV page. Clicking this will generate and display a QR code
+  "bookmark" that links back to the URL you are currently viewing.
+* The *Seed Database* IP Device listing tab now has a button to generate a ZIP
+  file archive of QR codes linking back to the selected devices. This can
+  potentially be used to print a bunch of QR codes to glue to your equipment,
+  so they can be easily scanned and found in NAV while on-site.
+
+
+New API endpoints
+-----------------
+
+Two new API endpoints have been added:
+
+* ``/api/1/netboxentity/`` can be used to list the internal physical entities
+  that NAV has detected in your devices (chassis, modules, ports, fans, PSUs,
+  etc.), as well as their serial numbers.
+* ``/api/1/vendor/`` can be used to perform bulk OUI vendor lookups for MAC
+  addresses, based on NAV's downloaded IEEE OUI registry.
+
+
+Insecure password warnings
+--------------------------
+
+The *User and API administration* tool account list has for several years
+included warnings about users with potential password problems. One of the
+typical problems are passwords that were last changed in very old versions of
+NAV, which would use password hashing schemes that would no longer be
+considered secure today.
+
+These warnings seem to be too unobtrusive for administrators to notice;
+therefore, this NAV release will display a warning banner to all admins on all
+NAV pages that there are users with potential password problems. The individual
+users that have these password problems will also be shown a similar banner
+about their own account.
+
+"Quickselect" form in *Maintenance* and *Device history* tools has been replaced
+--------------------------------------------------------------------------------
+
+The so-called "quickselect" form, used to find and select components for adding
+to maintenance tasks, or to search for device history of selected components,
+was built using ancient Javascript technology about 18 years ago.  It had
+several issues and was really slow on NAV installations with many IP Devices,
+rooms or locations.
+
+The form has been entirely replaced by a more dynamic search tool, which will
+dynamically search the NAV database for matching components as you type into
+the search bar.
+
+
+Collecting DHCP pool statistics from KEA DHCP servers
+-----------------------------------------------------
+
+This release adds a new program (and cronjob) to collect DHCP pool
+usage/utilization stats from a KEA DHCP server API (:program:`navdhcpstats`)
+every five minutes and store these as time series data in NAV's associated
+Graphite server.  This program is intended to be extensible, so that
+implementations for other APIs can be added as plugins.
+
+We are working on graphing these statistics in the *Prefix* and *Vlan* detail
+pages in the NAV web UI, and expect to include this feature in the next
+release.  Until then, the only documentation for this new command is in the
+comments of its configuration file, :file:`dhcpstats.conf`.
 
 
 NAV 5.13
@@ -96,6 +204,7 @@ the ``paloaltoarp`` plugin is listed *before* the ``arp`` plugin.
 
 
 .. _5.12-new-http-rest-api-management-profile-type:
+
 New way to configure fetching of Palo Alto firewall ARP cache data
 ------------------------------------------------------------------
 .. NOTE:: See

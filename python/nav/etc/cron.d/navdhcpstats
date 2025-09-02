@@ -1,0 +1,2 @@
+## info: Regularly fetch DHCP stats from endpoints in dhcpstats.conf to the Carbon backend
+*/5 * * * * navdhcpstats

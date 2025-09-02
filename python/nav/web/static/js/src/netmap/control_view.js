@@ -123,14 +123,20 @@ define([
 
 
         },
-
         toggleNetmapViewPanel: function (e) {
-            $('#netmap-view-panel').toggle(function () {
-                $(document).foundation('equalizer', 'reflow');
-            });
+            $('#netmap-view-panel').toggle(this.updateEqualizers);
             this.$(e.currentTarget.children).toggleClass('fa-caret-down fa-caret-up');
         },
-
+        updateEqualizers: function () {
+            $('[data-equalizer]').each(function () {
+                const $watched = $(this).find('[data-equalizer-watch]');
+                $watched.css('height', 'auto');
+                const maxHeight = $watched.toArray().reduce((max, element) => {
+                    return Math.max(max, $(element).outerHeight());
+                }, 0);
+                $watched.css('height', maxHeight);
+            });
+        },
         fireZoomToExtent: function () {
             Backbone.EventBroker.trigger('netmap:zoomToExtent');
         },

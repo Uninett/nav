@@ -1,0 +1,87 @@
+{% extends "useradmin/base.html" %}
+
+{% block base_header_additional_head %}
+  <link rel="stylesheet" href="{{ STATIC_URL }}css/nav/multi-select.css">
+  <style>
+    #edit-jwt-form input[type=submit] { float:left; margin-right: 1.25rem }
+    label[for='id_endpoints'] { display: none; }
+  </style>
+  <script>
+    require(['libs/jquery.multi-select'], function(){
+      $(function(){
+        /* Add multiselect for selecting endpoints */
+        var msSelector = '#id_endpoints';
+        $(msSelector).multiSelect({
+          selectableHeader: 'Available endpoints <a id="select-all-endpoints" class="right">Select all</a>',
+          selectionHeader: 'Selected endpoints <a id="remove-all-endpoints" class="right">Remove all</a>',
+          afterInit: function(){
+            $('#select-all-endpoints').click(function(){ $(msSelector).multiSelect('select_all') });
+            $('#remove-all-endpoints').click(function(){ $(msSelector).multiSelect('deselect_all') });
+          }
+        });
+
+        /* This is the code for closing the content dropdown */
+        $('#confirm-token-delete .close-button').click(function () {
+          $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
+        });
+      });
+    });
+  </script>
+{% endblock %}
+
+
+{% block content %}
+
+  Back to
+  <a href="{% url 'useradmin-jwt_list' %}">token list</a>
+  {% if object %}
+    | <a href="{% url 'useradmin-jwt_detail' object.pk %}">token details</a>
+  {% endif %}
+
+  <div id="form-panel" class="panel white">
+
+    <h4>
+      {% if object %}
+        Edit token
+      {% else %}
+        Create new token
+      {% endif %}
+    </h4>
+
+
+    {% include 'custom_crispy_templates/flat_form.html' %}
+
+
+    {% if object %}
+      {# Display button for revoking a token #}
+      <form action="{% url 'useradmin-jwt_revoke' object.pk %}" method="post">
+        <input type="submit" value="Revoke token" class="button small">
+      </form>
+
+      {# Display button for recreating a token #}
+      <form action="{% url 'useradmin-jwt_recreate' object.pk %}" method="post">
+        <input type="submit" value="Recreate token" class="button small">
+      </form>
+
+      {# Display form for deleting a token #}
+      <a href="javascript:void(0);" class="button small alert"
+         data-options="align:top"
+         data-dropdown="confirm-token-delete">
+        Delete token
+      </a>
+
+      <div id="confirm-token-delete" class="f-dropdown content">
+        <form id="delete-token-form"
+              action="{% url 'useradmin-jwt_delete' object.pk %}"
+              method="post">{% csrf_token %}
+          <input type="submit" value="Yes, delete" class="button small alert expand">
+        </form>
+        <span class="button secondary small close-button expand">No, don't delete</span>
+      </div>
+    {% endif %}
+
+    <div class="float-clear"></div>
+
+  </div>
+
+{% endblock %}

@@ -74,7 +74,6 @@ small.errorField {
         padding-bottom: rem-calc(4);
         margin-bottom: 0;
     }
-
 }
 
 
@@ -119,4 +118,50 @@ button, .button {
     .top-bar {
         height: auto;
     }
+}
+
+/* Driver.js popover customizations and fixes for conflicting styles */
+$driver-popover-bg: #ffffff;
+$driver-popover-fg: #2d2d2d;
+$driver-popover-secondary-fg: #d2d2d2;
+$driver-popover-progress-fg: #727272;
+
+/*
+// Dark popover colors (matching Foundation Joyride theme)
+$driver-popover-bg: #333333;
+$driver-popover-fg: #ffffff;
+$driver-popover-secondary-fg: #777777;
+$driver-popover-progress-fg: $driver-popover-secondary-fg;
+ */
+
+
+.driver-popover {
+  border-radius: 0;
+  background-color: $driver-popover-bg;
+  color: $driver-popover-fg;
+  .driver-popover-footer {
+    padding: 0;
+    border-top: none;
+    background-color: unset;
+    gap: 1rem;
+  }
+  .driver-popover-progress-text {
+    color: $driver-popover-progress-fg;
+  }
+  .driver-popover-navigation-btns button {
+    @extend .small;
+    margin-bottom: 0;
+  }
+  .driver-popover-description > * {
+    font-size: 14px;
+  }
+  .driver-popover-close-btn {
+    color: $driver-popover-secondary-fg;
+    &:focus, &:hover {
+      background: none;
+    }
+    &:hover {
+      color: darken($driver-popover-secondary-fg, 20%);
+    }
+  }
 }

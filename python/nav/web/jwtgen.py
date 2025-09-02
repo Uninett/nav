@@ -1,9 +1,15 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
+import hashlib
 
 import jwt
 
-from nav.jwtconf import JWTConf
+from nav.django.settings import (
+    JWT_PRIVATE_KEY,
+    JWT_NAME,
+    JWT_ACCESS_TOKEN_LIFETIME,
+    JWT_REFRESH_TOKEN_LIFETIME,
+)
 
 # Alias for datetime.now for mocking purposes
 get_now = datetime.now
@@ -15,8 +21,7 @@ def generate_access_token(token_data: Optional[dict[str, Any]] = None) -> str:
     but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`,
     `token_type`
     """
-    expiry_delta = JWTConf().get_access_token_lifetime()
-    return _generate_token(token_data, expiry_delta, "access_token")
+    return _generate_token(token_data, JWT_ACCESS_TOKEN_LIFETIME, "access_token")
 
 
 def generate_refresh_token(token_data: Optional[dict[str, Any]] = None) -> str:
@@ -25,8 +30,7 @@ def generate_refresh_token(token_data: Optional[dict[str, Any]] = None) -> str:
     but the following claims will be overridden: `exp`, `nbf`, `iat`, `aud`, `iss`,
     `token_type`
     """
-    expiry_delta = JWTConf().get_refresh_token_lifetime()
-    return _generate_token(token_data, expiry_delta, "refresh_token")
+    return _generate_token(token_data, JWT_REFRESH_TOKEN_LIFETIME, "refresh_token")
 
 
 def _generate_token(
@@ -43,19 +47,16 @@ def _generate_token(
         new_token = dict(token_data)
 
     now = get_now(timezone.utc)
-    name = JWTConf().get_nav_name()
     updated_claims = {
         'exp': (now + expiry_delta).timestamp(),
         'nbf': now.timestamp(),
         'iat': now.timestamp(),
-        'aud': name,
-        'iss': name,
+        'aud': JWT_NAME,
+        'iss': JWT_NAME,
         'token_type': token_type,
     }
     new_token.update(updated_claims)
-    encoded_token = jwt.encode(
-        new_token, JWTConf().get_nav_private_key(), algorithm="RS256"
-    )
+    encoded_token = jwt.encode(new_token, JWT_PRIVATE_KEY, algorithm="RS256")
     return encoded_token
 
 
@@ -72,3 +73,15 @@ def is_active(exp: float, nbf: float) -> bool:
     expires = datetime.fromtimestamp(exp)
     activates = datetime.fromtimestamp(nbf)
     return now >= activates and now < expires
+
+
+def hash_token(token: str) -> str:
+    """Hashes a token with SHA256"""
+    hash_object = hashlib.sha256(token.encode('utf-8'))
+    hex_dig = hash_object.hexdigest()
+    return hex_dig
+
+
+def decode_token(token: str) -> dict[str, Any]:
+    """Decodes a token in JWT format and returns the data of the decoded token"""
+    return jwt.decode(token, options={'verify_signature': False})

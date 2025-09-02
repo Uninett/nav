@@ -1,13 +1,8 @@
-require(['plugins/quickselect', 'plugins/hover_highlight', "libs/jquery-ui-timepicker-addon"], function (QuickSelect, HoverHighlight) {
+require(['plugins/hover_highlight', "libs/jquery-ui-timepicker-addon"], function (HoverHighlight) {
     var calendar = $('.calendar');
-    var quickselect = $('.quickselect');
 
     if (calendar.length) {
         new HoverHighlight(calendar);
-    }
-
-    if (quickselect.length) {
-        new QuickSelect(quickselect);
     }
 
     $(document).ready(function(){
@@ -29,6 +24,4 @@ require(['plugins/quickselect', 'plugins/hover_highlight', "libs/jquery-ui-timep
             $(endTime).removeAttr('disabled');
         }
     }
-
-
 });

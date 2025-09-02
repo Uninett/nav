@@ -22,6 +22,11 @@ from nav.web.devicehistory import views
 
 urlpatterns = [
     re_path(r'^$', views.devicehistory_search, name='devicehistory-search'),
+    re_path(
+        r'^componentsearch/$',
+        views.devicehistory_component_search,
+        name='devicehistory-component-search',
+    ),
     re_path(r'^history/$', views.devicehistory_view, name='devicehistory-view'),
     re_path(
         r'^history/room/(?P<room_id>.+)/$',
@@ -39,6 +44,11 @@ urlpatterns = [
         name='devicehistory-view-location',
     ),
     re_path(r'^registererror/$', views.error_form, name='devicehistory-registererror'),
+    re_path(
+        r'^registererror/componentsearch/$',
+        views.registererror_component_search,
+        name='devicehistory-registererror-component-search',
+    ),
     re_path(
         r'^do_registererror/$',
         views.register_error,

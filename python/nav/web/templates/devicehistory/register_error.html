@@ -2,8 +2,8 @@
 
 {% block tabcontent %}
     <p class="panel">
-        Register an error by selecting one or more units (locations, rooms,
-        boxes or modules) and enter a description of the error.
+        Register an error by searching for a box or module in the search box below.
+        Select one or more units and enter a description of the error.
     </p>
 
     <form action="{% url 'devicehistory-do-registererror' %}" method="post">
@@ -14,7 +14,7 @@
             </label>
         </div>
         {% block devices %}
-        {{ quickselect|safe }}
+        {% include 'devicehistory/_component_search_input.html' with post_url='devicehistory-registererror-component-search' %}
         {% endblock %}
     </form>
 {% endblock %}
