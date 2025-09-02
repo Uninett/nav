@@ -1,24 +1,16 @@
 {% extends "alertprofiles/base.html" %}
 
 {% block tabcontent %}
-
-  <div id="alert-profiles-permissions-help" class="reveal-modal" data-reveal>
-    <p>
-      Set which filter groups the different user groups are allowed
-      to receive alerts for.
-    </p>
-
-    <p>
-      Denying a user group to receive alerts from a certain filter group will
-      not hide that filter group from the interface, so the users of that
-      user group can still add the filter group to their profiles. They
-      still won't receive any alerts that matches that filter group though.
-    </p>
-  </div>
-
   <div class="row">
    <div class="small-12 column">
-     <a class="button small secondary right" data-reveal data-reveal-id="alert-profiles-permissions-help">Help</a>
+     <button
+             class="button small secondary right"
+             hx-get="{% url 'alertprofiles-permissions-help' %}"
+             hx-target="body"
+             hx-swap="beforeend"
+     >
+         Help
+     </button>
      <h4>Choose a group to set it's permissions</h4>
    </div>
   </div>

@@ -825,6 +825,19 @@ class TestsPermissions:
         )
         assert response.status_code == 200
 
+    def test_should_include_permissions_help_trigger(self, client):
+        url = reverse('alertprofiles-permissions')
+        modal_url = reverse('alertprofiles-permissions-help')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert f'hx-get="{modal_url}"' in smart_str(response.content)
+
+    def test_should_render_permissions_help_modal(self, client):
+        url = reverse('alertprofiles-permissions-help')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'id="permissions-help"' in smart_str(response.content)
+
 
 class TestsAlertAddresses:
     def test_alertprofiles_add_slack_address_with_valid_url_should_succeed(

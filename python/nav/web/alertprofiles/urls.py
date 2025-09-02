@@ -181,6 +181,11 @@ urlpatterns = [
     # Permissions
     re_path(r'^permissions/$', views.permission_list, name='alertprofiles-permissions'),
     re_path(
+        r'^permissions/help$',
+        views.permissions_help_modal,
+        name='alertprofiles-permissions-help',
+    ),
+    re_path(
         r'^permissions/(?P<group_id>\d+)/$',
         views.permission_list,
         name='alertprofiles-permissions-detail',

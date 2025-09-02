@@ -25,7 +25,6 @@
 # the operation is the owner
 
 from django.http import HttpResponseRedirect, QueryDict
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse
@@ -83,7 +82,7 @@ def overview(request):
     account = get_account(request)
 
     # Get information about user
-    active_profile = _get_active_profile(account)
+    active_profile = account.get_active_profile()
 
     if not active_profile:
         subscriptions = None
@@ -110,7 +109,7 @@ def groups_and_permissions_modal(request):
 
     # Get information about user
     groups = account.groups.all()
-    active_profile = _get_active_profile(account)
+    active_profile = account.get_active_profile()
 
     # Get information about users privileges
     sms_privilege = account.has_perm('alert_by', 'sms')
@@ -133,14 +132,6 @@ def groups_and_permissions_modal(request):
         modal_id="groups-and-permissions",
         size="large",
     )
-
-
-def _get_active_profile(account: Account):
-    """Returns the active profile for the given account if it exists"""
-    try:
-        return account.get_active_profile()
-    except ObjectDoesNotExist:
-        return None
 
 
 def show_profile(request):
@@ -2541,6 +2532,16 @@ def permission_list(request, group_id=None):
     }
 
     return render(request, 'alertprofiles/permissions.html', info_dict)
+
+
+def permissions_help_modal(request):
+    """Renders the permissions help modal"""
+    return render_modal(
+        request,
+        'alertprofiles/_permissions_help_modal.html',
+        modal_id="permissions-help",
+        size="small",
+    )
 
 
 @requires_post('alertprofiles-permissions')
