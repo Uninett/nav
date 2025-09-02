@@ -6,11 +6,14 @@
 <table class="listtable full-width">
     <caption>
         {{ type.title }}
-      <i class="fa fa-info-circle right" data-tooltip title="
-        If, when hovering over one period in one of the tables, two rows
-        in different tables are highlighted, those two periods are
-        actually the one and same period. It's just an <em>all days</em> period.
-      "></i>
+        <span class="nav-tooltip" data-align="end" style="float: right;">
+            <i class="fa fa-info-circle right" aria-describedby="subscription-tooltip-{{ type.title }}"></i>
+            <span id="subscription-tooltip-{{ type.title }}" class="small" role="tooltip">
+                If, when hovering over one period in one of the tables, two rows
+                in different tables are highlighted, those two periods are
+                actually the one and same period. It's just an <em>all days</em> period.
+            </span>
+        </span>
     </caption>
 
     <thead>

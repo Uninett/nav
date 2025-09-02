@@ -85,10 +85,12 @@
     <div class="small-3 columns">
       <label>
         CSV
-        <i class="fa fa-question-circle has-tip"
-           data-tooltip
-           title="To open this in Microsoft Excel, you need to change the file to a .txt file, start Excel and import the file.">
-        </i>
+          <span class="nav-tooltip" data-align="end">
+              <i class="fa fa-question-circle has-tip" aria-describedby="csv-tooltip"></i>
+              <span id="csv-tooltip" role="tooltip">
+                  To open this in Microsoft Excel, you need to change the file to a .txt file, start Excel and import the file.
+              </span>
+          </span>
       </label>
 
       <form id="csv-download-form" action="{% url 'room-csv' %}" method="POST">

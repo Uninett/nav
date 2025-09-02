@@ -1,15 +1,16 @@
 <table id="tracker-table" class="listtable tablesorter">
     <caption>
         MAC Search results
-        <i id="hint_id_mac_result_exposition" class="fa fa-info-circle" data-tooltip title="
-
-    Please note that the MAC search results are &lt;em&gt;historic&lt;/em&gt;
+        <span class="nav-tooltip">
+            <i aria-describedby="hind_id_mac_result_exposition" class="fa fa-info-circle"></i>
+            <span id="hint_id_mac_result_exposition" class="medium" role="tooltip">
+                Please note that the MAC search results are <em>historic</em>
     data, while the information found at the interface details link is the
-    &lt;em&gt;current&lt;/em&gt; data on the interface. They may have no other
+                <em>current</em> data on the interface. They may have no other
     connection than being related to the same interface at different points in
     time.
-
-        "></i>
+            </span>
+        </span>
         <span class="subtitle right">
             {{ mac_tracker_count }} hit{{ mac_tracker_count|pluralize }}
         </span>

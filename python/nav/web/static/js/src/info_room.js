@@ -68,7 +68,6 @@ require(
             add_filters();
             add_csv_download();
             $(document).foundation('reveal');  // Apply reveal after ajax request
-            $(document).foundation('tooltip');  // Apply tooltip after ajax request
         }
 
         /* Add navigation to jQuery ui tabs */
