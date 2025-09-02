@@ -132,7 +132,7 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'nav.web.auth.middleware.AuthenticationMiddleware',
+    'nav.web.auth.middleware.NAVAuthenticationMiddleware',
     'nav.web.auth.middleware.AuthorizationMiddleware',
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -241,6 +241,9 @@ INSTALLED_APPS = (
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 AUTH_USER_MODEL = 'nav_models.Account'
 
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/index/login/'
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
