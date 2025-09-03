@@ -132,3 +132,16 @@ class NAVAuthenticationMiddleware(MiddlewareMixin):
         user = get_user(request)  # NOT lazy!
         request.user = user
         request.account = user  # remove this eventually
+
+        # NAV-specific sudo method
+        sudo_operator = get_sudoer(request)  # Account or None
+        if sudo_operator:
+            logged_in = sudo_operator or user
+            _logger.debug(
+                ('AuthenticationMiddleware (logged_in: "%s" acting as "%s") from "%s"'),
+                logged_in.login,
+                user.login,
+                request.get_full_path(),
+            )
+            request.account.sudo_operator = sudo_operator
+            request.user.sudo_operator = sudo_operator
