@@ -19,7 +19,7 @@ Constants:
 from typing import Optional
 
 from django.shortcuts import render
-from django_htmx.http import retarget
+from django_htmx.http import reswap, retarget
 
 DEFAULT_MODAL_ID = 'modal'
 DEFAULT_MODAL_SIZE = 'tiny'
@@ -67,4 +67,6 @@ def render_modal_alert(
         'modal_id': modal_id,
     }
     response = render(request, 'modals/_nav_modal_alert.html', context)
-    return retarget(response, f"#{modal_id}-alert")
+    reswap(response, 'outerHtml')
+    retarget(response, f"#{modal_id}-alert")
+    return response
