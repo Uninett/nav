@@ -19,16 +19,16 @@
 import logging
 
 from django import forms
-from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from nav.models.cabling import Patch, Cabling
 from nav.models.manage import Netbox, Interface, Room
 from nav.bulkparse import PatchBulkParser
 from nav.bulkimport import PatchImporter
 
+from nav.web.modals import render_modal, render_modal_alert, resolve_modal
 from nav.web.seeddb import SeeddbInfo
 from nav.web.seeddb.constants import SEEDDB_EDITABLE_MODELS
 from nav.web.seeddb.page import view_switcher, not_implemented
@@ -134,9 +134,46 @@ def patch_edit(request):
     return render(request, 'seeddb/edit_patch.html', context)
 
 
+@require_GET
+def patch_show_modal(request):
+    """Renders the modal for adding or editing a patch"""
+    modal = request.GET.get('modal', 'add')
+    interface_id = request.GET.get('interfaceid', None)
+    interface = get_object_or_404(Interface, pk=interface_id)
+    interface_name = f"{interface.ifname} – {interface.ifalias}"
+
+    if modal == 'add':
+        template = 'seeddb/_add_patch_modal.html'
+    else:
+        template = 'seeddb/_remove_patch_modal.html'
+
+    return render_modal(
+        request,
+        template,
+        {
+            'interface_id': interface_id,
+            'interface_name': interface_name,
+        },
+        'patch-modal',
+    )
+
+
+class PatchSaveForm(forms.Form):
+    """Form for saving a patch"""
+
+    cableid = forms.IntegerField(required=True)
+    interfaceid = forms.IntegerField(required=True)
+    split = forms.CharField(required=False)
+
+
 @require_POST
 def patch_save(request):
     """Save a patch"""
+    form = PatchSaveForm(request.POST)
+    if not form.is_valid():
+        return render_modal_alert(
+            request, "Error: You must select a cable", 'patch-modal'
+        )
     interface = get_object_or_404(Interface, pk=request.POST.get('interfaceid'))
     cable = get_object_or_404(Cabling, pk=request.POST.get('cableid'))
     split = request.POST.get('split', '')
@@ -146,9 +183,15 @@ def patch_save(request):
         Patch.objects.create(interface=interface, cabling=cable, split=split)
     except Exception as error:  # noqa: BLE001
         _logger.debug(error)
-        return HttpResponse(error, status=500)
+        return render_modal_alert(request, "Error creating patch", 'patch-modal')
 
-    return HttpResponse()
+    updated_interface = Interface.objects.get(pk=interface.id)
+    return resolve_modal(
+        request,
+        'seeddb/_patch_table_row.html',
+        {'interface': updated_interface},
+        'patch-modal',
+    )
 
 
 @require_POST
@@ -156,7 +199,9 @@ def patch_remove(request):
     """Remove all patches from an interface"""
     interface = get_object_or_404(Interface, pk=request.POST.get('interfaceid'))
     Patch.objects.filter(interface=interface).delete()
-    return HttpResponse()
+    return resolve_modal(
+        request, 'seeddb/_patch_table_row.html', {'interface': interface}, 'patch-modal'
+    )
 
 
 def patch_bulk(request):

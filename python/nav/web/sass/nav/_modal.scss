@@ -1,0 +1,106 @@
+// Mostly copied from python/nav/web/sass/foundation/components/_reveal.scss
+
+$default-width: 30%;
+
+.nav-modal {
+    all: unset;
+    .modal-underlay {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba($black, .45);
+        z-index: 1004;
+    }
+
+    .modal-content {
+        position: fixed;
+        z-index: 1005;
+        width: 30%;
+        top: rem-calc(100);
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        border-radius: $global-radius;
+        box-shadow: 0 0 10px rgba($black,.4);
+        background-color: $white;
+        padding: rem-calc(20);
+        max-height: 80vh;
+        overflow-y: auto;
+
+        /* Animation for sliding in from top */
+        transform: translateY(-100vh);
+        animation: slideInFromTop 0.3s ease-out forwards;
+
+        .close-reveal-modal { @include reveal-close; }
+    }
+}
+
+.modal-content {
+    &.tiny {
+        width: 95%;
+        max-width: rem-calc(400);
+        padding: rem-calc(15);
+
+        @media #{$medium-up} {
+            width: 30%;
+            padding: rem-calc(20);
+        }
+    }
+
+    &.small {
+        width: 95%;
+        max-width: rem-calc(500);
+        padding: rem-calc(15);
+
+        @media #{$medium-up} {
+            width: 40%;
+            padding: rem-calc(25);
+        }
+    }
+
+    &.medium {
+        width: 95%;
+        max-width: rem-calc(700);
+        padding: rem-calc(20);
+
+        @media #{$medium-up} {
+            width: 60%;
+            padding: rem-calc(30);
+        }
+    }
+
+    &.large {
+        width: 95%;
+        max-width: rem-calc(900);
+        padding: rem-calc(20);
+
+        @media #{$medium-up} {
+            width: 80%;
+            padding: rem-calc(35);
+        }
+    }
+
+    &.full {
+        width: 100vw;
+        height: 100vh;
+        min-height: 100vh;
+        max-width: none;
+        margin-left: 0;
+        padding: rem-calc(15);
+
+        @media #{$medium-up} {
+            padding: rem-calc(30);
+        }
+    }
+}
+
+@keyframes slideInFromTop {
+    from {
+        transform: translateY(-100vh);
+    }
+    to {
+        transform: translateY(0);
+    }
+}

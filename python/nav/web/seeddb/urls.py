@@ -257,6 +257,11 @@ urlpatterns = [
     # Patch
     re_path(r'^patch/$', patch.patch, name='seeddb-patch'),
     re_path(r'^patch/edit/$', patch.patch_edit, name='seeddb-patch-edit'),
+    re_path(
+        r'^patch/edit/show-modal/$',
+        patch.patch_show_modal,
+        name='seeddb-show-patch-modal',
+    ),
     re_path(r'^patch/delete/$', patch.patch_delete, name='seeddb-patch-delete'),
     re_path(r'^patch/bulk/$', patch.patch_bulk, name='seeddb-patch-bulk'),
     re_path(r'^patch/save/', patch.patch_save, name='seeddb-patch-save'),
