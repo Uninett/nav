@@ -40,9 +40,14 @@ urlpatterns = [
         r'^(?P<roomid>.+)/sensors/', views.render_sensors, name='room-info-sensors'
     ),
     re_path(
-        r'^(?P<roomid>.+)/racks/add_rack',
+        r'^(?P<roomid>.+)/racks/add_rack$',
         views.add_rack,
         name='room-info-racks-add-rack',
+    ),
+    re_path(
+        r'^(?P<roomid>.+)/racks/add_rack_modal',
+        views.add_rack_modal,
+        name='room-info-racks-add-rack-modal',
     ),
     re_path(
         r'^(?P<roomid>.+)/racks/(?P<rackid>\d+)/rename_rack',

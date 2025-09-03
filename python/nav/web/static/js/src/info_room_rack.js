@@ -119,28 +119,6 @@ require([
 
 
     /**
-     * Listens to form submits for adding new racks
-     * @param selector for the rackmodal
-     */
-    function addRackModalListener(selector) {
-        var $rackModal = $(selector);
-        var $form = $rackModal.find('form');
-        $form.submit(function (event) {
-            event.preventDefault();
-            var request = $.post($form.attr('action'), $form.serialize());
-            request.fail(function () {
-                console.log("Failed to post form");
-            });
-            request.done(function (html) {
-                $('#add-rack-button-container').before(html);
-                toggleEditEmptyRack();
-                $rackModal.foundation('reveal', 'close');
-            });
-        });
-    }
-
-
-    /**
      * Updates a single sensor element
      */
     function updateSingleSensor($sensor) {
@@ -493,8 +471,8 @@ require([
         addRackRemoveListener();
         addSensorRemoveListener();
 
-        $(document).foundation();  // Make sure add rack modal opens
-        addRackModalListener('#rackmodal');
+        // $(document).foundation();  // Make sure add rack modal opens
+        // addRackModalListener('#rackmodal');
 
         addRenameRackListener();
 
