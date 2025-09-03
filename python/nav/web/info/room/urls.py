@@ -61,8 +61,8 @@ urlpatterns = [
     ),
     re_path(
         r'^(?P<roomid>.+)/racks/add_sensor',
-        views.render_add_sensor,
-        name='room-info-racks-add-sensor',
+        views.render_add_sensor_modal,
+        name='room-info-racks-add-sensor-modal',
     ),
     re_path(
         r'^(?P<roomid>.+)/racks/remove_sensor',
