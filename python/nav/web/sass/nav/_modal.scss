@@ -17,7 +17,7 @@ $default-width: 30%;
     .modal-content {
         position: fixed;
         z-index: 1005;
-        width: 30%;
+        width: fit-content;
         top: rem-calc(100);
         left: 0;
         right: 0;
@@ -80,6 +80,13 @@ $default-width: 30%;
             width: 80%;
             padding: rem-calc(35);
         }
+    }
+
+    &.fit-content {
+      padding: rem-calc(20);
+      @media #{$medium-up} {
+          padding: rem-calc(30);
+      }
     }
 
     &.full {
