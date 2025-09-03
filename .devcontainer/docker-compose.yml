@@ -1,5 +1,8 @@
 services:
   nav:
+    networks:
+      - nav_ipv6
+
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
@@ -25,6 +28,9 @@ services:
       PGPASSWORD: nav
 
   db:
+    networks:
+      - nav_ipv6
+
     image: postgres:latest
     restart: unless-stopped
     volumes:
@@ -39,6 +45,9 @@ services:
 
   # The graphite service does not use a permanent volume, so data will be lost when the container is removed
   graphite:
+    networks:
+      - nav_ipv6
+
     build: ../tools/docker/graphite
     volumes:
       # This mounts the default graphite config as provided by NAV
@@ -48,3 +57,12 @@ services:
 
 volumes:
   postgres-data:
+
+networks:
+  nav_ipv6:
+    # driver: bridge  # Use the default bridge network
+    driver_opts:
+      com.docker.network.enable_ipv6: "true"
+      # Use masquerading to avoid exposing the devcontainer network to the world
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.bridge.name: "docker-nav"
