@@ -38,7 +38,7 @@ from nav.models.rack import (
 )
 from nav.web.info.forms import SearchForm
 from nav.web.info.images.upload import handle_image_upload
-from nav.web.modals import render_modal
+from nav.web.modals import render_modal, resolve_modal
 from nav.web.utils import create_title
 from nav.metrics.data import get_netboxes_availability
 
@@ -52,6 +52,7 @@ COLUMNS = {
     RACK_CENTER: 'center',
     RACK_RIGHT: 'right',
 }
+BACKGROUND_COLOR_CLASSES = ['bg1', 'bg2', 'bg3', 'bg4', 'bg5']
 
 _logger = logging.getLogger('nav.web.info.room')
 
@@ -299,10 +300,29 @@ def add_rack(request, roomid):
     """Adds a new rack to a room"""
     room = get_object_or_404(Room, pk=roomid)
     rackname = request.POST.get('rackname')
-    return render(
+    rack = create_rack(room, rackname)
+    return resolve_modal(
         request,
         'info/room/fragment_rack.html',
-        {'rack': create_rack(room, rackname), 'room': room},
+        {
+            'rack': rack,
+            'room': room,
+            'editmode': True,
+            'color_classes': BACKGROUND_COLOR_CLASSES,
+        },
+        modal_id='add-rack-modal',
+    )
+
+
+def add_rack_modal(request, roomid):
+    """Renders the add rack form modal"""
+    room = get_object_or_404(Room, pk=roomid)
+    return render_modal(
+        request,
+        'info/room/_add_rack_modal.html',
+        context={'room': room},
+        modal_id='add-rack-modal',
+        size='small',
     )
 
 
@@ -327,14 +347,16 @@ def rename_rack(request, roomid, rackid):
 def render_racks(request, roomid):
     """Gets the racks for this room"""
     room = get_object_or_404(Room, pk=roomid)
-    background_color_classes = ['bg1', 'bg2', 'bg3', 'bg4', 'bg5']
 
     context = {
         'room': room,
         'racks': room.racks.all().order_by('ordering'),
-        'color_classes': background_color_classes,
+        'color_classes': BACKGROUND_COLOR_CLASSES,
     }
     return render(request, 'info/room/roominfo_racks.html', context)
+
+
+ADD_SENSOR_MODAL_ID = 'add-sensor-modal'
 
 
 @require_admin

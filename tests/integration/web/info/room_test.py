@@ -1,11 +1,12 @@
 import pytest
+from django.test import Client
 from django.urls import reverse
 from django.utils.encoding import smart_str
 
 from nav.models.manage import Room, Sensor
-from nav.models.profiles import Account
 from nav.models.rack import Rack
 from nav.web.info.room.views import ADD_SENSOR_MODAL_ID
+from nav.models.profiles import Account
 
 
 class TestRoomNetboxInterfacesView:
@@ -23,12 +24,65 @@ class TestRoomNetboxInterfacesView:
         assert 'id="about-the-search"' in smart_str(response.content)
 
 
+class TestAddRoomRackViews:
+    def test_should_render_add_rack_modal_trigger(self, client, new_room):
+        url = reverse('room-info-racks', args=[new_room.id])
+        modal_url = reverse('room-info-racks-add-rack-modal', args=[new_room.id])
+        response = client.get(url)
+        assert response.status_code == 200
+        assert f'hx-get="{modal_url}' in smart_str(response.content)
+
+    def test_should_render_add_rack_modal(self, client, new_room):
+        url = reverse('room-info-racks-add-rack-modal', args=[new_room.id])
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'id="add-rack-modal"' in smart_str(response.content)
+
+    def test_when_account_is_not_admin_then_return_403(
+        self, non_admin_client, new_room
+    ):
+        url = reverse('room-info-racks-add-rack', args=[new_room.id])
+        response = non_admin_client.post(url, {'rackname': 'Test Rack'})
+        assert response.status_code == 403
+
+    def test_when_account_is_admin_then_add_rack(self, client, new_room):
+        url = reverse('room-info-racks-add-rack', args=[new_room.id])
+        response = client.post(url, {'rackname': 'Test Rack'})
+        assert response.status_code == 200
+        assert 'Test Rack' in smart_str(response.content)
+
+    def test_when_rack_is_added_then_return_template_with_editmode(
+        self, client, new_room
+    ):
+        url = reverse('room-info-racks-add-rack', args=[new_room.id])
+        response = client.post(
+            url,
+            {
+                'rackname': 'Test Rack',
+            },
+        )
+        assert response.status_code == 200
+        assert 'class="rack editmode"' in smart_str(response.content)
+
+    def test_when_rack_is_added_then_return_color_chooser_options(
+        self, client, new_room
+    ):
+        url = reverse('room-info-racks-add-rack', args=[new_room.id])
+        response = client.post(
+            url,
+            {
+                'rackname': 'Test Rack',
+            },
+        )
+        assert response.status_code == 200
+        assert 'name="rack-color"' in smart_str(response.content)
+
+
 @pytest.fixture
 def new_room(db):
     room = Room(id="myroom", description="Test Room", location_id="mylocation")
     yield room
     room.delete()
-
 
 @pytest.fixture
 def test_rack(db, test_sensor):

@@ -1,4 +1,8 @@
-<div id="rack_{{ rack.pk }}" class="rack" data-rackid="{{ rack.pk }}">
+<div
+        id="rack_{{ rack.pk }}"
+        class="rack{% if editmode %} editmode{% endif %}"
+        data-rackid="{{ rack.pk }}"
+>
   <h5 class="rack-heading flex-when-noedit">
     <span class="rackname">{{ rack.rackname|default:"&nbsp;" }}</span>
     {% comment %}
