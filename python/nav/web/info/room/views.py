@@ -25,6 +25,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django_htmx.http import trigger_client_event
 
 from nav.django.decorators import require_admin
 from nav.metrics.errors import GraphiteUnreachableError
@@ -38,7 +39,7 @@ from nav.models.rack import (
 )
 from nav.web.info.forms import SearchForm
 from nav.web.info.images.upload import handle_image_upload
-from nav.web.modals import render_modal, resolve_modal
+from nav.web.modals import render_modal, render_modal_alert, resolve_modal
 from nav.web.utils import create_title
 from nav.metrics.data import get_netboxes_availability
 
@@ -359,12 +360,19 @@ def render_racks(request, roomid):
 ADD_SENSOR_MODAL_ID = 'add-sensor-modal'
 
 
+ADD_SENSOR_MODAL_ID = 'add-sensor-modal'
+
+
 @require_admin
-def render_add_sensor(request, roomid):
-    """Controller for rendering the add sensor template"""
+def render_add_sensor_modal(request, roomid):
+    """Renders the add sensor modal template"""
     rackid = request.POST.get('rackid')
     column = request.POST.get('column')
-    is_pdu = request.POST.get('is_pdu') == 'true'
+
+    if not rackid or column not in ('0', '1', '2'):
+        return HttpResponse(status=400, content='Invalid request')
+
+    is_pdu = column != '1'
 
     room = get_object_or_404(Room, pk=roomid)
     rack = get_object_or_404(Rack, pk=rackid)
@@ -393,16 +401,19 @@ def render_add_sensor(request, roomid):
 
         filteredsensors = othersensors
 
-    return render(
+    return render_modal(
         request,
-        'info/room/fragment_add_rackitem.html',
+        'info/room/_add_sensor_modal.html',
         {
             'room': room,
             'rack': rack,
             'sensortype': 'pdu sensor' if is_pdu else 'sensor',
             'sensors': filteredsensors,
             'column': column,
+            'hx_target': f'#rack_{rack.pk} [data-column="{column}"]',
         },
+        modal_id=ADD_SENSOR_MODAL_ID,
+        size='medium',
     )
 
 
@@ -415,48 +426,79 @@ def save_sensor(request, roomid):
     item_type = request.POST.get('item_type')
     if item_type == "Sensor":
         sensorid = request.POST.get('sensorid')
+        if not sensorid:
+            return _handle_save_sensor_error(
+                request, 'Could not add sensor: No sensor selected.'
+            )
         sensor = get_object_or_404(Sensor, pk=sensorid)
         item = SensorRackItem(sensor=sensor)
     elif item_type == "SensorsDiff":
         minuendid = request.POST.get('minuendid')
-        minuend = get_object_or_404(Sensor, pk=minuendid)
         subtrahendid = request.POST.get('subtrahendid')
+        if not minuendid or not subtrahendid:
+            return _handle_save_sensor_error(
+                request,
+                'Could not add sensor difference: Two sensors must be selected.',
+            )
+        minuend = get_object_or_404(Sensor, pk=minuendid)
         subtrahend = get_object_or_404(Sensor, pk=subtrahendid)
         item = SensorsDiffRackItem(minuend=minuend, subtrahend=subtrahend)
     elif item_type == "SensorsSum":
         sensors = request.POST.getlist('sensors[]')
         sensors = [int(s) for s in sensors if s]
         title = request.POST.get('title')
+        if len(sensors) < 2 or not title:
+            return _handle_save_sensor_error(
+                request,
+                'Could not add sensor sum: At least two sensors must be '
+                'selected and a title given.',
+            )
         item = SensorsSumRackItem(title=title, sensors=sensors)
     try:
+        template_name = (
+            'info/room/fragment_racksensor.html'
+            if column == RACK_CENTER
+            else 'info/room/fragment_rackpdusensor.html'
+        )
         if column == RACK_CENTER:
             rack.add_center_item(item)
             rack.save()
-            return render(
-                request,
-                'info/room/fragment_racksensor.html',
-                {
-                    'racksensor': item,
-                    'column': column,
-                },
-            )
         else:
             if column == RACK_LEFT:
                 rack.add_left_item(item)
             else:
                 rack.add_right_item(item)
             rack.save()
-            return render(
-                request,
-                'info/room/fragment_rackpdusensor.html',
-                {
-                    'racksensor': item,
-                    'column': column,
-                },
-            )
 
-    except (ValueError, IntegrityError) as error:
-        return HttpResponse(error, status=500)
+        response = resolve_modal(
+            request,
+            template_name,
+            {
+                'rack': rack,
+                'racksensor': item,
+                'column': column,
+            },
+            modal_id=ADD_SENSOR_MODAL_ID,
+        )
+        return trigger_client_event(
+            response,
+            'room.rack.sensorAdded',
+            {'rackId': rackid, 'sensorId': item.id},
+        )
+
+    except (ValueError, IntegrityError):
+        return _handle_save_sensor_error(
+            request, 'Could not add sensor, please check your input and try again.'
+        )
+
+
+def _handle_save_sensor_error(request, message):
+    """Handles rendering of error message when saving a sensor"""
+    return render_modal_alert(
+        request,
+        message,
+        ADD_SENSOR_MODAL_ID,
+    )
 
 
 @require_admin
