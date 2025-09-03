@@ -200,6 +200,61 @@ with a database snapshot from a production server. You can read more about
 :ref:`migrating_prod_db_to_dev`.
 
 
+IPv6 connectivity
+=================
+
+NAV is fully capable of working over IPv6, but Docker is not usually configured
+to work with IPv6 out-of-the-box. This presents a challenge if you need to
+communicate with devices over IPv6 while developing inside the
+devcontainer. Fortunately, since `Docker version 27`_, IPv6 has become a lot
+easier to configure.
+
+The NAV devcontainer definition already places all the service containers (as
+defined in :file:`.devcontainer/docker-compose.yml`) on a separate IPv6-enabled
+network. This network is configured with IPv6 masquerading, to ensure that your
+service containers are not exposed on the public IPv6 network.
+
+To enable IPv6 in your Docker daemon, you will need to add something like the
+following stanza to your Docker system's :file:`daemon.json` and restart the
+Docker daemon:
+
+.. code-block:: json
+
+   {
+       "ipv6": true,
+       "fixed-cidr-v6": "fd00::/80",
+       "default-network-opts": {
+           "bridge": {
+               "com.docker.network.enable_ipv6": "true"
+           }
+       }
+   }
+
+.. tip:: The location of :file:`daemon.json` may vary between systems and
+         setups (you may even need to create it yourself). Please refer to
+         Docker's own `documentation on how to configure the Docker daemon
+         <https://docs.docker.com/engine/daemon/#configure-the-docker-daemon>`_.
+
+To test IPv6 connectivity from within the devcontainer (assuming this already
+works from your host system), you can open a terminal and run something like
+:code:`ping6 -c 4 google.com`:
+
+.. code-block:: console
+
+  vscode ➜ /workspaces/nav (doc/devcontainer-ipv6) $ ping6 -c 4 google.com
+  PING google.com(arn09s22-in-x0e.1e100.net (2a00:1450:400f:801::200e)) 56 data bytes
+  64 bytes from arn09s22-in-x0e.1e100.net (2a00:1450:400f:801::200e): icmp_seq=1 ttl=110 time=38.8 ms
+  64 bytes from arn09s22-in-x0e.1e100.net (2a00:1450:400f:801::200e): icmp_seq=2 ttl=110 time=39.4 ms
+  64 bytes from arn09s22-in-x0e.1e100.net (2a00:1450:400f:801::200e): icmp_seq=3 ttl=110 time=39.1 ms
+  64 bytes from arn09s22-in-x0e.1e100.net (2a00:1450:400f:801::200e): icmp_seq=4 ttl=110 time=39.1 ms
+
+  --- google.com ping statistics ---
+  4 packets transmitted, 4 received, 0% packet loss, time 3006ms
+  rtt min/avg/max/mdev = 38.753/39.087/39.399/0.228 ms
+
+  vscode ➜ /workspaces/nav (doc/devcontainer-ipv6) $
+
+
 PyCharm oddities
 ================
 
@@ -214,4 +269,5 @@ container, this interpreter selection procedure needs to be repeated.
 
 
 .. _Docker Compose: https://docs.docker.com/compose/
+.. _Docker version 27: https://docs.docker.com/engine/release-notes/27/#ipv6
 .. _uv: https://docs.astral.sh/uv/
