@@ -8,8 +8,9 @@ require([
     'libs/select2.min',
     'plugins/megadrop',
     'plugins/popover',
+    'plugins/tooltip',
     'libs/underscore'
-], function (accordionMaker, popover) {
+], function (accordionMaker) {
     /** Enable slash to navigate to search, whereas escape removes focus from search */
     function addSearchFocusHandlers() {
         var $searchInput = $('#query');

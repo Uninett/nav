@@ -19,14 +19,18 @@
     <div class="medium-4 column">
       <label for="id_operator">
         Available operators
-        <i class="fa fa-info-circle" data-tooltip title="
-          The operators that will be available to use on this match field.
-          &nbsp;&nbsp;
-          Note:
-          Only 'equals' and 'in' makes sense when 'Show list' is checked, there
-          is however nothing that will prevent you from selecting them all for
-          use on a list, but alert engine won't understand it.
-        "></i>
+          <span class="nav-tooltip">
+              <i class="fa fa-info-circle" aria-describedby="available-operators"></i>
+              <span id="available-operators" class="small" role="tooltip">
+                  The operators that will be available to use on this match field.
+                  &nbsp;&nbsp;
+                  Note:
+                  Only 'equals' and 'in' makes sense when 'Show list' is checked, there
+                  is however nothing that will prevent you from selecting them all for
+                  use on a list, but alert engine won't understand it.
+              </span>
+          </span>
+
       </label>
 
       <select name="operator" id="id_operator" multiple="multiple">

@@ -21,8 +21,7 @@ support write operations*.
 How to get a token
 ------------------
 
-Tokens are administrated from the `User and API Administration
-</useradmin/tokens/>`_ page in NAV.
+Tokens are administrated from the ``User and API Administration`` page in NAV.
 
 .. _classic-token:
 How to use the token
@@ -163,8 +162,8 @@ At the moment there is no way of specifying wildcards in the filter.
 Using POST, PUT, PATCH and DELETE
 ---------------------------------
 
-To use these request methods you need a write-enabled token. Go to `User and API
-Administration </useradmin/tokens/>`_ to set token attributes.
+To use these request methods you need a write-enabled token. Go to ``User and API
+Administration`` to set token attributes.
 
 CRUD-methods are enabled for a limited number of endpoints. These endpoints can
 be found by querying the endpoint with the ``OPTIONS`` header and see if POST is
