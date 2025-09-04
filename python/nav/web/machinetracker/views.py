@@ -23,7 +23,7 @@ from IPy import IP
 
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 
 from nav.django.utils import reverse_with_query
 from nav.models.manage import Arp, Cam, Netbios, Prefix
@@ -40,6 +40,7 @@ from nav.web.machinetracker.utils import (
     get_last_job_log_from_netboxes,
     get_vendor_query,
 )
+from nav.web.modals import render_modal
 
 NAVBAR = [('Home', '/'), ('Machinetracker', None)]
 IP_TITLE = 'NAV - Machinetracker - IP Search'
@@ -50,6 +51,7 @@ IP_DEFAULTS = {'title': IP_TITLE, 'navpath': NAVBAR, 'active': {'ip': True}}
 MAC_DEFAULTS = {'title': MAC_TITLE, 'navpath': NAVBAR, 'active': {'mac': True}}
 SWP_DEFAULTS = {'title': SWP_TITLE, 'navpath': NAVBAR, 'active': {'swp': True}}
 NBT_DEFAULTS = {'title': NBT_TITLE, 'navpath': NAVBAR, 'active': {'netbios': True}}
+VALID_HELP_TAB_NAMES = ['ip', 'mac', 'switch', 'netbios']
 
 ADDRESS_LIMIT = 4096  # Value for when inactive gets disabled
 
@@ -516,3 +518,15 @@ def netbios_do_search(request):
 
     info_dict.update(NBT_DEFAULTS)
     return render(request, 'machinetracker/netbios_search.html', info_dict)
+
+
+def render_search_help_modal(request, tab_name):
+    """Render the search help modal for the given tab name."""
+
+    if tab_name not in VALID_HELP_TAB_NAMES:
+        return HttpResponse(status=400)  # Bad Request
+
+    template_name = f'machinetracker/_{tab_name}_search_help_modal.html'
+    modal_id = f'{tab_name}-search-help'
+
+    return render_modal(request, template_name, modal_id=modal_id, size="large")
