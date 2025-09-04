@@ -128,6 +128,8 @@ define(function(require, exports, module) {
         height: 200,
         selectNodeCallBack: notify
       });
+      // Ensure htmx processes the opened tree to enable hx-* attributes
+      htmx.process(self.$el.get(0));
     },
 
     hidingTreemap: function(self) {
