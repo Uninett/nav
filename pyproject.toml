@@ -43,7 +43,7 @@ dependencies = [
 
     "pynetsnmp-2>=0.1.10",
 
-    "napalm>=5.0.0,<5.1.0",
+    "napalm>=5.1.0,<5.2.0",
 
     "drf-jwt-multi-auth",
 
