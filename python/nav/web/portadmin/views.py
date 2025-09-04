@@ -31,7 +31,7 @@ from jnpr.junos.exception import ConnectRefusedError
 
 from nav.auditlog.models import LogEntry
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.util import is_valid_ip
 from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface
