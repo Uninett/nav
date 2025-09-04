@@ -17,7 +17,7 @@
 
 from django.core.exceptions import PermissionDenied
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.models.profiles import NetmapViewDefaultView, Account
 
 
