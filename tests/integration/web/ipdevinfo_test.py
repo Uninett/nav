@@ -245,6 +245,20 @@ class TestHostInfoModal:
         assert netbox.sysname in smart_str(response.content)
 
 
+class TestPoeHintModals:
+    def test_should_render_status_hint_modal(self, client, netbox):
+        url = reverse('ipdevinfo-poe-status-hint-modal')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'id="poe-status-hint"' in smart_str(response.content)
+
+    def test_should_render_classification_hint_modal(self, client, netbox):
+        url = reverse('ipdevinfo-poe-classification-hint-modal')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'id="poe-classification-hint"' in smart_str(response.content)
+
+
 ###
 #
 # Fixtures

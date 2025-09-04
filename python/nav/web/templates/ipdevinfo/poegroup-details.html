@@ -53,11 +53,25 @@
               <th>Interface</th>
               <th>Enabled</th>
               <th>Status
-                <a href="#" data-reveal-id="poe_status_info"><i class="fa fa-info-circle"></i></a>
+                <a
+                    href="#"
+                    hx-get="{% url 'ipdevinfo-poe-status-hint-modal' %}"
+                    hx-target="body"
+                    hx-swap="beforeend"
+                >
+                    <i class="fa fa-info-circle"></i>
+                </a>
               </th>
               <th>Priority</th>
               <th>Classification
-                <a href="#" data-reveal-id="poe_classification_info"><i class="fa fa-info-circle"></i></a>
+                <a
+                    href="#"
+                    hx-get="{% url 'ipdevinfo-poe-classification-hint-modal' %}"
+                    hx-target="body"
+                    hx-swap="beforeend"
+                >
+                    <i class="fa fa-info-circle"></i>
+                </a>
               </th>
             </tr>
           </thead>
@@ -82,37 +96,6 @@
       </div>
     </div>
   </div>
-
-
-  <div id="poe_status_info" class="reveal-modal small" data-reveal>
-    <p>
-      The status column shows PoE device detection status for this port. Valid values:
-    </p>
-
-    <dl>
-      <dt>disabled</dt><dd> Power over ethernet is disabled for this port</dd>
-      <dt>searching</dt><dd> No power over ethernet device is detected on this port</dd>
-      <dt>delivering power</dt><dd> Power over ethernet is active for this port and delivers power to the connected device</dd>
-      <dt>fault</dt><dd> The port has been tested and found faulty</dd>
-      <dt>test</dt><dd> The port is under testing</dd>
-      <dt>other fault</dt><dd> The port is idle because of error conditions</dd>
-    </dl>
-  </div>
-
-  <div id="poe_classification_info" class="reveal-modal small" data-reveal>
-    <p>
-      The classification column shows PoE device classification for this port. Valid values:
-    </p>
-
-    <dl>
-      <dt>class0</dt><dd> Unclassified (15.4W)</dd>
-      <dt>class1</dt><dd> Very low power (4W)</dd>
-      <dt>class2</dt><dd> Low power (7W)</dd>
-      <dt>class3</dt><dd> Mid power (15.4W)</dd>
-      <dt>class4</dt><dd> High power (30W)</dd>
-    </dl>
-  </div>
-
 {% endblock %}
 
 {% block footer_scripts %}

@@ -670,6 +670,26 @@ def port_details(request, netbox_sysname, port_type=None, port_id=None, port_nam
     )
 
 
+def poe_status_hint_modal(request):
+    """Render PoE status info hint modal"""
+    return render_modal(
+        request,
+        'ipdevinfo/_poe_status_hint_modal.html',
+        modal_id='poe-status-hint',
+        size="small",
+    )
+
+
+def poe_classification_hint_modal(request):
+    """Render PoE classification info hint modal"""
+    return render_modal(
+        request,
+        'ipdevinfo/_poe_classification_hint_modal.html',
+        modal_id='poe-classification-hint',
+        size="small",
+    )
+
+
 def get_recent_alerts_interface(interface, days_back=7):
     """Returns the most recent linkState events for this interface"""
     lowest_end_time = dt.datetime.now() - dt.timedelta(days=days_back)
