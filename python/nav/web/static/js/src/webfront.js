@@ -195,11 +195,17 @@ require([
     function addColumnListener() {
         $('.column-chooser').click(function () {
             $navletsContainer.empty();
-            var columns = $(this).data('columns');
+            const columns = $(this).data('columns');
             new NavletsController($navletsContainer, columns);
             // Save number of columns
-            var url = $(this).closest('.button-group').data('url');
-            var request = $.post(url, {num_columns: columns});
+            const url = $(this).closest('.button-group').data('url');
+            const csrfToken = $('#update-columns-form input[name=csrfmiddlewaretoken]').val();
+            const request = $.ajax({
+                url,
+                type: 'POST',
+                data: {num_columns: columns},
+                headers: {'X-CSRFToken': csrfToken}
+            });
             request.done(function () {
                 $navletsContainer.data('widget-columns', columns);
             });
@@ -223,7 +229,10 @@ require([
         setDefaultDashboardForm.submit(function (event) {
             event.preventDefault();
             feedback.removeAlertbox();
-            var request = $.post(this.getAttribute('action'));
+            const request = $.post(
+                this.getAttribute('action'),
+                $(this).serialize()
+            );
             request.done(function (responseText) {
                 feedback.addFeedback(responseText);
                 setDefaultDashboardForm.hide();
