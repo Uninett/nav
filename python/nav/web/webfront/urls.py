@@ -20,6 +20,7 @@ from django.urls import path, re_path
 from django.views.generic import RedirectView
 
 from nav.web.webfront import views
+from nav.web.auth.views import PSASetPasswordFormView
 
 
 urlpatterns = [
@@ -31,6 +32,11 @@ urlpatterns = [
         name='webfront-audit-logging-modal',
     ),
     path('index/logout/', views.logout, name='webfront-logout'),
+    path(
+        'psa/partial/password/<str:backend>/<int:user_id>/',
+        PSASetPasswordFormView.as_view(),
+        name='psa-require-password',
+    ),
     # Dashboard
     path('index/dashboard/<int:did>/', views.index, name='dashboard-index-id'),
     path(

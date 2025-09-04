@@ -25,6 +25,7 @@ import re
 import json
 
 from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.hashers import make_password
 from django.contrib.postgres.fields import HStoreField
 from django.core.cache import cache
 from django.db import models, transaction
@@ -47,6 +48,9 @@ from nav.models.manage import Memory, Netbox, NetboxInfo, NetboxType
 from nav.models.manage import Organization, Prefix, Room, NetboxGroup
 from nav.models.manage import Interface, Usage, Vlan, Vendor
 from nav.models.fields import VarcharField, DictAsJsonField
+
+
+_logger = logging.getLogger(__name__)
 
 
 # This should be the authorative source as to which models alertengine
@@ -86,9 +90,37 @@ _ = lambda a: a
 class AccountManager(models.Manager):
     """Custom manager for Account objects"""
 
+    @classmethod
+    def normalize_email(cls, email):
+        """
+        Normalize the email address by lowercasing the domain part of it.
+        """
+        email = email or ""
+        try:
+            email_name, domain_part = email.strip().rsplit("@", 1)
+        except ValueError:
+            pass
+        else:
+            email = email_name + "@" + domain_part.lower()
+        return email
+
     def get_by_natural_key(self, login):
         """Gets Account object by its 'natural' key: Its login name."""
         return self.get(login=login)
+
+    def create_user(
+        self, username=None, email=None, password=None, login=None, **extra_fields
+    ):
+        """
+        Create and save a user with the given username, email, and password.
+        """
+        if not login:
+            raise ValueError("No username given")
+        email = self.normalize_email(email)
+        user = self.model(login=login, email=email, **extra_fields)
+        user.password = make_password(password)
+        user.save(using=self._db)
+        return user
 
 
 class Account(AbstractBaseUser):
