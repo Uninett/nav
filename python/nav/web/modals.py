@@ -22,7 +22,7 @@ from django.shortcuts import render
 from django_htmx.http import reswap, retarget
 
 DEFAULT_MODAL_ID = 'modal'
-DEFAULT_MODAL_SIZE = 'tiny'
+DEFAULT_MODAL_SIZE = 'fit-content'
 
 
 def render_modal(

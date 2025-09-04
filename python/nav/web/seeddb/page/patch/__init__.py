@@ -155,6 +155,7 @@ def patch_show_modal(request):
             'interface_name': interface_name,
         },
         'patch-modal',
+        size='tiny',
     )
 
 
