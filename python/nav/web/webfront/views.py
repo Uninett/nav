@@ -37,7 +37,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
 from nav.auditlog.models import LogEntry
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web.auth import logout as auth_logout
 from nav.web import webfrontConfig
