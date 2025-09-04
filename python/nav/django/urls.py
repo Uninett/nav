@@ -19,6 +19,7 @@
 import sys
 import os
 import logging
+
 from django.urls import path, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
@@ -88,3 +89,6 @@ handler500 = 'nav.django.views.custom_500'
 
 # Make django serve static files (a webserver like apache overrides this)
 urlpatterns += staticfiles_urlpatterns()
+
+# PSA
+urlpatterns += [path('psa/', include('social_django.urls', namespace='social'))]

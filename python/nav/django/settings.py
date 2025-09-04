@@ -120,6 +120,8 @@ TEMPLATES = [
                 'nav.django.context_processors.footer_info',
                 'nav.django.context_processors.auth',
                 'django.template.context_processors.static',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
             'debug': DEBUG,
             "builtins": ["nav.django.templatetags.query"],
@@ -137,6 +139,7 @@ MIDDLEWARE = (
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 )
 
 SESSION_SERIALIZER = 'nav.web.session_serializer.PickleSerializer'
@@ -236,12 +239,17 @@ INSTALLED_APPS = (
     'nav.portadmin.napalm',
     'nav.web.portadmin',
     'django.contrib.postgres',
+    'social_django',
 )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 AUTH_USER_MODEL = 'nav_models.Account'
 
-AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.github.GithubOAuth2',
+    # 'social_core.backends.open_id_connect.OpenIdConnectAuth',
+    'django.contrib.auth.backends.ModelBackend',
+]
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/index/login/'
 
@@ -318,3 +326,8 @@ OIDC_AUTH = {
     'JWT_ISSUERS': _issuers_setting,
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
+
+# Python Social Auth
+SOCIAL_AUTH_JSONFIELD_ENABLED = True
+SOCIAL_AUTH_GITHUB_KEY = "set me, is short"
+SOCIAL_AUTH_GITHUB_SECRET = "set me, is hex and long"
