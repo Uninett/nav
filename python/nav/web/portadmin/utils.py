@@ -23,7 +23,7 @@ from operator import attrgetter
 from django.template import loader
 
 from nav.models import manage, profiles
-from nav.django.utils import is_admin
+from nav.web.auth.utils import is_admin
 from nav.models.profiles import Account
 from nav.portadmin.config import CONFIG
 from nav.portadmin.management import ManagementFactory

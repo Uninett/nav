@@ -24,7 +24,7 @@ from django.db import transaction
 
 import nav.config
 import nav.buildconf
-from nav.django.utils import get_account, is_admin
+from nav.web.auth.utils import get_account, is_admin
 from nav.models.profiles import (
     Filter,
     FilterGroup,

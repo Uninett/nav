@@ -3,7 +3,7 @@ from os.path import join
 
 from django.contrib import messages
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.models.images import Image
 from nav.web.info.images.utils import (
     get_extension,

@@ -28,7 +28,7 @@ from django.urls import reverse
 
 from nav.config import NAV_CONFIG, find_config_file
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 
 from nav.models.logger import LogMessage
 from nav.models.logger import ErrorError

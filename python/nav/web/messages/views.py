@@ -21,7 +21,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.models.msgmaint import Message
 from nav.web.messages.forms import MessageForm
 
