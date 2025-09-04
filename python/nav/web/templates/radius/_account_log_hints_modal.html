@@ -1,0 +1,49 @@
+<h3>Radius accounting search hints and information</h3>
+
+<h5>Slack</h5>
+
+<p>When choosing timestamp as time filter, the slack is the number of
+    minutes relative to the timestamp that will be used as interval. A
+    timestamp of 2011-03-16 08:57|2 will search between 2011-03-16 08:55 and
+    2011-03-16 08:59</p>
+
+<h5>Username</h5>
+
+<p>Username search allows wildcard searching, e.g. you can search for
+    <code>dat3*</code>. Please note that the more letters of the username you
+    include, the faster the search will be. A search for <code>*</code>, for
+    example, will probably be very slow.</p>
+
+<h5>Switch port</h5>
+
+<p>You can search for switch port on any particular switch by typing the
+    switch hostname/ip address followed by a colon and the name of the switch
+    port. Eg. switch.domain.com:FastEther0/2</p>
+
+<h5>Results</h5>
+
+<p>Some search results do not contain a timestamp in the Stop field. This
+    occurs when
+<ol>
+    <li>the session is still active, or</li>
+    <li>no explicit <code>Stop</code> message has been received by freeradius</li>
+</ol>
+You will have to check the Duration field to see which one it is.</p>
+
+<h5>Session duration</h5>
+
+<p>Sometimes the displayed session duration does not equal the difference
+    between stop and start time. This occurs if the registered start time was
+    actually not an explicit Start message, but the first sign of life (an
+    Alive message) we got for this session. The Stop message always, as far
+    as I know, contain the length of the session, and so when we have a Stop
+    message this session length is being used during a search for a specific
+    time interval.</p>
+
+<h5>Transfer statistics</h5>
+
+<p>We only know the amount of data transferred for sessions where an
+    explicit Stop message has been received. Transfer statistics may
+    therefore be inaccurate because the numbers don't include currently
+    active sessions and because we have no way of making sure at which point
+    in the session the transfers took place. </p>

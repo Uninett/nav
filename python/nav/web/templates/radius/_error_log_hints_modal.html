@@ -1,0 +1,64 @@
+<h3>Radius log search hints and information</h3>
+
+<h5>Search string</h5>
+
+<p>The search string allows wildcards, e.g. you can search for
+  <code>dat3*</code> to search all usernames starting with <code>dat</code>.
+</p>
+
+<h5>Query fields</h5>
+
+<ul>
+  <li>Username - The user name a user is using for login</li>
+  <li>Client - Where the user is connecting.</li>
+  <li>Port - Search for a specific port</li>
+  <li>Message - Search the entire message. Remember to use the wildcard
+    characters if you're searching for a substring. To find all messages
+    that mention id 106, you can use the search string '*ID: 10</li>
+</ul>
+
+<h5>Log entry types</h5>
+
+<ul>
+  <li>All - All categories of logged information</li>
+  <li>Auth - Information relating to authentication</li>
+  <li>Error - Error messages regarding the radius server</li>
+  <li>Info - General information from the radius server</li>
+  <li>Proxy - Show proxy errors</li>
+</ul>
+
+<h5>Common messages explained</h5>
+
+<dl>
+  <dt>"Login incorrect: [host/PEROTTO] (from client unis port 50010 cli 00-10-60-76-AA-4F)"</dt>
+  <dd>The computer uses default values from Microsoft, and is therefore not
+    correctly set up for 802.1x. "PEROTTO" is in this case the computer
+    name. The "host/" part informs that this is host based authentication.
+  </dd>
+
+  <dt>"Reply from home server 129.242.5.142:3001 - ID: 251 arrived too late
+    for request 674132. Try increasing 'retry_delay' or 'max_request_time'"
+  </dt>
+  <dd>Time-to-live for a buffered request timed out: It took too long to
+    get an answer from the authentication server, or to finish a request.
+  </dd>
+
+  <dt>"No outstanding request was found for proxy reply from home server
+    xxx.xxx.xxx.xxx:xxxx - ID xxx"
+  </dt>
+  <dd>Also related to timeouts, shouldn't be anything to worry about.</dd>
+
+  <dt>"Dropping conflicting packet from client clientname:1646 - ID: 15 due
+    to unfinished request 709815"
+  </dt>
+  <dd>Harmless messages that occur when the NAS'es (switches) resends a
+    request before radius has replied to the previous request. Happens
+    because of its own timeout.
+  </dd>
+
+  <dt>"Rejecting request 709815 due to lack of any response
+    from home server aasgardvn:1646"</dt>
+  <dd>This message will usually follow, and be related to, the previous
+    message.
+  </dd>
+</dl>

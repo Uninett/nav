@@ -36,3 +36,26 @@ def test_error_log_search_should_not_crash_on_big_hours(db, client, admin_userna
 
     assert response.status_code == 200
     assert 'They did not have computers' in smart_str(response.content)
+
+
+class TestRadiusSearchHintModalViews:
+    def test_should_render_account_log_hints_modal(self, db, client):
+        url = reverse('radius-account-log-hints')
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'id="account-log-hints"' in smart_str(response.content)
+
+    def test_should_render_error_log_hints_modal(self, db, client):
+        url = reverse('radius-error-log-hints')
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'id="error-log-hints"' in smart_str(response.content)
+
+    def test_should_render_account_chart_hints_modal(self, db, client):
+        url = reverse('radius-account-chart-hints')
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'id="account-chart-hints"' in smart_str(response.content)
