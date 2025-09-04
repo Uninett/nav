@@ -8,6 +8,16 @@ existing bug reports, go to https://github.com/uninett/nav/issues .
 To see an overview of upcoming release milestones and the issues they resolve,
 please go to https://github.com/uninett/nav/milestones .
 
+Unreleased
+==========
+
+Dependency changes
+------------------
+
+Python modules with changed version requirements:
+
+* :mod:`napalm` (``>=5.1.0,<5.2.0``)
+
 NAV 5.14
 ========
 
