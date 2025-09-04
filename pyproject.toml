@@ -59,6 +59,9 @@ dependencies = [
     "PyOpenSSL==23.3.0",
     # service-identity is required to make TLS communication libraries shut up about potential MITM attacks
     "service-identity==21.1.0",
+
+    # Python Social Auth, Needs migrations so lock down versions
+    "social-auth-app-django==5.4.3",
 ]
 
 [project.optional-dependencies]
