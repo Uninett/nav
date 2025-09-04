@@ -169,10 +169,11 @@ class ErrorLogSearchForm(forms.Form):
         )
 
     def clean_time(self):
-        time_type, time = self.cleaned_data["time"]
-        if time_type == "hours":
-            validate_timedelta_for_overflow(hours=int(time))
-        return time
+        if self.cleaned_data["time"]:
+            time_type, time = self.cleaned_data["time"]
+            if time_type == "hours":
+                validate_timedelta_for_overflow(hours=int(time))
+            return time
 
 
 class AccountLogSearchForm(forms.Form):
@@ -244,10 +245,11 @@ class AccountLogSearchForm(forms.Form):
         )
 
     def clean_time(self):
-        time_type, time = self.cleaned_data["time"]
-        if time_type == "days":
-            validate_timedelta_for_overflow(days=int(time))
-        return time
+        if self.cleaned_data["time"]:
+            time_type, time = self.cleaned_data["time"]
+            if time_type == "days":
+                validate_timedelta_for_overflow(days=int(time))
+            return time
 
 
 class AccountChartsForm(forms.Form):
