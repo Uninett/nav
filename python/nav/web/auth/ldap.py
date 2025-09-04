@@ -19,6 +19,7 @@ Contains ldap authentication functionality for NAV web.
 
 import logging
 from os.path import join
+from typing import Union, Optional
 
 import nav.errors
 from nav.config import NAVConfigParser
@@ -70,7 +71,7 @@ else:
 #
 
 
-def open_ldap():
+def open_ldap() -> "ldap.ldapobject.LDAPObject":
     """
     Returns a freshly made LDAP object, according to the settings
     configured in webfront.conf.
@@ -117,7 +118,7 @@ def open_ldap():
     return lconn
 
 
-def authenticate(login, password):
+def authenticate(login: str, password: str) -> Union["LDAPUser", bool]:
     """
     Attempt to authenticate the login name with password against the
     configured LDAP server.  If the user is authenticated, required
@@ -196,12 +197,12 @@ class LDAPUser(object):
 
     """
 
-    def __init__(self, username, ldap_conn):
+    def __init__(self, username: str, ldap_conn: "ldap.ldapobject.LDAPObject"):
         self.username = username
         self.ldap = ldap_conn
         self.user_dn = None
 
-    def bind(self, password):
+    def bind(self, password: str) -> None:
         """Performs an authenticated bind for this user using password"""
         suffix = _config.get('ldap', 'suffix')
 
@@ -217,7 +218,7 @@ class LDAPUser(object):
 
             self.ldap.simple_bind_s(self.username + suffix, password)
 
-    def get_user_dn(self):
+    def get_user_dn(self) -> str:
         """
         Given a user id (login name), return a fully qualified DN to
         identify this user, using the configured settings from
@@ -237,7 +238,7 @@ class LDAPUser(object):
             self.user_dn, self.username = self.search_dn()
         return self.user_dn
 
-    def construct_dn(self):
+    def construct_dn(self) -> str:
         """Constructs and returns a Distinguished Name for this user.
 
         The DN is constructed using the pattern configured in webfront.conf.
@@ -248,7 +249,7 @@ class LDAPUser(object):
         user_dn = '%s=%s,%s' % (uid_attr, self.username, basedn)
         return user_dn
 
-    def search_dn(self):
+    def search_dn(self) -> tuple[str, str]:
         """Searches for the user's Distinguished Name in the LDAP directory.
 
         :returns: A tuple of (dn, canonical_username)
@@ -274,7 +275,7 @@ class LDAPUser(object):
             uid = self.username
         return user_dn, uid
 
-    def get_real_name(self):
+    def get_real_name(self) -> Optional[str]:
         """
         Attempt to retrieve the LDAP Common Name of the given login name.
         """
@@ -298,7 +299,7 @@ class LDAPUser(object):
         name = record[name_attr][0]
         return name.decode(encoding)
 
-    def is_group_member(self, group_dn):
+    def is_group_member(self, group_dn: str) -> bool:
         """
         Verify that uid is a member in the group object identified by
         group_dn, using the pre-initialized ldap object l.
@@ -326,7 +327,7 @@ class LDAPUser(object):
             _logger.error("Timed out while verifying group memberships")
             raise TimeoutError(error)
 
-    def get_entitlements(self):
+    def get_entitlements(self) -> list[str]:
         """Returns a list of entitlements this user has"""
         encoding = _config.get('ldap', 'encoding')
         entitlement_attribute = _config.get('ldap', 'entitlement_attribute')
@@ -352,15 +353,15 @@ class LDAPUser(object):
 
         return []
 
-    def has_entitlement(self, entitlement):
+    def has_entitlement(self, entitlement: str) -> bool:
         """Verifies whether the user has a specific entitlement"""
         return entitlement in self.get_entitlements()
 
-    def is_admin(self):
+    def is_admin(self) -> Optional[bool]:
         """Verifies whether the user should have administrator privileges.
 
         :returns: True if the user should be an administrator, False if not. If no admin
-        entitlement is configure, None is returned, as we cannot make such a decision.
+        entitlement is configured, None is returned, as we cannot make such a decision.
 
         """
         admin_entitlement = _config.get('ldap', 'admin_entitlement')

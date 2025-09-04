@@ -27,6 +27,7 @@ from django.http import (
     HttpResponseForbidden,
     HttpResponseRedirect,
     HttpResponse,
+    HttpRequest,
     JsonResponse,
 )
 from django.views.decorators.http import require_POST
@@ -210,7 +211,7 @@ def login(request):
 
 
 @sensitive_variables('password')
-def do_login(request):
+def do_login(request: HttpRequest) -> HttpResponse:
     """Do a login based on post parameters"""
     errors = []
     form = LoginForm(request.POST)
@@ -252,7 +253,7 @@ def do_login(request):
     )
 
 
-def logout(request):
+def logout(request: HttpRequest) -> HttpResponse:
     """Controller for doing a logout"""
     nexthop = auth_logout(request)
     return HttpResponseRedirect(nexthop)

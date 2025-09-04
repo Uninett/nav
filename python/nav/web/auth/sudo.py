@@ -18,6 +18,9 @@ Sudo functionality for web authentication in NAV.
 """
 
 import logging
+from typing import Optional
+
+from django.http import HttpRequest
 
 from nav.auditlog.models import LogEntry
 from nav.django.utils import is_admin, get_account
@@ -31,7 +34,7 @@ _logger = logging.getLogger(__name__)
 SUDOER_ID_VAR = 'sudoer'
 
 
-def sudo(request, other_user):
+def sudo(request: HttpRequest, other_user: Account) -> None:
     """Switches the current session to become other_user"""
     if SUDOER_ID_VAR in request.session:
         # Already logged in as another user.
@@ -55,7 +58,7 @@ def sudo(request, other_user):
     )
 
 
-def desudo(request):
+def desudo(request: HttpRequest) -> None:
     """Switches the current session to become the original user from before a
     call to sudo().
 
@@ -85,7 +88,7 @@ def desudo(request):
     )
 
 
-def get_sudoer(request):
+def get_sudoer(request: HttpRequest) -> Optional[Account]:
     """Returns a sudoer's Account, if current session is in sudo-mode"""
     if SUDOER_ID_VAR in request.session:
         return Account.objects.get(id=request.session[SUDOER_ID_VAR])
@@ -94,12 +97,12 @@ def get_sudoer(request):
 class SudoRecursionError(Exception):
     msg = "Already posing as another user"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.msg
 
 
 class SudoNotAdminError(Exception):
     msg = "Not admin"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.msg
