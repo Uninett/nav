@@ -225,6 +225,26 @@ class TestRefreshIpdevinfoJobStatusQuery:
         )
 
 
+class TestHostInfoModal:
+    def test_should_render_modal(self, client, netbox):
+        url = reverse(
+            "ipdevinfo-hostinfo",
+            args=[netbox.sysname],
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert 'id="hostinfo"' in smart_str(response.content)
+
+    def test_when_rendering_modal_then_include_sysname(self, client, netbox):
+        url = reverse(
+            "ipdevinfo-hostinfo",
+            args=[netbox.sysname],
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        assert netbox.sysname in smart_str(response.content)
+
+
 ###
 #
 # Fixtures

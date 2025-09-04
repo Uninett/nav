@@ -30,6 +30,7 @@ from nav.django.templatetags.thresholds import find_rules
 from nav.event2 import EventFactory
 from nav.metrics.errors import GraphiteUnreachableError
 from nav.metrics.graphs import get_simple_graph_url
+from nav.web.modals import render_modal
 
 from nav.models.manage import (
     Netbox,
@@ -812,10 +813,11 @@ def render_affected(request, netboxid):
 
 def render_host_info(request, identifier):
     """Controller for getting host info"""
-    return render(
+    return render_modal(
         request,
         'ipdevinfo/frag-hostinfo.html',
         {'host_info': get_host_info(identifier)},
+        modal_id='hostinfo',
     )
 
 
