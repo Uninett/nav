@@ -40,16 +40,15 @@ from django.views.decorators.http import require_GET, require_POST
 from django_htmx.http import HttpResponseClientRedirect, HttpResponseClientRefresh
 
 from nav.auditlog.models import LogEntry
-from nav.django.utils import get_account
 from nav.models.profiles import (
     AccountDashboard,
     AccountDashboardSubscription,
     AccountNavlet,
     NavbarLink,
 )
-from nav.web import auth, webfrontConfig
+from nav.web import webfrontConfig
 from nav.web.auth import logout as auth_logout
-from nav.web.auth.utils import set_account
+from nav.web.auth.utils import get_account, set_account
 from nav.web.message import new_message, Messages
 from nav.web.modals import render_modal, render_modal_alert
 from nav.web.navlets import can_modify_navlet

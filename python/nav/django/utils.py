@@ -21,31 +21,12 @@ from django.core.exceptions import FieldDoesNotExist
 from django.urls import reverse
 from django.utils.http import urlencode
 
-from nav.models.profiles import Account, AccountGroup
-
 
 def reverse_with_query(viewname, **kwargs):
     """Wrapper for django.urls.reverse, but will adapt query arguments from kwargs"""
     baseurl = reverse(viewname)
     getargs = urlencode(kwargs)
     return "{}?{}".format(baseurl, getargs)
-
-
-def default_account():
-    return Account.objects.get(id=Account.DEFAULT_ACCOUNT)
-
-
-def get_account(request):
-    """Returns the account associated with the request"""
-    try:
-        return request.account
-    except AttributeError:
-        return default_account()
-
-
-def is_admin(account):
-    """Check if user is a member of the administrator group"""
-    return account.groups.filter(pk=AccountGroup.ADMIN_GROUP).count() > 0
 
 
 def get_verbose_name(model, lookup):
