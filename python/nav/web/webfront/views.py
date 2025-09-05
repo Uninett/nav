@@ -131,49 +131,50 @@ def import_dashboard(request):
     """Receive an uploaded dashboard file and store in database"""
     if not can_modify_navlet(request.account, request):
         return HttpResponseForbidden()
-    if 'file' in request.FILES:
-        try:
-            # Ensure file is interpreted as utf-8 regardless of locale
-            blob = request.FILES['file'].read()
-            data = json.loads(blob.decode("utf-8"))
-            if not isinstance(data, dict):
-                raise ValueError()
-            for field, dtype in dashboard_fields.items():
-                if field not in data:
-                    raise ValueError()
-                if not isinstance(data[field], dtype):
-                    raise ValueError()
-            dashboard = AccountDashboard(account=request.account, name=data['name'])
-            dashboard.num_columns = data['num_columns']
-            widgets = []
-            for widget in data['widgets']:
-                if not isinstance(widget, dict):
-                    raise ValueError()
-                for field, dtype in widget_fields.items():
-                    if field not in widget:
-                        raise ValueError()
-                    if not isinstance(widget[field], dtype):
-                        raise ValueError()
-                    if widget['column'] > dashboard.num_columns:
-                        raise ValueError()
-                widget = {k: v for k, v in widget.items() if k in widget_fields}
-                widgets.append(widget)
-            dashboard.save()
-            for widget in widgets:
-                dashboard.widgets.create(account=request.account, **widget)
-            dashboard.save()
-            dashboard_url = reverse('dashboard-index-id', args=(dashboard.id,))
-            return HttpResponseClientRedirect(dashboard_url)
-        except ValueError:
-            _logger.exception('Failed to parse dashboard file for import')
-            return render_modal_alert(
-                request,
-                "File is not a valid dashboard file",
-                modal_id="import-dashboard-form",
-            )
-    else:
+
+    if 'file' not in request.FILES:
         return render_modal_alert(
             request, "You need to provide a file", modal_id="import-dashboard-form"
+        )
+
+    try:
+        # Ensure file is interpreted as utf-8 regardless of locale
+        blob = request.FILES['file'].read()
+        data = json.loads(blob.decode("utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError()
+        for field, dtype in dashboard_fields.items():
+            if field not in data:
+                raise ValueError()
+            if not isinstance(data[field], dtype):
+                raise ValueError()
+        dashboard = AccountDashboard(account=request.account, name=data['name'])
+        dashboard.num_columns = data['num_columns']
+        widgets = []
+        for widget in data['widgets']:
+            if not isinstance(widget, dict):
+                raise ValueError()
+            for field, dtype in widget_fields.items():
+                if field not in widget:
+                    raise ValueError()
+                if not isinstance(widget[field], dtype):
+                    raise ValueError()
+                if widget['column'] > dashboard.num_columns:
+                    raise ValueError()
+            widget = {k: v for k, v in widget.items() if k in widget_fields}
+            widgets.append(widget)
+        dashboard.save()
+        for widget in widgets:
+            dashboard.widgets.create(account=request.account, **widget)
+        dashboard.save()
+        dashboard_url = reverse('dashboard-index-id', args=(dashboard.id,))
+        return HttpResponseClientRedirect(dashboard_url)
+    except ValueError:
+        _logger.exception('Failed to parse dashboard file for import')
+        return render_modal_alert(
+            request,
+            "File is not a valid dashboard file",
+            modal_id="import-dashboard-form",
         )
 
 
