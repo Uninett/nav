@@ -64,6 +64,16 @@ urlpatterns = [
         views.poegroup_details,
         name='ipdevinfo-poegroup-details',
     ),
+    re_path(
+        r'^poe-status-info-modal',
+        views.poe_status_hint_modal,
+        name='ipdevinfo-poe-status-hint-modal',
+    ),
+    re_path(
+        r'^poe-classification-info-modal',
+        views.poe_classification_hint_modal,
+        name='ipdevinfo-poe-classification-hint-modal',
+    ),
     # Interface details
     re_path(
         r'^(?P<netbox_sysname>[^/]+)/interface=(?P<port_id>\d+)/$',
