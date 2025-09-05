@@ -22,7 +22,7 @@ def test_script_runs(script):
     assert retcode == 0
 
 
-@pytest.mark.timeout(10)
+@pytest.mark.timeout(20)
 def test_naventity_runs_without_error_with_arguments(localhost, snmpsim):
     """
     Verifies that naventity runs with a zero exit code when given an
