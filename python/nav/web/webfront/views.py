@@ -42,6 +42,7 @@ from nav.web.auth import logout as auth_logout
 from nav.web import auth, webfrontConfig
 from nav.web.auth import ldap
 from nav.web.auth.utils import set_account
+from nav.web.modals import render_modal
 from nav.web.utils import generate_qr_code_as_string
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
@@ -206,6 +207,16 @@ def login(request):
             'origin': origin,
             'errors': errors,
         },
+    )
+
+
+def audit_logging_modal(request):
+    """Render the audit logging info modal"""
+    return render_modal(
+        request,
+        'webfront/_about_audit_logging_modal.html',
+        modal_id='about-audit-logging',
+        size="small",
     )
 
 

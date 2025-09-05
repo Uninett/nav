@@ -25,6 +25,11 @@ from nav.web.webfront import views
 urlpatterns = [
     re_path(r'^$', views.index, name='webfront-index'),
     re_path(r'^index/login/', views.login, name='webfront-login'),
+    re_path(
+        r'^index/audit-logging-modal/$',
+        views.audit_logging_modal,
+        name='webfront-audit-logging-modal',
+    ),
     re_path(r'^index/logout/', views.logout, name='webfront-logout'),
     # Dashboard
     re_path(r'^index/dashboard/(?P<did>\d+)', views.index, name='dashboard-index-id'),
