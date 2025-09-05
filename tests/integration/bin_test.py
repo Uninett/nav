@@ -1,5 +1,6 @@
 from shutil import which
 import subprocess
+import sys
 
 import pytest
 
@@ -29,8 +30,11 @@ def test_naventity_runs_without_error_with_arguments(localhost, snmpsim):
 
     Added in regards to: https://github.com/Uninett/nav/issues/2433
     """
+    params = [BINDIR + "/naventity.py", localhost.ip, "-p", "1024"]
+    if sys.version_info[0:2] == (3, 12):  # Python 3.12 is weird
+        params += ["-t", "5.0"]
     proc = subprocess.Popen(
-        [BINDIR + "/naventity.py", localhost.ip, "-p", "1024"],
+        params,
         stderr=subprocess.STDOUT,
         stdout=subprocess.PIPE,
     )
