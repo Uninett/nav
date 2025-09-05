@@ -33,7 +33,16 @@ $default-width: 30%;
         transform: translateY(-100vh);
         animation: slideInFromTop 0.3s ease-out forwards;
 
-        .close-reveal-modal { @include reveal-close; }
+        .close-reveal-modal {
+            font-size: 1.5rem;
+            line-height: 1;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.6875rem;
+            color: #AAAAAA;
+            font-weight: bold;
+            cursor: pointer;
+        }
     }
 }
 
