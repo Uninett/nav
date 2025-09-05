@@ -3,15 +3,15 @@ from django.test import Client
 from django.urls import reverse
 from django.utils.encoding import smart_str
 
-from nav.models.manage import Room, Sensor
+from nav.models.manage import Sensor
 from nav.models.profiles import Account
 from nav.models.rack import Rack
 from nav.web.info.room.views import ADD_SENSOR_MODAL_ID
 
 
 class TestRoomNetboxInterfacesView:
-    def test_should_render_about_search_modal_trigger(self, client, new_room):
-        url = reverse('room-info-netboxes', args=[new_room.id])
+    def test_should_render_about_search_modal_trigger(self, client):
+        url = reverse('room-info-netboxes', args=['myroom'])
         modal_url = reverse('room-info-about-the-search')
         response = client.get(url)
         assert response.status_code == 200
@@ -25,36 +25,32 @@ class TestRoomNetboxInterfacesView:
 
 
 class TestAddRoomRackViews:
-    def test_should_render_add_rack_modal_trigger(self, client, new_room):
-        url = reverse('room-info-racks', args=[new_room.id])
-        modal_url = reverse('room-info-racks-add-rack-modal', args=[new_room.id])
+    def test_should_render_add_rack_modal_trigger(self, client):
+        url = reverse('room-info-racks', args=['myroom'])
+        modal_url = reverse('room-info-racks-add-rack-modal', args=['myroom'])
         response = client.get(url)
         assert response.status_code == 200
         assert f'hx-get="{modal_url}' in smart_str(response.content)
 
-    def test_should_render_add_rack_modal(self, client, new_room):
-        url = reverse('room-info-racks-add-rack-modal', args=[new_room.id])
+    def test_should_render_add_rack_modal(self, client):
+        url = reverse('room-info-racks-add-rack-modal', args=['myroom'])
         response = client.get(url)
         assert response.status_code == 200
         assert 'id="add-rack-modal"' in smart_str(response.content)
 
-    def test_when_account_is_not_admin_then_return_403(
-        self, non_admin_client, new_room
-    ):
-        url = reverse('room-info-racks-add-rack', args=[new_room.id])
+    def test_when_account_is_not_admin_then_return_403(self, non_admin_client):
+        url = reverse('room-info-racks-add-rack', args=['myroom'])
         response = non_admin_client.post(url, {'rackname': 'Test Rack'})
         assert response.status_code == 403
 
-    def test_when_account_is_admin_then_add_rack(self, client, new_room):
-        url = reverse('room-info-racks-add-rack', args=[new_room.id])
+    def test_when_account_is_admin_then_add_rack(self, client):
+        url = reverse('room-info-racks-add-rack', args=['myroom'])
         response = client.post(url, {'rackname': 'Test Rack'})
         assert response.status_code == 200
         assert 'Test Rack' in smart_str(response.content)
 
-    def test_when_rack_is_added_then_return_template_with_editmode(
-        self, client, new_room
-    ):
-        url = reverse('room-info-racks-add-rack', args=[new_room.id])
+    def test_when_rack_is_added_then_return_template_with_editmode(self, client):
+        url = reverse('room-info-racks-add-rack', args=['myroom'])
         response = client.post(
             url,
             {
@@ -64,10 +60,8 @@ class TestAddRoomRackViews:
         assert response.status_code == 200
         assert 'class="rack editmode"' in smart_str(response.content)
 
-    def test_when_rack_is_added_then_return_color_chooser_options(
-        self, client, new_room
-    ):
-        url = reverse('room-info-racks-add-rack', args=[new_room.id])
+    def test_when_rack_is_added_then_return_color_chooser_options(self, client):
+        url = reverse('room-info-racks-add-rack', args=['myroom'])
         response = client.post(
             url,
             {
@@ -85,24 +79,24 @@ class TestAddSensorModalView:
         assert response.status_code == 200
         assert f'id="{ADD_SENSOR_MODAL_ID}"' in smart_str(response.content)
 
-    def test_should_render_modal_with_rackid(self, client, new_room, test_rack):
+    def test_should_render_modal_with_rackid(self, client, test_rack):
         url = reverse('room-info-racks-add-sensor-modal', args=[test_rack.room.id])
         response = client.post(url, data={'rackid': test_rack.id, 'column': 1})
         assert response.status_code == 200
         assert f'name="rackid" value="{test_rack.id}"' in smart_str(response.content)
 
-    def test_should_render_modal_with_column(self, client, new_room, test_rack):
+    def test_should_render_modal_with_column(self, client, test_rack):
         url = reverse('room-info-racks-add-sensor-modal', args=[test_rack.room.id])
         response = client.post(url, data={'rackid': test_rack.id, 'column': 1})
         assert response.status_code == 200
         assert 'name="column" value="1"' in smart_str(response.content)
 
-    def test_given_no_rackid_then_return_400(self, client, new_room):
-        url = reverse('room-info-racks-add-sensor-modal', args=[new_room.id])
+    def test_given_no_rackid_then_return_400(self, client):
+        url = reverse('room-info-racks-add-sensor-modal', args=['myroom'])
         response = client.post(url, data={'column': 1})
         assert response.status_code == 400
 
-    def test_given_invalid_column_then_return_400(self, client, new_room, test_rack):
+    def test_given_invalid_column_then_return_400(self, client, test_rack):
         url = reverse('room-info-racks-add-sensor-modal', args=[test_rack.room.id])
         response = client.post(url, data={'rackid': test_rack.id, 'column': '-1'})
         assert response.status_code == 400
@@ -112,17 +106,17 @@ class TestAddSensorModalView:
         response = client.post(url, data={'rackid': test_rack.id, 'column': 1})
         assert response.status_code == 404
 
-    def test_given_non_existing_rackid_then_return_404(self, client, new_room):
-        url = reverse('room-info-racks-add-sensor-modal', args=[new_room.id])
+    def test_given_non_existing_rackid_then_return_404(self, client):
+        url = reverse('room-info-racks-add-sensor-modal', args=['myroom'])
         response = client.post(url, data={'column': 1, 'rackid': 999})
         assert response.status_code == 404
 
 
 class TestSaveSensorView:
     def test_when_saving_single_sensor_then_return_rack_item(
-        self, client, new_room, test_rack, test_sensor
+        self, client, test_rack, test_sensor
     ):
-        url = reverse('room-info-racks-save-sensor', args=[new_room.id])
+        url = reverse('room-info-racks-save-sensor', args=['myroom'])
         response = client.post(
             url,
             {
@@ -135,7 +129,7 @@ class TestSaveSensorView:
         assert f'id="item_{test_rack.id}_' in smart_str(response.content)
 
     def test_when_saving_sensor_diff_then_return_rack_item(
-        self, db, client, new_room, test_rack, test_sensor
+        self, db, client, test_rack, test_sensor
     ):
         # Create another sensor for diff
         sensor2 = Sensor.objects.create(
@@ -143,7 +137,7 @@ class TestSaveSensorView:
             oid="1.2.4",
             unit_of_measurement=test_sensor.unit_of_measurement,
         )
-        url = reverse('room-info-racks-save-sensor', args=[new_room.id])
+        url = reverse('room-info-racks-save-sensor', args=['myroom'])
         response = client.post(
             url,
             {
@@ -157,7 +151,7 @@ class TestSaveSensorView:
         assert f'id="item_{test_rack.id}_' in smart_str(response.content)
 
     def test_when_saving_sensor_sum_then_return_rack_item(
-        self, db, client, new_room, test_rack, test_sensor
+        self, db, client, test_rack, test_sensor
     ):
         # Create two more sensors for sum
         sensor2 = Sensor.objects.create(
@@ -170,7 +164,7 @@ class TestSaveSensorView:
             oid="1.2.6",
             unit_of_measurement=test_sensor.unit_of_measurement,
         )
-        url = reverse('room-info-racks-save-sensor', args=[new_room.id])
+        url = reverse('room-info-racks-save-sensor', args=['myroom'])
         response = client.post(
             url,
             {
@@ -184,9 +178,9 @@ class TestSaveSensorView:
         assert f'id="item_{test_rack.id}_' in smart_str(response.content)
 
     def test_given_missing_sensorid_when_saving_sensor_then_return_error(
-        self, client, new_room, test_rack
+        self, client, test_rack
     ):
-        url = reverse('room-info-racks-save-sensor', args=[new_room.id])
+        url = reverse('room-info-racks-save-sensor', args=['myroom'])
         response = client.post(
             url,
             {
@@ -199,9 +193,9 @@ class TestSaveSensorView:
         assert b'No sensor selected' in response.content
 
     def test_given_missing_subtrahend_when_saving_sensor_diff_then_return_error(
-        self, client, new_room, test_rack, test_sensor
+        self, client, test_rack, test_sensor
     ):
-        url = reverse('room-info-racks-save-sensor', args=[new_room.id])
+        url = reverse('room-info-racks-save-sensor', args=['myroom'])
         response = client.post(
             url,
             {
@@ -215,9 +209,9 @@ class TestSaveSensorView:
         assert b'Two sensors must be selected' in response.content
 
     def test_given_invalid_sum_data_when_saving_sensor_sum_then_return_error(
-        self, client, new_room, test_rack, test_sensor
+        self, client, test_rack, test_sensor
     ):
-        url = reverse('room-info-racks-save-sensor', args=[new_room.id])
+        url = reverse('room-info-racks-save-sensor', args=['myroom'])
         response = client.post(
             url,
             {
@@ -233,12 +227,6 @@ class TestSaveSensorView:
             b'At least two sensors must be selected and a title given'
             in response.content
         )
-
-
-@pytest.fixture
-def new_room(db):
-    room = Room(id="myroom", description="Test Room", location_id="mylocation")
-    yield room
 
 
 @pytest.fixture

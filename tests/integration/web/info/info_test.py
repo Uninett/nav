@@ -8,7 +8,6 @@ from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import MagicMock
 
-from nav.models.manage import Location, Room
 from nav.web.info.images.utils import save_thumbnail
 from nav.web.info.room.views import create_csv
 from nav.web.info.searchproviders import SearchProvider
@@ -63,20 +62,16 @@ def test_save_thumbnail_should_produce_a_file(tmpdir):
 
 class TestImageUploadHeader:
     def test_when_rendering_location_image_upload_then_include_location_id(
-        self, client, new_location
+        self, client
     ):
-        url = reverse('location-info-upload', args=[new_location.id])
+        url = reverse('location-info-upload', args=['mylocation'])
         response = client.get(url)
-        assert f'Images for &laquo;{new_location.id}&raquo;' in smart_str(
-            response.content
-        )
+        assert 'Images for &laquo;mylocation&raquo;' in smart_str(response.content)
 
-    def test_when_rendering_room_image_upload_then_include_room_id(
-        self, client, new_room
-    ):
-        url = reverse('room-info-upload', args=[new_room.id])
+    def test_when_rendering_room_image_upload_then_include_room_id(self, client):
+        url = reverse('room-info-upload', args=['myroom'])
         response = client.get(url)
-        assert f'Images for &laquo;{new_room.id}&raquo;' in smart_str(response.content)
+        assert 'Images for &laquo;myroom&raquo;' in smart_str(response.content)
 
     def test_should_render_image_help_modal(self, client):
         url = reverse('info-image-help-modal')
@@ -115,15 +110,3 @@ class FailingSearchProvider(SearchProvider):
 
     def fetch_results(self):
         raise Exception("Riddikulus")
-
-
-@pytest.fixture
-def new_location(db):
-    location = Location(id="mylocation")
-    yield location
-
-
-@pytest.fixture
-def new_room(db, new_location):
-    room = Room(id="myroom", description="Test Room", location_id="mylocation")
-    yield room
