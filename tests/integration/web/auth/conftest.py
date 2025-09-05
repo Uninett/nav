@@ -18,17 +18,6 @@ def session_request(db):
 
 
 @pytest.fixture()
-def account(db):
-    from nav.models.profiles import Account
-
-    account = Account(login="other_user")
-    account.set_password("password")
-    account.save()
-    yield account
-    account.delete()
-
-
-@pytest.fixture()
 def locked_account(db):
     from nav.models.profiles import Account
 

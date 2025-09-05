@@ -25,6 +25,7 @@ from django.conf import settings
 
 from nav.web.info.forms import SearchForm
 from nav.web.info import searchproviders as providers
+from nav.web.modals import render_modal
 from nav.web.utils import create_title
 
 _logger = logging.getLogger(__name__)
@@ -116,3 +117,10 @@ def has_only_one_result(searchproviders):
     for provider in searchproviders:
         results += len(provider.results)
     return results == 1
+
+
+def image_help_modal(request):
+    """View for image help modal"""
+    return render_modal(
+        request, "info/_image_help_modal.html", modal_id="image-help", size="small"
+    )

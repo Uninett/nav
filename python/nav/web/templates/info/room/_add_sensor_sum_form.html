@@ -1,4 +1,9 @@
-<form class="sumform" method="post" action="{% url 'room-info-racks-save-sensor' room.pk %}">
+<form
+        class="sumform"
+        hx-post="{% url 'room-info-racks-save-sensor' room.pk %}"
+        hx-target="{{ hx_target }}"
+        hx-swap="beforeend"
+>
   {% csrf_token %}
   <label>Title<input type="text" name="title" placeholder="Sum of sensors"></label>
   <label>

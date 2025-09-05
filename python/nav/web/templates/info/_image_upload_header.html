@@ -1,0 +1,13 @@
+<div class="row">
+    <div class="column small-12">
+      <button
+          class="small secondary button right"
+          hx-get="{% url 'info-image-help-modal' %}"
+          hx-target="body"
+          hx-swap="beforeend"
+      >
+          Help
+      </button>
+      <h3>Images for &laquo;{{ id }}&raquo;</h3>
+    </div>
+</div>

@@ -35,9 +35,14 @@ urlpatterns = [
         r'^(?P<roomid>.+)/sensors/', views.render_sensors, name='room-info-sensors'
     ),
     re_path(
-        r'^(?P<roomid>.+)/racks/add_rack',
+        r'^(?P<roomid>.+)/racks/add_rack$',
         views.add_rack,
         name='room-info-racks-add-rack',
+    ),
+    re_path(
+        r'^(?P<roomid>.+)/racks/add_rack_modal',
+        views.add_rack_modal,
+        name='room-info-racks-add-rack-modal',
     ),
     re_path(
         r'^(?P<roomid>.+)/racks/(?P<rackid>\d+)/rename_rack',
@@ -51,8 +56,8 @@ urlpatterns = [
     ),
     re_path(
         r'^(?P<roomid>.+)/racks/add_sensor',
-        views.render_add_sensor,
-        name='room-info-racks-add-sensor',
+        views.render_add_sensor_modal,
+        name='room-info-racks-add-sensor-modal',
     ),
     re_path(
         r'^(?P<roomid>.+)/racks/remove_sensor',
@@ -82,4 +87,9 @@ urlpatterns = [
     re_path(r'^(?P<roomid>.+)/racks/', views.render_racks, name='room-info-racks'),
     re_path(r'^(?P<roomid>.+)/$', views.roominfo, name='room-info'),
     re_path(r'^csv-download$', views.create_csv, name='room-csv'),
+    re_path(
+        r'^aboutthesearch$',
+        views.render_about_the_search_modal,
+        name='room-info-about-the-search',
+    ),
 ]

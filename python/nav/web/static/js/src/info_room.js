@@ -67,7 +67,8 @@ require(
             enrich_tables();
             add_filters();
             add_csv_download();
-            $(document).foundation('reveal');  // Apply reveal after ajax request
+            // Necessary for HTMX to process content added by AJAX request
+            htmx.process(document.getElementById("netboxes"))
         }
 
         /* Add navigation to jQuery ui tabs */
