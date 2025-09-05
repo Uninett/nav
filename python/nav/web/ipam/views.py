@@ -39,6 +39,7 @@ def subnet_allocator_help_modal(request):
         request,
         "ipam/includes/_subnet_diagram_help_modal.html",
         modal_id="allocator-help-modal",
+        size="large",
     )
 
 
