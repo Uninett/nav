@@ -23,7 +23,7 @@ from typing import Optional
 from django.http import HttpRequest
 
 from nav.auditlog.models import LogEntry
-from nav.django.utils import is_admin, get_account
+from nav.web.auth.utils import is_admin, get_account
 from nav.models.profiles import Account
 from nav.web.auth.utils import set_account, clear_session
 

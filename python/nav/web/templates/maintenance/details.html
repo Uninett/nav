@@ -62,7 +62,7 @@
           <th>Author</th>
           <td>{{ task.author }}</td>
         </tr>
-        {% if not current_user_data.account.is_default_account %}
+        {% if not current_user_data.account.is_anonymous %}
           <tr>
             <th>State</th>
             <td>{{ task.state|capfirst }}</td>
@@ -71,7 +71,7 @@
       </tbody>
     </table>
 
-    {% if not current_user_data.account.is_default_account %}
+    {% if not current_user_data.account.is_anonymous %}
       <a href="{% url 'maintenance-edit' task.id %}" class="button small secondary">Edit</a>
       {% if task.state != "canceled" %}
         <a href="{% url 'maintenance-cancel' task.id %}" class="button small secondary">Cancel now</a>
