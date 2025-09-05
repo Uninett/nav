@@ -1,0 +1,13 @@
+<h4>Import dashboard</h4>
+
+<form
+    hx-post="{% url 'import-dashboard' %}"
+    hx-encoding="multipart/form-data"
+>
+    {% csrf_token %}
+    <fieldset>
+        <legend>Select file to import</legend>
+        <input name="file" type="file" id="dashboard-import-file">
+    </fieldset>
+    <button type="submit" class="button" aria-label="submit form">Import</button>
+</form>

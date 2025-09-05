@@ -67,6 +67,11 @@ urlpatterns = [
     re_path(
         r'^index/dashboard/import$', views.import_dashboard, name='import-dashboard'
     ),
+    re_path(
+        r'îndex/dashboard/importmodal$',
+        views.import_dashboard_modal,
+        name='import-dashboard-modal',
+    ),
     re_path(r'^index/dashboard/', views.index, name='dashboard-index'),
     re_path(r'^about/', views.about, name='webfront-about'),
     re_path(
