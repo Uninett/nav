@@ -30,6 +30,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
       python3.10-dbg python3.10-dev python3.10-venv \
       python3.11-dbg python3.11-dev python3.11-venv \
       python3.12-dbg python3.12-dev python3.12-venv \
+      python3.13-dbg python3.13-dev python3.13-venv \
       python3-pip
 
 RUN echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
@@ -40,22 +41,22 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update && \
     apt-get -y --no-install-recommends build-dep \
-	python3-psycopg2 python3-lxml python3-pil python3-ldap
+    python3-psycopg2 python3-lxml python3-pil python3-ldap
 
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update && \
     apt-get -y --no-install-recommends install \
-	libsnmp40 \
-	cron \
-	libjpeg62 \
-	postgresql postgresql-contrib postgresql-client \
-	libxml2-dev libxslt1-dev \
-	libwww-perl \
-	xvfb \
-	imagemagick \
-	x11vnc google-chrome-stable cloc \
-        cmake nbtscan libtidy5deb1
+    libsnmp40 \
+    cron \
+    libjpeg62 \
+    postgresql postgresql-contrib postgresql-client \
+    libxml2-dev libxslt1-dev \
+    libwww-perl \
+    xvfb \
+    imagemagick \
+    x11vnc google-chrome-stable cloc \
+    cmake nbtscan libtidy5deb1
 
 # Install Firefox (we don't want Snap!)
 ENV FF_VER=135.0
@@ -77,7 +78,7 @@ RUN cd /tmp && \
 
 # Install chromedriver to properly run Selenium tests in Chrome, if need be
 # Ref: https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
-ENV CHROMEDRIVERVERSION=133.0.6943.126
+ENV CHROMEDRIVERVERSION=139.0.7258.154
 RUN cd /tmp && \
     wget https://storage.googleapis.com/chrome-for-testing-public/$CHROMEDRIVERVERSION/linux64/chromedriver-linux64.zip && \
     unzip chromedriver-linux64.zip && \
