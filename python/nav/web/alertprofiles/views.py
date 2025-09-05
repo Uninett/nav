@@ -25,11 +25,11 @@
 # the operation is the owner
 
 from django.http import HttpResponseRedirect, QueryDict
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse
 
+from nav.web.modals import render_modal
 from nav.web.utils import SubListView
 
 from nav.models.profiles import (
@@ -82,11 +82,7 @@ def overview(request):
     account = get_account(request)
 
     # Get information about user
-    groups = account.groups.all()
-    try:
-        active_profile = account.get_active_profile()
-    except ObjectDoesNotExist:
-        active_profile = None
+    active_profile = account.get_active_profile()
 
     if not active_profile:
         subscriptions = None
@@ -94,22 +90,9 @@ def overview(request):
         periods = TimePeriod.objects.filter(profile=active_profile).order_by('start')
         subscriptions = alert_subscriptions_table(periods)
 
-    # Get information about users privileges
-    sms_privilege = account.has_perm('alert_by', 'sms')
-
-    filter_dict = {'group_permissions__in': [g.id for g in groups]}
-    filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
-
-    language = account.preferences.get(account.PREFERENCE_KEY_LANGUAGE, 'en')
-    language_form = LanguageForm(initial={'language': language})
-
     info_dict = {
         'active': {'overview': True},
-        'groups': groups,
         'active_profile': active_profile,
-        'sms_privilege': sms_privilege,
-        'filter_groups': filter_groups,
-        'language_form': language_form,
         'alert_subscriptions': subscriptions,
         'navpath': [
             ('Home', '/'),
@@ -118,6 +101,37 @@ def overview(request):
         'title': 'NAV - Alert profiles',
     }
     return render(request, 'alertprofiles/account_detail.html', info_dict)
+
+
+def groups_and_permissions_modal(request):
+    """Render a modal with information about groups and permissions"""
+    account = get_account(request)
+
+    # Get information about user
+    groups = account.groups.all()
+    active_profile = account.get_active_profile()
+
+    # Get information about users privileges
+    sms_privilege = account.has_perm('alert_by', 'sms')
+    filter_dict = {'group_permissions__in': [g.id for g in groups]}
+    filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
+
+    language = account.preferences.get(account.PREFERENCE_KEY_LANGUAGE, 'en')
+    language_form = LanguageForm(initial={'language': language})
+
+    return render_modal(
+        request,
+        'alertprofiles/_groups_and_permissions_modal.html',
+        context={
+            'active_profile': active_profile,
+            'filter_groups': filter_groups,
+            'groups': groups,
+            'language_form': language_form,
+            'sms_privilege': sms_privilege,
+        },
+        modal_id="groups-and-permissions",
+        size="large",
+    )
 
 
 def show_profile(request):
@@ -1553,6 +1567,16 @@ def filter_addexpression(request):
     return render(request, 'alertprofiles/expression_form.html', info_dict)
 
 
+def filter_addexpression_operator_help_modal(request):
+    """Renders a modal with descriptions of all available operators"""
+    return render_modal(
+        request,
+        'alertprofiles/_add_expression_operator_help_modal.html',
+        modal_id='operator-help',
+        size='large',
+    )
+
+
 @requires_post('alertprofiles-filters')
 def filter_saveexpression(request):
     """Saves an expression to a filter"""
@@ -1830,6 +1854,16 @@ def filter_group_show_form(request, filter_group_id=None, filter_group_form=None
 def filter_group_detail(request, filter_group_id=None):
     """Shows the form to edit a filter group"""
     return filter_group_show_form(request, filter_group_id)
+
+
+def filter_group_operator_help_modal(request):
+    """Renders a modal with descriptions of all available operators"""
+    return render_modal(
+        request,
+        'alertprofiles/_filter_group_operator_help_modal.html',
+        modal_id='operator-help',
+        size="large",
+    )
 
 
 @requires_post('alertprofiles-filter_groups')
@@ -2518,6 +2552,16 @@ def permission_list(request, group_id=None):
     }
 
     return render(request, 'alertprofiles/permissions.html', info_dict)
+
+
+def permissions_help_modal(request):
+    """Renders the permissions help modal"""
+    return render_modal(
+        request,
+        'alertprofiles/_permissions_help_modal.html',
+        modal_id="permissions-help",
+        size="small",
+    )
 
 
 @requires_post('alertprofiles-permissions')

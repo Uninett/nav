@@ -1,0 +1,58 @@
+<h5>Operator help</h5>
+<p>
+    The four operators are in the database represented by to flags, one
+    for «include» and one for «positive». The table below shows how
+    these operators affect the filters added.
+</p>
+<p>
+    Notice that priority affects how the final set will be, as each
+    filter is checked according to it's priority, ie: number 1 first,
+    then number two and so on.
+</p>
+<table class="listtable">
+    <thead>
+    <tr>
+        <th>Operator</th>
+        <th>Include flag</th>
+        <th>Positive flag</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Add</td>
+        <td>1</td>
+        <td>1</td>
+        <td>Union in set theory.<br/>Adds all matching alerts to the
+            set.
+        </td>
+    </tr>
+    <tr>
+        <td>Subtract</td>
+        <td>0</td>
+        <td>1</td>
+        <td>Exclusion.<br/>Removes all matching alerts from the
+            set.
+        </td>
+    </tr>
+    <tr>
+        <td>And</td>
+        <td>0</td>
+        <td>0</td>
+        <td>Intersection in set theory.<br/>Removes all alerts but
+            those who are in both the current set and those in the set
+            matched by this filter.
+        </td>
+    </tr>
+    <tr>
+        <td>Add inverse</td>
+        <td>1</td>
+        <td>0</td>
+        <td>Complement of set.<br/>Adds the oposite of whats
+            matched. Ie: with a filter that checks for severity &gt;
+            70, using this operator will check for severity &lt;=
+            70.
+        </td>
+    </tr>
+    </tbody>
+</table>

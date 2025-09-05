@@ -24,6 +24,12 @@ from nav.web.alertprofiles import views
 urlpatterns = [
     # Overview
     re_path(r'^$', views.overview, name='alertprofiles-overview'),
+    # alert profiles groups and permissions modal
+    re_path(
+        r'^groupsandpermissions/$',
+        views.groups_and_permissions_modal,
+        name='alertprofiles-groups-and-permissions',
+    ),
     # User settings
     re_path(r'^profile/$', views.show_profile, name='alertprofiles-profile'),
     re_path(r'^profile/new/$', views.profile_new, name='alertprofiles-profile-new'),
@@ -105,6 +111,11 @@ urlpatterns = [
         name='alertprofiles-filters-addexpression',
     ),
     re_path(
+        r'^filters/add-expression/operatorhelp$',
+        views.filter_addexpression_operator_help_modal,
+        name='alertprofiles-filters-addexpression-operator-help',
+    ),
+    re_path(
         r'^filters/save-expression/$',
         views.filter_saveexpression,
         name='alertprofiles-filters-saveexpression',
@@ -122,6 +133,11 @@ urlpatterns = [
         r'^filter-groups/(?P<filter_group_id>\d+)/$',
         views.filter_group_detail,
         name='alertprofiles-filter_groups-detail',
+    ),
+    re_path(
+        r'^filter-groups/operatorhelp/$',
+        views.filter_group_operator_help_modal,
+        name='alertprofiles-filter_groups-operator-help',
     ),
     re_path(
         r'^filter-groups/new/$',
@@ -174,6 +190,11 @@ urlpatterns = [
     #################
     # Permissions
     re_path(r'^permissions/$', views.permission_list, name='alertprofiles-permissions'),
+    re_path(
+        r'^permissions/help$',
+        views.permissions_help_modal,
+        name='alertprofiles-permissions-help',
+    ),
     re_path(
         r'^permissions/(?P<group_id>\d+)/$',
         views.permission_list,
