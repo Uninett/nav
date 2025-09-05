@@ -39,6 +39,7 @@ from nav.models.manage import Netbox
 from twisted.internet import reactor, defer
 
 _exit_code = 0
+TIMEOUT = SNMPParameters.DEFAULT_TIMEOUT
 
 
 def main():
@@ -46,17 +47,19 @@ def main():
     options = parse_args()
 
     if options.device:
-        reactor.callWhenRunning(reactor_main, options.device, options.port)
+        reactor.callWhenRunning(
+            reactor_main, options.device, options.port, options.timeout
+        )
         reactor.run()
         sys.exit(_exit_code)
 
 
-def reactor_main(box, portnumber):
+def reactor_main(box, portnumber, timeout=TIMEOUT):
     """The main function to start in the event reactor"""
     header = "{sysname} ({ip}:{port})".format(port=portnumber, **vars(box))
     print(header)
     print("-" * len(header))
-    df = defer.ensureDeferred(collect_entities(box, portnumber))
+    df = defer.ensureDeferred(collect_entities(box, portnumber, timeout))
     df.addCallback(make_graph, box)
     df.addCallback(print_graph)
     df.addErrback(failure_handler)
@@ -64,9 +67,9 @@ def reactor_main(box, portnumber):
     return df
 
 
-async def collect_entities(netbox, portnumber):
+async def collect_entities(netbox, portnumber, timeout=TIMEOUT):
     """Collects the entPhysicalTable"""
-    agent = _create_agentproxy(netbox, portnumber)
+    agent = _create_agentproxy(netbox, portnumber, timeout)
     if not agent:
         return None
 
@@ -134,6 +137,13 @@ def parse_args():
         metavar="PORT",
         default=161,
     )
+    parser.add_argument(
+        "--timeout",
+        "-t",
+        type=float,
+        help=f"set a non-standard timeout in seconds, [default: {TIMEOUT}]",
+        default=TIMEOUT,
+    )
     return parser.parse_args()
 
 
@@ -168,8 +178,8 @@ def device(devicestring):
     return netbox
 
 
-def _create_agentproxy(netbox, portnumber):
-    params = SNMPParameters.factory(netbox)
+def _create_agentproxy(netbox, portnumber, timeout=TIMEOUT):
+    params = SNMPParameters.factory(netbox, timeout=timeout)
     if not params:
         return
 

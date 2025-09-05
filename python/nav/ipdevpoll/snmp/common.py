@@ -136,9 +136,12 @@ class AgentProxyMixIn(object):
 class SNMPParameters:
     """SNMP session parameters common to all SNMP protocol versions"""
 
+    # Constants, no annotations
+    DEFAULT_TIMEOUT = 1.5
+
     # Common for all SNMP sessions
     version: int = 1
-    timeout: float = 1.5
+    timeout: float = DEFAULT_TIMEOUT
     tries: int = 3
 
     # Common for v1 and v2 only
