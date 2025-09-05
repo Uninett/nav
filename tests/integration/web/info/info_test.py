@@ -119,15 +119,11 @@ class FailingSearchProvider(SearchProvider):
 
 @pytest.fixture
 def new_location(db):
-    location = Location(id="testlocation")
-    location.save()
+    location = Location(id="mylocation")
     yield location
-    location.delete()
 
 
 @pytest.fixture
 def new_room(db, new_location):
-    room = Room(id="123", description="Test Room", location=new_location)
-    room.save()
+    room = Room(id="myroom", description="Test Room", location_id="mylocation")
     yield room
-    room.delete()

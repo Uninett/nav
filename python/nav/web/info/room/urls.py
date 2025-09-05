@@ -26,11 +26,6 @@ urlpatterns = [
         r'^(?P<roomid>.+)/netboxes/', views.render_netboxes, name='room-info-netboxes'
     ),
     re_path(
-        r'aboutthesearch/',
-        views.render_about_the_search_modal,
-        name='room-info-about-the-search',
-    ),
-    re_path(
         r'^(?P<roomid>.+)/deviceinfo/',
         views.render_deviceinfo,
         name='room-info-deviceinfo',
@@ -92,4 +87,9 @@ urlpatterns = [
     re_path(r'^(?P<roomid>.+)/racks/', views.render_racks, name='room-info-racks'),
     re_path(r'^(?P<roomid>.+)/$', views.roominfo, name='room-info'),
     re_path(r'^csv-download$', views.create_csv, name='room-csv'),
+    re_path(
+        r'^aboutthesearch$',
+        views.render_about_the_search_modal,
+        name='room-info-about-the-search',
+    ),
 ]

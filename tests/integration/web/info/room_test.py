@@ -3,7 +3,7 @@ from django.test import Client
 from django.urls import reverse
 from django.utils.encoding import smart_str
 
-from nav.models.manage import Location, Room, Sensor
+from nav.models.manage import Room, Sensor
 from nav.models.profiles import Account
 from nav.models.rack import Rack
 from nav.web.info.room.views import ADD_SENSOR_MODAL_ID
@@ -237,13 +237,8 @@ class TestSaveSensorView:
 
 @pytest.fixture
 def new_room(db):
-    location = Location(id="testlocation")
-    location.save()
-    room = Room(id="123", description="Test Room", location=location)
-    room.save()
+    room = Room(id="myroom", description="Test Room", location_id="mylocation")
     yield room
-    room.delete()
-    location.delete()
 
 
 @pytest.fixture
