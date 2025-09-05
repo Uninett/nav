@@ -16,47 +16,47 @@
 #
 """Radius backend URL config."""
 
-from django.urls import re_path
+from django.urls import path
 from nav.web.radius import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.index, name='radius-index'),
-    re_path(r'^logsearch$', views.log_search, name='radius-log_search'),
-    re_path(
-        r'^logsearch/searchhints$',
+    path('', views.index, name='radius-index'),
+    path('logsearch', views.log_search, name='radius-log_search'),
+    path(
+        'logsearch/searchhints',
         views.log_search_hints_modal,
         name='radius-error-log-hints',
     ),
-    re_path(
-        r'^logdetail/(?P<accountid>\d+)/modal$',
+    path(
+        'logdetail/<int:accountid>/modal',
         views.log_detail_modal,
         name='radius-log_detail-modal',
     ),
-    re_path(
-        r'^logdetail/(?P<accountid>\d+)$',
+    path(
+        'logdetail/<int:accountid>',
         views.log_detail_page,
         name='radius-log_detail',
     ),
-    re_path(
-        r'^acctdetail/(?P<accountid>\d+)/modal$',
+    path(
+        'acctdetail/<int:accountid>/modal',
         views.account_detail_modal,
         name='radius-account_detail-modal',
     ),
-    re_path(
-        r'^acctdetail/(?P<accountid>\d+)$',
+    path(
+        'acctdetail/<int:accountid>',
         views.account_detail_page,
         name='radius-account_detail',
     ),
-    re_path(r'^acctcharts$', views.account_charts, name='radius-account_charts'),
-    re_path(
-        r'^acctcharts/acctcharthints$',
+    path('acctcharts', views.account_charts, name='radius-account_charts'),
+    path(
+        '^acctcharts/acctcharthints$',
         views.account_chart_hints_modal,
         name='radius-account-chart-hints',
     ),
-    re_path(r'^acctsearch$', views.account_search, name='radius-account_search'),
-    re_path(
-        r'^acctsearch/acctloghints$',
+    path('acctsearch', views.account_search, name='radius-account_search'),
+    path(
+        'acctsearch/acctloghints',
         views.account_log_hints_modal,
         name='radius-account-log-hints',
     ),

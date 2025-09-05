@@ -16,12 +16,13 @@
 #
 """Info netboxgroup url configuration"""
 
+from django.urls import path
 from django.urls import re_path
 from nav.web.info.netboxgroup import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.index, name='netbox-group'),
+    path('', views.index, name='netbox-group'),
     re_path(r'^(?P<groupid>.+)/edit/', views.group_edit, name='netbox-group-edit'),
     re_path(r'^(?P<groupid>.+)', views.group_detail, name='netbox-group-detail'),
 ]
