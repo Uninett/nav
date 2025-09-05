@@ -84,6 +84,7 @@ def authorization_not_required(fullpath):
         '/doc/',  # No auth/different auth system
         '/about/',
         '/index/login/',
+        '/index/audit-logging-modal/',
         '/refresh_session',
     ]
     for url in auth_not_required:

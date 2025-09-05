@@ -8,7 +8,7 @@
   <title>NAV Login</title>
   <link rel="stylesheet" href="/static/css/nav.css"/>
   <link rel="stylesheet" href="/static/css/nav/login.css"/>
-
+  <script src="{{ STATIC_URL }}js/libs/htmx-2.0.4.min.js"></script>
   <script src="{{ STATIC_URL }}js/require_config.js"></script>
   {% if debug %}
     <script src="{{ STATIC_URL }}js/require_config_dev.js"></script>
@@ -18,7 +18,6 @@
    require.config({ urlArgs: 'bust={{ nav_version }}' });
   </script>
   {% include 'navurls.html' %}
-
 </head>
 
 <body onload="document.getElementById('id_username').focus();">
@@ -49,31 +48,14 @@
 
       {% include 'custom_crispy_templates/flat_form.html' %}
 
-      <small>
-        <a href="#" data-reveal-id="auditlog-information">About audit logging in NAV</a>
-      </small>
-
-      <div id="auditlog-information" class="reveal-modal tiny" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
-        <h2 id="modalTitle">Audit logging</h2>
-
-        <p>
-          To ensure traceability of user initiated changes to the NAV database,
-          some user actions are logged. This log is only available to the NAV
-          administrators for your local installation.
-        </p>
-
-        <p>
-          Typical examples are:
-        </p>
-
-        <ul>
-          <li>a user logs in</li>
-          <li>updating IP Device configuration in SeedDB</li>
-          <li>updating an interface in PortAdmin</li>
-        </ul>
-
-        <a class="close-reveal-modal" aria-label="Close">&#215;</a>
-      </div>
+        <a
+            hx-get="{% url 'webfront-audit-logging-modal' %}"
+            hx-target="body"
+            hx-swap="beforeend"
+            type="button"
+        >
+            <small>About audit logging in NAV</small>
+        </a>
     </div>
   </div>
 </div>
