@@ -1,7 +1,10 @@
-from mock import Mock
+import json
+from io import BytesIO
 
+import pytest
 from django.urls import reverse
 from django.utils.encoding import smart_str
+from mock import Mock, patch
 
 from nav.models.profiles import Account, AccountDashboard
 from nav.web.webfront.utils import tool_list
@@ -192,3 +195,247 @@ def test_should_render_about_logging_modal(client):
 
     assert response.status_code == 200
     assert 'id="about-audit-logging"' in smart_str(response.content)
+
+
+class TestImportDashboardViews:
+    @staticmethod
+    def _get_file_object(data, name='test.json'):
+        """Helper to create a file-like object from a dictionary"""
+        file_content = json.dumps(data).encode('utf-8')
+        file_obj = BytesIO(file_content)
+        file_obj.name = name
+        return file_obj
+
+    def test_should_render_import_dashboard_modal(self, client):
+        """
+        Tests that calling the import_dashboard_modal view will return a fragment
+        with a form to import a dashboard
+        """
+        url = reverse('import-dashboard-modal')
+        response = client.get(url, follow=True)
+
+        assert 'id="import-dashboard-form"' in smart_str(response.content)
+
+    def test_when_method_is_not_post_then_return_method_not_allowed(self, client):
+        """Tests that import_dashboard only accepts POST requests"""
+        url = reverse('import-dashboard')
+        response = client.get(url)
+        assert response.status_code == 405
+
+    @patch("nav.web.webfront.views.can_modify_navlet", return_value=False)
+    def test_when_user_is_without_permission_then_return_forbidden(
+        self, mock_can_modify, client
+    ):
+        """Tests that users without permission cannot import dashboards"""
+        url = reverse('import-dashboard')
+        response = client.post(url)
+        assert response.status_code == 403
+
+    def test_when_no_file_is_provided_then_return_error(self, client):
+        """Tests that importing without a file returns an error modal"""
+        url = reverse('import-dashboard')
+        response = client.post(url)
+
+        assert 'You need to provide a file' in smart_str(response.content)
+
+    def test_given_a_valid_dashboard_file_then_create_dashboard(
+        self, db, client, valid_dashboard_data
+    ):
+        """Tests that importing a valid dashboard file creates a new dashboard"""
+        file_obj = self._get_file_object(
+            valid_dashboard_data, name='test_dashboard.json'
+        )
+
+        url = reverse('import-dashboard')
+        client.post(url, {'file': file_obj})
+
+        # Verify dashboard was created
+        assert AccountDashboard.objects.filter(
+            account_id=valid_dashboard_data['account'],
+            name=valid_dashboard_data['name'],
+        ).exists()
+
+    def test_given_a_valid_dashboard_file_then_return_redirect_header(
+        self, db, client, valid_dashboard_data
+    ):
+        """Tests that importing a valid dashboard file returns a redirect header"""
+        file_obj = self._get_file_object(
+            valid_dashboard_data, name='test_dashboard.json'
+        )
+        url = reverse('import-dashboard')
+        response = client.post(url, {'file': file_obj})
+
+        dashboard = AccountDashboard.objects.get(
+            account_id=valid_dashboard_data['account'],
+            name=valid_dashboard_data['name'],
+        )
+
+        assert 'HX-Redirect' in response.headers
+        assert response.headers['HX-Redirect'] == reverse(
+            'dashboard-index-id', args=(dashboard.id,)
+        )
+
+    def test_given_dashboard_file_with_invalid_json_then_return_error(self, client):
+        """Tests that importing invalid JSON returns an error message"""
+        file_content = b'invalid json content'
+        file_obj = BytesIO(file_content)
+        file_obj.name = 'invalid.json'
+
+        url = reverse('import-dashboard')
+        response = client.post(url, {'file': file_obj})
+
+        assert response.status_code == 200
+        assert 'File is not a valid dashboard file' in smart_str(response.content)
+        assert 'import-dashboard-form' in smart_str(response.content)
+
+    def test_given_dashboard_file_with_missing_fields_then_return_error(self, client):
+        """Tests that importing JSON missing required fields returns an error"""
+        dashboard_data = {
+            'name': 'Test Dashboard',
+            # Missing num_columns, version, widgets
+        }
+
+        file_obj = self._get_file_object(dashboard_data, name='incomplete.json')
+
+        url = reverse('import-dashboard')
+        response = client.post(url, {'file': file_obj})
+
+        assert response.status_code == 200
+        assert 'File is not a valid dashboard file' in smart_str(response.content)
+
+    def test_given_widgets_with_invalid_column_numbers_then_return_error(
+        self, client, admin_account
+    ):
+        """Tests that widgets with invalid column numbers return an error"""
+        dashboard_data = {
+            'name': 'Test Dashboard',
+            'num_columns': 2,
+            'version': 1,
+            'account': admin_account.id,
+            'widgets': [
+                {
+                    'navlet': 'test_navlet',
+                    'column': 5,  # Invalid: greater than num_columns
+                    'order': 1,
+                    'preferences': {},
+                }
+            ],
+        }
+
+        file_obj = self._get_file_object(dashboard_data, name='invalid_column.json')
+
+        url = reverse('import-dashboard')
+        response = client.post(url, {'file': file_obj})
+
+        assert response.status_code == 200
+        assert 'File is not a valid dashboard file' in smart_str(response.content)
+
+    def test_given_dashboard_file_with_wrong_field_types_then_return_error(
+        self, client
+    ):
+        """Tests that invalid field types return an error"""
+        dashboard_data = {
+            'name': 'Test Dashboard',
+            'num_columns': 'not_an_int',  # Should be int
+            'version': 1,
+            'widgets': [],
+        }
+
+        file_obj = self._get_file_object(dashboard_data, name='wrong_types.json')
+
+        url = reverse('import-dashboard')
+        response = client.post(url, {'file': file_obj})
+
+        assert response.status_code == 200
+        assert 'File is not a valid dashboard file' in smart_str(response.content)
+
+    def test_given_dashboard_file_with_non_dictionary_data_then_return_error(
+        self, client
+    ):
+        """Tests that non-dictionary JSON data returns an error"""
+        dashboard_data = ['not', 'a', 'dictionary']
+
+        file_obj = self._get_file_object(dashboard_data, name='not_dict.json')
+
+        url = reverse('import-dashboard')
+        response = client.post(url, {'file': file_obj})
+
+        assert response.status_code == 200
+        assert 'File is not a valid dashboard file' in smart_str(response.content)
+
+    def test_given_dashboard_file_with_invalid_widget_structure_then_return_error(
+        self, client, valid_dashboard_data
+    ):
+        """Tests that widgets that are not dictionaries return an error"""
+        dashboard_data = valid_dashboard_data.copy()
+        dashboard_data['widgets'] = [
+            "not_a_dict",  # This should be a dict
+            42,  # This should also be a dict
+        ]
+
+        file_obj = self._get_file_object(
+            dashboard_data, name='invalid_widget_structure.json'
+        )
+
+        url = reverse('import-dashboard')
+        response = client.post(url, {'file': file_obj})
+
+        assert response.status_code == 200
+        assert 'File is not a valid dashboard file' in smart_str(response.content)
+
+    def test_given_dashboard_file_with_widget_missing_required_fields_then_return_error(
+        self, client, valid_dashboard_data
+    ):
+        """Tests that widgets missing required fields return an error"""
+        dashboard_data = valid_dashboard_data.copy()
+        dashboard_data['widgets'] = [
+            {
+                'navlet': 'test_navlet',
+                'column': 1,
+                # Missing 'preferences' and 'order' fields
+            }
+        ]
+
+        file_obj = self._get_file_object(
+            dashboard_data, name='widget_missing_fields.json'
+        )
+
+        url = reverse('import-dashboard')
+        response = client.post(url, {'file': file_obj})
+
+        assert response.status_code == 200
+        assert 'File is not a valid dashboard file' in smart_str(response.content)
+
+    def test_given_dashboard_file_with_widget_wrong_field_types_then_return_error(
+        self, client, valid_dashboard_data
+    ):
+        """Tests that widgets with wrong field types return an error"""
+        dashboard_data = valid_dashboard_data.copy()
+        dashboard_data['widgets'] = [
+            {
+                'navlet': None,  # Should be string
+                'column': 1.5,  # Should be int
+                'preferences': [],  # Should be dict
+                'order': True,  # Should be int
+            }
+        ]
+
+        file_obj = self._get_file_object(dashboard_data, name='widget_wrong_types.json')
+
+        url = reverse('import-dashboard')
+        response = client.post(url, {'file': file_obj})
+
+        assert response.status_code == 200
+        assert 'File is not a valid dashboard file' in smart_str(response.content)
+
+
+@pytest.fixture
+def valid_dashboard_data(admin_account):
+    dashboard_data = {
+        'name': 'Valid Dashboard',
+        'num_columns': 3,
+        'account': admin_account.id,
+        'version': 1,
+        'widgets': [],
+    }
+    yield dashboard_data
