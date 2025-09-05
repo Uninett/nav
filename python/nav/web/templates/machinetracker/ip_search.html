@@ -20,12 +20,7 @@
         </div>
 
         <div class="medium-6 columns">
-          <a href="#" data-reveal-id="valid-search-terms"
-             title="Help"
-             data-reveal
-             class="button secondary small right">
-            Help
-          </a>
+          {% include 'machinetracker/_search_help_trigger.html' with tab_name='ip' %}
         </div>
       </div>
 
@@ -127,35 +122,5 @@
       No results for {{ subnet_start }}-{{ subnet_end }}
     </div>
   {% endif %}
-
-  <div id="valid-search-terms" class="reveal-modal" data-reveal>
-    <h4>Valid Search terms</h4>
-    <ul>
-      <li>Single IP addresses</li>
-      <li>Ranges like 10.0.0.0-10.0.1.255, 10.0.0.0-255 or 2001:701::AAA-FFF.</li>
-      <li>CIDR addresses like 129.241.105.0/24.</li>
-      <li>Single addresses with a CIDR slash, 129.241.105.0/ will add subnet mask based on prefixes collected by NAV.</li>
-    </ul>
-    <h4>Accuracy of the Results</h4>
-    <ul>
-      <li>
-        IP search results are based on ARP data from routers. Typically ARP
-        data entries are kept by the routers 4 hours after the last packet
-        seen.  Also keep in mind, the ARP collector only runs twice an hour
-        (0,30).  Subtracting 4-4.5 hours from the end time gives you a
-        fairly good idea.
-      </li>
-      <li>
-        Since NAV 3.3 port numbers have been removed from the search in
-        favor of interface names.  Historical search results will still
-        contain port numbers instead of interface names, as historical port
-        number data cannot be accurately mapped to interface names.
-      </li>
-      <li>
-        Searches will not return more than 4096 results, equivalent to an IPv4 /20 subnet.
-      </li>
-    </ul>
-  </div>
-
 
 {% endblock %}

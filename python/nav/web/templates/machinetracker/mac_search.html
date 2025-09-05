@@ -21,9 +21,7 @@
         </div>
 
         <div class="medium-6 column">
-          <a href="#" data-reveal-id="valid-search-terms" data-reveal
-             title="Help"
-             class="button secondary small right">Help</a>
+          {% include 'machinetracker/_search_help_trigger.html' with tab_name='mac' %}
         </div>
       </div>
 
@@ -115,22 +113,5 @@
   {% elif mac_tracker != None %}
     <div class="alert-box">No results for "{{ form_data.mac }}"</div>
   {% endif %}
-
-  <div id="valid-search-terms" class="reveal-modal" data-reveal>
-    <h4>Search Hints</h4>
-    <ul>
-      <li>
-        MAC search allows searching for a MAC prefix, e.g. a search for
-        &quot;<tt>00aabbcc</tt>&quot; will return all matches between
-        <tt>00:aa:bb:cc:00:00</tt> and <tt>00:aa:bb:cc:ff:ff</tt>.
-      </li>
-      <li>
-        The use of colon in the MAC search is optional, e.g.
-        &quot;<tt>00aabbcc</tt>&quot; and &quot;<tt>00:aa:bb:cc</tt>&quot;
-        are equal.
-      </li>
-    </ul>
-  </div>
-
 
 {% endblock %}

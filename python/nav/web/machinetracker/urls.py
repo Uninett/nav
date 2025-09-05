@@ -38,4 +38,9 @@ urlpatterns = [
     re_path(r'^swp/$', views.switch_search, name='machinetracker-swp'),
     # NetBIOS
     re_path(r'^netbios/$', views.netbios_search, name='machinetracker-netbios'),
+    re_path(
+        r'^helpmodal/(?P<tab_name>[\w-]+)/$',
+        views.render_search_help_modal,
+        name='machinetracker-search-help-modal',
+    ),
 ]

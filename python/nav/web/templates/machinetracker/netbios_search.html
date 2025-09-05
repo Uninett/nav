@@ -52,9 +52,7 @@
       </div>
 
       <div class="medium-2 column">
-        <a href="#" data-reveal-id="valid-search-terms" data-reveal
-           title="Help"
-           class="button secondary small right">Help</a>
+        {% include 'machinetracker/_search_help_trigger.html' with tab_name='netbios' %}
       </div>
 
     </div>
@@ -71,18 +69,5 @@
       <div class="alert-box">No results for "{{ form_data.search }}"</div>
     {% endif %}
   {% endif %}
-
-  <div id="valid-search-terms" class="reveal-modal" data-reveal>
-    <h4>Search Hints</h4>
-    <ul>
-      <li>Search for NetBIOS-name, MAC or IP</li>
-      <li>NetBIOS Search does not use the ARP and CAM information
-        collected by NAV, but utilize the <code>netbscan</code>
-        tool to collect NetBIOS over TCP/IP information over the
-        network
-      </li>
-    </ul>
-  </div>
-
 
 {% endblock %}

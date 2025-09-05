@@ -64,8 +64,7 @@
       </div>
 
       <div class="medium-4 column">
-        <a href="#" data-reveal-id="valid-search-terms" title="Help" data-reveal
-           class="button secondary small right">Help</a>
+        {% include 'machinetracker/_search_help_trigger.html' with tab_name='switch' %}
       </div>
 
     </div>
@@ -78,23 +77,5 @@
   {% elif mac_tracker != None %}
     <div class="alert-box">No results for "{{ form_data.switch }}"</div>
   {% endif %}
-
-  <div id="valid-search-terms" class="reveal-modal" data-reveal>
-    <h4>Search Hints</h4>
-    <ul>
-      <li>
-        Switch search will search for switches having a sysname that starts
-        with whatever you enter as switch name.  E.g. searching for
-        &quot;<tt>blapp-sw</tt>&quot; will retrieve both
-        &quot;<tt>blapp-sw.ntnu.no</tt>&quot; and
-        &quot;<tt>blapp-sw2.ntnu.no</tt>&quot;
-      </li>
-      <li>
-        Leaving the <i>module</i> or <i>interface</i> fields empty in the
-        switch search will find any module or interface that have matching
-        records for your selected switch.
-      </li>
-    </ul>
-  </div>
 
 {% endblock content %}
