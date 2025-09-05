@@ -57,11 +57,13 @@ class TestEnsureAccount:
         assert session_request.session[ACCOUNT_ID_VAR] == default_account.id
         assert session_request.account == default_account, 'Correct user not set'
 
-    def test_account_should_be_unchanged_if_ok(self, db, session_request, account):
-        set_account(session_request, account)
+    def test_account_should_be_unchanged_if_ok(
+        self, db, session_request, non_admin_account
+    ):
+        set_account(session_request, non_admin_account)
         ensure_account(session_request)
-        assert session_request.account == account
-        assert session_request.session[ACCOUNT_ID_VAR] == account.id
+        assert session_request.account == non_admin_account
+        assert session_request.session[ACCOUNT_ID_VAR] == non_admin_account.id
 
     def test_session_id_should_be_changed_if_going_from_locked_to_default_account(
         self, db, session_request, locked_account, default_account
@@ -87,25 +89,27 @@ class TestGetNumberOfAccountsWithPasswordIssues:
         # Admin user in tests has deprecated password hash method
         assert get_number_of_accounts_with_password_issues() == 1
 
-    def test_sets_cache_on_function_call(self, db, account):
+    def test_sets_cache_on_function_call(self, db):
         cache.delete(PASSWORD_ISSUES_CACHE_KEY)
 
         get_number_of_accounts_with_password_issues()
 
         assert cache.get(PASSWORD_ISSUES_CACHE_KEY) is not None
 
-    def test_cache_entry_gets_deleted_on_password_change(self, db, account):
+    def test_cache_entry_gets_deleted_on_password_change(self, db, non_admin_account):
         get_number_of_accounts_with_password_issues()
 
-        account.set_password("new_password")
-        account.save()
+        non_admin_account.set_password("new_password")
+        non_admin_account.save()
 
         assert cache.get(PASSWORD_ISSUES_CACHE_KEY) is None
 
-    def test_cache_entry_gets_deleted_on_user_deletion(self, db, client, account):
+    def test_cache_entry_gets_deleted_on_user_deletion(
+        self, db, client, non_admin_account
+    ):
         get_number_of_accounts_with_password_issues()
 
-        url = reverse('useradmin-account_delete', args=(account.id,))
+        url = reverse('useradmin-account_delete', args=(non_admin_account.id,))
 
         client.post(url, follow=True)
 

@@ -4,7 +4,6 @@ from django.urls import reverse
 from django.utils.encoding import smart_str
 
 from nav.models.manage import Sensor
-from nav.models.profiles import Account
 from nav.models.rack import Rack
 from nav.web.info.room.views import ADD_SENSOR_MODAL_ID
 
@@ -247,21 +246,9 @@ def test_sensor(db, localhost):
     sensor.delete()
 
 
-NON_ADMIN_PASSWORD = "avalidpassword"
-
-
-@pytest.fixture
-def non_admin_account(db):
-    account = Account.objects.create(login="testuser", password=NON_ADMIN_PASSWORD)
-    yield account
-    account.delete()
-
-
 @pytest.fixture(scope='function')
 def non_admin_client(client, non_admin_account):
     client_ = Client()
     url = reverse('webfront-login')
-    client_.post(
-        url, {'username': non_admin_account.login, 'password': NON_ADMIN_PASSWORD}
-    )
+    client_.post(url, {'username': non_admin_account.login, 'password': 'password'})
     return client_
