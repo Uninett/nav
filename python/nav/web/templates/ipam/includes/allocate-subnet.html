@@ -7,7 +7,15 @@
     </div>
     <% } %>
     <div class="treemap">
-      <a href="#" data-reveal-id="subnet-allocator-help" title="Help" data-reveal="" class="button secondary small right">Help</a>
+      <button
+              title="Help"
+              class="button secondary small right"
+              hx-get="{% url 'ipam-subnet-allocator-help' %}"
+              hx-target="body"
+              hx-swap="beforeend"
+      >
+          Help
+      </button>
       <!-- container for main tree viz -->
       <div class="legends"></div>
       <div class="viz"></div>

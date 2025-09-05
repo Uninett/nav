@@ -17,6 +17,7 @@
 
 from django.shortcuts import render
 from nav.models.manage import NetType, Organization, Usage, Prefix
+from nav.web.modals import render_modal
 
 NAVBAR = [('Home', '/'), ('IPAM', None)]
 DEFAULT_VALUES = {'title': "IPAM", 'navpath': NAVBAR}
@@ -30,6 +31,16 @@ def index(request):
 def matrix(request):
     ctx = {}
     return render(request, "ipam/matrix.html", ctx)
+
+
+def subnet_allocator_help_modal(request):
+    """Render a modal with help information about the subnet allocator."""
+    return render_modal(
+        request,
+        "ipam/includes/_subnet_diagram_help_modal.html",
+        modal_id="allocator-help-modal",
+        size="large",
+    )
 
 
 def generate_context():

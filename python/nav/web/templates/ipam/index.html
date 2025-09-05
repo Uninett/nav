@@ -17,15 +17,6 @@
 
 <div class="ipam">
   <!-- helper modal for the subnet allocator -->
-  <div id="subnet-allocator-help" class="reveal-modal" data-reveal="" style="display: none; opacity: 1; visibility: hidden;">
-    <h4>How to use the subnet diagram</h4>
-    <img src="/static/images/ipam/subnetallocator_whole.png" alt="the user interface of the subnet diagram"/>
-    <ol>
-      <li>Select a prefix by clicking on it. This will display more information about the prefix. If it's an unused prefix, you will also be able to reserve it.</li>
-      <li>Need more detail? You can select an area to focus to zoom into it. You can also zoom using your scroll wheel and by double clicking. To reset the zoom, you can press outside the selected area (dark grey) in the selector.</li>
-    </ol>
-  </div>
-
   {% if has_registered_scopes %}
   <div class="ipam-sidebar panel white">
     <div class="sidebar-wrapper">
