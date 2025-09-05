@@ -53,6 +53,7 @@ COLUMNS = {
     RACK_CENTER: 'center',
     RACK_RIGHT: 'right',
 }
+BACKGROUND_COLOR_CLASSES = ['bg1', 'bg2', 'bg3', 'bg4', 'bg5']
 
 _logger = logging.getLogger('nav.web.info.room')
 
@@ -308,7 +309,7 @@ def add_rack(request, roomid):
             'rack': rack,
             'room': room,
             'editmode': True,
-            'color_classes': get_background_color_classes(),
+            'color_classes': BACKGROUND_COLOR_CLASSES,
         },
         modal_id='add-rack-modal',
     )
@@ -351,14 +352,9 @@ def render_racks(request, roomid):
     context = {
         'room': room,
         'racks': room.racks.all().order_by('ordering'),
-        'color_classes': get_background_color_classes(),
+        'color_classes': BACKGROUND_COLOR_CLASSES,
     }
     return render(request, 'info/room/roominfo_racks.html', context)
-
-
-def get_background_color_classes():
-    """Returns a list of background color classes"""
-    return ['bg1', 'bg2', 'bg3', 'bg4', 'bg5']
 
 
 ADD_SENSOR_MODAL_ID = 'add-sensor-modal'
