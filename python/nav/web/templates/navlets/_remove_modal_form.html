@@ -1,0 +1,18 @@
+<form
+        method="POST"
+        hx-post="{% url 'remove-user-navlet' %}"
+        hx-target="[data-id='{{ navlet_id }}']"
+        hx-swap="delete"
+>
+    {% csrf_token %}
+    <input type="hidden" name="navletid" value="{{ navlet_id }}">
+    <p>Remove the widget from the page?</p>
+    <button class="button small full-width" type="submit">Yes</button>
+    <button
+            class="button small secondary full-width"
+            hx-on:click="htmx.remove(this.closest('.nav-modal'))"
+            type="button"
+    >
+        No
+    </button>
+</form>

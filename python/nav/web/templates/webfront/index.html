@@ -36,7 +36,12 @@
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
     <div id="widgets-actions" class="hide-for-small" >
-      <div id="widgets-action-add" title="Add widget" data-reveal data-reveal-id="navlet-list">
+      <div
+          title="Add widget"
+          hx-get="{% url 'add-navlet-modal' dashboard.id %}"
+          hx-target="body"
+          hx-swap="beforeend"
+      >
         <i class="fa fa-plus"></i>
       </div>
 
@@ -66,27 +71,6 @@
         <i class="fa fa-gear fa-lg"></i>
       </div>
 
-    </div>
-
-    {% comment %} List of navlets to add {% endcomment %}
-    <div id="navlet-list" class="reveal-modal" data-reveal>
-      <h4>Add a widget to your page</h4>
-
-      <ul class="small-block-grid-1 medium-block-grid-2 large-block-grid-3">
-        {% for navlet in navlets %}
-          <li>
-            <div class="panel">
-              <form class="add-user-navlet right" action="{% url 'add-user-navlet' dashboard.pk %}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="navlet" value="{{ navlet.get_class }}">
-                <input type="submit" class="button tiny" value="Add">
-              </form>
-              <h5>{{ navlet.title }}</h5>
-              <span>{{ navlet.description }}</span>
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
     </div>
 
     {% comment %} Dashboard import form {% endcomment %}
