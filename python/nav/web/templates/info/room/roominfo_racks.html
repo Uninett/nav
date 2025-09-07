@@ -16,7 +16,7 @@
 <h3>Environment sensors in racks in {{ room.pk }}</h3>
 
 {% if not racks %}
-  <p class="alert-box">There are no racks in this room.</p>
+  <p class="alert-box" data-id="no-racks-alert">There are no racks in this room.</p>
 {% endif %}
 
 <div id="racks-container" class="racks-container">

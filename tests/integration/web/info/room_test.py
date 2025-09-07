@@ -70,6 +70,17 @@ class TestAddRoomRackViews:
         assert response.status_code == 200
         assert 'name="rack-color"' in smart_str(response.content)
 
+    def test_when_rack_is_added_then_return_rack_added_event(self, client):
+        url = reverse('room-info-racks-add-rack', args=['myroom'])
+        response = client.post(
+            url,
+            {
+                'rackname': 'Test Rack',
+            },
+        )
+        assert response.status_code == 200
+        assert 'room.rack.added' in response.headers['HX-Trigger']
+
 
 class TestAddSensorModalView:
     def test_should_render_add_sensor_modal(self, client, test_rack):

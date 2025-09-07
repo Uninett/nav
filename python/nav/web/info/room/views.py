@@ -302,7 +302,7 @@ def add_rack(request, roomid):
     room = get_object_or_404(Room, pk=roomid)
     rackname = request.POST.get('rackname')
     rack = create_rack(room, rackname)
-    return resolve_modal(
+    response = resolve_modal(
         request,
         'info/room/fragment_rack.html',
         {
@@ -313,6 +313,7 @@ def add_rack(request, roomid):
         },
         modal_id='add-rack-modal',
     )
+    return trigger_client_event(response, 'room.rack.added', {'rackId': rack.id})
 
 
 def add_rack_modal(request, roomid):
