@@ -81,6 +81,10 @@ require([
             });
         });
 
+        document.body.addEventListener('room.rack.added', function () {
+            $('[data-id="no-racks-alert"]').remove()
+        })
+
         /* Form submission is handled by htmx, we just need to add a listener for
            when the sensor is added to update it with data */
         document.body.addEventListener('room.rack.sensorAdded', function(event) {
