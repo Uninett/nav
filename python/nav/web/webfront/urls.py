@@ -16,91 +16,87 @@
 #
 """Django URL configuration for webfront"""
 
-from django.urls import re_path
+from django.urls import path, re_path
 from django.views.generic import RedirectView
 
 from nav.web.webfront import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.index, name='webfront-index'),
-    re_path(r'^index/login/', views.login, name='webfront-login'),
-    re_path(
-        r'^index/audit-logging-modal/$',
+    path('', views.index, name='webfront-index'),
+    path('index/login/', views.login, name='webfront-login'),
+    path(
+        'index/audit-logging-modal/',
         views.audit_logging_modal,
         name='webfront-audit-logging-modal',
     ),
-    re_path(r'^index/logout/', views.logout, name='webfront-logout'),
+    path('index/logout/', views.logout, name='webfront-logout'),
     # Dashboard
-    re_path(r'^index/dashboard/(?P<did>\d+)', views.index, name='dashboard-index-id'),
-    re_path(r'^index/dashboard/add/$', views.add_dashboard, name='add-dashboard'),
-    re_path(
-        r'^index/dashboard/set_default/(?P<did>\d+)/$',
+    path('index/dashboard/<int:did>/', views.index, name='dashboard-index-id'),
+    path('index/dashboard/add/', views.add_dashboard, name='add-dashboard'),
+    path(
+        'index/dashboard/set_default/<int:did>/',
         views.set_default_dashboard,
         name='set-default-dashboard',
     ),
-    re_path(
-        r'^index/dashboard/rename/(?P<did>\d+)/$',
+    path(
+        'index/dashboard/rename/<int:did>/',
         views.rename_dashboard,
         name='rename-dashboard',
     ),
-    re_path(
-        r'^index/dashboard/delete/(?P<did>\d+)/$',
+    path(
+        'index/dashboard/delete/<int:did>/',
         views.delete_dashboard,
         name='delete-dashboard',
     ),
-    re_path(
-        r'^index/dashboard/columns/(?P<did>\d+)/$',
+    path(
+        'index/dashboard/columns/<int:did>/',
         views.save_dashboard_columns,
         name='save-dashboard-columns',
     ),
-    re_path(
-        r'^index/dashboard/moveto/(?P<did>\d+)/$',
+    path(
+        'index/dashboard/moveto/<int:did>/',
         views.moveto_dashboard,
         name='moveto-dashboard',
     ),
-    re_path(
-        r'^index/dashboard/export/(?P<did>\d+)$',
+    path(
+        'index/dashboard/export/<int:did>',
         views.export_dashboard,
         name='export-dashboard',
     ),
-    re_path(
-        r'^index/dashboard/import$', views.import_dashboard, name='import-dashboard'
-    ),
-    re_path(
-        r'îndex/dashboard/importmodal$',
+    path('index/dashboard/import', views.import_dashboard, name='import-dashboard'),
+    path(
+        'îndex/dashboard/importmodal',
         views.import_dashboard_modal,
         name='import-dashboard-modal',
     ),
-    re_path(r'^index/dashboard/', views.index, name='dashboard-index'),
-    re_path(r'^about/', views.about, name='webfront-about'),
+    path('index/dashboard/', views.index, name='dashboard-index'),
+    path('about/', views.about, name='webfront-about'),
     re_path(
         r'^doc/(?P<path>.+)$',
         RedirectView.as_view(url='/static/doc/%(path)s', permanent=True),
     ),
-    re_path(
-        r'^doc/$', RedirectView.as_view(url='/static/doc/index.html', permanent=True)
-    ),
+    path('doc/', RedirectView.as_view(url='/static/doc/index.html', permanent=True)),
     re_path(
         r'^uploads/(?P<path>.*)$',
         RedirectView.as_view(url='/static/uploads/%(path)s', permanent=True),
     ),
-    re_path(r'^toolbox/$', views.toolbox, name='webfront-toolbox'),
-    re_path(r'^preferences/$', views.preferences, name='webfront-preferences'),
-    re_path(
-        r'^preferences/savelinks$',
+    path('toolbox/', views.toolbox, name='webfront-toolbox'),
+    path('preferences/', views.preferences, name='webfront-preferences'),
+    path(
+        'preferences/savelinks',
         views.save_links,
         name='webfront-preferences-savelinks',
     ),
-    re_path(
-        r'^preferences/changepassword$',
+    path(
+        'preferences/changepassword',
         views.change_password,
         name='webfront-preferences-changepassword',
     ),
-    re_path(
-        r'^preferences/set_account_preference$',
+    path(
+        'preferences/set_account_preference',
         views.set_account_preference,
         name='set-account-preference',
     ),
-    re_path(r'^qr-code/$', views.qr_code, name='webfront-qr-code'),
+    path('qr-code/', views.qr_code, name='webfront-qr-code'),
 ]
