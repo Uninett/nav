@@ -16,7 +16,7 @@
 #
 """Module comment"""
 
-from django.urls import re_path
+from django.urls import re_path, path
 from . import (
     get_user_navlets,
     add_user_navlet,
@@ -33,31 +33,30 @@ from . import (
 
 
 urlpatterns = [
-    re_path(r'^get-user-navlets/$', get_user_navlets, name='get-user-navlets'),
-    re_path(
-        r'^get-user-navlets/(?P<dashboard_id>\d+)/$',
+    path('get-user-navlets/', get_user_navlets, name='get-user-navlets'),
+    path(
+        'get-user-navlets/<int:dashboard_id>/',
         get_user_navlets,
         name='get-user-navlets',
     ),
-    re_path(r'^add-user-navlet/$', add_user_navlet, name='add-user-navlet'),
-    re_path(
-        r'^add-user-navlet/(?P<dashboard_id>\d+)/$',
+    path('add-user-navlet/', add_user_navlet, name='add-user-navlet'),
+    path(
+        'add-user-navlet/<int:dashboard_id>/',
         add_user_navlet,
         name='add-user-navlet',
     ),
-    re_path(
-        r'^add-navlet-modal/(?P<dashboard_id>\d+)/$',
+    path(
+        'add-navlet-modal/<int:dashboard_id>/',
         add_navlet_modal,
         name='add-navlet-modal',
     ),
-    re_path(
-        r'^add-user-navlet/graph/$', add_user_navlet_graph, name='add-user-navlet-graph'
-    ),
-    re_path(
-        r'^add-user-navlet/sensor/$',
+    path('add-user-navlet/graph/', add_user_navlet_graph, name='add-user-navlet-graph'),
+    path(
+        'add-user-navlet/sensor/',
         add_user_navlet_sensor,
         name='add-user-navlet-sensor',
     ),
+    # XXX: wrong regexp in all of these?
     re_path(r'^remove-user-navlet/', remove_user_navlet, name='remove-user-navlet'),
     re_path(
         r'^remove-user-navlet-modal/(?P<navlet_id>\d+)',

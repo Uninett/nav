@@ -16,38 +16,36 @@
 #
 """Django URL config for network explorer."""
 
-from django.urls import re_path
+from django.urls import path
 from nav.web.networkexplorer import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.IndexView.as_view(), name='networkexplorer-index'),
-    re_path(r'^search/$', views.SearchView.as_view(), name="networkexplorer-search"),
-    re_path(
-        r'^routers/$', views.RouterJSONView.as_view(), name='networkexplorer-routers'
-    ),
-    re_path(
-        r'^expand/router/(?P<pk>\d+)/$',
+    path('', views.IndexView.as_view(), name='networkexplorer-index'),
+    path('search/', views.SearchView.as_view(), name="networkexplorer-search"),
+    path('routers/', views.RouterJSONView.as_view(), name='networkexplorer-routers'),
+    path(
+        'expand/router/<int:pk>/',
         views.ExpandRouterView.as_view(),
         name='networkexplorer-expand-router',
     ),
-    re_path(
-        r'^expand/gwport/(?P<pk>\d+)/$',
+    path(
+        'expand/gwport/<int:pk>/',
         views.ExpandGWPortView.as_view(),
         name='networkexplorer-expand-gwport',
     ),
-    re_path(
-        r'^expand/switch/(?P<pk>\d+)/$',
+    path(
+        'expand/switch/<int:pk>/',
         views.ExpandSwitchView.as_view(),
         name='networkexplorer-expand-switch',
     ),
-    re_path(
-        r'^expand/switch/(?P<pk>\d+)/vlan/(?P<vlan_id>\d+)/$',
+    path(
+        'expand/switch/<int:pk>/vlan/<int:vlan_id>/',
         views.ExpandSwitchView.as_view(),
         name='networkexplorer-expand-switch-vlan',
     ),
-    re_path(
-        r'^expand/swport/(?P<pk>\d+)/$',
+    path(
+        'expand/swport/<int:pk>/',
         views.ExpandSWPortView.as_view(),
         name='networkexplorer-expand-swport',
     ),
