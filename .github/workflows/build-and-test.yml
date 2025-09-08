@@ -40,7 +40,7 @@ jobs:
           key: ${{ runner.os }}-${{ steps.system-info.outputs.release }}-tox-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt', '**/requirements/*.txt', 'tox.ini') }}
 
       - name: "Set up Python ${{ matrix.python-version }}"
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
