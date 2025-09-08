@@ -16,12 +16,13 @@
 #
 """Django URL configuration"""
 
+from django.urls import path
 from django.urls import re_path
 from nav.web.info.room import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.search, name='room-search'),
+    path('', views.search, name='room-search'),
     re_path(
         r'^(?P<roomid>.+)/netboxes/', views.render_netboxes, name='room-info-netboxes'
     ),
