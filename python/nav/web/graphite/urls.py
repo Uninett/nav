@@ -26,5 +26,6 @@ def _dummy(x):
 
 urlpatterns = [
     re_path(r'^(?P<uri>.*)$', views.index, name='graphite'),
+    # XXX: the below finds more than just render.
     re_path(r'^render', _dummy, name='graphite-render'),
 ]
