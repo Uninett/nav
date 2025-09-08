@@ -237,9 +237,9 @@ class TestRadiusAccountDetailViews:
         mock_query_class.return_value = mock_query
 
         url = reverse('radius-account_detail', args=[999])
+        response = client.get(url)
 
-        with pytest.raises(IndexError):
-            client.get(url)
+        assert "No details available" in smart_str(response.content)
 
     @patch('nav.web.radius.views.AcctDetailQuery')
     def test_with_custom_username(
@@ -292,9 +292,9 @@ class TestRadiusLogDetailViews:
         mock_query_class.return_value = mock_query
 
         url = reverse('radius-log_detail', args=[999])
+        response = client.get(url)
 
-        with pytest.raises(IndexError):
-            client.get(url)
+        assert "No details available" in smart_str(response.content)
 
     @patch('nav.web.radius.views.LogDetailQuery')
     def test_log_detail_with_custom_message(

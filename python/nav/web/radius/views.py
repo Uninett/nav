@@ -153,10 +153,12 @@ def log_detail(request, accountid, template, use_modal=False):
     """Displays log details for accountid with the given template"""
     query = LogDetailQuery(accountid)
     query.execute()
-    result = query.result[0]
 
-    field_desc = [LOG_FIELDDESCRIPTIONS[field] for field in LOG_DETAILFIELDS]
-    fields = zip(field_desc, result)
+    fields = []
+    if query.result:
+        result = query.result[0]
+        field_desc = [LOG_FIELDDESCRIPTIONS[field] for field in LOG_DETAILFIELDS]
+        fields = zip(field_desc, result)
 
     context = {
         'fields': fields,
@@ -240,10 +242,12 @@ def account_detail(request, accountid, template, use_modal=False):
     """Finds account details for a specific accountid"""
     query = AcctDetailQuery(accountid)
     query.execute()
-    result = query.result[0]
 
-    field_desc = [ACCT_DBFIELDSDESCRIPTIONS[field] for field in ACCT_DETAILSFIELDS]
-    fields = zip(field_desc, result)
+    fields = []
+    if query.result:
+        result = query.result[0]
+        field_desc = [ACCT_DBFIELDSDESCRIPTIONS[field] for field in ACCT_DETAILSFIELDS]
+        fields = zip(field_desc, result)
 
     context = {
         'fields': fields,
