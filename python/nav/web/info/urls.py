@@ -16,17 +16,18 @@
 #
 """Django URL configuration"""
 
-from django.urls import re_path, include
+from django.urls import include, path
+
 from nav.web.info.views import image_help_modal, index
 
 urlpatterns = [
-    re_path(r'^$', index, name="info-search"),
-    re_path(r'^room/', include('nav.web.info.room.urls')),
-    re_path(r'^location/', include('nav.web.info.location.urls')),
-    re_path(r'^vlan/', include('nav.web.info.vlan.urls')),
-    re_path(r'^prefix/', include('nav.web.info.prefix.urls')),
-    re_path(r'^devicegroup/', include('nav.web.info.netboxgroup.urls')),
-    re_path(r'^image/', include('nav.web.info.images.urls')),
-    re_path(r'^event/', include('nav.web.info.event.urls')),
-    re_path(r'^image-help-modal/$', image_help_modal, name='info-image-help-modal'),
+    path('', index, name="info-search"),
+    path('room/', include('nav.web.info.room.urls')),
+    path('location/', include('nav.web.info.location.urls')),
+    path('vlan/', include('nav.web.info.vlan.urls')),
+    path('prefix/', include('nav.web.info.prefix.urls')),
+    path('devicegroup/', include('nav.web.info.netboxgroup.urls')),
+    path('image/', include('nav.web.info.images.urls')),
+    path('event/', include('nav.web.info.event.urls')),
+    path('image-help-modal/', image_help_modal, name='info-image-help-modal'),
 ]
