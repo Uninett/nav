@@ -21,8 +21,10 @@
               <td>
                 {{ netbox.sysname }}
                 <button class="table-button secondary right"
-                        data-reveal-id="dns-modal"
-                        data-reveal-ajax="{% url 'ipdevinfo-hostinfo' netbox.sysname %}" >
+                    hx-get="{% url 'ipdevinfo-hostinfo' netbox.sysname %}"
+                    hx-target="body"
+                    hx-swap="beforeend"
+                >
                   DNS
                 </button>
               </td>
@@ -634,6 +636,3 @@
 
   </div>
 </div>
-
-
-<div id="dns-modal" class="reveal-modal small" data-reveal aria-hidden="true" role="dialog"></div>
