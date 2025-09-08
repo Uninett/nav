@@ -23,6 +23,7 @@ from django.urls import reverse
 from nav.metrics.names import raw_metric_query
 from nav.metrics.graphs import get_simple_graph_url, Graph
 from nav.models.thresholds import ThresholdRule
+from nav.web.modals import render_modal
 from nav.web.threshold.forms import ThresholdForm
 from nav.django.utils import get_account
 from nav.web.utils import create_title
@@ -122,6 +123,18 @@ def handle_threshold_form(form, request):
     threshold.created = datetime.datetime.now()
     threshold.creator = get_account(request)
     threshold.save()
+
+
+def threshold_help_modal(request):
+    """
+    Render a modal with help information for adding threshold rules
+    """
+    return render_modal(
+        request,
+        'threshold/_threshold_help_modal.html',
+        modal_id='threshold-help-modal',
+        size="large",
+    )
 
 
 def threshold_search(request):

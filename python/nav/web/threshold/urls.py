@@ -28,6 +28,7 @@ urlpatterns = [
     re_path(
         r'^delete/(?P<rule_id>\d+)$', views.delete_threshold, name='threshold-delete'
     ),
+    re_path(r'^helpmodal$', views.threshold_help_modal, name='threshold-help-modal'),
     re_path(r'^search/$', views.threshold_search, name='threshold-search'),
     re_path(r'^graph_url/$', views.get_graph_url, name='threshold-graph'),
 ]
