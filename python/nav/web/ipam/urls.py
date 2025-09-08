@@ -23,12 +23,17 @@ Exposes a private, read-only API (self/api) for search purposes mostly.
 """
 
 from django.urls import re_path, include
-from nav.web.ipam.views import index, matrix
+from nav.web.ipam.views import index, matrix, subnet_allocator_help_modal
 from nav.web.ipam.api import router
 
 
 urlpatterns = [
     re_path(r'^$', index),
+    re_path(
+        r'^subnetallocatorhelp',
+        subnet_allocator_help_modal,
+        name='ipam-subnet-allocator-help',
+    ),
     re_path(r'^matrix', matrix),
     re_path(r'^api', include(router.urls)),
 ]
