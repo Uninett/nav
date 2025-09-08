@@ -16,25 +16,25 @@
 #
 """Django URL configuration for devicehistory."""
 
-from django.urls import re_path
+from django.urls import path, re_path
 from nav.web.devicehistory import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.devicehistory_search, name='devicehistory-search'),
-    re_path(
-        r'^componentsearch/$',
+    path('', views.devicehistory_search, name='devicehistory-search'),
+    path(
+        'componentsearch/',
         views.devicehistory_component_search,
         name='devicehistory-component-search',
     ),
-    re_path(r'^history/$', views.devicehistory_view, name='devicehistory-view'),
+    path('history/', views.devicehistory_view, name='devicehistory-view'),
     re_path(
         r'^history/room/(?P<room_id>.+)/$',
         views.devicehistory_view_room,
         name='devicehistory-view-room',
     ),
-    re_path(
-        r'^history/netbox/(?P<netbox_id>\d+)/$',
+    path(
+        'history/netbox/<int:netbox_id>/',
         views.devicehistory_view_netbox,
         name='devicehistory-view-netbox',
     ),
@@ -43,20 +43,20 @@ urlpatterns = [
         views.devicehistory_view_location,
         name='devicehistory-view-location',
     ),
-    re_path(r'^registererror/$', views.error_form, name='devicehistory-registererror'),
-    re_path(
-        r'^registererror/componentsearch/$',
+    path('^registererror/', views.error_form, name='devicehistory-registererror'),
+    path(
+        'registererror/componentsearch/',
         views.registererror_component_search,
         name='devicehistory-registererror-component-search',
     ),
-    re_path(
-        r'^do_registererror/$',
+    path(
+        'do_registererror/',
         views.register_error,
         name='devicehistory-do-registererror',
     ),
-    re_path(r'^delete_module/$', views.delete_module, name='devicehistory-module'),
-    re_path(
-        r'^do_delete_module/$',
+    path('delete_module/', views.delete_module, name='devicehistory-module'),
+    path(
+        'do_delete_module/',
         views.do_delete_module,
         name='devicehistory-do_delete_module',
     ),
