@@ -16,12 +16,13 @@
 #
 """PortAdmin Django URL config"""
 
+from django.urls import path
 from django.urls import re_path
 from nav.web.portadmin import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.index, name='portadmin-index'),
+    path('', views.index, name='portadmin-index'),
     re_path(r'^ip=(?P<ip>[\d\.]+)', views.search_by_ip, name='portadmin-ip'),
     re_path(
         r'^sysname=(?P<sysname>\S+)', views.search_by_sysname, name='portadmin-sysname'
