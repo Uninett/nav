@@ -17,33 +17,29 @@
 #
 """Django URL config for ipdevinfo"""
 
-from django.urls import re_path
+from django.urls import path, re_path
 from nav.web.ipdevinfo import views
 
 
 urlpatterns = [
     # Search
-    re_path(r'^$', views.search, name='ipdevinfo-search'),
+    path('', views.search, name='ipdevinfo-search'),
     # Service list
-    re_path(r'^service/$', views.service_list, name='ipdevinfo-service-list-all'),
+    path('service/', views.service_list, name='ipdevinfo-service-list-all'),
     re_path(
         r'^service/handler=(?P<handler>\w+)/$',
         views.service_list,
         name='ipdevinfo-service-list-handler',
     ),
     # Service matrix
-    re_path(
-        r'^service/matrix/$', views.service_matrix, name='ipdevinfo-service-matrix'
-    ),
+    path('service/matrix/', views.service_matrix, name='ipdevinfo-service-matrix'),
     # IP Device details
     re_path(
         r'^ip=(?P<addr>[a-f\d\.:]+)/$',
         views.ipdev_details,
         name='ipdevinfo-details-by-addr',
     ),
-    re_path(
-        r'^id=(?P<netbox_id>\d+)/$', views.ipdev_details, name='ipdevinfo-details-by-id'
-    ),
+    path('id=<int:netbox_id>/', views.ipdev_details, name='ipdevinfo-details-by-id'),
     re_path(
         r'^(?P<name>[^/]+)/$', views.ipdev_details, name='ipdevinfo-details-by-name'
     ),
@@ -85,8 +81,8 @@ urlpatterns = [
         views.port_details,
         name='ipdevinfo-interface-details-by-name',
     ),
-    re_path(
-        r'^g/port/(?P<interfaceid>\d+)/$',
+    path(
+        'g/port/<int:interfaceid>/',
         views.port_counter_graph,
         name='interface-counter-graph',
     ),
