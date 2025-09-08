@@ -17,191 +17,182 @@
 #
 """Alert Profiles url config."""
 
-from django.urls import re_path
+from django.urls import path
+
 from nav.web.alertprofiles import views
 
 
 urlpatterns = [
     # Overview
-    re_path(r'^$', views.overview, name='alertprofiles-overview'),
+    path('', views.overview, name='alertprofiles-overview'),
     # alert profiles groups and permissions modal
-    re_path(
-        r'^groupsandpermissions/$',
+    path(
+        'groupsandpermissions/',
         views.groups_and_permissions_modal,
         name='alertprofiles-groups-and-permissions',
     ),
     # User settings
-    re_path(r'^profile/$', views.show_profile, name='alertprofiles-profile'),
-    re_path(r'^profile/new/$', views.profile_new, name='alertprofiles-profile-new'),
-    re_path(
-        r'^profile/(?P<profile_id>\d+)/$',
+    path('profile/', views.show_profile, name='alertprofiles-profile'),
+    path('profile/new/', views.profile_new, name='alertprofiles-profile-new'),
+    path(
+        'profile/<int:profile_id>/',
         views.profile_detail,
         name='alertprofiles-profile-detail',
     ),
-    re_path(r'^profile/save/$', views.profile_save, name='alertprofiles-profile-save'),
-    re_path(
-        r'^profile/remove/$', views.profile_remove, name='alertprofiles-profile-remove'
-    ),
-    re_path(
-        r'^profile/time-period/(?P<time_period_id>\d+)/$',
+    path('profile/save/', views.profile_save, name='alertprofiles-profile-save'),
+    path('profile/remove/', views.profile_remove, name='alertprofiles-profile-remove'),
+    path(
+        'profile/time-period/<int:time_period_id>/',
         views.profile_time_period,
         name='alertprofiles-profile-timeperiod',
     ),
-    re_path(
-        r'^profile/time-period/(?P<time_period_id>\d+)/subscriptions/$',
+    path(
+        'profile/time-period/<int:time_period_id>/subscriptions/',
         views.profile_time_period_setup,
         name='alertprofiles-profile-timeperiod-setup',
     ),
-    re_path(
-        r'^profile/time-period/add/$',
+    path(
+        'profile/time-period/add/',
         views.profile_time_period_add,
         name='alertprofiles-profile-timeperiod-add',
     ),
-    re_path(
-        r'^profile/time-period/remove/$',
+    path(
+        'profile/time-period/remove/',
         views.profile_time_period_remove,
         name='alertprofiles-profile-timeperiod-remove',
     ),
-    re_path(
-        r'^profile/time-period/subscription/(?P<subscription_id>\d+)$',
+    path(
+        'profile/time-period/subscription/<int:subscription_id>',
         views.profile_time_period_subscription_edit,
         name='alertprofiles-profile-timeperiod-subscription',
     ),
-    re_path(
-        r'^profile/time-period/subscription/add/$',
+    path(
+        'profile/time-period/subscription/add/',
         views.profile_time_period_subscription_add,
         name='alertprofiles-profile-timeperiod-subscription-add',
     ),
-    re_path(
-        r'^profile/time-period/subscription/remove/$',
+    path(
+        'profile/time-period/subscription/remove/',
         views.profile_time_period_subscription_remove,
         name='alertprofiles-profile-timeperiod-subscription-remove',
     ),
-    re_path(
-        r'^language/save/$', views.language_save, name='alertprofiles-language-save'
-    ),
-    re_path(r'^sms/$', views.sms_list, name='alertprofiles-sms'),
+    path('language/save/', views.language_save, name='alertprofiles-language-save'),
+    path('sms/', views.sms_list, name='alertprofiles-sms'),
     # Alert address
-    re_path(r'^address/$', views.address_list, name='alertprofiles-address'),
-    re_path(
-        r'^address/(?P<address_id>\d+)/$',
+    path('address/', views.address_list, name='alertprofiles-address'),
+    path(
+        'address/<int:address_id>/',
         views.address_detail,
         name='alertprofiles-address-detail',
     ),
-    re_path(r'^address/new/$', views.address_detail, name='alertprofiles-address-new'),
-    re_path(r'^address/save/$', views.address_save, name='alertprofiles-address-save'),
-    re_path(
-        r'^address/remove/$', views.address_remove, name='alertprofiles-address-remove'
-    ),
+    path('address/new/', views.address_detail, name='alertprofiles-address-new'),
+    path('address/save/', views.address_save, name='alertprofiles-address-save'),
+    path('address/remove/', views.address_remove, name='alertprofiles-address-remove'),
     # Filters
-    re_path(r'^filters/$', views.filter_list, name='alertprofiles-filters'),
-    re_path(
-        r'^filters/(?P<filter_id>\d+)/$',
+    path('filters/', views.filter_list, name='alertprofiles-filters'),
+    path(
+        'filters/<int:filter_id>/',
         views.filter_detail,
         name='alertprofiles-filters-detail',
     ),
-    re_path(r'^filters/new/$', views.filter_detail, name='alertprofiles-filters-new'),
-    re_path(r'^filters/save/$', views.filter_save, name='alertprofiles-filters-save'),
-    re_path(
-        r'^filters/remove/$', views.filter_remove, name='alertprofiles-filters-remove'
-    ),
-    re_path(
-        r'^filters/add-expression/$',
+    path('filters/new/', views.filter_detail, name='alertprofiles-filters-new'),
+    path('filters/save/', views.filter_save, name='alertprofiles-filters-save'),
+    path('filters/remove/', views.filter_remove, name='alertprofiles-filters-remove'),
+    path(
+        'filters/add-expression/',
         views.filter_addexpression,
         name='alertprofiles-filters-addexpression',
     ),
-    re_path(
-        r'^filters/add-expression/operatorhelp$',
+    path(
+        'filters/add-expression/operatorhelp',
         views.filter_addexpression_operator_help_modal,
         name='alertprofiles-filters-addexpression-operator-help',
     ),
-    re_path(
-        r'^filters/save-expression/$',
+    path(
+        'filters/save-expression/',
         views.filter_saveexpression,
         name='alertprofiles-filters-saveexpression',
     ),
-    re_path(
-        r'^filters/remove-expression/$',
+    path(
+        'filters/remove-expression/',
         views.filter_removeexpression,
         name='alertprofiles-filters-removeexpression',
     ),
     # Filter groups
-    re_path(
-        r'^filter-groups/$', views.filter_group_list, name='alertprofiles-filter_groups'
-    ),
-    re_path(
-        r'^filter-groups/(?P<filter_group_id>\d+)/$',
+    path('filter-groups/', views.filter_group_list, name='alertprofiles-filter_groups'),
+    path(
+        'filter-groups/<int:filter_group_id>/',
         views.filter_group_detail,
         name='alertprofiles-filter_groups-detail',
     ),
-    re_path(
-        r'^filter-groups/operatorhelp/$',
+    path(
+        'filter-groups/operatorhelp/',
         views.filter_group_operator_help_modal,
         name='alertprofiles-filter_groups-operator-help',
     ),
-    re_path(
-        r'^filter-groups/new/$',
+    path(
+        'filter-groups/new/',
         views.filter_group_detail,
         name='alertprofiles-filter_groups-new',
     ),
-    re_path(
-        r'^filter-groups/save/$',
+    path(
+        'filter-groups/save/',
         views.filter_group_save,
         name='alertprofiles-filter_groups-save',
     ),
-    re_path(
-        r'^filter-groups/remove/$',
+    path(
+        'filter-groups/remove/',
         views.filter_group_remove,
         name='alertprofiles-filter_groups-remove',
     ),
-    re_path(
-        r'^filter-groups/add-filter/$',
+    path(
+        'filter-groups/add-filter/',
         views.filter_group_addfilter,
         name='alertprofiles-filter_groups-addfilter',
     ),
-    re_path(
-        r'^filter-groups/remove-filter/$',
+    path(
+        'filter-groups/remove-filter/',
         views.filter_group_remove_or_move_filter,
         name='alertprofiles-filter_groups-removefilter',
     ),
     # Filter variables (aka. matchfields)
-    re_path(r'^matchfields/$', views.matchfield_list, name='alertprofiles-matchfields'),
-    re_path(
-        r'^matchfields/(?P<matchfield_id>\d+)/$',
+    path('matchfields/', views.matchfield_list, name='alertprofiles-matchfields'),
+    path(
+        'matchfields/<int:matchfield_id>/',
         views.matchfield_detail,
         name='alertprofiles-matchfields-detail',
     ),
-    re_path(
-        r'^matchfields/new/$',
+    path(
+        'matchfields/new/',
         views.matchfield_detail,
         name='alertprofiles-matchfields-new',
     ),
-    re_path(
-        r'^matchfields/save/$',
+    path(
+        'matchfields/save/',
         views.matchfield_save,
         name='alertprofiles-matchfields-save',
     ),
-    re_path(
-        r'^matchfields/remove/$',
+    path(
+        'matchfields/remove/',
         views.matchfield_remove,
         name='alertprofiles-matchfields-remove',
     ),
     # Admin settings:
     #################
     # Permissions
-    re_path(r'^permissions/$', views.permission_list, name='alertprofiles-permissions'),
-    re_path(
-        r'^permissions/help$',
+    path('permissions/', views.permission_list, name='alertprofiles-permissions'),
+    path(
+        'permissions/help',
         views.permissions_help_modal,
         name='alertprofiles-permissions-help',
     ),
-    re_path(
-        r'^permissions/(?P<group_id>\d+)/$',
+    path(
+        'permissions/<int:group_id>/',
         views.permission_list,
         name='alertprofiles-permissions-detail',
     ),
-    re_path(
-        r'^permissions/save/$',
+    path(
+        'permissions/save/',
         views.permissions_save,
         name='alertprofiles-permissions-save',
     ),

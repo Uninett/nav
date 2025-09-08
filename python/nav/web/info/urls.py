@@ -17,7 +17,8 @@
 """Django URL configuration"""
 
 from django.urls import include, path
-from nav.web.info.views import index
+
+from nav.web.info.views import image_help_modal, index
 
 urlpatterns = [
     path('', index, name="info-search"),
