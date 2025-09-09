@@ -63,8 +63,8 @@
     </table>
 
     {# Panel to do stuff with selected alerts #}
-    <div id="action-panel-revised" class="row">
-
+    <form id="action-panel-revised" class="row" method="POST">
+      {% csrf_token %}
       <div class="column medium-8 large-4">
         <label for="alert-action-select">
             Select action for chosen alerts
@@ -126,7 +126,7 @@
         <div style="display: none" class="feedback with-icon alert-box"></div>
 
       </div>
-    </div>
+    </form>
 
 
   </div>
