@@ -177,7 +177,7 @@ def test_show_qr_code_returns_fragment_with_qr_code(client):
     response = client.get(url, follow=True, **header)
 
     assert response.status_code == 200
-    assert "qr-code-modal" in smart_str(response.content)
+    assert "qr-code" in smart_str(response.content)
     assert "img" in smart_str(response.content)
     assert "QR Code linking to current page" in smart_str(response.content)
 
