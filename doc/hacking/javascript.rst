@@ -100,3 +100,125 @@ only be global configuration files for *RequireJS*, *jshint*, etc.
 
 :file:`src/plugins/`
   contains re-usable JavaScript plugins.
+
+CSRF Token Handling
+===================
+
+When making AJAX requests that modify data (POST, PUT, DELETE), you must include Django's CSRF token for security.
+
+Getting the CSRF Token
+-----------------------
+
+**Method 1: From a hidden form (Recommended)**
+
+.. code-block:: javascript
+
+   const csrfToken = $('#some-form-id input[name="csrfmiddlewaretoken"]').val();
+
+**Method 2: From any form on the page**
+
+.. code-block:: javascript
+
+   const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+
+Using CSRF Tokens in AJAX Requests
+-----------------------------------
+
+There are three ways to include a CSRF Token in the requests.
+
+**Method 1: With jQuery POST data object:**
+
+This method includes the CSRF token directly in the POST data. This is the most straightforward approach when you have simple form data.
+
+.. code-block:: javascript
+
+   $.post({
+       url: '/some/endpoint/',
+       data: {
+           'field': 'value',
+           'csrfmiddlewaretoken': csrfToken
+       }
+   });
+
+**Method 2: With jQuery headers:**
+
+This method sends the CSRF token in the HTTP headers using Django's expected header name. This is useful when posting complex data like FormData objects or JSON.
+
+.. code-block:: javascript
+
+   $.post({
+       url: '/some/endpoint/',
+       data: formData,
+       headers: {
+           'X-CSRFToken': csrfToken
+       }
+   });
+
+**Method 3: With serialized form data:**
+
+This method does not require getting the token from the template explicitly, but is done as part of native HTML form processing. The CSRF token is automatically included when the form is serialized.
+
+.. code-block:: javascript
+
+   // If posting a complete form, the token is included automatically
+   $.post(url, $('#my-form').serialize());
+
+Including CSRF Token in Templates
+----------------------------------
+
+Django templates provide the ``{% csrf_token %}`` template tag to automatically include the CSRF token in forms. This is the recommended approach for standard form submissions.
+
+**Basic form with CSRF token:**
+
+This is the most common pattern for regular form submissions. The CSRF token is included automatically when the form is submitted normally.
+
+.. code-block:: html
+
+   <form method="post" action="{% url 'some-endpoint' %}">
+       {% csrf_token %}
+       <input type="text" name="field_name" value="">
+       <input type="submit" value="Submit">
+   </form>
+
+**Hidden form for JavaScript access:**
+
+This pattern creates a hidden form solely to provide JavaScript access to the CSRF token. This is useful when you need to make AJAX requests from JavaScript but don't have a visible form on the page.
+
+.. code-block:: html
+
+   <form id="example-form" style="display: none;">
+       {% csrf_token %}
+   </form>
+
+**Multiple forms on the same page:**
+
+When you have multiple forms that perform different actions, each form needs its own CSRF token. This example shows two example forms for resource operations - one for renaming and one for deleting.
+
+.. code-block:: html
+
+   <form id="form-rename-resource" method="post" action="{% url 'rename-resource' resource.pk %}">
+       {% csrf_token %}
+       <input type="text" name="resource-name" value="{{ resource.name }}">
+       <input type="submit" value="Rename resource">
+   </form>
+
+   <form id="form-delete-resource" method="post" action="{% url 'delete-resource' resource.pk %}">
+       {% csrf_token %}
+       <input type="submit" value="Delete resource">
+   </form>
+
+**HTMX forms with CSRF token:**
+
+When using HTMX for dynamic content updates, the CSRF token is still required for POST requests. HTMX will automatically include the token from the form when making the request.
+
+.. code-block:: html
+
+   <form method="post"
+         hx-post="{% url 'some-endpoint' %}"
+         hx-target="#result-container">
+       {% csrf_token %}
+       <input type="text" name="data">
+       <button type="submit">Submit</button>
+   </form>
+
+The ``{% csrf_token %}`` tag renders as a hidden input field with name ``csrfmiddlewaretoken`` that JavaScript can access to include in AJAX requests.
