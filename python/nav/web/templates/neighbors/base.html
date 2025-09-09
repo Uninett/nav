@@ -23,6 +23,8 @@
     </div>
   </div>
 
+<form method="POST">
+    {% csrf_token %}
   <div>
     <ul id="action-buttons" class="button-group">
       <li>
@@ -63,4 +65,5 @@
       {% include 'neighbors/frag-tbody.html' %}
     </tbody>
   </table>
+</form>
 {% endblock %}
