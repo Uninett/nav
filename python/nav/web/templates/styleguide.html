@@ -522,7 +522,6 @@
     <div class="column">
         <h3 class="underline">Tooltips</h3>
     </div>
-    </div>
     <div class="large-6 column">
         <p>Accessible tooltip component that provides additional context or help text on hover or focus. Uses semantic ARIA attributes for screen reader compatibility.</p>
 
@@ -573,8 +572,99 @@
           </pre>
         </div>
     </div>
-    {# left column #}
-    {# DROPDOWNS #}
+</div>
+<div class="row">
+    <div class="column">
+        <h3 class="underline">Modal</h3>
+    </div>
+    <div class="large-6 column">
+        <p>Modal dialogs are used for important information and user tasks that require focused attention. They disable interaction with the main content until the modal is dismissed, ensuring users complete critical actions without distraction.</p>
+
+        <h4>Usage with HTMX</h4>
+        <p>NAV uses Django HTMX for dynamic modal rendering. Use the utility functions in <code>nav.web.modals</code> for consistent modal behavior:</p>
+        <ul>
+            <li><strong><code>render_modal()</code>:</strong> Render a modal with custom template and context</li>
+            <li><strong><code>resolve_modal()</code>:</strong> Close modal using <code>hx-swap-oob="delete"</code></li>
+            <li><strong><code>render_modal_alert()</code>:</strong> Display alert messages within modals</li>
+        </ul>
+
+        <h4>Modal Structure</h4>
+        <p>NAV modals use the HTML5 <code>&lt;dialog&gt;</code> element with:</p>
+        <ul>
+            <li><strong>Modal underlay:</strong> Click outside to close</li>
+            <li><strong>Close button:</strong> Standard × button in top-right corner</li>
+            <li><strong>Alert area:</strong> Dedicated space for error messages</li>
+        </ul>
+
+        <h4>Accessibility</h4>
+        <ul>
+            <li><strong>Manual close actions:</strong> Close button and underlay clicks remove modal from DOM</li>
+            <li><strong>ARIA attributes:</strong> Close button has <code>aria-label="Close"</code></li>
+        </ul>
+
+        <h4>Options</h4>
+        <ul>
+            <li><strong>Size:</strong> <code>tiny</code>, <code>small</code>, <code>medium</code>, <code>large</code>, or <code>fit-content</code> (default)</li>
+            <li><strong>Modal ID:</strong> Custom ID for targeting specific modals (default: <code>'modal'</code>)</li>
+        </ul>
+    </div>
+       <div class="large-6 column">
+        <h4>Python Example</h4>
+        <div class="panel white">
+            <pre class="prettyprint">
+from nav.web.modals import render_modal, render_modal_alert, resolve_modal
+
+# Basic modal
+def my_modal_view(request):
+    context = {'items': ['item1', 'item2']}
+    return render_modal(
+        request,
+        'my_template.html',
+        context,
+        modal_id='my-modal',
+        size='medium'
+    )
+
+# Alert modal (swaps content, retargets to alert area)
+def error_modal_view(request):
+    return render_modal_alert(
+        request,
+        'Operation failed. Please try again.',
+        modal_id='error-modal'
+    )
+
+# Close/resolve modal
+def close_modal_view(request):
+    return resolve_modal(request, modal_id='my-modal')</pre>
+        </div>
+
+        <h4>Template Example</h4>
+        <div class="panel white">
+          {% verbatim %}
+    <pre class="prettyprint">
+&lt;!-- Modal trigger button --&gt;
+&lt;button
+    class="button small"
+    hx-get="{% url 'my-modal-view' %}"
+    hx-target="body"
+    hx-swap="beforeend"
+&gt;
+    Open Modal
+&lt;/button&gt;
+
+&lt;!-- Form inside modal that processes and closes modal --&gt;
+&lt;form hx-post="{% url 'process-form' %}" &gt;
+    {% csrf_token %}
+    &lt;!-- form fields --&gt;
+    &lt;button type="submit" class="button alert"&gt;Confirm&lt;/button&gt;
+    &lt;button type="button" class="button secondary"
+            hx-on:click="htmx.remove(this.closest('dialog'))"&gt;Cancel&lt;/button&gt;
+&lt;/form&gt;</pre>
+         {% endverbatim %}
+        </div>
+    </div>
+</div>
+<div class="row">
     <div class="large-6 column">
       {# Dropdowns #}
       <h3 class="underline">Dropdowns</h3>
@@ -609,9 +699,8 @@
       </form>
 
 
-    </div></div>
-
-  </div> {# row #}
+    </div>
+</div>
 
   <div class="panel white">
     <h3>Gauge ranges</h3>
