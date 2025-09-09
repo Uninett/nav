@@ -250,14 +250,20 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                 $container.append($input);
                 $input.on('keydown', function (event) {
                     if (event.which === 13) {
-                        var request = $.post($header.attr('data-set-title'),
-                            {
+                        const csrfToken = $('#navlets-action-form input[name="csrfmiddlewaretoken"]').val();
+                        const request = $.post({
+                            url: $header.attr('data-set-title'),
+                            type: 'POST',
+                            data: {
                                 'id': self.navlet.id,
                                 'preferences': JSON.stringify({
                                     'title': $input.val()
                                 })
+                            },
+                            headers: {
+                                'X-CSRFToken': csrfToken
                             }
-                        );
+                        });
                         request.done(function () {
                             $header.find('.navlet-title').text($input.val());
                         });
