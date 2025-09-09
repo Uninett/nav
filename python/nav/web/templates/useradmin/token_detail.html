@@ -26,10 +26,12 @@
         <p>
           Permission:
           {{ object.permission }}
-          <i class="fa fa-info-circle"
-             title="{{ object.permission_help_text }}"
-             style="cursor: pointer"
-          ></i>
+            <span class="nav-tooltip">
+                <i class="fa fa-info-circle" aria-describedby="permission-help"></i>
+                <span id="permission-help" role="tooltip">
+                    {{ object.permission_help_text }}
+                </span>
+            </span>
         </p>
 
         <div class="alert-box {% if object.is_expired %}warning with-icon{% endif %}">

@@ -3,9 +3,12 @@
 <ul class="watchdog-tests no-bullet">
   {% for test in tests %}
   <li>
-      <span class="wd-test-description" title="{{ test.description }}">
-          {{ test.name }}
-          <i class="fa fa-info-circle"></i>
+      {{ test.name }}
+      <span class="nav-tooltip wd-test-description">
+          <i class="fa fa-info-circle" aria-describedby="test-tooltip-{{ test.name }}"></i>
+          <span id="test-tooltip-{{ test.name }}" role="tooltip">
+              {{ test.description }}
+          </span>
       </span>
     <span class="label {{ test.status|map_to_class }} right">
       <i class="fa fa-lg {{ test.status|map_to_faclass }}"></i>
