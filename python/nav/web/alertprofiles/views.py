@@ -114,7 +114,9 @@ def groups_and_permissions_modal(request):
     # Get information about users privileges
     sms_privilege = account.has_perm('alert_by', 'sms')
     filter_dict = {'group_permissions__in': [g.id for g in groups]}
-    filter_groups = FilterGroup.objects.filter(**filter_dict).order_by('name')
+    filter_groups = (
+        FilterGroup.objects.filter(**filter_dict).distinct().order_by('name')
+    )
 
     language = account.preferences.get(account.PREFERENCE_KEY_LANGUAGE, 'en')
     language_form = LanguageForm(initial={'language': language})
