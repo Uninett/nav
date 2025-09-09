@@ -2005,6 +2005,13 @@ class Interface(models.Model):
             ifname=self.ifname, netbox=self.netbox.get_short_sysname()
         )
 
+    @property
+    def vlan_description(self):
+        if self.vlan is None:
+            return None
+        swportvlan = self.swport_vlans.filter(vlan__vlan=self.vlan).first()
+        return swportvlan.vlan.description if swportvlan else None
+
     @classmethod
     def sort_ports_by_ifname(cls, ports):
         return sorted(ports, key=lambda p: nav.natsort.split(p.ifname))
