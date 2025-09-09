@@ -519,8 +519,63 @@
     </div>
 </div>
 <div class="row">
+    <div class="column">
+        <h3 class="underline">Tooltips</h3>
+    </div>
+    </div>
+    <div class="large-6 column">
+        <p>Accessible tooltip component that provides additional context or help text on hover or focus. Uses semantic ARIA attributes for screen reader compatibility.</p>
+
+        <h4>Options</h4>
+        <ul>
+          <li><strong>Alignment:</strong> <code>data-align="start"</code>, <code>data-align="center"</code>, or <code>data-align="end"</code> on the trigger element</li>
+          <li><strong>Size:</strong> <code>tiny</code>, <code>small</code>, <code>medium</code>, or <code>large</code> classes on the <code>role="tooltip"</code> element</li>
+        </ul>
+
+        <h4>Accessibility</h4>
+        <ul>
+            <li><strong><code>aria-describedby</code>:</strong> Links the trigger element to tooltip content by referencing the tooltip's <code>id</code>. Screen readers will announce the tooltip text when the trigger receives focus.</li>
+            <li><strong><code>role="tooltip"</code>:</strong> Identifies the element as tooltip content for assistive technologies, ensuring proper semantic understanding and handling.</li>
+            <li><strong>Automatic positioning:</strong> Tooltips automatically adjust their alignment if they would overflow the viewport, ensuring content remains visible and accessible.</li>
+        </ul>
+    </div>
+    <div class="large-6 column">
+        <div style="margin-bottom: 1rem;">
+          <h4>Example tooltip</h4>
+          <p>
+            Hover over or focus on this help icon to see the tooltip:
+            <span class="nav-tooltip" data-align="end">
+              <i class="fa fa-question-circle" aria-describedby="example-tooltip"></i>
+              <span id="example-tooltip" role="tooltip" class="small">
+                This is an example tooltip with helpful information.
+              </span>
+            </span>
+          </p>
+
+          <p>
+            You can also add tooltips to text elements like
+            <span class="nav-tooltip" data-align="center">
+              <span aria-describedby="text-tooltip">this underlined text</span>
+              <span id="text-tooltip" role="tooltip" class="medium">
+                Tooltips work on any element, not just icons.
+              </span>
+            </span>
+          </p>
+        </div>
+        <div class="panel white">
+          <pre class="prettyprint">
+&lt;span class="nav-tooltip" data-align="end"&gt;
+    &lt;i class="fa fa-question-circle has-tip" aria-describedby="example-tooltip"&gt;&lt;/i&gt;
+    &lt;span id="example-tooltip" role="tooltip" class="small"&gt;
+        This is an example tooltip with helpful information.
+    &lt;/span&gt;
+&lt;/span&gt;
+          </pre>
+        </div>
+    </div>
+    {# left column #}
     {# DROPDOWNS #}
-    <div class="small-6 column">
+    <div class="large-6 column">
       {# Dropdowns #}
       <h3 class="underline">Dropdowns</h3>
       <p>
@@ -554,7 +609,7 @@
       </form>
 
 
-    </div> {# Right column #}
+    </div></div>
 
   </div> {# row #}
 
