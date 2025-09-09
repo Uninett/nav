@@ -148,7 +148,19 @@ define(['plugins/navlet_controller'], function (NavletController) {
             return orderings;
         },
         saveOrder: function (ordering) {
-            $.post(this.save_ordering_url, JSON.stringify(ordering));
+            // Get csrf token from #navlets-action-form
+            const csrfToken = $('#navlets-action-form input[name="csrfmiddlewaretoken"]').val();
+            $.ajax({
+               url: this.save_ordering_url,
+               type: 'POST',
+               data: JSON.stringify(ordering),
+               contentType: 'application/json',
+               headers: {
+                   'X-CSRFToken': csrfToken
+               }
+            }).fail(function() {
+               console.error('Failed to save widget order');
+            });
         },
         getNavlets: function (column) {
             if (column) {
