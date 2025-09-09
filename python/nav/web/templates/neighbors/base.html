@@ -23,13 +23,15 @@
     </div>
   </div>
 
+<form method="POST">
+    {% csrf_token %}
   <div>
     <ul id="action-buttons" class="button-group">
       <li>
-        <button id="ignore-selected" class="tiny">Ignore selected</button>
+        <button id="ignore-selected" class="tiny" type="button">Ignore selected</button>
       </li>
       <li>
-        <button id="unignore-selected" class="tiny">Unignore selected</button>
+        <button id="unignore-selected" class="tiny" type="button">Unignore selected</button>
       </li>
     </ul>
 
@@ -63,4 +65,5 @@
       {% include 'neighbors/frag-tbody.html' %}
     </tbody>
   </table>
+</form>
 {% endblock %}
