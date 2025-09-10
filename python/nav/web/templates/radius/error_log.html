@@ -25,8 +25,6 @@
 
   {% if form.is_bound %}
     {% if result %}
-      <div id="detailsmodal" class="reveal-modal" data-reveal></div>
-
       <table id="resulttable" class="listtable full-width">
         <thead data-nosort='[-1]'>
           <tr>
@@ -46,10 +44,9 @@
                 {% endif %}
               {% endfor %}
                <td>
-                  <a href="{% url 'radius-log_detail-modal' row.id %}"
-                     data-reveal-id="detailsmodal"
-                     data-reveal-ajax="true"
-                     data-reveal
+                  <a hx-get="{% url 'radius-log_detail-modal' row.id %}"
+                     hx-target="body"
+                     hx-swap="beforeend"
                      title="View all available information on this session">
                     Details
                      </a>

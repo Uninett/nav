@@ -1,7 +1,10 @@
+from datetime import datetime
 from urllib.parse import urlencode
 
+import pytest
 from django.urls import reverse
 from django.utils.encoding import smart_str
+from mock import MagicMock, patch
 
 
 class TestAccountLogSearch:
@@ -195,3 +198,177 @@ class TestRadiusSearchHintModalViews:
 
         assert response.status_code == 200
         assert 'id="account-chart-hints"' in smart_str(response.content)
+
+
+class TestRadiusAccountDetailViews:
+    @patch('nav.web.radius.views.AcctDetailQuery')
+    def test_should_render_account_detail_page(
+        self, mock_query_class, db, client, mock_account_detail_query
+    ):
+        mock_query_class.return_value = mock_account_detail_query()
+
+        url = reverse('radius-account_detail', args=[1])
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'Account Detail' in smart_str(response.content)
+        assert 'navpath' in response.context
+
+    @patch('nav.web.radius.views.AcctDetailQuery')
+    def test_should_render_account_detail_modal(
+        self, mock_query_class, db, client, mock_account_detail_query
+    ):
+        mock_query_class.return_value = mock_account_detail_query()
+
+        url = reverse('radius-account_detail-modal', args=[1])
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'id="account-detail"' in smart_str(response.content)
+        assert (
+            'navpath' not in response.context or response.context.get('navpath') is None
+        )
+
+    @patch('nav.web.radius.views.AcctDetailQuery')
+    def test_account_detail_handles_empty_result(self, mock_query_class, db, client):
+        # Override for empty result test
+        mock_query = MagicMock()
+        mock_query.result = []
+        mock_query_class.return_value = mock_query
+
+        url = reverse('radius-account_detail', args=[999])
+        response = client.get(url)
+
+        assert "No details available" in smart_str(response.content)
+
+    @patch('nav.web.radius.views.AcctDetailQuery')
+    def test_with_custom_username(
+        self, mock_query_class, db, client, mock_account_detail_query
+    ):
+        # Example of customizing the mock data
+        mock_query_class.return_value = mock_account_detail_query(
+            {'username': 'custom_user'}
+        )
+
+        url = reverse('radius-account_detail', args=[1])
+        response = client.get(url)
+
+        assert response.status_code == 200
+
+
+class TestRadiusLogDetailViews:
+    @patch('nav.web.radius.views.LogDetailQuery')
+    def test_should_render_log_detail_page(
+        self, mock_query_class, db, client, mock_log_detail_query
+    ):
+        mock_query_class.return_value = mock_log_detail_query()
+
+        url = reverse('radius-log_detail', args=[1])
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'Log Detail' in smart_str(response.content)
+        assert 'navpath' in response.context
+
+    @patch('nav.web.radius.views.LogDetailQuery')
+    def test_should_render_log_detail_modal(
+        self, mock_query_class, db, client, mock_log_detail_query
+    ):
+        mock_query_class.return_value = mock_log_detail_query()
+
+        url = reverse('radius-log_detail-modal', args=[1])
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert 'id="log-detail"' in smart_str(response.content)
+        assert (
+            'navpath' not in response.context or response.context.get('navpath') is None
+        )
+
+    @patch('nav.web.radius.views.LogDetailQuery')
+    def test_log_detail_handles_empty_result(self, mock_query_class, db, client):
+        mock_query = MagicMock()
+        mock_query.result = []
+        mock_query_class.return_value = mock_query
+
+        url = reverse('radius-log_detail', args=[999])
+        response = client.get(url)
+
+        assert "No details available" in smart_str(response.content)
+
+    @patch('nav.web.radius.views.LogDetailQuery')
+    def test_log_detail_with_custom_message(
+        self, mock_query_class, db, client, mock_log_detail_query
+    ):
+        mock_query_class.return_value = mock_log_detail_query(
+            {'message': 'Custom [error] message', 'type': 'Auth-Reject'}
+        )
+
+        url = reverse('radius-log_detail', args=[1])
+        response = client.get(url)
+
+        assert response.status_code == 200
+
+
+@pytest.fixture
+def mock_account_detail_query():
+    """Factory fixture for creating mocked AcctDetailQuery"""
+
+    def _create_mock(custom_attributes=None):
+        mock_result = MagicMock()
+
+        default_attributes = {
+            'acctuniqueid': '1309f5d67b0a752d',
+            'username': 'test_user',
+            'nasipaddress': '192.168.1.1 (test-nas.example.com)',
+            'framedipaddress': '10.0.0.1 (10.0.0.1)',
+            'acctstarttime': datetime(2023, 1, 1, 12, 0, 0),
+            'acctstoptime': '2023-01-01 12:30:00',
+            'acctsessiontime': '30m',
+            'acctterminatecause': 'User-Request',
+            'acctinputoctets': '130.445 KB',
+            'acctoutputoctets': '357.501 KB',
+        }
+
+        if custom_attributes:
+            default_attributes.update(custom_attributes)
+
+        for attr, value in default_attributes.items():
+            setattr(mock_result, attr, value)
+
+        mock_query = MagicMock()
+        mock_query.result = [mock_result]
+
+        return mock_query
+
+    return _create_mock
+
+
+@pytest.fixture
+def mock_log_detail_query():
+    """Factory fixture for creating mocked LogDetailQuery"""
+
+    def _create_mock(custom_attributes=None):
+        mock_result = MagicMock()
+
+        default_attributes = {
+            'id': 12345,
+            'username': 'test_user',
+            'time': datetime(2023, 1, 1, 12, 0, 0),
+            'type': 'Auth-Accept',
+            'message': 'Login OK [user/test_realm]',
+            'realm': 'test_realm',
+        }
+
+        if custom_attributes:
+            default_attributes.update(custom_attributes)
+
+        for attr, value in default_attributes.items():
+            setattr(mock_result, attr, value)
+
+        mock_query = MagicMock()
+        mock_query.result = [mock_result]
+
+        return mock_query
+
+    return _create_mock
