@@ -1,0 +1,216 @@
+// Lightbox styles matching Foundation Clearing design
+// Based on https://github.com/foundation/foundation-sites/blob/v5/scss/foundation/components/_clearing.scss
+
+$lightbox-bg: #222;
+$lightbox-close-color: #999;
+$lightbox-close-size: 30px;
+$lightbox-close-size-mobile: 24px;
+$lightbox-arrow-size: 12px;
+$lightbox-arrow-size-mobile: 8px;
+$lightbox-caption-font-color: #999;
+$lightbox-caption-font-size: 0.875em;
+$lightbox-caption-font-size-mobile: 0.75em;
+$lightbox-caption-padding: 20px;
+$lightbox-caption-padding-mobile: 5px 15px 10px;
+$lightbox-nav-width: 40px;
+$lightbox-nav-width-mobile: 30px;
+$lightbox-thumbnail-size: 80px;
+$lightbox-thumbnail-gap: 5px;
+$lightbox-thumbnail-container-padding: 10px;
+$lightbox-thumbnail-container-padding-mobile: 5px;
+$lightbox-thumbnail-container-max-width: 300px;
+$lightbox-thumbnail-container-max-width-mobile: 200px;
+$lightbox-thumbnail-border-width: 2px;
+
+.lightbox {
+  display: none;
+  position: fixed;
+  z-index: 998;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: $lightbox-bg;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+
+  &.show {
+    display: block;
+    opacity: 1;
+  }
+}
+
+.lightbox-content {
+  position: relative;
+  z-index: 998;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+}
+
+.lightbox-close {
+  z-index: 999;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  padding-left: 20px;
+  padding-top: 10px;
+  font-size: $lightbox-close-size;
+  line-height: 1;
+  color: $lightbox-close-color;
+  cursor: pointer;
+  display: block;
+
+  &:hover,
+  &:focus {
+    color: lighten($lightbox-close-color, 20%);
+  }
+}
+
+.lightbox-image-container {
+  height: calc(100% - #{$lightbox-thumbnail-size + ($lightbox-thumbnail-container-padding * 2) + 20px});
+  position: relative;
+  background: $lightbox-bg;
+  overflow: hidden;
+}
+
+.lightbox-image {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.lightbox-caption {
+  color: $lightbox-caption-font-color;
+  font-size: $lightbox-caption-font-size;
+  line-height: 1.3;
+  margin-bottom: 0;
+  text-align: center;
+  bottom: 0;
+  background: $lightbox-bg;
+  width: 100%;
+  padding: $lightbox-caption-padding;
+  position: absolute;
+  left: 0;
+}
+
+.lightbox-nav button {
+  position: absolute;
+  height: 100%;
+  width: $lightbox-nav-width;
+  top: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.8;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+  }
+
+  span {
+    position: absolute;
+    top: 50%;
+    display: block;
+    width: 0;
+    height: 0;
+  }
+}
+
+.lightbox-prev {
+  left: 0;
+
+  span {
+    left: 5px;
+    border: transparent solid $lightbox-arrow-size;
+    border-right-color: $lightbox-close-color;
+  }
+}
+
+.lightbox-next {
+  right: 0;
+
+  span {
+    right: 5px;
+    border: transparent solid $lightbox-arrow-size;
+    border-left-color: $lightbox-close-color;
+  }
+}
+
+.lightbox-thumbnails {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  max-width: $lightbox-thumbnail-container-max-width;
+  padding: $lightbox-thumbnail-container-padding;
+  z-index: 1000;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $lightbox-thumbnail-gap;
+  }
+
+  li {
+    cursor: pointer;
+    border: $lightbox-thumbnail-border-width solid transparent;
+    transition: border-color 0.2s ease;
+
+    &.active {
+      border-color: #fff;
+    }
+
+    &:hover {
+      border-color: lighten($lightbox-close-color, 40%);
+    }
+
+    img {
+      display: block;
+      width: $lightbox-thumbnail-size;
+      height: $lightbox-thumbnail-size;
+      object-fit: cover;
+    }
+  }
+}
+
+// Mobile adjustments
+@media screen and (max-width: 767px) {
+  .lightbox-close {
+    font-size: $lightbox-close-size-mobile;
+    top: 5px;
+    right: 15px;
+    padding-left: 15px;
+    padding-top: 5px;
+  }
+
+  .lightbox-nav button {
+    width: $lightbox-nav-width-mobile;
+  }
+
+  .lightbox-image-container {
+    height: calc(100% - #{$lightbox-thumbnail-size + ($lightbox-thumbnail-container-padding-mobile * 2) + 15px});
+  }
+
+  .lightbox-thumbnails {
+    max-width: $lightbox-thumbnail-container-max-width-mobile;
+    bottom: 10px;
+    left: 10px;
+    padding: $lightbox-thumbnail-container-padding-mobile;
+  }
+
+  .lightbox-caption {
+    font-size: $lightbox-caption-font-size-mobile;
+    padding: $lightbox-caption-padding-mobile;
+  }
+}
