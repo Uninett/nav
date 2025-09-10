@@ -34,6 +34,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django_htmx.http import HttpResponseClientRedirect
 
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
@@ -42,7 +43,7 @@ from nav.web.auth import logout as auth_logout
 from nav.web import auth, webfrontConfig
 from nav.web.auth import ldap
 from nav.web.auth.utils import set_account
-from nav.web.modals import render_modal
+from nav.web.modals import render_modal, render_modal_alert
 from nav.web.utils import generate_qr_code_as_string
 from nav.web.utils import require_param
 from nav.web.webfront.utils import quick_read, tool_list
@@ -130,55 +131,61 @@ def import_dashboard(request):
     """Receive an uploaded dashboard file and store in database"""
     if not can_modify_navlet(request.account, request):
         return HttpResponseForbidden()
-    response = {}
-    if 'file' in request.FILES:
-        try:
-            # Ensure file is interpreted as utf-8 regardless of locale
-            blob = request.FILES['file'].read()
-            data = json.loads(blob.decode("utf-8"))
-            if not isinstance(data, dict):
-                raise ValueError()
-            for field, dtype in dashboard_fields.items():
-                if field not in data:
-                    raise ValueError()
-                if not isinstance(data[field], dtype):
-                    raise ValueError()
-            dashboard = AccountDashboard(account=request.account, name=data['name'])
-            dashboard.num_columns = data['num_columns']
-            widgets = []
-            for widget in data['widgets']:
-                if not isinstance(widget, dict):
-                    raise ValueError()
-                for field, dtype in widget_fields.items():
-                    if field not in widget:
-                        raise ValueError()
-                    if not isinstance(widget[field], dtype):
-                        raise ValueError()
-                    if widget['column'] > dashboard.num_columns:
-                        raise ValueError()
-                widget = {k: v for k, v in widget.items() if k in widget_fields}
-                widgets.append(widget)
-            dashboard.save()
-            for widget in widgets:
-                dashboard.widgets.create(account=request.account, **widget)
-            dashboard.save()
-            response['location'] = reverse('dashboard-index-id', args=(dashboard.id,))
-        except ValueError:
-            _logger.exception('Failed to parse dashboard file for import')
-            return JsonResponse(
-                {
-                    'error': "File is not a valid dashboard file",
-                },
-                status=400,
-            )
-    else:
-        return JsonResponse(
-            {
-                'error': "You need to provide a file",
-            },
-            status=400,
+
+    if 'file' not in request.FILES:
+        return render_modal_alert(
+            request, "You need to provide a file", modal_id="import-dashboard-form"
         )
-    return JsonResponse(response)
+
+    try:
+        # Ensure file is interpreted as utf-8 regardless of locale
+        blob = request.FILES['file'].read()
+        data = json.loads(blob.decode("utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError()
+        for field, dtype in dashboard_fields.items():
+            if field not in data:
+                raise ValueError()
+            if not isinstance(data[field], dtype):
+                raise ValueError()
+        dashboard = AccountDashboard(account=request.account, name=data['name'])
+        dashboard.num_columns = data['num_columns']
+        widgets = []
+        for widget in data['widgets']:
+            if not isinstance(widget, dict):
+                raise ValueError()
+            for field, dtype in widget_fields.items():
+                if field not in widget:
+                    raise ValueError()
+                if not isinstance(widget[field], dtype):
+                    raise ValueError()
+                if widget['column'] > dashboard.num_columns:
+                    raise ValueError()
+            widget = {k: v for k, v in widget.items() if k in widget_fields}
+            widgets.append(widget)
+        dashboard.save()
+        for widget in widgets:
+            dashboard.widgets.create(account=request.account, **widget)
+        dashboard.save()
+        dashboard_url = reverse('dashboard-index-id', args=(dashboard.id,))
+        return HttpResponseClientRedirect(dashboard_url)
+    except ValueError:
+        _logger.exception('Failed to parse dashboard file for import')
+        return render_modal_alert(
+            request,
+            "File is not a valid dashboard file",
+            modal_id="import-dashboard-form",
+        )
+
+
+def import_dashboard_modal(request):
+    """Render the import dashboard modal dialog"""
+    return render_modal(
+        request,
+        'webfront/_import_dashboard_form_modal.html',
+        modal_id="import-dashboard-form",
+        size="small",
+    )
 
 
 @sensitive_post_parameters('password')
