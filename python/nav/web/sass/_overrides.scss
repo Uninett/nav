@@ -41,7 +41,10 @@ small.errorField {
         text-decoration: underline;  // Make links visible in alert-boxes
     }
 
-    .close { @include alert-close; }
+    .close {
+      @include alert-close;
+      text-decoration: none;
+    }
 
     &.radius { @include radius($alert-radius); }
     &.round { @include radius($global-rounded); }
@@ -74,6 +77,18 @@ small.errorField {
         padding-bottom: rem-calc(4);
         margin-bottom: 0;
     }
+}
+
+// Add transition effects for nav alert when it is closed
+[data-nav-alert] {
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+[data-nav-alert].alert-close {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 
 
