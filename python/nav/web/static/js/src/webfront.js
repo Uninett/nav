@@ -298,36 +298,6 @@ require([
         });
     }
 
-
-    /**
-     * Import dashboard sumbit function
-     */
-    function setupImportDashboard() {
-        $('#dashboard-import form').submit(function(event) {
-            event.preventDefault();
-            var formData = new FormData($(this)[0]);
-
-            $.ajax({
-                url: $(this).attr("action"),
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (data) {
-                    window.location = data.location;
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    var error = "Error importing dashboard";
-                    if (jqXHR.responseJSON.error) {
-                        error = jqXHR.responseJSON.error;
-                    }
-                    $('#dashboard-import .alert-box').text(error).show();
-                }
-            });
-
-        });
-    }
-
     /**
      * Load runner - runs on page load
      */
@@ -367,7 +337,6 @@ require([
 
         addDashboardKeyNavigation();
         addDroppableDashboardTargets();
-        setupImportDashboard();
 
         /**
          * The following listeners are applied to buttons on the right hand side
