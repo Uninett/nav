@@ -333,15 +333,17 @@ def preferences(request):
 
 
 def qr_code(request):
-    """Show qr code linking to current page"""
+    """Render a model with a qr code linking to current page"""
     url = request.headers.get("referer")
     file_format = webfrontConfig.get("qr_codes", "file_format")
     qr_code = generate_qr_code_as_string(url=url, caption=url, file_format=file_format)
 
-    return render(
+    return render_modal(
         request,
         'webfront/_qr_code.html',
-        {'qr_code': qr_code, 'file_format': file_format},
+        context={'qr_code': qr_code, 'file_format': file_format},
+        modal_id='qr-code',
+        size='small',
     )
 
 
