@@ -63,28 +63,11 @@
 
 </div>
 
-{% if images|length > 0 %}
+{% include "webfront/_lightbox_gallery.html" with images=images gallery_id="room-gallery" title="Images for this room" %}
 
-  <h4>Images for this room</h4>
-  <ul class="clearing-thumbs small-block-grid-2 medium-block-grid-6"
-      data-clearing>
-    {% for image in images %}
-      <li>
-        <a href="{{image.url }}"
-           class="th">
-          <img src="{{ image.thumb_url }}"
-               data-caption="{{ image.title|safe }}">
-        </a>
-      </li>
-    {% endfor %}
-
-  </ul>
-
-{% else %}
-
-  <a href="{% url 'room-info-upload' room.id %}" class="button secondary small">
-    Add images
-    <i class="fa fa-camera"></i>
-  </a>
-
+{% if not images|length %}
+<a href="{% url 'room-info-upload' room.id %}" class="button secondary small">
+  Add images
+  <i class="fa fa-camera"></i>
+</a>
 {% endif %}
