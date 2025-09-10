@@ -280,7 +280,7 @@ define([
             var request = $.post(NAV.urls.status2_acknowledge_alert, {
                 id: alertsToChange.pluck('id'),
                 comment: this.comment.val(),
-                csrfmiddlewaretoken: this.$('#action-panel-revised [name=csrfmiddlewaretoken]').val()
+                csrfmiddlewaretoken: $('#action-panel-revised [name=csrfmiddlewaretoken]').val()
             });
 
             request.done(function () {
@@ -300,7 +300,7 @@ define([
 
             var request = $.post(NAV.urls.status2_clear_alert, {
                 id: alertsToChange.pluck('id'),
-                csrfmiddlewaretoken: this.$('#action-panel-revised [name=csrfmiddlewaretoken]').val()
+                csrfmiddlewaretoken: $('#action-panel-revised [name=csrfmiddlewaretoken]').val()
             });
 
             request.done(function () {
