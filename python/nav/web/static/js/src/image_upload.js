@@ -146,7 +146,7 @@ require(['libs/jquery-ui.min'], function () {
     }
 
     function createFeedback(message, type) {
-        var $alertBox = $('<div>').addClass('alert-box').addClass(type).attr('data-alert', '').html(message),
+        const $alertBox = $('<div>').addClass('alert-box').addClass(type).attr('data-nav-alert', '').html(message),
             $close = $('<a href="#">').addClass('close').html('&times;').click(function () {
                 removeAlertBox($alertBox);
         });
