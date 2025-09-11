@@ -94,7 +94,7 @@ class ExpandSWPortView(JSONResponseMixin, ExpandSWPortContextMixin, BaseDetailVi
 
 class SearchView(JSONResponseMixin, View):
     def form_invalid(self, form):
-        return {'error': form.errors}
+        return {'errors': form.errors}
 
     def form_valid(self, form):
         return search(form.cleaned_data)
