@@ -108,6 +108,7 @@ def authorization_not_required(fullpath):
         '/about/',
         '/index/login/',
         '/refresh_session',
+        '/psa/',  # PSA
     ]
     for url in auth_not_required:
         if fullpath.startswith(url):

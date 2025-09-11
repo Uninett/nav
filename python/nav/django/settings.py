@@ -116,6 +116,8 @@ TEMPLATES = [
                 'nav.django.context_processors.footer_info',
                 'nav.django.context_processors.auth',
                 'django.template.context_processors.static',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
             'debug': DEBUG,
             "builtins": ["nav.django.templatetags.query"],
@@ -133,6 +135,7 @@ MIDDLEWARE = (
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 )
 
 SESSION_SERIALIZER = 'nav.web.session_serializer.PickleSerializer'
@@ -232,12 +235,17 @@ INSTALLED_APPS = (
     'nav.portadmin.napalm',
     'nav.web.portadmin',
     'django.contrib.postgres',
+    'social_django',
 )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 AUTH_USER_MODEL = 'nav_models.Account'
 
-AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.github.GithubOAuth2',
+    # 'social_core.backends.open_id_connect.OpenIdConnectAuth',
+    'django.contrib.auth.backends.ModelBackend',
+]
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/index/login/'
 
@@ -314,3 +322,44 @@ OIDC_AUTH = {
     'JWT_ISSUERS': _issuers_setting,
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
+
+# Python Social Auth
+SOCIAL_AUTH_JSONFIELD_ENABLED = True
+SOCIAL_AUTH_PIPELINE = (
+    # Get the information we can about the user and return it in a simple
+    # format to create the user instance later. On some cases the details are
+    # already part of the auth response from the provider, but sometimes this
+    # could hit a provider API.
+    'social_core.pipeline.social_auth.social_details',
+    # Get the social uid from whichever service we're authing thru. The uid is
+    # the unique identifier of the given user in the provider.
+    'social_core.pipeline.social_auth.social_uid',
+    # Verifies that the current auth process is valid within the current
+    # project, this is where emails and domains whitelists are applied (if
+    # defined).
+    'social_core.pipeline.social_auth.auth_allowed',
+    # Checks if the current social-account is already associated in the site.
+    'social_core.pipeline.social_auth.social_user',
+    # Make up a username for this person, appends a random string at the end if
+    # there's any collision.
+    'social_core.pipeline.user.get_username',
+    # Send a validation email to the user to verify its email address.
+    # 'social_core.pipeline.mail.mail_validation',
+    # Associates the current social details with another user account with
+    # a similar email address.
+    # 'social_core.pipeline.social_auth.associate_by_email',
+    # Create a user account if we haven't found one yet.
+    'social_core.pipeline.user.create_user',
+    # Create the record that associated the social account with this user.
+    'social_core.pipeline.social_auth.associate_user',
+    'nav.web.auth.psa_pipeline.require_password',
+    # Populate the extra_data field in the social record with the values
+    # specified by settings (and the default ones like access_token, etc).
+    'social_core.pipeline.social_auth.load_extra_data',
+    # Update the user record with any changed info from the auth service.
+    'social_core.pipeline.user.user_details',
+)
+
+SOCIAL_AUTH_GITHUB_USER_FIELD_MAPPING = {"fullname": "name"}
+SOCIAL_AUTH_GITHUB_KEY = "set me, is short"
+SOCIAL_AUTH_GITHUB_SECRET = "set me, is hex and long"

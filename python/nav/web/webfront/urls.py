@@ -16,13 +16,19 @@
 #
 """Django URL configuration for webfront"""
 
-from django.urls import re_path
+from django.urls import re_path, path
 from django.views.generic import RedirectView
 
 from nav.web.webfront import views
+from nav.web.auth.views import PSASetPasswordFormView
 
 
 urlpatterns = [
+    path(
+        'psa/partial/password/<str:backend>/<int:user_id>/',
+        PSASetPasswordFormView.as_view(),
+        name='psa-require-password',
+    ),
     re_path(r'^$', views.index, name='webfront-index'),
     re_path(r'^index/login/', views.login, name='webfront-login'),
     re_path(r'^index/logout/', views.logout, name='webfront-logout'),
