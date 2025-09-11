@@ -23,5 +23,5 @@ from nav.web.info.event import views
 
 urlpatterns = [
     path('', views.main),
-    path('<int:event_id>)', views.render_event, name='event-details'),
+    path('<int:event_id>', views.render_event, name='event-details'),
 ]
