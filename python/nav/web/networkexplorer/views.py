@@ -94,17 +94,19 @@ class ExpandSWPortView(JSONResponseMixin, ExpandSWPortContextMixin, BaseDetailVi
 
 class SearchView(JSONResponseMixin, View):
     def form_invalid(self, form):
-        return {'error': form.errors}
+        return {'errors': form.errors}
 
     def form_valid(self, form):
         return search(form.cleaned_data)
 
     def get(self, request, *_args, **_kwargs):
         form = NetworkSearchForm(request.GET)
+        status = 200
 
         if form.is_valid():
             context = self.form_valid(form)
         else:
             context = self.form_invalid(form)
+            status = 400
 
-        return self.render_json_response(context)
+        return self.render_json_response(context, status=status)
