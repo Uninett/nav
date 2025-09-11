@@ -32,7 +32,7 @@ urlpatterns = [
     ),
     path('index/logout/', views.logout, name='webfront-logout'),
     # Dashboard
-    path('index/dashboard/(?P<did>\d+)', views.index, name='dashboard-index-id'),
+    path('index/dashboard/<int:did>/', views.index, name='dashboard-index-id'),
     path('index/dashboard/add/', views.add_dashboard, name='add-dashboard'),
     path(
         'index/dashboard/set_default/<int:did>/',
