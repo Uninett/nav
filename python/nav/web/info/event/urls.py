@@ -16,11 +16,12 @@
 
 """URL-config for event details"""
 
-from django.urls import re_path
+from django.urls import path
+
 from nav.web.info.event import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.main),
-    re_path(r'^(?P<event_id>\d+)', views.render_event, name='event-details'),
+    path('', views.main),
+    path('<int:event_id>)', views.render_event, name='event-details'),
 ]

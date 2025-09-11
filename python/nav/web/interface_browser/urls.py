@@ -15,11 +15,11 @@
 #
 """URL-config for PortList tool"""
 
-from django.urls import re_path
+from django.urls import path
 from nav.web.interface_browser import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.index),
-    re_path(r'^(?P<netboxid>\d+)', views.by_netboxid, name='interface_browser-netbox'),
+    path('', views.index),
+    path('<int:netboxid>', views.by_netboxid, name='interface_browser-netbox'),
 ]

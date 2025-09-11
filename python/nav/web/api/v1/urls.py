@@ -16,7 +16,7 @@
 #
 """Urlconf for the NAV REST api"""
 
-from django.urls import re_path, include
+from django.urls import re_path, include, path
 from rest_framework import routers
 
 from nav.auditlog import api as auditlogapi
@@ -56,9 +56,9 @@ router.register(r'netboxentity', views.NetboxEntityViewSet, basename='netboxenti
 
 
 urlpatterns = [
-    re_path(r'^$', views.api_root),
-    re_path(r'^token/$', views.get_or_create_token, name="token"),
-    re_path(r'^version/$', views.get_nav_version, name="version"),
+    path('', views.api_root),
+    path('token/', views.get_or_create_token, name="token"),
+    path('version/', views.get_nav_version, name="version"),
     re_path(
         r"^prefix/routed/?$",
         views.RoutedPrefixList.as_view(),
@@ -72,7 +72,7 @@ urlpatterns = [
         views.PrefixUsageDetail.as_view(),
         name="prefix-usage-detail",
     ),
-    re_path(r'^', include(router.urls)),
+    path('', include(router.urls)),
     re_path(r'^vendor/?$', views.VendorLookup.as_view(), name='vendor'),
-    re_path(r'^jwt/refresh/$', views.JWTRefreshViewSet.as_view(), name='jwt-refresh'),
+    path('jwt/refresh/', views.JWTRefreshViewSet.as_view(), name='jwt-refresh'),
 ]
