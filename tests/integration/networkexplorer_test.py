@@ -117,9 +117,12 @@ class ViewsTest(TestDataMixin, TestCase):
 
 
 class FormsTest(TestDataMixin, TestCase):
-    def test_search_form(self):
+    def test_search_form_with_valid_data_is_valid(self):
         valid_form = NetworkSearchForm(self.valid_data)
-        invalid_form = NetworkSearchForm(self.invalid_data)
 
         self.assertTrue(valid_form.is_valid(), msg='Valid form failed validaion')
+
+    def test_search_form_with_missing_argument_is_invalid(self):
+        invalid_form = NetworkSearchForm(self.invalid_data)
+
         self.assertFalse(invalid_form.is_valid(), msg='Invalid form passed validation')
