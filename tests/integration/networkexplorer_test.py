@@ -126,3 +126,16 @@ class FormsTest(TestDataMixin, TestCase):
         invalid_form = NetworkSearchForm(self.invalid_data)
 
         self.assertFalse(invalid_form.is_valid(), msg='Invalid form passed validation')
+
+    def test_search_form_with_invalid_ip_for_exact_search_is_invalid(self):
+        invalid_ip_form = NetworkSearchForm(
+            {
+                "query_0": "invalid_ip",
+                "query_1": "ip",
+                "exact_results": True,
+            }
+        )
+
+        self.assertFalse(
+            invalid_ip_form.is_valid(), msg="Invalid IP form passed validation"
+        )
