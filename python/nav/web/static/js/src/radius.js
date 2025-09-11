@@ -1,4 +1,4 @@
-require(['src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect'], function () {
+require(['libs/datatables.min', 'src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect'], function () {
 
     function initTimeField() {
         var time_field = $('#id_time_1');
@@ -64,12 +64,6 @@ require(['src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect
         addFilterInputListener(resulttable, datatable);
     }
 
-    function addDetailsClickListener(resulttable) {
-        resulttable.on('click', '[data-bubble-reveal]', function () {
-            $('#details_modal').foundation('reveal', 'open', $(this).attr('data-bubble-reveal'));
-        });
-    }
-
     $(document).ready(function () {
 
         initTimeField();
@@ -77,7 +71,6 @@ require(['src/dt_plugins/ip_address_sort', 'src/dt_plugins/ip_address_typedetect
         var resulttable = $('#resulttable');
         if (resulttable.length) {
             initResulttable(resulttable);
-            addDetailsClickListener(resulttable);
         }
     });
 });

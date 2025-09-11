@@ -1,4 +1,8 @@
-<div id="rack_{{ rack.pk }}" class="rack" data-rackid="{{ rack.pk }}">
+<div
+        id="rack_{{ rack.pk }}"
+        class="rack{% if editmode %} editmode{% endif %}"
+        data-rackid="{{ rack.pk }}"
+>
   <h5 class="rack-heading flex-when-noedit">
     <span class="rackname">{{ rack.rackname|default:"&nbsp;" }}</span>
     {% comment %}
@@ -49,7 +53,10 @@
       </div>
       <button class="tiny block-when-edit"
               title="Add PDU sensor to left column"
-              data-column="{{column}}">
+              hx-post="{% url 'room-info-racks-add-sensor-modal' room.pk %}"
+              hx-vals='{"rackid": "{{ rack.pk }}", "column": "{{ column }}" }'
+              hx-target="body"
+              hx-swap="beforeend">
         <i class="fa fa-plus"></i>
       </button>
       {% endwith %}
@@ -64,7 +71,11 @@
       </div>
       <button class="tiny full-width block-when-edit"
               title="Add sensor to middle column"
-              data-column="{{ column }}">Add sensor
+              hx-post="{% url 'room-info-racks-add-sensor-modal' room.pk %}"
+              hx-vals='{"rackid": "{{ rack.pk }}", "column": "{{ column }}" }'
+              hx-target="body"
+              hx-swap="beforeend">
+              Add sensor
       </button>
       {% endwith %}
     </div>
@@ -78,7 +89,10 @@
       </div>
       <button class="tiny block-when-edit"
               title="Add PDU sensor to right column"
-              data-column="{{ column }}">
+              hx-post="{% url 'room-info-racks-add-sensor-modal' room.pk %}"
+              hx-vals='{"rackid": "{{ rack.pk }}", "column": "{{ column }}" }'
+              hx-target="body"
+              hx-swap="beforeend">
         <i class="fa fa-plus"></i>
       </button>
       {% endwith %}

@@ -49,45 +49,27 @@ require([
 
 
     /**
-     * Opens modal (with remote url) with content for adding sensors when
-     * button is clicked
-     */
-    function addOpenSensorModalListener($sensorModal) {
-        $('#racks').on('click', '.rack-column button', function () {
-            $.data($sensorModal, 'clickedButton', $(this));
-            var column = $(this).data('column');
-
-            $sensorModal.foundation('reveal', 'open', {
-                url: NAV.urls.render_add_sensor,
-                method: 'post',
-                data: {
-                    rackid: $(this).closest('.rack').data('rackid'),
-                    column: column,
-                    is_pdu: column != '1'
-                }
-            });
-        });
-    }
-
-
-    /**
      * Applies listeners when modal for adding sensors is loaded
      * - form submit
      * - cancel click
      * - select2 component
      */
     function addSensorModalListeners($sensorModal) {
-        $(document).on('opened', '#sensormodal', function () {
+        document.body.addEventListener('htmx:afterSwap', function() {
+            const $sensorModal = $('#add-sensor-modal');
+            if (!$sensorModal.length) {
+                return;
+            }
             $sensorModal.find('#add-rackitem-tabs').tabs().show();
-            var sumSelectClone = $sensorModal.find('.sumsensors').closest('label').clone();
+            const sumSelectClone = $sensorModal.find('.sumsensors').closest('label').clone();
             $sensorModal.find('.sensordropdown').select2({
                 matcher: select2MultipleMatcher
             });
             $sensorModal.find('.sensordropdown').select2('open');
 
             $sensorModal.find('.sumform').on('change', '.sumsensors', function (event) {
-                var label = $(event.target).closest('label');
-                var clone = sumSelectClone.clone();
+                const label = $(event.target).closest('label');
+                const clone = sumSelectClone.clone();
                 clone.find('select').select2({
                     matcher: select2MultipleMatcher
                 });
@@ -95,47 +77,25 @@ require([
             });
             $sensorModal.find('.cancelbutton').on('click', function (event) {
                 event.preventDefault();
-                $sensorModal.foundation('reveal', 'close');
-            });
-
-            var $form = $sensorModal.find('form');
-            $form.submit(function (event) {
-                event.preventDefault();
-                var request = $.post($(this).attr('action'), $(this).serialize());
-                request.fail(function () {
-                    console.log("Failed to post form");
-                });
-                request.done(function (data) {
-                    var button = $.data($sensorModal, 'clickedButton'),
-                        column = button.data('column'),
-                        rack = button.closest('.rack');
-                    $(rack.find('.sensors').get(column)).append(data);
-                    updateSingleSensor($(data));
-                    $sensorModal.foundation('reveal', 'close');
-                });
+                $sensorModal.remove();
             });
         });
-    }
 
+        document.body.addEventListener('room.rack.added', function () {
+            $('[data-id="no-racks-alert"]').remove()
+        })
 
-    /**
-     * Listens to form submits for adding new racks
-     * @param selector for the rackmodal
-     */
-    function addRackModalListener(selector) {
-        var $rackModal = $(selector);
-        var $form = $rackModal.find('form');
-        $form.submit(function (event) {
-            event.preventDefault();
-            var request = $.post($form.attr('action'), $form.serialize());
-            request.fail(function () {
-                console.log("Failed to post form");
-            });
-            request.done(function (html) {
-                $('#add-rack-button-container').before(html);
-                toggleEditEmptyRack();
-                $rackModal.foundation('reveal', 'close');
-            });
+        /* Form submission is handled by htmx, we just need to add a listener for
+           when the sensor is added to update it with data */
+        document.body.addEventListener('room.rack.sensorAdded', function(event) {
+            const { rackId, sensorId } = event.detail;
+            // Use a small delay to ensure HTMX swap is complete
+            setTimeout(() => {
+                const $sensor = $(`#item_${rackId}_${sensorId}`);
+                if ($sensor.length) {
+                    updateSingleSensor($sensor);
+                }
+            }, 100);
         });
     }
 
@@ -485,16 +445,10 @@ require([
         addEditModeListener();
         toggleEditEmptyRack();
 
-        // Add all listeners
-        var $sensorModal = $('#sensormodal');
-        addOpenSensorModalListener($sensorModal);
-        addSensorModalListeners($sensorModal);
+        addSensorModalListeners();
 
         addRackRemoveListener();
         addSensorRemoveListener();
-
-        $(document).foundation();  // Make sure add rack modal opens
-        addRackModalListener('#rackmodal');
 
         addRenameRackListener();
 

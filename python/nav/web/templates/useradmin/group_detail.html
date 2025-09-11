@@ -1,19 +1,17 @@
 {% extends "useradmin/base.html" %}
-
 {% block base_header_additional_head %}
   {{ block.super }}
   <style>
-   #grant-tooltip {
-       background-color: #d9edf7;
-       border-color: #bce8f1;
-       padding: 1em;
+   #grant-privileges-header {
+       [aria-describedby] {
+           cursor: pointer;
+           font-size: 12px;
+           margin-left: 4px;
+       }
    }
-   #grant-tooltip::before { border-color: transparent transparent #d9edf7}
-   #grant-tooltip::after { border-color: transparent transparent #bce8f1;}
+
   </style>
 {% endblock %}
-
-
 {% block content %}
 
   <a href="{% url 'useradmin-group_list' %}">Back to group list</a>
@@ -121,18 +119,20 @@
 
             {% if privilege_form %}
 
-              <h6>
+              <h6 id="grant-privileges-header">
                 Grant privileges
-                <i class="fa fa-info-circle has-tip"
-                   data-dropdown="grant-tooltip"
-                   data-options="is_hover:true"></i>
+                  <span class="nav-tooltip">
+                    <a href="http://docs.python.org/howto/regex.html" aria-describedby="grant-tooltip">
+                        <i class="fa fa-info-circle" ></i>
+                        <span>How to guide</span>
+                    </a>
+                    <span id="grant-tooltip" role="tooltip">
+                        See the <em>How to guide</em> for more information
+                        on the Regular expressions used for matching targets for
+                        privileges like 'web_access'.
+                    </span>
+                  </span>
               </h6>
-
-              <div id="grant-tooltip" class="f-dropdown" data-dropdown-content>
-                See <a href='http://docs.python.org/howto/regex.html'>this HOWTO</a>
-                on the Regular expressions used for matching targets for
-                privileges like 'web_access'."
-              </div>
 
               {% include 'custom_crispy_templates/flat_form.html' with form=privilege_form %}
             {% endif %}

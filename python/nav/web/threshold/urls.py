@@ -29,4 +29,5 @@ urlpatterns = [
     path('delete/<int:rule_id>', views.delete_threshold, name='threshold-delete'),
     path('search/', views.threshold_search, name='threshold-search'),
     path('graph_url/', views.get_graph_url, name='threshold-graph'),
+    path('helpmodal', views.threshold_help_modal, name='threshold-help-modal'),
 ]

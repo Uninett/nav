@@ -63,6 +63,30 @@ require([
             const $topbar = $this.closest('.top-bar');
             $topbar.toggleClass('expanded');
         });
+
+        // Handle dropdown visibility using Foundation's hover class
+        // This is necessary because the elements are considered "invisible" without the hover class
+        // and thus not processable by htmx
+        $('.has-dropdown').on('click', function(e) {
+            const $this = $(this);
+
+            if ($this.hasClass('hover')) {
+                $this.removeClass('hover');
+            } else {
+                $('.has-dropdown').removeClass('hover');
+                $this.addClass('hover');
+            }
+
+            e.stopPropagation();
+        });
+
+        // Close dropdowns when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.has-dropdown').length) {
+                $('.has-dropdown').removeClass('hover');
+            }
+        });
+
         // Cleanup topbar if we resize to large screen
         $(window).on('resize', _.throttle(function () {
             if (window.matchMedia('(min-width: 40em)').matches) {

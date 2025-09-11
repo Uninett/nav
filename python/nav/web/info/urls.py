@@ -28,4 +28,5 @@ urlpatterns = [
     path('devicegroup/', include('nav.web.info.netboxgroup.urls')),
     path('image/', include('nav.web.info.images.urls')),
     path('event/', include('nav.web.info.event.urls')),
+    path('image-help-modal/', image_help_modal, name='info-image-help-modal'),
 ]

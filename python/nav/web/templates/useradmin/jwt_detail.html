@@ -61,10 +61,12 @@
 
         <h5>Permission:
           {{ object.permission }}
-          <i class="fa fa-info-circle"
-             title="{{ object.permission_help_text }}"
-             style="cursor: pointer"
-          ></i>
+            <span class="nav-tooltip">
+                <i class="fa fa-icon-circle" aria-describedby="permission-help-text"></i>
+                <span id="permission-help-text" role="tooltip">
+                  {{ object.permission_help_text }}
+                </span>
+            </span>
         </h5>
 
         <h5>Endpoints:</h5>

@@ -29,8 +29,6 @@
 
     {% if result %}
 
-    <div id="details_modal" class="reveal-modal" data-reveal></div>
-
     <table id="resulttable" class="listtable full-width">
         <thead data-nosort='[5, 6]'>
           <tr>
@@ -58,8 +56,10 @@
               <td>{{ row.acctstoptime }}</td>
               <td>{{ row.acctsessiontime|time_from_seconds }}</td>
               <td>
-                <a href="javascript:void(0);"
-                   data-bubble-reveal="{% url 'radius-account_detail-modal' row.radacctid %}"
+                <a
+                   hx-get="{% url 'radius-account_detail-modal' row.radacctid %}"
+                   hx-target="body"
+                   hx-swap="beforeend"
                    title="View all available information on this session">
                   Details
                    </a>

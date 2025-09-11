@@ -1,11 +1,5 @@
-<div id="qr-code-modal">
-    <div class="modal-underlay" hx-on:click="htmx.remove(this.closest('#qr-code-modal'))"></div>
-    <div class="modal-content">
-        <a class="close-reveal-modal" aria-label="Close" hx-on:click="htmx.remove(this.closest('#qr-code-modal'))">&#215;</a>
-        {% if file_format == "svg" %}
-            <img src="data:image/svg+xml;base64,{{qr_code}}" alt="QR Code linking to current page">
-        {% else %}
-            <img src="data:image/png;base64,{{qr_code}}" alt="QR Code linking to current page">
-        {% endif %}
-    </div>
-</div>
+{% if file_format == "svg" %}
+    <img src="data:image/svg+xml;base64,{{qr_code}}" alt="QR Code linking to current page">
+{% else %}
+    <img src="data:image/png;base64,{{qr_code}}" alt="QR Code linking to current page" style="display: block; margin-left: auto; margin-right: auto;">
+{% endif %}

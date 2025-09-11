@@ -31,7 +31,7 @@ iso8601
 
 pynetsnmp-2>=0.1.10
 
-napalm>=5.0.0,<5.1.0
+napalm>=5.1.0,<5.2.0
 
 git+https://github.com/Uninett/drf-oidc-auth@v4.0#egg=drf-oidc-auth
 

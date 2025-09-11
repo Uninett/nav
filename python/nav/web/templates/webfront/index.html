@@ -73,23 +73,6 @@
 
     </div>
 
-    {% comment %} Dashboard import form {% endcomment %}
-    <div id="dashboard-import" class="reveal-modal small" data-reveal>
-        <h4>Import dashboard</h4>
-
-        <div data-alert class="alert-box warning hidden">
-        </div>
-        <form action="{% url 'import-dashboard' %}">
-            {% csrf_token %}
-            <fieldset>
-                <legend>Select file to import</legend>
-                <input name="file" type="file" id="dashboard-import-file">
-            </fieldset>
-            <button type="submit" class="button" aria-label="submit form">Import</button>
-        </form>
-
-    </div>
-
     {# Content dropdown for dashboard settings #}
     <div id="dropdown-dashboard-settings"
          data-dropdown-content
@@ -167,7 +150,9 @@
         </label>
         <input type="submit" class="small button full-width" value="Add dashboard">
       </form>
-      <a data-reveal data-reveal-id="dashboard-import">Import dashboard</a>
+        <a hx-get="{% url 'import-dashboard-modal' %}"
+           hx-target="body"
+           hx-swap="beforeend">Import dashboard</a>
     </div>
 
     {# Buttons for selecting dashboards #}

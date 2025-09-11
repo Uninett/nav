@@ -1,3 +1,4 @@
+{% if fields %}
 <table class="vertitable">
   <caption>Details</caption>
   {% for desc, field in fields %}
@@ -11,3 +12,8 @@
     </tr>
   {% endfor %}
 </table>
+{% else %}
+<div class="alert-box alert">
+    No details available.
+</div>
+{% endif %}

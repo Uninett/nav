@@ -2,41 +2,22 @@
   <link href="{{ STATIC_URL }}css/nav/rack.css" rel="stylesheet">
   <script>
     require(["src/info_room_rack", 'plugins/vue_rack']);
-    NAV.urls.render_add_sensor = "{% url 'room-info-racks-add-sensor' room.pk %}"
+    NAV.urls.render_add_sensor = "{% url 'room-info-racks-add-sensor-modal' room.pk %}"
     NAV.urls.remove_sensor = "{% url 'room-info-racks-remove-sensor' room.pk %}"
     NAV.urls.remove_rack = "{% url 'room-info-racks-remove-rack' room.pk %}"
     NAV.urls.save_sensor_order = "{% url 'room-info-racks-save-sensor-order' room.pk %}"
     NAV.urls.save_rack_order = "{% url 'room-info-racks-save-rack-order' room.pk %}"
     NAV.urls.save_rack_color = "{% url 'room-info-racks-save-rack-color' room.pk %}"
-
+    // Process content added by AJAX to enable htmx features
+    htmx.process(document.getElementById("racks-container"));
   </script>
 {% endblock %}
 
 <h3>Environment sensors in racks in {{ room.pk }}</h3>
 
 {% if not racks %}
-  <p class="alert-box">There are no racks in this room.</p>
+  <p class="alert-box" data-id="no-racks-alert">There are no racks in this room.</p>
 {% endif %}
-
-
-{# Modal for adding new rack #}
-<div id="rackmodal" class="reveal-modal small" data-reveal role="dialog">
-  <h3>Add new rack</h3>
-  <form action="{% url 'room-info-racks-add-rack' room.pk %}" method="post">
-    {% csrf_token %}
-    <input type="hidden" name="roomid" value="{{ room.pk }}">
-    <label>
-      Rack name
-      <input type="text" name="rackname">
-    </label>
-    <input type="submit" class="button small" value="Add new rack">
-  </form>
-</div>
-
-
-{# Modal for adding new sensor #}
-<div id="sensormodal" class="reveal-modal small" data-reveal role="dialog"></div>
-
 
 <div id="racks-container" class="racks-container">
   {% for rack in racks %}
@@ -46,7 +27,14 @@
   {% if current_user_data.is_admin %}
     <div id="add-rack-button-container">
       <h5 class="rack-heading">&nbsp;</h5>
-      <a class="button small" data-reveal-id="rackmodal">Add a rack</a>
+      <button
+          class="button small"
+          hx-get="{% url 'room-info-racks-add-rack-modal' room.pk %}"
+          hx-target="body"
+          hx-swap="beforeend"
+      >
+          Add a rack
+      </button>
     </div>
   {% endif %}
 

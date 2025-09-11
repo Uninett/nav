@@ -1,4 +1,8 @@
-<form method="post" action="{% url 'room-info-racks-save-sensor' room.pk %}">
+<form
+        hx-post="{% url 'room-info-racks-save-sensor' room.pk %}"
+        hx-target="{{ hx_target }}"
+        hx-swap="beforeend"
+>
   {% csrf_token %}
   <label>
     Primary {{ sensortype }}
