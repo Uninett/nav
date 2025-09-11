@@ -5,6 +5,7 @@ import os
 import pytest
 from django.test import RequestFactory
 from django.urls import reverse
+from django.utils.encoding import smart_str
 from mock import MagicMock
 
 from nav.web.info.images.utils import save_thumbnail
@@ -57,6 +58,25 @@ def test_save_thumbnail_should_produce_a_file(tmpdir):
         thumb_dir=tmpdir,
     )
     assert os.path.exists(os.path.join(tmpdir, image))
+
+
+class TestImageUploadHeader:
+    def test_when_rendering_location_image_upload_then_include_location_id(
+        self, client
+    ):
+        url = reverse('location-info-upload', args=['mylocation'])
+        response = client.get(url)
+        assert 'Images for &laquo;mylocation&raquo;' in smart_str(response.content)
+
+    def test_when_rendering_room_image_upload_then_include_room_id(self, client):
+        url = reverse('room-info-upload', args=['myroom'])
+        response = client.get(url)
+        assert 'Images for &laquo;myroom&raquo;' in smart_str(response.content)
+
+    def test_should_render_image_help_modal(self, client):
+        url = reverse('info-image-help-modal')
+        response = client.get(url)
+        assert 'id="image-help"' in smart_str(response.content)
 
 
 ############

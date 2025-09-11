@@ -335,3 +335,14 @@ def admin_account(db):
     from nav.models.profiles import Account
 
     yield Account.objects.get(id=Account.ADMIN_ACCOUNT)
+
+
+@pytest.fixture()
+def non_admin_account(db):
+    from nav.models.profiles import Account
+
+    account = Account(login="other_user")
+    account.set_password("password")
+    account.save()
+    yield account
+    account.delete()

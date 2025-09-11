@@ -1,0 +1,14 @@
+<h3>Add new rack</h3>
+<form
+        hx-post="{% url 'room-info-racks-add-rack' room.pk %}"
+        hx-target="#add-rack-button-container"
+        hx-swap="beforebegin"
+>
+    {% csrf_token %}
+    <input type="hidden" name="roomid" value="{{ room.pk }}">
+    <label>
+        Rack name
+        <input type="text" name="rackname">
+    </label>
+    <input type="submit" class="button small" value="Add new rack">
+</form>
