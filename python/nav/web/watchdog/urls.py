@@ -16,20 +16,18 @@
 #
 """URL config for WatchDog"""
 
-from django.urls import re_path
+from django.urls import path
 from nav.web.watchdog import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.render_index, name='watchdog-index'),
-    re_path(
-        r'^active_addresses',
+    path('', views.render_index, name='watchdog-index'),
+    path(
+        'active_addresses',
         views.get_active_addresses,
         name='watchdog-active-addresses',
     ),
-    re_path(
-        r'^serial_numbers', views.get_serial_numbers, name='watchdog-serial-numbers'
-    ),
-    re_path(r'^cam_and_arp', views.get_cam_and_arp, name='watchdog-cam-and-arp'),
-    re_path(r'^db_size', views.get_database_size, name='watchdog-db-size'),
+    path('serial_numbers', views.get_serial_numbers, name='watchdog-serial-numbers'),
+    path('cam_and_arp', views.get_cam_and_arp, name='watchdog-cam-and-arp'),
+    path('db_size', views.get_database_size, name='watchdog-db-size'),
 ]
