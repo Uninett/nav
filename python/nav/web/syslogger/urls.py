@@ -17,15 +17,13 @@
 #
 """syslogger Django URL config"""
 
-from django.urls import re_path
+from django.urls import path
 from nav.web.syslogger import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.index, name='logger_index'),
-    re_path(r'^search/group/$', views.group_search, name='logger_search_group'),
-    re_path(
-        r'^exceptions/$', views.exceptions_response, name='logger_priority_exceptions'
-    ),
-    re_path(r'^errors/$', views.errors_response, name='logger_errors'),
+    path('', views.index, name='logger_index'),
+    path('search/group/', views.group_search, name='logger_search_group'),
+    path('exceptions/', views.exceptions_response, name='logger_priority_exceptions'),
+    path('errors/', views.errors_response, name='logger_errors'),
 ]
