@@ -1,5 +1,7 @@
 from django import forms
 
+from nav.util import is_valid_ip
+
 
 # TODO: Borrowed from newer radius. Need to be removed
 # TODO: and imported from elsewhere
@@ -81,3 +83,12 @@ class NetworkSearchForm(forms.Form):
     hide_ports = forms.BooleanField(
         label='Hide ports with no description', required=False
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("query"):
+            query, query_type = cleaned_data["query"]
+            if query_type == "ip" and cleaned_data["exact_results"]:
+                if not is_valid_ip(query):
+                    self._errors['address'] = self.error_class(["Invalid IP address"])
+        return cleaned_data
