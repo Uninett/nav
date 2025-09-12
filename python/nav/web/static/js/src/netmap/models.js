@@ -23,6 +23,17 @@ define([
 
         url: function () {
             return 'views/' + this.get('viewid') + '/nodepositions/update/';
+        },
+
+        save: function (attrs, options) {
+            options = options || {};
+            const csrfToken = $('#netmap-view-settings-form input[name="csrfmiddlewaretoken"]').val();
+
+            options.headers = {
+                ...options.headers,
+                'X-CSRFToken': csrfToken
+            }
+            return Backbone.Model.prototype.save.call(this, attrs, options);
         }
     });
 

@@ -127,6 +127,8 @@
 
       </div>
 
+      <form id="update-columns-form">
+      {% csrf_token %}
       <h5>Columns</h5>
       <ul class="button-group" style="margin-bottom: 1em;" data-url="{% url 'save-dashboard-columns' dashboard.pk %}">
         <li><a href="#" class="button tiny secondary column-chooser" data-columns="1">One</a></li>
@@ -134,6 +136,7 @@
         <li><a href="#" class="button tiny secondary column-chooser" data-columns="3">Three</a></li>
         <li><a href="#" class="button tiny secondary column-chooser" data-columns="4">Four</a></li>
       </ul>
+      </form>
 
     </div> {# dropdown dashboard forms #}
 
@@ -185,6 +188,9 @@
 
 
   {% comment %} Main container for navlets {% endcomment %}
+  <form id="navlets-action-form" style="display: none;">
+    {% csrf_token %}
+  </form>
   <div id="navlets"
        {% if request.account.preferences.widget_display_density == 'compact' %}class="compact"{% endif %}
        data-list-navlets="{% url 'get-user-navlets' dashboard.pk %}"

@@ -229,9 +229,18 @@ define([
             this.currentView.baseZoom = this.currentView.get('zoom');
             var isNew = this.currentView.isNew();
 
+            // Get CSRF token from the appropriate form
+            const csrfToken = isNew
+                ? $('#netmap-view-create-form input[name=csrfmiddlewaretoken]').val()
+                : $('#netmap-view-edit-form input[name=csrfmiddlewaretoken]').val();
+            this.currentView.set('csrfmiddlewaretoken', csrfToken);
+
             var self = this;
             this.currentView.save(this.currentView.attributes,
                 {
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                    },
                     success: function (model) {
                         Backbone.EventBroker.trigger('netmap:saveNodePositions', model, {'isNew': isNew}, self.middleAlertContainer);
                     },
@@ -294,8 +303,11 @@ define([
             if(confirm('Delete this view?')) {
                 if (!this.currentView.isNew()) {
                     var self = this;
-                    console.log('We want to delete view with id ' + this.currentView.id);
+                    const csrfToken = $('#netmap-view-delete-form input[name=csrfmiddlewaretoken]').val();
                     this.currentView.destroy({
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader('X-CSRFToken', csrfToken);
+                        },
                         success: function () {
                             self.deleteSuccessful.call(self, false);
                         },
