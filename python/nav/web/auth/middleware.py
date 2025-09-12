@@ -21,6 +21,7 @@ import logging
 import os
 from typing import Optional
 
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.deprecation import MiddlewareMixin
 
@@ -29,6 +30,7 @@ from nav.web.auth import remote_user, get_login_url, logout
 from nav.web.auth.utils import (
     ensure_account,
     authorization_not_required,
+    get_user,
 )
 from nav.web.auth.sudo import get_sudoer
 from nav.web.utils import is_ajax
@@ -98,7 +100,7 @@ class AuthorizationMiddleware(MiddlewareMixin):
             )
             return self.redirect_to_login(request)
         else:
-            if not account.is_default_account():
+            if not account.is_anonymous:
                 os.environ['REMOTE_USER'] = account.login
             elif 'REMOTE_USER' in os.environ:
                 del os.environ['REMOTE_USER']
@@ -114,3 +116,32 @@ class AuthorizationMiddleware(MiddlewareMixin):
 
         new_url = get_login_url(request)
         return HttpResponseRedirect(new_url)
+
+
+class NAVAuthenticationMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        if not hasattr(request, "session"):
+            raise ImproperlyConfigured(
+                "The NAV Django authentication middleware requires session "
+                "middleware to be installed. Edit your MIDDLEWARE setting to "
+                "insert "
+                "'django.contrib.sessions.middleware.SessionMiddleware' before "
+                "'nav.web.auth.middleware.NAVAuthenticationMiddleware'."
+            )
+
+        user = get_user(request)  # NOT lazy!
+        request.user = user
+        request.account = user  # remove this eventually
+
+        # NAV-specific sudo method
+        sudo_operator = get_sudoer(request)  # Account or None
+        if sudo_operator:
+            logged_in = sudo_operator or user
+            _logger.debug(
+                ('AuthenticationMiddleware (logged_in: "%s" acting as "%s") from "%s"'),
+                logged_in.login,
+                user.login,
+                request.get_full_path(),
+            )
+            request.account.sudo_operator = sudo_operator
+            request.user.sudo_operator = sudo_operator

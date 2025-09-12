@@ -58,7 +58,7 @@ from django.views.generic.base import TemplateView
 from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
 from nav.web.auth.sudo import get_sudoer
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.web.modals import render_modal, render_modal_alert, resolve_modal
 from nav.web.utils import require_param
 from nav.web.webfront import find_dashboard
@@ -335,7 +335,7 @@ def find_new_placement():
 
 def can_modify_navlet(account, request):
     """Determine if this account can modify navlets"""
-    return not (account.is_default_account() and not get_sudoer(request))
+    return not (account.is_anonymous and not get_sudoer(request))
 
 
 def modify_navlet(func, account, request, error_message):

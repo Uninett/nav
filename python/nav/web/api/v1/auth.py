@@ -56,7 +56,7 @@ class NavBaseAuthentication(BaseAuthentication):
 
     def authenticate(self, request):
         _logger.debug("Baseauthentication account is %s", request.account)
-        if request.account and not request.account.is_default_account():
+        if request.account and not request.account.is_anonymous:
             return request.account, None
 
 
@@ -67,7 +67,7 @@ class ReadOnlyNonAdminPermission(BasePermission):
 
     def has_permission(self, request, _view):
         """If user is logged in and it is a safe method, it is authorized"""
-        if request.method in SAFE_METHODS and not request.account.is_default_account():
+        if request.method in SAFE_METHODS and not request.account.is_anonymous:
             return True
         if request.account.is_admin():
             return True

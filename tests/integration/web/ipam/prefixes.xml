@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <django-objects version="1.0">
-  <object pk="1337" model="models.vlan">
+  <object pk="1337" model="nav_models.vlan">
     <field type="IntegerField" name="vlan">1337</field>
-    <field to="models.nettype" name="net_type" rel="ManyToOneRel">lan</field>
-    <field to="models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
-    <field to="models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
+    <field to="nav_models.nettype" name="net_type" rel="ManyToOneRel">lan</field>
+    <field to="nav_models.organization" name="organization" rel="ManyToOneRel"><None></None></field>
+    <field to="nav_models.usage" name="usage" rel="ManyToOneRel"><None></None></field>
     <field type="TextField" name="net_ident">cool_vlans</field>
     <field type="TextField" name="description">cool_vlan</field>
   </object>
-  <object pk="lan" model="models.nettype">
+  <object pk="lan" model="nav_models.nettype">
     <field type="TextField" name="description">lan</field>
     <field type="BooleanField" name="edit">False</field>
   </object>
-  <object pk="11" model="models.prefix">
+  <object pk="11" model="nav_models.prefix">
     <field type="TextField" name="net_address">10.0.160.0/19</field>
-    <field to="models.vlan" name="vlan" rel="ManyToOneRel">1337</field>
+    <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">1337</field>
   </object>
-  <object pk="22" model="models.prefix">
+  <object pk="22" model="nav_models.prefix">
     <field type="TextField" name="net_address">10.0.168.0/21</field>
-    <field to="models.vlan" name="vlan" rel="ManyToOneRel">1337</field>
+    <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">1337</field>
   </object>
-  <object pk="33" model="models.prefix">
+  <object pk="33" model="nav_models.prefix">
     <field type="TextField" name="net_address">10.0.176.0/21</field>
-    <field to="models.vlan" name="vlan" rel="ManyToOneRel">1337</field>
+    <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">1337</field>
   </object>
-  <object pk="44" model="models.prefix">
+  <object pk="44" model="nav_models.prefix">
     <field type="TextField" name="net_address">10.0.184.0/21</field>
-    <field to="models.vlan" name="vlan" rel="ManyToOneRel">1337</field>
+    <field to="nav_models.vlan" name="vlan" rel="ManyToOneRel">1337</field>
   </object>
 </django-objects>
