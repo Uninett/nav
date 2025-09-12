@@ -61,6 +61,7 @@ volumes:
 networks:
   nav_ipv6:
     # driver: bridge  # Use the default bridge network
+    enable_ipv6: true
     driver_opts:
       com.docker.network.enable_ipv6: "true"
       # Use masquerading to avoid exposing the devcontainer network to the world
