@@ -34,6 +34,7 @@ from nav.django.utils import get_account
 from nav.util import is_valid_ip
 from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface
+from nav.web.modals import render_modal
 from nav.web.portadmin.utils import (
     get_and_populate_livedata,
     find_and_populate_allowed_vlans,
@@ -775,3 +776,15 @@ def get_management_handler(netbox: Netbox) -> ManagementHandler:
         return ManagementFactory.get_instance(netbox, timeout=timeout, retries=retries)
     except ManagementError as error:
         _logger.error('Error getting ManagementHandler instance %s: %s', netbox, error)
+
+
+def render_feedback_modal(request):
+    """Renders a modal that is used to display feedback when saving interface changes"""
+    return render_modal(
+        request,
+        'portadmin/_feedback_modal.html',
+        modal_id="portadmin-feedback-modal",
+        close_on_outside_click=False,
+        show_close_button=False,
+        size="small",
+    )
