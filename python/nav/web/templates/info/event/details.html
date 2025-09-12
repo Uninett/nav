@@ -256,21 +256,11 @@
         <input type="text" name="description" placeholder="" />
       </label>
 
-      <a data-dropdown="acknowledge-info" aria-controls="acknowledge-info" aria-expanded="false">
-        About
-      </a>
-
       <input type="submit" class="button small secondary right" value="Acknowledge alert" />
     </form>
+    {% include 'info/event/_about_acknowledge_info.html' %}
 
-    <div id="acknowledge-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
-      <h5>About acknowledging</h5>
 
-      <p>
-        Acknowledged alerts will be hidden for all users, but not removed. When
-        an end event arrives the alert will be cleared normally.
-      </p>
-    </div>
 
   </div>
 
@@ -279,25 +269,9 @@
     <form action="{% url 'status2_clear_alert' %}">
       {% csrf_token %}
       <input type="hidden" name="id[]" value="{{ event.pk }}" />
-      <a data-dropdown="resolve-info" aria-controls="resolve-info" aria-expanded="false">About</a>
       <input type="submit" class="button small secondary right" value="Clear alert" />
     </form>
-
-    <div id="resolve-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
-      <h5>About clearing alerts</h5>
-
-      <p>
-        Clearing an alert will set its end time, thereby closing it and removing
-        it from the list of problems. Use this to remove alerts that have become
-        invalid, where there is no way for NAV to automatically detect this.
-      </p>
-
-      <p>
-        Be aware that if the root cause of the alert is still there, NAV may end
-        up posting a new alert for the same issue.
-      </p>
-    </div>
-
+    {% include 'info/event/_about_resolve_info.html' %}
   </div>
 
   {# Put on maintenance #}
@@ -312,20 +286,7 @@
       <input type="submit" class="button small secondary right" value="Put on maintenance" />
     </form>
 
-    <a data-dropdown="maintenance-info" aria-controls="maintenance-info" aria-expanded="false">
-      About
-    </a>
-
-    <div id="maintenance-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
-      <h5>Put on maintenance</h5>
-
-      <p>
-        Putting an alert on maintenance only makes sense if the subject can be
-        put on maintenance, for instance IP Devices and Services.
-      </p>
-
-    </div>
-
+    {% include 'info/event/_about_maintenance_info.html' %}
   </div>
 
   {# Delete module or chassis #}
@@ -336,21 +297,7 @@
       <input type="submit" class="button small secondary full-width" value="Delete module or chassis" />
     </form>
 
-    <a data-dropdown="delete-info" aria-controls="delete-info" aria-expanded="false">
-      About
-    </a>
-
-    <div id="delete-info" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
-      <h5>About deleting module or chassis</h5>
-
-      <p>
-        NAV does not know if a module or chassis that has disappeared did so
-        because of an error or because it was removed on purpose. Thus, modules
-        and chassis that disappear are all listed in status until manually
-        deleted from NAV by a manual module/chassis delete.
-      </p>
-
-    </div>
+    {% include 'info/event/_about_delete_info.html' %}
   </div>
 
 {% endblock %}
