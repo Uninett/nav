@@ -33,8 +33,8 @@
       </tbody>
     </table>
   {% elif graphite_error %}
-      <div data-alert class="alert-box alert">Unable to get a response from Graphite!</div>
+      <div data-nav-alert class="alert-box alert">Unable to get a response from Graphite!</div>
   {% else %}
-      <div data-alert class="alert-box secondary">No metrics for this interface</div>
+      <div data-nav-alert class="alert-box secondary">No metrics for this interface</div>
   {% endif %}
 {% endwith %}

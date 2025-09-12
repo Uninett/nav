@@ -7,7 +7,7 @@
 
 <div class="user-feedback">
   {% for message in messages %}
-  <div class="alert-box {{ message.tags }}" data-alert>
+  <div class="alert-box {{ message.tags }}" data-nav-alert>
     {{ message|safe }}
   </div>
   {% endfor %}

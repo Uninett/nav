@@ -29,7 +29,7 @@ require(['plugins/network_tree'], function (NetworkTree) {
     function notifyFail(text) {
         var notify_area = $('#notify_area');
         notify_area.html(
-            '<div data-alert class="alert-box">' +
+            '<div data-nav-alert class="alert-box error">' +
                 text +
                 '<a href="#" class="close">&times;</a>' +
             '</div>'
