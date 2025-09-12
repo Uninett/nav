@@ -31,6 +31,8 @@ def render_modal(
     context: Optional[dict] = None,
     modal_id: Optional[str] = DEFAULT_MODAL_ID,
     size: Optional[str] = DEFAULT_MODAL_SIZE,
+    show_close_button: bool = True,
+    close_on_outside_click: bool = True,
 ):
     """Render a modal dialog with the given template and context"""
 
@@ -40,6 +42,8 @@ def render_modal(
         'modal_id': modal_id,
         'content_template': template_name,
         'modal_size': size,
+        'show_close_button': show_close_button,
+        'close_on_outside_click': close_on_outside_click,
         **context,
     }
     return render(request, 'modals/_nav_modal.html', modal_context)

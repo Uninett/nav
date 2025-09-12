@@ -3,9 +3,11 @@
         class="nav-modal "
         tabindex="-1"
 >
-    <div class="modal-underlay" hx-on:click="htmx.remove(this.closest('#{{ modal_id }}'))"></div>
+    <div class="modal-underlay"{% if close_on_outside_click %} hx-on:click="htmx.remove(this.closest('#{{ modal_id }}'))"{% endif %}></div>
     <div class="modal-content{% if modal_size %} {{ modal_size }}{% endif %}">
+        {% if show_close_button %}
         <a class="close-reveal-modal" aria-label="Close" hx-on:click="htmx.remove(this.closest('#{{ modal_id }}'))">&#215;</a>
+        {% endif %}
         {% include content_template %}
         <div id="{{ modal_id }}-alert"></div>
     </div>
