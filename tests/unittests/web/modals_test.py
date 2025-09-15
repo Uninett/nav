@@ -27,6 +27,8 @@ class TestModalUtilities:
             'modal_id': DEFAULT_MODAL_ID,
             'content_template': 'test_template.html',
             'modal_size': DEFAULT_MODAL_SIZE,
+            'show_close_button': True,
+            'close_on_outside_click': True,
         }
 
         mock_render.assert_called_once_with(
@@ -47,6 +49,8 @@ class TestModalUtilities:
             'modal_id': modal_id,
             'content_template': template_name,
             'modal_size': DEFAULT_MODAL_SIZE,
+            'show_close_button': True,
+            'close_on_outside_click': True,
             'netboxid': '123',
         }
 
@@ -67,6 +71,8 @@ class TestModalUtilities:
             'modal_id': DEFAULT_MODAL_ID,
             'content_template': template_name,
             'modal_size': modal_size,
+            'show_close_button': True,
+            'close_on_outside_click': True,
         }
 
         mock_render.assert_called_once_with(
@@ -118,4 +124,69 @@ class TestModalUtilities:
         expected_context = {'message': message, 'modal_id': modal_id}
         mock_render.assert_called_once_with(
             self.request, 'modals/_nav_modal_alert.html', expected_context
+        )
+
+    @patch('nav.web.modals.render')
+    def test_should_render_modal_with_close_button_disabled(self, mock_render):
+        """Test render_modal with close button disabled"""
+        mock_render.return_value = HttpResponse('modal content')
+        template_name = 'test_template.html'
+
+        render_modal(self.request, template_name, show_close_button=False)
+
+        expected_context = {
+            'modal_id': DEFAULT_MODAL_ID,
+            'content_template': template_name,
+            'modal_size': DEFAULT_MODAL_SIZE,
+            'show_close_button': False,
+            'close_on_outside_click': True,
+        }
+
+        mock_render.assert_called_once_with(
+            self.request, 'modals/_nav_modal.html', expected_context
+        )
+
+    @patch('nav.web.modals.render')
+    def test_should_render_modal_with_outside_click_disabled(self, mock_render):
+        """Test render_modal with outside click closing disabled"""
+        mock_render.return_value = HttpResponse('modal content')
+        template_name = 'test_template.html'
+
+        render_modal(self.request, template_name, close_on_outside_click=False)
+
+        expected_context = {
+            'modal_id': DEFAULT_MODAL_ID,
+            'content_template': template_name,
+            'modal_size': DEFAULT_MODAL_SIZE,
+            'show_close_button': True,
+            'close_on_outside_click': False,
+        }
+
+        mock_render.assert_called_once_with(
+            self.request, 'modals/_nav_modal.html', expected_context
+        )
+
+    @patch('nav.web.modals.render')
+    def test_should_render_modal_with_both_close_options_disabled(self, mock_render):
+        """Test render_modal with both close options disabled for manual control"""
+        mock_render.return_value = HttpResponse('modal content')
+        template_name = 'test_template.html'
+
+        render_modal(
+            self.request,
+            template_name,
+            show_close_button=False,
+            close_on_outside_click=False,
+        )
+
+        expected_context = {
+            'modal_id': DEFAULT_MODAL_ID,
+            'content_template': template_name,
+            'modal_size': DEFAULT_MODAL_SIZE,
+            'show_close_button': False,
+            'close_on_outside_click': False,
+        }
+
+        mock_render.assert_called_once_with(
+            self.request, 'modals/_nav_modal.html', expected_context
         )
