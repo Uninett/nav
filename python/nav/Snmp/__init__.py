@@ -57,9 +57,9 @@ def safestring(string, encodings_to_try=('utf-8', 'latin-1')):
     database (which only accepts UTF-8), we make various attempts at decoding
     strings to unicode objects before the database becomes involved.
 
-    11092025: Added .strip(b'\x00') for the bytes check since the decode 
-    function does not read this as NULL and adds to the string. The string 
-    in it's turn will make postgres trigger an exception when in queries as 
+    11092025: Added .strip(b'\x00') for the bytes check since the decode
+    function does not read this as NULL and adds to the string. The string
+    in it's turn will make postgres trigger an exception when in queries as
     postgres cannot handle the \x00 character.
     """
     if string is None:
