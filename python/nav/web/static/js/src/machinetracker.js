@@ -1,4 +1,4 @@
-require(["libs/jquery.tablesorter.min", "libs/jquery"], function (tablesorter) {
+require(["libs/jquery.tablesorter.min", "libs/jquery", "libs/modernizr"], function (tablesorter) {
 
     var ns = "nav.machinetracker",
         elementIds = ['id_netbios', 'id_dns'],
