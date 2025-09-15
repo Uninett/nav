@@ -25,7 +25,6 @@ var require = {
         "driver": "libs/driver-1.3.6.min"
     },
     shim: {
-        'libs/foundation.min': ['libs/modernizr', 'libs/fastclick'],
         'libs/jquery-ui-timepicker-addon': ['libs/jquery-ui.min'],
         'libs/underscore': {
             exports: '_'
