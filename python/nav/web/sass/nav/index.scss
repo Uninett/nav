@@ -43,22 +43,26 @@ and (max-width : 480px) {
 
 /* Dashboard and widget stuff */
 
-.right-action-content.f-dropdown {
-    border: 7px solid #243640;
-    box-shadow: #666 0 5px 10px;
-    z-index: 1000;
-    form {
-        margin-bottom: 1em;
+#dropdown-dashboard-add, #dropdown-dashboard-settings {
+    .popover-content {
+      width: 300px;
+      form {
+          margin-bottom: 1em;
+      }
+      input, select, .button {
+          margin-bottom: 0;
+      }
+      .dashboard-title { cursor: pointer; }
+      .dashboard-title i { display: none; }
+      .dashboard-title:hover i { display: inline-block; }
+      li {
+          margin: 0;
+      }
     }
-    input, select, .button {
-        margin-bottom: 0;
-    }
-    .dashboard-title { cursor: pointer; }
-    .dashboard-title i { display: none; }
-    .dashboard-title:hover i { display: inline-block; }
 }
 
 #form-rename-dashboard {
+    display: flex;
     label { overflow: hidden; }
     input[type=text] { width: 100%; }
 }

@@ -107,7 +107,7 @@ $pagination-link-current-active-bg: $primary-color !default;
       font-size: $pagination-li-font-size;
       margin-#{$default-float}: $pagination-li-margin;
 
-      a, button {
+      & > a, button {
         display: block;
         padding: $pagination-link-pad;
         color: $pagination-link-font-color;
@@ -119,7 +119,7 @@ $pagination-link-current-active-bg: $primary-color !default;
         @include single-transition(background-color);
       }
 
-      &:hover a,
+      &:hover > a,
       a:focus,
       &:hover button,
       button:focus

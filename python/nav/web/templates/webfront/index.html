@@ -13,7 +13,6 @@
        padding: 0.9rem;
    }
    /* Light adaption of pagination styles */
-   ul.pagination { overflow: auto; }
    ul.pagination li { background-color: gainsboro; }
    ul.pagination li a.drop-active { border: 1px dashed black; }
    ul.pagination li .alert-box { position: absolute; top: -4em }
@@ -38,6 +37,7 @@
     <div id="widgets-actions" class="hide-for-small" >
       <div
           title="Add widget"
+          class="widget-action"
           hx-get="{% url 'add-navlet-modal' dashboard.id %}"
           hx-target="body"
           hx-swap="beforeend"
@@ -45,12 +45,12 @@
         <i class="fa fa-plus"></i>
       </div>
 
-      <div id="widgets-show-fullscreen" title="Show dashboard in fullscreen">
+      <div id="widgets-show-fullscreen" class="widget-action" title="Show dashboard in fullscreen">
         <i class="fa fa-arrows-alt"></i>
       </div>
 
       <div id="widgets-layout-normal"
-           class="widgets-layout-toggler
+           class="widgets-layout-toggler widget-action
                   {% if request.account.preferences.widget_display_density == 'normal' %}hide{% endif %}
                   {% if not request.account.preferences.widget_display_density %}hide{% endif %}"
            title="Use normal layout for dashboard">
@@ -58,104 +58,13 @@
       </div>
 
       <div id="widgets-layout-compact"
-           class="widgets-layout-toggler
+           class="widgets-layout-toggler widget-action
                   {% if request.account.preferences.widget_display_density == 'compact' %}hide{% endif %}"
            title="Use compact layout for dashboard">
         <i class="fa fa-compress"></i>
       </div>
 
-      <div id="rightaction-dashboard-config"
-           title="Settings for current dashboard"
-           data-dropdown="dropdown-dashboard-settings"
-           data-options="align:left">
-        <i class="fa fa-gear fa-lg"></i>
-      </div>
-
-    </div>
-
-    {# Content dropdown for dashboard settings #}
-    <div id="dropdown-dashboard-settings"
-         data-dropdown-content
-         class="f-dropdown content large right-action-content">
-
-      <form id="form-rename-dashboard"
-            method="post"
-            data-dashboard="{{ dashboard.pk }}"
-            action="{% url 'rename-dashboard' dashboard.pk %}" >
-        {% csrf_token %}
-        <input type="submit" class="small button right" value="Rename dashboard">
-        <label>
-          <input type="text" name="dashboard-name" placeholder="Dashboard name" value="{{ dashboard.name }}">
-        </label>
-      </form>
-
-      <div class="row">
-
-        <div class="column medium-4">
-          <div id="default-dashboard-container"
-               data-is-default-dashboard="{{ dashboard.is_default|yesno:'1,0' }}">
-            <div class="alert-box">This is the default dashboard</div>
-            <form id="form-set-default-dashboard" method="post"
-                  action="{% url 'set-default-dashboard' dashboard.pk %}">
-              {% csrf_token %}
-              <input type="submit" value="Set as default dashboard"
-                     class="small button secondary expand">
-            </form>
-          </div>
-        </div>
-
-        <div class="column medium-4">
-          <a href="{% url 'export-dashboard' dashboard.pk %}" class="small button expand">Export dashboard
-          </a><br/>
-          <div class="nav-tooltip">
-              <small aria-describedby="download-dashboard-tooltip">what's this?</small>
-              <span id="download-dashboard-tooltip" role="tooltip">
-                  Download this dashboards definition into a file that can later be imported by pressing the + next to the tab list
-              </span>
-          </div>
-        </div>
-
-        <div class="column medium-4">
-          {% if request.account.account_dashboards.count > 1 and not dashboard.is_default %}
-            <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}">
-              {% csrf_token %}
-              <input type="submit" class="small button alert expand" value="Delete dashboard">
-            </form>
-            {% endif %}
-
-        </div>
-
-      </div>
-
-      <form id="update-columns-form">
-      {% csrf_token %}
-      <h5>Columns</h5>
-      <ul class="button-group" style="margin-bottom: 1em;" data-url="{% url 'save-dashboard-columns' dashboard.pk %}">
-        <li><a href="#" class="button tiny secondary column-chooser" data-columns="1">One</a></li>
-        <li><a href="#" class="button tiny secondary column-chooser" data-columns="2">Two</a></li>
-        <li><a href="#" class="button tiny secondary column-chooser" data-columns="3">Three</a></li>
-        <li><a href="#" class="button tiny secondary column-chooser" data-columns="4">Four</a></li>
-      </ul>
-      </form>
-
-    </div> {# dropdown dashboard forms #}
-
-
-    {# Content dropdown for adding a new dashboard #}
-    <div id="dropdown-dashboard-add"
-         data-dropdown-content
-         class="f-dropdown content small right-action-content">
-      <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
-        {% csrf_token %}
-        <label>
-          Add dashboard
-          <input type="text" name="dashboard-name" placeholder="Dashboard name">
-        </label>
-        <input type="submit" class="small button full-width" value="Add dashboard">
-      </form>
-        <a hx-get="{% url 'import-dashboard-modal' %}"
-           hx-target="body"
-           hx-swap="beforeend">Import dashboard</a>
+      {% include 'webfront/_dashboard_settings_form.html' %}
     </div>
 
     {# Buttons for selecting dashboards #}
@@ -176,11 +85,28 @@
           </a>
         </li>
       {% endfor %}
-      <li>
-        <a href=""
-           title="Add new dashboard"
-           data-dropdown="dropdown-dashboard-add">
-          <i class="fa fa-plus"></i></a>
+        <li id="dropdown-dashboard-add" class="popover with-arrow">
+            <a
+                    title="Add new dashboard"
+                    data-popover-target="#dropdown-dashboard-add"
+                    aria-haspopup="true"
+            >
+                <i class="fa fa-plus"></i>
+            </a>
+            <div class="popover-content small">
+                <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
+                    {% csrf_token %}
+                    <label>
+                        Add dashboard
+                        <input type="text" name="dashboard-name" placeholder="Dashboard name">
+                    </label>
+                    <input type="submit" class="small button full-width" value="Add dashboard">
+                </form>
+
+                <a hx-get="{% url 'import-dashboard-modal' %}"
+                   hx-target="body"
+                   hx-swap="beforeend">Import dashboard</a>
+            </div>
       </li>
     </ul>
 
