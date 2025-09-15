@@ -85,7 +85,7 @@
 
   </table>
 
-  {% if not current_user_data.account.is_default_account %}
+  {% if not current_user_data.account.is_anonymous %}
     <a href="{% url 'messages-edit' message.id %}" class="button small">
       Edit this message
     </a>

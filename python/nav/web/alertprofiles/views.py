@@ -49,7 +49,7 @@ from nav.models.profiles import (
     SMSQueue,
     AccountAlertQueue,
 )
-from nav.django.utils import get_account, is_admin
+from nav.web.auth.utils import get_account, is_admin
 from nav.web.message import Messages, new_message
 
 from nav.web.alertprofiles.forms import TimePeriodForm, LanguageForm

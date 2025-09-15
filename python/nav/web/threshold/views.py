@@ -25,7 +25,7 @@ from nav.metrics.graphs import get_simple_graph_url, Graph
 from nav.models.thresholds import ThresholdRule
 from nav.web.modals import render_modal
 from nav.web.threshold.forms import ThresholdForm
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.web.utils import create_title
 
 
