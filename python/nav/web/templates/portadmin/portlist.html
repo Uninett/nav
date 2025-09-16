@@ -3,6 +3,16 @@
 
 {{ aliastemplate }}
 
+{% if messages %}
+<div id="portadmin-messages" hx-swap-oob="true">
+   {% for message in messages %}
+      <div class="alert-box {{ message.tags }}">
+        {{ message }}
+      </div>
+   {% endfor %}
+</div>
+{% endif %}
+
 <div id="portadmin-wrapper" class="faketable">
 
   <div class="caption">
