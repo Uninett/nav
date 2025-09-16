@@ -3,7 +3,6 @@
 
 {{ aliastemplate }}
 
-
 <div id="portadmin-wrapper" class="faketable">
 
   <div class="caption">
@@ -43,11 +42,13 @@
         PoE State
       </div>
     {% endif %}
-    <div class="column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
-      {% if not readonly %}
+    {% if loading %}
+      <div class="column medium-2"></div>
+    {% elif not readonly %}
+      <div class="column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
         <input type="button" class="saveall_button button tiny" value="Save all"/>
-      {% endif %}
-    </div>
+      </div>
+    {% endif %}
   </div>
 
 
@@ -188,12 +189,23 @@
         </div>
       {% endif %}
 
+      {# LOADING indicator #}
+      {% if loading %}
+        <div class="loading-indicator medium-2 column">
+            <span>
+                <img src="/static/images/select2/select2-spinner.gif" alt="Loading spinner" />
+            </span>
+            Loading live data from device
+        </div>
+      {% endif %}
+
+
       {# Button for saving #}
-      <div class="{% if voice_vlan %}medium-1 small-4{% else %}medium-2 small-8{% endif %}  column text-right">
-        {% if interface.iseditable and not readonly %}
-          <button class="tiny portadmin-save secondary">Save</button>
-        {% endif %}
-      </div>
+      {% if interface.iseditable and not readonly %}
+          <div class="{% if voice_vlan %}medium-1 small-4{% else %}medium-2 small-8{% endif %}  column text-right">
+              <button class="tiny portadmin-save secondary">Save</button>
+          </div>
+      {% endif %}
 
       <div id="{{ interface.id }}-errors" class="small-12 column error-column"></div>
 
