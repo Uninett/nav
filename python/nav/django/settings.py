@@ -30,6 +30,10 @@ import nav.buildconf
 from nav.jwtconf import JWTConf, LocalJWTConfig
 from nav.web.security import WebSecurityConfigParser
 
+
+# Changes to `True` by default in Django 5.0
+USE_TZ = False
+
 ALLOWED_HOSTS = ['*']
 
 _config_dir = find_config_dir()
