@@ -12,13 +12,15 @@
     {% include 'nav_header.html' %}
   {% endwith %}
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert-box {{ message.tags }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
+  <div id="portadmin-messages">
+    {% if messages %}
+        {% for message in messages %}
+          <div class="alert-box {{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+    {% endif %}
+  </div>
 
   {% block page_content %}
 
