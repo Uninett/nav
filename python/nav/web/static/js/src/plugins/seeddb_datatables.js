@@ -1,5 +1,6 @@
 define([
-    'libs/datatables.min'
+    'libs/datatables.min',
+    'libs/modernizr'
 ],
 
 function() {

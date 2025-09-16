@@ -2,7 +2,6 @@
 
 define(function(require, exports, module) {
   var _ = require("libs/underscore");
-  var Foundation = require("libs/foundation.min");
   var Backbone = require("backbone");
   var Marionette = require("marionette");
 
