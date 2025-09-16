@@ -132,9 +132,19 @@ def search_by_ip(request, ip):
     return search_by_kwargs(request, ip=ip)
 
 
+def search_by_ip_lazy(request, ip):
+    """Lazy load view for showing a search done by ip-address"""
+    return search_by_kwargs_lazy(request, ip=ip)
+
+
 def search_by_sysname(request, sysname):
     """View for showing a search done by sysname"""
     return search_by_kwargs(request, sysname=sysname)
+
+
+def search_by_sysname_lazy(request, sysname):
+    """Lazy load view for showing a search done by sysname"""
+    return search_by_kwargs_lazy(request, sysname=sysname)
 
 
 def search_by_kwargs(request, **kwargs):
@@ -149,20 +159,51 @@ def search_by_kwargs(request, **kwargs):
         )
         messages.error(request, 'Could not find IP device')
         return default_render(request)
-    else:
-        if not netbox.type:
-            messages.error(request, 'IP device found but has no type')
-            return default_render(request)
 
-        interfaces = netbox.get_swports_sorted()
-        if not interfaces:
-            messages.error(request, 'IP device has no ports (yet)')
-            return default_render(request)
-        return render(
-            request,
-            'portadmin/netbox.html',
-            populate_infodict(request, netbox, interfaces),
-        )
+    if not netbox.type:
+        messages.error(request, 'IP device found but has no type')
+        return default_render(request)
+
+    interfaces = netbox.get_swports_sorted()
+    if not interfaces:
+        messages.error(request, 'IP device has no ports (yet)')
+        return default_render(request)
+
+    # Determine the lazy load URL based on the kwargs
+    if 'sysname' in kwargs:
+        load_data_url = reverse('portadmin-sysname-data', kwargs=kwargs)
+    elif 'ip' in kwargs:
+        load_data_url = reverse('portadmin-ip-data', kwargs=kwargs)
+    else:
+        raise ValueError("Invalid URL kwargs for lazy loading")
+
+    context = get_base_context([(netbox.sysname,)], form=get_form(request))
+    context.update(
+        {
+            'netbox': netbox,
+            'interfaces': interfaces,
+            'load_data_url': load_data_url,
+            'loading': True,
+            'readonly': False,
+        }
+    )
+
+    return render(request, 'portadmin/netbox.html', context)
+
+
+def search_by_kwargs_lazy(request, **kwargs):
+    """Lazy load view for showing a search done by keyword arguments"""
+    try:
+        netbox = Netbox.objects.get(**kwargs)
+    except Netbox.DoesNotExist:
+        return HttpResponse('<div class="error">Netbox not found</div>')
+
+    interfaces = netbox.get_swports_sorted()
+    if not interfaces:
+        return HttpResponse('<div class="error">No interfaces found</div>')
+
+    context = populate_infodict(request, netbox, interfaces)
+    return render(request, 'portadmin/portlist.html', context)
 
 
 def search_by_interfaceid(request, interfaceid):
@@ -177,18 +218,39 @@ def search_by_interfaceid(request, interfaceid):
             request, 'Could not find interface with id %s' % str(interfaceid)
         )
         return default_render(request)
-    else:
-        netbox = interface.netbox
-        if not netbox.type:
-            messages.error(request, 'IP device found but has no type')
-            return default_render(request)
 
-        interfaces = [interface]
-        return render(
-            request,
-            'portadmin/netbox.html',
-            populate_infodict(request, netbox, interfaces),
-        )
+    netbox = interface.netbox
+    if not netbox.type:
+        messages.error(request, 'IP device found but has no type')
+        return default_render(request)
+
+    context = get_base_context([(netbox.sysname,)], form=get_form(request))
+    context.update(
+        {
+            'netbox': netbox,
+            'interfaces': [interface],
+            'load_data_url': reverse(
+                'portadmin-interface-data', kwargs={'interfaceid': interfaceid}
+            ),
+            'loading': True,
+            'readonly': True,
+        }
+    )
+    return render(
+        request,
+        'portadmin/netbox.html',
+        context,
+    )
+
+
+def search_by_interfaceid_lazy(request, interfaceid):
+    try:
+        interface = Interface.objects.select_related('netbox').get(id=interfaceid)
+    except Interface.DoesNotExist:
+        return HttpResponse('<div class="error">Interface not found</div>')
+
+    context = populate_infodict(request, interface.netbox, [interface])
+    return render(request, 'portadmin/portlist.html', context)
 
 
 def populate_infodict(request, netbox, interfaces):

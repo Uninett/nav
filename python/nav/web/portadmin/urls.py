@@ -24,12 +24,27 @@ urlpatterns = [
     path('', views.index, name='portadmin-index'),
     re_path(r'^ip=(?P<ip>[\d\.]+)', views.search_by_ip, name='portadmin-ip'),
     re_path(
-        r'^sysname=(?P<sysname>\S+)', views.search_by_sysname, name='portadmin-sysname'
+        r'^ip=(?P<ip>[\d\.]+)/data/$', views.search_by_ip_lazy, name='portadmin-ip-data'
     ),
     re_path(
-        r'^interfaceid=(?P<interfaceid>\d+)',
+        r'^sysname=(?P<sysname>[^/\s]+)$',
+        views.search_by_sysname,
+        name='portadmin-sysname',
+    ),
+    re_path(
+        r'^sysname=(?P<sysname>[^/\s]+)/data/$',
+        views.search_by_sysname_lazy,
+        name='portadmin-sysname-data',
+    ),
+    re_path(
+        r'^interfaceid=(?P<interfaceid>\d+)$',
         views.search_by_interfaceid,
         name='portadmin-interface',
+    ),
+    re_path(
+        r'^interfaceid=(?P<interfaceid>\d+)/data/$',
+        views.search_by_interfaceid_lazy,
+        name='portadmin-interface-data',
     ),
     re_path(r'^save_interfaceinfo', views.save_interfaceinfo),
     re_path(r'^restart_interfaces', views.restart_interfaces),
