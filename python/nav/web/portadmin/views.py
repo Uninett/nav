@@ -193,7 +193,7 @@ def _get_netbox_and_ports(request, **kwargs):
         netbox = Netbox.objects.get(**kwargs)
     except Netbox.DoesNotExist as error:
         _logger.error(
-            "Netbox %s not found; DoesNotExist = %s",
+            "IP device %s not found; DoesNotExist = %s",
             kwargs.get('sysname') or kwargs.get('ip'),
             error,
         )
@@ -258,40 +258,64 @@ def load_portadmin_data_by_kwargs(request, **kwargs):
 
 def populate_infodict(request, netbox, interfaces):
     """Populate a dictionary used in every http response"""
+    has_error, handler = _initialize_handler_and_error_state(
+        request, netbox, interfaces
+    )
+
     allowed_vlans = []
     voice_vlan = None
-    readonly = False
-    handler = None
     supports_poe = False
     poe_options = []
 
-    try:
-        handler = get_and_populate_livedata(netbox, interfaces)
+    if not has_error:
         allowed_vlans = find_and_populate_allowed_vlans(
             request.account, netbox, interfaces, handler
         )
-        voice_vlan = fetch_voice_vlan_for_netbox(request, handler)
-        if voice_vlan:
-            if CONFIG.is_cisco_voice_enabled() and is_cisco(netbox):
-                set_voice_vlan_attribute_cisco(voice_vlan, interfaces, handler)
-            else:
-                set_voice_vlan_attribute(voice_vlan, interfaces)
+        voice_vlan = _setup_voice_vlan(request, netbox, interfaces, handler)
         mark_detained_interfaces(interfaces)
-        if CONFIG.is_dot1x_enabled():
-            add_dot1x_info(interfaces, handler)
-        try:
-            poe_options = handler.get_poe_state_options()
-            add_poe_info(interfaces, handler)
-            # Tag poe as being supported if at least one interface supports poe
-            for interface in interfaces:
-                if interface.supports_poe:
-                    supports_poe = True
-                    break
-        except NotImplementedError:
-            # Only Cisco and Juniper has PoE support currently
-            pass
+        _setup_dot1x_if_enabled(interfaces, handler)
+        supports_poe, poe_options = _setup_poe_if_supported(interfaces, handler)
+
+    save_to_database(interfaces)
+
+    auditlog_api_parameters = {
+        'object_model': 'interface',
+        'object_pks': ','.join([str(i.pk) for i in interfaces]),
+        'subsystem': 'portadmin',
+    }
+
+    context = {
+        'handlertype': type(handler).__name__,
+        'interfaces': interfaces,
+        'netbox': netbox,
+        'voice_vlan': voice_vlan,
+        'allowed_vlans': allowed_vlans,
+        'readonly': has_error,
+        'aliastemplate': _get_alias_template(),
+        'trunk_edit': CONFIG.get_trunk_edit(),
+        'auditlog_api_parameters': json.dumps(auditlog_api_parameters),
+        'supports_poe': supports_poe,
+        'poe_options': poe_options,
+    }
+
+    if handler:
+        context['handlertype'] = handler.__class__.__name__
+
+    return context
+
+
+def _initialize_handler_and_error_state(request, netbox, interfaces):
+    """Initialize management handler and determine error state"""
+    has_error = False
+    handler = None
+
+    try:
+        handler = get_and_populate_livedata(netbox, interfaces)
+        if handler and not handler.is_configurable():
+            add_readonly_reason(request, handler)
+            has_error = True
     except NoResponseError:
-        readonly = True
+        has_error = True
         messages.error(
             request,
             "%s did not respond within the set timeouts. Values displayed are from "
@@ -303,60 +327,68 @@ def populate_infodict(request, netbox, interfaces):
         ):
             messages.error(request, "Read only management profile not set")
     except ProtocolError:
-        readonly = True
+        has_error = True
         messages.error(
             request,
             "Protocol error when contacting %s. Values displayed are from database"
             % netbox.sysname,
         )
     except DeviceNotConfigurableError as error:
-        readonly = True
+        has_error = True
         messages.error(request, str(error))
 
-    except (
-        XMLParseError,
-        POEStateNotSupportedError,
-    ) as error:
-        supports_poe = False
+    return has_error, handler
+
+
+def _setup_voice_vlan(request, netbox, interfaces, handler):
+    """Setup voice VLAN configuration"""
+    voice_vlan = fetch_voice_vlan_for_netbox(request, handler)
+    if voice_vlan:
+        if CONFIG.is_cisco_voice_enabled() and is_cisco(netbox):
+            set_voice_vlan_attribute_cisco(voice_vlan, interfaces, handler)
+        else:
+            set_voice_vlan_attribute(voice_vlan, interfaces)
+    return voice_vlan
+
+
+def _setup_dot1x_if_enabled(interfaces, handler):
+    """Setup dot1x information if enabled"""
+    if handler:
+        try:
+            add_dot1x_info(interfaces, handler)
+        except (NotImplementedError, ManagementError) as error:
+            _logger.debug('Dot1x not supported or error getting dot1x info: %s', error)
+
+
+def _setup_poe_if_supported(interfaces, handler):
+    """Setup PoE configuration if supported"""
+    supports_poe = False
+    poe_options = []
+
+    try:
+        poe_options = handler.get_poe_state_options()
+        add_poe_info(interfaces, handler)
+        supports_poe = any(interface.supports_poe for interface in interfaces)
+    except (XMLParseError, POEStateNotSupportedError) as error:
         _logger.error(
-            'Error getting PoE information from netbox %s: %s', str(netbox), str(error)
+            'Error getting PoE information from IP device %s: %s',
+            handler.netbox,
+            error,
         )
+    except NotImplementedError:
+        # Only Cisco and Juniper have PoE support currently
+        pass
 
-    if handler and not handler.is_configurable():
-        add_readonly_reason(request, handler)
-        readonly = True
+    return supports_poe, poe_options
 
+
+def _get_alias_template():
+    """Get the alias template rendered with the current ifaliasformat"""
     ifaliasformat = CONFIG.get_ifaliasformat()
-    aliastemplate = ''
-    if ifaliasformat:
-        tmpl = get_aliastemplate()
-        aliastemplate = tmpl.render({'ifaliasformat': ifaliasformat})
-
-    save_to_database(interfaces)
-
-    auditlog_api_parameters = {
-        'object_model': 'interface',
-        'object_pks': ','.join([str(i.pk) for i in interfaces]),
-        'subsystem': 'portadmin',
-    }
-
-    info_dict = get_base_context([(netbox.sysname,)], form=get_form(request))
-    info_dict.update(
-        {
-            'handlertype': type(handler).__name__,
-            'interfaces': interfaces,
-            'netbox': netbox,
-            'voice_vlan': voice_vlan,
-            'allowed_vlans': allowed_vlans,
-            'readonly': readonly,
-            'aliastemplate': aliastemplate,
-            'trunk_edit': CONFIG.get_trunk_edit(),
-            'auditlog_api_parameters': json.dumps(auditlog_api_parameters),
-            'supports_poe': supports_poe,
-            'poe_options': poe_options,
-        }
-    )
-    return info_dict
+    if not ifaliasformat:
+        return ''
+    tmpl = get_aliastemplate()
+    return tmpl.render({'ifaliasformat': ifaliasformat})
 
 
 def fetch_voice_vlan_for_netbox(request: HttpRequest, handler: ManagementHandler):
