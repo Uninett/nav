@@ -14,7 +14,9 @@
     {% if handlertype %}({{ handlertype }}){% endif %}
 
   </div>
-
+  <form id="save-changes-form" style="display: none;">
+    {% csrf_token %}
+  </form>
   <div class="row header_row">
     <div class="hide-for-small medium-2 column">
       Port
