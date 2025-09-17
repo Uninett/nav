@@ -1,9 +1,9 @@
 import pytest
 from django.http import HttpResponse
-from django.test import RequestFactory
+from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.encoding import smart_str
-from mock import Mock, patch
+from mock import patch, Mock
 
 from nav.models.manage import Interface
 from nav.portadmin.handlers import ManagementHandler
@@ -168,7 +168,7 @@ class TestPortadminDataLoading:
         response = load_portadmin_data_by_kwargs(mock_request, sysname='nonexistent')
 
         assert isinstance(response, HttpResponse)
-        assert b'Netbox not found' in response.content
+        assert b'IP device not found' in response.content
 
     def test_load_portadmin_data_by_kwargs_should_return_error_when_no_interfaces_exist(
         self, mock_request, valid_netbox
@@ -349,7 +349,7 @@ def netbox_without_type(configured_netbox):
     yield configured_netbox
 
 
-def create_interface(netbox):
+def create_interface(netbox, **kwargs):
     interface = Interface(
         netbox=netbox,
         ifname='GigabitEthernet0/1',
@@ -357,6 +357,7 @@ def create_interface(netbox):
         ifindex=1,
         iftype=6,
         baseport=1,
+        **kwargs,
     )
     interface.save()
     return interface
