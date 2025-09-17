@@ -16,14 +16,15 @@
 #
 """macwatch Django URL config"""
 
+from django.urls import path
 from django.urls import re_path
 from nav.web.macwatch import views
 
 
 urlpatterns = [
     # Default view
-    re_path(r'^$', views.list_watch, name='listwatch'),
-    re_path(r'^add/$', views.add_macwatch),
+    path('', views.list_watch, name='listwatch'),
+    path('add/', views.add_macwatch),
     re_path(r'^delete/(\d+)/$', views.delete_macwatch),
     re_path(r'^edit/(\d+)/$', views.edit_macwatch),
 ]

@@ -16,28 +16,29 @@
 #
 """URL configuration for Machinetracker tool"""
 
+from django.urls import path
 from django.urls import re_path
 from nav.web.machinetracker import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.ip_search, name='machinetracker'),
-    re_path(r'^ip/$', views.ip_search, name='machinetracker-ip'),
-    re_path(
-        r'^ip/prefix/(?P<prefix_id>\d+)/$',
+    path('', views.ip_search, name='machinetracker'),
+    path('ip/', views.ip_search, name='machinetracker-ip'),
+    path(
+        'ip/prefix/<int:prefix_id>/',
         views.ip_prefix_search,
         name='machinetracker-prefixid_search',
     ),
-    re_path(
-        r'^ip/prefix/(?P<prefix_id>\d+)/active/$',
+    path(
+        'ip/prefix/<int:prefix_id>/active/',
         views.ip_prefix_search,
         {'active': True},
         name='machinetracker-prefixid_search_active',
     ),
-    re_path(r'^mac/$', views.mac_search, name='machinetracker-mac'),
-    re_path(r'^swp/$', views.switch_search, name='machinetracker-swp'),
+    path('mac/', views.mac_search, name='machinetracker-mac'),
+    path('swp/', views.switch_search, name='machinetracker-swp'),
     # NetBIOS
-    re_path(r'^netbios/$', views.netbios_search, name='machinetracker-netbios'),
+    path('netbios/', views.netbios_search, name='machinetracker-netbios'),
     re_path(
         r'^helpmodal/(?P<tab_name>[\w-]+)/$',
         views.render_search_help_modal,

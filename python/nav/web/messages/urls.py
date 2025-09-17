@@ -16,23 +16,21 @@
 #
 """Django URL configuration for messages tool"""
 
-from django.urls import re_path
+from django.urls import path
 
 from nav.web.messages import views
 from nav.web.messages.feeds import ActiveMessagesFeed
 
 urlpatterns = [
-    re_path(r'^$', views.redirect_to_active),
-    re_path(r'^active/$', views.active, name='messages-home'),
-    re_path(r'^create/$', views.save, name='messages-create'),
-    re_path(r'^edit/(?P<message_id>\d+)$', views.save, name='messages-edit'),
-    re_path(r'^active/$', views.active, name='messages-active'),
-    re_path(r'^scheduled/$', views.planned, name='messages-planned'),
-    re_path(r'^archive/$', views.historic, name='messages-historic'),
-    re_path(r'^view/(?P<message_id>\d+)$', views.view, name='messages-view'),
-    re_path(r'^expire/(?P<message_id>\d+)$', views.expire, name='messages-expire'),
-    re_path(
-        r'^followup/(?P<message_id>\d+)$', views.followup, name='messages-followup'
-    ),
-    re_path(r'^rss/$', ActiveMessagesFeed(), name='messages-rss'),
+    path('', views.redirect_to_active),
+    path('active/', views.active, name='messages-home'),
+    path('create/', views.save, name='messages-create'),
+    path('edit/<int:message_id>', views.save, name='messages-edit'),
+    path('active/', views.active, name='messages-active'),
+    path('scheduled/', views.planned, name='messages-planned'),
+    path('archive/', views.historic, name='messages-historic'),
+    path('view/<int:message_id>', views.view, name='messages-view'),
+    path('expire/<int:message_id>', views.expire, name='messages-expire'),
+    path('followup/<int:message_id>', views.followup, name='messages-followup'),
+    path('rss/', ActiveMessagesFeed(), name='messages-rss'),
 ]
