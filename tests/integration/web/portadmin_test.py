@@ -1,8 +1,13 @@
 import pytest
+from django.http import HttpResponse
+from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.encoding import smart_str
+from mock import patch, Mock
 
 from nav.models.manage import Interface
+from nav.portadmin.handlers import ManagementHandler
+from nav.web.portadmin.views import populate_infodict, load_portadmin_data_by_kwargs
 
 
 class TestPortadminSearchViews:
@@ -98,6 +103,206 @@ class TestPortadminSearchViews:
         assert expected_error in smart_str(response.content)
 
 
+class TestPortadminDataLoading:
+    """Tests for load_portadmin_data_by_kwargs and populate_infodict functions"""
+
+    @patch('nav.web.portadmin.views.get_and_populate_livedata')
+    @patch('nav.web.portadmin.views.render')
+    def test_load_portadmin_data_by_kwargs_with_interface_id(
+        self, mock_render, mock_get_livedata, mock_request, interface, mock_handler
+    ):
+        """Test loading data by interface ID"""
+        mock_get_livedata.return_value = mock_handler
+        mock_render.return_value = HttpResponse('rendered')
+
+        load_portadmin_data_by_kwargs(mock_request, interfaceid=interface.id)
+
+        mock_get_livedata.assert_called_once_with(interface.netbox, [interface])
+        mock_render.assert_called_once()
+        assert mock_render.call_args[0][0] == mock_request
+        assert mock_render.call_args[0][1] == 'portadmin/portlist.html'
+
+    @patch('nav.web.portadmin.views.get_and_populate_livedata')
+    @patch('nav.web.portadmin.views.render')
+    def test_load_portadmin_data_by_kwargs_with_sysname(
+        self,
+        mock_render,
+        mock_get_livedata,
+        mock_request,
+        configured_netbox,
+        mock_handler,
+    ):
+        """Test loading data by sysname"""
+        mock_get_livedata.return_value = mock_handler
+        mock_render.return_value = HttpResponse('rendered')
+
+        load_portadmin_data_by_kwargs(mock_request, sysname=configured_netbox.sysname)
+
+        interfaces = configured_netbox.get_swports_sorted()
+        mock_get_livedata.assert_called_once_with(configured_netbox, interfaces)
+
+    def test_load_portadmin_data_by_kwargs_interface_not_found(self, mock_request):
+        """Test handling of non-existent interface"""
+        response = load_portadmin_data_by_kwargs(mock_request, interfaceid=9999)
+
+        assert isinstance(response, HttpResponse)
+        assert b'Interface not found' in response.content
+
+    def test_load_portadmin_data_by_kwargs_netbox_not_found(self, mock_request):
+        """Test handling of non-existent netbox"""
+        response = load_portadmin_data_by_kwargs(mock_request, sysname='nonexistent')
+
+        assert isinstance(response, HttpResponse)
+        assert b'Netbox not found' in response.content
+
+    def test_load_portadmin_data_by_kwargs_no_interfaces(
+        self, mock_request, configured_netbox
+    ):
+        """Test handling of netbox with no interfaces"""
+        configured_netbox.interfaces.all().delete()
+
+        response = load_portadmin_data_by_kwargs(
+            mock_request, sysname=configured_netbox.sysname
+        )
+
+        assert isinstance(response, HttpResponse)
+        assert b'No interfaces found' in response.content
+
+    @patch('nav.web.portadmin.views.get_and_populate_livedata')
+    def test_populate_infodict_readonly_mode(
+        self, mock_get_livedata, mock_request, interface, mock_handler
+    ):
+        """Test populate_infodict in readonly mode"""
+        mock_handler.is_configurable.return_value = False
+        mock_get_livedata.return_value = mock_handler
+
+        netbox = interface.netbox
+        interfaces = [interface]
+        result = populate_infodict(mock_request, netbox, interfaces)
+
+        mock_get_livedata.assert_called_once_with(netbox, interfaces)
+        assert result['readonly'] is True
+        assert result['netbox'] == netbox
+        assert result['interfaces'] == interfaces
+        assert result['handlertype'] == 'MockHandler'
+
+    @patch('nav.web.portadmin.views.get_and_populate_livedata')
+    @patch('nav.web.portadmin.views.find_and_populate_allowed_vlans')
+    @patch('nav.web.portadmin.views._setup_voice_vlan')
+    @patch('nav.web.portadmin.views._setup_poe_if_supported')
+    @patch('nav.web.portadmin.views._setup_dot1x_if_enabled')
+    @patch('nav.web.portadmin.views.mark_detained_interfaces')
+    def test_populate_infodict_configurable_mode(
+        self,
+        mock_mark_detained,
+        mock_setup_dot1x,
+        mock_setup_poe,
+        mock_setup_voice,
+        mock_find_vlans,
+        mock_get_livedata,
+        mock_request,
+        interface,
+        mock_handler,
+    ):
+        """Test populate_infodict in configurable mode"""
+        mock_handler.is_configurable.return_value = True
+        mock_get_livedata.return_value = mock_handler
+        mock_find_vlans.return_value = []
+        mock_setup_voice.return_value = None
+        mock_setup_poe.return_value = (True, ['auto', 'on', 'off'])
+
+        netbox = interface.netbox
+        interfaces = [interface]
+        result = populate_infodict(mock_request, netbox, interfaces)
+
+        mock_find_vlans.assert_called_once_with(
+            mock_request.account, netbox, interfaces, mock_handler
+        )
+        mock_setup_voice.assert_called_once_with(
+            mock_request, netbox, interfaces, mock_handler
+        )
+        mock_mark_detained.assert_called_once_with(interfaces)
+        mock_setup_dot1x.assert_called_once_with(interfaces, mock_handler)
+        mock_setup_poe.assert_called_once_with(interfaces, mock_handler)
+
+        assert result['readonly'] is False
+        assert result['supports_poe'] is True
+        assert result['poe_options'] == ['auto', 'on', 'off']
+
+    @patch('nav.web.portadmin.views.messages')
+    @patch('nav.web.portadmin.views.get_and_populate_livedata')
+    def test_populate_infodict_handler_exception(
+        self, mock_get_livedata, mock_messages, mock_request, interface
+    ):
+        """Test populate_infodict when handler raises exception"""
+        from nav.portadmin.handlers import NoResponseError
+
+        mock_get_livedata.side_effect = NoResponseError("Device not responding")
+
+        netbox = interface.netbox
+        interfaces = [interface]
+        result = populate_infodict(mock_request, netbox, interfaces)
+
+        # Should be readonly when handler fails
+        assert result['readonly'] is True
+        assert result['handlertype'] == 'NoneType'
+
+        # Verify error message was added
+        mock_messages.error.assert_called_once()
+
+    @patch('nav.web.portadmin.views.get_and_populate_livedata')
+    @patch('nav.web.portadmin.views.json')
+    def test_populate_infodict_auditlog_parameters(
+        self, mock_json, mock_get_livedata, mock_request, interface, mock_handler
+    ):
+        """Test that auditlog parameters are correctly formatted"""
+        mock_handler.is_configurable.return_value = True
+        mock_get_livedata.return_value = mock_handler
+        mock_json.dumps.return_value = '{"test": "json"}'
+
+        interfaces = [interface]
+        result = populate_infodict(mock_request, interface.netbox, interfaces)
+
+        expected_params = {
+            'object_model': 'interface',
+            'object_pks': str(interface.pk),
+            'subsystem': 'portadmin',
+        }
+        mock_json.dumps.assert_called_once_with(expected_params)
+        assert result['auditlog_api_parameters'] == '{"test": "json"}'
+
+
+@pytest.fixture
+def mock_request(admin_account):
+    factory = RequestFactory()
+    request = factory.get('/')
+    request.account = admin_account
+    return request
+
+
+@pytest.fixture
+def mock_handler():
+    handler = Mock(spec=ManagementHandler)
+    handler.is_configurable.return_value = True
+    handler.__class__.__name__ = 'MockHandler'
+    # Mock the get_interfaces method to return interface data
+    handler.get_interfaces.return_value = [
+        {
+            'name': 'GigabitEthernet0/1',
+            'description': 'Test interface',
+            'vlan': 100,
+            'admin': 1,
+            'oper': 1,
+        }
+    ]
+    handler.get_netbox_vlans.return_value = []
+    handler.get_netbox_vlan_tags.return_value = []
+    handler.get_poe_state_options.return_value = []
+    handler.get_poe_states.return_value = {}
+    handler.is_port_access_control_enabled.return_value = False
+    return handler
+
+
 # Keep your existing fixtures as they are
 @pytest.fixture
 def netbox_with_type(localhost, netbox_type):
@@ -130,7 +335,7 @@ def netbox_without_type(configured_netbox):
     yield configured_netbox
 
 
-def create_interface(netbox):
+def create_interface(netbox, **kwargs):
     interface = Interface(
         netbox=netbox,
         ifname='GigabitEthernet0/1',
@@ -138,6 +343,7 @@ def create_interface(netbox):
         ifindex=1,
         iftype=6,
         baseport=1,
+        **kwargs,
     )
     interface.save()
     return interface
