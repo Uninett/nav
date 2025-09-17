@@ -16,6 +16,7 @@
 #
 """SeedDB Django URL config"""
 
+from django.urls import path
 from django.urls import re_path
 
 from nav.web.seeddb import page
@@ -43,9 +44,9 @@ from nav.web.seeddb.page import patch
 
 
 urlpatterns = [
-    re_path(r'^$', page.index, name='seeddb-index'),
+    path('', page.index, name='seeddb-index'),
     # Netbox
-    re_path(r'^netbox/$', netbox.netbox, name='seeddb-netbox'),
+    path('netbox/', netbox.netbox, name='seeddb-netbox'),
     re_path(
         r'^netbox/edit/(?P<netbox_id>(\d+))/',
         netbox_edit.netbox_edit,
@@ -61,27 +62,26 @@ urlpatterns = [
         netbox_edit.netbox_edit,
         name='seeddb-netbox-add-suggestion',
     ),
-    re_path(r'^netbox/add/$', netbox_edit.netbox_edit, name='seeddb-netbox-edit'),
+    path('netbox/add/', netbox_edit.netbox_edit, name='seeddb-netbox-edit'),
     re_path(
         r'^netbox/(?P<action>copy)/(?P<netbox_id>(\d+))/',
         netbox_edit.netbox_edit,
         name='seeddb-netbox-copy',
     ),
-    re_path(r'^netbox/bulk/$', netbox.netbox_bulk, name='seeddb-netbox-bulk'),
+    path('netbox/bulk/', netbox.netbox_bulk, name='seeddb-netbox-bulk'),
     re_path(
-        r'^netbox/get-read-only-variables/$',
+        'netbox/get-read-only-variables/',
         netbox_edit.get_read_only_variables,
         name='seeddb-netbox-get-readonly',
     ),
+    # XXX: greedy regexp
     re_path(
         r'^netbox/get-address-info/',
         netbox_edit.get_address_info,
         name='seeddb-netbox-get-address-info',
     ),
     # Management Profile
-    re_path(
-        r'^management-profile/$', management_profile, name='seeddb-management-profile'
-    ),
+    path('management-profile/', management_profile, name='seeddb-management-profile'),
     re_path(
         r'^management-profile/edit/(?P<management_profile_id>.+)/$',
         management_profile_edit,
@@ -92,32 +92,32 @@ urlpatterns = [
         management_profile_delete,
         name='seeddb-management-profile-delete',
     ),
-    re_path(
-        r'^management-profile/add/$',
+    path(
+        'management-profile/add/',
         management_profile_edit,
         name='seeddb-management-profile-edit',
     ),
-    re_path(
-        r'^management-profile/bulk/$',
+    path(
+        'management-profile/bulk/',
         management_profile_bulk,
         name='seeddb-management-profile-bulk',
     ),
     # Service
-    re_path(r'^service/$', service.service, name='seeddb-service'),
-    re_path(
-        r'^service/edit/(?P<service_id>[\d]+)$',
+    path('service/', service.service, name='seeddb-service'),
+    path(
+        'service/edit/<int:service_id>',
         service_edit.service_edit,
         name='seeddb-service-edit',
     ),
-    re_path(
-        r'^service/delete/(?P<object_id>[\d]+)$',
+    path(
+        'service/delete/<int:object_id>',
         service.service_delete,
         name='seeddb-service-delete',
     ),
-    re_path(r'^service/add/$', service_edit.service_edit, name='seeddb-service-edit'),
-    re_path(r'^service/bulk/$', service.service_bulk, name='seeddb-service-bulk'),
+    path('service/add/', service_edit.service_edit, name='seeddb-service-edit'),
+    path('service/bulk/', service.service_bulk, name='seeddb-service-bulk'),
     # Room
-    re_path(r'^room/$', room.room, name='seeddb-room'),
+    path('room/', room.room, name='seeddb-room'),
     re_path(r'^room/edit/(?P<room_id>.+)/$', room.room_edit, name='seeddb-room-edit'),
     re_path(
         r'^room/delete/(?P<object_id>.+)/$', room.room_delete, name='seeddb-room-delete'
@@ -127,13 +127,13 @@ urlpatterns = [
         room.room_edit,
         name='seeddb-room-copy',
     ),
-    re_path(r'^room/add/$', room.room_edit, name='seeddb-room-edit'),
+    path('room/add/', room.room_edit, name='seeddb-room-edit'),
     re_path(
         r'^room/add/(?P<lat>.+)/(?P<lon>.+)/$', room.room_edit, name='seeddb-room-edit'
     ),
-    re_path(r'^room/bulk/$', room.room_bulk, name='seeddb-room-bulk'),
+    path('room/bulk/', room.room_bulk, name='seeddb-room-bulk'),
     # Location
-    re_path(r'^location/$', location.location, name='seeddb-location'),
+    path('location/', location.location, name='seeddb-location'),
     re_path(
         r'^location/edit/(?P<location_id>.+)/$',
         location.location_edit,
@@ -144,15 +144,15 @@ urlpatterns = [
         location.location_delete,
         name='seeddb-location-delete',
     ),
-    re_path(r'^location/add/$', location.location_edit, name='seeddb-location-edit'),
+    path('location/add/', location.location_edit, name='seeddb-location-edit'),
     re_path(
         r'^location/(?P<action>copy)/(?P<location_id>.+)/$',
         location.location_edit,
         name='seeddb-location-copy',
     ),
-    re_path(r'^location/bulk/$', location.location_bulk, name='seeddb-location-bulk'),
+    path('location/bulk/', location.location_bulk, name='seeddb-location-bulk'),
     # Organization
-    re_path(r'^organization/$', organization.organization, name='seeddb-organization'),
+    path('organization/', organization.organization, name='seeddb-organization'),
     re_path(
         r'^organization/edit/(?P<organization_id>.+)/$',
         organization.organization_edit,
@@ -163,18 +163,18 @@ urlpatterns = [
         organization.organization_delete,
         name='seeddb-organization-delete',
     ),
-    re_path(
-        r'^organization/add/$',
+    path(
+        'organization/add/',
         organization.organization_edit,
         name='seeddb-organization-edit',
     ),
-    re_path(
-        r'^organization/bulk/$',
+    path(
+        'organization/bulk/',
         organization.organization_bulk,
         name='seeddb-organization-bulk',
     ),
     # Usage category
-    re_path(r'^usage/$', usage.usage, name='seeddb-usage'),
+    path('usage/', usage.usage, name='seeddb-usage'),
     re_path(
         r'^usage/edit/(?P<usage_id>.+)/$', usage.usage_edit, name='seeddb-usage-edit'
     ),
@@ -183,28 +183,28 @@ urlpatterns = [
         usage.usage_delete,
         name='seeddb-usage-delete',
     ),
-    re_path(r'^usage/add/$', usage.usage_edit, name='seeddb-usage-edit'),
-    re_path(r'^usage/bulk/$', usage.usage_bulk, name='seeddb-usage-bulk'),
+    path('usage/add/', usage.usage_edit, name='seeddb-usage-edit'),
+    path('usage/bulk/', usage.usage_bulk, name='seeddb-usage-bulk'),
     # Type
-    re_path(r'^type/$', netboxtype.netboxtype, name='seeddb-type'),
-    re_path(
-        r'^type/edit/(?P<type_id>[\d]+)/$',
+    path('type/', netboxtype.netboxtype, name='seeddb-type'),
+    path(
+        'type/edit/<int:type_id>/',
         netboxtype.netboxtype_edit,
         name='seeddb-type-edit',
     ),
-    re_path(
-        r'^type/delete/(?P<object_id>[\d]+)/$',
+    path(
+        'type/delete/<int:object_id>/',
         netboxtype.netboxtype_delete,
         name='seeddb-type-delete',
     ),
-    re_path(r'^type/add/$', netboxtype.netboxtype_edit, name='seeddb-type-edit'),
-    re_path(r'^type/bulk/$', netboxtype.netboxtype_bulk, name='seeddb-type-bulk'),
+    path('type/add/', netboxtype.netboxtype_edit, name='seeddb-type-edit'),
+    path('type/bulk/', netboxtype.netboxtype_bulk, name='seeddb-type-bulk'),
     # Vendor
-    re_path(r'^vendor/$', vendor.vendor, name='seeddb-vendor'),
-    re_path(r'^vendor/add/$', vendor.vendor_edit, name='seeddb-vendor-edit'),
-    re_path(r'^vendor/bulk/$', vendor.vendor_bulk, name='seeddb-vendor-bulk'),
+    path('vendor/', vendor.vendor, name='seeddb-vendor'),
+    path('vendor/add/', vendor.vendor_edit, name='seeddb-vendor-edit'),
+    path('vendor/bulk/', vendor.vendor_bulk, name='seeddb-vendor-bulk'),
     # Netbox Group
-    re_path(r'^netboxgroup/$', netboxgroup.netboxgroup, name='seeddb-netboxgroup'),
+    path('netboxgroup/', netboxgroup.netboxgroup, name='seeddb-netboxgroup'),
     re_path(
         r'^netboxgroup/edit/(?P<netboxgroup_id>.+)/$',
         netboxgroup.netboxgroup_edit,
@@ -215,55 +215,54 @@ urlpatterns = [
         netboxgroup.netboxgroup_delete,
         name='seeddb-netboxgroup-delete',
     ),
-    re_path(
-        r'^netboxgroup/add/$',
+    path(
+        'netboxgroup/add/',
         netboxgroup.netboxgroup_edit,
         name='seeddb-netboxgroup-edit',
     ),
-    re_path(
-        r'^netboxgroup/bulk/$',
+    path(
+        'netboxgroup/bulk/',
         netboxgroup.netboxgroup_bulk,
         name='seeddb-netboxgroup-bulk',
     ),
     # Vlan
-    re_path(r'^vlan/$', vlan.vlan_list, name='seeddb-vlan'),
-    re_path(
-        r'^vlan/edit/(?P<vlan_id>[\d]+)/$', vlan.vlan_edit, name='seeddb-vlan-edit'
-    ),
+    path('vlan/', vlan.vlan_list, name='seeddb-vlan'),
+    path('vlan/edit/<int:vlan_id>/', vlan.vlan_edit, name='seeddb-vlan-edit'),
     # Prefix
-    re_path(r'^prefix/$', prefix.get_prefix_view, name='seeddb-prefix'),
-    re_path(
-        r'^prefix/edit/(?P<prefix_id>[\d]+)/$',
+    path('prefix/', prefix.get_prefix_view, name='seeddb-prefix'),
+    path(
+        'prefix/edit/<int:prefix_id>/',
         prefix.prefix_edit,
         name='seeddb-prefix-edit',
     ),
-    re_path(
-        r'^prefix/delete/(?P<object_id>[\d]+)/$',
+    path(
+        'prefix/delete/<int:object_id>/',
         prefix.prefix_delete,
         name='seeddb-prefix-delete',
     ),
-    re_path(r'^prefix/add/$', prefix.prefix_edit, name='seeddb-prefix-edit'),
-    re_path(r'^prefix/bulk/$', prefix.prefix_bulk, name='seeddb-prefix-bulk'),
+    path('prefix/add/', prefix.prefix_edit, name='seeddb-prefix-edit'),
+    path('prefix/bulk/', prefix.prefix_bulk, name='seeddb-prefix-bulk'),
     # Cabling
-    re_path(r'^cabling/$', cabling.cabling, name='seeddb-cabling'),
-    re_path(r'^cabling/edit/$', cabling.cabling_edit, name='seeddb-cabling-edit'),
-    re_path(
-        r'^cabling/delete/(?P<object_id>[\d]+)/$',
+    path('cabling/', cabling.cabling, name='seeddb-cabling'),
+    path('cabling/edit/', cabling.cabling_edit, name='seeddb-cabling-edit'),
+    path(
+        'cabling/delete/<int:object_id>/',
         cabling.cabling_delete,
         name='seeddb-cabling-delete',
     ),
-    re_path(r'^cabling/add/$', cabling.cabling_edit, name='seeddb-cabling-add'),
-    re_path(r'^cabling/bulk/$', cabling.cabling_bulk, name='seeddb-cabling-bulk'),
+    path('cabling/add/', cabling.cabling_edit, name='seeddb-cabling-add'),
+    path('cabling/bulk/', cabling.cabling_bulk, name='seeddb-cabling-bulk'),
     # Patch
-    re_path(r'^patch/$', patch.patch, name='seeddb-patch'),
-    re_path(r'^patch/edit/$', patch.patch_edit, name='seeddb-patch-edit'),
-    re_path(
-        r'^patch/edit/show-modal/$',
+    path('patch/', patch.patch, name='seeddb-patch'),
+    path('patch/edit/', patch.patch_edit, name='seeddb-patch-edit'),
+    path(
+        'patch/edit/show-modal/',
         patch.patch_show_modal,
         name='seeddb-show-patch-modal',
     ),
-    re_path(r'^patch/delete/$', patch.patch_delete, name='seeddb-patch-delete'),
-    re_path(r'^patch/bulk/$', patch.patch_bulk, name='seeddb-patch-bulk'),
+    path('patch/delete/', patch.patch_delete, name='seeddb-patch-delete'),
+    path('patch/bulk/', patch.patch_bulk, name='seeddb-patch-bulk'),
+    # XXX: too greedy
     re_path(r'^patch/save/', patch.patch_save, name='seeddb-patch-save'),
     re_path(r'^patch/remove/', patch.patch_remove, name='seeddb-patch-remove'),
     re_path(r'^patch/loadcell/', patch.load_cell, name='seeddb-patch-load-cell'),
