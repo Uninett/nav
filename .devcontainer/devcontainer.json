@@ -25,6 +25,11 @@
   "customizations": {
     "jetbrains": {
       "backend": "PyCharm"
+    },
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff"
+      ]
     }
   }
 }
