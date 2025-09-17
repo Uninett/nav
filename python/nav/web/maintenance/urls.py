@@ -16,12 +16,15 @@
 #
 """SeedDB Django URL config"""
 
+from django.urls import path
 from django.urls import re_path
+
 from nav.web.maintenance import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.redirect_to_calendar),
+    path('', views.redirect_to_calendar),
+    # XXX: WTF?
     re_path(r'^calendar/$', views.calendar, name='maintenance'),
     re_path(r'^calendar/$', views.calendar, name='maintenance-calendar'),
     re_path(
@@ -29,25 +32,23 @@ urlpatterns = [
         views.calendar,
         name='maintenance-calendar',
     ),
-    re_path(r'^active/$', views.active, name='maintenance-active'),
-    re_path(r'^planned/$', views.planned, name='maintenance-planned'),
-    re_path(r'^historic/$', views.historic, name='maintenance-historic'),
-    re_path(r'^search/$', views.component_search, name='maintenance-component-search'),
-    re_path(
-        r'^selectcomponents/$',
+    path('active/', views.active, name='maintenance-active'),
+    path('planned/', views.planned, name='maintenance-planned'),
+    path('historic/', views.historic, name='maintenance-historic'),
+    path('search/', views.component_search, name='maintenance-component-search'),
+    path(
+        'selectcomponents/',
         views.component_select,
         name='maintenance-component-select',
     ),
-    re_path(r'^new/$', views.edit, name='maintenance-new'),
+    path('new/', views.edit, name='maintenance-new'),
     re_path(
         r'^new/(?P<start_time>\d{4}-\d{2}-\d{2})/$',
         views.edit,
         name='maintenance-new-date',
     ),
-    re_path(r'^edit/(?P<task_id>\d+)/$', views.edit, name='maintenance-edit'),
-    re_path(r'^view/(?P<task_id>\d+)/$', views.view, name='maintenance-view'),
-    re_path(r'^cancel/(?P<task_id>\d+)/$', views.cancel, name='maintenance-cancel'),
-    re_path(
-        r'^addnetbox/$', views.add_box_to_maintenance, name='maintenance-add-netbox'
-    ),
+    path('edit/<int:task_id>/', views.edit, name='maintenance-edit'),
+    path('view/<int:task_id>/', views.view, name='maintenance-view'),
+    path('cancel/<int:task_id>/', views.cancel, name='maintenance-cancel'),
+    path('addnetbox/', views.add_box_to_maintenance, name='maintenance-add-netbox'),
 ]
