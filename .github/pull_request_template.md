@@ -28,7 +28,7 @@ More information about contributing to NAV can be found in the
 * [ ] The first line of the commit message continues the sentence "If applied, this commit will ...", starts with a capital letter, does not end with punctuation and is 50 characters or less long. See https://cbea.ms/git-commit/
 * [ ] This pull request is based on the correct upstream branch: For a patch/bugfix affecting the latest stable version, it should be based on that version's branch (`<major>.<minor>.x`). For a new feature or other additions, it should be based on `master`.
 * [ ] If applicable: Created new issues if this PR does not fix the issue completely/there is further work to be done
-* [ ] If this introduced a change/new feature in a specific part of NAV: Add a link or description on how to find this change/addition
+* [ ] If this introduced a change/new feature in a specific part of NAV: Add a link, CLI command or description on how to find this change/addition
 * [ ] If this results in changes in the UI: Added screenshots of the before and after
 * [ ] If this adds a new Python source code file: Added the [boilerplate header](https://nav.readthedocs.io/en/latest/hacking/hacking.html#python-boilerplate-headers) to that file
 
