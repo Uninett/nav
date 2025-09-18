@@ -83,7 +83,8 @@ require(['libs/datatables.min'], function() {
 
         var request = $.post(setIgnoredUrl, {
             neighborids: neighborids,
-            action: action
+            action: action,
+            csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
         });
 
         $feedback.hide();

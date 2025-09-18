@@ -56,7 +56,7 @@ define([
             var self = this;
             var request = $.post(
                 NAV.urls.status2_save_preferences,
-                this.$el.find('form').serialize()
+                this.$el.find('#status-panel form').serialize()
             );
 
             self.setDefaultButton.removeClass('alert');  // Remove errorclass if an error occured on last try
@@ -275,12 +275,12 @@ define([
         },
 
         acknowledgeAlerts: function () {
-            console.log('acknowledgeAlerts');
             var self = this;
 
             var request = $.post(NAV.urls.status2_acknowledge_alert, {
                 id: alertsToChange.pluck('id'),
-                comment: this.comment.val()
+                comment: this.comment.val(),
+                csrfmiddlewaretoken: $('#action-panel-revised [name=csrfmiddlewaretoken]').val()
             });
 
             request.done(function () {
@@ -299,7 +299,8 @@ define([
             var self = this;
 
             var request = $.post(NAV.urls.status2_clear_alert, {
-                id: alertsToChange.pluck('id')
+                id: alertsToChange.pluck('id'),
+                csrfmiddlewaretoken: $('#action-panel-revised [name=csrfmiddlewaretoken]').val()
             });
 
             request.done(function () {
@@ -327,7 +328,8 @@ define([
             if (ids.length > 0) {
                 var request = $.post(NAV.urls.status2_put_on_maintenance, {
                     id: ids,
-                    description: description
+                    description: description,
+                    csrfmiddlewaretoken: this.$('[name=csrfmiddlewaretoken]').val()
                 });
 
                 request.done(function () {
@@ -358,7 +360,8 @@ define([
             if (ids.length > 0) {
                 var request = $.post(NAV.urls.status2_delete_module_or_chassis, {
                     id: ids,
-                    description: description
+                    description: description,
+                    csrfmiddlewaretoken: this.$('[name=csrfmiddlewaretoken]').val()
                 });
 
                 request.done(function () {
@@ -368,7 +371,6 @@ define([
                 });
 
                 request.fail(function () {
-                    console.log(request);
                     self.give_error_feedback('Error deleting module or chassis');
                 });
             } else {

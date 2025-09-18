@@ -346,6 +346,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         var $row = $('#' + rowid);
         var interfaceData = queue_data[rowid];
         var listItem = feedback.savingInterface($row);
+        const csrfToken = $('#save-changes-form [name="csrfmiddlewaretoken"]').val();
         $.ajax({url: "save_interfaceinfo",
             data: interfaceData,
             dataType: 'json',
@@ -353,6 +354,9 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             beforeSend: function () {
                 disableButtons($row);
                 // spinner.spin($row);
+            },
+            headers: {
+                'X-CSRFToken': csrfToken
             },
             success: function () {
                 clearChangedState($row);
@@ -400,13 +404,21 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         /** Do a request to commit changes to startup config */
         console.log('Sending commit configuration request');
 
-        var status = feedback.committingConfig();
-        var request = $.post('commit_configuration', {'interfaceid': interfaceid});
+        const status = feedback.committingConfig();
+        const csrfToken = $('#save-changes-form input[name="csrfmiddlewaretoken"]').val();
+        const request = $.ajax({
+            url: 'commit_configuration',
+            type: 'POST',
+            data: {'interfaceid': interfaceid},
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+        });
         request.done(function() {
             feedback.endProgress(status, 'success', request.responseText);
             restartInterfaces();
         });
-        request.fail(function() {
+        request.fail(function(err) {
             feedback.endProgress(status, 'alert', request.responseText);
             feedback.addCloseButton();
         });
