@@ -16,20 +16,18 @@
 #
 """Urlconfig for arnold"""
 
-from django.urls import re_path
+from django.urls import re_path, path
 from nav.web.arnold import views
 
 
 urlpatterns = [
-    re_path(r"^$", views.render_detained_ports, name="arnold_index"),
-    re_path(r"^history/$", views.render_history, name="arnold-history"),
-    re_path(r"^details/(?P<did>\d+)$", views.render_details, name="arnold-details"),
-    re_path(
-        r"^detainedports/$", views.render_detained_ports, name="arnold-detainedports"
-    ),
-    re_path(r"^search/$", views.render_search, name="arnold-search"),
-    re_path(
-        r"^manualdetention/$",
+    path("", views.render_detained_ports, name="arnold_index"),
+    path("history/", views.render_history, name="arnold-history"),
+    path("details/<int:did>", views.render_details, name="arnold-details"),
+    path("detainedports/", views.render_detained_ports, name="arnold-detainedports"),
+    path("search/", views.render_search, name="arnold-search"),
+    path(
+        "manualdetention/",
         views.render_manual_detention_step_one,
         name="arnold-manual-detention",
     ),
@@ -38,45 +36,45 @@ urlpatterns = [
         views.render_manual_detention_step_two,
         name="arnold-manual-detention-step-two",
     ),
-    re_path(
-        r"^enable/(?P<did>\d+)$",
+    path(
+        "enable/<int:did>",
         views.choose_detentions,
         name="arnold-choose-detentions",
     ),
-    re_path(r"^doenable/$", views.lift_detentions, name="arnold-lift-detentions"),
-    re_path(
-        r"^predefined/$",
+    path("doenable/", views.lift_detentions, name="arnold-lift-detentions"),
+    path(
+        "predefined/",
         views.render_detention_profiles,
         name="arnold-detention-profiles",
     ),
-    re_path(
-        r"^predefined/add$",
+    path(
+        "predefined/add",
         views.render_edit_detention_profile,
         name="arnold-detention-profile-add",
     ),
-    re_path(
-        r"^predefined/edit/(?P<did>\d+)$",
+    path(
+        "predefined/edit/<int:did>",
         views.render_edit_detention_profile,
         name="arnold-detention-profile-edit",
     ),
-    re_path(r"^addreason/$", views.render_justifications, name="arnold-justifications"),
-    re_path(
-        r"^addreason/edit/(?P<jid>\d+)$",
+    path("addreason/", views.render_justifications, name="arnold-justifications"),
+    path(
+        "addreason/edit/<int:jid>",
         views.render_justifications,
         name="arnold-justifications-edit",
     ),
-    re_path(
-        r"^addreason/delete/(?P<jid>\d+)$",
+    path(
+        "addreason/delete/<int:jid>",
         views.delete_justification,
         name="arnold-justifications-delete",
     ),
-    re_path(
-        r"^addquarantinevlan/$",
+    path(
+        "addquarantinevlan/",
         views.render_quarantine_vlans,
         name="arnold-quarantinevlans",
     ),
-    re_path(
-        r"^addquarantinevlan/edit/(?P<qid>\d+)$",
+    path(
+        "addquarantinevlan/edit/<int:qid>",
         views.render_quarantine_vlans,
         name="arnold-quarantinevlans-edit",
     ),

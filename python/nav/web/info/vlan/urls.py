@@ -16,15 +16,15 @@
 #
 """Django URL configuration"""
 
-from django.urls import re_path
+from django.urls import re_path, path
 from nav.web.info.vlan import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.index, name='vlan-index'),
-    re_path(r'^(?P<vlanid>\d+)/$', views.vlan_details, name='vlan-details'),
-    re_path(
-        r'^graph/prefix/(?P<prefixid>\d+)$',
+    path('', views.index, name='vlan-index'),
+    path('<int:vlanid>/', views.vlan_details, name='vlan-details'),
+    path(
+        'graph/prefix/<int:prefixid>',
         views.create_prefix_graph,
         name='vlan-graph-prefix',
     ),
