@@ -16,7 +16,7 @@
 #
 """PortAdmin Django URL config"""
 
-from django.urls import re_path
+from django.urls import re_path, path
 from nav.web.portadmin import views
 
 
@@ -38,5 +38,8 @@ urlpatterns = [
         r'^trunk/(?P<interfaceid>\d+)',
         views.render_trunk_edit,
         name="portadmin-render-trunk-edit",
+    ),
+    path(
+        'feedback_modal/', views.render_feedback_modal, name='portadmin-feedback-modal'
     ),
 ]
