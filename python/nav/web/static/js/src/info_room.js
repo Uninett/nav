@@ -12,7 +12,8 @@ require(
         "dt_plugins/modulesort",
         "libs/jquery",
         "libs/jquery-ui.min",
-        "libs/datatables.min"
+        "libs/datatables.min",
+        "plugins/lightbox"
     ],
     function(tab_navigation, global_dt_filters, table_info_converter, RoomMapper, SensorsController, JUIHelpers) {
         /* Run javascript at document ready */

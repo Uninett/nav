@@ -1,0 +1,38 @@
+{# Reusable lightbox gallery template #}
+{# Usage: {% include "_lightbox_gallery.html" with images=images gallery_id="unique-id" title="Gallery Title" %} #}
+
+{% if images|length > 0 %}
+
+{% if title %}<h4>{{ title }}</h4>{% endif %}
+
+<ul class="small-block-grid-2 medium-block-grid-6">
+    {% for image in images %}
+    <li>
+        <a href="{{ image.url }}"
+           class="lightbox-gallery-thumb"
+           data-lightbox="{{ gallery_id|default:'gallery' }}"
+           data-title="{{ image.title|safe }}">
+            <img src="{{ image.thumb_url }}" alt="{{ image.title|safe }}">
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+
+<div id="lightbox-{{ gallery_id|default:'gallery' }}" class="lightbox">
+    <div class="lightbox-content">
+        <span class="lightbox-close">&times;</span>
+        <div class="lightbox-image-container">
+            <img class="lightbox-image" src="" alt="">
+            <div class="lightbox-caption"></div>
+            <div class="lightbox-nav">
+                <button class="lightbox-prev"><span></span></button>
+                <button class="lightbox-next"><span></span></button>
+            </div>
+        </div>
+        <div class="lightbox-thumbnails">
+            <ul class="lightbox-thumbnail-list"></ul>
+        </div>
+    </div>
+</div>
+
+{% endif %}
