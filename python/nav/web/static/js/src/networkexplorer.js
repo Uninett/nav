@@ -15,7 +15,16 @@ require(['plugins/network_tree'], function (NetworkTree) {
             search_form.serialize()
         )
             .done(function (data) { parseResult(networkTree, data); })
-            .fail(function () { notifyFail('Search failed!'); })
+            .fail(function (response) {
+                const errors = response?.responseJSON?.errors;
+                if (!errors) {
+                    return notifyFail('Search failed!');
+                }
+                const errorMsg = Object.values(errors)
+                    .flat()
+                    .join(', ');
+                notifyFail(errorMsg);
+            })
             .always(
                 function () {
                     fadeIn(search_form);
