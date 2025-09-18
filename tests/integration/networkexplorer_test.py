@@ -110,16 +110,47 @@ class ViewsTest(TestDataMixin, TestCase):
         response = SearchView.as_view()(request)
         content = response.content.decode('utf-8')
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         self.assertFalse('routers' in content)
         self.assertFalse('gwports' in content)
         self.assertFalse('swports' in content)
 
+    def test_search_view_will_return_status_400_on_invalid_exact_ip_search(self):
+        request = self.factory.get(
+            self.url_root + 'search/',
+            {
+                'query_0': 'invalid',
+                'query_1': 'ip',
+                'exact_results': 'on',
+            },
+        )
+        response = SearchView.as_view()(request)
+        content = response.content.decode('utf-8')
+
+        assert response.status_code == 400
+        assert "Invalid IP address" in content
+
 
 class FormsTest(TestDataMixin, TestCase):
-    def test_search_form(self):
+    def test_search_form_with_valid_data_is_valid(self):
         valid_form = NetworkSearchForm(self.valid_data)
-        invalid_form = NetworkSearchForm(self.invalid_data)
 
         self.assertTrue(valid_form.is_valid(), msg='Valid form failed validaion')
+
+    def test_search_form_with_missing_argument_is_invalid(self):
+        invalid_form = NetworkSearchForm(self.invalid_data)
+
         self.assertFalse(invalid_form.is_valid(), msg='Invalid form passed validation')
+
+    def test_search_form_with_invalid_ip_for_exact_search_is_invalid(self):
+        invalid_ip_form = NetworkSearchForm(
+            {
+                "query_0": "invalid_ip",
+                "query_1": "ip",
+                "exact_results": True,
+            }
+        )
+
+        self.assertFalse(
+            invalid_ip_form.is_valid(), msg="Invalid IP form passed validation"
+        )
