@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from django.http import HttpResponse
 from django.test.client import RequestFactory
@@ -5,7 +7,7 @@ from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import patch, Mock
 
-from nav.models.manage import Interface
+from nav.models.manage import Interface, Netbox, NetboxProfile
 from nav.portadmin.handlers import ManagementHandler
 from nav.web.portadmin.views import populate_infodict, load_portadmin_data_by_kwargs
 
@@ -24,8 +26,8 @@ class TestPortadminSearchViews:
         "url_name,fixture_name,attr_name,expected_status",
         [
             ("portadmin-interface", "interface", "id", 200),
-            ("portadmin-sysname", "configured_netbox", "sysname", 200),
-            ("portadmin-ip", "configured_netbox", "ip", 200),
+            ("portadmin-sysname", "valid_netbox", "sysname", 200),
+            ("portadmin-ip", "valid_netbox", "ip", 200),
         ],
     )
     def test_when_resource_exists_it_should_return_200(
@@ -57,8 +59,8 @@ class TestPortadminSearchViews:
         "url_name,fixture_name,attr_name",
         [
             ("portadmin-interface", "interface", "id"),
-            ("portadmin-sysname", "configured_netbox", "sysname"),
-            ("portadmin-ip", "configured_netbox", "ip"),
+            ("portadmin-sysname", "valid_netbox", "sysname"),
+            ("portadmin-ip", "valid_netbox", "ip"),
         ],
     )
     def test_when_resource_exists_it_should_return_correct_data_url(
@@ -91,7 +93,7 @@ class TestPortadminSearchViews:
             ),
             (
                 "portadmin-sysname",
-                "netbox_with_type",
+                "netbox_without_ports",
                 "sysname",
                 "IP device has no ports",
             ),
@@ -140,17 +142,17 @@ class TestPortadminDataLoading:
         mock_render,
         mock_get_livedata,
         mock_request,
-        configured_netbox,
+        valid_netbox,
         mock_handler,
     ):
         """Test loading data by sysname"""
         mock_get_livedata.return_value = mock_handler
         mock_render.return_value = HttpResponse('rendered')
 
-        load_portadmin_data_by_kwargs(mock_request, sysname=configured_netbox.sysname)
+        load_portadmin_data_by_kwargs(mock_request, sysname=valid_netbox.sysname)
 
-        interfaces = configured_netbox.get_swports_sorted()
-        mock_get_livedata.assert_called_once_with(configured_netbox, interfaces)
+        interfaces = valid_netbox.get_swports_sorted()
+        mock_get_livedata.assert_called_once_with(valid_netbox, interfaces)
 
     def test_load_portadmin_data_by_kwargs_should_return_error_when_interface_not_found(
         self, mock_request
@@ -174,10 +176,10 @@ class TestPortadminDataLoading:
         self, mock_request, valid_netbox
     ):
         """Test handling of netbox with no interfaces"""
-        configured_netbox.interfaces.all().delete()
+        valid_netbox.interfaces.all().delete()
 
         response = load_portadmin_data_by_kwargs(
-            mock_request, sysname=configured_netbox.sysname
+            mock_request, sysname=valid_netbox.sysname
         )
 
         assert isinstance(response, HttpResponse)
@@ -319,34 +321,56 @@ def mock_handler():
 
 
 @pytest.fixture
-def netbox_with_type(localhost, netbox_type):
-    localhost.type = netbox_type
-    localhost.save()
-    yield localhost
-    localhost.type = None
-    localhost.save()
+def valid_netbox(db, management_profile, netbox_type):
+    box = create_netbox_with_profile(management_profile, type=netbox_type)
+    new_interface = create_interface(box)
+    yield box
+    new_interface.delete()
+    box.delete()
 
 
 @pytest.fixture
-def interface(netbox_with_type):
-    interface = create_interface(netbox_with_type)
+def interface(db, management_profile, netbox_type):
+    netbox = create_netbox_with_profile(management_profile, type=netbox_type)
+    interface = create_interface(netbox)
     interface.save()
     yield interface
     interface.delete()
+    netbox.delete()
 
 
 @pytest.fixture
-def configured_netbox(netbox_with_type):
-    new_interface = create_interface(netbox_with_type)
-    yield netbox_with_type
+def netbox_without_type(db, management_profile):
+    box = create_netbox_with_profile(management_profile)
+    new_interface = create_interface(box)
+    yield box
     new_interface.delete()
+    box.delete()
 
 
 @pytest.fixture
-def netbox_without_type(configured_netbox):
-    configured_netbox.type = None
-    configured_netbox.save()
-    yield configured_netbox
+def netbox_without_ports(db, management_profile, netbox_type):
+    box = create_netbox_with_profile(management_profile, type=netbox_type)
+    yield box
+    box.delete()
+
+
+def create_netbox_with_profile(management_profile, **kwargs):
+    # Generate unique IP to avoid constraint violations
+    unique_id = uuid.uuid4().int % 1000000
+    ip = f'192.168.{(unique_id // 1000) % 256}.{unique_id % 256}'
+
+    box = Netbox(
+        ip=ip,
+        sysname='test.example.org',
+        organization_id='myorg',
+        room_id='myroom',
+        category_id='SRV',
+        **kwargs,
+    )
+    box.save()
+    NetboxProfile(netbox=box, profile=management_profile).save()
+    return box
 
 
 def create_interface(netbox, **kwargs):
