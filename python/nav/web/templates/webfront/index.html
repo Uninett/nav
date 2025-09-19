@@ -35,16 +35,17 @@
   {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
 
     <div id="widgets-actions" class="hide-for-small" >
-      <div
-          title="Add widget"
-          class="widget-action"
-          hx-get="{% url 'add-navlet-modal' dashboard.id %}"
-          hx-target="body"
-          hx-swap="beforeend"
-      >
-        <i class="fa fa-plus"></i>
-      </div>
-
+      {% if can_edit %}
+          <div
+              title="Add widget"
+              class="widget-action"
+              hx-get="{% url 'add-navlet-modal' dashboard.id %}"
+              hx-target="body"
+              hx-swap="beforeend"
+          >
+            <i class="fa fa-plus"></i>
+          </div>
+      {% endif %}
       <div id="widgets-show-fullscreen" class="widget-action" title="Show dashboard in fullscreen">
         <i class="fa fa-arrows-alt"></i>
       </div>
@@ -64,58 +65,14 @@
         <i class="fa fa-compress"></i>
       </div>
 
-      {% include 'webfront/_dashboard_settings_form.html' %}
+      {% if can_edit %}
+          {% include 'webfront/_dashboard_settings_form.html' %}
+      {% endif %}
+
     </div>
 
     {# Buttons for selecting dashboards #}
-    <ul id="dashboard-nav" class="pagination">
-      <li class="unavailable"><a href="">Dashboards:</a></li>
-      {% for d in dashboards %}
-        <li {% if d.pk == dashboard.pk %}class="current"{% endif %}>
-          {% if d.pk != dashboard.pk %}
-            <div class="alert-box hidden" data-dashboardname="{{ d.name }}"></div>
-          {% endif %}
-          <a href="{{ d.get_absolute_url }}"
-             title="Go to dashboard «{{ d.name }}»"
-             data-dashboard="{{ d.pk }}"
-             data-url="{% url 'moveto-dashboard' d.pk %}"
-          >
-            <span>
-              {% if d.shared_by_other %}
-                {{ d.name }} ({{ d.account.login }})
-              {% else %}
-                {{ d.name }}
-              {% endif %}
-            </span>
-            <i class="fa fa-star {% if not d.is_default or d.shared_by_other %}hidden{% endif %}"
-               title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
-          </a>
-        </li>
-      {% endfor %}
-        <li id="dropdown-dashboard-add" class="popover with-arrow">
-            <a
-                    title="Add new dashboard"
-                    data-popover-target="#dropdown-dashboard-add"
-                    aria-haspopup="true"
-            >
-                <i class="fa fa-plus"></i>
-            </a>
-            <div class="popover-content small">
-                <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
-                    {% csrf_token %}
-                    <label>
-                        Add dashboard
-                        <input type="text" name="dashboard-name" placeholder="Dashboard name">
-                    </label>
-                    <input type="submit" class="small button full-width" value="Add dashboard">
-                </form>
-
-                <a hx-get="{% url 'import-dashboard-modal' %}"
-                   hx-target="body"
-                   hx-swap="beforeend">Import dashboard</a>
-            </div>
-      </li>
-    </ul>
+    {%  include 'webfront/_dashboard_nav.html' with current_dashboard=dashboard dashboards=dashboards %}
 
   {% endif %}
 
@@ -132,6 +89,5 @@
        data-base-template-url="{% url 'navlet-base-template' %}"
        data-widget-columns="{{ dashboard.num_columns }}"
        ></div>
-
 
 {% endblock %}
