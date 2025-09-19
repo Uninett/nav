@@ -192,7 +192,7 @@ def _get_netbox_and_ports(request, **kwargs):
         netbox = Netbox.objects.get(**kwargs)
     except Netbox.DoesNotExist as error:
         _logger.error(
-            "Netbox %s not found; DoesNotExist = %s",
+            "IP device %s not found; DoesNotExist = %s",
             kwargs.get('sysname') or kwargs.get('ip'),
             error,
         )
@@ -350,6 +350,15 @@ def _setup_voice_vlan(request, netbox, interfaces, handler):
     return voice_vlan
 
 
+def _setup_dot1x_if_enabled(interfaces, handler):
+    """Setup dot1x information if enabled"""
+    if handler:
+        try:
+            add_dot1x_info(interfaces, handler)
+        except (NotImplementedError, ManagementError) as error:
+            _logger.debug('Dot1x not supported or error getting dot1x info: %s', error)
+
+
 def _setup_poe_if_supported(interfaces, handler):
     """Setup PoE configuration if supported"""
     supports_poe = False
@@ -359,24 +368,18 @@ def _setup_poe_if_supported(interfaces, handler):
         poe_options = handler.get_poe_state_options()
         add_poe_info(interfaces, handler)
         supports_poe = any(interface.supports_poe for interface in interfaces)
-    except (NotImplementedError, XMLParseError, POEStateNotSupportedError) as error:
+    except (XMLParseError, POEStateNotSupportedError) as error:
         if isinstance(error, (XMLParseError, POEStateNotSupportedError)):
             _logger.error(
-                'Error getting PoE information from netbox %s: %s',
+                'Error getting PoE information from IP device %s: %s',
                 handler.netbox,
                 error,
             )
+    except NotImplementedError:
+        # Only Cisco and Juniper has PoE support currently
+        pass
 
     return supports_poe, poe_options
-
-
-def _setup_dot1x_if_enabled(interfaces, handler):
-    """Setup dot1x information if enabled"""
-    if handler:
-        try:
-            add_dot1x_info(interfaces, handler)
-        except (NotImplementedError, ManagementError) as error:
-            _logger.debug('Dot1x not supported or error getting dot1x info: %s', error)
 
 
 def _get_alias_template():
