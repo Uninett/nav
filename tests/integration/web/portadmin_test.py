@@ -152,7 +152,7 @@ class TestPortadminDataLoading:
         response = load_portadmin_data_by_kwargs(mock_request, sysname='nonexistent')
 
         assert isinstance(response, HttpResponse)
-        assert b'Netbox not found' in response.content
+        assert b'Ip device not found' in response.content
 
     def test_load_portadmin_data_by_kwargs_no_interfaces(
         self, mock_request, configured_netbox
