@@ -14,19 +14,18 @@ class TestPortadminSearchViews:
     """Combined tests for all search view types"""
 
     @pytest.mark.parametrize(
-        "url_name,fixture_attr,expected_status",
+        "url_name,fixture_name,attr_name,expected_status",
         [
-            ("portadmin-interface", "interface.id", 200),
-            ("portadmin-sysname", "configured_netbox.sysname", 200),
-            ("portadmin-ip", "configured_netbox.ip", 200),
+            ("portadmin-interface", "interface", "id", 200),
+            ("portadmin-sysname", "configured_netbox", "sysname", 200),
+            ("portadmin-ip", "configured_netbox", "ip", 200),
         ],
     )
     def test_when_resource_exists_then_return_200(
-        self, client, request, url_name, fixture_attr, expected_status
+        self, client, request, url_name, fixture_name, attr_name, expected_status
     ):
-        fixture_name, attr = fixture_attr.split('.')
         fixture = request.getfixturevalue(fixture_name)
-        value = getattr(fixture, attr)
+        value = getattr(fixture, attr_name)
 
         url = reverse(url_name, args=[value])
         response = client.get(url)
@@ -303,7 +302,6 @@ def mock_handler():
     return handler
 
 
-# Keep your existing fixtures as they are
 @pytest.fixture
 def netbox_with_type(localhost, netbox_type):
     localhost.type = netbox_type
