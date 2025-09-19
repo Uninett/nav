@@ -86,6 +86,7 @@ class Navlet(TemplateView):
     is_title_editable = False
     can_be_added = True
     is_deprecated = False
+    can_edit = False  # Set to true if user can edit this instance
 
     # Set to true if we are to reload only an image. This is useful for
     # loading charts that may take some time to display, thus making the
@@ -243,24 +244,40 @@ def dispatcher(request, navlet_id):
     The as_view method takes any attribute and adds it to the instance
     as long as it is defined on the Navlet class
     """
-    account = request.account
+    current_account = request.account
+
     try:
-        account_navlet = AccountNavlet.objects.get(account=account, pk=navlet_id)
+        account_navlet = AccountNavlet.objects.get(pk=navlet_id)
     except AccountNavlet.DoesNotExist as error:
         _logger.error(
-            '%s tried to fetch widget with id %s: %s', account, navlet_id, error
+            '%s tried to fetch widget with id %s: %s', current_account, navlet_id, error
         )
         return HttpResponse(status=404)
-    else:
-        cls = get_navlet_from_name(account_navlet.navlet)
-        if not cls:
-            cls = get_navlet_from_name(ERROR_WIDGET)
-        view = cls.as_view(
-            preferences=account_navlet.preferences,
-            navlet_id=navlet_id,
-            account_navlet=account_navlet,
+
+    dashboard = account_navlet.dashboard
+    owner = account_navlet.account
+    can_edit = dashboard.can_edit(current_account)
+    is_shared = dashboard.is_shared
+
+    if not can_edit and not is_shared:
+        _logger.error(
+            '%s tried to fetch widget with id %s owned by %s',
+            current_account,
+            navlet_id,
+            owner,
         )
-        return view(request)
+        return HttpResponse(status=403)
+
+    cls = get_navlet_from_name(account_navlet.navlet)
+    if not cls:
+        cls = get_navlet_from_name(ERROR_WIDGET)
+    view = cls.as_view(
+        preferences=account_navlet.preferences,
+        navlet_id=navlet_id,
+        account_navlet=account_navlet,
+        can_edit=can_edit,
+    )
+    return view(request)
 
 
 def add_user_navlet(request, dashboard_id=None):
