@@ -231,7 +231,9 @@ def load_portadmin_data_by_kwargs(request, **kwargs):
                 id=kwargs['interfaceid']
             )
         except Interface.DoesNotExist:
-            return HttpResponse('<div class="error">Interface not found</div>')
+            return HttpResponse(
+                '<div class="alert-box error">Interface not found</div>'
+            )
 
         netbox = interface.netbox
         interfaces = [interface]
@@ -239,11 +241,15 @@ def load_portadmin_data_by_kwargs(request, **kwargs):
         try:
             netbox = Netbox.objects.get(**kwargs)
         except Netbox.DoesNotExist:
-            return HttpResponse('<div class="error">Netbox not found</div>')
+            return HttpResponse(
+                '<div class="alert-box error">Ip device not found</div>'
+            )
 
         interfaces = netbox.get_swports_sorted()
         if not interfaces:
-            return HttpResponse('<div class="error">No interfaces found</div>')
+            return HttpResponse(
+                '<div class="alert-box error">No interfaces found</div>'
+            )
 
     context = populate_infodict(request, netbox, interfaces)
     return render(request, 'portadmin/portlist.html', context)
