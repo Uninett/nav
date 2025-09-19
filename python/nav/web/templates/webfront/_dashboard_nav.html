@@ -1,0 +1,73 @@
+{# Buttons for selecting dashboards #}
+<div style="display: flex; align-items: start; justify-content: space-between">
+    <ul id="dashboard-nav" class="pagination">
+      <li class="unavailable"><a href="">Dashboards:</a></li>
+      {% for d in dashboards %}
+        <li {% if d.pk == current_dashboard.pk %}class="current"{% endif %}>
+          {% if d.pk != current_dashboard.pk %}
+            <div class="alert-box hidden" data-dashboardname="{{ d.name }}"></div>
+          {% endif %}
+          <a href="{{ d.get_absolute_url }}"
+             title="Go to dashboard «{{ d.name }}»"
+             data-dashboard="{{ d.pk }}"
+             data-url="{% url 'moveto-dashboard' d.pk %}"
+          >
+            <span>
+                {{ d.name }}
+            </span>
+            <i class="fa fa-star {% if not d.is_default or d.shared_by_other %}hidden{% endif %}"
+               title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
+            <i class="fa fa-share-alt {% if not d.shared_by_other %}hidden{% endif %}"
+               title="This dashboard is shared by another account."></i>
+          </a>
+        </li>
+      {% endfor %}
+      <li id="dropdown-dashboard-add" class="popover with-arrow">
+        <a
+                title="Add new dashboard"
+                data-popover-target="#dropdown-dashboard-add"
+                aria-haspopup="true"
+        >
+            <i class="fa fa-plus"></i>
+        </a>
+        <div class="popover-content small">
+            <form id="form-add-dashboard" method="post" action="{% url 'add-dashboard' %}">
+                {% csrf_token %}
+                <label>
+                    Add dashboard
+                    <input type="text" name="dashboard-name" placeholder="Dashboard name">
+                </label>
+                <input type="submit" class="small button full-width" value="Add dashboard">
+            </form>
+
+            <a hx-get="{% url 'import-dashboard-modal' %}"
+               hx-target="body"
+               hx-swap="beforeend">Import dashboard</a>
+        </div>
+      </li>
+    </ul>
+    {% if dashboard.shared_by_other %}
+        <div id="owner-tooltip" class="popover with-arrow" data-side="bottom" data-align="end">
+            <button class="secondary tiny" style="margin-bottom: 0" aria-haspopup="true" data-popover-target="#owner-tooltip">
+                <i class="fa fa-user"></i>
+                <span>{{ dashboard.account.name }}</span>
+            </button>
+           <div class="popover-content">
+               <p>This dashboard is owned by <br /> <strong>{{ dashboard.account.name }}</strong></p>
+               {% if is_subscribed %}
+                   <p>You are <em>subscribed</em> to this dashboard.</p>
+               {% else %}
+                   <p>You are <em>not subscribed</em> to this dashboard</p>
+               {% endif %}
+               <button class="small secondary" style="margin-bottom: 0" hx-post="{% url 'dashboard-toggle-subscribe' current_dashboard.pk %}">
+                   Click here to
+                   {% if is_subscribed %}
+                       unsubscribe
+                   {% else %}
+                       subscribe
+                   {% endif %}
+               </button>
+           </div>
+        </div>
+    {% endif %}
+</div>
