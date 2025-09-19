@@ -466,14 +466,15 @@
         <p>Interactive popover component for confirmation dialogs and contextual actions. Provides accessible, non-intrusive user interactions without navigating away from the current page.</p>
         <h4>Options</h4>
         <ul>
-          <li><strong>Alignment:</strong> <code>data-align="start"</code> (default), <code>data-align="center"</code>, or <code>data-align="end"</code></li>
+          <li><strong>Alignment:</strong> <code>data-align</code> Options: <code>start</code> (default), <code>end</code></li>
+          <li><strong>Side:</strong> <code>data-side</code> Options: <code>bottom</code> (default), <code>left</code>, <code>right</code>, <code>top</code></li>
           <li><strong>Size:</strong> <code>tiny</code>, <code>small</code>, <code>medium</code>, or <code>large</code> classes on popover-content</li>
           <li><strong>Arrow:</strong> Add <code>with-arrow</code> class to display a pointing arrow</li>
           <li><strong>Close button:</strong> Add <code>close-popover</code> attribute to any element to make it close the popover when clicked</li>
         </ul>
         <div style="margin-bottom: 1rem;">
             <h4>Example popover</h4>
-            <div id="demo-popover" class="popover with-arrow" data-align="start">
+            <div id="demo-popover" class="popover with-arrow" data-side="right" data-align="start">
               <button
                   class="secondary" style="margin-bottom: 0;"
                   data-popover-target="#demo-popover"
@@ -494,7 +495,7 @@
       <div class="columns large-6">
           <div class="panel white">
             <pre class="prettyprint">
-&lt;div id="demo-popover" class="popover with-arrow" data-align="start"&gt;
+&lt;div id="demo-popover" class="popover with-arrow" data-side="right" data-align="start"&gt;
     &lt;button
         class="secondary"
         data-popover-target="#demo-popover"
