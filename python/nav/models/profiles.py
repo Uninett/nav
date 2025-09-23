@@ -1647,6 +1647,7 @@ class AccountDashboard(models.Model):
         on_delete=models.CASCADE,
         related_name="account_dashboards",
     )
+    is_shared = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -1669,6 +1670,25 @@ class AccountDashboard(models.Model):
     class Meta(object):
         db_table = 'account_dashboard'
         ordering = ('name',)
+
+
+class AccountDashboardSubscription(models.Model):
+    """Subscriptions for dashboards shared between users"""
+
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        related_name="dashboard_subscriptions",
+    )
+    dashboard = models.ForeignKey(
+        AccountDashboard,
+        on_delete=models.CASCADE,
+        related_name="subscribers",
+    )
+
+    class Meta(object):
+        db_table = 'account_dashboard_subscription'
+        unique_together = (('account', 'dashboard'),)
 
 
 class AccountNavlet(models.Model):
