@@ -78,9 +78,16 @@
           <a href="{{ d.get_absolute_url }}"
              title="Go to dashboard «{{ d.name }}»"
              data-dashboard="{{ d.pk }}"
-             data-url="{% url 'moveto-dashboard' d.pk %}">
-            <span>{{ d.name }}</span>
-            <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
+             data-url="{% url 'moveto-dashboard' d.pk %}"
+          >
+            <span>
+              {% if d.shared_by_other %}
+                {{ d.name }} ({{ d.account.login }})
+              {% else %}
+                {{ d.name }}
+              {% endif %}
+            </span>
+            <i class="fa fa-star {% if not d.is_default or d.shared_by_other %}hidden{% endif %}"
                title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
           </a>
         </li>
