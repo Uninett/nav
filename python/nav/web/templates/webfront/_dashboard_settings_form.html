@@ -1,0 +1,67 @@
+<div id="dropdown-dashboard-settings" class="popover with-arrow dashboard-settings" data-side="left">
+    <div id="rightaction-dashboard-config"
+         title="Settings for current dashboard"
+         class="widget-action"
+         data-popover-target="#dropdown-dashboard-settings"
+         aria-haspopup="true"
+    >
+        <i class="fa fa-gear fa-lg"></i>
+    </div>
+    <div class="popover-content large">
+        <form id="form-rename-dashboard"
+              method="post"
+              data-dashboard="{{ dashboard.pk }}"
+              action="{% url 'rename-dashboard' dashboard.pk %}">
+            {% csrf_token %}
+            <input aria-label="Dashboard name" name="dashboard-name" placeholder="Dashboard name" type="text"
+                   value="{{ dashboard.name }}">
+            <input type="submit" class="small button" value="Rename dashboard">
+        </form>
+
+        <div class="row">
+
+            <div class="column medium-4">
+                <div id="default-dashboard-container"
+                     data-is-default-dashboard="{{ dashboard.is_default|yesno:'1,0' }}">
+                    <div class="alert-box">This is the default dashboard</div>
+                    <form id="form-set-default-dashboard" method="post"
+                          action="{% url 'set-default-dashboard' dashboard.pk %}">
+                        {% csrf_token %}
+                        <input type="submit" value="Set as default dashboard"
+                               class="small button secondary expand">
+                    </form>
+                </div>
+            </div>
+
+            <div class="column medium-4">
+                <a href="{% url 'export-dashboard' dashboard.pk %}" class="small button expand">Export dashboard
+                </a><br/>
+                <div class="nav-tooltip">
+                    <small aria-describedby="download-dashboard-tooltip">what's this?</small>
+                    <span id="download-dashboard-tooltip" role="tooltip">
+              Download this dashboards definition into a file that can later be imported by pressing the + next to the tab list
+          </span>
+                </div>
+            </div>
+
+            <div class="column medium-4">
+                {% if request.account.account_dashboards.count > 1 and not dashboard.is_default %}
+                <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}">
+                    {% csrf_token %}
+                    <input type="submit" class="small button alert expand" value="Delete dashboard">
+                </form>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <h5>Columns</h5>
+        <ul class="button-group" data-url="{% url 'save-dashboard-columns' dashboard.pk %}">
+            <li><a href="#" class="button tiny secondary column-chooser" data-columns="1">One</a></li>
+            <li><a href="#" class="button tiny secondary column-chooser" data-columns="2">Two</a></li>
+            <li><a href="#" class="button tiny secondary column-chooser" data-columns="3">Three</a></li>
+            <li><a href="#" class="button tiny secondary column-chooser" data-columns="4">Four</a></li>
+        </ul>
+    </div>
+</div>

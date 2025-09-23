@@ -72,19 +72,26 @@
     top: 0;
     width: 40px;
     z-index: 1000;
-    div {
+    .widget-action {
         background-color: $topbar-bg-color;
         height: 40px;
         display: flex;
         justify-content: center;
         align-items: center;
+        border-bottom: 1px solid gainsboro;
         &:hover {
             background-color: $primary-color;
             cursor: pointer;
         }
-        &:not(:last-child) {
-            border-bottom: 1px solid gainsboro;
-        }
+    }
+    .dashboard-settings {
+      width: 100%;
+      .widget-action {
+        border-bottom: none;
+      }
+      .popover-content {
+        width: 800px;
+      }
     }
 }
 

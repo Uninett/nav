@@ -19,11 +19,6 @@
             $('#remove-all-endpoints').click(function(){ $(msSelector).multiSelect('deselect_all') });
           }
         });
-
-        /* This is the code for closing the content dropdown */
-        $('#confirm-token-delete .close-button').click(function () {
-          $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
-        });
       });
     });
   </script>
@@ -63,21 +58,7 @@
         <input type="submit" value="Recreate token" class="button small">
       </form>
 
-      {# Display form for deleting a token #}
-      <a href="javascript:void(0);" class="button small alert"
-         data-options="align:top"
-         data-dropdown="confirm-token-delete">
-        Delete token
-      </a>
-
-      <div id="confirm-token-delete" class="f-dropdown content">
-        <form id="delete-token-form"
-              action="{% url 'useradmin-jwt_delete' object.pk %}"
-              method="post">{% csrf_token %}
-          <input type="submit" value="Yes, delete" class="button small alert expand">
-        </form>
-        <span class="button secondary small close-button expand">No, don't delete</span>
-      </div>
+      {% include 'useradmin/_confirm_token_delete.html' with delete_url='useradmin-jwt_delete' token=object %}
     {% endif %}
 
     <div class="float-clear"></div>

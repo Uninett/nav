@@ -17,12 +17,6 @@
              they are rendered to avoid screen jumping */
           $('#jqueryuitabs').tabs().show();
 
-          /* This is the code for closing the content dropdown */
-          $('.f-dropdown .close-button').click(function () {
-              $(document).foundation('dropdown', 'close', $(this).parents('.f-dropdown:first'));
-          });
-
-
           // Draw the gauge tests
           var element = document.querySelector('#gauges');
 
