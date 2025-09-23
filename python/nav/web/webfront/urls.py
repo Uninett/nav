@@ -38,6 +38,11 @@ urlpatterns = [
         views.toggle_dashboard_shared,
         name='dashboard-toggle-shared',
     ),
+    path(
+        'index/dashboard/toggle-subscribe/<int:did>/',
+        views.toggle_subscribe,
+        name='dashboard-toggle-subscribe',
+    ),
     path('index/dashboard/add/', views.add_dashboard, name='add-dashboard'),
     path(
         'index/dashboard/set_default/<int:did>/',
