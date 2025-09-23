@@ -66,13 +66,13 @@
 
 #widgets-actions {
     box-shadow: 0px 3px 5px grey;
-    color: white;
     position: absolute;
     right: 0;
     top: 0;
     width: 40px;
     z-index: 1000;
     .widget-action {
+        color: white;
         background-color: $topbar-bg-color;
         height: 40px;
         display: flex;
@@ -83,16 +83,34 @@
             background-color: $primary-color;
             cursor: pointer;
         }
+        &:last-child {
+          border-bottom: none;
+        }
     }
-    .dashboard-settings {
-      width: 100%;
-      .widget-action {
-        border-bottom: none;
-      }
-      .popover-content {
-        width: 800px;
-      }
+}
+
+#dropdown-dashboard-settings.popover {
+  width: 100%;
+  .widget-action {
+    border-bottom: none;
+  }
+  .popover-content {
+    width: 800px;
+  }
+  .row {
+    margin-bottom: 1em;
+    &:last-child {
+      margin-bottom: 0;
     }
+  }
+  #toggle-dashboard-shared-form {
+    * {
+      margin-bottom: 0.5rem;
+    }
+    *:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
 

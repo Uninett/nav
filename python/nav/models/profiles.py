@@ -1667,6 +1667,12 @@ class AccountDashboard(models.Model):
             data['widgets'].append(widget.to_json_dict())
         return data
 
+    def can_edit(self, account):
+        return self.account_id == account.id
+
+    def is_subscribed(self, account):
+        return self.subscribers.filter(account=account).exists()
+
     class Meta(object):
         db_table = 'account_dashboard'
         ordering = ('name',)
