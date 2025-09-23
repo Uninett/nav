@@ -5,8 +5,7 @@ require([
     'plugins/seeddb_management_profile',
     'plugins/netbox_connectivity_checker',
     'plugins/ip_chooser',
-    'plugins/seeddb_map',
-    'libs/modernizr'],
+    'plugins/seeddb_map'],
 function (datatables, CheckboxSelector, FormFuck, ManagementProfile, connectivityChecker, IpChooser, seedDBRoomMap) {
 
     function executeOnLoad() {

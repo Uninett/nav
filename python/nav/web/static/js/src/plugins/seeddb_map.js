@@ -1,4 +1,4 @@
-define(['plugins/fullscreen', 'libs/OpenLayers', 'libs/modernizr'], function(fullscreen) {
+define(['plugins/fullscreen', 'libs/OpenLayers'], function(fullscreen) {
 
     /**
      * Display map for editing room position in seedDB
@@ -233,7 +233,7 @@ define(['plugins/fullscreen', 'libs/OpenLayers', 'libs/modernizr'], function(ful
             alert(error.message);
         }
 
-        if (Modernizr.geolocation) {
+        if (navigator && "geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
                 gotPosition,
                 errorGettingPosition,

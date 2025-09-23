@@ -1,4 +1,4 @@
-require(["libs/jquery.tablesorter.min", "libs/jquery", "libs/modernizr"], function (tablesorter) {
+require(["libs/jquery.tablesorter.min", "libs/jquery"], function (tablesorter) {
 
     var ns = "nav.machinetracker",
         elementIds = ['id_netbios', 'id_dns'],
@@ -11,7 +11,7 @@ require(["libs/jquery.tablesorter.min", "libs/jquery", "libs/modernizr"], functi
      */
     function addLocalStateSettings() {
         var form = $('#' + searchFormId);
-        if (!window.location.search && Modernizr.localstorage && form.length) {
+        if (!window.location.search && window.localStorage && form.length) {
             addSettingsListener(form);
             setElementState();
         }
