@@ -205,6 +205,211 @@ def test_should_render_about_logging_modal(client):
     assert 'id="about-audit-logging"' in smart_str(response.content)
 
 
+class TestDashboardIndexView:
+    def test_given_no_dashboard_id_then_return_default_dashboard(
+        self, db, client, admin_account
+    ):
+        """Tests that the default dashboard is shown when no ID is given"""
+        default_dashboard = AccountDashboard.objects.get(
+            is_default=True, account=admin_account
+        )
+        url = reverse('dashboard-index')
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context['dashboard'].id == default_dashboard.id
+
+    def test_given_valid_dashboard_id_then_return_that_dashboard(
+        self, db, client, admin_account
+    ):
+        """Tests that the specified dashboard is shown when a valid ID is given"""
+        dashboard = create_dashboard(admin_account)
+        url = reverse('dashboard-index-id', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context['dashboard'].id == dashboard.id
+
+    def test_given_dashboard_id_that_does_not_exist_then_return_404(
+        self, db, client, admin_account
+    ):
+        """Tests that 404 is returned when a non-existing ID is given"""
+        url = reverse('dashboard-index-id', args=(9999,))
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_given_dashboard_id_for_other_account_when_shared_then_return_dashboard(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """Tests that a shared dashboard of another account can be accessed"""
+        other_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        url = reverse('dashboard-index-id', args=(other_dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context['dashboard'].id == other_dashboard.id
+
+    def test_given_dashboard_id_for_other_account_when_not_shared_then_return_404(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """
+        Tests that 404 is returned when trying to access another account's dashboard
+        """
+        other_dashboard = create_dashboard(non_admin_account, is_shared=False)
+        url = reverse('dashboard-index-id', args=(other_dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_given_subscribed_dashboard_id_then_return_dashboard(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """Tests that a subscribed dashboard of another account can be accessed"""
+        other_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        AccountDashboardSubscription.objects.create(
+            account=admin_account,
+            dashboard=other_dashboard,
+        )
+        url = reverse('dashboard-index-id', args=(other_dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context['dashboard'].id == other_dashboard.id
+
+    def test_given_subscribed_dashboard_id_then_return_is_subscribed(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """Tests that a subscribed dashboard of another account can be accessed"""
+        other_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        AccountDashboardSubscription.objects.create(
+            account=admin_account,
+            dashboard=other_dashboard,
+        )
+        url = reverse('dashboard-index-id', args=(other_dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context['is_subscribed'] is True
+
+    def test_given_own_dashboard_id_then_return_can_edit_true(
+        self, db, client, admin_account
+    ):
+        """Tests that can_edit is True for own dashboards"""
+        own_dashboard = create_dashboard(admin_account, is_shared=False)
+        url = reverse('dashboard-index-id', args=(own_dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context['can_edit'] is True
+
+    def test_given_other_account_dashboard_id_then_return_can_edit_false(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """Tests that can_edit is False for other account's dashboards"""
+        other_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        url = reverse('dashboard-index-id', args=(other_dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.context['can_edit'] is False
+
+    def test_given_subscribed_dashboard_then_include_dashboard_in_response_list(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """
+        Tests that subscribed dashboards of other accounts are included in the list
+        """
+        subscribed_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        AccountDashboardSubscription.objects.create(
+            account=admin_account,
+            dashboard=subscribed_dashboard,
+        )
+        url = reverse('dashboard-index')
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert subscribed_dashboard in response.context['dashboards']
+
+    def test_given_shared_dashboard_id_when_not_subscribed_then_include_dashboard_last(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """
+        Tests that a shared dashboard of another account is included last in the list
+        """
+        shared_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        url = reverse('dashboard-index-id', args=(shared_dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        dashboards = response.context['dashboards']
+        assert dashboards[-1] == shared_dashboard
+
+
+class TestToggleDashboardSubscriptionView:
+    def test_when_not_subscribed_then_subscribe(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """Tests that a dashboard can be subscribed to"""
+        other_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        url = reverse('dashboard-toggle-subscribe', args=(other_dashboard.id,))
+        client.post(url, follow=True)
+
+        assert other_dashboard.is_subscribed(admin_account) is True
+
+    def test_when_subscribed_then_unsubscribe(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """Tests that a dashboard can be unsubscribed from"""
+        other_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        AccountDashboardSubscription.objects.create(
+            account=admin_account,
+            dashboard=other_dashboard,
+        )
+        url = reverse('dashboard-toggle-subscribe', args=(other_dashboard.id,))
+        client.post(url, follow=True)
+
+        assert other_dashboard.is_subscribed(admin_account) is False
+
+    def test_given_dashboard_that_does_not_exist_then_return_404(
+        self, db, client, admin_account
+    ):
+        """
+        Tests that 404 is returned when trying to subscribe to a non-existing dashboard
+        """
+        url = reverse('dashboard-toggle-subscribe', args=(9999,))
+        response = client.post(url)
+
+        assert response.status_code == 404
+
+    def test_given_existing_dashboard_when_not_shared_then_return_404(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """
+        Tests that 404 is returned when trying to subscribe to a non-shared dashboard
+        """
+        other_dashboard = create_dashboard(non_admin_account, is_shared=False)
+        url = reverse('dashboard-toggle-subscribe', args=(other_dashboard.id,))
+        response = client.post(url)
+
+        assert response.status_code == 404
+
+    def test_given_existing_shared_dashboard_id_then_return_refresh_header(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """
+        Tests that subscribing to a shared dashboard returns a response with
+        HX-Refresh header set to true
+        """
+        shared_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        url = reverse('dashboard-toggle-subscribe', args=(shared_dashboard.id,))
+        response = client.post(url)
+
+        assert response.status_code == 200
+        assert 'HX-Refresh' in response.headers
+        assert response.headers['HX-Refresh'] == 'true'
+
+
 class TestToggleDashboardSharingView:
     def test_given_unshared_dashboard_it_should_toggle_is_shared(
         self, db, client, admin_account
