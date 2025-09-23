@@ -2,6 +2,7 @@ import json
 from io import BytesIO
 
 import pytest
+from django.http import Http404
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import Mock, patch
@@ -10,7 +11,9 @@ from nav.models.profiles import (
     Account,
     AccountDashboard,
     AccountDashboardSubscription,
+    AccountNavlet,
 )
+from nav.web.webfront import find_dashboard, get_dashboards_for_account
 from nav.web.webfront.utils import tool_list
 
 
@@ -506,12 +509,219 @@ class TestImportDashboardViews:
         assert 'File is not a valid dashboard file' in smart_str(response.content)
 
 
+class TestFindDashboardUtil:
+    """
+    Tests for the find_dashboard utility function which determines which dashboard
+    to show based on the given account and optional dashboard ID
+    """
+
+    def test_given_no_dashboard_id_then_return_default_dashboard(
+        self, db, non_admin_account
+    ):
+        """Tests that the default dashboard is returned when no ID is given"""
+        default_dashboard = AccountDashboard.objects.get(
+            is_default=True, account=non_admin_account
+        )
+
+        dashboard = find_dashboard(non_admin_account)
+        assert dashboard == default_dashboard
+
+    def test_given_valid_dashboard_id_then_return_that_dashboard(
+        self, db, non_admin_account
+    ):
+        """Tests that the specified dashboard is returned when a valid ID is given"""
+        dashboard = create_dashboard(non_admin_account, name="Test dashboard")
+
+        found_dashboard = find_dashboard(non_admin_account, dashboard_id=dashboard.id)
+        assert found_dashboard == dashboard
+
+    def test_given_dashboard_id_that_does_not_exist_then_return_404(
+        self, db, non_admin_account
+    ):
+        """
+        Tests that the default dashboard is returned when a
+        non-existing ID is given
+        """
+        # Clean up any existing dashboards
+        AccountDashboard.objects.filter(account=non_admin_account).delete()
+
+        create_dashboard(non_admin_account)
+        with pytest.raises(Http404):
+            find_dashboard(non_admin_account, dashboard_id=9999)
+
+    def test_given_no_dashboard_id_when_no_default_and_no_dashboards_then_return_404(
+        self, db, non_admin_account
+    ):
+        """Tests that 404 is raised when no dashboards exist for the account"""
+        # Clean up any existing dashboards
+        AccountDashboard.objects.filter(account=non_admin_account).delete()
+        with pytest.raises(Http404):
+            find_dashboard(non_admin_account)
+
+    def test_given_no_dashboard_id_then_returns_dashboard_with_most_widgets(
+        self, db, non_admin_account
+    ):
+        """
+        Tests that when no ID is given and no default dashboard is set, the dashboard
+        with the most widgets is returned
+        """
+        # Clean up any existing dashboards
+        AccountDashboard.objects.filter(account=non_admin_account).delete()
+        # Create first dashboard with three widgets
+        first_dashboard = create_dashboard(non_admin_account, name="First")
+        for _ in range(3):
+            create_widget(first_dashboard)
+            create_widget(first_dashboard)
+        # Create second dashboard with no widgets
+        create_dashboard(non_admin_account, name="Second")
+
+        dashboard = find_dashboard(non_admin_account)
+        assert dashboard == first_dashboard
+
+    def test_given_dashboard_id_for_other_account_when_shared_then_return_dashboard(
+        self, db, non_admin_account, admin_account
+    ):
+        """Tests that a shared dashboard of another account can be accessed"""
+        other_dashboard = create_dashboard(admin_account, name="Other", is_shared=True)
+        found_dashboard = find_dashboard(
+            non_admin_account, dashboard_id=other_dashboard.id
+        )
+        assert found_dashboard == other_dashboard
+
+    def test_given_dashboard_id_for_other_account_when_not_shared_then_return_404(
+        self, db, client, non_admin_account, admin_account
+    ):
+        """Tests that 404 is raised when trying to access another account's dashboard"""
+        other_dashboard = create_dashboard(admin_account, name="Other", is_shared=False)
+
+        with pytest.raises(Http404):
+            find_dashboard(non_admin_account, dashboard_id=other_dashboard.id)
+
+    def test_shared_by_other_attribute_for_own_dashboard(self, db, non_admin_account):
+        """Tests that shared_by_other is False for own dashboards"""
+        dashboard = create_dashboard(non_admin_account, name="Own", is_shared=True)
+        found_dashboard = find_dashboard(non_admin_account, dashboard_id=dashboard.id)
+        assert found_dashboard.shared_by_other is False
+
+    def test_shared_by_other_attribute_for_shared_dashboard_of_other_account(
+        self, db, non_admin_account, admin_account
+    ):
+        """Tests that shared_by_other is True for shared dashboards of other accounts"""
+        other_dashboard = create_dashboard(admin_account, name="Other", is_shared=True)
+        found_dashboard = find_dashboard(
+            non_admin_account, dashboard_id=other_dashboard.id
+        )
+        assert found_dashboard.shared_by_other is True
+
+
+class TestGetDashboardsForAccount:
+    """
+    Tests for the get_dashboards_for_account utility function which retrieves all
+    dashboards for a given account, including shared dashboards from other accounts
+    """
+
+    def test_given_account_then_return_all_own_dashboards(self, db, non_admin_account):
+        """Tests that all own dashboards are returned"""
+        default_dashboard = AccountDashboard.objects.get(
+            is_default=True, account=non_admin_account
+        )
+        other_dashboard = create_dashboard(
+            non_admin_account, name="Own 1", is_shared=False
+        )
+
+        dashboards = get_dashboards_for_account(non_admin_account)
+        assert default_dashboard in dashboards
+        assert other_dashboard in dashboards
+
+    def test_given_account_with_no_subscriptions_then_return_own_dashboards(
+        self, db, non_admin_account, admin_account
+    ):
+        """
+        Tests that only own dashboards are returned when there are no subscriptions
+        """
+        own_dashboard = create_dashboard(non_admin_account, name="Own", is_shared=False)
+        shared_dashboard = create_dashboard(
+            admin_account, name="Shared", is_shared=True
+        )
+
+        dashboards = get_dashboards_for_account(non_admin_account)
+        assert own_dashboard in dashboards
+        assert shared_dashboard not in dashboards
+
+    def test_given_account_with_subscriptions_then_return_shared_dashboards(
+        self, db, non_admin_account, admin_account
+    ):
+        """Tests that shared dashboards are returned when there are subscriptions"""
+        own_dashboard = create_dashboard(non_admin_account, name="Own", is_shared=False)
+        shared_dashboard = create_dashboard(
+            admin_account, name="Shared", is_shared=True
+        )
+        AccountDashboardSubscription.objects.create(
+            account=non_admin_account,
+            dashboard=shared_dashboard,
+        )
+
+        dashboards = get_dashboards_for_account(non_admin_account)
+
+        assert own_dashboard in dashboards
+        assert shared_dashboard in dashboards
+
+    def test_given_dashboard_subscription_then_shared_by_other_is_set_correctly(
+        self, db, non_admin_account, admin_account
+    ):
+        """
+        Tests that shared_by_other is set correctly for shared dashboards
+        """
+        shared_dashboard = create_dashboard(
+            admin_account, name="Shared", is_shared=True
+        )
+        AccountDashboardSubscription.objects.create(
+            account=non_admin_account,
+            dashboard=shared_dashboard,
+        )
+
+        dashboards = get_dashboards_for_account(non_admin_account)
+        assert all(
+            dashboard.shared_by_other is (dashboard.account != non_admin_account)
+            for dashboard in dashboards
+        )
+        assert len(dashboards) == 2  # Default + shared
+
+    def test_given_dashboard_subscription_then_can_edit_is_set_correctly(
+        self, db, non_admin_account, admin_account
+    ):
+        """
+        Tests that can_edit is set correctly for shared dashboards
+        """
+        shared_dashboard = create_dashboard(
+            admin_account, name="Shared", is_shared=True
+        )
+        AccountDashboardSubscription.objects.create(
+            account=non_admin_account,
+            dashboard=shared_dashboard,
+        )
+        dashboards = get_dashboards_for_account(non_admin_account)
+        assert all(
+            dashboard.can_edit is (dashboard.account == non_admin_account)
+            for dashboard in dashboards
+        )
+        assert len(dashboards) == 2  # Default + shared
+
+
 def create_dashboard(account, name="Test Dashboard", is_default=False, is_shared=False):
     return AccountDashboard.objects.create(
         name=name,
         is_default=is_default,
         account=account,
         is_shared=is_shared,
+    )
+
+
+def create_widget(dashboard, navlet='nav.web.navlets.welcome.WelcomeNavlet'):
+    return AccountNavlet.objects.create(
+        dashboard=dashboard,
+        account=dashboard.account,
+        navlet=navlet,
     )
 
 
