@@ -26,6 +26,7 @@ def find_dashboard(account, dashboard_id=None):
     kwargs = {'pk': dashboard_id} if dashboard_id else {'is_default': True}
     try:
         dashboard = AccountDashboard.objects.get(account=account, **kwargs)
+
     except AccountDashboard.DoesNotExist:
         if dashboard_id:
             raise Http404

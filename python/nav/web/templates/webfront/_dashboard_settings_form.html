@@ -55,13 +55,22 @@
             </div>
 
         </div>
-
-        <h5>Columns</h5>
-        <ul class="button-group" data-url="{% url 'save-dashboard-columns' dashboard.pk %}">
-            <li><a href="#" class="button tiny secondary column-chooser" data-columns="1">One</a></li>
-            <li><a href="#" class="button tiny secondary column-chooser" data-columns="2">Two</a></li>
-            <li><a href="#" class="button tiny secondary column-chooser" data-columns="3">Three</a></li>
-            <li><a href="#" class="button tiny secondary column-chooser" data-columns="4">Four</a></li>
-        </ul>
+        <div class="row">
+            <div class="column medium-4">
+                <h5>Columns</h5>
+                <ul class="button-group" data-url="{% url 'save-dashboard-columns' dashboard.pk %}">
+                    <li><a href="#" class="button tiny secondary column-chooser" data-columns="1">One</a></li>
+                    <li><a href="#" class="button tiny secondary column-chooser" data-columns="2">Two</a></li>
+                    <li><a href="#" class="button tiny secondary column-chooser" data-columns="3">Three</a></li>
+                    <li><a href="#" class="button tiny secondary column-chooser" data-columns="4">Four</a></li>
+                </ul>
+            </div>
+            <div class="column medium-8">
+                {# Toggle dashboard shared #}
+                <h5>Sharing</h5>
+                {% include 'webfront/_dashboard_settings_shared_form.html' with dashboard=dashboard %}
+            </div>
+            <div class="column medium-4"></div>
+        </div>
     </div>
 </div>

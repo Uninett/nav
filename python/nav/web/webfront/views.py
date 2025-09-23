@@ -16,9 +16,9 @@
 #
 """Navbar (tools, preferences) and login related controllers"""
 
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 from operator import attrgetter
 from urllib.parse import quote as urlquote
 
@@ -30,35 +30,40 @@ from django.http import (
     HttpRequest,
     JsonResponse,
 )
-from django.views.decorators.http import require_POST
-from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
+from django.views.decorators.http import require_POST
 from django_htmx.http import HttpResponseClientRedirect
 
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
-from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
-from nav.web.auth import logout as auth_logout
+from nav.models.profiles import (
+    AccountDashboard,
+    AccountDashboardSubscription,
+    AccountNavlet,
+    NavbarLink,
+)
 from nav.web import auth, webfrontConfig
 from nav.web.auth import ldap
+from nav.web.auth import logout as auth_logout
 from nav.web.auth.utils import set_account
+from nav.web.message import new_message, Messages
 from nav.web.modals import render_modal, render_modal_alert
+from nav.web.navlets import can_modify_navlet
 from nav.web.utils import generate_qr_code_as_string
 from nav.web.utils import require_param
-from nav.web.webfront.utils import quick_read, tool_list
-from nav.web.webfront.forms import (
-    LoginForm,
-    NavbarLinkFormSet,
-    ChangePasswordForm,
-)
-from nav.web.navlets import can_modify_navlet
-from nav.web.message import new_message, Messages
 from nav.web.webfront import (
     find_dashboard,
     WELCOME_ANONYMOUS_PATH,
     WELCOME_REGISTERED_PATH,
 )
+from nav.web.webfront.forms import (
+    LoginForm,
+    NavbarLinkFormSet,
+    ChangePasswordForm,
+)
+from nav.web.webfront.utils import quick_read, tool_list
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -83,21 +88,43 @@ def index(request, did=None):
         'title': 'NAV - {}'.format(dashboard.name),
     }
 
-    if dashboards.count() > 1:
-        dashboard_ids = [d.pk for d in dashboards]
-        current_index = dashboard_ids.index(dashboard.pk)
-        previous_index = current_index - 1
-        next_index = current_index + 1
-        if current_index == len(dashboard_ids) - 1:
-            next_index = 0
-        context.update(
-            {
-                'previous_dashboard': dashboards.get(pk=dashboard_ids[previous_index]),
-                'next_dashboard': dashboards.get(pk=dashboard_ids[next_index]),
-            }
+    return render(request, 'webfront/index.html', context)
+
+
+@require_POST
+def toggle_dashboard_shared(request, did):
+    """Toggle shared status for this dashboard"""
+    dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+
+    # Checkbox input returns 'on' if checked
+    is_shared = request.POST.get('is_shared') == 'on'
+    if is_shared == dashboard.is_shared:
+        return _render_share_form_response(
+            request,
+            dashboard,
         )
 
-    return render(request, 'webfront/index.html', context)
+    dashboard.is_shared = is_shared
+    dashboard.save()
+
+    if not is_shared:
+        AccountDashboardSubscription.objects.filter(dashboard=dashboard).delete()
+
+    return _render_share_form_response(
+        request,
+        dashboard,
+    )
+
+
+def _render_share_form_response(request, dashboard: AccountDashboard):
+    """Render the share dashboard form response."""
+    return render(
+        request,
+        'webfront/_dashboard_settings_shared_form.html',
+        {
+            'dashboard': dashboard,
+        },
+    )
 
 
 def export_dashboard(request, did):
