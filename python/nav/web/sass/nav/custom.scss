@@ -154,6 +154,42 @@
   }
 }
 
+#dashboard-search-form {
+  .description {
+    color: lighten(#333, 20%);
+  }
+}
+
+#dashboard-search-results {
+  ul {
+    margin: 0;
+  }
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    * {
+      margin-bottom: 0;
+    }
+  }
+
+  .search-result-name {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    .dashboard-owner {
+      font-size: 0.8em;
+      color: lighten(#333, 20%);
+    }
+  }
+}
+
 /* Padding for all pages */
 
 .top-bar, #megadrop {

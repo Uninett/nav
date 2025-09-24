@@ -1,0 +1,28 @@
+{% if dashboards %}
+    <ul>
+        {% for dashboard in dashboards %}
+            <li class="panel search-result-item">
+                <div class="search-result-name">
+                    <p class="dashboard-name">{{ dashboard.name }}</p>
+                    <p class="dashboard-owner">
+                        <i class="fa fa-user" aria-label="Owner"></i>
+                        {{ dashboard.account.name }}
+                    </p>
+                </div>
+                {% if dashboard.is_subscribed %}
+                    <span class="badge white small">
+                        <i class="fa fa-bell" aria-hidden="true"></i>
+                        Subscribed
+                    </span>
+                {% endif %}
+                <a href="{% url 'dashboard-index-id' dashboard.pk %}" class="button secondary tiny">
+                    View
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% elif search %}
+    <div class="alert-box">
+        No dashboards found matching your search.
+    </div>
+{% endif %}
