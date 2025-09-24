@@ -1,5 +1,6 @@
 import json
 from io import BytesIO
+from urllib.parse import quote
 
 import pytest
 from django.http import Http404
@@ -718,6 +719,76 @@ class TestImportDashboardViews:
 
         assert response.status_code == 200
         assert 'File is not a valid dashboard file' in smart_str(response.content)
+
+
+class TestExportDashboardView:
+    """
+    Tests for the export_dashboard view which allows exporting a dashboard as JSON
+    """
+
+    def test_given_dashboard_id_when_account_is_owner_then_return_file(
+        self, db, client, admin_account
+    ):
+        """Tests that the owner of a dashboard can export it"""
+        dashboard = create_dashboard(admin_account, name="My Dashboard")
+        create_widget(dashboard)
+
+        url = reverse('export-dashboard', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.json()['name'] == dashboard.name
+
+    def test_given_shared_dashboard_id_when_account_is_not_owner_then_return_file(
+        self, db, client, non_admin_account
+    ):
+        """Tests that a shared dashboard can be exported by another account"""
+        dashboard = create_dashboard(
+            non_admin_account, name="Shared Dashboard", is_shared=True
+        )
+        create_widget(dashboard)
+
+        url = reverse('export-dashboard', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response.json()['name'] == dashboard.name
+
+    def test_given_unshared_dashboard_id_when_account_is_not_owner_then_return_404(
+        self, db, client, non_admin_account
+    ):
+        """Tests that an unshared dashboard cannot be exported by another account"""
+        dashboard = create_dashboard(
+            non_admin_account, name="Private Dashboard", is_shared=False
+        )
+        create_widget(dashboard)
+
+        url = reverse('export-dashboard', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_given_dashboard_id_that_does_not_exist_then_return_404(self, client):
+        """Tests that 404 is returned when trying to export a non-existing dashboard"""
+        url = reverse('export-dashboard', args=(9999,))
+        response = client.get(url)
+
+        assert response.status_code == 404
+
+    def test_exported_file_should_have_correct_headers(self, db, client, admin_account):
+        """Tests that the exported file has the correct headers"""
+        dashboard = create_dashboard(admin_account, name="My Dashboard")
+        create_widget(dashboard)
+
+        url = reverse('export-dashboard', args=(dashboard.id,))
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'application/json'
+        assert (
+            response['Content-Disposition']
+            == f'attachment; filename={quote(dashboard.name)}.json'
+        )
 
 
 class TestFindDashboardUtil:
