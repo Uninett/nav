@@ -233,7 +233,7 @@ define(['plugins/fullscreen', 'libs/OpenLayers'], function(fullscreen) {
             alert(error.message);
         }
 
-        if (Modernizr.geolocation) {
+        if (navigator && "geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
                 gotPosition,
                 errorGettingPosition,

@@ -11,7 +11,7 @@ require(["libs/jquery.tablesorter.min", "libs/jquery"], function (tablesorter) {
      */
     function addLocalStateSettings() {
         var form = $('#' + searchFormId);
-        if (!window.location.search && Modernizr.localstorage && form.length) {
+        if (!window.location.search && window.localStorage && form.length) {
             addSettingsListener(form);
             setElementState();
         }

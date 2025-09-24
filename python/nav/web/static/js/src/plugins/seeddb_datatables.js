@@ -1,5 +1,5 @@
 define([
-    'libs/datatables.min'
+    'libs/datatables.min',
 ],
 
 function() {
@@ -24,7 +24,7 @@ function() {
         var table = tableTypes[tableType](config);
 
         /* Store rowcount when user changes it */
-        if (Modernizr.localstorage) {
+        if (window.localStorage) {
             $wrapper.find('.dataTables_length select').change(function (event) {
                 var newValue = $(event.target).val();
                 localStorage.setItem(key, newValue);
@@ -37,7 +37,7 @@ function() {
             keyPrefix = 'nav.seeddb.rowcount',
             key = [keyPrefix, $wrapper.attr('data-forpage')].join('.'),
             numRows = 10;
-        if (Modernizr.localstorage) {
+        if (window.localStorage) {
             var value = localStorage.getItem(key);
             if (value !== null) { numRows = +value; }
         }
