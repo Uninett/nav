@@ -1648,6 +1648,11 @@ class AccountDashboard(models.Model):
         related_name="account_dashboards",
     )
     is_shared = models.BooleanField(default=False)
+    subscriptions = models.ManyToManyField(
+        Account,
+        through='AccountDashboardSubscription',
+        related_name="account_dashboard_subscriptions",
+    )
 
     def __str__(self):
         return self.name

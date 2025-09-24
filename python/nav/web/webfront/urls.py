@@ -43,6 +43,12 @@ urlpatterns = [
         views.toggle_subscribe,
         name='dashboard-toggle-subscribe',
     ),
+    path(
+        'index/dashboard/search/modal/',
+        views.dashboard_search_modal,
+        name='dashboard-search-modal',
+    ),
+    path('index/dashboard/search/', views.dashboard_search, name='dashboard-search'),
     path('index/dashboard/add/', views.add_dashboard, name='add-dashboard'),
     path(
         'index/dashboard/set_default/<int:did>/',
