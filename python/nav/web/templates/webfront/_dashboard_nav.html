@@ -40,9 +40,22 @@
                 <input type="submit" class="small button full-width" value="Add dashboard">
             </form>
 
-            <a hx-get="{% url 'import-dashboard-modal' %}"
-               hx-target="body"
-               hx-swap="beforeend">Import dashboard</a>
+            <div style="display: flex; flex-direction: column; gap: 0.5em;">
+                <a
+                    hx-get="{% url 'import-dashboard-modal' %}"
+                    hx-target="body"
+                    hx-swap="beforeend"
+                >
+                    <i class="fa fa-upload"></i> Import dashboard
+                </a>
+                <a
+                    hx-get="{% url 'dashboard-search-modal' %}"
+                    hx-target="body"
+                    hx-swap="beforeend"
+                >
+                    <i class="fa fa-search"></i> Find shared dashboard
+                </a>
+            </div>
         </div>
       </li>
     </ul>
