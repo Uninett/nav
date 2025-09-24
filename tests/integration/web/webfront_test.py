@@ -990,6 +990,124 @@ class TestGetDashboardsForAccount:
         assert len(dashboards) == 2  # Default + shared
 
 
+class TestDashboardSearchViews:
+    def test_should_render_search_dashboard_modal(self, client):
+        """
+        Tests that calling the search_dashboard_modal view will return a fragment
+        with a form to search dashboards
+        """
+        url = reverse('dashboard-search-modal')
+        response = client.get(url)
+
+        assert 'id="dashboard-search-form"' in smart_str(response.content)
+
+    def test_given_dashboard_name_then_return_matching_dashboards(
+        self, db, client, non_admin_account
+    ):
+        """Tests that searching returns matching dashboards"""
+        shared_dashboard = create_dashboard(
+            non_admin_account, name="A cool dashboard", is_shared=True
+        )
+
+        url = reverse('dashboard-search')
+        response = client.post(url, {'search': 'cool'})
+
+        assert response.status_code == 200
+        assert shared_dashboard in response.context['dashboards']
+
+    def test_given_account_name_then_return_matching_dashboards(
+        self, db, client, non_admin_account, admin_account
+    ):
+        """Tests that searching returns matching dashboards by account name"""
+        shared_dashboard = create_dashboard(
+            non_admin_account, name="A cool dashboard", is_shared=True
+        )
+
+        url = reverse('dashboard-search')
+        response = client.post(url, {'search': non_admin_account.name})
+
+        assert response.status_code == 200
+        assert shared_dashboard in response.context['dashboards']
+
+    def test_given_account_login_then_return_matching_dashboards(
+        self, db, client, non_admin_account, admin_account
+    ):
+        """Tests that searching returns matching dashboards by account login"""
+        shared_dashboard = create_dashboard(
+            non_admin_account, name="A cool dashboard", is_shared=True
+        )
+
+        url = reverse('dashboard-search')
+        response = client.post(url, {'search': non_admin_account.login})
+
+        assert response.status_code == 200
+        assert shared_dashboard in response.context['dashboards']
+
+    def test_given_empty_search_then_return_empty_list(
+        self, db, client, non_admin_account
+    ):
+        """Tests that searching with an empty string returns an empty list"""
+        create_dashboard(non_admin_account, name="A cool dashboard", is_shared=True)
+
+        url = reverse('dashboard-search')
+        response = client.post(url, {'search': ''})
+
+        assert response.status_code == 200
+        assert len(response.context['dashboards']) == 0
+
+    def test_given_empty_search_then_return_empty_template(
+        self, db, client, non_admin_account
+    ):
+        """Tests that searching with an empty string returns an empty template"""
+        create_dashboard(non_admin_account, name="A cool dashboard", is_shared=True)
+
+        url = reverse('dashboard-search')
+        response = client.post(url, {'search': ''})
+
+        assert response.status_code == 200
+        assert 'No dashboards found' not in smart_str(response.content)
+        assert 'search-result-item' not in smart_str(response.content)
+
+    def test_given_no_matching_dashboards_then_return_empty_list(
+        self, db, client, non_admin_account
+    ):
+        """Tests that searching returns an empty list when there are no matches"""
+        create_dashboard(non_admin_account, name="A cool dashboard", is_shared=True)
+
+        url = reverse('dashboard-search')
+        response = client.post(url, {'search': 'nonexistent'})
+
+        assert response.status_code == 200
+        assert len(response.context['dashboards']) == 0
+
+    def test_given_dashboard_name_when_account_is_owner_then_return_empty_list(
+        self, db, client, admin_account
+    ):
+        """Tests that searching does not return own dashboards"""
+        own_dashboard = create_dashboard(
+            admin_account, name="A cool dashboard", is_shared=False
+        )
+
+        url = reverse('dashboard-search')
+        response = client.post(url, {'search': 'cool'})
+
+        assert response.status_code == 200
+        assert own_dashboard not in response.context['dashboards']
+        assert len(response.context['dashboards']) == 0
+
+    def test_given_empty_result_then_return_no_dashboards_message(
+        self, db, client, non_admin_account
+    ):
+        """Tests that searching with no results returns a no dashboards message"""
+        create_dashboard(non_admin_account, name="A cool dashboard", is_shared=True)
+
+        url = reverse('dashboard-search')
+        response = client.post(url, {'search': 'nonexistent'})
+
+        assert response.status_code == 200
+        assert 'No dashboards found' in smart_str(response.content)
+
+
 def create_dashboard(account, name="Test Dashboard", is_default=False, is_shared=False):
     return AccountDashboard.objects.create(
         name=name,
