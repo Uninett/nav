@@ -87,6 +87,13 @@
           border-bottom: none;
         }
     }
+    .export-action {
+      width: 100%;
+      a.widget-action {
+        width: 100%;
+        border-bottom: none;
+      }
+    }
 }
 
 #dropdown-dashboard-settings.popover {
