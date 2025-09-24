@@ -22,6 +22,8 @@ from datetime import datetime
 from operator import attrgetter
 from urllib.parse import quote as urlquote
 
+from django.db import models
+from django.db.models import Q
 from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
@@ -33,7 +35,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django_htmx.http import HttpResponseClientRedirect, HttpResponseClientRefresh
 
 from nav.auditlog.models import LogEntry
@@ -154,6 +156,61 @@ def toggle_subscribe(request, did):
         ).save()
 
     return HttpResponseClientRefresh()
+
+
+@require_GET
+def dashboard_search_modal(request):
+    """Render the dashboard search modal dialog"""
+
+    return render_modal(
+        request,
+        'webfront/_dashboard_search_form.html',
+        modal_id='dashboard-search-form',
+        size='small',
+    )
+
+
+@require_POST
+def dashboard_search(request):
+    """Search for shared dashboards"""
+    raw_search = request.POST.get('search', '')
+    search = raw_search.strip() if raw_search else ''
+    if not search:
+        return render(
+            request,
+            'webfront/_dashboard_search_results.html',
+            {
+                'dashboards': [],
+                'search': search,
+            },
+        )
+
+    dashboards = (
+        AccountDashboard.objects.exclude(account=request.account)
+        .filter(
+            Q(name__icontains=search)
+            | Q(account__login__icontains=search)
+            | Q(account__name__icontains=search),
+            is_shared=True,
+        )
+        .select_related('account')
+        .annotate(
+            is_subscribed=models.Exists(
+                AccountDashboardSubscription.objects.filter(
+                    dashboard=models.OuterRef('pk'), account=request.account
+                )
+            )
+        )
+    )
+
+    return render(
+        request,
+        'webfront/_dashboard_search_results.html',
+        {
+            'dashboards': dashboards,
+            'search': search,
+        },
+    )
 
 
 def export_dashboard(request, did):
