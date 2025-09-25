@@ -20,6 +20,7 @@ from django.urls import re_path
 from nav.web.info.images import views
 
 
+# XXX: error-prone re_paths!
 urlpatterns = [
     re_path(r'^update_title', views.update_title, name='image-update-title'),
     re_path(r'^delete', views.delete_image, name='image-delete-image'),

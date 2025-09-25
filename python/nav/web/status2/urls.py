@@ -16,12 +16,13 @@
 #
 """Django URL configuration for new status tool"""
 
-from django.urls import re_path
+from django.urls import re_path, path
 from nav.web.status2 import views
 
 
 urlpatterns = [
-    re_path(r'^$', views.StatusView.as_view(), name='status2-index'),
+    path('', views.StatusView.as_view(), name='status2-index'),
+    # XXX: This hits more than just "save_preferences/"...
     re_path(
         r'^save_preferences/',
         views.save_status_preferences,
