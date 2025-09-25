@@ -30,7 +30,7 @@ class TestPortadminSearchViews:
             ("portadmin-ip", "valid_netbox", "ip", 200),
         ],
     )
-    def test_when_resource_exists_then_return_200(
+    def test_when_resource_exists_it_should_return_200(
         self, client, request, url_name, fixture_name, attr_name, expected_status
     ):
         fixture = request.getfixturevalue(fixture_name)
@@ -48,7 +48,7 @@ class TestPortadminSearchViews:
             ("portadmin-ip", "123.5.6.12", "Could not find IP device"),
         ],
     )
-    def test_when_resource_does_not_exist_then_return_error(
+    def test_when_resource_does_not_exist_it_should_return_error(
         self, client, url_name, arg, expected_error
     ):
         url = reverse(url_name, args=[arg])
@@ -63,7 +63,7 @@ class TestPortadminSearchViews:
             ("portadmin-ip", "valid_netbox", "ip"),
         ],
     )
-    def test_when_resource_exists_then_return_correct_data_url(
+    def test_when_resource_exists_it_should_return_correct_data_url(
         self, client, request, url_name, fixture_name, attr_name
     ):
         fixture = request.getfixturevalue(fixture_name)
@@ -105,7 +105,7 @@ class TestPortadminSearchViews:
             ),
         ],
     )
-    def test_netbox_error_conditions(
+    def test_when_netbox_preconditions_are_not_met_then_response_should_contain_expected_error_message(  # noqa: E501
         self, client, request, url_name, fixture_name, attr_name, expected_error
     ):
         fixture = request.getfixturevalue(fixture_name)
@@ -121,7 +121,7 @@ class TestPortadminDataLoading:
 
     @patch('nav.web.portadmin.views.get_and_populate_livedata')
     @patch('nav.web.portadmin.views.render')
-    def test_load_portadmin_data_by_kwargs_with_interface_id(
+    def test_load_portadmin_data_by_kwargs_should_load_data_for_valid_interface_id(
         self, mock_render, mock_get_livedata, mock_request, interface, mock_handler
     ):
         """Test loading data by interface ID"""
@@ -137,7 +137,7 @@ class TestPortadminDataLoading:
 
     @patch('nav.web.portadmin.views.get_and_populate_livedata')
     @patch('nav.web.portadmin.views.render')
-    def test_load_portadmin_data_by_kwargs_with_sysname(
+    def test_load_portadmin_data_by_kwargs_should_load_data_for_valid_sysname(
         self,
         mock_render,
         mock_get_livedata,
@@ -154,21 +154,25 @@ class TestPortadminDataLoading:
         interfaces = valid_netbox.get_swports_sorted()
         mock_get_livedata.assert_called_once_with(valid_netbox, interfaces)
 
-    def test_load_portadmin_data_by_kwargs_interface_not_found(self, mock_request):
+    def test_load_portadmin_data_by_kwargs_should_return_error_when_interface_not_found(
+        self, mock_request
+    ):
         """Test handling of non-existent interface"""
         response = load_portadmin_data_by_kwargs(mock_request, interfaceid=9999)
 
         assert isinstance(response, HttpResponse)
         assert b'Interface not found' in response.content
 
-    def test_load_portadmin_data_by_kwargs_netbox_not_found(self, mock_request):
+    def test_load_portadmin_data_by_kwargs_should_return_error_when_netbox_not_found(
+        self, mock_request
+    ):
         """Test handling of non-existent netbox"""
         response = load_portadmin_data_by_kwargs(mock_request, sysname='nonexistent')
 
         assert isinstance(response, HttpResponse)
         assert b'IP device not found' in response.content
 
-    def test_load_portadmin_data_by_kwargs_no_interfaces(
+    def test_load_portadmin_data_by_kwargs_should_return_error_when_no_interfaces_exist(
         self, mock_request, valid_netbox
     ):
         """Test handling of netbox with no interfaces"""
@@ -182,7 +186,7 @@ class TestPortadminDataLoading:
         assert b'No interfaces found' in response.content
 
     @patch('nav.web.portadmin.views.get_and_populate_livedata')
-    def test_populate_infodict_readonly_mode(
+    def test_populate_infodict_should_set_readonly_mode_when_handler_not_configurable(
         self, mock_get_livedata, mock_request, interface, mock_handler
     ):
         """Test populate_infodict in readonly mode"""
@@ -205,7 +209,7 @@ class TestPortadminDataLoading:
     @patch('nav.web.portadmin.views._setup_poe_if_supported')
     @patch('nav.web.portadmin.views._setup_dot1x_if_enabled')
     @patch('nav.web.portadmin.views.mark_detained_interfaces')
-    def test_populate_infodict_configurable_mode(
+    def test_populate_infodict_should_configure_all_features_when_handler_is_configurable(  # noqa: E501
         self,
         mock_mark_detained,
         mock_setup_dot1x,
@@ -244,7 +248,7 @@ class TestPortadminDataLoading:
 
     @patch('nav.web.portadmin.views.messages')
     @patch('nav.web.portadmin.views.get_and_populate_livedata')
-    def test_populate_infodict_handler_exception(
+    def test_populate_infodict_should_set_readonly_mode_when_handler_raises_exception(
         self, mock_get_livedata, mock_messages, mock_request, interface
     ):
         """Test populate_infodict when handler raises exception"""
@@ -265,7 +269,7 @@ class TestPortadminDataLoading:
 
     @patch('nav.web.portadmin.views.get_and_populate_livedata')
     @patch('nav.web.portadmin.views.json')
-    def test_populate_infodict_auditlog_parameters(
+    def test_populate_infodict_should_format_auditlog_parameters_correctly(
         self, mock_json, mock_get_livedata, mock_request, interface, mock_handler
     ):
         """Test that auditlog parameters are correctly formatted"""
