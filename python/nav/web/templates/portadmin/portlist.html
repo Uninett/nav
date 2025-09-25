@@ -4,13 +4,7 @@
 {{ aliastemplate }}
 
 {% if messages %}
-<div id="portadmin-messages" hx-swap-oob="true">
-   {% for message in messages %}
-      <div class="alert-box {{ message.tags }}">
-        {{ message }}
-      </div>
-   {% endfor %}
-</div>
+{% include 'portadmin/_messages.html' with hx_swap_oob=True %}
 {% endif %}
 
 <div id="portadmin-wrapper" class="faketable">
