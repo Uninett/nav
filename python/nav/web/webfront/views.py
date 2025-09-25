@@ -96,8 +96,8 @@ def toggle_dashboard_shared(request, did):
     """Toggle shared status for this dashboard"""
     dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
 
-    is_shared_param = request.POST.get('is_shared')
-    is_shared = is_shared_param in ('True', 'on')
+    # Checkbox input returns 'on' if checked
+    is_shared = request.POST.get('is_shared') == 'on'
     if is_shared == dashboard.is_shared:
         return _render_share_form_response(
             request,

@@ -6,7 +6,7 @@
     <div class="alert-box">Sharing this dashboard will allow other NAV users to view, search for, and subscribe to it. Only share dashboards you want to be accessible to others.</div>
     {% csrf_token %}
     <div>
-        <input type="hidden" name="is_shared" value="false" />
+        <input type="hidden" name="is_shared" value="off" />
         <input
             id="checkbox-dashboard-shared"
             name="is_shared"
