@@ -76,7 +76,7 @@ urlpatterns = [
     ),
     path('index/dashboard/import', views.import_dashboard, name='import-dashboard'),
     path(
-        'îndex/dashboard/importmodal',
+        'index/dashboard/importmodal',
         views.import_dashboard_modal,
         name='import-dashboard-modal',
     ),
