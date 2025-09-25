@@ -32,7 +32,7 @@
                  hx-get="{{ load_data_url }}"
                  hx-trigger="load"
                  hx-target="#port-details"
-                 hx-swap="outerHTML">
+                 hx-swap="innerHTML">
                 {% include 'portadmin/portlist.html' %}
             </div>
             {% else %}
