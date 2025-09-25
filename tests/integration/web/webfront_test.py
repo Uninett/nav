@@ -268,8 +268,10 @@ class TestToggleDashboardSharingView:
 
     @staticmethod
     def _post_toggle_shared(client, dashboard_id, is_shared):
+        # Checkbox input returns 'on' if checked
+        is_shared_param = 'on' if is_shared else 'off'
         url = reverse('dashboard-toggle-shared', args=(dashboard_id,))
-        return client.post(url, data={'is_shared': is_shared})
+        return client.post(url, data={'is_shared': is_shared_param})
 
 
 class TestImportDashboardViews:
