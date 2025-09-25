@@ -1,0 +1,9 @@
+<div id="portadmin-messages"{% if hx_swap_oob %} hx-swap-oob="true"{% endif %}>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert-box {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
