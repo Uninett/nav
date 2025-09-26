@@ -25,3 +25,11 @@
     </div>
     <input type="submit" class="button small" value="Save sharing settings">
 </form>
+
+{% if message %}
+<div id="dashboard-settings-feedback" hx-swap-oob="innerHtml">
+    <div class="alert-box success">
+        {{ message }}
+    </div>
+</div>
+{% endif %}

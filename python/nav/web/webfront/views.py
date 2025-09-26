@@ -113,16 +113,22 @@ def toggle_dashboard_shared(request, did):
     return _render_share_form_response(
         request,
         dashboard,
+        message="Dashboard sharing is now {}.".format(
+            "enabled" if is_shared else "disabled"
+        ),
     )
 
 
-def _render_share_form_response(request, dashboard: AccountDashboard):
+def _render_share_form_response(
+    request, dashboard: AccountDashboard, message: str = None
+):
     """Render the share dashboard form response."""
     return render(
         request,
         'webfront/_dashboard_settings_shared_form.html',
         {
             'dashboard': dashboard,
+            'message': message,
         },
     )
 

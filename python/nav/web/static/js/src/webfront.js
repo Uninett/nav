@@ -139,18 +139,17 @@ require([
 
 
     function createFeedbackElements() {
-        var $dashboardSettingsPanel = $('#dropdown-dashboard-settings');
-        var $alertBox = $('<div class="alert-box">');
-        // Error element for naming the dashboard
+        var $dashboardSettingsPanel = $('#dashboard-settings-feedback');
         var errorElement = $('<small class="error">Name the dashboard</small>');
 
         function removeAlertbox() {
-            $alertBox.detach();
+            $dashboardSettingsPanel.empty();
         }
 
         function addFeedback(text, klass) {
             klass = klass ? klass : 'success';
-            $alertBox.attr('class', 'alert-box').addClass(klass).text(text).appendTo($dashboardSettingsPanel);
+            $dashboardSettingsPanel.empty();
+            $('<div class="alert-box">').addClass(klass).text(text).appendTo($dashboardSettingsPanel);
         }
 
         $dashboardSettingsPanel.on('closed', removeAlertbox);
