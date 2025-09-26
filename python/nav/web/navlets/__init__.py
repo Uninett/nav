@@ -256,12 +256,11 @@ def dispatcher(request, navlet_id):
 
     dashboard = account_navlet.dashboard
     owner = account_navlet.account
-    can_edit = dashboard.can_edit(current_account)
-    is_shared = dashboard.is_shared
+    can_access = dashboard.can_access(current_account)
 
-    if not can_edit and not is_shared:
+    if not can_access:
         _logger.error(
-            '%s tried to fetch widget with id %s owned by %s',
+            '%s tried to fetch private widget with id %s owned by %s',
             current_account,
             navlet_id,
             owner,
@@ -271,6 +270,8 @@ def dispatcher(request, navlet_id):
     cls = get_navlet_from_name(account_navlet.navlet)
     if not cls:
         cls = get_navlet_from_name(ERROR_WIDGET)
+
+    can_edit = dashboard.can_edit(current_account)
     view = cls.as_view(
         preferences=account_navlet.preferences,
         navlet_id=navlet_id,
