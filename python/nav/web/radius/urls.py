@@ -50,7 +50,7 @@ urlpatterns = [
     ),
     path('acctcharts', views.account_charts, name='radius-account_charts'),
     path(
-        '^acctcharts/acctcharthints$',
+        'acctcharts/acctcharthints',
         views.account_chart_hints_modal,
         name='radius-account-chart-hints',
     ),
