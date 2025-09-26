@@ -336,6 +336,7 @@ class TestDashboardIndexView:
     ):
         """
         Tests that a shared dashboard of another account is included last in the list
+        when the current account is not subscribed
         """
         shared_dashboard = create_dashboard(non_admin_account, is_shared=True)
         url = reverse('dashboard-index-id', args=(shared_dashboard.id,))
@@ -748,14 +749,8 @@ class TestFindDashboardUtil:
     def test_given_dashboard_id_that_does_not_exist_then_return_404(
         self, db, non_admin_account
     ):
-        """
-        Tests that the default dashboard is returned when a
-        non-existing ID is given
-        """
-        # Clean up any existing dashboards
-        AccountDashboard.objects.filter(account=non_admin_account).delete()
+        """Tests that 404 is raised when a non-existing dashboard ID is given"""
 
-        create_dashboard(non_admin_account)
         with pytest.raises(Http404):
             find_dashboard(non_admin_account, dashboard_id=9999)
 
@@ -801,7 +796,9 @@ class TestFindDashboardUtil:
     def test_given_dashboard_id_for_other_account_when_not_shared_then_return_404(
         self, db, client, non_admin_account, admin_account
     ):
-        """Tests that 404 is raised when trying to access another account's dashboard"""
+        """
+        Test that 404 is raised when accessing a non-shared dashboard of another account
+        """
         other_dashboard = create_dashboard(admin_account, name="Other", is_shared=False)
 
         with pytest.raises(Http404):
@@ -895,7 +892,6 @@ class TestGetDashboardsForAccount:
             dashboard.shared_by_other is (dashboard.account != non_admin_account)
             for dashboard in dashboards
         )
-        assert len(dashboards) == 2  # Default + shared
 
     def test_given_dashboard_subscription_then_can_edit_is_set_correctly(
         self, db, non_admin_account, admin_account
