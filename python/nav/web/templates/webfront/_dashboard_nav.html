@@ -58,13 +58,23 @@
                 </button>
             {% endif %}
         {% endif %}
-        <div id="is-shared-badge" class="badge{% if not dashboard.is_shared %} hidden{% endif %}">
-            <i class="fa fa-share-alt"></i>
-            <span>Shared</span>
+        <div id="is-shared-badge" class="nav-tooltip unstyled{% if not dashboard.is_shared %} hidden{% endif %}">
+            <div class="badge" aria-describedby="shared-tooltip">
+                <i class="fa fa-share-alt"></i>
+                <span>Shared</span>
+            </div>
+            <div id="shared-tooltip" role="tooltip">
+                This dashboard is shared with other users.
+            </div>
         </div>
-        <div class="badge">
-            <i class="fa fa-user"></i>
-            <span>{{ dashboard.account.name }}</span>
+        <div class="nav-tooltip unstyled">
+            <div class="badge" aria-describedby="owner-tooltip">
+                <i class="fa fa-user"></i>
+                <span>{{ dashboard.account.name }}</span>
+            </div>
+            <div id="owner-tooltip" role="tooltip">
+                This dashboard belongs to <br /><strong>{{ dashboard.account.name }}</strong>.
+            </div>
         </div>
     </div>
 </div>
