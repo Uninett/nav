@@ -2,6 +2,7 @@ import json
 from io import BytesIO
 
 import pytest
+from django.test import Client
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import Mock, patch
@@ -202,7 +203,9 @@ def test_should_render_about_logging_modal(client):
 
 
 class TestToggleDashboardSharingView:
-    def test_given_unshared_dashboard_then_share(self, db, client, admin_account):
+    def test_given_unshared_dashboard_it_should_toggle_is_shared(
+        self, db, client, admin_account
+    ):
         """Tests that a dashboard can be shared"""
         dashboard = create_dashboard(admin_account, is_shared=False)
         self._post_toggle_shared(client, dashboard.id, True)
@@ -210,7 +213,9 @@ class TestToggleDashboardSharingView:
         dashboard.refresh_from_db()
         assert dashboard.is_shared is True
 
-    def test_given_shared_dashboard_then_unshare(self, db, client, admin_account):
+    def test_given_shared_dashboard_it_should_toggle_is_shared(
+        self, db, client, admin_account
+    ):
         """Tests that a dashboard can be unshared"""
         dashboard = create_dashboard(admin_account, is_shared=True)
         self._post_toggle_shared(client, dashboard.id, False)
@@ -218,7 +223,7 @@ class TestToggleDashboardSharingView:
         dashboard.refresh_from_db()
         assert dashboard.is_shared is False
 
-    def test_given_dashboard_when_is_shared_is_unchanged_then_do_nothing(
+    def test_given_any_dashboard_when_is_shared_is_unchanged_it_should_do_nothing(
         self, db, client, admin_account
     ):
         """Tests that nothing changes when the sharing status is unchanged"""
@@ -229,7 +234,7 @@ class TestToggleDashboardSharingView:
             dashboard.refresh_from_db()
             assert dashboard.is_shared is is_shared
 
-    def test_given_shared_dashboard_with_subscriptions_then_remove_subscriptions(
+    def test_given_shared_dashboard_with_subscriptions_when_unsharing_it_should_remove_subscriptions(  # noqa: E501
         self, db, client, admin_account, non_admin_account
     ):
         """Tests that all subscriptions are removed when a dashboard is unshared"""
@@ -244,7 +249,7 @@ class TestToggleDashboardSharingView:
             dashboard=dashboard
         ).exists()
 
-    def test_given_dashboard_that_does_not_exist_then_return_404(
+    def test_given_dashboard_that_does_not_exist_it_should_return_404(
         self, client, admin_account
     ):
         """
@@ -254,7 +259,7 @@ class TestToggleDashboardSharingView:
         response = self._post_toggle_shared(client, 9999, True)
         assert response.status_code == 404
 
-    def test_given_dashboard_of_other_account_then_return_404(
+    def test_given_dashboard_of_other_account_it_should_return_404(
         self, db, client, admin_account, non_admin_account
     ):
         """
@@ -267,7 +272,7 @@ class TestToggleDashboardSharingView:
         assert response.status_code == 404
 
     @staticmethod
-    def _post_toggle_shared(client, dashboard_id, is_shared):
+    def _post_toggle_shared(client: Client, dashboard_id: int, is_shared: bool):
         # Checkbox input returns 'on' if checked
         is_shared_param = 'on' if is_shared else 'off'
         url = reverse('dashboard-toggle-shared', args=(dashboard_id,))
