@@ -341,7 +341,7 @@ def admin_account(db):
 def non_admin_account(db):
     from nav.models.profiles import Account
 
-    account = Account(login="other_user")
+    account = Account(login="other_user", name="Other User")
     account.set_password("password")
     account.save()
     yield account

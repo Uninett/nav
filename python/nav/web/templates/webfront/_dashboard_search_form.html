@@ -1,0 +1,26 @@
+<h4>Dashboard Search</h4>
+<p class="description">
+    Find dashboards shared by other users. Search by dashboard name or account name.
+</p>
+<form
+    hx-post="{% url 'dashboard-search' %}"
+    hx-trigger="input changed delay:500ms, search"
+    hx-target="#dashboard-search-results"
+    autocomplete="off"
+>
+    {% csrf_token %}
+        <div class="form-group">
+            <label for="dashboard-search">
+                Search Dashboards
+            </label>
+            <input
+                id="dashboard-search"
+                class="form-control"
+                type="search"
+                name="search"
+                placeholder="Begin typing to search..."
+                autofocus
+            />
+        </div>
+    <div id="dashboard-search-results"></div>
+</form>
