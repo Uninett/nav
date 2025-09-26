@@ -2,11 +2,16 @@ import json
 from io import BytesIO
 
 import pytest
+from django.test import Client
 from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import Mock, patch
 
-from nav.models.profiles import Account, AccountDashboard
+from nav.models.profiles import (
+    Account,
+    AccountDashboard,
+    AccountDashboardSubscription,
+)
 from nav.web.webfront.utils import tool_list
 
 
@@ -195,6 +200,83 @@ def test_should_render_about_logging_modal(client):
 
     assert response.status_code == 200
     assert 'id="about-audit-logging"' in smart_str(response.content)
+
+
+class TestToggleDashboardSharingView:
+    def test_given_unshared_dashboard_it_should_toggle_is_shared(
+        self, db, client, admin_account
+    ):
+        """Tests that a dashboard can be shared"""
+        dashboard = create_dashboard(admin_account, is_shared=False)
+        self._post_toggle_shared(client, dashboard.id, True)
+
+        dashboard.refresh_from_db()
+        assert dashboard.is_shared is True
+
+    def test_given_shared_dashboard_it_should_toggle_is_shared(
+        self, db, client, admin_account
+    ):
+        """Tests that a dashboard can be unshared"""
+        dashboard = create_dashboard(admin_account, is_shared=True)
+        self._post_toggle_shared(client, dashboard.id, False)
+
+        dashboard.refresh_from_db()
+        assert dashboard.is_shared is False
+
+    def test_given_any_dashboard_when_is_shared_is_unchanged_it_should_do_nothing(
+        self, db, client, admin_account
+    ):
+        """Tests that nothing changes when the sharing status is unchanged"""
+        for is_shared in (False, True):
+            dashboard = create_dashboard(admin_account, is_shared=is_shared)
+            self._post_toggle_shared(client, dashboard.id, is_shared)
+
+            dashboard.refresh_from_db()
+            assert dashboard.is_shared is is_shared
+
+    def test_given_shared_dashboard_with_subscriptions_when_unsharing_it_should_remove_subscriptions(  # noqa: E501
+        self, db, client, admin_account, non_admin_account
+    ):
+        """Tests that all subscriptions are removed when a dashboard is unshared"""
+        dashboard = create_dashboard(admin_account, is_shared=True)
+        AccountDashboardSubscription.objects.create(
+            account=non_admin_account,
+            dashboard=dashboard,
+        )
+        self._post_toggle_shared(client, dashboard.id, False)
+
+        assert not AccountDashboardSubscription.objects.filter(
+            dashboard=dashboard
+        ).exists()
+
+    def test_given_dashboard_that_does_not_exist_it_should_return_404(
+        self, client, admin_account
+    ):
+        """
+        Tests that 404 is returned when trying to change sharing of a non-existing
+        dashboard
+        """
+        response = self._post_toggle_shared(client, 9999, True)
+        assert response.status_code == 404
+
+    def test_given_dashboard_of_other_account_it_should_return_404(
+        self, db, client, admin_account, non_admin_account
+    ):
+        """
+        Tests that 404 is returned when trying to change sharing of another account's
+        dashboard
+        """
+        other_dashboard = create_dashboard(non_admin_account, is_shared=True)
+        response = self._post_toggle_shared(client, other_dashboard.id, True)
+
+        assert response.status_code == 404
+
+    @staticmethod
+    def _post_toggle_shared(client: Client, dashboard_id: int, is_shared: bool):
+        # Checkbox input returns 'on' if checked
+        is_shared_param = 'on' if is_shared else 'off'
+        url = reverse('dashboard-toggle-shared', args=(dashboard_id,))
+        return client.post(url, data={'is_shared': is_shared_param})
 
 
 class TestImportDashboardViews:
@@ -427,6 +509,15 @@ class TestImportDashboardViews:
 
         assert response.status_code == 200
         assert 'File is not a valid dashboard file' in smart_str(response.content)
+
+
+def create_dashboard(account, name="Test Dashboard", is_default=False, is_shared=False):
+    return AccountDashboard.objects.create(
+        name=name,
+        is_default=is_default,
+        account=account,
+        is_shared=is_shared,
+    )
 
 
 @pytest.fixture
