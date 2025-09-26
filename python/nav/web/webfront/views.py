@@ -93,6 +93,7 @@ def index(request, did=None):
         'can_edit': dashboard.can_edit(request.account),
         'is_subscribed': dashboard.is_subscribed(request.account),
         'title': 'NAV - {}'.format(dashboard.name),
+        'subscriber_count': dashboard.subscribers.count(),
     }
 
     return render(request, 'webfront/index.html', context)
