@@ -1,5 +1,5 @@
 {# Buttons for selecting dashboards #}
-<div style="display: flex; align-items: start; justify-content: space-between">
+<div class="dashboard-nav-wrapper">
     <ul id="dashboard-nav" class="pagination">
       <li class="unavailable"><a href="">Dashboards:</a></li>
       {% for d in dashboards %}
@@ -46,28 +46,35 @@
         </div>
       </li>
     </ul>
-    {% if dashboard.shared_by_other %}
-        <div id="owner-tooltip" class="popover with-arrow" data-side="bottom" data-align="end">
-            <button class="secondary tiny" style="margin-bottom: 0" aria-haspopup="true" data-popover-target="#owner-tooltip">
+    <div class="dashboard-meta-wrapper">
+        {% if dashboard.shared_by_other %}
+            {% if is_subscribed %}
+                <button class="tiny secondary" style="margin-bottom: 0;" hx-post="{% url 'dashboard-toggle-subscribe' current_dashboard.pk %}">
+                    <i class="fa fa-bell-slash" style="margin-right: 0.25rem;"></i><span>Unsubscribe</span>
+                </button>
+            {% else %}
+                <button class="tiny info" style="margin-bottom: 0;" hx-post="{% url 'dashboard-toggle-subscribe' current_dashboard.pk %}">
+                    <i class="fa fa-bell" style="margin-right: 0.25rem;"></i><span>Subscribe</span>
+                </button>
+            {% endif %}
+        {% endif %}
+        <div id="is-shared-badge" class="nav-tooltip unstyled{% if not dashboard.is_shared %} hidden{% endif %}">
+            <div class="badge" aria-describedby="shared-tooltip">
+                <i class="fa fa-share-alt"></i>
+                <span>Shared</span>
+            </div>
+            <div id="shared-tooltip" role="tooltip">
+                This dashboard is shared with other users.
+            </div>
+        </div>
+        <div class="nav-tooltip unstyled">
+            <div class="badge" aria-describedby="owner-tooltip">
                 <i class="fa fa-user"></i>
                 <span>{{ dashboard.account.name }}</span>
-            </button>
-           <div class="popover-content">
-               <p>This dashboard is owned by <br /> <strong>{{ dashboard.account.name }}</strong></p>
-               {% if is_subscribed %}
-                   <p>You are <em>subscribed</em> to this dashboard.</p>
-               {% else %}
-                   <p>You are <em>not subscribed</em> to this dashboard</p>
-               {% endif %}
-               <button class="small secondary" style="margin-bottom: 0" hx-post="{% url 'dashboard-toggle-subscribe' current_dashboard.pk %}">
-                   Click here to
-                   {% if is_subscribed %}
-                       unsubscribe
-                   {% else %}
-                       subscribe
-                   {% endif %}
-               </button>
-           </div>
+            </div>
+            <div id="owner-tooltip" role="tooltip">
+                This dashboard belongs to <br /><strong>{{ dashboard.account.name }}</strong>.
+            </div>
         </div>
-    {% endif %}
+    </div>
 </div>
