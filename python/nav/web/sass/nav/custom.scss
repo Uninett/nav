@@ -113,6 +113,33 @@
   }
 }
 
+.dashboard-nav-wrapper {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.dashboard-meta-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.badge {
+    padding: 0.2rem 0.25rem;
+    font-size: 0.75rem;
+    background: #e0e0e0;
+    border: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    &.white {
+      background: #fff;
+      border-color: #bbb;
+    }
+}
 
 #dashboard-settings-feedback {
   * {
