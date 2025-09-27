@@ -322,7 +322,7 @@ def process_manual_detention_form(form, account):
             disable(
                 identity, justification, username, comment=comment, autoenablestep=days
             )
-        except GeneralException as error:
+        except Exception as error:  # noqa
             return error
     elif form.cleaned_data['method'] == 'quarantine':
         qvlan = QuarantineVlan.objects.get(pk=form.cleaned_data['qvlan'])
@@ -335,7 +335,7 @@ def process_manual_detention_form(form, account):
                 comment=comment,
                 autoenablestep=days,
             )
-        except GeneralException as error:
+        except Exception as error:  # noqa
             return error
 
 
