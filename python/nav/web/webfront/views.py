@@ -22,6 +22,7 @@ import logging
 from operator import attrgetter
 from urllib.parse import quote as urlquote
 
+from django.contrib.auth import authenticate, login as django_login
 from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
@@ -37,11 +38,10 @@ from django.urls import reverse
 from django_htmx.http import HttpResponseClientRedirect
 
 from nav.auditlog.models import LogEntry
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
 from nav.web.auth import logout as auth_logout
-from nav.web import auth, webfrontConfig
-from nav.web.auth import ldap
+from nav.web import webfrontConfig
 from nav.web.auth.utils import set_account
 from nav.web.modals import render_modal, render_modal_alert
 from nav.web.utils import generate_qr_code_as_string
@@ -66,7 +66,7 @@ _logger = logging.getLogger('nav.web.tools')
 def index(request, did=None):
     """Controller for main page."""
     # Read files that will be displayed on front page
-    if request.account.is_default_account():
+    if request.account.is_anonymous:
         welcome = quick_read(WELCOME_ANONYMOUS_PATH)
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
@@ -196,7 +196,7 @@ def login(request):
 
     origin = request.GET.get('origin', '').strip()
     if 'noaccess' in request.GET:
-        if request.account.is_default_account():
+        if request.account.is_anonymous:
             errors = ['You need to log in to access this resource']
         else:
             errors = [
@@ -238,25 +238,22 @@ def do_login(request: HttpRequest) -> HttpResponse:
         username = form.cleaned_data['username']
         password = form.cleaned_data['password']
 
-        try:
-            account = auth.authenticate(username, password)
-        except ldap.Error as error:
-            errors.append('Error while talking to LDAP:\n%s' % error)
+        account = authenticate(request, username=username, password=password)
+        if account is not None:
+            LogEntry.add_log_entry(
+                account, 'log-in', '{actor} logged in', before=account
+            )
+            django_login(request, account)
+            set_account(request, account)  # NAV legacy specific
+            _logger.info("%s successfully logged in", account.login)
+            if not origin:
+                origin = reverse('webfront-index')
+            return HttpResponseRedirect(origin)
         else:
-            if account:
-                LogEntry.add_log_entry(
-                    account, 'log-in', '{actor} logged in', before=account
-                )
-                set_account(request, account)
-                _logger.info("%s successfully logged in", account.login)
-                if not origin:
-                    origin = reverse('webfront-index')
-                return HttpResponseRedirect(origin)
-            else:
-                _logger.info("failed login: %r", username)
-                errors.append(
-                    'Username or password is incorrect, or the account is locked.'
-                )
+            _logger.info("failed login: %r", username)
+            errors.append(
+                'Username or password is incorrect, or the account is locked.'
+            )
 
     # Something went wrong. Display login page with errors.
     return render(
@@ -360,7 +357,7 @@ def change_password(request):
     context = _create_preference_context(request)
     account = get_account(request)
 
-    if account.is_default_account():
+    if account.is_anonymous:
         return render(request, 'useradmin/not-logged-in.html', {})
 
     if request.method == 'POST':

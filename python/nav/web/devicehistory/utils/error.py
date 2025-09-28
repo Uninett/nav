@@ -23,7 +23,7 @@
 
 from django.db import transaction
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.models.manage import Room, Netbox, Module
 from nav.models.event import EventQueue, EventQueueVar, EventType, Subsystem
 from nav.web.message import Messages
