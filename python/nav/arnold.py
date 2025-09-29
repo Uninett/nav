@@ -295,7 +295,9 @@ def disable(candidate, justification, username, comment="", autoenablestep=0):
     if not candidate.interface.netbox.get_preferred_snmp_management_profile(
         require_write=True
     ):
-        raise NoReadWriteManagementProfileError(candidate.interface.netbox)
+        raise NoReadWriteManagementProfileError(
+            "%s has no read-write management profile" % candidate.interface.netbox
+        )
     identity = check_identity(candidate)
     change_port_status('disable', identity)
     identity.status = 'disabled'
@@ -317,7 +319,9 @@ def quarantine(candidate, qvlan, justification, username, comment="", autoenable
     if not candidate.interface.netbox.get_preferred_snmp_management_profile(
         require_write=True
     ):
-        raise NoReadWriteManagementProfileError(candidate.interface.netbox)
+        raise NoReadWriteManagementProfileError(
+            "%s has no read-write management profile" % candidate.interface.netbox
+        )
     identity = check_identity(candidate)
     identity.fromvlan = change_port_vlan(identity, qvlan.vlan)
     identity.tovlan = qvlan
@@ -461,7 +465,9 @@ def change_port_status(
     profile = netbox.get_preferred_snmp_management_profile(require_write=True)
 
     if not profile:
-        raise NoReadWriteManagementProfileError
+        raise NoReadWriteManagementProfileError(
+            "%s has no read-write management profile" % netbox
+        )
 
     agent = agent_getter(profile)(host=netbox.ip)
 
