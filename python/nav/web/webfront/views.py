@@ -55,9 +55,9 @@ from nav.web.utils import generate_qr_code_as_string
 from nav.web.utils import require_param
 from nav.web.webfront import (
     find_dashboard,
+    get_dashboards_for_account,
     WELCOME_ANONYMOUS_PATH,
     WELCOME_REGISTERED_PATH,
-    get_dashboards_for_account,
 )
 from nav.web.webfront.forms import (
     LoginForm,
