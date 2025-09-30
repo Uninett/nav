@@ -4,8 +4,7 @@
   {{ block.super }}
   <script>
     NAV.urls.seeddb = NAV.urls.seeddb || {};
-    NAV.urls.get_readonly = "{% url 'seeddb-netbox-get-readonly' %}";
-    NAV.urls.seeddb.verifyAddress = "{% url 'seeddb-netbox-get-address-info' %}";
+    NAV.urls.seeddb.validateIpAddress = "{% url 'seeddb-netbox-validate-ip-address' %}";
     require(['src/seeddb_netbox', 'src/seeddb_netbox_wizard']);
   </script>
 {% endblock %}

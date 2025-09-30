@@ -155,7 +155,7 @@ def check_connectivity(request):
             },
         )
 
-    if not is_valid_ip(ip_address):
+    if not is_valid_ip(ip_address, strict=True):
         return _handle_invalid_ip(request, ip_address)
 
     return render(
@@ -269,50 +269,6 @@ def load_connectivity_test_results(request):
         'seeddb/_seeddb_check_connectivity_results.html',
         data,
     )
-
-
-def get_read_only_variables(request):
-    """Fetches read only attributes for an IP-address"""
-    ip_address = request.GET.get('ip_address')
-    profile_ids = request.GET.getlist('profiles[]')
-    profiles = ManagementProfile.objects.filter(id__in=profile_ids)
-    _logger.debug(
-        "testing management profiles against %s: %r = %r",
-        ip_address,
-        profile_ids,
-        profiles,
-    )
-    if not profiles:
-        raise Http404
-
-    sysname = get_sysname(ip_address)
-    netbox_type = None
-
-    result = {p.id: {} for p in profiles}
-    for profile in profiles:
-        if profile.is_snmp:
-            response = get_snmp_read_only_variables(ip_address, profile)
-        elif profile.protocol == profile.PROTOCOL_NAPALM:
-            response = test_napalm_connectivity(ip_address, profile)
-        else:
-            response = None
-
-        if response:
-            response["name"] = profile.name
-            response["url"] = reverse(
-                "seeddb-management-profile-edit",
-                kwargs={"management_profile_id": profile.id},
-            )
-            result[profile.id].update(response)
-            if response.get("type"):
-                netbox_type = response["type"]
-
-    data = {
-        'sysname': sysname,
-        'netbox_type': netbox_type,
-        'profiles': result,
-    }
-    return JsonResponse(data)
 
 
 def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
@@ -456,30 +412,9 @@ def netbox_do_save(form):
     return netbox
 
 
-def get_address_info(request):
-    """Displays a template for the user for manual verification of the
-    address"""
-
+def validate_ip_address(request):
+    """Endpoint to check if an address is a valid IP address"""
     address = request.GET.get('address')
-    if address:
-        if is_valid_ip(address):
-            return JsonResponse({'is_ip': True})
-
-        try:
-            address_tuples = socket.getaddrinfo(address, None, 0, socket.SOCK_STREAM)
-            sorted_tuples = sorted(
-                address_tuples, key=lambda item: socket.inet_pton(item[0], item[4][0])
-            )
-            addresses = [x[4][0] for x in sorted_tuples]
-        except socket.error as error:
-            context = {'error': str(error)}
-        except UnicodeError as error:
-            context = {'error': str(error)}
-        else:
-            context = {
-                'addresses': addresses,
-            }
-
-        return JsonResponse(context)
-    else:
-        return HttpResponse('No address given', status=400)
+    if not address or not is_valid_ip(address.strip(), strict=True):
+        return HttpResponse(status=400)
+    return HttpResponse(status=200)
