@@ -80,15 +80,9 @@ urlpatterns = [
         name='seeddb-netbox-check-connectivity',
     ),
     re_path(
-        'netbox/get-read-only-variables/',
-        netbox_edit.get_read_only_variables,
-        name='seeddb-netbox-get-readonly',
-    ),
-    # XXX: greedy regexp
-    re_path(
-        r'^netbox/get-address-info/',
-        netbox_edit.get_address_info,
-        name='seeddb-netbox-get-address-info',
+        r'^netbox/validate-ip-address/',
+        netbox_edit.validate_ip_address,
+        name='seeddb-netbox-validate-ip-address',
     ),
     # Management Profile
     path('management-profile/', management_profile, name='seeddb-management-profile'),
