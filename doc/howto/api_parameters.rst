@@ -86,6 +86,32 @@ Provides access to NAVs interface data
 :Filters: ifname, ifindex, ifoperstatus, netbox, trunk, ifadminstatus, iftype,
           baseport
 
+api/maintenance/
+----------------
+Create a maintenance task with the given components.
+
+Supports POST requests:
+
+POST: Returns the created maintenance task or an error. Requires a dict of the form::
+
+  {
+    "start_time": "2025-09-29T11:11:11",
+    "end_time": "2025-09-29T13:11:11",
+    "no_end_time": false,
+    "description": "Changing out old equipment in serverroom",
+    "location": [1, 2],
+    "room": ["myroom", "secondroom"],
+    "netbox": [1, 2],
+    "service": [1, 2],
+    "netboxgroup": [1, 2]
+  }
+
+Set ``no_end_time`` to ``true`` and remove the ``end_time`` entry if the maintenance
+task does not have a determined end time yet.
+
+The required fields are ``start_time``, ``end_time`` or ``no_end_time``,
+``description`` and at least one component id (``location``, ``room``, ``netbox``,
+``service`` or ``netboxgroup``).
 
 api/netbox/[<id>]
 -----------------

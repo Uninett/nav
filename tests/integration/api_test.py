@@ -10,7 +10,9 @@ from nav.models.event import AlertHistory
 from nav.models.fields import INFINITY
 from nav.web.api.v1.views import get_endpoints
 from nav.models.oui import OUI
-from nav.models.manage import NetboxEntity
+from nav.models.manage import NetboxEntity, NetboxGroup, Room
+from nav.models.msgmaint import MaintenanceTask
+from nav.models.service import Service
 
 
 ENDPOINTS = {name: force_str(url) for name, url in get_endpoints().items()}
@@ -62,7 +64,7 @@ def test_allowed_endpoints(db, api_client, token, serializer_models, name, url):
         response = api_client.get("{}?active=1".format(url))
     else:
         response = api_client.get(url)
-    if name == 'jwt_refresh':
+    if name in ['jwt_refresh', 'maintenance']:
         # JWT refresh endpoint only accepts POST requests
         assert response.status_code == 405
     else:
@@ -204,7 +206,6 @@ def test_get_new_room(db, api_client, token):
 
 def test_when_room_has_dot_in_id_the_api_should_still_find_it(db, api_client, token):
     create_token_endpoint(token, "room")
-    from nav.models.manage import Room
 
     room = Room(id="foo.bar", location_id="mylocation")
     room.save()
@@ -453,6 +454,211 @@ class TestNetboxEntityViewSet:
         assert response.data['id'] == netboxentity.id
 
 
+class TestMaintenanceTaskViewSet:
+    def test_given_maintenance_task_without_end_time_then_create_maintenance_task(
+        self, db, api_client, maintenance_endpoint
+    ):
+        start_time = datetime.now()
+        data = {
+            "start_time": start_time.isoformat(),
+            "no_end_time": True,
+            "description": "Test",
+            "room": ["myroom"],
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 200
+        assert data["description"] == response.data["description"]
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        assert task.start_time == start_time
+        assert task.end_time == INFINITY
+
+    def test_given_maintenance_task_with_end_time_then_create_maintenance_task(
+        self, db, api_client, maintenance_endpoint
+    ):
+        start_time = datetime.now()
+        end_time = datetime.now() + timedelta(days=1)
+        data = {
+            "start_time": start_time.isoformat(),
+            "end_time": end_time.isoformat(),
+            "description": "Test",
+            "room": ["myroom"],
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 200
+        assert data["description"] == response.data["description"]
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        assert task.start_time == start_time
+        assert task.end_time == end_time
+
+    def test_given_invalid_start_time_then_return_400(
+        self, db, api_client, maintenance_endpoint
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": "invalid",
+                "description": "Test",
+                "room": ["myroom"],
+            },
+        )
+        assert response.status_code == 400
+        assert "Enter a valid date/time." in response.data["start_time"]
+
+    def test_given_invalid_end_time_then_return_400(
+        self, db, api_client, maintenance_endpoint
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "end_time": "invalid",
+                "description": "Test",
+                "room": ["myroom"],
+            },
+        )
+        assert response.status_code == 400
+        assert "Enter a valid date/time." in response.data["end_time"]
+
+    def test_given_no_end_time_then_return_400(
+        self, db, api_client, maintenance_endpoint
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "description": "Test",
+                "room": ["myroom"],
+            },
+        )
+        assert response.status_code == 400
+        assert "End time or no end time must be specified" in response.data["__all__"]
+
+    def test_given_maintenance_task_with_rooms_then_create_maintenance_task(
+        self, db, api_client, maintenance_endpoint
+    ):
+        second_room = Room(id="secondroom", location_id="mylocation")
+        second_room.save()
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "no_end_time": True,
+            "description": "Test",
+            "room": ["myroom", second_room.pk],
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 200
+        assert data["description"] == response.data["description"]
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert "myroom" in component_pks
+        assert second_room.pk in component_pks
+
+    def test_given_maintenance_task_with_netbox_then_create_maintenance_task(
+        self, db, api_client, maintenance_endpoint, localhost
+    ):
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "no_end_time": True,
+            "description": "Test",
+            "netbox": [localhost.id],
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 200
+        assert data["description"] == response.data["description"]
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert localhost.id in component_pks
+
+    def test_given_maintenance_task_with_location_then_create_maintenance_task(
+        self, db, api_client, maintenance_endpoint
+    ):
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "no_end_time": True,
+            "description": "Test",
+            "location": ["mylocation"],
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 200
+        assert data["description"] == response.data["description"]
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert "mylocation" in component_pks
+
+    def test_given_maintenance_task_with_netboxgroup_then_create_maintenance_task(
+        self, db, api_client, maintenance_endpoint
+    ):
+        netboxgroup = NetboxGroup.objects.first()
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "no_end_time": True,
+            "description": "Test",
+            "netboxgroup": [netboxgroup.id],
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 200
+        assert data["description"] == response.data["description"]
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert netboxgroup.id in component_pks
+
+    def test_given_maintenance_task_with_service_then_create_maintenance_task(
+        self, db, api_client, maintenance_endpoint, localhost
+    ):
+        service = Service(netbox=localhost)
+        service.save()
+        data = {
+            "start_time": datetime.now().isoformat(),
+            "no_end_time": True,
+            "description": "Test",
+            "service": [service.id],
+        }
+        response = create(api_client, maintenance_endpoint, data)
+        assert response.status_code == 200
+        assert data["description"] == response.data["description"]
+        task = MaintenanceTask.objects.filter(description=data['description']).first()
+        assert task
+        component_pks = [component.id for component in task.get_components()]
+        assert service.id in component_pks
+
+    def test_given_no_components_then_return_400(
+        self, db, api_client, maintenance_endpoint
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "description": "Test",
+            },
+        )
+        assert response.status_code == 400
+        assert "No components to put on maintenance selected." in response.data
+
+    def test_given_invalid_netbox_id_then_return_400(
+        self, db, api_client, maintenance_endpoint
+    ):
+        response = create(
+            api_client,
+            maintenance_endpoint,
+            {
+                "start_time": datetime.now().isoformat(),
+                "description": "Test",
+                "netbox": [99999],
+            },
+        )
+        assert response.status_code == 400
+        assert "netbox: no elements with the given identifiers found" in response.data
+
+
 # Helpers
 
 
@@ -598,3 +804,10 @@ def netboxentity(db, localhost):
     netbox_entity.save()
     yield netbox_entity
     netbox_entity.delete()
+
+
+@pytest.fixture()
+def maintenance_endpoint(db, token):
+    endpoint = 'maintenance'
+    create_token_endpoint(token, endpoint)
+    return endpoint

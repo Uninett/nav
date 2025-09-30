@@ -17,7 +17,7 @@
 
 from datetime import datetime, timedelta
 import logging
-from typing import Sequence
+from typing import Optional, Sequence, Union
 
 from IPy import IP
 from django.http import HttpResponse, JsonResponse, QueryDict
@@ -49,9 +49,16 @@ import jwt
 
 from nav.django.settings import JWT_PUBLIC_KEY, JWT_NAME, LOCAL_JWT_IS_CONFIGURED
 from nav.macaddress import MacAddress
-from nav.models import manage, event, cabling, rack, profiles
+from nav.models import manage, event, cabling, rack, profiles, msgmaint
 from nav.models.api import JWTRefreshToken
 from nav.models.fields import INFINITY, UNRESOLVED
+from nav.web.maintenance.forms import MaintenanceTaskForm
+from nav.web.maintenance.utils import (
+    ALLOWED_COMPONENTS,
+    COMPONENTS_WITH_INTEGER_PK,
+    ComponentType,
+    get_components_from_keydict,
+)
 from nav.web.servicecheckers import load_checker_classes
 from nav.util import auth_token, is_valid_cidr
 
@@ -177,6 +184,7 @@ def get_endpoints(request=None, version=1):
         'vendor': reverse_lazy('{}vendor'.format(prefix), **kwargs),
         'netboxentity': reverse_lazy('{}netboxentity-list'.format(prefix), **kwargs),
         'jwt_refresh': reverse_lazy('{}jwt-refresh'.format(prefix), **kwargs),
+        'maintenance': reverse_lazy('{}maintenance'.format(prefix), **kwargs),
     }
 
 
@@ -1342,30 +1350,9 @@ class JWTRefreshViewSet(NAVAPIMixin, APIView):
     def post(self, request):
         if not LOCAL_JWT_IS_CONFIGURED:
             return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
-        # This adds support for requests via the browseable API.
-        # Browseble API sends QueryDict with _content key.
-        # Tests send QueryDict without _content key so it can be treated
-        # as a regular dict.
-        if isinstance(request.data, QueryDict) and '_content' in request.data:
-            json_string = request.data.get('_content')
-            if not json_string:
-                return Response("Empty JSON body", status=status.HTTP_400_BAD_REQUEST)
-            try:
-                data = json.loads(json_string)
-            except json.JSONDecodeError:
-                return Response("Invalid JSON", status=status.HTTP_400_BAD_REQUEST)
-            if not isinstance(data, dict):
-                return Response(
-                    "Invalid request body. Must be a JSON dict",
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        elif isinstance(request.data, dict):
-            data = request.data
-        else:
-            return Response(
-                "Invalid request body. Must be a JSON dict",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        data, error = _validate_post_data(request.data)
+        if error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
         incoming_token = data.get('refresh_token')
         if incoming_token is None:
@@ -1423,3 +1410,133 @@ class JWTRefreshViewSet(NAVAPIMixin, APIView):
             'refresh_token': refresh_token,
         }
         return Response(response_data)
+
+
+class MaintenanceTaskViewSet(NAVAPIMixin, APIView):
+    """
+    A ViewSet for posting MaintenanceTasks.
+
+    Responds with a JSON dict representation of the created maintenance task or an error
+    message.
+
+    Example POST request:
+        `/api/1/maintenance/` with body
+        `{
+            "start_time": "2025-09-29T11:11:11",
+            "end_time": "2025-09-29T13:11:11",
+            "no_end_time": false,
+            "description": "Changing out old equipment in serverroom",
+            "location": [1, 2],
+            "room": ["myroom", "secondroom"],
+            "netbox": [1, 2],
+            "service": [1, 2],
+            "netboxgroup": [1, 2]
+         }`
+
+    Example POST response:
+        `{
+            "id": 59,
+            "maintenance_components": "[<Netbox: buick.lab.uninett.no>,
+                <Netbox: oldsmobile.lab.uninett.no>]",
+            "start_time": "2025-10-01T09:17:00",
+            "end_time": "9999-12-31T23:59:59.999999",
+            "description": "Changing out old equipment in serverroom",
+            "author": "admin",
+            "state": "scheduled"
+        }`
+    """
+
+    def post(self, request):
+        data, error = _validate_post_data(request.data)
+        if error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        component_keys = {
+            key: value for key, value in data.items() if key in ALLOWED_COMPONENTS
+        }
+
+        components, component_errors = _validate_and_get_components(component_keys)
+        if component_errors:
+            return Response(component_errors, status=status.HTTP_400_BAD_REQUEST)
+
+        task_form = MaintenanceTaskForm(data)
+
+        if not task_form.is_valid():
+            return Response(task_form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        start_time = task_form.cleaned_data['start_time']
+        end_time = task_form.cleaned_data['end_time']
+        no_end_time = task_form.cleaned_data['no_end_time']
+        state = msgmaint.MaintenanceTask.STATE_SCHEDULED
+        if start_time < datetime.now() and end_time and end_time <= datetime.now():
+            state = msgmaint.MaintenanceTask.STATE_SCHEDULED
+
+        new_task = msgmaint.MaintenanceTask()
+        new_task.start_time = start_time
+        if no_end_time:
+            new_task.end_time = INFINITY
+        elif not no_end_time and end_time:
+            new_task.end_time = end_time
+        new_task.description = task_form.cleaned_data['description']
+        new_task.state = state
+        new_task.author = request.account.login
+        new_task.save()
+
+        for component in components:
+            table = component._meta.db_table
+            descr = str(component) if table in COMPONENTS_WITH_INTEGER_PK else None
+            task_component = msgmaint.MaintenanceComponent(
+                maintenance_task=new_task,
+                key=table,
+                value=component.pk,
+                description=descr,
+            )
+            task_component.save()
+
+        serializer = serializers.MaintenanceTaskSerializer(instance=new_task)
+
+        return Response(serializer.data)
+
+
+def _validate_and_get_components(
+    component_data: dict[str, list[Union[int, str]]],
+) -> tuple[Optional[list[ComponentType]], str]:
+    """
+    Validates the given components and returns a tuple of the found components and
+    potential errors
+    """
+    try:
+        components, component_data_errors = get_components_from_keydict(component_data)
+    except Exception as e:  # noqa
+        component_data_errors = str(e)
+    if component_data_errors:
+        return None, component_data_errors
+
+    if not components:
+        return components, "No components to put on maintenance selected."
+    return components, ""
+
+
+def _validate_post_data(data) -> tuple[Optional[dict], Optional[str]]:
+    """
+    This adds support for requests via the browseable API.
+    Browseable API sends QueryDict with _content key.
+    Tests send QueryDict without _content key so it can be treated as a regular dict.
+    """
+    if isinstance(data, QueryDict) and '_content' in data:
+        json_string = data.get('_content')
+        if not json_string:
+            return None, "Empty JSON body"
+        try:
+            data = json.loads(json_string)
+        except json.JSONDecodeError:
+            return None, "Invalid JSON"
+        if not isinstance(data, dict):
+            return None, "Invalid request body. Must be a JSON dict"
+        return data, None
+    elif isinstance(data, dict):
+        return data, None
+    else:
+        return None, "Invalid request body. Must be a JSON dict"
+
+    return data
