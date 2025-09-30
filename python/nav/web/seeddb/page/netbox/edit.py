@@ -275,7 +275,7 @@ def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
     if profile.configuration.get("write"):
         result = snmp_write_test(ip_address, profile)
     else:
-        result["type"] = get_type_id(ip_address, profile)
+        result["type"] = get_netbox_type(ip_address, profile)
         result["status"] = check_snmp_version(ip_address, profile)
     return result
 
@@ -345,11 +345,10 @@ def get_sysname(ip_address):
         return None
 
 
-def get_type_id(ip_addr, profile):
-    """Gets the id of the type of the ip_addr"""
+def get_netbox_type(ip_addr, profile):
+    """Gets the netbox type of the ip_addr"""
     netbox_type = snmp_type(ip_addr, profile)
-    if netbox_type:
-        return netbox_type.id
+    return netbox_type
 
 
 def snmp_type(ip_addr, profile: ManagementProfile):
@@ -412,7 +411,7 @@ def netbox_do_save(form):
 
 def validate_ip_address(request):
     """Endpoint to check if an address is a valid IP address"""
-
-    if not address or not is_valid_ip(address):
+    address = request.GET.get('address')
+    if not address or not is_valid_ip(address.strip()):
         return HttpResponse(status=400)
     return HttpResponse(status=200)
