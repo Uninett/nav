@@ -48,6 +48,10 @@
     </div>
 {% endif %}
 
+<div id="collected-info-fields" hx-swap-oob="true">
+    {% include "seeddb/_seeddb_collected_info.html" with sysname=sysname type=netbox_type %}
+</div>
+
 <script id="remove-me">
     document.querySelector("#seeddb-netbox-form").classList.remove("loading")
     document.querySelector("#remove-me").remove()

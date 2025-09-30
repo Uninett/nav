@@ -277,7 +277,7 @@ def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
     if profile.configuration.get("write"):
         result = snmp_write_test(ip_address, profile)
     else:
-        result["type"] = get_type_id(ip_address, profile)
+        result["type"] = get_netbox_type(ip_address, profile)
         result["status"] = check_snmp_version(ip_address, profile)
     return result
 
@@ -347,11 +347,10 @@ def get_sysname(ip_address):
         return None
 
 
-def get_type_id(ip_addr, profile):
-    """Gets the id of the type of the ip_addr"""
+def get_netbox_type(ip_addr, profile):
+    """Gets the netbox type of the ip_addr"""
     netbox_type = snmp_type(ip_addr, profile)
-    if netbox_type:
-        return netbox_type.id
+    return netbox_type
 
 
 def snmp_type(ip_addr, profile: ManagementProfile):

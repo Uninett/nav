@@ -39,9 +39,8 @@
 
       <fieldset>
         <legend>Collected info</legend>
-        <div id="real_collected_fields" class="hide">
-          {% show_field form.sysname %}
-          {% show_field form.type %}
+        <div id="collected-info-fields">
+            {% include 'seeddb/_seeddb_collected_info.html' with sysname=form.instance.sysname type=form.instance.type %}
         </div>
       </fieldset>
     </div>
