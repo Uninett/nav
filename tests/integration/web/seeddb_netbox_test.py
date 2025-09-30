@@ -1,32 +1,100 @@
 import socket
 
 import pytest
+from django.http import HttpResponse
 from django.urls import reverse
+from django.utils.encoding import smart_str
 from mock import patch
 
-from nav.models.manage import ManagementProfile
+from nav.models.manage import ManagementProfile, NetboxType, Vendor
 
 
-class TestGetAddressInfo:
-    url = reverse('seeddb-netbox-get-address-info')
+class TestCheckConnectivityView:
+    """
+    Test cases for the check_connectivity view.
 
-    def test_given_no_address_it_should_return_400(self, client):
-        """Test that missing address parameter returns 400"""
-        response = client.get(self.url)
-        assert response.status_code == 400
-        assert response.content == b'No address given'
+    This view validates IP addresses/hostnames and returns appropriate responses
+    for use with HTMX frontend interactions.
+    """
 
-    def test_given_empty_address_it_should_return_400(self, client):
-        """Test that empty address parameter returns 400"""
-        response = client.get(self.url, {'address': ''})
-        assert response.status_code == 400
-        assert response.content == b'No address given'
+    url = reverse('seeddb-netbox-check-connectivity')
 
-    def test_given_valid_ip_address_it_should_return_is_ip_true(self, client):
-        """Test that valid IP address returns is_ip: True"""
-        response = client.get(self.url, {'address': '192.168.1.1'})
+    @staticmethod
+    def _get_post_data(ip_address: str = '', profiles=None):
+        """Helper method to create consistent POST data for connectivity tests"""
+        if profiles is None:
+            profiles = [123]
+        return {'ip': ip_address, 'profiles': profiles}
+
+    def test_given_no_address_it_should_return_error_response(self, client):
+        """Test that missing address parameter returns error response"""
+        response = client.post(self.url)
         assert response.status_code == 200
-        assert response.json()['is_ip'] is True
+        assert response.context['status'] == 'error'
+
+    def test_given_empty_address_it_should_return_error_response(self, client):
+        """Test that empty address parameter returns 400"""
+        response = client.post(self.url, data=self._get_post_data(ip_address=''))
+        assert response.status_code == 200
+        assert response.context['status'] == 'error'
+
+    def test_given_whitespace_only_ip_it_should_return_error_response(self, client):
+        """Test that IP address with only whitespace returns error response"""
+        response = client.post(self.url, data=self._get_post_data(ip_address='   '))
+        assert response.status_code == 200
+        assert response.context['status'] == 'error'
+
+    def test_given_no_profiles_parameter_it_should_return_error_response(
+        self, client, valid_ipv4
+    ):
+        """Test that missing profiles parameter returns error response"""
+        response = client.post(self.url, {'ip': valid_ipv4})
+        assert response.status_code == 200
+        assert response.context['status'] == 'error'
+        assert response.context['message']
+
+    def test_given_empty_profiles_list_it_should_return_error_response(
+        self, client, valid_ipv4
+    ):
+        """Test that empty profiles list returns error response"""
+        response = client.post(self.url, {'ip': valid_ipv4, 'profiles': []})
+        assert response.status_code == 200
+        assert response.context['status'] == 'error'
+
+    def test_given_valid_ipv4_address_it_should_return_loading_response(
+        self, client, valid_ipv4
+    ):
+        """
+        Test that a valid IP address returns a loading status.
+
+        When a valid IP is provided, the view should return a loading status
+        to indicate that connectivity tests can proceed.
+        """
+        response = client.post(
+            self.url, data=self._get_post_data(ip_address=valid_ipv4)
+        )
+        assert response.status_code == 200
+        assert response.context['status'] == 'loading'
+
+    def test_given_valid_ipv6_address_it_should_return_loading_response(
+        self, client, valid_ipv6
+    ):
+        """Test that valid IPv6 address returns loading status"""
+        response = client.post(
+            self.url, data=self._get_post_data(ip_address=valid_ipv6)
+        )
+        assert response.status_code == 200
+        assert response.context['status'] == 'loading'
+
+    def test_given_malformed_ip_address_it_should_attempt_hostname_resolution(
+        self, client
+    ):
+        """Test that malformed IP is treated as hostname and resolved"""
+        response = client.post(
+            self.url, data=self._get_post_data(ip_address='999.999.999.999')
+        )
+        assert response.status_code == 200
+        assert response.context['status'] == 'error'
 
     @patch('socket.getaddrinfo')
     def test_given_valid_hostname_then_return_sorted_ip_addresses(
@@ -37,11 +105,35 @@ class TestGetAddressInfo:
             (2, 1, 6, '', ('192.168.1.10', 0)),
             (2, 1, 6, '', ('192.168.1.5', 0)),
         ]
-        response = client.get(self.url, {'address': 'example.com'})
-        json_data = response.json()
-
+        response = client.post(
+            self.url, data=self._get_post_data(ip_address='example.com')
+        )
         assert response.status_code == 200
-        assert json_data['addresses'] == ['192.168.1.5', '192.168.1.10']
+        assert response.context['status'] == 'select-address'
+        assert response.context['addresses'] == ['192.168.1.5', '192.168.1.10']
+
+    @patch('socket.getaddrinfo')
+    def test_given_hostname_with_mixed_ipv4_ipv6_then_return_sorted_addresses(
+        self, mock_getaddrinfo, client
+    ):
+        """
+        Test that hostname resolving to both IPv4 and IPv6 returns sorted addresses
+        """
+        mock_getaddrinfo.return_value = [
+            (socket.AF_INET6, 1, 6, '', ('2001:db8::2', 0, 0, 0)),
+            (socket.AF_INET, 1, 6, '', ('192.168.1.10', 0)),
+            (socket.AF_INET6, 1, 6, '', ('2001:db8::1', 0, 0, 0)),
+            (socket.AF_INET, 1, 6, '', ('192.168.1.5', 0)),
+        ]
+        response = client.post(
+            self.url, data=self._get_post_data(ip_address='example.com')
+        )
+        assert response.status_code == 200
+        assert response.context['status'] == 'select-address'
+        # Verify both IPv4 and IPv6 addresses are included and sorted as expected
+        addresses = response.context['addresses']
+        expected_order = ['2001:db8::1', '2001:db8::2', '192.168.1.5', '192.168.1.10']
+        assert addresses == expected_order
 
     @patch('socket.getaddrinfo')
     def test_given_socket_error_then_return_error_message(
@@ -49,17 +141,22 @@ class TestGetAddressInfo:
     ):
         """Test that socket error returns appropriate error message"""
         mock_getaddrinfo.side_effect = socket.error("Socket error")
-        response = client.get(self.url, {'address': 'example.com'})
+        response = client.post(
+            self.url, data=self._get_post_data(ip_address='example.com')
+        )
         assert response.status_code == 200
-        assert response.json()['error'] == 'Socket error'
+        assert response.context['status'] == 'error'
+        assert response.context['message'] == 'Socket error'
 
     def test_given_unknown_hostname_then_return_error_message(self, client):
         """Test that unknown host returns appropriate error message"""
-        response = client.get(self.url, {'address': 'unknown.host'})
+        response = client.post(
+            self.url, data=self._get_post_data(ip_address='unknown.host')
+        )
 
         assert response.status_code == 200
-        error_message = response.json()['error']
-        assert 'Name or service not known' in error_message
+        assert response.context['status'] == 'error'
+        assert 'Name or service not known' in response.context['message']
 
     @patch('socket.getaddrinfo')
     def test_given_unicode_error_then_return_error_message(
@@ -67,102 +164,180 @@ class TestGetAddressInfo:
     ):
         """Test that unicode error returns appropriate error message"""
         mock_getaddrinfo.side_effect = UnicodeError("Invalid Unicode characters")
-        response = client.get(self.url, {'address': 'test.example.com'})
+        response = client.post(
+            self.url, data=self._get_post_data(ip_address='test.example.com')
+        )
 
         assert response.status_code == 200
-        assert response.json()['error'] == 'Invalid Unicode characters'
+        assert response.context['status'] == 'error'
+        assert response.context['message'] == 'Invalid Unicode characters'
 
 
-class TestGetReadOnlyVariablesView:
-    url = reverse('seeddb-netbox-get-readonly')
+class TestLoadConnectivityTestResultsView:
+    url = reverse('seeddb-netbox-check-connectivity-load')
 
-    def test_given_no_profiles_then_return_404(self, client):
-        """Test that missing profiles returns 404 response"""
+    @staticmethod
+    def _get_profile_from_response(
+        response: HttpResponse, profile_id: int, key: str = "succeeded"
+    ):
+        profiles = response.context.get('profiles', {})  # Add .get() with default
+        if key not in profiles:
+            return None
+        profile_list = profiles[key]
+        return next((p for p in profile_list if p['id'] == profile_id), None)
 
-        response = client.get(self.url, {'ip_address': '192.168.1.1'})
-        assert response.status_code == 404
+    def test_given_no_profile_ids_then_return_not_found_response(
+        self, client, valid_ipv4
+    ):
+        """Test that missing profiles returns not found response"""
 
-    def test_given_invalid_profile_ids_then_return_404(self, client):
-        """Test that invalid profile IDs returns 404 response"""
+        response = client.post(self.url, {'ip': valid_ipv4})
+        assert response.status_code == 200
+        assert response.context.get('profiles') is None
+        assert "No profiles found" in smart_str(response.content)
 
-        response = client.get(
-            self.url, {'ip_address': '192.168.1.1', 'profile_ids': ['9999', '8888']}
+    def test_given_non_existent_profiles_then_return_not_found_response(
+        self, client, valid_ipv4
+    ):
+        """Test that invalid profile IDs returns not found response"""
+
+        response = client.post(
+            self.url, {'ip': valid_ipv4, 'profiles': ['9999', '8888']}
         )
-        assert response.status_code == 404
+        assert response.status_code == 200
+        assert response.context.get('profiles') is None
+        assert "No profiles found" in smart_str(response.content)
 
     @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
     @patch('nav.web.seeddb.page.netbox.edit.get_snmp_read_only_variables')
-    def test_given_snpm_profile_then_set_sysname_and_netbox_type_in_response(
-        self, mock_snmp_vars, mock_sysname, client, snmp_profile
+    def test_given_snmp_profile_then_set_sysname_and_netbox_type_in_response(
+        self,
+        mock_snmp_vars,
+        mock_sysname,
+        client,
+        snmp_profile,
+        netbox_type,
+        valid_ipv4,
     ):
         """Test that valid profile returns sysname and netbox_type"""
         mock_sysname.return_value = 'test-device.example.com'
-        mock_snmp_vars.return_value = {'status': True, 'type': 123}
-        response = client.get(
+        mock_snmp_vars.return_value = {'status': True, 'type': netbox_type}
+        response = client.post(
             self.url,
-            {'ip_address': '192.168.1.1', 'profiles[]': [str(snmp_profile.id)]},
+            {'ip': valid_ipv4, 'profiles': [str(snmp_profile.id)]},
         )
         assert response.status_code == 200
-        data = response.json()
-        assert data['sysname'] == 'test-device.example.com'
-        assert data['netbox_type'] == 123
+        assert response.context['sysname'] == 'test-device.example.com'
+        assert response.context['netbox_type'] == netbox_type
 
     @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
     @patch('nav.web.seeddb.page.netbox.edit.get_snmp_read_only_variables')
     def test_given_snmp_profile_then_return_snmp_data(
-        self, mock_snmp_vars, mock_sysname, client, snmp_profile
+        self,
+        mock_snmp_vars,
+        mock_sysname,
+        client,
+        snmp_profile,
+        netbox_type,
+        valid_ipv4,
     ):
         """Test that SNMP profile returns SNMP data"""
         mock_sysname.return_value = 'test-device.example.com'
-        mock_snmp_vars.return_value = {'status': True, 'type': 123}
+        mock_snmp_vars.return_value = {'status': True, 'type': netbox_type}
 
-        response = client.get(
+        response = client.post(
             self.url,
-            {'ip_address': '192.168.1.1', 'profiles[]': [str(snmp_profile.id)]},
+            {'ip': valid_ipv4, 'profiles': [str(snmp_profile.id)]},
         )
 
-        json_data = response.json()
-        profile_data = json_data['profiles'][str(snmp_profile.id)]
+        profile_data = self._get_profile_from_response(response, snmp_profile.id)
 
         assert response.status_code == 200
-        assert profile_data['status'] is True
-        assert profile_data['name'] == snmp_profile.name
+        assert profile_data and profile_data['status'] is True
+        assert profile_data and profile_data['name'] == snmp_profile.name
+
+    @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
+    @patch('nav.web.seeddb.page.netbox.edit.get_snmp_read_only_variables')
+    def test_given_snmp_profile_with_failure_then_return_in_failed_section(
+        self, mock_snmp_vars, mock_sysname, client, snmp_profile, valid_ipv4
+    ):
+        """Test that failed SNMP profile appears in failed section"""
+        mock_sysname.return_value = 'test-device.example.com'
+        mock_snmp_vars.return_value = {
+            'status': False,
+            'error_message': 'Connection timeout',
+        }
+
+        response = client.post(
+            self.url, {'ip': valid_ipv4, 'profiles': [str(snmp_profile.id)]}
+        )
+
+        profile_data = self._get_profile_from_response(
+            response, snmp_profile.id, key="failed"
+        )
+        assert profile_data is not None
+        assert profile_data['status'] is False
+        assert profile_data['error_message'] == 'Connection timeout'
 
     @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
     @patch('nav.web.seeddb.page.netbox.edit.test_napalm_connectivity')
     def test_given_napalm_profile_then_return_napalm_data(
-        self, mock_napalm, mock_sysname, client, napalm_profile
+        self, mock_napalm, mock_sysname, client, napalm_profile, valid_ipv4
     ):
         """Test that NAPALM profile returns NAPALM connectivity data"""
         mock_sysname.return_value = 'test-device.example.com'
         mock_napalm.return_value = {'status': True}
 
-        response = client.get(
+        response = client.post(
             self.url,
-            {'ip_address': '192.168.1.2', 'profiles[]': [str(napalm_profile.id)]},
+            {'ip': valid_ipv4, 'profiles': [str(napalm_profile.id)]},
         )
-
-        data = response.json()
-        profile_data = data['profiles'][str(napalm_profile.id)]
+        profile_data = self._get_profile_from_response(response, napalm_profile.id)
 
         assert response.status_code == 200
         assert profile_data['name'] == 'Test napalm profile'
         assert profile_data['status'] is True
 
     @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
-    def test_given_unhandled_profile_then_return_none_data(
-        self, mock_sysname, client, unhandled_profile
+    @patch('nav.web.seeddb.page.netbox.edit.test_napalm_connectivity')
+    def test_given_napalm_profile_with_exception_then_return_in_failed_section(
+        self, mock_napalm, mock_sysname, client, napalm_profile, valid_ipv4
     ):
-        """Test that unhandled profile type returns None data"""
+        """Test that NAPALM profile with connection error appears in failed section"""
         mock_sysname.return_value = 'test-device.example.com'
-        response = client.get(
-            self.url,
-            {'ip_address': '192.168.1.1', 'profiles[]': [str(unhandled_profile.id)]},
+        mock_napalm.return_value = {
+            'status': False,
+            'error_message': 'Authentication failed',
+        }
+
+        response = client.post(
+            self.url, {'ip': valid_ipv4, 'profiles': [str(napalm_profile.id)]}
         )
-        data = response.json()
+
+        profile_data = self._get_profile_from_response(
+            response, napalm_profile.id, key="failed"
+        )
+        assert profile_data is not None
+        assert profile_data['status'] is False
+
+    @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
+    def test_given_unhandled_profile_then_include_profile_in_failed_response(
+        self, mock_sysname, client, unhandled_profile, valid_ipv4
+    ):
+        """Test that unsupported profile appears in failed section"""
+        mock_sysname.return_value = 'test-device.example.com'
+        response = client.post(
+            self.url,
+            {'ip': valid_ipv4, 'profiles': [str(unhandled_profile.id)]},
+        )
+        profile_data = self._get_profile_from_response(
+            response, unhandled_profile.id, key="failed"
+        )
+
         assert response.status_code == 200
-        assert data['netbox_type'] is None
-        assert data['profiles'][str(unhandled_profile.id)] == {}
+        assert response.context['netbox_type'] is None
+        assert profile_data['name'] == unhandled_profile.name
+        assert profile_data['status'] is False
 
     @patch('nav.web.seeddb.page.netbox.edit.get_sysname')
     @patch('nav.web.seeddb.page.netbox.edit.get_snmp_read_only_variables')
@@ -175,27 +350,80 @@ class TestGetReadOnlyVariablesView:
         client,
         snmp_profile,
         napalm_profile,
+        netbox_type,
+        valid_ipv4,
     ):
         """Test that multiple profiles return data for each"""
         mock_sysname.return_value = 'multi-device.example.com'
-        mock_snmp_vars.return_value = {'status': True, 'type': 456}
+        mock_snmp_vars.return_value = {'status': True, 'type': netbox_type}
         mock_napalm.return_value = {
-            'status': False,
-            'error_message': 'Connection failed',
+            'status': True,
         }
 
-        response = client.get(
+        response = client.post(
             self.url,
             {
-                'ip_address': '192.168.1.4',
-                'profiles[]': [str(snmp_profile.id), str(napalm_profile.id)],
+                'ip': valid_ipv4,
+                'profiles': [str(snmp_profile.id), str(napalm_profile.id)],
             },
         )
 
-        data = response.json()
+        snmp_check = self._get_profile_from_response(response, snmp_profile.id)
+        napalm_check = self._get_profile_from_response(response, napalm_profile.id)
         assert response.status_code == 200
-        assert str(snmp_profile.id) in data['profiles']
-        assert str(napalm_profile.id) in data['profiles']
+        assert snmp_check is not None
+        assert napalm_check is not None
+
+
+class TestValidateIpAddressView:
+    def test_given_valid_ipv4_it_should_return_200(self, client, valid_ipv4):
+        """Test that valid IPv4 address returns 200 response"""
+        url = reverse('seeddb-netbox-validate-ip-address')
+        response = client.get(url, {'address': valid_ipv4})
+        assert response.status_code == 200
+
+    def test_given_valid_ipv6_it_should_return_200(self, client, valid_ipv6):
+        """Test that valid IPv6 address returns 200 response"""
+        url = reverse('seeddb-netbox-validate-ip-address')
+        response = client.get(url, {'address': valid_ipv6})
+        assert response.status_code == 200
+
+    def test_given_invalid_address_it_should_return_400(self, client):
+        """Test that invalid address returns 400 response"""
+        url = reverse('seeddb-netbox-validate-ip-address')
+        response = client.get(url, {'address': 'invalid_address'})
+        assert response.status_code == 400
+
+
+@pytest.fixture()
+def netbox_type():
+    vendor = Vendor(id="TestVendor")
+    vendor.save()
+    netbox_type = NetboxType(
+        id=123,
+        vendor=vendor,
+        name="TEST-12A-BC-3",
+        description="Test Device Type",
+    )
+    netbox_type.save()
+    yield netbox_type
+    netbox_type.delete()
+    vendor.delete()
+
+
+@pytest.fixture
+def valid_ipv4():
+    return '192.168.1.1'
+
+
+@pytest.fixture
+def valid_ipv6():
+    return '2001:db8::1'
+
+
+@pytest.fixture
+def invalid_hostname():
+    return 'nonexistent.invalid.domain'
 
 
 @pytest.fixture()
