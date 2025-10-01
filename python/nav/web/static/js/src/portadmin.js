@@ -150,15 +150,19 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
     var feedback;
 
     $(document).ready(function(){
-        var $wrapper = $('#portadmin-wrapper');
         feedback = new Feedbacker();
 
-        if ($wrapper.length) {
-            addTrunkSelectedListener($wrapper);
-            addChangeListener($wrapper);
-            addSaveListener($wrapper);
-            addSaveAllListener($wrapper);
-        }
+        // Initialize listeners after htmx has swapped in new content
+        $(document).on("htmx:afterSwap", "#port-details", function() {
+            var $wrapper = $('#portadmin-wrapper');
+
+            if ($wrapper.length) {
+                addTrunkSelectedListener($wrapper);
+                addChangeListener($wrapper);
+                addSaveListener($wrapper);
+                addSaveAllListener($wrapper);
+            }
+        });
     });
 
     /*
