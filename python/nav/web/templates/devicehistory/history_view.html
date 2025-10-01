@@ -11,7 +11,7 @@
             <input type="hidden" name="{{ type }}" value="{{ id }}" />
           {% endfor %}
         {% endfor %}
-        {% include 'custom_crispy_templates/_form_content.html' %}
+        {% include 'custom_crispy_templates/_form_content.html' with disable_csrf=True %}
         <input type="submit" class="button small" value="Filter">
       </form>
     </div>
