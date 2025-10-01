@@ -75,4 +75,5 @@ urlpatterns = [
     path('', include(router.urls)),
     re_path(r'^vendor/?$', views.VendorLookup.as_view(), name='vendor'),
     path('jwt/refresh/', views.JWTRefreshViewSet.as_view(), name='jwt-refresh'),
+    path('maintenance/', views.MaintenanceTaskViewSet.as_view(), name='maintenance'),
 ]
