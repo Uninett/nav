@@ -4,9 +4,14 @@ import pytest
 from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.encoding import smart_str
-from mock import patch
+from mock import Mock, patch
 
 from nav.models.manage import ManagementProfile, NetboxType, Vendor
+from nav.Snmp.errors import SnmpError
+from nav.web.seeddb.page.netbox.edit import (
+    get_snmp_read_only_variables,
+    snmp_write_test,
+)
 
 
 class TestCheckConnectivityView:
@@ -395,6 +400,109 @@ class TestValidateIpAddressView:
         assert response.status_code == 400
 
 
+class TestGetSnmpReadOnlyVariables:
+    """Test cases for get_snmp_read_only_variables function"""
+
+    @patch('nav.web.seeddb.page.netbox.edit.snmp_write_test')
+    def test_given_write_profile_then_call_write_test(
+        self, mock_write_test, snmp_write_profile, valid_ipv4
+    ):
+        """Test that write profiles trigger write test"""
+        mock_write_test.return_value = {'status': True, 'syslocation': 'test'}
+
+        result = get_snmp_read_only_variables(valid_ipv4, snmp_write_profile)
+
+        mock_write_test.assert_called_once_with(valid_ipv4, snmp_write_profile)
+        assert result == {'status': True, 'syslocation': 'test'}
+
+    @patch('nav.web.seeddb.page.netbox.edit.check_snmp_version')
+    @patch('nav.web.seeddb.page.netbox.edit.get_netbox_type')
+    def test_given_read_profile_success_then_return_type_and_status(
+        self, mock_get_type, mock_check_version, snmp_profile, netbox_type, valid_ipv4
+    ):
+        """Test successful read-only profile returns type and status"""
+        mock_get_type.return_value = netbox_type
+        mock_check_version.return_value = True
+
+        result = get_snmp_read_only_variables(valid_ipv4, snmp_profile)
+
+        assert result['type'] == netbox_type
+        assert result['status'] is True
+        assert 'error_message' not in result
+
+    @patch('nav.web.seeddb.page.netbox.edit.check_snmp_version')
+    @patch('nav.web.seeddb.page.netbox.edit.get_netbox_type')
+    def test_given_read_profile_failure_then_return_error_message(
+        self, mock_get_type, mock_check_version, snmp_profile, netbox_type, valid_ipv4
+    ):
+        """Test failed read-only profile returns error message"""
+        mock_get_type.return_value = netbox_type
+        mock_check_version.return_value = False
+
+        result = get_snmp_read_only_variables(valid_ipv4, snmp_profile)
+
+        assert result['type'] == netbox_type
+        assert result['status'] is False
+        assert result['error_message'] == "SNMP connection failed"
+
+
+class TestSnmpWriteTest:
+    """Test cases for snmp_write_test function"""
+
+    @patch('nav.web.seeddb.page.netbox.edit.get_snmp_session_for_profile')
+    def test_given_successful_write_then_return_success_status(
+        self, mock_session_factory, snmp_write_profile, valid_ipv4
+    ):
+        """Test successful SNMP write operation"""
+        mock_snmp = Mock()
+        mock_snmp.get.return_value = 'Test Location'
+        mock_snmp.set.return_value = None
+        mock_session_factory.return_value = Mock(return_value=mock_snmp)
+
+        result = snmp_write_test(valid_ipv4, snmp_write_profile)
+
+        assert result['status'] is True
+        assert result['syslocation'] == 'Test Location'
+        assert result['error_message'] == ''
+        mock_snmp.get.assert_called_once_with('1.3.6.1.2.1.1.6.0')
+        mock_snmp.set.assert_called_once_with(
+            '1.3.6.1.2.1.1.6.0', 's', b'Test Location'
+        )
+
+    @patch('nav.web.seeddb.page.netbox.edit.get_snmp_session_for_profile')
+    def test_given_snmp_error_then_return_failure_status(
+        self, mock_session_factory, snmp_write_profile, valid_ipv4
+    ):
+        """Test SNMP error during write operation"""
+        mock_snmp = Mock()
+        mock_snmp.get.side_effect = SnmpError("Authentication failed")
+        mock_session_factory.return_value = Mock(return_value=mock_snmp)
+
+        result = snmp_write_test(valid_ipv4, snmp_write_profile)
+
+        assert result['status'] is False
+        assert result['error_message'] == 'Authentication failed'
+        assert result['syslocation'] == ''
+
+    @patch('nav.web.seeddb.page.netbox.edit.get_snmp_session_for_profile')
+    def test_given_unicode_error_then_return_custom_error(
+        self, mock_session_factory, snmp_write_profile, valid_ipv4
+    ):
+        """Test Unicode decode error during write operation"""
+        mock_snmp = Mock()
+        mock_snmp.get.return_value = b'\x80'
+        mock_snmp.set.side_effect = UnicodeDecodeError(
+            'utf-8', b'\x80', 0, 1, 'invalid start byte'
+        )
+        mock_session_factory.return_value = Mock(return_value=mock_snmp)
+
+        result = snmp_write_test(valid_ipv4, snmp_write_profile)
+
+        assert result['status'] is False
+        assert result['custom_error'] == 'UnicodeDecodeError'
+        assert result['error_message'] == "Could not decode SNMP response"
+
+
 @pytest.fixture()
 def netbox_type():
     vendor = Vendor(id="TestVendor")
@@ -429,6 +537,14 @@ def invalid_hostname():
 @pytest.fixture()
 def snmp_profile():
     yield from create_profile("Test SNMP profile", ManagementProfile.PROTOCOL_SNMP)
+
+
+@pytest.fixture()
+def snmp_write_profile():
+    """Create an SNMP profile with write access"""
+    yield from create_profile(
+        "Test SNMP write profile", ManagementProfile.PROTOCOL_SNMP, write=True
+    )
 
 
 @pytest.fixture()
