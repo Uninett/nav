@@ -238,6 +238,10 @@ def load_connectivity_test_results(request):
                     "id": profile.id,
                     "name": profile.name,
                     "status": False,
+                    "error_message": (
+                        "Connectivity check not supported for profile with",
+                        f"protocol {profile.get_protocol_display()}",
+                    ),
                 }
             )
 
@@ -279,6 +283,8 @@ def get_snmp_read_only_variables(ip_address: str, profile: ManagementProfile):
     else:
         result["type"] = get_netbox_type(ip_address, profile)
         result["status"] = check_snmp_version(ip_address, profile)
+        if not result["status"]:
+            result["error_message"] = "SNMP connection failed"
     return result
 
 
@@ -303,11 +309,17 @@ def snmp_write_test(ip, profile):
         value = safestring(snmp.get(syslocation))
         snmp.set(syslocation, 's', value.encode('utf-8'))
     except SnmpError as error:
-        testresult['error_message'] = error.args
+        testresult['error_message'] = error.args[0]
         testresult['status'] = False
     except UnicodeDecodeError as error:
+        _logger.exception(
+            "Could not decode SNMP response for profile %s with address %s: %s",
+            profile.name,
+            ip,
+            error,
+        )
         testresult['custom_error'] = 'UnicodeDecodeError'
-        testresult['error_message'] = error.args
+        testresult['error_message'] = 'Could not decode SNMP response'
         testresult['status'] = False
     else:
         testresult['status'] = True
@@ -335,7 +347,10 @@ def test_napalm_connectivity(ip_address: str, profile: ManagementProfile) -> dic
             return {"status": True}
     except Exception as error:  # noqa: BLE001
         _logger.exception("Could not connect to %s using NAPALM profile", ip_address)
-        return {"status": False, "error_message": str(error)}
+        error_message = str(error)
+        if error_message == 'None':
+            error_message = 'Connection failed'
+        return {"status": False, "error_message": error_message}
 
 
 def get_sysname(ip_address):
