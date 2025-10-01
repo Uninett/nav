@@ -804,16 +804,21 @@ class TestFindDashboardUtil:
         with pytest.raises(Http404):
             find_dashboard(non_admin_account, dashboard_id=other_dashboard.id)
 
-    def test_shared_by_other_attribute_for_own_dashboard(self, db, non_admin_account):
-        """Tests that shared_by_other is False for own dashboards"""
+    def test_given_own_dashboard_then_find_dashboard_sets_shared_by_other_to_false(
+        self, db, non_admin_account
+    ):
+        """Tests that find_dashboard sets shared_by_other to False for own dashboards"""
         dashboard = create_dashboard(non_admin_account, name="Own", is_shared=True)
         found_dashboard = find_dashboard(non_admin_account, dashboard_id=dashboard.id)
         assert found_dashboard.shared_by_other is False
 
-    def test_shared_by_other_attribute_for_shared_dashboard_of_other_account(
+    def test_given_dashboard_of_another_account_then_find_dashboard_sets_shared_by_other_to_true(  # noqa: E501
         self, db, non_admin_account, admin_account
     ):
-        """Tests that shared_by_other is True for shared dashboards of other accounts"""
+        """
+        Test that find_dashboard sets shared_by_other to True for other a dashboard
+        of another account
+        """
         other_dashboard = create_dashboard(admin_account, name="Other", is_shared=True)
         found_dashboard = find_dashboard(
             non_admin_account, dashboard_id=other_dashboard.id
