@@ -69,6 +69,16 @@ urlpatterns = [
         name='seeddb-netbox-copy',
     ),
     path('netbox/bulk/', netbox.netbox_bulk, name='seeddb-netbox-bulk'),
+    path(
+        'netbox/check-connectivity/load/',
+        netbox_edit.load_connectivity_test_results,
+        name='seeddb-netbox-check-connectivity-load',
+    ),
+    path(
+        'netbox/check-connectivity/',
+        netbox_edit.check_connectivity,
+        name='seeddb-netbox-check-connectivity',
+    ),
     re_path(
         'netbox/get-read-only-variables/',
         netbox_edit.get_read_only_variables,

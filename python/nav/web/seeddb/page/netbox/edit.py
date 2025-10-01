@@ -23,9 +23,10 @@ import logging
 
 from django.db import transaction
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse, Http404
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.views.decorators.http import require_POST
 
 from nav.auditlog.models import LogEntry
 from nav.models.manage import Netbox, NetboxCategory, NetboxType, NetboxProfile
@@ -124,6 +125,150 @@ def netbox_edit(request, netbox_id=None, suggestion=None, action='edit'):
         }
     )
     return render(request, 'seeddb/netbox_wizard.html', context)
+
+
+@require_POST
+def check_connectivity(request):
+    """
+    HTMX endpoint to validate an IP address or hostname and
+    associated management profiles.
+
+    - Checks if both IP address and management profiles are provided.
+    - If the IP is invalid, attempts to resolve it as a hostname and
+      prompts for address selection.
+    - If the IP is valid, returns a loading status to trigger connectivity tests.
+    """
+
+    ip_address = request.POST.get('ip', '').strip()
+    profile_ids = request.POST.getlist('profiles')
+
+    if not (ip_address and profile_ids):
+        return render(
+            request,
+            'seeddb/_seeddb_check_connectivity_response.html',
+            {
+                'status': 'error',
+                'message': (
+                    'We need an IP-address and at least one management profile '
+                    'to talk to the device.'
+                ),
+            },
+        )
+
+    if not is_valid_ip(ip_address):
+        return _handle_invalid_ip(request, ip_address)
+
+    return render(
+        request,
+        'seeddb/_seeddb_check_connectivity_response.html',
+        {
+            'status': 'loading',
+        },
+    )
+
+
+def _handle_invalid_ip(request: HttpRequest, ip_address: str):
+    """
+    Handle the case where the given IP address is not valid.
+
+    Attempts to resolve it as a hostname and returns the results.
+    """
+    try:
+        address_tuples = socket.getaddrinfo(ip_address, None, 0, socket.SOCK_STREAM)
+        sorted_tuples = sorted(
+            address_tuples, key=lambda item: socket.inet_pton(item[0], item[4][0])
+        )
+        addresses = [x[4][0] for x in sorted_tuples]
+    except (socket.error, UnicodeError) as error:
+        context = {
+            'status': 'error',
+            'message': str(error),
+        }
+    else:
+        context = {
+            'status': 'select-address',
+            'addresses': addresses,
+            'hostname': ip_address,
+        }
+
+    return render(
+        request,
+        'seeddb/_seeddb_check_connectivity_response.html',
+        context,
+    )
+
+
+@require_POST
+def load_connectivity_test_results(request):
+    """
+    HTMX endpoint to perform connectivity tests for given management profiles.
+
+    Returns test results, including sysname and netbox type, grouped by
+    success or failure.
+    """
+
+    ip_address = request.POST.get('ip')
+    profile_ids = request.POST.getlist('profiles')
+    profiles = ManagementProfile.objects.filter(id__in=profile_ids)
+    _logger.debug(
+        "testing management profiles against %s: %r = %r",
+        ip_address,
+        profile_ids,
+        profiles,
+    )
+    if not profiles:
+        return render(
+            request,
+            'seeddb/_seeddb_check_connectivity_results.html',
+        )
+
+    sysname = get_sysname(ip_address)
+    netbox_type = None
+
+    result = {p.id: {} for p in profiles}
+    for profile in profiles:
+        if profile.is_snmp:
+            response = get_snmp_read_only_variables(ip_address, profile)
+        elif profile.protocol == profile.PROTOCOL_NAPALM:
+            response = test_napalm_connectivity(ip_address, profile)
+        else:
+            response = None
+            result[profile.id].update(
+                {
+                    "id": profile.id,
+                    "name": profile.name,
+                    "status": False,
+                }
+            )
+
+        if response:
+            response["id"] = profile.id
+            response["name"] = profile.name
+            response["url"] = reverse(
+                "seeddb-management-profile-edit",
+                kwargs={"management_profile_id": profile.id},
+            )
+            result[profile.id].update(response)
+            if response.get("type"):
+                netbox_type = response["type"]
+
+    # split result by status for better display: status True and False
+    success_profiles = [p for p in result.values() if p.get('status')]
+    failed_profiles = [p for p in result.values() if not p.get('status')]
+
+    data = {
+        'sysname': sysname,
+        'netbox_type': netbox_type,
+        'profiles': {
+            'succeeded': success_profiles,
+            'failed': failed_profiles,
+        },
+    }
+    return render(
+        request,
+        'seeddb/_seeddb_check_connectivity_results.html',
+        data,
+    )
 
 
 def get_read_only_variables(request):
