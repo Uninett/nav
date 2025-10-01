@@ -110,3 +110,25 @@ give this class  */
     }
 
 }
+
+/* Style SeedDB netbox form */
+#seeddb-netbox-form.loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+#check-connectivity-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  & > * {
+    margin-bottom: 0;
+  }
+}
+#connectivity-results {
+  *:last-child {
+    margin-bottom: 0;
+  }
+  .alert-box {
+    margin-top: 1.25rem;
+  }
+}
