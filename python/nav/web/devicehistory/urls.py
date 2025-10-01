@@ -43,7 +43,7 @@ urlpatterns = [
         views.devicehistory_view_location,
         name='devicehistory-view-location',
     ),
-    path('^registererror/', views.error_form, name='devicehistory-registererror'),
+    path('registererror/', views.error_form, name='devicehistory-registererror'),
     path(
         'registererror/componentsearch/',
         views.registererror_component_search,
