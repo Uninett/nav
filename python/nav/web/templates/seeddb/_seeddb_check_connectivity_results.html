@@ -1,7 +1,7 @@
 {% if not profiles %}
-<div class="alert-box error">
-    No profiles found.
-</div>
+    <div class="alert-box error">
+        No profiles found.
+    </div>
 {% endif %}
 {% if profiles.succeeded %}
     <div class="alert-box success">
@@ -17,7 +17,6 @@
         <ul>
             {% for profile in profiles.failed %}
                 <li>
-                <div>
                     <em>
                         {% if profile.url %}
                             <a href="{{ profile.url }}" title="View profile details">{{ profile.name }}</a>
@@ -25,23 +24,15 @@
                             {{ profile.name }}
                         {% endif %}
                     </em>
-                    <span>failed</span>
+                    <br>
                     {% if profile.custom_error == 'UnicodeDecodeError' %}
-                        <span>
-                            , perhaps because of non-ASCII characters in the sysLocation field.
-                            <br><br><strong>sysLocation:</strong> {{ profile.syslocation }}
-                        </span>
+                        <span>Connection failed due to character encoding issues, perhaps because of
+                        non-ASCII characters in the sysLocation field.</span><br>
+                        <strong>sysLocation:</strong> {{ profile.syslocation }}
+                    {% else %}
+                        <strong>Error</strong>:
+                        <span>{{ profile.error_message|default:"Connection failed due to unknown error" }}</span>
                     {% endif %}
-                </div>
-                    <div>
-                        <br>
-                        <span>Error message:</span>
-                        {% if profile.error_message %}
-                            {{ profile.error_message }}
-                        {% else %}
-                            Unknown
-                        {% endif %}
-                    </div>
                 </li>
             {% endfor %}
         </ul>
