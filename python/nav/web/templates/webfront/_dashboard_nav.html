@@ -71,15 +71,7 @@
                 </button>
             {% endif %}
         {% endif %}
-        <div id="is-shared-badge" class="nav-tooltip unstyled{% if not dashboard.is_shared %} hidden{% endif %}">
-            <div class="badge" aria-describedby="shared-tooltip">
-                <i class="fa fa-share-alt"></i>
-                <span>Shared</span>
-            </div>
-            <div id="shared-tooltip" role="tooltip">
-                This dashboard is shared with other users.
-            </div>
-        </div>
+        {% include "webfront/_dashboard_nav_shared_indicator.html" with dashboard=dashboard %}
         <div class="nav-tooltip unstyled">
             <div class="badge" aria-describedby="owner-tooltip">
                 <i class="fa fa-user"></i>

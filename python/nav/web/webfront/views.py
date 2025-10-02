@@ -138,6 +138,7 @@ def _render_share_form_response(
         {
             'dashboard': dashboard,
             'message': message,
+            'changed': True,
         },
     )
 

@@ -26,6 +26,10 @@
     <input type="submit" class="button small" value="Save sharing settings">
 </form>
 
+{% if changed %}
+{% include "webfront/_dashboard_nav_shared_indicator.html" with dashboard=dashboard swap=True %}
+{% endif %}
+
 {% if message %}
 <div id="dashboard-settings-feedback" hx-swap-oob="innerHtml">
     <div class="alert-box success">
