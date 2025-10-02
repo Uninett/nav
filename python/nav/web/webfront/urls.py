@@ -38,6 +38,17 @@ urlpatterns = [
         views.toggle_dashboard_shared,
         name='dashboard-toggle-shared',
     ),
+    path(
+        'index/dashboard/toggle-subscribe/<int:did>/',
+        views.toggle_subscribe,
+        name='dashboard-toggle-subscribe',
+    ),
+    path(
+        'index/dashboard/search/modal/',
+        views.dashboard_search_modal,
+        name='dashboard-search-modal',
+    ),
+    path('index/dashboard/search/', views.dashboard_search, name='dashboard-search'),
     path('index/dashboard/add/', views.add_dashboard, name='add-dashboard'),
     path(
         'index/dashboard/set_default/<int:did>/',
@@ -71,7 +82,7 @@ urlpatterns = [
     ),
     path('index/dashboard/import', views.import_dashboard, name='import-dashboard'),
     path(
-        'îndex/dashboard/importmodal',
+        'index/dashboard/importmodal',
         views.import_dashboard_modal,
         name='import-dashboard-modal',
     ),

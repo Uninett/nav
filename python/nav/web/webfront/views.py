@@ -22,6 +22,8 @@ from datetime import datetime
 from operator import attrgetter
 from urllib.parse import quote as urlquote
 
+from django.db import models
+from django.db.models import Q
 from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
@@ -33,8 +35,8 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
-from django.views.decorators.http import require_POST
-from django_htmx.http import HttpResponseClientRedirect
+from django.views.decorators.http import require_GET, require_POST
+from django_htmx.http import HttpResponseClientRedirect, HttpResponseClientRefresh
 
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
@@ -55,6 +57,7 @@ from nav.web.utils import generate_qr_code_as_string
 from nav.web.utils import require_param
 from nav.web.webfront import (
     find_dashboard,
+    get_dashboards_for_account,
     WELCOME_ANONYMOUS_PATH,
     WELCOME_REGISTERED_PATH,
 )
@@ -77,7 +80,11 @@ def index(request, did=None):
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
     dashboard = find_dashboard(request.account, did)
-    dashboards = AccountDashboard.objects.filter(account=request.account)
+    dashboards = get_dashboards_for_account(request.account)
+
+    dashboard_ids = [d.id for d in dashboards]
+    if dashboard.id not in dashboard_ids:
+        dashboards.append(dashboard)
 
     context = {
         'navpath': [('Home', '/')],
@@ -85,6 +92,8 @@ def index(request, did=None):
         'welcome': welcome,
         'dashboard': dashboard,
         'dashboards': dashboards,
+        'can_edit': dashboard.can_edit(request.account),
+        'is_subscribed': dashboard.is_subscribed(request.account),
         'title': 'NAV - {}'.format(dashboard.name),
     }
 
@@ -133,9 +142,80 @@ def _render_share_form_response(
     )
 
 
+@require_POST
+def toggle_subscribe(request, did):
+    """Toggle subscription status for this dashboard"""
+    dashboard = get_object_or_404(AccountDashboard, pk=did, is_shared=True)
+    if dashboard.is_subscribed(request.account):
+        AccountDashboardSubscription.objects.filter(
+            account=request.account, dashboard=dashboard
+        ).delete()
+    else:
+        AccountDashboardSubscription(
+            account=request.account, dashboard=dashboard
+        ).save()
+
+    return HttpResponseClientRefresh()
+
+
+@require_GET
+def dashboard_search_modal(request):
+    """Render the dashboard search modal dialog"""
+
+    return render_modal(
+        request,
+        'webfront/_dashboard_search_form.html',
+        modal_id='dashboard-search-form',
+        size='small',
+    )
+
+
+@require_POST
+def dashboard_search(request):
+    """Search for shared dashboards"""
+    raw_search = request.POST.get('search', '')
+    search = raw_search.strip() if raw_search else ''
+    if not search:
+        return render(
+            request,
+            'webfront/_dashboard_search_results.html',
+            {
+                'dashboards': [],
+                'search': search,
+            },
+        )
+
+    dashboards = (
+        AccountDashboard.objects.exclude(account=request.account)
+        .filter(
+            Q(name__icontains=search)
+            | Q(account__login__icontains=search)
+            | Q(account__name__icontains=search),
+            is_shared=True,
+        )
+        .select_related('account')
+        .annotate(
+            is_subscribed=models.Exists(
+                AccountDashboardSubscription.objects.filter(
+                    dashboard=models.OuterRef('pk'), account=request.account
+                )
+            )
+        )
+    )
+
+    return render(
+        request,
+        'webfront/_dashboard_search_results.html',
+        {
+            'dashboards': dashboards,
+            'search': search,
+        },
+    )
+
+
 def export_dashboard(request, did):
     """Export dashboard as JSON."""
-    dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+    dashboard = find_dashboard(request.account, did)
 
     response = JsonResponse(dashboard.to_json_dict())
     response['Content-Disposition'] = 'attachment; filename={name}.json'.format(
