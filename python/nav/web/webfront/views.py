@@ -158,7 +158,7 @@ def toggle_subscribe(request, did):
 
 def export_dashboard(request, did):
     """Export dashboard as JSON."""
-    dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+    dashboard = find_dashboard(request.account, did)
 
     response = JsonResponse(dashboard.to_json_dict())
     response['Content-Disposition'] = 'attachment; filename={name}.json'.format(

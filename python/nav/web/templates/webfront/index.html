@@ -67,6 +67,19 @@
 
       {% if can_edit %}
           {% include 'webfront/_dashboard_settings_form.html' %}
+      {% else %}
+        <div class="nav-tooltip export-action">
+            <a
+                class="widget-action"
+                href="{% url 'export-dashboard' dashboard.pk %}"
+                aria-describedby="#export-action-tooltip"
+            >
+              <i class="fa fa-download" title="Export dashboard"></i>
+            </a>
+            <div id="export-action-tooltip" role="tooltip">
+                 Download this dashboard's definition into a file that can later be imported by pressing the + next to the tab list
+            </div>
+        </div>
       {% endif %}
 
     </div>
