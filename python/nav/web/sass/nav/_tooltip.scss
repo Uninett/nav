@@ -11,15 +11,19 @@
     transform: translateY(8px);
   }
 
-  [aria-describedby] {
-    border-bottom: dotted 1px #cccccc;
+  [aria-described-by] {
     cursor: help;
-    font-weight: bold;
-    color: #333333;
+  }
+  &:not(.unstyled) {
+    [aria-describedby] {
+      border-bottom: dotted 1px #cccccc;
+      font-weight: bold;
+      color: #333333;
 
-    &:hover, &:focus {
-      border-bottom: dotted 1px rgb(0.9, 55.35, 84.15);
-      color: #027bbb;
+      &:hover, &:focus {
+        border-bottom: dotted 1px rgb(0.9, 55.35, 84.15);
+        color: #027bbb;
+      }
     }
   }
 
