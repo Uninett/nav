@@ -89,8 +89,10 @@
     }
     .export-action {
       width: 100%;
-      a.widget-action {
+      & > .widget-action {
         width: 100%;
+      }
+      &:last-child .widget-action {
         border-bottom: none;
       }
     }

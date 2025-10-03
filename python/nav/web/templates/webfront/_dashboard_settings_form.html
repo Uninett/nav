@@ -34,17 +34,6 @@
             </div>
 
             <div class="column medium-4">
-                <a href="{% url 'export-dashboard' dashboard.pk %}" class="small button expand">Export dashboard
-                </a><br/>
-                <div class="nav-tooltip">
-                    <small aria-describedby="download-dashboard-tooltip">what's this?</small>
-                    <span id="download-dashboard-tooltip" role="tooltip">
-              Download this dashboards definition into a file that can later be imported by pressing the + next to the tab list
-          </span>
-                </div>
-            </div>
-
-            <div class="column medium-4">
                 {% if request.account.account_dashboards.count > 1 and not dashboard.is_default %}
                 <form id="form-delete-dashboard" method="post" action="{% url 'delete-dashboard' dashboard.pk %}">
                     {% csrf_token %}
