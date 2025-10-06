@@ -389,7 +389,7 @@ def add_navlet(account, navlet, preferences=None, dashboard=None):
     if preferences is None:
         preferences = {}
     if dashboard is None:
-        dashboard = AccountDashboard.objects.get(account=account, is_default=True)
+        dashboard = account.default_dashboard
 
     accountnavlet = AccountNavlet(account=account, navlet=navlet, dashboard=dashboard)
     accountnavlet.column, accountnavlet.order = find_new_placement()
