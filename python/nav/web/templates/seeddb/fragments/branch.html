@@ -4,11 +4,13 @@
   {% endif %}
   <a href="{% url edit_url_name branch.pk %}">
     {{ branch }}
-    <i class="fa fa-question-circle-o">
-      <div class="tooltip-text" style="display: none">
-        {% include 'seeddb/fragments/branch_tooltip.html' %}
-      </div>
-    </i>
+    <div class="nav-tooltip">
+        <i class="fa fa-question-circle-o unstyled-tooltip" aria-describedby="#branch-tooltip-{{ branch.pk }}"></i>
+        <span id="branch-tooltip-{{ branch.pk }}" role="tooltip">
+            {% include 'seeddb/fragments/branch_tooltip.html' %}
+        </span>
+    </div>
+
   </a>
 
   {% if branch.has_children %}
