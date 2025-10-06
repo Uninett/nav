@@ -2,7 +2,7 @@
 
 import os
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404
 
 from nav.config import find_config_file
@@ -25,7 +25,11 @@ def find_dashboard(account, dashboard_id=None):
     """
     kwargs = {'pk': dashboard_id} if dashboard_id else {'is_default': True}
     try:
-        dashboard = AccountDashboard.objects.get(account=account, **kwargs)
+        dashboard = AccountDashboard.objects.get(
+            (Q(account=account) | Q(is_shared=True)), **kwargs
+        )
+        dashboard.shared_by_other = dashboard.is_shared and dashboard.account != account
+
     except AccountDashboard.DoesNotExist:
         if dashboard_id:
             raise Http404
@@ -42,3 +46,22 @@ def find_dashboard(account, dashboard_id=None):
         dashboard = AccountDashboard.objects.filter(account=account, **kwargs)[0]
 
     return dashboard
+
+
+def get_dashboards_for_account(account) -> list[AccountDashboard]:
+    """
+    Returns a queryset of dashboards for the given account,
+    including those the account subscribes to.
+    """
+    dashboards = (
+        AccountDashboard.objects.filter(
+            Q(account=account) | Q(subscribers__account=account)
+        )
+        .select_related('account')
+        .distinct()
+    )
+    for dash in dashboards:
+        dash.can_edit = dash.can_edit(account)
+        dash.shared_by_other = dash.is_shared and dash.account_id != account.id
+
+    return list(dashboards)

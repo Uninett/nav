@@ -16,12 +16,14 @@
 #
 """Navbar (tools, preferences) and login related controllers"""
 
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 from operator import attrgetter
 from urllib.parse import quote as urlquote
 
+from django.db import models
+from django.db.models import Q
 from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
@@ -30,35 +32,41 @@ from django.http import (
     HttpRequest,
     JsonResponse,
 )
-from django.views.decorators.http import require_POST
-from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django_htmx.http import HttpResponseClientRedirect
+from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
+from django.views.decorators.http import require_GET, require_POST
+from django_htmx.http import HttpResponseClientRedirect, HttpResponseClientRefresh
 
 from nav.auditlog.models import LogEntry
 from nav.django.utils import get_account
-from nav.models.profiles import NavbarLink, AccountDashboard, AccountNavlet
-from nav.web.auth import logout as auth_logout
+from nav.models.profiles import (
+    AccountDashboard,
+    AccountDashboardSubscription,
+    AccountNavlet,
+    NavbarLink,
+)
 from nav.web import auth, webfrontConfig
 from nav.web.auth import ldap
+from nav.web.auth import logout as auth_logout
 from nav.web.auth.utils import set_account
+from nav.web.message import new_message, Messages
 from nav.web.modals import render_modal, render_modal_alert
+from nav.web.navlets import can_modify_navlet
 from nav.web.utils import generate_qr_code_as_string
 from nav.web.utils import require_param
-from nav.web.webfront.utils import quick_read, tool_list
+from nav.web.webfront import (
+    find_dashboard,
+    get_dashboards_for_account,
+    WELCOME_ANONYMOUS_PATH,
+    WELCOME_REGISTERED_PATH,
+)
 from nav.web.webfront.forms import (
     LoginForm,
     NavbarLinkFormSet,
     ChangePasswordForm,
 )
-from nav.web.navlets import can_modify_navlet
-from nav.web.message import new_message, Messages
-from nav.web.webfront import (
-    find_dashboard,
-    WELCOME_ANONYMOUS_PATH,
-    WELCOME_REGISTERED_PATH,
-)
+from nav.web.webfront.utils import quick_read, tool_list
 
 _logger = logging.getLogger('nav.web.tools')
 
@@ -72,7 +80,11 @@ def index(request, did=None):
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
     dashboard = find_dashboard(request.account, did)
-    dashboards = AccountDashboard.objects.filter(account=request.account)
+    dashboards = get_dashboards_for_account(request.account)
+
+    dashboard_ids = [d.id for d in dashboards]
+    if dashboard.id not in dashboard_ids:
+        dashboards.append(dashboard)
 
     context = {
         'navpath': [('Home', '/')],
@@ -80,29 +92,131 @@ def index(request, did=None):
         'welcome': welcome,
         'dashboard': dashboard,
         'dashboards': dashboards,
+        'can_edit': dashboard.can_edit(request.account),
+        'is_subscribed': dashboard.is_subscribed(request.account),
         'title': 'NAV - {}'.format(dashboard.name),
     }
-
-    if dashboards.count() > 1:
-        dashboard_ids = [d.pk for d in dashboards]
-        current_index = dashboard_ids.index(dashboard.pk)
-        previous_index = current_index - 1
-        next_index = current_index + 1
-        if current_index == len(dashboard_ids) - 1:
-            next_index = 0
-        context.update(
-            {
-                'previous_dashboard': dashboards.get(pk=dashboard_ids[previous_index]),
-                'next_dashboard': dashboards.get(pk=dashboard_ids[next_index]),
-            }
-        )
 
     return render(request, 'webfront/index.html', context)
 
 
+@require_POST
+def toggle_dashboard_shared(request, did):
+    """Toggle shared status for this dashboard"""
+    dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+
+    # Checkbox input returns 'on' if checked
+    is_shared = request.POST.get('is_shared') == 'on'
+    if is_shared == dashboard.is_shared:
+        return _render_share_form_response(
+            request,
+            dashboard,
+        )
+
+    dashboard.is_shared = is_shared
+    dashboard.save()
+
+    if not is_shared:
+        AccountDashboardSubscription.objects.filter(dashboard=dashboard).delete()
+
+    return _render_share_form_response(
+        request,
+        dashboard,
+        message="Dashboard sharing is now {}.".format(
+            "enabled" if is_shared else "disabled"
+        ),
+    )
+
+
+def _render_share_form_response(
+    request, dashboard: AccountDashboard, message: str = None
+):
+    """Render the share dashboard form response."""
+    return render(
+        request,
+        'webfront/_dashboard_settings_shared_form.html',
+        {
+            'dashboard': dashboard,
+            'message': message,
+            'changed': True,
+        },
+    )
+
+
+@require_POST
+def toggle_subscribe(request, did):
+    """Toggle subscription status for this dashboard"""
+    dashboard = get_object_or_404(AccountDashboard, pk=did, is_shared=True)
+    if dashboard.is_subscribed(request.account):
+        AccountDashboardSubscription.objects.filter(
+            account=request.account, dashboard=dashboard
+        ).delete()
+    else:
+        AccountDashboardSubscription(
+            account=request.account, dashboard=dashboard
+        ).save()
+
+    return HttpResponseClientRefresh()
+
+
+@require_GET
+def dashboard_search_modal(request):
+    """Render the dashboard search modal dialog"""
+
+    return render_modal(
+        request,
+        'webfront/_dashboard_search_form.html',
+        modal_id='dashboard-search-form',
+        size='small',
+    )
+
+
+@require_POST
+def dashboard_search(request):
+    """Search for shared dashboards"""
+    raw_search = request.POST.get('search', '')
+    search = raw_search.strip() if raw_search else ''
+    if not search:
+        return render(
+            request,
+            'webfront/_dashboard_search_results.html',
+            {
+                'dashboards': [],
+                'search': search,
+            },
+        )
+
+    dashboards = (
+        AccountDashboard.objects.exclude(account=request.account)
+        .filter(
+            Q(name__icontains=search)
+            | Q(account__login__icontains=search)
+            | Q(account__name__icontains=search),
+            is_shared=True,
+        )
+        .select_related('account')
+        .annotate(
+            is_subscribed=models.Exists(
+                AccountDashboardSubscription.objects.filter(
+                    dashboard=models.OuterRef('pk'), account=request.account
+                )
+            )
+        )
+    )
+
+    return render(
+        request,
+        'webfront/_dashboard_search_results.html',
+        {
+            'dashboards': dashboards,
+            'search': search,
+        },
+    )
+
+
 def export_dashboard(request, did):
     """Export dashboard as JSON."""
-    dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+    dashboard = find_dashboard(request.account, did)
 
     response = JsonResponse(dashboard.to_json_dict())
     response['Content-Disposition'] = 'attachment; filename={name}.json'.format(

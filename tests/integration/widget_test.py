@@ -5,7 +5,7 @@ from django.urls import reverse
 from nav.web.navlets.roomstatus import RoomStatus
 from nav.web.navlets.feedreader import FeedReaderNavlet
 from nav.models.event import AlertHistory, AlertHistoryMessage
-from nav.models.profiles import AccountNavlet
+from nav.models.profiles import AccountDashboard, AccountNavlet
 from nav.models.fields import INFINITY
 
 import pytest
@@ -41,9 +41,13 @@ def test_get_navlet_should_return_200(client, admin_navlet):
 
 def test_get_pdu_navlet_in_edit_mode_should_return_200(client, admin_account):
     """Tests a GET request against the pdu navlet in edit mode"""
+    dashboard = AccountDashboard.objects.create(
+        account=admin_account, name="Test Dashboard"
+    )
     pdu_navlet = AccountNavlet.objects.create(
         navlet="nav.web.navlets.pdu.PduWidget",
         account=admin_account,
+        dashboard=dashboard,
     )
     url = reverse('get-user-navlet', kwargs={'navlet_id': pdu_navlet.id}) + "?mode=EDIT"
     print(
@@ -51,6 +55,79 @@ def test_get_pdu_navlet_in_edit_mode_should_return_200(client, admin_account):
     )
     response = client.get(url)
     assert response.status_code == 200
+
+
+def test_get_navlet_with_invalid_id_should_return_404(client):
+    """Tests a GET request against a non-existing navlet id"""
+    url = reverse('get-user-navlet', kwargs={'navlet_id': 999})
+    response = client.get(url)
+    assert response.status_code == 404
+
+
+def test_given_navlet_belonging_to_other_account_when_shared_then_return_200(
+    client, admin_account, non_admin_account
+):
+    """
+    Tests a GET request against a navlet belonging to another account
+
+    Should return 200 if `dashboard.is_shared == True`
+    """
+    dashboard = AccountDashboard.objects.create(
+        account=non_admin_account, name="User Dashboard", is_shared=True
+    )
+    user_navlet = AccountNavlet.objects.create(
+        navlet="nav.web.navlets.welcome.WelcomeNavlet",
+        account=non_admin_account,
+        dashboard=dashboard,
+    )
+    url = reverse('get-user-navlet', kwargs={'navlet_id': user_navlet.id})
+    response = client.get(url)
+    assert response.status_code == 200
+
+
+def test_given_navlet_belonging_to_other_account_when_not_shared_then_return_403(
+    client, admin_account, non_admin_account
+):
+    """
+    Tests a GET request against a navlet belonging to another account
+
+    Should return 403 unless `dashboard.is_shared == True`
+    """
+    dashboard = AccountDashboard.objects.create(
+        account=non_admin_account, name="User Dashboard"
+    )
+    user_navlet = AccountNavlet.objects.create(
+        navlet="nav.web.navlets.welcome.WelcomeNavlet",
+        account=non_admin_account,
+        dashboard=dashboard,
+    )
+    url = reverse('get-user-navlet', kwargs={'navlet_id': user_navlet.id})
+    response = client.get(url)
+    assert response.status_code == 403
+
+
+def test_given_navlet_id_when_navlet_type_is_invalid_then_return_error_widget(
+    client, admin_account
+):
+    """
+    Tests a GET request against a navlet with an invalid navlet type
+
+    Should return a navlet with title "Error"
+    """
+
+    dashboard = AccountDashboard.objects.create(
+        account=admin_account, name="Test Dashboard"
+    )
+    invalid_navlet = AccountNavlet.objects.create(
+        navlet="nav.web.navlets.invalid.InvalidNavlet",
+        account=admin_account,
+        dashboard=dashboard,
+    )
+    url = reverse('get-user-navlet', kwargs={'navlet_id': invalid_navlet.id})
+    response = client.get(url)
+
+    navlet = response.context['navlet']
+    assert navlet.title == "Error"
 
 
 #

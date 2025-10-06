@@ -1,0 +1,39 @@
+<form
+        id="toggle-dashboard-shared-form"
+        hx-post="{% url 'dashboard-toggle-shared' dashboard.pk %}"
+        hx-swap="outerHTML"
+>
+    <div class="alert-box">Sharing this dashboard will allow other NAV users to view, search for, and subscribe to it. Only share dashboards you want to be accessible to others.</div>
+    {% csrf_token %}
+    <div>
+        <input type="hidden" name="is_shared" value="off" />
+        <input
+            id="checkbox-dashboard-shared"
+            name="is_shared"
+            type="checkbox"
+            {% if dashboard.is_shared %}checked{% endif %}
+            {% if dashboard.is_shared %}
+            onchange="document.getElementById('unshare-warning').classList.toggle('hidden');"
+            {% endif %}
+        >
+        <label for="checkbox-dashboard-shared">
+            Share dashboard
+        </label>
+    </div>
+    <div id="unshare-warning" class="alert-box warning hidden">
+        Unsharing this dashboard will remove access for users who currently are subscribed to it.
+    </div>
+    <input type="submit" class="button small" value="Save sharing settings">
+</form>
+
+{% if changed %}
+{% include "webfront/_dashboard_nav_shared_indicator.html" with dashboard=dashboard swap=True %}
+{% endif %}
+
+{% if message %}
+<div id="dashboard-settings-feedback" hx-swap-oob="innerHtml">
+    <div class="alert-box success">
+        {{ message }}
+    </div>
+</div>
+{% endif %}

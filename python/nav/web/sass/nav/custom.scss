@@ -66,13 +66,13 @@
 
 #widgets-actions {
     box-shadow: 0px 3px 5px grey;
-    color: white;
     position: absolute;
     right: 0;
     top: 0;
     width: 40px;
     z-index: 1000;
     .widget-action {
+        color: white;
         background-color: $topbar-bg-color;
         height: 40px;
         display: flex;
@@ -83,18 +83,112 @@
             background-color: $primary-color;
             cursor: pointer;
         }
+        &:last-child {
+          border-bottom: none;
+        }
     }
-    .dashboard-settings {
+    .export-action {
       width: 100%;
-      .widget-action {
+      a.widget-action {
+        width: 100%;
         border-bottom: none;
-      }
-      .popover-content {
-        width: 800px;
       }
     }
 }
 
+#dropdown-dashboard-settings.popover {
+  width: 100%;
+  .widget-action {
+    border-bottom: none;
+  }
+  .popover-content {
+    width: 800px;
+  }
+  .row {
+    margin-bottom: 1em;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  #toggle-dashboard-shared-form {
+    * {
+      margin-bottom: 0.5rem;
+    }
+    *:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.dashboard-nav-wrapper {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+}
+
+.dashboard-meta-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.badge {
+    padding: 0.2rem 0.25rem;
+    font-size: 0.75rem;
+    background: #e0e0e0;
+    border: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    &.white {
+      background: #fff;
+      border-color: #bbb;
+    }
+}
+
+#dashboard-settings-feedback {
+  * {
+    margin-bottom: 0;
+  }
+}
+
+#dashboard-search-form {
+  .description {
+    color: lighten(#333, 20%);
+  }
+}
+
+#dashboard-search-results {
+  ul {
+    margin: 0;
+  }
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    * {
+      margin-bottom: 0;
+    }
+  }
+
+  .search-result-name {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    .dashboard-owner {
+      font-size: 0.8em;
+      color: lighten(#333, 20%);
+    }
+  }
+}
 
 /* Padding for all pages */
 
