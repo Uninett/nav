@@ -131,6 +131,12 @@ $fullscreen-color: #EEE;
         align-items: baseline;
         justify-content: space-between;
     }
+    .inline-list {
+      & > *:first-child {
+        margin-left: 0;
+      }
+      margin-bottom: 1rem !important;
+    }
 }
 
 
