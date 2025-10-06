@@ -15,7 +15,7 @@
             <span>
                 {{ d.name }}
             </span>
-            <i class="fa fa-star {% if not d.is_default or d.shared_by_other %}hidden{% endif %}"
+            <i class="fa fa-star {% if not d.is_default %}hidden{% endif %}"
                title="This is the default dashboard &mdash; it will be loaded when you log in. To change default, change to another dashboard and set it as default in the dashboard settings."></i>
             <i class="fa fa-share-alt {% if not d.shared_by_other %}hidden{% endif %}"
                title="This dashboard is shared by another account."></i>
