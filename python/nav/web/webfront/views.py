@@ -25,10 +25,10 @@ from urllib.parse import quote as urlquote
 from django.db import models
 from django.db.models import Q
 from django.http import (
+    HttpRequest,
+    HttpResponse,
     HttpResponseForbidden,
     HttpResponseRedirect,
-    HttpResponse,
-    HttpRequest,
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, render
@@ -45,6 +45,7 @@ from nav.auditlog.models import LogEntry
 from nav.models.profiles import (
     AccountDashboard,
     AccountDashboardSubscription,
+    AccountDefaultDashboard,
     AccountNavlet,
     NavbarLink,
 )
@@ -85,7 +86,7 @@ def index(request, did=None):
     """Controller for main page."""
     # Read files that will be displayed on front page
     account = get_account(request)
-    if account.is_anonymous:
+    if account.is_default_account():
         welcome = quick_read(WELCOME_ANONYMOUS_PATH)
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
@@ -159,6 +160,9 @@ def toggle_dashboard_shared(request, did):
 
     if not is_shared:
         AccountDashboardSubscription.objects.filter(dashboard=dashboard).delete()
+        AccountDefaultDashboard.objects.exclude(account=account).filter(
+            dashboard=dashboard
+        ).delete()
 
     return _render_share_form_response(
         request,
@@ -354,7 +358,7 @@ def login(request):
     origin = request.GET.get('origin', '').strip()
     if 'noaccess' in request.GET:
         account = get_account(request)
-        if account.is_anonymous:
+        if account.is_default_account():
             errors = ['You need to log in to access this resource']
         else:
             errors = [
@@ -518,7 +522,7 @@ def change_password(request):
     context = _create_preference_context(request)
     account = get_account(request)
 
-    if account.is_anonymous:
+    if account.is_default_account():
         return render(request, 'useradmin/not-logged-in.html', {})
 
     if request.method == 'POST':
@@ -572,19 +576,8 @@ def set_account_preference(request):
 def set_default_dashboard(request, did):
     """Set the default dashboard for the user"""
     account = get_account(request)
-    dash = get_object_or_404(AccountDashboard, pk=did, account=account)
-
-    old_defaults = list(
-        AccountDashboard.objects.filter(account=account, is_default=True)
-    )
-    for old_default in old_defaults:
-        old_default.is_default = False
-
-    dash.is_default = True
-
-    AccountDashboard.objects.bulk_update(
-        objs=old_defaults + [dash], fields=["is_default"]
-    )
+    dash = find_dashboard(account, did)
+    account.set_default_dashboard(dash.id)
 
     return HttpResponse('Default dashboard set to «{}»'.format(dash.name))
 
@@ -606,7 +599,7 @@ def delete_dashboard(request, did):
     dashboard = get_object_or_404(AccountDashboard, pk=did, account=account)
 
     is_last = AccountDashboard.objects.filter(account=account).count() == 1
-    if is_last or dashboard.is_default:
+    if is_last or dashboard.is_default_for_account(account):
         error_message = (
             "Cannot delete last dashboard"
             if is_last
