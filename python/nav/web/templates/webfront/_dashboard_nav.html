@@ -72,8 +72,8 @@
             {% endif %}
         {% endif %}
         {% include "webfront/_dashboard_nav_shared_indicator.html" with dashboard=dashboard %}
-        <div class="nav-tooltip unstyled">
-            <div class="badge" aria-describedby="owner-tooltip">
+        <div class="nav-tooltip" data-align="end">
+            <div class="badge unstyled-tooltip" aria-describedby="owner-tooltip">
                 <i class="fa fa-user"></i>
                 <span>{{ dashboard.account.name }}</span>
             </div>
