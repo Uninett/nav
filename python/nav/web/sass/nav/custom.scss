@@ -20,6 +20,50 @@
     .remove-widget { max-width: 250px; }
 }
 
+#navbar-search-form-mobile {
+  button {
+    // Override foundation top-bar style
+    top: 0;
+  }
+}
+.search-input-wrapper {
+  display: flex;
+  input {
+    height: 100%;
+  }
+}
+#navbar-search-results {
+  min-width: 100%;
+  width: fit-content;
+  max-height: 500px;
+  overflow-y: auto;
+
+  .result-group {
+    display: flex;
+    flex-direction: column;
+
+    button {
+      align-self: flex-end;
+    }
+
+    .result-item {
+      display: block;
+      width: 100%;
+      padding: 2px 0;
+    }
+    .result-item, .truncate-count {
+      border-top: 1px solid #ccc;
+      &:first-child {
+        border-top: none;
+      }
+    }
+  }
+
+  & > *:last-child {
+    margin-bottom: 0;
+  }
+}
+
 @media #{$small-only} {
     .remove-widget { width: 100%; }
 }

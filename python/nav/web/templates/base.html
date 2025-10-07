@@ -57,16 +57,7 @@
   <section class="top-bar-section">
     <ul class="left">
       <li class="has-form search">
-        <form id="navbar-search-form" action="{% url 'info-search' %}" method="get">
-          <div class="row collapse">
-            <div class="small-8 columns">
-              <input id="query" type="text" name="query" maxlength="100"/>
-            </div>
-            <div class="small-4 columns">
-              <input class="button secondary" type="submit" value="Search" />
-            </div>
-          </div>
-        </form>
+        {% include "info/_navbar_search_form.html" %}
       </li>
     </ul>
 
