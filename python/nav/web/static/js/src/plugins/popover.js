@@ -8,6 +8,18 @@ define([], function () {
 
     // Single click handler for all popover interactions
     document.addEventListener('click', handleClick);
+    document.addEventListener('popover.open', (e) => {
+        const id = e.detail?.id;
+        if (!id) return;
+        const popover = document.getElementById(id);
+        if (popover) openPopover(popover);
+    });
+    document.addEventListener("popover.close", (e) => {
+        const id = e.detail?.id;
+        if (!id) return;
+        const popover = document.getElementById(id);
+        if (popover) closePopover(popover);
+    })
   }
 
   function handleClick(e) {
@@ -44,6 +56,15 @@ define([], function () {
     } else {
       target.classList.remove('open');
       trigger.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  function openPopover(popover) {
+    if (!popover) return;
+    const trigger = document.querySelector(`[data-popover-target="#${popover.id}"]`);
+    popover.classList.add('open');
+    if (trigger) {
+      trigger.setAttribute('aria-expanded', 'true');
     }
   }
 
