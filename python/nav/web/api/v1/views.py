@@ -17,7 +17,7 @@
 
 from datetime import datetime, timedelta
 import logging
-from typing import Sequence
+from typing import Optional, Sequence
 
 from IPy import IP
 from django.http import HttpResponse, JsonResponse, QueryDict
@@ -1464,30 +1464,9 @@ class JWTRefreshViewSet(NAVAPIMixin, APIView):
     def post(self, request):
         if not LOCAL_JWT_IS_CONFIGURED:
             return Response("Invalid token", status=status.HTTP_403_FORBIDDEN)
-        # This adds support for requests via the browseable API.
-        # Browseble API sends QueryDict with _content key.
-        # Tests send QueryDict without _content key so it can be treated
-        # as a regular dict.
-        if isinstance(request.data, QueryDict) and '_content' in request.data:
-            json_string = request.data.get('_content')
-            if not json_string:
-                return Response("Empty JSON body", status=status.HTTP_400_BAD_REQUEST)
-            try:
-                data = json.loads(json_string)
-            except json.JSONDecodeError:
-                return Response("Invalid JSON", status=status.HTTP_400_BAD_REQUEST)
-            if not isinstance(data, dict):
-                return Response(
-                    "Invalid request body. Must be a JSON dict",
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        elif isinstance(request.data, dict):
-            data = request.data
-        else:
-            return Response(
-                "Invalid request body. Must be a JSON dict",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        data, error = _validate_post_data(request.data)
+        if error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
         incoming_token = data.get('refresh_token')
         if incoming_token is None:
@@ -1545,3 +1524,26 @@ class JWTRefreshViewSet(NAVAPIMixin, APIView):
             'refresh_token': refresh_token,
         }
         return Response(response_data)
+
+
+def _validate_post_data(data) -> tuple[Optional[dict], Optional[str]]:
+    """
+    This adds support for requests via the browseable API.
+    Browseable API sends QueryDict with _content key.
+    Tests send QueryDict without _content key so it can be treated as a regular dict.
+    """
+    if isinstance(data, QueryDict) and '_content' in data:
+        json_string = data.get('_content')
+        if not json_string:
+            return None, "Empty JSON body"
+        try:
+            data = json.loads(json_string)
+        except json.JSONDecodeError:
+            return None, "Invalid JSON"
+        if not isinstance(data, dict):
+            return None, "Invalid request body. Must be a JSON dict"
+        return data, None
+    elif isinstance(data, dict):
+        return data, None
+    else:
+        return None, "Invalid request body. Must be a JSON dict"
