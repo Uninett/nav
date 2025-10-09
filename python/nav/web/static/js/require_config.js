@@ -22,7 +22,8 @@ var require = {
         "underscore": "libs/underscore",
         "marionette": "libs/backbone.marionette.min",
         "vue": "libs/vue.min",
-        "driver": "libs/driver-1.3.6.min"
+        "driver": "libs/driver-1.3.6.min",
+        "tinysort": "libs/tinysort-3.1.4.min",
     },
     shim: {
         'libs/jquery-ui-timepicker-addon': ['libs/jquery-ui.min'],
