@@ -162,6 +162,7 @@ def search_by_kwargs(request, **kwargs):
             'interfaces': interfaces,
             'load_data_url': load_data_url,
             'loading': True,
+            'readonly': True,
         }
     )
 

@@ -1,6 +1,10 @@
 @import "../navsettings";
 
 #portadmin-wrapper {
+    &.loading .port_row {
+      opacity: 0.5;
+      pointer-events: none;
+    }
     .changed {
         background-color: bisque;
     }
@@ -18,4 +22,3 @@
         }
     }
 }
-
