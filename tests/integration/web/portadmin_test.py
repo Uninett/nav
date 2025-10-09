@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.encoding import smart_str
+from jnpr.junos.exception import ConnectRefusedError
 from mock import patch, Mock
 
 from nav.models.manage import Interface, Netbox, NetboxProfile
@@ -266,6 +267,32 @@ class TestPortadminDataLoading:
 
         # Verify error message was added
         mock_messages.error.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "exception,expected_msg",
+        [
+            (ConnectRefusedError("refused"), "Connection refused when contacting"),
+            (Exception("generic error"), "Unknown error when contacting"),
+        ],
+    )
+    @patch("nav.web.portadmin.views.get_and_populate_livedata")
+    @patch("nav.web.portadmin.views.messages")
+    def test_populate_infodict_should_handle_livedata_exceptions_and_add_error_message(
+        self,
+        mock_messages,
+        mock_get_livedata,
+        mock_request,
+        interface,
+        exception,
+        expected_msg,
+    ):
+        mock_get_livedata.side_effect = exception
+        netbox = interface.netbox
+        interfaces = [interface]
+        result = populate_infodict(mock_request, netbox, interfaces)
+
+        assert result["readonly"] is True
+        assert expected_msg in mock_messages.error.call_args[0][1]
 
     @patch('nav.web.portadmin.views.get_and_populate_livedata')
     @patch('nav.web.portadmin.views.json')

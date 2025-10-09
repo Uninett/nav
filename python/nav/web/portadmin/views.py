@@ -27,6 +27,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from jnpr.junos.exception import ConnectRefusedError
 
 from nav.auditlog.models import LogEntry
 
@@ -337,6 +338,20 @@ def _initialize_handler_and_error_state(request, netbox, interfaces):
     except DeviceNotConfigurableError as error:
         has_error = True
         messages.error(request, str(error))
+    except ConnectRefusedError:
+        has_error = True
+        messages.error(
+            request,
+            "Connection refused when contacting %s. Values displayed are from database"
+            % netbox.sysname,
+        )
+    except Exception as error:  # noqa: BLE001
+        has_error = True
+        messages.error(
+            request,
+            "Unknown error when contacting %s: %s. Values displayed are from database"
+            % (netbox.sysname, error),
+        )
 
     return has_error, handler
 
