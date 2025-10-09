@@ -35,7 +35,7 @@ require(['geomap/GeomapPlugin'], function (geomap) {
     });
 
     /* Start creating map when all content is rendered */
-    $(window).load(function () {
+    $(window).on('load', function () {
         geomap();
     });
 

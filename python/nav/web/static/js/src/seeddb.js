@@ -63,7 +63,7 @@ function (datatables, CheckboxSelector, FormFuck, ManagementProfile, seedDBRoomM
     if (document.readyState === 'complete') {
         executeOnLoad();
     } else {
-        $(window).load(executeOnLoad);
+        $(window).on('load', executeOnLoad);
     }
 
 
