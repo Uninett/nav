@@ -1,4 +1,4 @@
-define(['libs/jquery.tinysort'], function () {
+define(['tinysort'], function (tinysort) {
 
     /**
      * MultipleSelect - an alternative to QuickSelect
@@ -90,13 +90,21 @@ define(['libs/jquery.tinysort'], function () {
         },
         sortInitial: function () {
             this.findInitialOptions();
-            this.initial.sort(this.compareElements);
-            this.initial.detach().appendTo(this.initialNode);
+            const initialOptions = Array.from(this.initialNode[0].options);
+            const sortedOptions = tinysort(initialOptions, {selector: null, order: 'asc', natural: true});
+            this.initialNode.empty();
+            for (const option of sortedOptions) {
+                this.initialNode[0].appendChild(option);
+            }
         },
         sortChoices: function () {
             this.findChoiceOptions();
-            this.choices.sort(this.compareElements);
-            this.choices.detach().appendTo(this.choiceNode);
+            const choiceOptions = Array.from(this.choiceNode[0].options);
+            const sortedOptions = tinysort(choiceOptions, {selector: null, order: 'asc', natural: true});
+            this.choiceNode.empty();
+            for (const option of sortedOptions) {
+                this.choiceNode[0].appendChild(option);
+            }
         },
         addSubmitHandler: function () {
             /* Selects all elements in the initial node so that it is
