@@ -17,7 +17,7 @@
 
 from datetime import datetime, timedelta
 import logging
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Union
 
 from IPy import IP
 from django.http import HttpResponse, JsonResponse, QueryDict
@@ -50,10 +50,18 @@ import jwt
 
 from nav.django.settings import JWT_PUBLIC_KEY, JWT_NAME, LOCAL_JWT_IS_CONFIGURED
 from nav.macaddress import MacAddress
-from nav.models import manage, event, cabling, rack, profiles
+from nav.models import manage, event, cabling, rack, profiles, msgmaint
 from nav.models.api import JWTRefreshToken
 from nav.models.fields import INFINITY, UNRESOLVED
 from nav.web.auth.utils import get_account
+from nav.models.msgmaint import MaintenanceTask
+from nav.web.maintenance.forms import MaintenanceTaskForm
+from nav.web.maintenance.utils import (
+    ALLOWED_COMPONENTS,
+    COMPONENTS_WITH_INTEGER_PK,
+    ComponentType,
+    get_components_from_keydict,
+)
 from nav.web.servicecheckers import load_checker_classes
 from nav.util import auth_token, is_valid_cidr
 
@@ -178,6 +186,7 @@ def get_endpoints(request=None, version=1):
         'vendor': reverse_lazy('{}vendor'.format(prefix), **kwargs),
         'netboxentity': reverse_lazy('{}netboxentity-list'.format(prefix), **kwargs),
         'jwt_refresh': reverse_lazy('{}jwt-refresh'.format(prefix), **kwargs),
+        'maintenance': reverse_lazy('{}maintenance'.format(prefix), **kwargs),
     }
 
 
@@ -1524,6 +1533,161 @@ class JWTRefreshViewSet(NAVAPIMixin, APIView):
             'refresh_token': refresh_token,
         }
         return Response(response_data)
+
+
+class MaintenanceTaskViewSet(NAVAPIMixin, APIView):
+    """
+    A ViewSet for getting, posting, updating and deleting MaintenanceTasks.
+
+    Responds with a JSON dict representation of the existing/created/updated maintenance
+    task or an error message.
+
+    Example GET response for getting all maintenance tasks:
+        `[
+            {
+            },
+            {
+            }
+        ]`
+
+    Example GET request for getting a specific maintenance task:
+        `/api/1/maintenance/1/`
+
+    Example GET response for getting a specific maintenance task:
+        `/api/1/maintenance/1/`
+        `{
+            "id": 59,
+            "maintenance_components": "[<Netbox: buick.lab.uninett.no>,
+                <Netbox: oldsmobile.lab.uninett.no>]",
+            "start_time": "2025-10-01T09:17:00",
+            "end_time": "9999-12-31T23:59:59.999999",
+            "description": "Changing out old equipment in serverroom",
+            "author": "admin",
+            "state": "scheduled"
+        }`
+
+    Example POST request:
+        `/api/1/maintenance/` with body
+        `{
+            "start_time": "2025-09-29T11:11:11",
+            "end_time": "2025-09-29T13:11:11",
+            "no_end_time": false,
+            "description": "Changing out old equipment in serverroom",
+            "location": [1, 2],
+            "room": ["myroom", "secondroom"],
+            "netbox": [1, 2],
+            "service": [1, 2],
+            "netboxgroup": [1, 2]
+         }`
+
+    Example POST response:
+        `{
+            "id": 59,
+            "maintenance_components": "[<Netbox: buick.lab.uninett.no>,
+                <Netbox: oldsmobile.lab.uninett.no>]",
+            "start_time": "2025-10-01T09:17:00",
+            "end_time": "9999-12-31T23:59:59.999999",
+            "description": "Changing out old equipment in serverroom",
+            "author": "admin",
+            "state": "scheduled"
+        }`
+
+    Example DELETE request for deleting a specific maintenance task:
+        `/api/1/maintenance/1/`
+    """
+
+    serializer_class = serializers.MaintenanceTaskSerializer
+    filterset_fields = ('author',)
+    search_fields = ('description',)
+
+    def get_queryset(self):
+        queryset = MaintenanceTask.objects
+        current = self.request.query_params.get('current', None)
+        past = self.request.query_params.get('past', None)
+        future = self.request.query_params.get('future', None)
+        endless = self.request.query_params.get('endless', None)
+
+        if current:
+            queryset = queryset.current()
+        if past:
+            queryset = queryset.past()
+        if future:
+            queryset = queryset.future()
+        if endless:
+            queryset = queryset.endless()
+
+        return queryset.all()
+
+    @staticmethod
+    def post(request):
+        data, error = _validate_post_data(request.data)
+        if error:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        component_keys = {
+            key: value for key, value in data.items() if key in ALLOWED_COMPONENTS
+        }
+
+        components, component_errors = _validate_and_get_components(component_keys)
+        if component_errors:
+            return Response(component_errors, status=status.HTTP_400_BAD_REQUEST)
+
+        task_form = MaintenanceTaskForm(data)
+
+        if not task_form.is_valid():
+            return Response(task_form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        start_time = task_form.cleaned_data['start_time']
+        end_time = task_form.cleaned_data['end_time']
+        no_end_time = task_form.cleaned_data['no_end_time']
+        state = msgmaint.MaintenanceTask.STATE_SCHEDULED
+        if start_time < datetime.now() and end_time and end_time <= datetime.now():
+            state = msgmaint.MaintenanceTask.STATE_SCHEDULED
+
+        new_task = msgmaint.MaintenanceTask()
+        new_task.start_time = start_time
+        if no_end_time:
+            new_task.end_time = INFINITY
+        elif not no_end_time and end_time:
+            new_task.end_time = end_time
+        new_task.description = task_form.cleaned_data['description']
+        new_task.state = state
+        new_task.author = request.account.login
+        new_task.save()
+
+        for component in components:
+            table = component._meta.db_table
+            descr = str(component) if table in COMPONENTS_WITH_INTEGER_PK else None
+            task_component = msgmaint.MaintenanceComponent(
+                maintenance_task=new_task,
+                key=table,
+                value=component.pk,
+                description=descr,
+            )
+            task_component.save()
+
+        serializer = serializers.MaintenanceTaskSerializer(instance=new_task)
+
+        return Response(serializer.data)
+
+
+def _validate_and_get_components(
+    component_data: dict[str, list[Union[int, str]]],
+) -> tuple[Optional[list[ComponentType]], str]:
+    """
+    Validates the given components and returns a tuple of the found components and
+    potential errors
+    """
+    try:
+        components, component_data_errors = get_components_from_keydict(component_data)
+    except Exception as e:  # noqa
+        component_data_errors = str(e)
+    if component_data_errors:
+        return None, component_data_errors
+
+    if not components:
+        return components, "No components to put on maintenance selected."
+    return components, ""
 
 
 def _validate_post_data(data) -> tuple[Optional[dict], Optional[str]]:

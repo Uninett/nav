@@ -23,7 +23,7 @@ from rest_framework.exceptions import ValidationError
 
 from nav.django.forms import validate_aliases
 from nav.web.api.v1.fields import DisplayNameWritableField
-from nav.models import manage, cabling, rack, profiles
+from nav.models import cabling, manage, msgmaint, profiles, rack
 from nav.web.seeddb.page.netbox.edit import get_sysname
 
 
@@ -552,4 +552,14 @@ class NetboxEntitySerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = manage.NetboxEntity
+        fields = '__all__'
+
+
+class MaintenanceTaskSerializer(serializers.ModelSerializer):
+    """Serializer for the MaintenanceTask model"""
+
+    maintenance_components = serializers.CharField(source='get_components')
+
+    class Meta(object):
+        model = msgmaint.MaintenanceTask
         fields = '__all__'
