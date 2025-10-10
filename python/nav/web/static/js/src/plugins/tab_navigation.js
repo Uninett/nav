@@ -24,7 +24,7 @@ define(['jquery-ui'], function () {
         $selector.bind('tabsactivate', function (event, ui) {
             //* Check if this is the tabs we're hooked to *//
             if (event.target.id === $selector.attr('id')) {
-                var hashValue = ui.newPanel.selector;
+                var hashValue = '#' + ui.newPanel.attr('id');
                 if (ui.newTab.index() != 0 || window.location.hash) {
                     var hashes = window.location.hash.split('!');
                     if (parent) {
