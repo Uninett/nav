@@ -93,13 +93,15 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
                     return listItem;
                 });
         },
-        restartingInterfaces: function() {
+        restartingInterfaces: async function() {
             const restartReason = "A computer connected to a port does not detect that the vlan changes. When that happens the computer will have the IP-address from the old vlan and it will lose connectivity. But if the link goes down and up (a 'restart') the computer will send a request for a new address. 'Restarting' interfaces is only done when changing vlans.";
             const why = $('<span class="nav-tooltip">' +
                 '<span aria-describedby="restart-tooltip">(why?)</span>' +
                 '<span id="restart-tooltip" role="tooltip">' + restartReason + '</span>' +
                 '</span>');
-            return this.addFeedback('Restarting interfaces ').append(why, this.createProgress());
+            const listItem = await this.addFeedback('Restarting interfaces ');
+            listItem.append(why, this.createProgress());
+            return listItem;
         },
         committingConfig: function() {
             const self = this;
