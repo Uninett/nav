@@ -1,7 +1,9 @@
 {# NB! This template can be used directly (without form template wrapper) for cases where form.helper.form_tag is set to False. #}
 {% load forms %}
 
-{% csrf_token %}
+{% if not disable_csrf %}
+    {% csrf_token %}
+{% endif %}
 
 {% include 'foundation-5/errors.html' %}
 
