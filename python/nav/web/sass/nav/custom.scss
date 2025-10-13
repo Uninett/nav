@@ -20,6 +20,13 @@
     .remove-widget { max-width: 250px; }
 }
 
+#navbar-search-form {
+  top: 7px;
+  button, input {
+    top: 0;
+  }
+}
+
 #navbar-search-form-mobile {
   button {
     // Override foundation top-bar style
@@ -28,8 +35,11 @@
 }
 .search-input-wrapper {
   display: flex;
+  input, button {
+    height: 1.8rem;
+  }
   input {
-    height: 100%;
+    max-width: 250px;
   }
 }
 #navbar-search-results {
@@ -37,6 +47,7 @@
   width: fit-content;
   max-height: 500px;
   overflow-y: auto;
+  transform: none;
 
   .result-group {
     display: flex;
