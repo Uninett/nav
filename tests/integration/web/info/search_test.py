@@ -2,7 +2,7 @@
 import pytest
 from django.urls import reverse
 
-from nav.models.manage import Interface, Netbox
+from nav.models.manage import Interface
 
 
 def test_search_for_ip_devices_should_not_crash(client):
@@ -90,17 +90,8 @@ class TestIndexSearchPreviewView:
 
 
 @pytest.fixture()
-def netbox(management_profile):
-    box = Netbox(
-        ip='10.254.254.254',
-        sysname='box.example.org',
-        organization_id='myorg',
-        room_id='myroom',
-        category_id='SRV',
-    )
-    box.save()
-    yield box
-    box.delete()
+def netbox(localhost):
+    yield localhost
 
 
 def create_interface(
