@@ -65,6 +65,12 @@ dependencies = [
 
 [project.optional-dependencies]
 ldap = ["python-ldap==3.4.5"]  # optional for LDAP authentication, requires libldap (OpenLDAP) to build
+allauth-mfa = [
+    "django-allauth[mfa]",
+]
+allauth-social = [
+    "django-allauth[socialaccount]",
+]
 docs = ["sphinx_rtd_theme>=2.0.0"]
 
 [dependency-groups]
