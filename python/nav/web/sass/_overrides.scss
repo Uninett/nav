@@ -180,3 +180,8 @@ $driver-popover-progress-fg: $driver-popover-secondary-fg;
     }
   }
 }
+
+/* Flatpickr calendar customizations */
+.flatpickr-calendar {
+  border-radius: 0;
+}

@@ -1,9 +1,10 @@
-require(["libs/jquery-ui-timepicker-addon"], function () {
+require(["flatpickr"], function (flatpickr) {
     $(function () {
-        $('.datetimepicker').datetimepicker({ 
-            'dateFormat': 'yy-mm-dd',
-            'timeFormat': 'HH:mm'
-            });
-    }); 
+        flatpickr('.datetimepicker', {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            allowInput: true
+        })
+    });
 });
-
