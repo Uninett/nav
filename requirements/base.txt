@@ -48,3 +48,5 @@ requests
 
 pyjwt>=2.6.0
 distro
+
+django-allauth[mfa,socialaccount]
