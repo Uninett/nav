@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import pytest
 from django.urls import reverse
 
 from nav.models.manage import Interface
@@ -59,8 +58,8 @@ class TestIndexSearchPreviewView:
         assert response.status_code == 200
         assert len(response.context['results']) > 0
 
-    def test_given_valid_query_it_should_return_results(self, client, db, netbox):
-        response = self._handle_search_request(client, netbox.sysname)
+    def test_given_valid_query_it_should_return_results(self, client, db, localhost):
+        response = self._handle_search_request(client, localhost.sysname)
         assert response.status_code == 200
         results = response.context['results']
         assert results is not None
@@ -68,11 +67,11 @@ class TestIndexSearchPreviewView:
         assert any(len(provider.results) > 0 for provider in results)
 
     def test_given_more_than_five_results_then_it_should_truncate_results(
-        self, client, db, netbox
+        self, client, db, localhost
     ):
         # Create more than 5 interfaces to trigger truncation
         for i in range(10):
-            create_interface(netbox, ifname=f'GigabitEthernet0/{i}')
+            create_interface(localhost, ifname=f'GigabitEthernet0/{i}')
         response = self._handle_search_request(client, "Test Interface")
         results = response.context['results']
         # Find the Interfaces provider
@@ -87,11 +86,6 @@ class TestIndexSearchPreviewView:
     def _handle_search_request(client, query):
         url = reverse('info-search-preview') + f'?query={query}'
         return client.get(url)
-
-
-@pytest.fixture()
-def netbox(localhost):
-    yield localhost
 
 
 def create_interface(
