@@ -104,10 +104,11 @@ def index_search_preview(request):
 
 def _render_search_results(request, results=None, query=None, show_results=True):
     """Render search results"""
+
     response = render(
         request,
         "info/_navbar_search_results.html",
-        {"results": results, "query": "" if not query else query},
+        {"results": results, "query": query or '', "show_results": show_results},
     )
     event = "popover.open" if show_results else "popover.close"
     return trigger_client_event(
