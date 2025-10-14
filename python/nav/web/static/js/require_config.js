@@ -27,7 +27,6 @@ var require = {
         "flatpickr": "libs/flatpickr-4.6.13.min",
     },
     shim: {
-        'libs/jquery-ui-timepicker-addon': ['libs/jquery-ui.min'],
         'libs/underscore': {
             exports: '_'
         },
