@@ -141,12 +141,14 @@ MIDDLEWARE = (
     'nav.web.auth.middleware.AuthorizationMiddleware',
     'nav.django.legacy.LegacyCleanupMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 )
 
 AUTHENTICATION_BACKENDS = [
     # "nav.web.auth.backends.NAVRemoteUserBackend",
     "nav.web.auth.ldap_auth_backend.LdapBackend",
     "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/index/login/'
@@ -248,6 +250,12 @@ INSTALLED_APPS = (
     'nav.portadmin.napalm',
     'nav.web.portadmin',
     'django.contrib.postgres',
+    'allauth',
+    'allauth.account',
+    'allauth.mfa',
+    'allauth.socialaccount',
+    # noqa: Needs to be a setting
+    #'allauth.socialaccount.providers.dataporten',
 )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -331,3 +339,17 @@ OIDC_AUTH = {
 # Add NAV and OS-versions so they are added to exception views
 NAV_VERSION = nav.buildconf.VERSION
 OS_VERSION = get_os_version()
+
+# Allauth settings
+
+ACCOUNT_ADAPTER = "nav.web.auth.allauth.adapter.NAVAccountAdapter"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'login'
+ACCOUNT_ALLOW_SIGNUPS = False
+ACCOUNT_MAX_EMAIL_ADDRESSES = 1
+LOGIN_URL = '/accounts/login/'
+MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN = True  # allow localhost
+MFA_TOTP_ISSUER = 'NAV'
+MFA_TOTP_TOLERANCE = 1
+MFA_SUPPORTED_TYPES = ['totp', 'recovery_codes']
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_ADAPTER = 'nav.web.auth.allauth.adapter.NAVSocialAccountAdapter'

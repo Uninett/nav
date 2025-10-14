@@ -24,6 +24,7 @@ from urllib import parse
 from django.http import HttpRequest
 from django.urls import reverse
 
+from nav.django.defaults import LOGIN_URL
 from nav.auditlog.models import LogEntry
 from nav.web.auth import remote_user
 from nav.web.auth.sudo import desudo
@@ -35,7 +36,7 @@ _logger = logging.getLogger(__name__)
 # This may seem like redundant information, but it seems django's reverse
 # will hang under some usages of these middleware classes - so until we figure
 # out what's going on, we'll hardcode this here.
-LOGIN_URL = '/index/login/'
+# LOGIN_URL = '/accounts/login/'
 # The local logout url, redirects to '/' after logout
 # If the entire site is protected via remote_user, this link must be outside
 # that protection!
