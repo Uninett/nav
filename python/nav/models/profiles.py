@@ -373,6 +373,26 @@ class Account(AbstractBaseUser):
     def get_email_addresses(self):
         return self.alert_addresses.filter(type__name=AlertSender.EMAIL)
 
+    @property
+    def has_default_dashboard(self):
+        """Returns True if the user has a default dashboard preference set."""
+        return AccountDefaultDashboard.objects.filter(account_id=self.id).exists()
+
+    @property
+    def default_dashboard(self):
+        """Returns the user's default dashboard, or None if not set."""
+        try:
+            mapping = AccountDefaultDashboard.objects.get(account_id=self.id)
+            return mapping.dashboard
+        except AccountDefaultDashboard.DoesNotExist:
+            return None
+
+    def set_default_dashboard(self, dashboard_id: int):
+        """Sets the user's default dashboard preference."""
+        AccountDefaultDashboard.objects.update_or_create(
+            account_id=self.id, defaults={'dashboard_id': dashboard_id}
+        )
+
 
 class AccountGroup(models.Model):
     """NAV account groups"""
@@ -1659,7 +1679,6 @@ class AccountDashboard(models.Model):
     """Stores dashboards for each user"""
 
     name = VarcharField()
-    is_default = models.BooleanField(default=False)
     num_columns = models.IntegerField(default=3)
     account = models.ForeignKey(
         Account,
@@ -1701,6 +1720,10 @@ class AccountDashboard(models.Model):
 
     def is_subscribed(self, account):
         return self.subscribers.filter(account=account).exists()
+
+    def is_default_for_account(self, account):
+        default = account.default_dashboard
+        return default and default.id == self.id
 
     class Meta(object):
         db_table = 'account_dashboard'
