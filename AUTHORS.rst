@@ -53,6 +53,10 @@ Other contributors and previous maintainers
   Active from 2017, until he left Uninett in 2019. An experienced Python
   developer who, among other things, rewrote the ipdevpoll multiprocess mode.
 
+* Paulo Pamplona <paulo at nordu.net>
+  Works at SUNET. Contributed a bugfix to strip null-bytes from bytestrings being
+  made safe for PostgreSQL.
+
 * Joar Heimonen <contact at joar.me>
   Contributed Palo Alto ARP plugin to enable ipdevpoll fetch ARP data from Palo
   Alto firewalls.
