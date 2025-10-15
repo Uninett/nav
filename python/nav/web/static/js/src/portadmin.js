@@ -95,7 +95,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         },
         restartingInterfaces: async function() {
             const restartReason = "A computer connected to a port does not detect that the vlan changes. When that happens the computer will have the IP-address from the old vlan and it will lose connectivity. But if the link goes down and up (a 'restart') the computer will send a request for a new address. 'Restarting' interfaces is only done when changing vlans.";
-            const why = $('<span class="nav-tooltip">' +
+            const why = $('<span class="nav-tooltip" data-position="fixed">' +
                 '<span aria-describedby="restart-tooltip">(why?)</span>' +
                 '<span id="restart-tooltip" role="tooltip">' + restartReason + '</span>' +
                 '</span>');
@@ -216,9 +216,9 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
 
     function addSaveListener($wrapper) {
         /* Save when clicking on the save buttons. */
-        $wrapper.on('click', '.changed .portadmin-save', function (event) {
+        $wrapper.on('click', '.changed .portadmin-save', async function (event) {
             var $row = $(event.target).parents(parentSelector);
-            saveRow($row);
+            await saveRow($row);
         });
     }
 
@@ -227,8 +227,8 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
     }
 
     function bulkSave() {
-        $(".changed").each(function (index, card) {
-            saveRow($(card));
+        $(".changed").each(async function (index, card) {
+            await saveRow($(card));
         });
     }
 
@@ -296,7 +296,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         markAsUnchanged(row);
     }
 
-    function saveRow($row) {
+    async function saveRow($row) {
         /*
          * This funcion does an ajax call to save the information given by the user
          * when the save-button is clicked.
@@ -309,7 +309,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         }
 
         // Post data and wait for json-formatted returndata. Display status information to user
-        saveInterface(create_ajax_data($row));
+        await saveInterface(create_ajax_data($row));
     }
 
     function create_ajax_data($row) {
@@ -344,7 +344,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         return data;
     }
 
-    function saveInterface(interfaceData) {
+    async function saveInterface(interfaceData) {
         var rowid = interfaceData.interfaceid;
         // If a save on this card is already in progress, do nothing.
         if (nav_ajax_queue.indexOf(rowid) > -1) {
@@ -359,7 +359,7 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
             return;
         }
 
-        doAjaxRequest(rowid);
+        await doAjaxRequest(rowid);
     }
 
     async function doAjaxRequest(rowid) {
@@ -422,10 +422,10 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
 
             if (nav_ajax_queue.length === 0) {
                 enableSaveallButtons();
-                commitConfig(interfaceData.interfaceid);
+                await commitConfig(interfaceData.interfaceid);
             } else {
                 // Process next entry in queue
-                doAjaxRequest(nav_ajax_queue[0]);
+                await doAjaxRequest(nav_ajax_queue[0]);
             }
         }
     }
@@ -458,15 +458,15 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         });
     }
 
-    function restartInterfaces() {
+    async function restartInterfaces() {
         // Sends a request to restart all interfaces in the restart queue, if any, and then add
         if (restart_queue.length == 0) {
             feedback.addCloseButton();
             return;
         }
 
-        var listItem = feedback.restartingInterfaces();
-        var request = $.post('restart_interfaces', {'interfaceid': restart_queue});
+        const listItem = await feedback.restartingInterfaces();
+        const request = $.post('restart_interfaces', {'interfaceid': restart_queue});
         request.done(function() {
             console.log("Interfaces restarted: " + restart_queue)
             feedback.endProgress(listItem, 'success');
