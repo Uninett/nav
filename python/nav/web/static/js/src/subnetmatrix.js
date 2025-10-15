@@ -12,7 +12,7 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
             10: 'usage-low',
             0: ' usage-vlow'
         };
-        this.tooltipTemplateV4 = _.template(
+        this.popoverTemplateV4 = _.template(
             '<h5><%= heading %></h5>' +
                 '<p>Active IPs: <%= active %> (of max <%= max %>)<br>' +
                 'Usage: <%= usage %>%<br>' +
@@ -25,7 +25,7 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 '<a href="<%= url_vlan %>" title="<%= title_vlan %>">' +
                 '<%= linktext_vlan %></a>'
         );
-        this.tooltipTemplateV6 = _.template(
+        this.popoverTemplateV6 = _.template(
             '<h5><%= heading %></h5>' +
                 '<p>Active IPs: <%= active %><br>' +
                 '<% if (vlan_id) { %>VLAN: <%= vlan_id %><br><% } %>' +
@@ -86,14 +86,15 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
             $element.removeClass(this.getColorClasses).addClass(this.getClass(result));
             if ($element.attr('colspan') > 4) {
                 // Add link and text for usage if colspan is large enough
-                $element.append(this.usageString(result));
+                const triggerElement = $element.find('[aria-haspopup]');
+                triggerElement.append(this.usageString(result));
             }
-            this.createTooltipText($element, this.tooltipTemplateV4, result);
+            this.createPopoverText($element, this.popoverTemplateV4, result);
         },
 
         modifyV6Cell: function($element, result) {
             $element.attr('style', 'background-color: ' + this.getIpv6Color(result));
-            this.createTooltipText($element, this.tooltipTemplateV6, result);
+            this.createPopoverText($element, this.popoverTemplateV6, result);
         },
 
 
@@ -120,7 +121,7 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
         },
 
 
-        createTooltipText: function($element, template, data) {
+        createPopoverText: function($element, template, data) {
             var text = template({
                 heading: data.prefix,
                 active: data.active_addresses,
@@ -138,7 +139,8 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
                 title_vlan: "View vlan info for related vlan",
                 linktext_vlan: "View vlan info"
             });
-            $element.attr('title', text);
+            const popoverContent = $element.find('.popover-content');
+            popoverContent.html(text);
         },
 
 
@@ -172,82 +174,47 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
 
 
     /**
-     * Handler for adding and manipulating tooltips
+     * Handler for adding and manipulating cell popovers
      */
-    function TooltipHandler(container) {
+    function PopoverHandler(container) {
         this.container = container;
-        this.openTips = [];  // Store open tooltips here
     }
 
-    TooltipHandler.prototype = {
+    PopoverHandler.prototype = {
         addListeners: function() {
-            var self = this;
-
-            // Create tooltips on mouseenter (as opposed to on click) to avoid title to be shown
-            this.container.on('mouseenter', '.has-loaded', function(event) {
-                var $target = $(event.target);
-
-                if (!$target.data('selector')) {
-                    // selector data attribute is only there if create has been
-                    // run before
-                    self.createTooltip($target);
-                }
-            });
-
-            // Actually show the tooltip only on click.
+            const self = this;
+            // When a cell is clicked, adjust the popover position and add sparkline if needed
             this.container.on('click', function(event) {
-                var $cell = event.target.nodeName === 'TD' ? $(event.target) : $(event.target).closest('td');
-
-                if ($cell.hasClass('has-loaded')) {
-                    // if for some reason the tooltip has not been created, do it now
-                    if (!$cell.data('selector')) {
-                        self.createTooltip($target);
-                    }
-
-                    if ($cell.hasClass('open')) {
-                        self.closeAllTips();
-                    } else {
-                        self.openTip($cell);
-                    }
-                } else {
-                    // If we click outside the cells, remove all tooltips
-                    self.closeAllTips();
-                }
+                const $cell = event.target.nodeName === 'TD' ? $(event.target) : $(event.target).closest('td');
+                self.adjustPopoverPosition($cell);
+                self.addSparkline($cell);
             });
-
-        },
-
-        createTooltip: function(target) {
-            Foundation.libs.tooltip.create(target);
-        },
-
-        closeAllTips: function() {
-            var popped = this.openTips.pop();
-            while (typeof popped !== 'undefined') {
-                Foundation.libs.tooltip.hide(popped);
-                popped = this.openTips.pop();
-            }
-        },
-
-        openTip: function($target) {
-            this.closeAllTips();
-            Foundation.libs.tooltip.showTip($target);
-            this.addSparkline($target);
-            this.openTips.push($target);
         },
 
         /**
-         * Add sparklines to tooltips. The tooltips created by Foundation
-         * tooltips can be found by following the selector on the element with
-         * the listener.
+         * Adjust the position of the cell popover if it would go off screen
+         * @param cell
+         */
+        adjustPopoverPosition: function (cell) {
+            const popover = cell.find('.popover');
+            const popoverContent = cell.find('.popover-content');
+            const rect = popoverContent[0].getBoundingClientRect();
+            if (rect.right > window.innerWidth) {
+              popover[0].dataset.align = "end";
+            }
+        },
+
+        /**
+         * Add sparklines to popovers.
          */
         addSparkline: function($target) {
-            var self = this;
-            var $toolTip = $('#' + $target.data('selector'));
-            if ($toolTip.find('.usage-sparkline').length === 0) {
+            const self = this;
+            const $popoverContent = $target.find('.popover-content').first();
+
+            if ($popoverContent.find('.usage-sparkline').length === 0) {
                 var request = $.getJSON($target.data('url'));
                 var sparkContainer = $('<div class="usage-sparkline">&nbsp;</div>');
-                sparkContainer.appendTo($toolTip);
+                sparkContainer.appendTo($popoverContent);
 
                 request.done(function(response) {
                     if (response.length > 0) {
@@ -285,11 +252,11 @@ require(['libs/underscore', 'libs/jquery.sparkline'], function() {
 
     // Initialize stuff on page load
     $(function() {
-        var $container = $('#subnet-matrix');
+        const $container = $('#subnet-matrix');
         if ($container.length) {
-            var tooltipHandler = new TooltipHandler($container);
-            tooltipHandler.addListeners();
-            var fetcher = new UsageFetcher($container);
+            const popoverHandler = new PopoverHandler($container);
+            popoverHandler.addListeners();
+            const fetcher = new UsageFetcher($container);
             fetcher.fetchUsage();
         }
     });
