@@ -3,16 +3,25 @@
 
 {{ aliastemplate }}
 
+{% if messages %}
+{% include 'portadmin/_messages.html' with hx_swap_oob=True %}
+{% endif %}
 
-<div id="portadmin-wrapper" class="faketable">
-
+<div id="portadmin-wrapper" class="faketable{% if loading %} loading{% endif %}">
   <div class="caption">
     <a href="{{ netbox.get_absolute_url }}"
        title="Go to Ip Device Info for {{ netbox }}">
       {{ netbox.get_short_sysname }}
     </a>
     {% if handlertype %}({{ handlertype }}){% endif %}
-
+    {% if loading %}
+    <div class="loading-indicator right">
+        <span>
+            <img src="/static/images/select2/select2-spinner.gif" alt="Loading spinner" />
+        </span>
+        Loading live data from device
+    </div>
+    {% endif %}
   </div>
   <form id="save-changes-form" style="display: none;">
     {% csrf_token %}
@@ -27,12 +36,15 @@
     <div class="hide-for-small medium-1 column">
       Linked
     </div>
-    <div class="hide-for-small {% if supports_poe %}medium-3{% else %}medium-4{% endif %} column">
+    <div class="hide-for-small {% if readonly or supports_poe %}medium-3{% else %}medium-4{% endif %} column">
       Port description
     </div>
     <div class="hide-for-small medium-2 column">
       Vlan
     </div>
+    {% if readonly %}
+        <div class="hide-for-small medium-2 column"></div>
+    {% endif %}
     {% if voice_vlan %}
       <div class="hide-for-small medium-1 column ">
         Tel
@@ -43,11 +55,11 @@
         PoE State
       </div>
     {% endif %}
-    <div class="column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
-      {% if not readonly %}
+    {% if not readonly %}
+      <div class="column {% if voice_vlan %}medium-1{% else %}medium-2{% endif %} text-right">
         <input type="button" class="saveall_button button tiny" value="Save all"/>
-      {% endif %}
-    </div>
+      </div>
+    {% endif %}
   </div>
 
 
@@ -83,7 +95,7 @@
       </div>
 
       {# Port Description - input field #}
-      <div class="{% if supports_poe %}medium-3{% else %}medium-4{% endif %} column">
+      <div class="{% if readonly or supports_poe %}medium-3{% else %}medium-4{% endif %} column">
         {% if interface.iseditable and not readonly %}
           <input class="ifalias" type="text"
                  value="{{ interface.ifalias|default_if_none:'' }}"
@@ -151,6 +163,10 @@
         {% endif %}
       </div>
 
+      {% if readonly %}
+        <div class="hide-for-small medium-2 column"></div>
+      {% endif %}
+
       {# Optional checkbox for voice vlan #}
       {% if voice_vlan %}
         <div class="small-4 medium-1 column">
@@ -189,11 +205,11 @@
       {% endif %}
 
       {# Button for saving #}
-      <div class="{% if voice_vlan %}medium-1 small-4{% else %}medium-2 small-8{% endif %}  column text-right">
-        {% if interface.iseditable and not readonly %}
-          <button class="tiny portadmin-save secondary">Save</button>
-        {% endif %}
-      </div>
+      {% if interface.iseditable and not readonly %}
+          <div class="{% if voice_vlan %}medium-1 small-4{% else %}medium-2 small-8{% endif %}  column text-right">
+              <button class="tiny portadmin-save secondary">Save</button>
+          </div>
+      {% endif %}
 
       <div id="{{ interface.id }}-errors" class="small-12 column error-column"></div>
 
