@@ -1,0 +1,22 @@
+{% if show_results %}
+    {% if not results %}
+    <div class="alert-box secondary">No results for "{{ query }}"</div>
+    {% else %}
+        {% for provider in results %}
+        <div class="panel result-group">
+            <h5>{{ provider.name }} ({{ provider.count }})</h5>
+            <div>
+                {% for item in provider.results %}
+                <a href="{{ item.href }}" class="result-item">{{ item.inst }}</a>
+                {% endfor %}
+            </div>
+            {% if provider.truncated %}
+            <div class="truncate-count"><small>... {{ provider.truncated_count }} results hidden</small></div>
+            <button class="secondary tiny view-all-button" type="submit">
+                View all results
+            </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% endif %}
+{% endif %}
