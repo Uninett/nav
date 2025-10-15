@@ -31,6 +31,7 @@ from nav.models.event import AlertHistory
 from nav.models.manage import Netbox, NetboxEntity, Module
 from nav.models.msgmaint import MaintenanceTask, MaintenanceComponent
 from nav.models.fields import INFINITY
+from nav.web.auth.utils import get_account, set_account
 from . import forms, STATELESS_THRESHOLD
 
 _logger = logging.getLogger(__name__)
@@ -43,25 +44,23 @@ class StatusView(View):
 
     def get_status_preferences(self):
         """Gets the status preferences for the user on the request"""
-        preferences = self.request.account.preferences.get(
-            self.request.account.PREFERENCE_KEY_STATUS
-        )
+        account = get_account(self.request)
+        preferences = account.preferences.get(account.PREFERENCE_KEY_STATUS)
         if preferences:
             try:
                 if preferences.startswith("b'") and preferences.endswith("'"):
                     # Status filter was incorrectly saved as a string representation of
                     # bytes without being decoded ("b'1234", instead of "1234")
                     preferences = preferences[2:-1]
-                    self.request.account.preferences[
-                        self.request.account.PREFERENCE_KEY_STATUS
-                    ] = preferences
-                    self.request.account.save()
+                    account.preferences[account.PREFERENCE_KEY_STATUS] = preferences
+                    account.save()
                 data = base64.b64decode(preferences)
+                set_account(self.request, account, cycle_session_id=False)
                 return pickle.loads(data)
             except Exception:  # noqa: BLE001 - maybe an old, none-base64 pickle
                 _logger.exception(
                     "Ignoring potential legacy status preferences for user %s",
-                    self.request.account.login,
+                    account.login,
                 )
                 return self.set_default_parameters({})
 
@@ -73,7 +72,7 @@ class StatusView(View):
 
     def get_permits(self):
         """Get the permits relevant for the page for the account"""
-        account = self.request.account
+        account = get_account(self.request)
         can_acknowledge_alerts = account.has_perm('can_acknowledge_alert', '')
         can_clear_alerts = account.has_perm('can_clear_alert', '')
         can_put_on_maintenance = account.has_perm(
@@ -114,10 +113,11 @@ def save_status_preferences(request):
 
     form = forms.StatusPanelForm(request.POST)
     if form.is_valid():
-        account = request.account
+        account = get_account(request)
         datastring = base64.b64encode(pickle.dumps(form.cleaned_data)).decode()
         account.preferences[account.PREFERENCE_KEY_STATUS] = datastring
         account.save()
+        set_account(request, account, cycle_session_id=False)
         return HttpResponse()
     else:
         return HttpResponse('Form was not valid', status=400)
@@ -160,8 +160,9 @@ def acknowledge_alert(request):
     if request.method == 'POST':
         alerts = get_alerts_from_request(request)
         comment = request.POST.get('comment')
+        account = get_account(request)
         for alert in alerts:
-            alert.acknowledge(request.account, comment)
+            alert.acknowledge(account, comment)
         return HttpResponse()
     else:
         return HttpResponse('Wrong request type', status=400)
@@ -170,19 +171,19 @@ def acknowledge_alert(request):
 def put_on_maintenance(request):
     """Puts the subject of the alerts on maintenance"""
     if request.method == 'POST':
+        account = get_account(request)
         alerts = get_alerts_from_request(request)
         netboxes = Netbox.objects.filter(pk__in=[x.netbox_id for x in alerts])
         if not netboxes:
             return HttpResponse("No netboxes found", status=404)
 
         default_descr = (
-            "On maintenance till up again; set from status page "
-            "by " + request.account.login
+            "On maintenance till up again; set from status page by " + account.login
         )
         description = request.POST.get('description') or default_descr
         candidates = [n for n in netboxes if not is_maintenance_task_posted(n)]
         if candidates:
-            add_maintenance_task(request.account, candidates, description)
+            add_maintenance_task(account, candidates, description)
             check_devices_on_maintenance()
         return HttpResponse(status=200)
     else:

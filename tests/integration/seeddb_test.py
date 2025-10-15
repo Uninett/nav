@@ -9,6 +9,7 @@ from mock import MagicMock
 from django.utils.encoding import smart_str
 from nav.models.manage import Interface, Netbox, NetboxInfo, Room
 from nav.models.cabling import Cabling, Patch
+from nav.web.auth.utils import set_account
 from nav.web.seeddb.page.netbox.edit import netbox_edit, log_netbox_change
 from nav.web.seeddb.utils.delete import dependencies
 
@@ -24,8 +25,8 @@ def test_editing_deleted_netboxes_should_raise_404(admin_account):
     factory = RequestFactory()
     url = reverse('seeddb-netbox-edit', args=(netboxid,))
     request = factory.get(url)
-    request.account = admin_account
     request.session = MagicMock()
+    set_account(request, admin_account, cycle_session_id=False)
 
     with pytest.raises(Http404):
         netbox_edit(request, netboxid)

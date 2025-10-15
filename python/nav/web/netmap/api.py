@@ -31,6 +31,7 @@ from nav.models.profiles import (
     NetmapViewNodePosition,
 )
 from nav.web.api.v1.auth import NavBaseAuthentication
+from nav.web.auth.utils import get_account
 
 from .cache import cache_exists, update_cached_node_positions
 from .graph import get_layer3_traffic, get_layer2_traffic, get_topology_graph
@@ -46,7 +47,7 @@ class OwnerOrAdminPermission(BasePermission):
     message = "You do not have permission to change this object"
 
     def has_object_permission(self, request, view, obj):
-        user = request.account
+        user = get_account(request)
         owner = obj.owner
 
         return user == owner or user.is_admin()
@@ -85,7 +86,7 @@ class NetmapViewList(generics.ListAPIView):
     serializer_class = NetmapViewSerializer
 
     def get_queryset(self):
-        user = self.request.account
+        user = get_account(self.request)
         return NetmapView.objects.filter(Q(is_public=True) | Q(owner=user))
 
 
@@ -95,7 +96,8 @@ class NetmapViewCreate(generics.CreateAPIView):
     serializer_class = NetmapViewSerializer
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.account)
+        user = get_account(self.request)
+        serializer.save(owner=user)
 
 
 class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
@@ -105,7 +107,7 @@ class NetmapViewEdit(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = NetmapViewSerializer
 
     def get_queryset(self):
-        user = self.request.account
+        user = get_account(self.request)
         if user.is_admin():
             return NetmapView.objects.all()
         else:
@@ -124,10 +126,11 @@ class NetmapViewDefaultViewUpdate(generics.RetrieveUpdateAPIView):
         return NetmapViewDefaultView.objects.all()
 
     def get_object(self):
+        user = get_account(self.request)
         try:
             return super(NetmapViewDefaultViewUpdate, self).get_object()
         except Http404:
-            return NetmapViewDefaultView(owner=self.request.account)
+            return NetmapViewDefaultView(owner=user)
 
     def perform_update(self, serializer):
         obj = serializer.save()

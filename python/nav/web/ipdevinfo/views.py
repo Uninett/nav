@@ -30,6 +30,7 @@ from nav.django.templatetags.thresholds import find_rules
 from nav.event2 import EventFactory
 from nav.metrics.errors import GraphiteUnreachableError
 from nav.metrics.graphs import get_simple_graph_url
+from nav.web.auth.utils import get_account
 from nav.web.modals import render_modal
 
 from nav.models.manage import (
@@ -926,7 +927,7 @@ def sensor_details(request, identifier):
 
 def save_port_layout_pref(request):
     """Save the ipdevinfo port layout preference"""
-    account = request.account
+    account = get_account(request)
     key = Account.PREFERENCE_KEY_IPDEVINFO_PORT_LAYOUT
     account.preferences[key] = request.GET.get('layout')
     account.save()

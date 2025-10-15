@@ -12,7 +12,7 @@ import pytest
 import nav.web.auth.ldap
 from nav.web import auth
 from nav.web.auth import remote_user
-from nav.web.auth.utils import ACCOUNT_ID_VAR
+from nav.web.auth.utils import ACCOUNT_ID_VAR, get_account
 
 LDAP_ACCOUNT = auth.Account(login='knight', ext_sync='ldap', password='shrubbery')
 PLAIN_ACCOUNT = auth.Account(login='knight', password='shrubbery')
@@ -168,7 +168,8 @@ class TestLoginRemoteUser(object):
             ):
                 remote_user.login(request)
                 assert hasattr(request, 'account')
-                assert request.account == REMOTE_USER_ACCOUNT
+                account = get_account(request)
+                assert account == REMOTE_USER_ACCOUNT
                 assert ACCOUNT_ID_VAR in request.session
                 assert (
                     request.session.get(ACCOUNT_ID_VAR, None) == REMOTE_USER_ACCOUNT.id

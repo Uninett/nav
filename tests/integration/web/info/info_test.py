@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils.encoding import smart_str
 from mock import MagicMock
 
+from nav.web.auth.utils import set_account
 from nav.web.info.images.utils import save_thumbnail
 from nav.web.info.room.views import create_csv
 from nav.web.info.searchproviders import SearchProvider
@@ -42,8 +43,8 @@ def test_room_csv_download_should_not_produce_bytestring_representations(admin_a
     request = factory.post(
         reverse("room-csv"), data={"roomid": "myroom", "rows": "one;two;three\n"}
     )
-    request.account = admin_account
     request.session = MagicMock()
+    set_account(request, admin_account, cycle_session_id=False)
 
     response = create_csv(request)  # type: django.http.response.HttpResponse
     assert not response.content.startswith(b"b'")
