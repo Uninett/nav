@@ -31,9 +31,10 @@ from nav.web.auth.utils import (
     ensure_account,
     authorization_not_required,
     get_account,
+    set_account,
     get_user,
 )
-from nav.web.auth.sudo import get_sudoer
+from nav.web.auth.sudo import get_sudoer, set_sudo_operator
 from nav.web.utils import is_ajax
 
 
@@ -78,9 +79,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
                 ensure_account(request)
 
         if sudo_operator is not None:
-            # XXX: sudo: Account.sudo_operator should be set by function!
-            request.account.sudo_operator = sudo_operator
-            request.user.sudo_operator = sudo_operator
+            set_sudo_operator(request, sudo_operator)
 
         _logger.debug(
             'AuthenticationMiddleware EXIT (session: %s, account: %s) from "%s"',
@@ -133,10 +132,10 @@ class NAVAuthenticationMiddleware(MiddlewareMixin):
             )
 
         user = get_user(request)  # NOT lazy!
-        request.user = user
-        request.account = user  # remove this eventually
+        set_account(request, user, cycle_session_id=False)
 
         # NAV-specific sudo method
+        # XXX: sudo
         sudo_operator = get_sudoer(request)  # Account or None
         if sudo_operator:
             logged_in = sudo_operator or user
@@ -146,5 +145,4 @@ class NAVAuthenticationMiddleware(MiddlewareMixin):
                 user.login,
                 request.get_full_path(),
             )
-            request.account.sudo_operator = sudo_operator
-            request.user.sudo_operator = sudo_operator
+            set_sudo_operator(request, sudo_operator)
