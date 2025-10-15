@@ -95,12 +95,18 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         },
         restartingInterfaces: async function() {
             const restartReason = "A computer connected to a port does not detect that the vlan changes. When that happens the computer will have the IP-address from the old vlan and it will lose connectivity. But if the link goes down and up (a 'restart') the computer will send a request for a new address. 'Restarting' interfaces is only done when changing vlans.";
-            const why = $('<span class="nav-tooltip" data-position="fixed">' +
-                '<span aria-describedby="restart-tooltip">(why?)</span>' +
-                '<span id="restart-tooltip" role="tooltip">' + restartReason + '</span>' +
-                '</span>');
+            const why = $('<span aria-describedby="restart-tooltip">(why?)</span>');
+            why.on('click', () => {
+                $('#restart-reason').toggleClass('hidden');
+            })
             const listItem = await this.addFeedback('Restarting interfaces ');
             listItem.append(why, this.createProgress());
+            const restartReasonElement = $(
+                '<div id="restart-reason" class="hidden panel">' +
+                '<small>' + restartReason + '</small' +
+                '</div>'
+            );
+            listItem.append(restartReasonElement);
             return listItem;
         },
         committingConfig: function() {
@@ -116,11 +122,15 @@ require(['libs/spin.min', 'libs/jquery-ui.min'], function (Spinner) {
         endProgress: function(listItem, status, message) {
             status = typeof status === 'undefined' ? 'success' : status;
             message = typeof message === 'undefined' ? '' : message;
-            listItem.append(this.createAlert(status));
+
+            const alertElement = this.createAlert(status);
+            const progressElement = listItem.find('progress');
+            progressElement.replaceWith(alertElement);
+
             if (status !== 'success') {
-                listItem.append($('<small style="margin-left: 1em">').text(message));
+                const errorElement = $('<small style="margin-left: 1em">').text(message);
+                errorElement.insertAfter(alertElement);
             }
-            listItem.find('progress').remove();
         }
     };
 
