@@ -29,6 +29,7 @@ from nav.web.auth import remote_user, get_login_url, logout
 from nav.web.auth.utils import (
     ensure_account,
     authorization_not_required,
+    get_account,
 )
 from nav.web.auth.sudo import get_sudoer
 from nav.web.utils import is_ajax
@@ -47,7 +48,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
         )
         ensure_account(request)
 
-        account = request.account
+        account = get_account(request)
         sudo_operator = get_sudoer(request)  # Account or None
         logged_in = sudo_operator or account
         _logger.debug(
@@ -75,7 +76,9 @@ class AuthenticationMiddleware(MiddlewareMixin):
                 ensure_account(request)
 
         if sudo_operator is not None:
+            # XXX: sudo: Account.sudo_operator should be set by function!
             request.account.sudo_operator = sudo_operator
+            request.user.sudo_operator = sudo_operator
 
         _logger.debug(
             'AuthenticationMiddleware EXIT (session: %s, account: %s) from "%s"',
@@ -87,7 +90,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
 
 class AuthorizationMiddleware(MiddlewareMixin):
     def process_request(self, request: HttpRequest) -> Optional[HttpResponse]:
-        account = request.account
+        account = get_account(request)
 
         authorized = authorization_not_required(
             request.get_full_path()

@@ -12,6 +12,7 @@ from django.urls import reverse
 
 from nav.models.profiles import AlertAddress, ReportSubscription, AlertSender
 from nav.web.business import utils
+from nav.web.auth.utils import get_account
 from nav.web.utils import create_title
 
 _logger = logging.getLogger(__name__)
@@ -126,18 +127,17 @@ def save_report_subscription(request):
     period = request.POST.get('period')
     report_type = request.POST.get('report_type')
     exclude_maintenance = bool(request.POST.get('exclude_maintenance'))
+    account = get_account(request)
 
     if new_address:
         email_sender = AlertSender.objects.get(name=AlertSender.EMAIL)
-        address = AlertAddress(
-            account=request.account, type=email_sender, address=new_address
-        )
+        address = AlertAddress(account=account, type=email_sender, address=new_address)
         address.save()
     else:
         address = get_object_or_404(AlertAddress, pk=int(request.POST.get('address')))
 
     ReportSubscription(
-        account=request.account,
+        account=account,
         address=address,
         period=period,
         exclude_maintenance=exclude_maintenance,
@@ -154,9 +154,10 @@ def render_report_subscriptions(request):
 
 def remove_report_subscription(request):
     """Remove a report subscription"""
+    account = get_account(request)
     subscription_id = request.POST.get('subscriptionId')
     subscription = get_object_or_404(
-        ReportSubscription, account=request.account, pk=subscription_id
+        ReportSubscription, account=account, pk=subscription_id
     )
     subscription.delete()
 

@@ -33,7 +33,7 @@ from nav.web.auth import ldap, remote_user
 if typing.TYPE_CHECKING:
     from nav.web.auth.ldap import LDAPUser
 from nav.web.auth.sudo import desudo
-from nav.web.auth.utils import clear_session
+from nav.web.auth.utils import clear_session, get_account
 
 
 _logger = logging.getLogger(__name__)
@@ -155,7 +155,7 @@ def logout(request: HttpRequest, sudo=False) -> Optional[str]:
         desudo(request)
         return reverse('webfront-index')
     else:
-        account = request.account
+        account = get_account(request)
         clear_session(request)
         _logger.debug('logout: logout %s', account.login)
         LogEntry.add_log_entry(account, 'log-out', '{actor} logged out', before=account)

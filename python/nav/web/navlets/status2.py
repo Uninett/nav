@@ -67,7 +67,10 @@ class Status2Widget(Navlet):
         factory = RequestFactory()
         view = AlertHistoryViewSet.as_view({'get': 'list'})
         request = factory.get("?%s" % query_string)
-        request.account = Account.objects.get(pk=1)
+        account = Account.objects.get(pk=1)
+        # Fake request! This is safe
+        # We cannot know whether the user is sudo'ed though
+        request.account = request.user = account
         response = view(request)
         return response.data.get('results')
 
