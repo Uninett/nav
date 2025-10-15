@@ -237,8 +237,9 @@ def profile_new(request):
 
 def set_active_profile(request, profile):
     """Set active profile to given profile"""
+    account = get_account(request)
     preference, _created = AlertPreference.objects.get_or_create(
-        account=request.account, defaults={'active_profile': profile}
+        account=account, defaults={'active_profile': profile}
     )
     preference.active_profile = profile
     preference.save()
@@ -1186,7 +1187,7 @@ def address_remove(request):
 @requires_post('alertprofiles-profile', ('language',))
 def language_save(request):
     """Saves the user's preferred language"""
-    account = request.account
+    account = get_account(request)
     value = request.POST.get('language')
     account.preferences[account.PREFERENCE_KEY_LANGUAGE] = value
     account.save()
