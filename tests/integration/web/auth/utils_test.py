@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from django.urls import reverse
 
+from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.utils import (
     set_account,
     clear_session,
@@ -56,6 +57,16 @@ class TestEnsureAccount:
         ensure_account(session_request)
         assert session_request.session[ACCOUNT_ID_VAR] == default_account.id
         assert session_request.account == default_account, 'Correct user not set'
+
+    def test_session_should_not_be_flushed_if_account_is_default(
+        self, db, session_request, default_account, admin_account
+    ):
+        session_request.session[SUDOER_ID_VAR] = admin_account.id
+
+        set_account(session_request, default_account)
+        ensure_account(session_request)
+        assert session_request.account == default_account
+        assert session_request.session.get(SUDOER_ID_VAR) == admin_account.id
 
     def test_account_should_be_unchanged_if_ok(self, db, session_request, account):
         set_account(session_request, account)
