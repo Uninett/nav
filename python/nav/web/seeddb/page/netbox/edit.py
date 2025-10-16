@@ -236,6 +236,9 @@ def load_connectivity_test_results(request):
                     "id": profile.id,
                     "name": profile.name,
                     "status": False,
+                    "error_message": (
+                        f"Unsupported profile with protocol {profile.protocol}"
+                    ),
                 }
             )
 
