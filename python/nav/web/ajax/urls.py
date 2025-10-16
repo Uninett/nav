@@ -25,7 +25,7 @@ The developer should make sure that the data exposed is indeed suitable
 for open access.
 """
 
-from django.urls import path, re_path
+from django.urls import path
 from nav.web.ajax import views
 
 
@@ -36,13 +36,13 @@ urlpatterns = [
         views.get_rooms_with_position,
         name='room-positions',
     ),
-    re_path(
-        r'^open/roommapper/rooms/(?P<roomid>.+)/$',
+    path(
+        'open/roommapper/rooms/<str:roomid>/',
         views.get_rooms_with_position,
         name='room-position',
     ),
-    re_path(
-        r'^open/roommapper/locations/(?P<locationid>.+)/$',
+    path(
+        'open/roommapper/locations/<str:locationid>/',
         views.get_rooms_with_position_for_location,
         name='location-position',
     ),

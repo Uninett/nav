@@ -16,7 +16,7 @@
 #
 """Django URL configuration for devicehistory."""
 
-from django.urls import path, re_path
+from django.urls import path
 from nav.web.devicehistory import views
 
 
@@ -28,8 +28,8 @@ urlpatterns = [
         name='devicehistory-component-search',
     ),
     path('history/', views.devicehistory_view, name='devicehistory-view'),
-    re_path(
-        r'^history/room/(?P<room_id>.+)/$',
+    path(
+        'history/room/<str:room_id>/',
         views.devicehistory_view_room,
         name='devicehistory-view-room',
     ),
@@ -38,8 +38,8 @@ urlpatterns = [
         views.devicehistory_view_netbox,
         name='devicehistory-view-netbox',
     ),
-    re_path(
-        r'^history/location/(?P<location_id>.+)/$',
+    path(
+        'history/location/<str:location_id>/',
         views.devicehistory_view_location,
         name='devicehistory-view-location',
     ),
