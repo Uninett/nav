@@ -36,10 +36,9 @@ def find_dashboard(account, dashboard_id=None):
 
 def _find_dashboard_by_id(account, dashboard_id):
     """Find a specific dashboard by ID for this account"""
-    kwargs = {'pk': dashboard_id}
     try:
         dashboard = AccountDashboard.objects.get(
-            (Q(account=account) | Q(is_shared=True)), **kwargs
+            (Q(account=account) | Q(is_shared=True)), pk=dashboard_id
         )
         return dashboard
 
@@ -49,25 +48,26 @@ def _find_dashboard_by_id(account, dashboard_id):
 
 def _find_default_dashboard(account):
     """Find the default dashboard for this account"""
-    kwargs = (
-        {'pk': account.default_dashboard.id} if account.has_default_dashboard else {}
+    dashboard_id = (
+        account.default_dashboard.pk if account.has_default_dashboard else None
     )
-    try:
-        dashboard = AccountDashboard.objects.get(
-            (Q(account=account) | Q(is_shared=True)), **kwargs
-        )
 
-    except AccountDashboard.DoesNotExist:
-        # Do we have a dashboard at all?
-        dashboards = AccountDashboard.objects.filter(account=account)
-        if dashboards.count() == 0:
-            raise Http404
+    if dashboard_id:
+        dashboard = AccountDashboard.objects.filter(
+            Q(account=account) | Q(is_shared=True), pk=dashboard_id
+        ).first()
+        if dashboard:
+            return dashboard
 
-        # No default dashboard? Find the one with the most widgets
-        dashboard = dashboards.annotate(Count('widgets')).order_by('-widgets__count')[0]
-    except AccountDashboard.MultipleObjectsReturned:
-        # Grab the first one
-        dashboard = AccountDashboard.objects.filter(account=account, **kwargs)[0]
+    # No default dashboard? Find the one with the most widgets
+    dashboards = AccountDashboard.objects.filter(account=account)
+    if dashboards.count() == 0:
+        raise Http404
+    dashboard = (
+        dashboards.annotate(widget_count=Count('widgets'))
+        .order_by('-widget_count')
+        .first()
+    )
 
     return dashboard
 
