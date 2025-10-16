@@ -7,7 +7,15 @@
     <div class="alert-box success">
         <ul>
             {% for profile in profiles.succeeded %}
-                <li><em>{{ profile.name }}</em>: <strong>OK</strong></li>
+                <li>
+                    <em>
+                        {% if profile.url %}
+                            <a href="{{ profile.url }}" title="View profile details">{{ profile.name }}</a>
+                        {% else %}
+                            {{ profile.name }}
+                        {% endif %}
+                    </em>: <strong>OK</strong>
+                </li>
             {% endfor %}
         </ul>
     </div>
