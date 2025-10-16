@@ -557,6 +557,9 @@ def unhandled_profile():
     yield from create_profile("Unsupported profile", 99)
 
 
+# This configuration dict is only relevant for SNMP profiles.
+# For NAPALM and unsupported profiles, it is dummy data and not used,
+# since all external interactions are mocked in tests.
 def create_profile(name: str, protocol: int, write=False):
     profile = ManagementProfile(
         name=name,
