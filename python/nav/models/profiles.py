@@ -1707,6 +1707,25 @@ class AccountDashboard(models.Model):
         ordering = ('name',)
 
 
+class AccountDefaultDashboard(models.Model):
+    account = models.OneToOneField(
+        Account,
+        on_delete=models.CASCADE,
+        db_column='account_id',
+        primary_key=True,
+        related_name='default_dashboard_mapping',
+    )
+    dashboard = models.ForeignKey(
+        AccountDashboard,
+        on_delete=models.CASCADE,
+        db_column='dashboard_id',
+        related_name='default_for_accounts',
+    )
+
+    class Meta:
+        db_table = 'account_default_dashboard'
+
+
 class AccountDashboardSubscription(models.Model):
     """Subscriptions for dashboards shared between users"""
 
