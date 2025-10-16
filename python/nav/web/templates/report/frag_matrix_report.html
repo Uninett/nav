@@ -73,27 +73,33 @@
 
               <td colspan="{{ cell.colspan }}"
                   rowspan="{{ cell.rowspan }}"
-                  {% if not cell.is_empty %} class="has-data" {% endif %}
+                  class="has-data"
                   {% if cell.netaddr %}data-netaddr="{{ cell.netaddr }}"{% endif %}
                   {% if cell.dataurl %}data-url="{{ cell.dataurl }}"{% endif %}
               >
-                  <i class="fa fa-info-circle"></i>
-                  {# cell #}
-
-                {# Cells that are too small to have text #}
-                {% if cell.colspan in hide_for %}
-                  &nbsp;
-                {% else %}
-                  {% if cell.link %}
-                    <a href="{{ cell.link.href }}" title="{{ cell.link.title }}">
-                      {{ cell.link.text }}
-                    </a>
-                  {% else %}
-                    {{ cell.content }}
-                  {% endif %}
-                {% endif %}
+                <div id="cell-tooltip-{{ cell.prefixid }}" class="popover with-arrow" data-side="bottom">
+                    <span
+                        class="popover-trigger"
+                        aria-haspopup="true"
+                        data-popover-target="#cell-tooltip-{{ cell.prefixid }}"
+                    >
+                        <i class="fa fa-info-circle"></i>
+                        {# cell #}
+                        {% if cell.colspan not in hide_for %}
+                          {% if cell.link %}
+                            <a href="{{ cell.link.href }}" title="{{ cell.link.title }}">
+                              {{ cell.link.text }}
+                            </a>
+                          {% else %}
+                            {{ cell.content }}
+                          {% endif %}
+                        {% endif %}
+                    </span>
+                    {% if cell.netaddr %}
+                        <div class="popover-content"></div>
+                    {% endif %}
+                </div>
               </td>
-
             {% endif %}
           {% endif %}
 

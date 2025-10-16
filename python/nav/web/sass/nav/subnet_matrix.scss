@@ -37,10 +37,8 @@ $color_large: #ada7c8;
         transition: color 3s, background-color 3s;
         &.has-data {
             border: 1px solid #FFFFFF;
-            background-color: #DDD;
             a {
                 /* Need darker colors for links with all these different backgrounds here */
-                color: hsl(200, 100, 25);
                 &:hover { text-decoration: underline; }
             }
             .fill-cell {
@@ -75,12 +73,19 @@ $color_large: #ada7c8;
     }
 }
 
-.tooltip {
-    a { color: hsl(200, 100, 60); }
-    p { margin-bottom: 0.5rem; }
-    .usage-sparkline {
-        background-color: cornflowerblue;
-        margin-top: 1em;
-        padding: 5px 3px;
+#subnet-matrix .popover {
+    margin: 0 auto;
+    .popover-trigger {
+      padding: 9px 10px;
     }
+   .popover-content {
+      min-width: 250px;
+      text-align: left;
+      p { margin-bottom: 0.5rem; }
+      .usage-sparkline {
+          background-color: cornflowerblue;
+          margin-top: 1em;
+          padding: 5px 3px;
+      }
+  }
 }
