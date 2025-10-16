@@ -19,14 +19,15 @@
     <div id="verify-address-feedback" hx-swap-oob="true">
         <div class="alert-box alert">
             <span>The hostname "{{ hostname }}" resolves to multiple IP addresses.</span>
-            <label>
-                <select onchange="document.querySelector('#id_ip').value = this.value;">
-                    <option value="">---------</option>
-                    {% for addr in addresses %}
-                        <option value="{{ addr }}">{{ addr }}</option>
-                    {% endfor %}
-                </select>
+            <label for="address-select">
+                Please choose an IP address
             </label>
+            <select id="address-select" onchange="document.querySelector('#id_ip').value = this.value;">
+                <option value="">---------</option>
+                {% for addr in addresses %}
+                    <option value="{{ addr }}">{{ addr }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
 {% else %}
