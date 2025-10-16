@@ -1,0 +1,15 @@
+{% if sysname %}
+<div>
+    <label for="id_sysname">Sysname</label>
+    <input id="id_sysname" name="sysname" value="{{ sysname }}" type="text" disabled>
+</div>
+<div>
+    <label for="id_type">Type</label>
+    {% if type %}
+    <input id="id_type" name="type" value="{{ type }}" type="text" disabled />
+    <input id="id_type" name="type" value="{{ type.id }}" type="hidden" />
+    {% else %}
+    <input id="id_type" name="type" value="---------" type="text" disabled />
+    {% endif %}
+</div>
+{% endif %}
