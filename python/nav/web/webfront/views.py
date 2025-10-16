@@ -527,19 +527,8 @@ def set_account_preference(request):
 @require_POST
 def set_default_dashboard(request, did):
     """Set the default dashboard for the user"""
-    dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
-
-    old_defaults = list(
-        AccountDashboard.objects.filter(account=request.account, is_default=True)
-    )
-    for old_default in old_defaults:
-        old_default.is_default = False
-
-    dash.is_default = True
-
-    AccountDashboard.objects.bulk_update(
-        objs=old_defaults + [dash], fields=["is_default"]
-    )
+    dash = find_dashboard(request.account, did)
+    request.account.set_default_dashboard(dash.id)
 
     return HttpResponse('Default dashboard set to «{}»'.format(dash.name))
 
@@ -562,7 +551,7 @@ def delete_dashboard(request, did):
 
     dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
 
-    if dash.is_default:
+    if dash.is_default_for_account(request.account):
         return HttpResponseBadRequest('Cannot delete default dashboard')
 
     dash.delete()
