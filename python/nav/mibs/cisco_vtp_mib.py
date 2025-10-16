@@ -98,14 +98,13 @@ class CiscoVTPMib(mibretriever.MibRetriever):
         states = yield self.get_ethernet_vlan_states()
         return set(vlan for vlan, state in states.items() if state == 'operational')
 
-    @defer.inlineCallbacks
-    def retrieve_alternate_bridge_mibs(self):
+    async def retrieve_alternate_bridge_mibs(self):
         """Retrieve a list of alternate bridge mib instances.
 
         :returns: A list of (descr, community) tuples for each operational
                   VLAN on this device.
 
         """
-        vlans = yield self.get_operational_vlans()
+        vlans = await self.get_operational_vlans()
         community = self.agent_proxy.community
         return [("vlan%s" % vlan, "%s@%s" % (community, vlan)) for vlan in vlans]

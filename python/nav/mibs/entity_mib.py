@@ -22,7 +22,6 @@ from operator import itemgetter
 import logging
 from datetime import datetime
 import struct
-
 from twisted.internet import defer
 
 from nav.oids import OID
@@ -38,11 +37,11 @@ class EntityMib(mibretriever.MibRetriever):
 
     mib = get_mib('ENTITY-MIB')
 
-    def retrieve_alternate_bridge_mibs(self):
+    async def retrieve_alternate_bridge_mibs(self):
         """Retrieves a list of alternate bridge mib instances.
 
         This is accomplished by looking at entLogicalTable.  Returns a
-        deferred whose result value is a list of tuples::
+        list of tuples::
 
           (entity_description, community)
 
@@ -56,26 +55,21 @@ class EntityMib(mibretriever.MibRetriever):
         # Define this locally to avoid external overhead
         bridge_mib_oid = OID('.1.3.6.1.2.1.17')
 
-        def _bridge_mib_filter(result):
-            def _is_bridge_mib_instance_with_valid_community(row):
-                return (
-                    row['entLogicalType']
-                    and OID(row['entLogicalType']) == bridge_mib_oid
-                    and b'\x00' not in row['entLogicalCommunity']
-                )
+        def _is_bridge_mib_instance_with_valid_community(row):
+            return (
+                row['entLogicalType']
+                and OID(row['entLogicalType']) == bridge_mib_oid
+                and b'\x00' not in row['entLogicalCommunity']
+            )
 
-            new_result = [
-                (r["entLogicalDescr"], r["entLogicalCommunity"].decode("utf-8"))
-                for r in result.values()
-                if _is_bridge_mib_instance_with_valid_community(r)
-            ]
-            return new_result
-
-        df = self.retrieve_columns(
+        result = await self.retrieve_columns(
             ['entLogicalDescr', 'entLogicalType', 'entLogicalCommunity']
         )
-        df.addCallback(_bridge_mib_filter)
-        return df
+        return [
+            (r["entLogicalDescr"], r["entLogicalCommunity"].decode("utf-8"))
+            for r in result.values()
+            if _is_bridge_mib_instance_with_valid_community(r)
+        ]
 
     def get_last_change_time(self):
         """Retrieves the sysUpTime value of the last time any of the

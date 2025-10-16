@@ -32,6 +32,7 @@ this to allow asynchronous data retrieval.
 """
 
 import logging
+from typing import Awaitable
 
 from pynetsnmp.netsnmp import SnmpTimeoutError
 from twisted.internet import defer, reactor
@@ -446,7 +447,7 @@ class MibRetriever(object, metaclass=MibRetrieverMaker):
         deferred.addCallbacks(_result_formatter, _valueerror_handler)
         return deferred
 
-    def retrieve_columns(self, column_names):
+    def retrieve_columns(self, column_names) -> Awaitable:
         """Retrieve a set of table columns.
 
         The table columns may come from different tables, as long as
