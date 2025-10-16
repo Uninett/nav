@@ -311,7 +311,7 @@ class Snmp(object):
         """Performs an SNMP walk on the host, using GETBULK requests.
 
         Will raise an UnsupportedSnmpVersionError if the current
-        version is anything other than 2c.
+        version does not support GetBulk operations (mainly, version 1).
 
         :param query: root OID for walk
         :param strip_prefix: A boolean. Set to True to strip the query prefix
@@ -321,7 +321,7 @@ class Snmp(object):
                   response_oids.
 
         """
-        if str(self.version) != "2c":
+        if str(self.version) not in ("2c", "3"):
             raise UnsupportedSnmpVersionError(
                 "Cannot use BULKGET in SNMP version " + self.version
             )
