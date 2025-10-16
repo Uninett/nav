@@ -153,7 +153,7 @@ def check_connectivity(request):
             },
         )
 
-    if not is_valid_ip(ip_address):
+    if not is_valid_ip(ip_address, strict=True):
         return _handle_invalid_ip(request, ip_address)
 
     return render(
@@ -426,6 +426,6 @@ def netbox_do_save(form):
 def validate_ip_address(request):
     """Endpoint to check if an address is a valid IP address"""
     address = request.GET.get('address')
-    if not address or not is_valid_ip(address.strip()):
+    if not address or not is_valid_ip(address.strip(), strict=True):
         return HttpResponse(status=400)
     return HttpResponse(status=200)
