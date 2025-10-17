@@ -26,6 +26,7 @@ import sys
 
 from nav.config import getconfig
 from nav.dhcpstats import kea_dhcp
+from nav.dhcpstats.common import GraphiteMetric
 from nav.dhcpstats.errors import CommunicationError
 from nav.errors import ConfigurationError
 from nav.logs import init_generic_logging
@@ -85,7 +86,7 @@ def collect_stats(config):
 
     _logger.info("--> Starting stats collection <--")
 
-    all_stats = []
+    all_stats: list[GraphiteMetric] = []
 
     for client in get_clients(config):
         _logger.info(
