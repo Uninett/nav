@@ -28,6 +28,7 @@ var require = {
         "jquery": "libs/jquery-3.7.1.min",
         "jquery-tablesorter": "libs/jquery.tablesorter-2.32.0.min",
         "jquery-sparkline": "libs/jquery.sparkline-2.4.0.min",
+        "jquery-multi-select": "libs/jquery.multiselect-2.4.24.min",
     },
     shim: {
         'libs/underscore': {
@@ -45,7 +46,7 @@ var require = {
             deps: ["libs/underscore"],
             exports: 'Backbone'
         },
-        'libs/backbone-eventbroker': ['libs/backbone']
+        'libs/backbone-eventbroker': ['libs/backbone'],
     },
     deps: ['jquery']
 };
