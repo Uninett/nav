@@ -1,4 +1,4 @@
-define(['plugins/checkbox_selector', 'libs/jquery'], function (CheckboxSelector) {
+define(['plugins/checkbox_selector', 'jquery'], function (CheckboxSelector) {
     describe("Checkbox Selector", function () {
         beforeEach(function () {
             this.table = $('<table><tr><th id="blapp"></th></tr><tr><td><input type="checkbox" class="selector" /><input type="checkbox" class="selector" /></td></tr></table>');

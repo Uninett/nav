@@ -3,7 +3,7 @@ require([
     "plugins/tab_navigation",
     "plugins/jquery_ui_helpers",
     "libs/spin.min",
-    "libs/jquery",
+    "jquery",
     "libs/jquery-ui.min",
     "libs/datatables.min"
 ], function (TableUtil, TabNavigation, JUIHelpers, Spinner) {
