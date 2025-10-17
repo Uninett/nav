@@ -30,7 +30,7 @@ from IPy import IP
 from requests import RequestException, JSONDecodeError, Session
 from requests.adapters import HTTPAdapter, Retry
 
-from nav.dhcpstats.common import DhcpPath
+from nav.dhcpstats.common import DhcpPath, GraphiteMetric
 from nav.dhcpstats.errors import (
     CommunicationError,
     KeaEmpty,
@@ -70,9 +70,6 @@ class Pool:
             f"Kea pool {self.pool_id} from {self.first_ip} to {self.last_ip} "
             f"in Kea subnet {self.subnet_id}{group_subsentence}"
         )
-
-
-GraphiteMetric = tuple[str, tuple[float, int]]
 
 
 class Client:
