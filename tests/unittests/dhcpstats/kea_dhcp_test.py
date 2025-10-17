@@ -201,13 +201,11 @@ class TestExpectedAPIResponses:
             if status not in (_KeaStatus.SUCCESS, _KeaStatus.UNSUPPORTED)
         ],
     )
-    def test_fetch_stats_should_raise_an_exception_on_error_status_in_config_hash_api_response(  # noqa: E501
+    def test_fetch_stats_should_not_raise_an_exception_on_error_status_in_config_hash_api_response(  # noqa: E501
         self, valid_dhcp4, api_mock, status
     ):
         """
-        If the server reports an API-specific error regarding serving its
-        configuration's hash, other than that functionality being unsupported,
-        the client should raise an error.
+        We don't depend on get-config-hash to work
         """
         foohash = "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c"
         config, statistics, expected_stats = valid_dhcp4
@@ -217,8 +215,7 @@ class TestExpectedAPIResponses:
         api_mock.add(
             "config-hash-get", make_api_response({"hash": foohash}, status=status)
         )
-        with pytest.raises(CommunicationError):
-            client.fetch_stats()
+        client.fetch_stats()
 
     def test_fetch_stats_should_check_and_warn_if_server_config_changed_during_call(
         self, valid_dhcp4, api_mock, caplog
@@ -283,16 +280,18 @@ class TestUnexpectedAPIResponses:
         with pytest.raises(KeaUnexpected):
             client.fetch_stats()
 
-    def test_fetch_stats_should_raise_an_exception_on_unrecognizable_config_hash_api_response(  # noqa: E501
+    def test_fetch_stats_should_not_raise_an_exception_on_unrecognizable_config_hash_api_response(  # noqa: E501
         self, valid_dhcp4, api_mock, invalid_response
     ):
+        """
+        We don't depend on get-config-hash to work
+        """
         config, statistics, expected_stats = valid_dhcp4
         client = Client(SERVER_NICKNAME, "http://example.org/")
         config["Dhcp4"]["hash"] = "foo"
         api_mock.autofill("dhcp4", config=config, statistics=statistics)
         api_mock.add("config-hash-get", invalid_response)
-        with pytest.raises(KeaUnexpected):
-            client.fetch_stats()
+        client.fetch_stats()
 
 
 class TestConfigCaching:
