@@ -27,7 +27,7 @@ from django.urls import reverse
 from nav.config import find_config_file
 from nav.web.auth import get_login_url, get_logout_url
 from nav.web.auth.sudo import get_sudoer
-from nav.django.utils import get_account, is_admin
+from nav.web.auth.utils import get_account, is_admin
 from nav.web.auth.utils import get_number_of_accounts_with_password_issues
 from nav.web.message import Messages
 from nav.web.webfront.utils import tool_list, quick_read, split_tools

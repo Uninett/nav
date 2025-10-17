@@ -31,7 +31,7 @@ from jnpr.junos.exception import ConnectRefusedError
 
 from nav.auditlog.models import LogEntry
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.util import is_valid_ip
 from nav.web.utils import create_title
 from nav.models.manage import Netbox, Interface
@@ -270,8 +270,9 @@ def populate_infodict(request, netbox, interfaces):
     poe_options = []
 
     if not has_error:
+        account = get_account(request)
         allowed_vlans = find_and_populate_allowed_vlans(
-            request.account, netbox, interfaces, handler
+            account, netbox, interfaces, handler
         )
         voice_vlan = _setup_voice_vlan(request, netbox, interfaces, handler)
         mark_detained_interfaces(interfaces)
@@ -671,7 +672,7 @@ def set_admin_status(handler: ManagementHandler, interface, request: HttpRequest
     """Set admin status for the interface"""
     status_up = '1'
     status_down = '2'
-    account = request.account
+    account = get_account(request)
 
     if 'ifadminstatus' in request.POST:
         adminstatus = request.POST['ifadminstatus']
@@ -735,7 +736,7 @@ def render_trunk_edit(request, interfaceid):
         else:
             messages.success(request, 'Trunk edit successful')
 
-    account = request.account
+    account = get_account(request)
     netbox = interface.netbox
     add_readonly_reason(request, handler)
     try:
@@ -797,8 +798,9 @@ def handle_trunk_edit(request, agent, interface):
     _logger.info(
         'Interface %s - native: %s, trunk: %s', interface, native_vlan, trunked_vlans
     )
+    account = get_account(request)
     LogEntry.add_log_entry(
-        request.account,
+        account,
         'set-vlan',
         '{actor}: {object} - native vlan: "%s", trunk vlans: "%s"'
         % (native_vlan, trunked_vlans),

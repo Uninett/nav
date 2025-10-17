@@ -18,6 +18,7 @@
 
 from django.http import HttpResponse, JsonResponse, QueryDict
 from nav.models.profiles import AccountNavlet
+from nav.web.auth.utils import get_account
 from nav.web.report.views import CONFIG_DIR, make_report
 from nav.report.generator import ReportList
 from nav.config import list_config_files_from_dir
@@ -67,9 +68,8 @@ class ReportWidget(Navlet):
     def post(self, request):
         """Save navlet options on post"""
         try:
-            navlet = AccountNavlet.objects.get(
-                pk=self.navlet_id, account=request.account
-            )
+            account = get_account(request)
+            navlet = AccountNavlet.objects.get(pk=self.navlet_id, account=account)
         except AccountNavlet.DoesNotExist:
             return HttpResponse(status=404)
         else:

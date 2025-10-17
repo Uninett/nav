@@ -3,7 +3,7 @@ import os
 
 from django.test import RequestFactory
 
-from nav.web.auth.utils import ACCOUNT_ID_VAR, set_account
+from nav.web.auth.utils import ACCOUNT_ID_VAR, get_account, set_account
 from nav.web.auth.sudo import SUDOER_ID_VAR
 from nav.web.auth.middleware import AuthenticationMiddleware
 from nav.web.auth.middleware import AuthorizationMiddleware
@@ -30,7 +30,17 @@ def test_set_account(fake_session):
     assert ACCOUNT_ID_VAR in request.session, 'Account id is not in the session'
     assert hasattr(request, 'account'), 'Account not set'
     assert request.account.id == request.session[ACCOUNT_ID_VAR], 'Correct user not set'
+    assert request.user == request.account
     assert request.session[ACCOUNT_ID_VAR] == DEFAULT_ACCOUNT.id
+
+
+def test_get_account(fake_session):
+    r = RequestFactory()
+    request = r.get('/')
+    request.session = fake_session
+    set_account(request, DEFAULT_ACCOUNT)
+    session_account = get_account(request)
+    assert session_account.id == DEFAULT_ACCOUNT.id
 
 
 class TestAuthenticationMiddleware(object):
@@ -45,6 +55,7 @@ class TestAuthenticationMiddleware(object):
         ):
             AuthenticationMiddleware(lambda x: x).process_request(fake_request)
             assert fake_request.account == PLAIN_ACCOUNT
+            assert fake_request.user == PLAIN_ACCOUNT
             assert fake_request.session[ACCOUNT_ID_VAR] == fake_request.account.id
 
     def test_process_request_set_sudoer(self, fake_session):
