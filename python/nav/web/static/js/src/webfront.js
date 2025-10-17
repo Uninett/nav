@@ -3,7 +3,7 @@ require([
     'plugins/navlets_controller',
     'plugins/sensors_controller',
     'plugins/fullscreen',
-    'libs/jquery-ui.min',
+    'jquery-ui',
     'src/getting_started_wizard'
 ], function (RoomMapper, NavletsController, SensorsController, fullscreen, _, GettingStartedWizard) {
     'use strict';

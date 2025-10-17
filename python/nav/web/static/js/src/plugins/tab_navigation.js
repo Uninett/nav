@@ -1,4 +1,4 @@
-define(['libs/jquery-ui.min'], function () {
+define(['jquery-ui'], function () {
 
     function setTitle(fragment) {
         if (fragment && fragment !== "#undefined") {
