@@ -213,8 +213,17 @@ containers themselves. If you want NAV to install a completely new set of
 config files from scratch, you may need to manually trash this volume using the
 ``-v`` option to the :code:`docker compose down` command.
 
-Docker compose will output everything from every container to standard out,
-interleaving logs from different containers and sub-systems.
+Viewing logs
+------------
+
+Running ``docker compose up`` will output everything from every container to
+standard out, interleaving logs from different containers and sub-systems. You
+can instead run docker compose in the background with ``docker compose -d`` and
+get logs from a specific service with ``docker compose logs -f SERVICENAME``.
+
+You can also enter a specific container with ``docker compose exec SERVICENAME
+/bin/bash`` and ``tail -f`` a log-file directly. The logs are by default stored
+in ``/tmp`` inside the container.
 
 Location of frontend logs
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -268,15 +277,15 @@ Set log level to DEBUG in ``/etc/nav/logging.conf``::
    [levels]
    nav = DEBUG
 
-You might also want to send logs for a specific subsystem to a specific file:
-for instance when debugging the frontend::
+You can suppress logs from a subsystem by setting it to NOTSET::
+
+   [levels]
+   nav.arnold = NOTSET
+
+You might also want to send logs for a specific subsystem to a specific file::
 
    [files]
-   nav.web = debugweb.log
-
-Remmember that frontend-logs are found on the web-container, while logs from
-the scripts and daemons are found on the ``nav``-container.
-
+   nav.ipdevpoll.plugins = ipdevpoll-plugins.log
 
 Happy hacking!
 
