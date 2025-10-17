@@ -236,7 +236,7 @@ class Client:
                 .get("arguments", {})
                 .get("hash", None)
             )
-        except KeaUnsupported as err:
+        except CommunicationError as err:
             _logger.debug(str(err))
             return None
 
