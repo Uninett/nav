@@ -3,7 +3,7 @@ require(
         "plugins/tab_navigation",
         "plugins/room_mapper",
         "plugins/jquery_ui_helpers",
-        "libs/jquery",
+        "jquery",
         "libs/jquery-ui.min",
         "plugins/lightbox"
     ],

@@ -1,4 +1,4 @@
-define(['info/table_info_converter', 'libs/jquery'], function (converter) {
+define(['info/table_info_converter', 'jquery'], function (converter) {
     describe("table info converter", function () {
         beforeEach(function () {
             this.wrapper = $('<div></div>');
@@ -46,4 +46,3 @@ define(['info/table_info_converter', 'libs/jquery'], function (converter) {
         });
     });
 });
-
