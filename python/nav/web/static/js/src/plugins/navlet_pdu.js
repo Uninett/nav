@@ -1,6 +1,6 @@
 define(function(require, exports, module) {
 
-    var _sparkline = require("libs/jquery.sparkline");
+    var _sparkline = require("jquery-sparkline");
 
 
     /**

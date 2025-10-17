@@ -1,6 +1,6 @@
 /* The new jquery ui removes some trades some functionality
    for flexibility. This means we need some helper functions */
-define(["libs/spin.min", "libs/jquery"], function (Spinner) {
+define(["libs/spin.min", "jquery"], function (Spinner) {
 
     function cacheRequest(event, ui) {
         /* Cache is removed as an option in jquery-ui-1.10. Reimplement it */
