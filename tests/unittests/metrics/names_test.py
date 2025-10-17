@@ -29,5 +29,9 @@ class MetricNamingTests(TestCase):
         ('temperature, top', 'temperature__top'),
     ],
 )
-def test_escape_metric_name(test_input, expected):
-    assert escape_metric_name(test_input) == expected
+class TestEscapeMetricName:
+    def test_should_escape_by_default(self, test_input, expected):
+        assert escape_metric_name(test_input) == expected
+    def test_should_not_escape_safe_names(self, test_input, expected):
+        assert escape_metric_name(safe_name(test_input)) == str(test_input)
+        assert escape_metric_name(str(safe_name(test_input))) == str(test_input)
