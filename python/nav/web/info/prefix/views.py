@@ -25,6 +25,7 @@ from django.views.decorators.http import require_POST
 from IPy import IP
 
 from nav.web import utils
+from nav.web.auth.utils import get_account
 from nav.models.manage import Prefix, Usage, PrefixUsage
 from ..forms import SearchForm
 
@@ -109,7 +110,8 @@ def get_query_results(query):
 
 def authorize_user(request):
     """Find out if this user can edit prefixes"""
-    return request.account.has_perm('web_access', reverse('seeddb-prefix'))
+    account = get_account(request)
+    return account.has_perm('web_access', reverse('seeddb-prefix'))
 
 
 ### Controllers

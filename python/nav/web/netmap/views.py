@@ -20,7 +20,7 @@ import json
 from django.db.models import Q
 from django.views.generic import TemplateView, ListView
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.models.profiles import (
     NetmapView,
     NetmapViewDefaultView,

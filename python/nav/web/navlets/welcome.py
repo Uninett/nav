@@ -15,6 +15,7 @@
 #
 """Module comment"""
 
+from nav.web.auth.utils import get_account
 from nav.web.navlets import Navlet
 from nav.web.webfront import WELCOME_ANONYMOUS_PATH, WELCOME_REGISTERED_PATH
 from nav.web.webfront.utils import quick_read
@@ -28,7 +29,8 @@ class WelcomeNavlet(Navlet):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
-        if request.account.is_default_account():
+        account = get_account(request)
+        if account.is_anonymous:
             welcome = quick_read(WELCOME_ANONYMOUS_PATH)
         else:
             welcome = quick_read(WELCOME_REGISTERED_PATH)

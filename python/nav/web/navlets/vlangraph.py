@@ -19,7 +19,7 @@ import logging
 
 from django.http import HttpResponse
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.models.manage import Vlan
 from nav.models.profiles import AccountNavlet
 from nav.web.navlets import Navlet, NAVLET_MODE_VIEW, NAVLET_MODE_EDIT

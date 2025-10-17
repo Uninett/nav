@@ -24,6 +24,7 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 
 from nav.django.utils import get_model_and_name, get_all_related_objects
+from nav.web.auth.utils import get_account
 from nav.web.message import new_message, Messages
 from nav.auditlog.models import LogEntry
 
@@ -124,9 +125,10 @@ def _try_deleting(request, objects, pre_delete_operation=None, delete_operation=
         msg = "Error: %s" % ex
         new_message(request, msg, Messages.ERROR)
     else:
+        account = get_account(request)
         if delete_operation:
             new_message(request, "Deleted %i rows" % len(objects), Messages.SUCCESS)
-            log_deleted(request.account, objects, template='{actor} deleted {object}')
+            log_deleted(account, objects, template='{actor} deleted {object}')
         else:
             new_message(
                 request,
@@ -134,7 +136,7 @@ def _try_deleting(request, objects, pre_delete_operation=None, delete_operation=
                 Messages.SUCCESS,
             )
             log_deleted(
-                request.account,
+                account,
                 objects,
                 template='{actor} scheduled {object} for deletion',
             )
