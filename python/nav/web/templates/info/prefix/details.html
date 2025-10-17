@@ -16,6 +16,9 @@
        $('.prefixgraph').each(function (index, element) {
            new GraphFetcher($(element), element.dataset.url);
        });
+       $('.dhcpgraph').each(function (index, element) {
+           new GraphFetcher($(element), element.dataset.url);
+       });
    });
   </script>
 
@@ -201,6 +204,21 @@
         <div class="rickshaw-container"></div>
       </div>
     </div>
+
+    {% if dhcp_graph_urls or graphite_error %}
+      {% if graphite_error %}
+        <span class="label alert">Graphite unreachable</span>
+      {% else %}
+        <div class="large-6 column">
+          {% for graph in dhcp_graph_urls %}
+            <div class="dhcpgraph graphitegraph" data-url="{{ graph }}">
+              <div class="rickshaw-container"></div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endif %}
+
 
   </div>
 

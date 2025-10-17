@@ -57,6 +57,7 @@ from nav.models.fields import DateTimeInfinityField, VarcharField, PointField
 from nav.models.fields import CIDRField
 import nav.models.event
 from nav.oids import get_enterprise_id
+import nav.dhcpstats.common
 
 
 _logger = logging.getLogger(__name__)
@@ -1469,6 +1470,16 @@ class Prefix(models.Model):
     def get_absolute_url(self):
         return reverse('prefix-details', args=[self.pk])
 
+    def get_dhcp_graph_urls(self):
+        """
+        Creates urls to graphs showing range/pool/subnet utilization, with one
+        url (and one graph) per set of ranges/pools/subnets in graphite with the
+        same ip_version, server_name and group where at least one
+        range/pool/subnet intersects this prefix.
+        """
+        prefix = IPy.IP(self.net_address)
+        return nav.dhcpstats.common.fetch_graph_urls_for_prefixes([prefix])
+
 
 class Vlan(models.Model):
     """From NAV Wiki: The vlan table defines the IP broadcast domain / vlan. A
@@ -1566,6 +1577,16 @@ class Vlan(models.Model):
                 ),
                 format='json',
             )
+
+    def get_dhcp_graph_urls(self):
+        """
+        Creates urls to graphs showing range/pool/subnet utilization, with one
+        url (and one graph) per set of ranges/pools/subnets in graphite with the
+        same ip_version, server_name and group where at least one
+        range/pool/subnet intersects this vlan.
+        """
+        prefixes = [IPy.IP(prefix.net_address) for prefix in self.prefixes.all()]
+        return nav.dhcpstats.common.fetch_graph_urls_for_prefixes(prefixes)
 
 
 class NetType(models.Model):

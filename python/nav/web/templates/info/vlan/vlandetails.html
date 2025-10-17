@@ -16,6 +16,9 @@
        $('.prefixgraph').each(function (index, element) {
            new GraphFetcher($(element), element.dataset.url);
        });
+       $('.dhcpgraph').each(function (index, element) {
+           new GraphFetcher($(element), element.dataset.url);
+       });
    });
   </script>
 {% endblock %}
@@ -154,4 +157,19 @@
     {% endfor %}
   </ul>
 
+  {% comment %} Graph containing DHCP statistics for total, assigned and declined addresses {% endcomment %}
+  {% if dhcp_graph_urls or graphite_error %}
+    <h2>DHCP graphs</h2>
+    {% if graphite_error %}
+      <span class="label alert">Graphite unreachable</span>
+    {% else %}
+      <ul class="small-block-grid-1 large-block-grid-2">
+        {% for graph in dhcp_graph_urls %}
+          <li class="dhcpgraph graphitegraph" data-url="{{ graph }}">
+            <div class="rickshaw-container"></div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
 {% endblock %}
