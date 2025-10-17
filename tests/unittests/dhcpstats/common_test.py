@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from itertools import chain
 
 import IPy
 import pytest
 
-from nav.dhcpstats.common import DhcpPath
+from nav.dhcpstats.common import DhcpPath, drop_groups_not_in_prefixes, group_paths
 from nav.metrics.templates import metric_path_for_dhcp
 
 @dataclass
@@ -131,3 +132,181 @@ class TestDhcpPath:
         with pytest.raises(ValueError):
             DhcpPath.from_external_info(server_name, allocation_type, group_name, first_ip, last_ip)
             pytest.fail(f"Didn't fail when {reason!r}")
+
+
+def test_group_paths_should_group_special_standalone_groups_paths_individually():
+    path0 = DhcpPath(
+            ip_version=6,
+            server_name="server1",
+            allocation_type="range",
+            group_name="standalone",
+            group_name_source="special_groups",
+            first_ip=IPy.IP("::0:1"),
+            last_ip=IPy.IP("::0:ffff"),
+    )
+    path1 = replace(path0, first_ip=IPy.IP("::1:1"), last_ip=IPy.IP("::1:ffff"))
+    path2 = replace(path0, first_ip=IPy.IP("::2:1"), last_ip=IPy.IP("::2:ffff"))
+    assert sorted(group_paths([path0, path1, path2])) == sorted([[path0], [path1], [path2]])
+
+
+def test_group_paths_should_group_special_groups_paths_separately_from_custom_groups_paths():
+    path0 = DhcpPath(
+            ip_version=6,
+            server_name="server1",
+            allocation_type="range",
+            group_name="standalone",
+            group_name_source="special_groups",
+            first_ip=IPy.IP("::0:1"),
+            last_ip=IPy.IP("::0:ffff"),
+    )
+    path1 = replace(path0, first_ip=IPy.IP("::1:1"), last_ip=IPy.IP("::1:ffff"))
+    path2 = replace(path0, first_ip=IPy.IP("::2:1"), last_ip=IPy.IP("::2:ffff"), group_name_source="custom_groups")
+    path3 = replace(path0, first_ip=IPy.IP("::3:1"), last_ip=IPy.IP("::3:ffff"), group_name_source="custom_groups")
+    assert sorted(group_paths([path0, path1, path2, path3])) == sorted([[path0], [path1], [path2, path3]])
+
+
+def test_group_paths_should_group_custom_groups_paths_together_when_only_ip_addresses_differ():
+    path0 = DhcpPath(
+            ip_version=6,
+            server_name="server1",
+            allocation_type="range",
+            group_name="group1",
+            group_name_source="custom_groups",
+            first_ip=IPy.IP("::0:1"),
+            last_ip=IPy.IP("::0:ffff"),
+    )
+    path1 = replace(path0, first_ip=IPy.IP("::1:1"), last_ip=IPy.IP("::1:ffff"))
+    path2 = replace(path0, first_ip=IPy.IP("::2:1"), last_ip=IPy.IP("::2:ffff"), group_name="different")
+    path3 = replace(path0, first_ip=IPy.IP("::3:1"), last_ip=IPy.IP("::3:ffff"), allocation_type="pool")
+    path4 = replace(path0, first_ip=IPy.IP("::4:1"), last_ip=IPy.IP("::4:ffff"), server_name="different")
+    path5 = replace(path0, first_ip=IPy.IP("0.0.5.1"), last_ip=IPy.IP("0.0.5.255"), ip_version=4)
+    assert sorted(group_paths([path0, path1, path2, path3, path4, path5])) == sorted([[path0, path1], [path2], [path3], [path4], [path5]])
+
+
+def test_group_paths_should_group_custom_groups_paths_separately_when_other_than_ip_addresses_differ():
+    path0 = DhcpPath(
+            ip_version=6,
+            server_name="server1",
+            allocation_type="range",
+            group_name="group1",
+            group_name_source="custom_groups",
+            first_ip=IPy.IP("::1"),
+            last_ip=IPy.IP("::ff"),
+    )
+    path1 = replace(path0, group_name="different")
+    path2 = replace(path0, server_name="different")
+    path3 = replace(path0, allocation_type="subnet")
+    path4 = replace(path0, first_ip=IPy.IP("0.0.0.1"), last_ip=IPy.IP("0.0.0.255"), ip_version=4)
+    assert sorted(group_paths([path0, path1, path2, path3, path4])) == sorted([[path0], [path1], [path2], [path3], [path4]])
+
+@pytest.mark.parametrize(
+    "prefixes,test_input,expected_output",
+    [
+        (
+            [IPy.IP("0.0.0.0/0")],
+            [
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_0.1_1_252_12.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_64.1_1_252_127.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_253_1.1_1_253_8.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_100_0.1_1_101_0.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group3.1_1_100_0.1_1_101_0.foo",  # Inside
+                "nav.dhcp.4.server2.range.custom_groups.group1.1_1_100_0.1_1_101_0.foo",  # Inside
+                "nav.dhcp.4.server2.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Inside
+                "nav.dhcp.4.server2.range.custom_groups.group3.1_1_253_1.1_1_253_8.foo",  # Inside
+                "nav.dhcp.4.server3.range.custom_groups.group1.1_1_250_1.1_1_255_1.foo",  # Inside
+                "nav.dhcp.4.server4.range.custom_groups.group1.1_1_253_1.1_1_255_1.foo",  # Inside
+                "nav.dhcp.4.server5.range.custom_groups.group1.1_1_250_1.1_1_253_1.foo",  # Inside
+            ],
+            [
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_0.1_1_252_12.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_64.1_1_252_127.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_253_1.1_1_253_8.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_100_0.1_1_101_0.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group3.1_1_100_0.1_1_101_0.foo",  # Inside
+                "nav.dhcp.4.server2.range.custom_groups.group1.1_1_100_0.1_1_101_0.foo",  # Inside
+                "nav.dhcp.4.server2.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Inside
+                "nav.dhcp.4.server2.range.custom_groups.group3.1_1_253_1.1_1_253_8.foo",  # Inside
+                "nav.dhcp.4.server3.range.custom_groups.group1.1_1_250_1.1_1_255_1.foo",  # Inside
+                "nav.dhcp.4.server4.range.custom_groups.group1.1_1_253_1.1_1_255_1.foo",  # Inside
+                "nav.dhcp.4.server5.range.custom_groups.group1.1_1_250_1.1_1_253_1.foo",  # Inside
+            ],
+        ),
+        (
+            [IPy.IP("1.1.252.0/24"), IPy.IP("1.1.253.0/24")],
+            [
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_0.1_1_252_12.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_64.1_1_252_127.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_253_1.1_1_253_8.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Another path in the group is inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_100_0.1_1_101_0.foo",  # Another path in the group is inside
+                "nav.dhcp.4.server1.range.custom_groups.group3.1_1_100_0.1_1_101_0.foo",  # Outside
+                "nav.dhcp.4.server2.range.custom_groups.group1.1_1_100_0.1_1_101_0.foo",  # Outside
+                "nav.dhcp.4.server2.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Outside
+                "nav.dhcp.4.server2.range.custom_groups.group3.1_1_253_1.1_1_253_8.foo",  # Inside
+                "nav.dhcp.4.server3.range.custom_groups.group1.1_1_250_1.1_1_255_1.foo",  # Partially Inside
+                "nav.dhcp.4.server4.range.custom_groups.group1.1_1_253_1.1_1_255_1.foo",  # Partially Inside
+                "nav.dhcp.4.server5.range.custom_groups.group1.1_1_250_1.1_1_253_1.foo",  # Partially Inside
+            ],
+            [
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_0.1_1_252_12.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_64.1_1_252_127.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_253_1.1_1_253_8.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Another path in the group is inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_100_0.1_1_101_0.foo",  # Another path in the group inside
+                "nav.dhcp.4.server2.range.custom_groups.group3.1_1_253_1.1_1_253_8.foo",  # Inside
+                "nav.dhcp.4.server3.range.custom_groups.group1.1_1_250_1.1_1_255_1.foo",  # Partially Inside
+                "nav.dhcp.4.server4.range.custom_groups.group1.1_1_253_1.1_1_255_1.foo",  # Partially Inside
+                "nav.dhcp.4.server5.range.custom_groups.group1.1_1_250_1.1_1_253_1.foo",  # Partially Inside
+            ],
+        ),
+        (
+            [IPy.IP("1.1.252.0/24")],
+            [
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_0.1_1_252_12.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_64.1_1_252_127.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_253_1.1_1_253_8.foo",  # Outside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Outside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_100_0.1_1_101_0.foo",  # Outside
+                "nav.dhcp.4.server1.range.custom_groups.group3.1_1_100_0.1_1_101_0.foo",  # Outside
+                "nav.dhcp.4.server2.range.custom_groups.group1.1_1_100_0.1_1_101_0.foo",  # Outside
+                "nav.dhcp.4.server2.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Outside
+                "nav.dhcp.4.server2.range.custom_groups.group3.1_1_253_1.1_1_253_8.foo",  # Outside
+                "nav.dhcp.4.server3.range.custom_groups.group1.1_1_250_1.1_1_255_1.foo",  # Partially Inside
+                "nav.dhcp.4.server4.range.custom_groups.group1.1_1_253_1.1_1_255_1.foo",  # Outside
+                "nav.dhcp.4.server5.range.custom_groups.group1.1_1_250_1.1_1_253_1.foo",  # Partially Inside
+            ],
+            [
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_0.1_1_252_12.foo",  # Inside
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_64.1_1_252_127.foo",  # Inside
+                "nav.dhcp.4.server3.range.custom_groups.group1.1_1_250_1.1_1_255_1.foo",  # Partially Inside
+                "nav.dhcp.4.server5.range.custom_groups.group1.1_1_250_1.1_1_253_1.foo",  # Partially Inside
+            ],
+        ),
+        (
+            [],
+            [
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_0.1_1_252_12.foo",  # Outside
+                "nav.dhcp.4.server1.range.custom_groups.group1.1_1_252_64.1_1_252_127.foo",  # Outside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_253_1.1_1_253_8.foo",  # Outside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Outside
+                "nav.dhcp.4.server1.range.custom_groups.group2.1_1_100_0.1_1_101_0.foo",  # Outside
+                "nav.dhcp.4.server1.range.custom_groups.group3.1_1_100_0.1_1_101_0.foo",  # Outside
+                "nav.dhcp.4.server2.range.custom_groups.group1.1_1_100_0.1_1_101_0.foo",  # Outside
+                "nav.dhcp.4.server2.range.custom_groups.group2.1_1_254_0.1_1_254_15.foo",  # Outside
+                "nav.dhcp.4.server2.range.custom_groups.group3.1_1_253_1.1_1_253_8.foo",  # Outside
+                "nav.dhcp.4.server3.range.custom_groups.group1.1_1_250_1.1_1_255_1.foo",  # Outside
+                "nav.dhcp.4.server4.range.custom_groups.group1.1_1_253_1.1_1_255_1.foo",  # Outside
+                "nav.dhcp.4.server5.range.custom_groups.group1.1_1_250_1.1_1_253_1.foo",  # Outside
+            ],
+            [],
+        )
+    ]
+)
+def test_drop_groups_not_in_prefixes_should_work_as_expected(prefixes, test_input, expected_output):
+    native_paths = [DhcpPath.from_graphite_path(path) for path in test_input]
+    grouped_paths = group_paths(native_paths)
+    remaining_grouped_paths = drop_groups_not_in_prefixes(grouped_paths, prefixes)
+    remaining_graphite_paths = [path.to_graphite_path("foo") for path in chain.from_iterable(remaining_grouped_paths)]
+    assert sorted(remaining_graphite_paths) == sorted(expected_output)
