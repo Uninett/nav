@@ -1,6 +1,10 @@
 @import "../navsettings";
 
 #portadmin-wrapper {
+    &.loading .port_row {
+      opacity: 0.5;
+      pointer-events: none;
+    }
     .changed {
         background-color: bisque;
     }
@@ -19,3 +23,14 @@
     }
 }
 
+#portadmin-feedback-modal {
+  [aria-describedby] {
+    cursor: pointer;
+    border-bottom: dotted 1px #cccccc;
+    font-weight: bold;
+  }
+  #restart-reason {
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+  }
+}

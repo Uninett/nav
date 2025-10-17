@@ -25,6 +25,7 @@ from rest_framework.authentication import TokenAuthentication, BaseAuthenticatio
 from oidc_auth.authentication import JWTToken
 
 from nav.models.api import APIToken
+from nav.web.auth.utils import get_account
 
 _logger = logging.getLogger(__name__)
 
@@ -55,9 +56,10 @@ class NavBaseAuthentication(BaseAuthentication):
     """Returns logged in user"""
 
     def authenticate(self, request):
-        _logger.debug("Baseauthentication account is %s", request.account)
-        if request.account and not request.account.is_default_account():
-            return request.account, None
+        account = get_account(request)
+        _logger.debug("Baseauthentication account is %s", account)
+        if account and not account.is_anonymous:
+            return account, None
 
 
 class ReadOnlyNonAdminPermission(BasePermission):
@@ -67,9 +69,10 @@ class ReadOnlyNonAdminPermission(BasePermission):
 
     def has_permission(self, request, _view):
         """If user is logged in and it is a safe method, it is authorized"""
-        if request.method in SAFE_METHODS and not request.account.is_default_account():
+        account = get_account(request)
+        if request.method in SAFE_METHODS and not account.is_anonymous:
             return True
-        if request.account.is_admin():
+        if account.is_admin():
             return True
         return False
 
@@ -79,7 +82,8 @@ class AdminPermission(BasePermission):
 
     def has_permission(self, request, _view):
         """If user is an admin, it is authorized"""
-        return request.account.is_admin()
+        account = get_account(request)
+        return account.is_admin()
 
 
 class TokenPermission(BasePermission):

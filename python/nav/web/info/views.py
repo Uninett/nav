@@ -22,6 +22,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.conf import settings
+from django_htmx.http import trigger_client_event
 
 from nav.web.info.forms import SearchForm
 from nav.web.info import searchproviders as providers
@@ -64,6 +65,57 @@ def index(request):
             "failed_providers": failed_providers,
             "navpath": navpath,
             "title": create_title(titles),
+        },
+    )
+
+
+def index_search_preview(request):
+    """
+    Renders a preview of search results for the navbar search form.
+
+    Returns an HTTP response with the rendered search results and triggers
+    the appropriate client event for the popover.
+    """
+    query = request.GET.get("query")
+    form = SearchForm(request.GET, auto_id=False)
+    if not (query and form.is_valid()):
+        return _render_search_results(request, query=query, show_results=False)
+
+    search_providers, failed_providers = process_form(form)
+    if has_only_one_result(search_providers) and not failed_providers:
+        provider = search_providers[0]
+        if provider.name == 'Fallback':
+            return _render_search_results(request, query=query)
+
+    for provider in search_providers:
+        count = len(provider.results)
+        provider.count = count
+        if count > 5:
+            provider.results = provider.results[:5]
+            provider.truncated = True
+            provider.truncated_count = count - 5
+
+    return _render_search_results(
+        request,
+        results=search_providers,
+        query=query,
+    )
+
+
+def _render_search_results(request, results=None, query=None, show_results=True):
+    """Render search results"""
+
+    response = render(
+        request,
+        "info/_navbar_search_results.html",
+        {"results": results, "query": query or '', "show_results": show_results},
+    )
+    event = "popover.open" if show_results else "popover.close"
+    return trigger_client_event(
+        response,
+        event,
+        {
+            'id': 'navbar-search-form',
         },
     )
 

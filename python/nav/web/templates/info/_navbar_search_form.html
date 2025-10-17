@@ -1,0 +1,32 @@
+<form
+    id="navbar-search-form-mobile"
+    class="hide-for-medium-up"
+    action="{% url 'info-search' %}"
+    method="get"
+>
+  <div class="search-input-wrapper">
+      <input id="query" type="text" name="query" maxlength="100"/>
+      <button class="secondary tiny" type="submit">Search</button>
+  </div>
+</form>
+<div id="navbar-search-form" class="popover show-for-medium-up">
+    <form
+        action="{% url 'info-search' %}" method="get"
+        autocomplete="off"
+    >
+        <div class="search-input-wrapper">
+            <input
+                id="query"
+                aria-label="Search"
+                type="text"
+                name="query"
+                maxlength="100"
+                hx-get="{% url 'info-search-preview' %}"
+                hx-trigger="input changed delay:500ms, query"
+                hx-target="#navbar-search-results"
+            />
+            <button class="secondary tiny" type="submit">Search</button>
+        </div>
+        <div id="navbar-search-results" class="popover-content large"></div>
+    </form>
+</div>

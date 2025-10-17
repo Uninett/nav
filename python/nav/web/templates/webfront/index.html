@@ -32,7 +32,7 @@
 {% block base_content %}
 
   {# Dashboard and widget actions for logged in users #}
-  {% if not current_user_data.account.is_default_account or current_user_data.sudoer %}
+  {% if not current_user_data.account.is_anonymous or current_user_data.sudoer %}
 
     <div id="widgets-actions" class="hide-for-small" >
       {% if can_edit %}

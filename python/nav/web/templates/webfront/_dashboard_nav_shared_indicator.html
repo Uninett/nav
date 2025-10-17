@@ -1,11 +1,12 @@
 <div
         id="is-shared-badge"
-        class="nav-tooltip unstyled{% if not dashboard.is_shared %} hidden{% endif %}"
+        class="nav-tooltip{% if not dashboard.is_shared %} hidden{% endif %}"
         {% if swap %}
         hx-swap-oob="true"
         {% endif %}
+        data-align="end"
 >
-    <div class="badge" aria-describedby="shared-tooltip">
+    <div class="badge unstyled-tooltip" aria-describedby="shared-tooltip">
         <i class="fa fa-share-alt"></i>
         <span>Shared</span>
     </div>

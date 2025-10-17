@@ -11,7 +11,7 @@
             <input type="hidden" name="{{ type }}" value="{{ id }}" />
           {% endfor %}
         {% endfor %}
-        {% include 'custom_crispy_templates/_form_content.html' %}
+        {% include 'custom_crispy_templates/_form_content.html' with disable_csrf=True %}
         <input type="submit" class="button small" value="Filter">
       </form>
     </div>
@@ -65,13 +65,15 @@
             <tr>
               <td>
                 <a href="{{ h.netbox.get_absolute_url }}">
-                  <span title="
-                               &lt;strong&gt;Location: &lt;/strong&gt;{{ h.netbox.room.location }}&lt;br /&gt;
-                               &lt;strong&gt;Room: &lt;/strong&gt;{{ h.netbox.room }}
-                               "
-                        class="netbox-sysname-tooltip">
-                    {{ h.netbox.sysname }}
-                  </span>
+                    <div id="sysname-tooltip-{{ h.id }}" class="nav-tooltip medium">
+                        <span class="unstyled-tooltip" aria-describedby="sysname-tooltip-{{ h.id }}">
+                                {{ h.netbox.sysname }}
+                        </span>
+                        <div class="medium" role="tooltip">
+                            <span><strong>Location: </strong> {{ h.netbox.room.location }}</span><br/>
+                            <span><strong>Room: </strong> {{ h.netbox.room }}</span>
+                        </div>
+                    </div>
                 </a>
               </td>
 

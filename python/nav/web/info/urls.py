@@ -18,10 +18,11 @@
 
 from django.urls import include, path
 
-from nav.web.info.views import image_help_modal, index
+from nav.web.info.views import image_help_modal, index, index_search_preview
 
 urlpatterns = [
     path('', index, name="info-search"),
+    path('search-preview/', index_search_preview, name="info-search-preview"),
     path('room/', include('nav.web.info.room.urls')),
     path('location/', include('nav.web.info.location.urls')),
     path('vlan/', include('nav.web.info.vlan.urls')),

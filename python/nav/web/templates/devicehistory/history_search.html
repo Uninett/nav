@@ -7,7 +7,7 @@
     <form action="{% url 'devicehistory-search' %}" method="get">
         <div class="row">
             <div class="large-8 column">
-              {% include 'custom_crispy_templates/_form_content.html' %}
+              {% include 'custom_crispy_templates/_form_content.html' with disable_csrf=True %}
             </div>
         </div>
         {% include 'devicehistory/_component_search_input.html' with post_url='devicehistory-component-search' %}

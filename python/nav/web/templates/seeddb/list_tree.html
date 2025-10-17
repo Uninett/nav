@@ -5,11 +5,13 @@
    .tree-list .fa {
        cursor: pointer;
    }
-   .tooltip dl {
+   .nav-tooltip dl {
        font-size: inherit;
        margin-bottom: 0;
    }
-   .tooltip h5 { border-bottom: 1px solid salmon; }
+   .nav-tooltip h5 {
+       border-bottom: 1px solid salmon;
+   }
   </style>
 {% endblock %}
 
@@ -29,11 +31,6 @@
    $('#expand-all').click(function(){
        $('.child').show();
        $('.tree-list [class*="fa-toggle-"]').removeClass('fa-toggle-right').addClass('fa-toggle-down');
-   });
-  </script>
-  <script>
-   require(['plugins/delegate_tooltip'], function(tooltip) {
-       tooltip(document.querySelector('.tree-list'), '.branch > a i');
    });
   </script>
 {% endblock %}

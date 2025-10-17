@@ -1,1 +1,1 @@
-python-ldap==3.4.4 # optional for LDAP authentication, requires libldap (OpenLDAP) to build
+python-ldap==3.4.5 # optional for LDAP authentication, requires libldap (OpenLDAP) to build
