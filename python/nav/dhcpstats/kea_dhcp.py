@@ -328,7 +328,7 @@ class Client:
         session.mount("https://", HTTPAdapter(max_retries=retries))
         session.mount("http://", HTTPAdapter(max_retries=retries))
 
-        https = self._url.startswith("https://")
+        https = self._url.lower().startswith("https://")
 
         if https:
             _logger.debug("Using HTTPS")
