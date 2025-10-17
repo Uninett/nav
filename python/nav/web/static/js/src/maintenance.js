@@ -1,4 +1,4 @@
-require(['plugins/hover_highlight', "libs/jquery-ui-timepicker-addon"], function (HoverHighlight) {
+require(['plugins/hover_highlight', "flatpickr"], function (HoverHighlight, flatpickr) {
     var calendar = $('.calendar');
 
     if (calendar.length) {
@@ -10,10 +10,12 @@ require(['plugins/hover_highlight', "libs/jquery-ui-timepicker-addon"], function
             toggleEndTime(this);
         });
 
-        $('.datetimepicker').datetimepicker({
-            'dateFormat': 'yy-mm-dd',
-            'timeFormat': 'HH:mm'
-        });
+        flatpickr('.datetimepicker', {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            allowInput: true
+        })
     });
 
     function toggleEndTime(checkBox){

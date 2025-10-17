@@ -24,9 +24,9 @@ var require = {
         "vue": "libs/vue.min",
         "driver": "libs/driver-1.3.6.min",
         "tinysort": "libs/tinysort-3.1.4.min",
+        "flatpickr": "libs/flatpickr-4.6.13.min",
     },
     shim: {
-        'libs/jquery-ui-timepicker-addon': ['libs/jquery-ui.min'],
         'libs/underscore': {
             exports: '_'
         },
