@@ -93,20 +93,25 @@ class Client:
         server_name: str,
         url: str,
         dhcp_version: int = 4,
-        http_basic_username: str = "",
-        http_basic_password: str = "",
-        client_cert_path: str = "",
-        client_cert_key_path: str = "",
+        http_basic_username: Optional[str] = None,
+        http_basic_password: Optional[str] = None,
+        client_cert_path: Optional[str] = None,
+        client_cert_key_path: Optional[str] = None,
         user_context_groupname_key: str = "group",
         timeout: float = 5.0,
     ):
+        if not (
+            url.lower().startswith("https://") or url.lower().startswith("http://")
+        ):
+            raise ConfigurationError("url must have an HTTPS or HTTP scheme")
+
         self._server_name: str = server_name
         self._url: str = url
         self._dhcp_version: int = dhcp_version
-        self._http_basic_username: str = http_basic_username
-        self._http_basic_password: str = http_basic_password
-        self._client_cert_path: str = client_cert_path
-        self._client_key_path: str = client_cert_key_path
+        self._http_basic_username: Optional[str] = http_basic_username
+        self._http_basic_password: Optional[str] = http_basic_password
+        self._client_cert_path: Optional[str] = client_cert_path
+        self._client_key_path: Optional[str] = client_cert_key_path
         self._user_context_groupname_key: str = user_context_groupname_key
         self._timeout: float = timeout
 
@@ -361,7 +366,10 @@ class Client:
                 "Using HTTP to request potentially sensitive data such as API passwords"
             )
 
-        if self._http_basic_username and self._http_basic_password:
+        if (
+            self._http_basic_username is not None
+            and self._http_basic_password is not None
+        ):
             _logger.debug("Using HTTP Basic Authentication")
             if not https:
                 _logger.warning("Using HTTP Basic Authentication without HTTPS")
@@ -369,7 +377,7 @@ class Client:
         else:
             _logger.debug("Not using HTTP Basic Authentication")
 
-        if self._client_cert_path:
+        if self._client_cert_path is not None:
             _logger.debug("Using client certificate authentication")
             if not https:
                 raise ConfigurationError(
@@ -377,7 +385,7 @@ class Client:
                     "urls with HTTPS scheme"
                 )
             _logger.debug("Certificate path: '%s'", self._client_cert_path)
-            if self._client_key_path:
+            if self._client_key_path is not None:
                 _logger.debug("Certificate key path: '%s'", self._client_key_path)
                 session.cert = (self._client_cert_path, self._client_key_path)
             else:
