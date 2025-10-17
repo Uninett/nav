@@ -7,11 +7,11 @@
     label[for='id_endpoints'] { display: none; }
   </style>
   <script>
-    require(['libs/jquery.multi-select'], function(){
+    require(['jquery-multi-select'], function(){
       $(function(){
         /* Add multiselect for selecting endpoints */
         var msSelector = '#id_endpoints';
-        $(msSelector).multiSelect({
+        $(msSelector).multiselect({
           selectableHeader: 'Available endpoints <a id="select-all-endpoints" class="right">Select all</a>',
           selectionHeader: 'Selected endpoints <a id="remove-all-endpoints" class="right">Remove all</a>',
           afterInit: function(){
