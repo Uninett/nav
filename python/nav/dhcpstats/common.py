@@ -27,6 +27,11 @@ from nav.metrics.names import safe_name
 from nav.metrics.templates import metric_path_for_dhcp
 
 
+# Type expected by functions in NAV that send stats to a Graphite/Carbon backend. Values
+# of this type are interpreted as (path, (timestamp, value)).
+GraphiteMetric = tuple[str, tuple[float, int]]
+
+
 @dataclass(frozen=True, order=True)
 class DhcpPath:
     """
