@@ -4,7 +4,7 @@ require([
     "plugins/jquery_ui_helpers",
     "plugins/graphfetcher_controller",
     "jquery",
-    "libs/jquery-ui.min",
+    "jquery-ui",
     "jquery-sparkline",
     "plugins/rickshaw_graph"
 ], function (TableUtil, TabNavigation, JUIHelpers) {

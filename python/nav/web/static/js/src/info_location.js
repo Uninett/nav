@@ -4,7 +4,7 @@ require(
         "plugins/room_mapper",
         "plugins/jquery_ui_helpers",
         "jquery",
-        "libs/jquery-ui.min",
+        "jquery-ui",
         "plugins/lightbox"
     ],
     function(tab_navigation, RoomMapper, JUIHelpers) {

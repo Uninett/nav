@@ -11,7 +11,7 @@ require(
         "dt_plugins/date_title_sort",
         "dt_plugins/modulesort",
         "jquery",
-        "libs/jquery-ui.min",
+        "jquery-ui",
         "libs/datatables.min",
         "plugins/lightbox"
     ],
