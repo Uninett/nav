@@ -23,7 +23,7 @@ from typing import Optional
 from django.http import HttpRequest
 
 from nav.auditlog.models import LogEntry
-from nav.web.auth.utils import is_admin, get_account
+from nav.web.auth.utils import get_account
 from nav.models.profiles import Account
 from nav.web.auth.utils import set_account, clear_session
 
@@ -39,7 +39,8 @@ def sudo(request: HttpRequest, other_user: Account) -> None:
     if SUDOER_ID_VAR in request.session:
         # Already logged in as another user.
         raise SudoRecursionError()
-    if not is_admin(get_account(request)):
+    account = get_account(request)
+    if not account.is_admin():
         # Check if sudoer is acctually admin
         raise SudoNotAdminError()
     original_user = request.account

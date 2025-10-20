@@ -49,7 +49,7 @@ from nav.models.profiles import (
     SMSQueue,
     AccountAlertQueue,
 )
-from nav.web.auth.utils import get_account, is_admin
+from nav.web.auth.utils import get_account
 from nav.web.message import Messages, new_message
 
 from nav.web.alertprofiles.forms import TimePeriodForm, LanguageForm
@@ -1242,7 +1242,7 @@ def sms_list(request):
 def filter_list(request):
     """Lists all the filters"""
     account = get_account(request)
-    admin = is_admin(account)
+    admin = account.is_admin()
 
     page = request.GET.get('page', 1)
 
@@ -1284,7 +1284,7 @@ def filter_show_form(request, filter_id=None, filter_form=None):
     active = {'filters': True}
     page_name = 'New filter'
     account = get_account(request)
-    admin = is_admin(account)
+    admin = account.is_admin()
     is_owner = True
 
     filtr = None
@@ -1708,7 +1708,7 @@ def filter_removeexpression(request):
 def filter_group_list(request):
     """Lists the available filter groups"""
     account = get_account(request)
-    admin = is_admin(account)
+    admin = account.is_admin()
 
     page = request.GET.get('page', 1)
 
@@ -1751,7 +1751,7 @@ def filter_group_show_form(request, filter_group_id=None, filter_group_form=None
     active = {'filter_groups': True}
     page_name = 'New filter group'
     account = get_account(request)
-    admin = is_admin(account)
+    admin = account.is_admin()
     is_owner = True
 
     filter_group = None
@@ -2270,7 +2270,7 @@ def filter_group_movefilter(request):
 def matchfield_list(request):
     """Lists the available match fields"""
     account = get_account(request)
-    if not is_admin(account):
+    if not account.is_admin():
         return alertprofiles_response_forbidden(
             request, 'Only admins can view this page.'
         )
@@ -2318,7 +2318,7 @@ def matchfield_show_form(request, matchfield_id=None, matchfield_form=None):
     active = {'matchfields': True}
     page_name = 'New matchfield'
     account = get_account(request)
-    if not is_admin(account):
+    if not account.is_admin():
         return alertprofiles_response_forbidden(
             request, 'Only admins can view this page.'
         )
@@ -2400,7 +2400,7 @@ def matchfield_detail(request, matchfield_id=None):
 def matchfield_save(request):
     """Saves a match field"""
     account = get_account(request)
-    if not is_admin(account):
+    if not account.is_admin():
         return alertprofiles_response_forbidden(
             request, 'Only admins can view this page.'
         )
@@ -2441,7 +2441,7 @@ def matchfield_save(request):
 def matchfield_remove(request):
     """Deletes a match field"""
     account = get_account(request)
-    if not is_admin(account):
+    if not account.is_admin():
         return alertprofiles_response_forbidden(
             request, 'Only admins can view this page.'
         )
@@ -2519,7 +2519,7 @@ def matchfield_remove(request):
 def permission_list(request, group_id=None):
     """Lists the saved alert profiles permissions"""
     account = get_account(request)
-    if not is_admin(account):
+    if not account.is_admin():
         return alertprofiles_response_forbidden(
             request, 'Only admins can view this page.'
         )
@@ -2571,7 +2571,7 @@ def permissions_help_modal(request):
 def permissions_save(request):
     """Saves an Alert Profiles permission"""
     account = get_account(request)
-    if not is_admin(account):
+    if not account.is_admin():
         return alertprofiles_response_forbidden(
             request, 'Only admins can view this page.'
         )

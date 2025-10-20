@@ -22,7 +22,7 @@ import logging
 
 from django.core.cache import cache
 
-from nav.models.profiles import Account, AccountGroup
+from nav.models.profiles import Account
 
 
 _logger = logging.getLogger(__name__)
@@ -52,11 +52,6 @@ def get_account(request):
         return request.user
     except AttributeError:
         return default_account()
-
-
-def is_admin(account):
-    """Check if user is a member of the administrator group"""
-    return account.groups.filter(pk=AccountGroup.ADMIN_GROUP).count() > 0
 
 
 def set_account(request, account, cycle_session_id=True):
