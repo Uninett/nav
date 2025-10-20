@@ -230,9 +230,9 @@ require([
 
             });
             attachButtonListeners();
-        }).error(function (data) {
+        }).fail(function (data) {
                 $('.results').html("<p>Failed to load search results, please try again</p>");
-        }).complete(function () {
+        }).always(function () {
                 $("#syslog_loader").spin(false);
                 enrich_tables($('.logger_search_results table.listtable.log'));
         });
