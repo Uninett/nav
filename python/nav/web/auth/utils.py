@@ -33,6 +33,12 @@ PASSWORD_ISSUES_CACHE_KEY = "auth:accounts_password_issues"
 
 
 def default_account():
+    """
+    Returns the user representing an unauthenticated account
+
+    default_account().is_anonymous is always True.
+    default_account().is_default_account() always returns True.
+    """
     return Account.objects.get(id=Account.DEFAULT_ACCOUNT)
 
 
