@@ -4,7 +4,7 @@
 
       <form action="{% url 'ipdevinfo-save-port-layout' %}">
         <input type="hidden" name="netboxid" value="{{ netbox.pk }}">
-        {% if request.account.preferences.ipdevinfo_port_layout == 'old' %}
+        {% if request.user.preferences.ipdevinfo_port_layout == 'old' %}
           <input type="hidden" name="layout" value="new">
           <input type="submit" class="button small right" value="Try the new layout" />
         {% else %}
@@ -13,7 +13,7 @@
         {% endif %}
       </form>
 
-      {% if request.account.preferences.ipdevinfo_port_layout == 'old' %}
+      {% if request.user.preferences.ipdevinfo_port_layout == 'old' %}
         {% include 'ipdevinfo/frag-portlist-tabs.html' %}
       {% else %}
         {% include 'ipdevinfo/frag-portlist-datatable.html' %}
