@@ -548,7 +548,7 @@ define([
             request.done(function (response) {
                 $container.html(response);
             });
-            request.error(function () {
+            request.fail(function () {
                 $container.html('<div class="alert-box alert">Error fetching status details</div>');
             });
         },

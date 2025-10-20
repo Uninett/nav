@@ -233,7 +233,7 @@ require(['libs/underscore', 'jquery-sparkline'], function() {
                     }
                 });
 
-                request.error(function() {
+                request.fail(function() {
                     sparkContainer.html('Error fetching data from Graphite');
                 });
             }
