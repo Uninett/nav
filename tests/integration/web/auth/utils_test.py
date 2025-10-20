@@ -1,7 +1,10 @@
 from django.core.cache import cache
+from django.test import RequestFactory
 from django.urls import reverse
 
 from nav.web.auth.utils import (
+    default_account,
+    get_account,
     set_account,
     clear_session,
     ACCOUNT_ID_VAR,
@@ -9,6 +12,37 @@ from nav.web.auth.utils import (
     get_number_of_accounts_with_password_issues,
     PASSWORD_ISSUES_CACHE_KEY,
 )
+
+
+class TestGetAccount:
+    class Account:
+        id = 3465
+
+    def test_return_account_if_request_account_set(self):
+        r = RequestFactory()
+        request = r.get('/')
+        user = self.Account()
+        request.account = user
+        result = get_account(request)
+        assert result == user
+
+    def test_return_account_if_request_user_set_and_request_account_not_set(self):
+        r = RequestFactory()
+        request = r.get('/')
+        user = self.Account()
+        request.user = user
+        result = get_account(request)
+        assert result == user
+
+    # Needs to be an integration test due to default_account()
+    def test_return_default_account_if_neither_request_user_nor_request_account_is_set(
+        self,
+        db,
+    ):
+        r = RequestFactory()
+        request = r.get('/')
+        result = get_account(request)
+        assert result == default_account()
 
 
 class TestClearSession:
