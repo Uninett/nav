@@ -132,7 +132,7 @@ jobs:
       - uses: browser-actions/setup-chrome@latest
       - uses: browser-actions/setup-firefox@latest
       - run: chrome --version
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 18
 
