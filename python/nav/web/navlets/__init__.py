@@ -527,28 +527,6 @@ def update_navlet(account, key, value, column):
     navlet.save()
 
 
-def render_base_template(request):
-    """Render only base template with navlet info
-
-    This is used to render only buttons and title of the navlet,
-    and is used when an error occured rendering the whole navlet. See
-    doc in navlet_controller.js for more info
-
-    """
-    try:
-        navlet_id = int(request.GET.get('id'))
-    except (ValueError, TypeError):
-        # We're fucked
-        return HttpResponse(status=400)
-    else:
-        account = get_account(request)
-        accountnavlet = get_object_or_404(AccountNavlet, account=account, pk=navlet_id)
-        _logger.error(accountnavlet)
-        cls = get_navlet_from_name(accountnavlet.navlet)
-        navlet = cls(request=request)
-        return render(request, 'navlets/base.html', {'navlet': navlet})
-
-
 def add_user_navlet_graph(request):
     """Add a Graph Widget with url set to user dashboard"""
     if request.method == 'POST':
