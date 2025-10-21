@@ -29,7 +29,7 @@ urlpatterns = [
     ),
     path('history/', views.devicehistory_view, name='devicehistory-view'),
     path(
-        'history/room/<str:room_id>/',
+        'history/room/<room_id>/',
         views.devicehistory_view_room,
         name='devicehistory-view-room',
     ),
@@ -39,7 +39,7 @@ urlpatterns = [
         name='devicehistory-view-netbox',
     ),
     path(
-        'history/location/<str:location_id>/',
+        'history/location/<location_id>/',
         views.devicehistory_view_location,
         name='devicehistory-view-location',
     ),

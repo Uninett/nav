@@ -40,9 +40,7 @@ urlpatterns = [
         name='ipdevinfo-details-by-addr',
     ),
     path('id=<int:netbox_id>/', views.ipdev_details, name='ipdevinfo-details-by-id'),
-    re_path(
-        r'^(?P<name>[^/]+)/$', views.ipdev_details, name='ipdevinfo-details-by-name'
-    ),
+    path('<name>/', views.ipdev_details, name='ipdevinfo-details-by-name'),
     re_path(
         r'^save_port_layout_pref',
         views.save_port_layout_pref,

@@ -82,13 +82,13 @@ urlpatterns = [
     ),
     # Management Profile
     path('management-profile/', management_profile, name='seeddb-management-profile'),
-    re_path(
-        r'^management-profile/edit/(?P<management_profile_id>.+)/$',
+    path(
+        'management-profile/edit/<management_profile_id>/',
         management_profile_edit,
         name='seeddb-management-profile-edit',
     ),
-    re_path(
-        r'^management-profile/delete/(?P<object_id>.+)/$',
+    path(
+        'management-profile/delete/<object_id>/',
         management_profile_delete,
         name='seeddb-management-profile-delete',
     ),
@@ -118,29 +118,25 @@ urlpatterns = [
     path('service/bulk/', service.service_bulk, name='seeddb-service-bulk'),
     # Room
     path('room/', room.room, name='seeddb-room'),
-    re_path(r'^room/edit/(?P<room_id>.+)/$', room.room_edit, name='seeddb-room-edit'),
-    re_path(
-        r'^room/delete/(?P<object_id>.+)/$', room.room_delete, name='seeddb-room-delete'
-    ),
+    path('room/edit/<room_id>/', room.room_edit, name='seeddb-room-edit'),
+    path('room/delete/<object_id>/', room.room_delete, name='seeddb-room-delete'),
     re_path(
         r'^room/(?P<action>copy)/(?P<room_id>.+)/$',
         room.room_edit,
         name='seeddb-room-copy',
     ),
     path('room/add/', room.room_edit, name='seeddb-room-edit'),
-    re_path(
-        r'^room/add/(?P<lat>.+)/(?P<lon>.+)/$', room.room_edit, name='seeddb-room-edit'
-    ),
+    path('room/add/<lat>/<lon>/', room.room_edit, name='seeddb-room-edit'),
     path('room/bulk/', room.room_bulk, name='seeddb-room-bulk'),
     # Location
     path('location/', location.location, name='seeddb-location'),
-    re_path(
-        r'^location/edit/(?P<location_id>.+)/$',
+    path(
+        'location/edit/<location_id>/',
         location.location_edit,
         name='seeddb-location-edit',
     ),
-    re_path(
-        r'^location/delete/(?P<object_id>.+)/$',
+    path(
+        'location/delete/<object_id>/',
         location.location_delete,
         name='seeddb-location-delete',
     ),
@@ -153,13 +149,13 @@ urlpatterns = [
     path('location/bulk/', location.location_bulk, name='seeddb-location-bulk'),
     # Organization
     path('organization/', organization.organization, name='seeddb-organization'),
-    re_path(
-        r'^organization/edit/(?P<organization_id>.+)/$',
+    path(
+        'organization/edit/<organization_id>/',
         organization.organization_edit,
         name='seeddb-organization-edit',
     ),
-    re_path(
-        r'^organization/delete/(?P<object_id>.+)/$',
+    path(
+        'organization/delete/<object_id>/',
         organization.organization_delete,
         name='seeddb-organization-delete',
     ),
@@ -175,11 +171,13 @@ urlpatterns = [
     ),
     # Usage category
     path('usage/', usage.usage, name='seeddb-usage'),
-    re_path(
-        r'^usage/edit/(?P<usage_id>.+)/$', usage.usage_edit, name='seeddb-usage-edit'
+    path(
+        'usage/edit/<usage_id>/',
+        usage.usage_edit,
+        name='seeddb-usage-edit',
     ),
-    re_path(
-        r'^usage/delete/(?P<object_id>.+)/$',
+    path(
+        'usage/delete/<object_id>/',
         usage.usage_delete,
         name='seeddb-usage-delete',
     ),
@@ -205,13 +203,13 @@ urlpatterns = [
     path('vendor/bulk/', vendor.vendor_bulk, name='seeddb-vendor-bulk'),
     # Netbox Group
     path('netboxgroup/', netboxgroup.netboxgroup, name='seeddb-netboxgroup'),
-    re_path(
-        r'^netboxgroup/edit/(?P<netboxgroup_id>.+)/$',
+    path(
+        'netboxgroup/edit/<netboxgroup_id>/',
         netboxgroup.netboxgroup_edit,
         name='seeddb-netboxgroup-edit',
     ),
-    re_path(
-        r'^netboxgroup/delete/(?P<object_id>.+)/$',
+    path(
+        'netboxgroup/delete/<object_id>/',
         netboxgroup.netboxgroup_delete,
         name='seeddb-netboxgroup-delete',
     ),

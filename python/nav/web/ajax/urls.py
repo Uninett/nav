@@ -37,12 +37,12 @@ urlpatterns = [
         name='room-positions',
     ),
     path(
-        'open/roommapper/rooms/<str:roomid>/',
+        'open/roommapper/rooms/<roomid>/',
         views.get_rooms_with_position,
         name='room-position',
     ),
     path(
-        'open/roommapper/locations/<str:locationid>/',
+        'open/roommapper/locations/<locationid>/',
         views.get_rooms_with_position_for_location,
         name='location-position',
     ),

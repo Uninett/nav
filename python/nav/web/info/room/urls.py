@@ -87,9 +87,9 @@ urlpatterns = [
     ),
     re_path(r'^(?P<roomid>.+)/racks/', views.render_racks, name='room-info-racks'),
     re_path(r'^(?P<roomid>.+)/$', views.roominfo, name='room-info'),
-    re_path(r'^csv-download$', views.create_csv, name='room-csv'),
-    re_path(
-        r'^aboutthesearch$',
+    path('csv-download', views.create_csv, name='room-csv'),
+    path(
+        'aboutthesearch',
         views.render_about_the_search_modal,
         name='room-info-about-the-search',
     ),

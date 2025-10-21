@@ -59,20 +59,14 @@ urlpatterns = [
     path('', views.api_root),
     path('token/', views.get_or_create_token, name="token"),
     path('version/', views.get_nav_version, name="version"),
-    re_path(
-        r"^prefix/routed/?$",
-        views.RoutedPrefixList.as_view(),
-        name="prefix-routed-list",
-    ),
-    re_path(
-        r"^prefix/usage/?$", views.PrefixUsageList.as_view(), name="prefix-usage-list"
-    ),
+    path('prefix/routed/', views.RoutedPrefixList.as_view(), name="prefix-routed-list"),
+    path('prefix/usage/', views.PrefixUsageList.as_view(), name="prefix-usage-list"),
     re_path(
         r"^prefix/usage/(?P<prefix>.*)$",
         views.PrefixUsageDetail.as_view(),
         name="prefix-usage-detail",
     ),
     path('', include(router.urls)),
-    re_path(r'^vendor/?$', views.VendorLookup.as_view(), name='vendor'),
+    path('vendor/', views.VendorLookup.as_view(), name='vendor'),
     path('jwt/refresh/', views.JWTRefreshViewSet.as_view(), name='jwt-refresh'),
 ]
