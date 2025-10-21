@@ -13,8 +13,7 @@
 {% block content %}
 
   <h3>Prefix search</h3>
-
-  {% include 'custom_crispy_templates/flat_form.html' %}
+  {% include 'custom_crispy_templates/flat_form.html' with disable_csrf=True %}
 
   {% if form.is_bound and form.is_valid %}
     <table id="prefix-search-results" class="listtable">

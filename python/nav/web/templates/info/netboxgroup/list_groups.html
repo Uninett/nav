@@ -15,7 +15,7 @@
 {% block content %}
 
   <h3>Device Group search</h3>
-  {% include 'custom_crispy_templates/flat_form.html' with form=searchform %}
+  {% include 'custom_crispy_templates/flat_form.html' with form=searchform disable_csrf=True %}
 
   <table id="device-groups-table" class="listtable">
     <caption>Device Groups</caption>

@@ -30,7 +30,7 @@
 
     <h3>VLAN search</h3>
 
-    {% include 'custom_crispy_templates/flat_form.html' %}
+    {% include 'custom_crispy_templates/flat_form.html' with disable_csrf=True %}
 
     {% if form.is_bound %}
       {% if vlans %}

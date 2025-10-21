@@ -12,7 +12,7 @@
   {% block roominfo %}
 
     <h3>Room search</h3>
-    {% include 'custom_crispy_templates/flat_form.html' with form=searchform %}
+    {% include 'custom_crispy_templates/flat_form.html' with form=searchform disable_csrf=True %}
     {% if searchform.is_bound %}
 
       {% if rooms %}
