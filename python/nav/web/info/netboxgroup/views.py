@@ -75,6 +75,13 @@ def index(request):
         form = NetboxGroupForm()
         groups = NetboxGroup.objects.all()
 
+    if request.htmx:
+        return render(
+            request,
+            'info/netboxgroup/_search_results.html',
+            {'netboxgroups': groups, 'searchform': form},
+        )
+
     return render(
         request,
         'info/netboxgroup/list_groups.html',
