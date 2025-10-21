@@ -1,0 +1,23 @@
+<table id="prefix-search-results" class="listtable">
+  <caption>
+    {{ query_results|length }} result{{ query_results|pluralize }} for <em>{{ query }}</em>
+  </caption>
+  <thead>
+    <tr>
+        <th>Address</th>
+        <th>VLAN</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for result in query_results %}
+      <tr>
+        <td>
+          <a href="{{ result.get_absolute_url }}" title="View details for this prefix">{{ result.net_address }}</a>
+        </td>
+        <td>
+          {{ result.vlan }}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

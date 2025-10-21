@@ -130,6 +130,10 @@ def index(request):
         form = PrefixSearchForm()
 
     context['form'] = form
+
+    if request.htmx:
+        return render(request, 'info/prefix/_search_results.html', context)
+
     return render(request, 'info/prefix/base.html', context)
 
 
