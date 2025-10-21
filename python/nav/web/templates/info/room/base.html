@@ -12,49 +12,12 @@
   {% block roominfo %}
 
     <h3>Room search</h3>
-    {% include 'custom_crispy_templates/flat_form.html' with form=searchform %}
+    {% include 'info/_search_form.html' with form=searchform %}
+    <div id="search-results">
     {% if searchform.is_bound %}
-
-      {% if rooms %}
-        <table class="listtable">
-          <caption>{{ rooms|length }} result{{ rooms|pluralize:",s" }}
-            for "{{ searchform.data.query }}"
-          </caption>
-
-          <thead>
-            <tr>
-              <th>Room</th>
-              <th>Location</th>
-              <th>Description</th>
-              <th>#Netboxes</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for room in rooms %}
-              <tr>
-                <td>
-                  <a href="{% url 'room-info' room.id %}">{{ room.id }}</a>
-                </td>
-                <td>
-                  {{ room.location.id }}
-                </td>
-                <td>
-                  {{ room.description }}
-                </td>
-                <td>
-                  {{ room.filtered_netboxes.count }}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p class="messages">No room found</p>
-      {% endif %}
-
+    {% include 'info/room/_search_results.html' %}
     {% endif %}  {# bound check #}
-
+    </div>
     <div id="mapcontainer" class="mapwrapper smallmap"></div>
     <div id="coordinates"></div>
 

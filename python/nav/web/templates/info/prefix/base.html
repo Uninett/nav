@@ -13,27 +13,11 @@
 {% block content %}
 
   <h3>Prefix search</h3>
-
-  {% include 'custom_crispy_templates/flat_form.html' %}
-
+  {% include 'info/_search_form.html' with form=form %}
+  <div id="search-results">
   {% if form.is_bound and form.is_valid %}
-    <table id="prefix-search-results" class="listtable">
-      <caption>
-        {{ query_results|length }} result{{ query_results|pluralize }} for <em>{{ query }}</em>
-      </caption>
-      <tbody>
-        {% for result in query_results %}
-          <tr>
-            <td>
-              <a href="{{ result.get_absolute_url }}" title="View details for this prefix">{{ result.net_address }}</a>
-            </td>
-            <td>
-              {{ result.vlan }}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    {% include 'info/prefix/_search_results.html' with query_results=query_results %}
   {% endif %}
+  </div>
 
 {% endblock %}

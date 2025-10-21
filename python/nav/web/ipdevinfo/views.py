@@ -24,7 +24,10 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django_htmx.http import HttpResponseClientRefresh
+from django_htmx.http import (
+    HttpResponseClientRedirect,
+    HttpResponseClientRefresh,
+)
 
 from nav.django.templatetags.thresholds import find_rules
 from nav.event2 import EventFactory
@@ -77,7 +80,6 @@ COUNTER_TYPES = (
 NUMBER_OF_JOBS_TO_AVERAGE = 30
 ACCEPTABLE_RUNTIME_INCREASE_FACTOR = 0.1
 
-
 _logger = logging.getLogger('nav.web.ipdevinfo')
 
 
@@ -127,9 +129,20 @@ def search(request):
 
             # If only one hit, redirect to details view
             if netboxes and len(netboxes) == 1:
-                return ipdev_details(request, name=netboxes[0].sysname)
+                return ipdev_details(request, netbox_id=netboxes[0].id)
     else:
         search_form = SearchForm()
+
+    if request.htmx:
+        return render(
+            request,
+            'ipdevinfo/_search_results.html',
+            {
+                "netboxes": netboxes,
+                "searchform": search_form,
+                'query': query,
+            },
+        )
 
     return render(
         request,
@@ -155,7 +168,10 @@ def ipdev_details(request, name=None, addr=None, netbox_id=None):
 
     if netbox_id:
         netbox = get_object_or_404(Netbox, id=netbox_id)
-        return HttpResponseRedirect(netbox.get_absolute_url())
+        netbox_url = netbox.get_absolute_url()
+        if request.htmx:
+            return HttpResponseClientRedirect(netbox_url)
+        return HttpResponseRedirect(netbox_url)
 
     def get_netbox(name=None, addr=None):
         """Lookup IP device in NAV by either hostname or IP address.
