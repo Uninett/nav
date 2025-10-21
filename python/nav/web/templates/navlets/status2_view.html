@@ -93,9 +93,11 @@
   {% endif %}
 
   <script>
-   var navletid = "{{ navlet.account_navlet.pk }}";
-   const navletElement = document.querySelector(`.navlet[data-id="${navletid}"]`);
-   globalThis.initializeTooltips(navletElement);
+  (function () {
+    const navletid = "{{ navlet.account_navlet.pk }}";
+    const navletElement = document.querySelector(`.navlet[data-id="${navletid}"]`);
+    globalThis.initializeTooltips(navletElement);
+  })()
   </script>
 
 {% endblock %}
