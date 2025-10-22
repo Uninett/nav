@@ -16,7 +16,7 @@
 #
 """Urlconfig for arnold"""
 
-from django.urls import re_path, path
+from django.urls import path
 from nav.web.arnold import views
 
 
@@ -31,8 +31,8 @@ urlpatterns = [
         views.render_manual_detention_step_one,
         name="arnold-manual-detention",
     ),
-    re_path(
-        r"^manualdetention/(?P<target>[^/]+)$",
+    path(
+        "manualdetention/<target>",
         views.render_manual_detention_step_two,
         name="arnold-manual-detention-step-two",
     ),

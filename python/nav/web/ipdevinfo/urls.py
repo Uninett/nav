@@ -26,8 +26,8 @@ urlpatterns = [
     path('', views.search, name='ipdevinfo-search'),
     # Service list
     path('service/', views.service_list, name='ipdevinfo-service-list-all'),
-    re_path(
-        r'^service/handler=(?P<handler>\w+)/$',
+    path(
+        'service/handler=<handler>/',
         views.service_list,
         name='ipdevinfo-service-list-handler',
     ),
@@ -47,14 +47,14 @@ urlpatterns = [
         name='ipdevinfo-save-port-layout',
     ),
     # Module details
-    re_path(
-        r'^(?P<netbox_sysname>[^/]+)/module=(?P<module_name>.+)/$',
+    path(
+        '<netbox_sysname>/module=<module_name>/',
         views.module_details,
         name='ipdevinfo-module-details',
     ),
     # PoE details
-    re_path(
-        r'^(?P<netbox_sysname>[^/]+)/poegroup=(?P<grpindex>.+)/$',
+    path(
+        '<netbox_sysname>/poegroup=<grpindex>/',
         views.poegroup_details,
         name='ipdevinfo-poegroup-details',
     ),
@@ -69,8 +69,8 @@ urlpatterns = [
         name='ipdevinfo-poe-classification-hint-modal',
     ),
     # Interface details
-    re_path(
-        r'^(?P<netbox_sysname>[^/]+)/interface=(?P<port_id>\d+)/$',
+    path(
+        '<netbox_sysname>/interface=<int:port_id>/',
         views.port_details,
         name='ipdevinfo-interface-details',
     ),
@@ -84,8 +84,8 @@ urlpatterns = [
         views.port_counter_graph,
         name='interface-counter-graph',
     ),
-    re_path(
-        r'^g/port/(?P<interfaceid>\d+)/(?P<kind>[^/]+)/$',
+    path(
+        'g/port/<int:interfaceid>/<kind>/',
         views.port_counter_graph,
         name='interface-counter-graph',
     ),

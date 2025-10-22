@@ -26,5 +26,5 @@ urlpatterns = [
     re_path(
         r'^(?P<locationid>.+)/upload/', views.upload_image, name='location-info-upload'
     ),
-    re_path(r'^(?P<locationid>.+)/$', views.locationinfo, name='location-info'),
+    path('<locationid>/', views.locationinfo, name='location-info'),
 ]

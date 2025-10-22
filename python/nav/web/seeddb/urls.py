@@ -57,8 +57,8 @@ urlpatterns = [
         netbox.netbox_delete,
         name='seeddb-netbox-delete',
     ),
-    re_path(
-        r'^netbox/add/(?P<suggestion>.+)$',
+    path(
+        'netbox/add/<path:suggestion>',
         netbox_edit.netbox_edit,
         name='seeddb-netbox-add-suggestion',
     ),

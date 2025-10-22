@@ -17,12 +17,11 @@
 """Django URL config for geomap"""
 
 from django.urls import path
-from django.urls import re_path
 from nav.web.geomap import views
 
 
 urlpatterns = [
     path('', views.forward_to_default_variant, name='geomap-forward'),
-    re_path(r'^([^/]+)/$', views.geomap, name='geomap'),
-    re_path(r'^([^/]+)/data$', views.data, name='geomap-data'),
+    path('<param>/data', views.data, name='geomap-data'),
+    path('<param>/', views.geomap, name='geomap'),
 ]

@@ -35,8 +35,8 @@ urlpatterns = [
     re_path(
         r'^(?P<roomid>.+)/sensors/', views.render_sensors, name='room-info-sensors'
     ),
-    re_path(
-        r'^(?P<roomid>.+)/racks/add_rack$',
+    path(
+        '<roomid>/racks/add_rack',
         views.add_rack,
         name='room-info-racks-add-rack',
     ),
@@ -86,7 +86,7 @@ urlpatterns = [
         name='room-info-racks-save-sensor',
     ),
     re_path(r'^(?P<roomid>.+)/racks/', views.render_racks, name='room-info-racks'),
-    re_path(r'^(?P<roomid>.+)/$', views.roominfo, name='room-info'),
+    path('<roomid>/', views.roominfo, name='room-info'),
     path('csv-download', views.create_csv, name='room-csv'),
     path(
         'aboutthesearch',
