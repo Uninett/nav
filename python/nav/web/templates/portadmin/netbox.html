@@ -2,7 +2,7 @@
 
 {% block content %}
 
-  {% if request.account.is_admin %}
+  {% if request.user.is_admin %}
     <h4 class="latest-changes-heading" style="display: inline-block; cursor: pointer">
       Latest changes <i class="fa fa-caret-square-o-right"></i>
     </h4>
