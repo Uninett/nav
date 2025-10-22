@@ -33,6 +33,7 @@ from nav.models.manage import Organization
 from nav.models.api import APIToken, JWTRefreshToken
 
 from nav.web.auth.sudo import sudo
+from nav.web.auth.utils import get_account
 from nav.web.useradmin import forms
 from nav.web.jwtgen import generate_refresh_token, hash_token, decode_token
 from nav.config import ConfigurationError
@@ -170,7 +171,8 @@ def save_account(request, account_form, old_account):
         account.set_password(account_form.cleaned_data['password1'])
 
     account.save()
-    log_account_change(request.account, old_account, account)
+    logged_in_account = get_account(request)
+    log_account_change(logged_in_account, old_account, account)
 
     messages.success(request, '"%s" has been saved.' % (account))
     return HttpResponseRedirect(reverse('useradmin-account_detail', args=[account.id]))
@@ -252,7 +254,8 @@ def account_delete(request, account_id):
         from nav.web.auth.utils import PASSWORD_ISSUES_CACHE_KEY
 
         account.delete()
-        LogEntry.add_delete_entry(request.account, account)
+        logged_in_account = get_account(request)
+        LogEntry.add_delete_entry(logged_in_account, account)
         messages.success(request, 'Account %s has been deleted.' % (account.name))
         # Delete cache entry of how many accounts have password issues
         cache.delete(PASSWORD_ISSUES_CACHE_KEY)
@@ -296,8 +299,9 @@ def account_organization_remove(request, account_id, org_id):
             % (organization, account),
         )
 
+        logged_in_account = get_account(request)
         LogEntry.add_log_entry(
-            request.account,
+            logged_in_account,
             'edit-account-remove-org',
             '{actor} removed user {object} from organization {target}',
             target=organization,
@@ -365,8 +369,9 @@ def account_group_remove(request, account_id, group_id, caller='account'):
         account.groups.remove(group)
         messages.success(request, '%s has been removed from %s.' % (account, group))
 
+        logged_in_account = get_account(request)
         LogEntry.add_log_entry(
-            request.account,
+            logged_in_account,
             'edit-account-remove-group',
             '{actor} removed user {object} from group {target}',
             target=group,
@@ -522,8 +527,9 @@ def group_privilege_remove(request, group_id, privilege_id):
             'Privilege %s does not exist or it is not associated '
             'with %s.' % (privilege_id, group),
         )
+        account = get_account(request)
         return HttpResponseRedirect(
-            reverse('useradmin-account_detail', args=[request.account.id])
+            reverse('useradmin-account_detail', args=[account.id])
         )
 
     if request.method == 'POST':
@@ -572,7 +578,8 @@ class TokenCreate(NavPathMixin, generic.CreateView):
     def post(self, request, *args, **kwargs):
         response = super(TokenCreate, self).post(request, *args, **kwargs)
         messages.success(request, 'New token created')
-        LogEntry.add_create_entry(request.account, self.object)
+        account = get_account(request)
+        LogEntry.add_create_entry(account, self.object)
         return response
 
 
@@ -587,8 +594,9 @@ class TokenEdit(NavPathMixin, generic.UpdateView):
         old_object = copy.deepcopy(self.get_object())
         response = super(TokenEdit, self).post(request, *args, **kwargs)
         messages.success(request, 'Token saved')
+        account = get_account(request)
         LogEntry.compare_objects(
-            request.account,
+            account,
             old_object,
             self.get_object(),
             ['expires', 'permission', 'endpoints', 'comment'],
@@ -608,7 +616,8 @@ class TokenDelete(generic.DeleteView):
         old_object = copy.deepcopy(self.get_object())
         response = super(TokenDelete, self).delete(self, request, *args, **kwargs)
         messages.success(request, 'Token deleted')
-        LogEntry.add_delete_entry(request.account, old_object)
+        account = get_account(request)
+        LogEntry.add_delete_entry(account, old_object)
         return response
 
 
@@ -630,8 +639,9 @@ def token_expire(request, pk):
     token.expires = datetime.now()
     token.save()
 
+    account = get_account(request)
     LogEntry.add_log_entry(
-        request.account,
+        account,
         'edit-apitoken-expiry',
         '{actor} expired {object}',
         object=token,
@@ -653,8 +663,9 @@ def log_account_change(actor, old, new):
 
 
 def log_add_account_to_group(request, group, account):
+    logged_in_account = get_account(request)
     LogEntry.add_log_entry(
-        request.account,
+        logged_in_account,
         'edit-account-add-group',
         '{actor} added user {object} to group {target}',
         target=group,
@@ -663,8 +674,9 @@ def log_add_account_to_group(request, group, account):
 
 
 def log_add_account_to_org(request, organization, account):
+    logged_in_account = get_account(request)
     LogEntry.add_log_entry(
-        request.account,
+        logged_in_account,
         'edit-account-add-org',
         '{actor} added user {object} to organization {target}',
         target=organization,
@@ -763,7 +775,8 @@ class JWTDelete(generic.DeleteView):
         old_object = copy.deepcopy(self.get_object())
         response = super(JWTDelete, self).delete(self, request, *args, **kwargs)
         messages.success(request, 'Token deleted')
-        LogEntry.add_delete_entry(request.account, old_object)
+        account = get_account(request)
+        LogEntry.add_delete_entry(account, old_object)
         return response
 
 
@@ -777,8 +790,9 @@ def jwt_revoke(request, pk):
     token.revoked = True
     token.save()
 
+    account = get_account(request)
     LogEntry.add_log_entry(
-        request.account,
+        account,
         'edit-jwttoken-revoked',
         '{actor} revoked {object}',
         object=token,
@@ -809,8 +823,9 @@ def jwt_recreate(request, pk):
     token.revoked = False
     token.save()
 
+    account = get_account(request)
     LogEntry.add_log_entry(
-        request.account,
+        account,
         'edit-jwttoken-expiry',
         '{actor} recreated {object}',
         object=token,

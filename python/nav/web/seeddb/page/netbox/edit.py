@@ -35,6 +35,7 @@ from nav.Snmp.errors import SnmpError
 from nav.Snmp.profile import get_snmp_session_for_profile
 from nav import napalm
 from nav.util import is_valid_ip
+from nav.web.auth.utils import get_account
 from nav.web.seeddb.utils.edit import resolve_ip_and_sysname
 from nav.web.seeddb.page.netbox import NetboxInfo as NI
 from nav.web.seeddb.page.netbox.forms import NetboxModelForm
@@ -92,7 +93,8 @@ def netbox_edit(request, netbox_id=None, suggestion=None, action='edit'):
             old_netbox = copy.deepcopy(netbox)
             netbox = netbox_do_save(form)
             messages.add_message(request, messages.SUCCESS, 'IP Device saved')
-            log_netbox_change(request.account, old_netbox, netbox)
+            account = get_account(request)
+            log_netbox_change(account, old_netbox, netbox)
             return redirect(reverse('seeddb-netbox-edit', args=[netbox.pk]))
         else:
             messages.add_message(request, messages.ERROR, 'Form was not valid')

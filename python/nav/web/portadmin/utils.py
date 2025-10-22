@@ -23,7 +23,6 @@ from operator import attrgetter
 from django.template import loader
 
 from nav.models import manage, profiles
-from nav.django.utils import is_admin
 from nav.models.profiles import Account
 from nav.portadmin.config import CONFIG
 from nav.portadmin.management import ManagementFactory
@@ -88,7 +87,7 @@ def find_allowed_vlans_for_user_on_netbox(
     netbox_vlans = find_vlans_on_netbox(netbox, handler=handler)
 
     if CONFIG.is_vlan_authorization_enabled():
-        if is_admin(account):
+        if account.is_admin():
             allowed_vlans = netbox_vlans
         else:
             all_allowed_vlans = find_allowed_vlans_for_user(account)
@@ -210,7 +209,7 @@ def filter_vlans(target_vlans, old_vlans, allowed_vlans):
 
 def should_check_access_rights(account):
     """Return boolean indicating that this user is restricted"""
-    return CONFIG.is_vlan_authorization_enabled() and not is_admin(account)
+    return CONFIG.is_vlan_authorization_enabled() and not account.is_admin()
 
 
 def mark_detained_interfaces(interfaces):

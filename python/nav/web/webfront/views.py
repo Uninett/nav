@@ -39,7 +39,6 @@ from django.views.decorators.http import require_GET, require_POST
 from django_htmx.http import HttpResponseClientRedirect, HttpResponseClientRefresh
 
 from nav.auditlog.models import LogEntry
-from nav.django.utils import get_account
 from nav.models.profiles import (
     AccountDashboard,
     AccountDashboardSubscription,
@@ -49,7 +48,7 @@ from nav.models.profiles import (
 from nav.web import auth, webfrontConfig
 from nav.web.auth import ldap
 from nav.web.auth import logout as auth_logout
-from nav.web.auth.utils import set_account
+from nav.web.auth.utils import get_account, set_account
 from nav.web.message import new_message, Messages
 from nav.web.modals import render_modal, render_modal_alert
 from nav.web.navlets import can_modify_navlet
@@ -74,13 +73,14 @@ _logger = logging.getLogger('nav.web.tools')
 def index(request, did=None):
     """Controller for main page."""
     # Read files that will be displayed on front page
-    if request.account.is_default_account():
+    account = get_account(request)
+    if account.is_default_account():
         welcome = quick_read(WELCOME_ANONYMOUS_PATH)
     else:
         welcome = quick_read(WELCOME_REGISTERED_PATH)
 
-    dashboard = find_dashboard(request.account, did)
-    dashboards = get_dashboards_for_account(request.account)
+    dashboard = find_dashboard(account, did)
+    dashboards = get_dashboards_for_account(account)
 
     dashboard_ids = [d.id for d in dashboards]
     if dashboard.id not in dashboard_ids:
@@ -92,8 +92,8 @@ def index(request, did=None):
         'welcome': welcome,
         'dashboard': dashboard,
         'dashboards': dashboards,
-        'can_edit': dashboard.can_edit(request.account),
-        'is_subscribed': dashboard.is_subscribed(request.account),
+        'can_edit': dashboard.can_edit(account),
+        'is_subscribed': dashboard.is_subscribed(account),
         'title': 'NAV - {}'.format(dashboard.name),
     }
 
@@ -103,7 +103,8 @@ def index(request, did=None):
 @require_POST
 def toggle_dashboard_shared(request, did):
     """Toggle shared status for this dashboard"""
-    dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+    account = get_account(request)
+    dashboard = get_object_or_404(AccountDashboard, pk=did, account=account)
 
     # Checkbox input returns 'on' if checked
     is_shared = request.POST.get('is_shared') == 'on'
@@ -147,14 +148,13 @@ def _render_share_form_response(
 def toggle_subscribe(request, did):
     """Toggle subscription status for this dashboard"""
     dashboard = get_object_or_404(AccountDashboard, pk=did, is_shared=True)
-    if dashboard.is_subscribed(request.account):
+    account = get_account(request)
+    if dashboard.is_subscribed(account):
         AccountDashboardSubscription.objects.filter(
-            account=request.account, dashboard=dashboard
+            account=account, dashboard=dashboard
         ).delete()
     else:
-        AccountDashboardSubscription(
-            account=request.account, dashboard=dashboard
-        ).save()
+        AccountDashboardSubscription(account=account, dashboard=dashboard).save()
 
     return HttpResponseClientRefresh()
 
@@ -186,8 +186,9 @@ def dashboard_search(request):
             },
         )
 
+    account = get_account(request)
     dashboards = (
-        AccountDashboard.objects.exclude(account=request.account)
+        AccountDashboard.objects.exclude(account=account)
         .filter(
             Q(name__icontains=search)
             | Q(account__login__icontains=search)
@@ -198,7 +199,7 @@ def dashboard_search(request):
         .annotate(
             is_subscribed=models.Exists(
                 AccountDashboardSubscription.objects.filter(
-                    dashboard=models.OuterRef('pk'), account=request.account
+                    dashboard=models.OuterRef('pk'), account=account
                 )
             )
         )
@@ -216,7 +217,8 @@ def dashboard_search(request):
 
 def export_dashboard(request, did):
     """Export dashboard as JSON."""
-    dashboard = find_dashboard(request.account, did)
+    account = get_account(request)
+    dashboard = find_dashboard(account, did)
 
     response = JsonResponse(dashboard.to_json_dict())
     response['Content-Disposition'] = 'attachment; filename={name}.json'.format(
@@ -243,7 +245,8 @@ widget_fields = {
 @require_POST
 def import_dashboard(request):
     """Receive an uploaded dashboard file and store in database"""
-    if not can_modify_navlet(request.account, request):
+    account = get_account(request)
+    if not can_modify_navlet(account, request):
         return HttpResponseForbidden()
 
     if 'file' not in request.FILES:
@@ -262,7 +265,7 @@ def import_dashboard(request):
                 raise ValueError()
             if not isinstance(data[field], dtype):
                 raise ValueError()
-        dashboard = AccountDashboard(account=request.account, name=data['name'])
+        dashboard = AccountDashboard(account=account, name=data['name'])
         dashboard.num_columns = data['num_columns']
         widgets = []
         for widget in data['widgets']:
@@ -279,7 +282,7 @@ def import_dashboard(request):
             widgets.append(widget)
         dashboard.save()
         for widget in widgets:
-            dashboard.widgets.create(account=request.account, **widget)
+            dashboard.widgets.create(account=account, **widget)
         dashboard.save()
         dashboard_url = reverse('dashboard-index-id', args=(dashboard.id,))
         return HttpResponseClientRedirect(dashboard_url)
@@ -310,7 +313,8 @@ def login(request):
 
     origin = request.GET.get('origin', '').strip()
     if 'noaccess' in request.GET:
-        if request.account.is_default_account():
+        account = get_account(request)
+        if account.is_default_account():
             errors = ['You need to log in to access this resource']
         else:
             errors = [
@@ -404,7 +408,7 @@ def about(request):
 
 def toolbox(request):
     """Render the toolbox"""
-    account = request.account
+    account = get_account(request)
     tools = sorted(tool_list(account), key=attrgetter('name'))
 
     return render(
@@ -518,7 +522,7 @@ def save_links(request):
 
 def set_account_preference(request):
     """Set account preference using url attributes"""
-    account = request.account
+    account = get_account(request)
     account.preferences.update(request.GET.dict())
     account.save()
     return HttpResponse()
@@ -527,10 +531,11 @@ def set_account_preference(request):
 @require_POST
 def set_default_dashboard(request, did):
     """Set the default dashboard for the user"""
-    dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+    account = get_account(request)
+    dash = get_object_or_404(AccountDashboard, pk=did, account=account)
 
     old_defaults = list(
-        AccountDashboard.objects.filter(account=request.account, is_default=True)
+        AccountDashboard.objects.filter(account=account, is_default=True)
     )
     for old_default in old_defaults:
         old_default.is_default = False
@@ -548,7 +553,8 @@ def set_default_dashboard(request, did):
 def add_dashboard(request):
     """Add a new dashboard to this user"""
     name = request.POST.get('dashboard-name', 'New dashboard')
-    dashboard = AccountDashboard(account=request.account, name=name)
+    account = get_account(request)
+    dashboard = AccountDashboard(account=account, name=name)
     dashboard.save()
     return JsonResponse({'dashboard_id': dashboard.pk})
 
@@ -556,11 +562,12 @@ def add_dashboard(request):
 @require_POST
 def delete_dashboard(request, did):
     """Delete this dashboard and all widgets on it"""
-    is_last = AccountDashboard.objects.filter(account=request.account).count() == 1
+    account = get_account(request)
+    is_last = AccountDashboard.objects.filter(account=account).count() == 1
     if is_last:
         return HttpResponseBadRequest('Cannot delete last dashboard')
 
-    dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+    dash = get_object_or_404(AccountDashboard, pk=did, account=account)
 
     if dash.is_default:
         return HttpResponseBadRequest('Cannot delete default dashboard')
@@ -573,7 +580,8 @@ def delete_dashboard(request, did):
 @require_POST
 def rename_dashboard(request, did):
     """Rename this dashboard"""
-    dash = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+    account = get_account(request)
+    dash = get_object_or_404(AccountDashboard, pk=did, account=account)
     dash.name = request.POST.get('dashboard-name', dash.name)
     dash.save()
     return HttpResponse('Dashboard renamed to «{}»'.format(dash.name))
@@ -584,7 +592,8 @@ def save_dashboard_columns(request, did):
     """Save the number of columns for this dashboard"""
 
     # Explicit fetch on account to prevent other people to change settings
-    dashboard = get_object_or_404(AccountDashboard, pk=did, account=request.account)
+    account = get_account(request)
+    dashboard = get_object_or_404(AccountDashboard, pk=did, account=account)
     dashboard.num_columns = request.POST.get('num_columns', 3)
     dashboard.save()
     return HttpResponse()
@@ -594,7 +603,7 @@ def save_dashboard_columns(request, did):
 @require_param('widget_id')
 def moveto_dashboard(request, did):
     """Move a widget to this dashboard"""
-    account = request.account
+    account = get_account(request)
     dashboard = get_object_or_404(AccountDashboard, account=account, pk=did)
     widget = get_object_or_404(
         AccountNavlet, account=account, pk=request.POST.get('widget_id')

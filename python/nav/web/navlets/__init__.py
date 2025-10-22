@@ -58,7 +58,7 @@ from django.views.generic.base import TemplateView
 from nav.models.profiles import AccountNavlet, AccountDashboard
 from nav.models.manage import Sensor
 from nav.web.auth.sudo import get_sudoer
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.web.modals import render_modal, render_modal_alert, resolve_modal
 from nav.web.utils import require_param
 from nav.web.webfront import find_dashboard
@@ -202,7 +202,8 @@ def get_navlet_from_name(navletmodule):
 
 def get_user_navlets(request, dashboard_id=None):
     """Gets all navlets that this user subscribes to for a given dashboard"""
-    dashboard = find_dashboard(request.account, dashboard_id)
+    account = get_account(request)
+    dashboard = find_dashboard(account, dashboard_id)
     usernavlets = dashboard.widgets.all()
 
     navlets = []
@@ -244,7 +245,7 @@ def dispatcher(request, navlet_id):
     The as_view method takes any attribute and adds it to the instance
     as long as it is defined on the Navlet class
     """
-    current_account = request.account
+    current_account = get_account(request)
 
     try:
         account_navlet = AccountNavlet.objects.get(pk=navlet_id)
@@ -284,7 +285,7 @@ def dispatcher(request, navlet_id):
 def add_user_navlet(request, dashboard_id=None):
     """Add a navlet subscription to this user"""
     if request.method == 'POST' and 'navlet' in request.POST:
-        account = request.account
+        account = get_account(request)
         dashboard = find_dashboard(account, dashboard_id=dashboard_id)
 
         if can_modify_navlet(account, request):
@@ -465,8 +466,9 @@ def add_user_navlet_graph(request):
         url = request.POST.get('url')
         target = request.POST.get('target')
         if url:
+            account = get_account(request)
             add_navlet(
-                request.account,
+                account,
                 'nav.web.navlets.graph.GraphWidget',
                 {'url': url, 'target': target},
             )
@@ -500,7 +502,8 @@ def add_user_navlet_sensor(request):
         else:
             navlet = 'nav.web.navlets.sensor.SensorWidget'
             preferences = {'sensor_id': sensor.pk, 'title': sensor.netbox.sysname}
-        add_navlet(request.account, navlet, preferences)
+        account = get_account(request)
+        add_navlet(account, navlet, preferences)
         return HttpResponse(status=200)
 
     return HttpResponse(status=400)
@@ -510,9 +513,10 @@ def set_navlet_preferences(request):
     """Set preferences for a NAvlet"""
     if request.method == 'POST':
         try:
+            account = get_account(request)
             preferences = json.loads(request.POST.get('preferences'))
             navletid = request.POST.get('id')
-            navlet = AccountNavlet.objects.get(pk=navletid, account=request.account)
+            navlet = AccountNavlet.objects.get(pk=navletid, account=account)
         except AccountNavlet.DoesNotExist:
             return HttpResponse(status=400)
         else:
@@ -528,9 +532,10 @@ def set_navlet_preferences(request):
 @require_param('dashboard_id')
 def set_navlet_dashboard(request, navlet_id):
     """Set the dashboard the navlet should appear in"""
-    navlet = get_object_or_404(AccountNavlet, account=request.account, pk=navlet_id)
+    account = get_account(request)
+    navlet = get_object_or_404(AccountNavlet, account=account, pk=navlet_id)
     dashboard = get_object_or_404(
-        AccountDashboard, account=request.account, pk=request.POST.get('dashboard_id')
+        AccountDashboard, account=account, pk=request.POST.get('dashboard_id')
     )
     navlet.dashboard = dashboard
     navlet.save()

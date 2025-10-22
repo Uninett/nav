@@ -18,7 +18,7 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 
 from nav.web.macwatch.forms import MacWatchForm
 from nav.web.macwatch.models import MacWatch

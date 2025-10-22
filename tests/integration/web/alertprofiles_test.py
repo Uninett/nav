@@ -21,6 +21,7 @@ from nav.models.profiles import (
     TimePeriod,
 )
 from nav.web.alertprofiles.views import set_active_profile
+from nav.web.auth.utils import set_account
 
 
 @pytest.mark.parametrize(
@@ -93,9 +94,9 @@ class TestsAlertProfiles:
     def test_profile_with_nonascii_name_should_be_saved(self, db, admin_account):
         factory = RequestFactory()
         request = factory.get(reverse('alertprofiles-profile-save'))
-        request.account = admin_account
         request.session = MagicMock()
-        profile = AlertProfile(account=request.account, name='ÆØÅ')
+        set_account(request, admin_account)
+        profile = AlertProfile(account=admin_account, name='ÆØÅ')
         profile.save()
 
         assert set_active_profile(request, profile) is None

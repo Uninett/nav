@@ -34,7 +34,7 @@ from nav.arnold import (
 )
 from nav.models.arnold import Identity, Justification, QuarantineVlan, DetentionProfile
 from nav.models.manage import Cam, Interface
-from nav.django.utils import get_account
+from nav.web.auth.utils import get_account
 from nav.web.arnold.forms import (
     SearchForm,
     HistorySearchForm,
