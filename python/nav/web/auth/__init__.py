@@ -19,20 +19,15 @@ Contains web authentication and login functionality for NAV.
 
 import logging
 from typing import Optional
-
 from urllib import parse
 
 from django.http import HttpRequest
 from django.urls import reverse
 
 from nav.auditlog.models import LogEntry
-from nav.models.profiles import Account
-from nav.web.auth import ldap, remote_user
-from nav.web.auth.ldap_auth_backend import LdapBackend
-
+from nav.web.auth import remote_user
 from nav.web.auth.sudo import desudo
 from nav.web.auth.utils import clear_session, get_account
-
 
 _logger = logging.getLogger(__name__)
 
@@ -45,64 +40,6 @@ LOGIN_URL = '/index/login/'
 # If the entire site is protected via remote_user, this link must be outside
 # that protection!
 LOGOUT_URL = '/index/logout/'
-
-
-def authenticate(username: str, password: str) -> Optional[Account]:
-    """Authenticate username and password against database.
-    Returns account object if user was authenticated, else None.
-    """
-    # FIXME Log stuff?
-    auth = False
-    account = None
-
-    # Try to find the account in the database. If it's not found we can try
-    # LDAP.
-    try:
-        account = Account.objects.get(login__iexact=username)
-    except Account.DoesNotExist:
-        if ldap.available:
-            user = ldap.authenticate(username, password)
-            # If we authenticated, store the user in database.
-            if user:
-                account = Account(
-                    login=user.username, name=user.get_real_name(), ext_sync='ldap'
-                )
-                account.set_password(password)
-                account.save()
-                LdapBackend._sync_nav_account_admin_privileges_from_ldap(user, account)
-                # We're authenticated now
-                auth = True
-
-    if account and account.locked:
-        _logger.info("Locked user %s tried to log in", account.login)
-
-    if (
-        account
-        and account.ext_sync == 'ldap'
-        and ldap.available
-        and not auth
-        and not account.locked
-    ):
-        try:
-            auth = ldap.authenticate(username, password)
-        except ldap.NoAnswerError:
-            # Fallback to stored password if ldap is unavailable
-            auth = False
-        else:
-            if auth:
-                account.set_password(password)
-                account.save()
-                LdapBackend._sync_nav_account_admin_privileges_from_ldap(auth, account)
-            else:
-                return
-
-    if account and not auth:
-        auth = account.check_password(password)
-
-    if auth and account:
-        return account
-    else:
-        return None
 
 
 def get_login_url(request: HttpRequest, path=None) -> str:
