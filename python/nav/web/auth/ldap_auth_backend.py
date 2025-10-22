@@ -18,12 +18,112 @@ LDAP authentication backend for Django's authentication framework, supporting th
 specific legacy quirks of LDAP authentication in NAV.
 """
 
-import typing
+import logging
+from typing import TYPE_CHECKING, Optional
+
+from django.contrib.auth.backends import ModelBackend
+from django.core.exceptions import PermissionDenied
+from django.http import HttpRequest
 
 from nav.models.profiles import Account, AccountGroup
+from nav.web.auth import ldap
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from nav.web.auth.ldap import LDAPUser
+
+
+_logger = logging.getLogger(__name__)
+
+
+class LdapBackend(ModelBackend):
+    """
+    Authenticates against NAV's LDAP module.
+
+    This backend needs to be listed before `django.contrib.auth.backends.ModelBackend`
+    in the `AUTHENTICATION_BACKENDS` setting in order for LDAP-based login flow to
+    function correctly.
+
+    Part of the workflow is to hash and store the last know good LDAP password in the
+    local NAV account.  If the LDAP server becomes unresponsive, the authentication
+    flow will fall back to allowing a returning user to login using their last know good
+    password.  A potential weakness of this approach is that disabled/removed users
+    may be able to log in to NAV during an LDAP outage if the NAV admin has not
+    explicitly removed their local NAV accounts.
+    """
+
+    def authenticate(
+        self,
+        request: Optional[HttpRequest] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        **kwargs,
+    ) -> Optional[Account]:
+        if not ldap.available:
+            return None
+        if username is None or password is None:
+            return None
+
+        if nav_user := Account.objects.filter(login=username).first():
+            if not self._is_an_ldap_synced_user(nav_user):
+                return None
+
+        if not (ldap_user := self._ldap_authenticate(username, password)):
+            # If we got here without PermissionDenied being raised, then LDAP did
+            # not respond, so we fall back to other backends
+            return None
+
+        if not nav_user:
+            nav_user = self._create_nav_account(ldap_user, password)
+        elif not nav_user.is_active:
+            # Don't let deactivated users log in
+            raise PermissionDenied
+
+        self._sync_nav_account(ldap_user, nav_user, password)
+        return nav_user
+
+    @staticmethod
+    def _is_an_ldap_synced_user(nav_user: Account) -> bool:
+        """Determines whether the given NAV account is an LDAP-synced user."""
+        return nav_user.ext_sync == 'ldap'
+
+    @staticmethod
+    def _ldap_authenticate(username: str, password: str) -> Optional["LDAPUser"]:
+        """Attempts to authenticate the user against LDAP, logging errors"""
+        try:
+            ldap_user = ldap.authenticate(username, password)
+        except ldap.NoAnswerError:
+            # There is no way to communicate to the user that the LDAP server isn't
+            # responding in the case where this is the user's first login to NAV.
+            # XXX: Maybe find a way to add this somehow?
+            _logger.error("LDAP server not responding, falling back to local auth")
+            return None
+        else:
+            if not ldap_user:
+                raise PermissionDenied
+            return ldap_user
+
+    @staticmethod
+    def _create_nav_account(ldap_user: "LDAPUser", password: str) -> Account:
+        """Creates a new local NAV account based on LDAP user details."""
+        nav_account = Account(
+            login=ldap_user.username, name=ldap_user.get_real_name(), ext_sync='ldap'
+        )
+        # We need to set a password right away to ensure the account is considered
+        # active before the login process moves on:
+        nav_account.set_password(password)
+        nav_account.save()
+        return nav_account
+
+    @staticmethod
+    def _sync_nav_account(
+        ldap_user: "LDAPUser", nav_user: Account, password: str
+    ) -> None:
+        """Ensures the necessary local account details are synced from LDAP user
+        details.
+        """
+        nav_user.set_password(password)
+        nav_user.save()
+        _handle_ldap_admin_status(ldap_user, nav_user)
 
 
 def _handle_ldap_admin_status(ldap_user: "LDAPUser", nav_account: Account) -> None:
