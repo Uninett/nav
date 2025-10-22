@@ -18,7 +18,6 @@ Contains web authentication and login functionality for NAV.
 """
 
 import logging
-import typing
 from typing import Optional
 
 from urllib import parse
@@ -27,11 +26,10 @@ from django.http import HttpRequest
 from django.urls import reverse
 
 from nav.auditlog.models import LogEntry
-from nav.models.profiles import Account, AccountGroup
+from nav.models.profiles import Account
 from nav.web.auth import ldap, remote_user
+from nav.web.auth.ldap_auth_backend import _handle_ldap_admin_status
 
-if typing.TYPE_CHECKING:
-    from nav.web.auth.ldap import LDAPUser
 from nav.web.auth.sudo import desudo
 from nav.web.auth.utils import clear_session, get_account
 
@@ -105,17 +103,6 @@ def authenticate(username: str, password: str) -> Optional[Account]:
         return account
     else:
         return None
-
-
-def _handle_ldap_admin_status(ldap_user: "LDAPUser", nav_account: Account) -> None:
-    is_admin = ldap_user.is_admin()
-    # Only modify admin status if an entitlement is configured in webfront.conf
-    if is_admin is not None:
-        admin_group = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
-        if is_admin:
-            nav_account.groups.add(admin_group)
-        else:
-            nav_account.groups.remove(admin_group)
 
 
 def get_login_url(request: HttpRequest) -> str:
