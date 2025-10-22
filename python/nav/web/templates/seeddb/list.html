@@ -4,11 +4,11 @@
 
   {% if filter_form %}
     {% if filter_form.base_fields|length >= 3 %}
-      {% include 'custom_crispy_templates/flat_form.html' with form=filter_form %}
+      {% include 'custom_crispy_templates/flat_form.html' with form=filter_form disable_csrf=True %}
     {% else %}
       <div class="row">
         <div class="medium-6 column">
-          {% include 'custom_crispy_templates/flat_form.html' with form=filter_form %}
+          {% include 'custom_crispy_templates/flat_form.html' with form=filter_form disable_csrf=True %}
         </div>
       </div>
     {% endif %}
