@@ -28,7 +28,7 @@ from django.urls import reverse
 from nav.auditlog.models import LogEntry
 from nav.models.profiles import Account
 from nav.web.auth import ldap, remote_user
-from nav.web.auth.ldap_auth_backend import _handle_ldap_admin_status
+from nav.web.auth.ldap_auth_backend import LdapBackend
 
 from nav.web.auth.sudo import desudo
 from nav.web.auth.utils import clear_session, get_account
@@ -69,7 +69,7 @@ def authenticate(username: str, password: str) -> Optional[Account]:
                 )
                 account.set_password(password)
                 account.save()
-                _handle_ldap_admin_status(user, account)
+                LdapBackend._sync_nav_account_admin_privileges_from_ldap(user, account)
                 # We're authenticated now
                 auth = True
 
@@ -92,7 +92,7 @@ def authenticate(username: str, password: str) -> Optional[Account]:
             if auth:
                 account.set_password(password)
                 account.save()
-                _handle_ldap_admin_status(auth, account)
+                LdapBackend._sync_nav_account_admin_privileges_from_ldap(auth, account)
             else:
                 return
 

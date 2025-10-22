@@ -114,24 +114,29 @@ class LdapBackend(ModelBackend):
         nav_account.save()
         return nav_account
 
-    @staticmethod
+    @classmethod
     def _sync_nav_account(
-        ldap_user: "LDAPUser", nav_user: Account, password: str
+        cls, ldap_user: "LDAPUser", nav_user: Account, password: str
     ) -> None:
         """Ensures the necessary local account details are synced from LDAP user
         details.
         """
         nav_user.set_password(password)
         nav_user.save()
-        _handle_ldap_admin_status(ldap_user, nav_user)
+        cls._sync_nav_account_admin_privileges_from_ldap(ldap_user, nav_user)
 
-
-def _handle_ldap_admin_status(ldap_user: "LDAPUser", nav_account: Account) -> None:
-    is_admin = ldap_user.is_admin()
-    # Only modify admin status if an entitlement is configured in webfront.conf
-    if is_admin is not None:
-        admin_group = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
-        if is_admin:
-            nav_account.groups.add(admin_group)
-        else:
-            nav_account.groups.remove(admin_group)
+    @staticmethod
+    def _sync_nav_account_admin_privileges_from_ldap(
+        ldap_user: "LDAPUser", nav_account: Account
+    ) -> None:
+        """Synchronizes the admin privileges of a given NAV account based on LDAP
+        configuration parameters and the LDAP user object entitlements.
+        """
+        is_admin = ldap_user.is_admin()
+        # Only modify admin status if an entitlement is configured in webfront.conf
+        if is_admin is not None:
+            admin_group = AccountGroup.objects.get(id=AccountGroup.ADMIN_GROUP)
+            if is_admin:
+                nav_account.groups.add(admin_group)
+            else:
+                nav_account.groups.remove(admin_group)
