@@ -25,7 +25,7 @@
     <p class="alert-box secondary">No messages</p>
   {% endif %}
 
-  {% if not current_user_data.account.is_default_account %}
+  {% if not current_user_data.account.is_anonymous %}
     <a href="{% url 'messages-create' %}" class="button small">Create new message</a>
   {% endif %}
 {% endblock tabcontent %}

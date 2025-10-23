@@ -83,6 +83,14 @@ _ = lambda a: a
 ### Account models
 
 
+class AccountManager(models.Manager):
+    """Custom manager for Account objects"""
+
+    def get_by_natural_key(self, login):
+        """Gets Account object by its 'natural' key: Its login name."""
+        return self.get(login=login)
+
+
 class Account(AbstractBaseUser):
     """NAV's basic account model"""
 
@@ -120,6 +128,8 @@ class Account(AbstractBaseUser):
     # objects are retrieved from session data
     sudo_operator = None
 
+    objects = AccountManager()
+
     class Meta(object):
         db_table = 'account'
         ordering = ('login',)
@@ -129,6 +139,10 @@ class Account(AbstractBaseUser):
             return '{} (operated by {})'.format(self.login, self.sudo_operator)
         else:
             return self.login
+
+    def natural_key(self) -> tuple[str]:
+        """Returns the natural key for an account as a tuple"""
+        return (self.login,)
 
     def get_active_profile(self):
         """Returns the account's active alert profile"""
@@ -328,6 +342,11 @@ class Account(AbstractBaseUser):
     @property
     def locked(self):
         return not self.password or self.password.startswith('!')
+
+    @property
+    def is_active(self):
+        """Returns True if this account is active (i.e. not locked)"""
+        return not self.locked
 
     @locked.setter
     def locked(self, value):
