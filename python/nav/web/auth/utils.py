@@ -24,6 +24,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import get_user as django_get_user
 from django.core.cache import cache
 
+from nav.django.defaults import PUBLIC_URLS
 from nav.models.profiles import Account
 
 
@@ -103,15 +104,7 @@ def authorization_not_required(fullpath):
     Should the user be able to decide this? Currently not.
 
     """
-    auth_not_required = [
-        '/api/',
-        '/doc/',  # No auth/different auth system
-        '/about/',
-        '/index/login/',
-        '/index/audit-logging-modal/',
-        '/refresh_session',
-    ]
-    for url in auth_not_required:
+    for url in PUBLIC_URLS:
         if fullpath.startswith(url):
             _logger.debug('authorization_not_required: %s', url)
             return True
