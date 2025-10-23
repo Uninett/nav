@@ -1,3 +1,4 @@
+{% if navlet %}
 <div class="row navlet-header">
   <div class="small-12 column">
     {% if navlet.can_edit or current_user_data.sudoer %}
@@ -16,8 +17,14 @@
 {% endcomment %}
         {% if navlet.is_editable %}
           <li>
-            <a href="javascript:void(0);" class="navlet-mode-switch right"
-               data-mode="{{ navlet.mode }}">
+            <a
+                class="navlet-mode-switch right"
+                data-mode="{{ navlet.mode }}"
+                hx-get="{% url 'get-user-navlet' navlet.navlet_id %}"
+                hx-vals='{"mode": "{% if navlet.mode == "VIEW" %}EDIT{% else %}VIEW{% endif %}"}'
+                hx-target="[data-id='{{ navlet.navlet_id }}']"
+                hx-trigger="click"
+            >
               {% if navlet.mode == 'VIEW' %}
                 <i class="fa fa-gear" title="Edit"></i>
               {% else %}
@@ -65,11 +72,27 @@
 
   </div>
 </div>
+{% else %}
+<div class="row navlet-header">
+  <div class="small-12 column">
+    <div class="title-container">
+      <span class="subheader" title="{{ navlet.description }}">
+        <span class="navlet-title">Widget not found</span>
+      </span>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <div class="row navlet-body">
   <div class="small-12 columns">
     {% block navlet-content %}
     {% endblock %}
+    {% if error_message %}
+      <div class="alert-box error">
+        {{ error_message }}
+      </div>
+    {% endif %}
   </div>
 </div>
 
