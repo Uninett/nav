@@ -36,7 +36,7 @@ $fullscreen-color: #EEE;
         box-shadow: #666 0px 5px 10px 7px;
         z-index: 2;
     }
-    &.colorblock-navlet {
+    &.colorblock-navlet, &[data-highlight="true"] {
         background-color: #1570a6;
         color: #fff;
         .subheader {

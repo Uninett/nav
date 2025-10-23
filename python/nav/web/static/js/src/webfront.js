@@ -1,15 +1,16 @@
 require([
     'plugins/room_mapper',
     'plugins/navlets_controller',
+    'plugins/navlets_htmx_controller',
     'plugins/sensors_controller',
     'plugins/fullscreen',
     'jquery-ui',
     'src/getting_started_wizard'
-], function (RoomMapper, NavletsController, SensorsController, fullscreen, _, GettingStartedWizard) {
+], function (RoomMapper, NavletsController, NavletsHtmxController, SensorsController, fullscreen, _, GettingStartedWizard) {
     'use strict';
 
-    var $navletsContainer = $('#navlets');
-    var $dashboardNavigator = $('#dashboard-nav');
+    const $navletsContainer = $('#navlets-htmx');
+    const $dashboardNavigator = $('#dashboard-nav');
 
     function createRoomMap(mapwrapper, room_map) {
         mapwrapper.show();
@@ -294,6 +295,9 @@ require([
     $(function () {
         var numColumns = $navletsContainer.data('widget-columns');
         var controller = new NavletsController($navletsContainer, numColumns);
+
+        NavletsHtmxController.initialize();
+
         controller.container.on('navlet-rendered', function (event, node) {
             var mapwrapper = node.find('.mapwrapper');
             var room_map = mapwrapper.find('#room_map');
@@ -305,10 +309,7 @@ require([
             if (node.hasClass('SensorWidget')) {
                 var sensor = new SensorsController(node.find('.room-sensor'));
             }
-
-
         });
-
 
         /* Add click listener to joyride button */
         $navletsContainer.on('click', '#getting-started-wizard', function () {
