@@ -35,7 +35,11 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.debug import sensitive_variables, sensitive_post_parameters
 from django.views.decorators.http import require_GET, require_POST
-from django_htmx.http import HttpResponseClientRedirect, HttpResponseClientRefresh
+from django_htmx.http import (
+    HttpResponseClientRedirect,
+    HttpResponseClientRefresh,
+    trigger_client_event,
+)
 
 from nav.auditlog.models import LogEntry
 from nav.models.profiles import (
@@ -50,7 +54,7 @@ from nav.web.auth import logout as auth_logout
 from nav.web.auth.utils import get_account, set_account
 from nav.web.message import new_message, Messages
 from nav.web.modals import render_modal, render_modal_alert
-from nav.web.navlets import can_modify_navlet
+from nav.web.navlets import can_modify_navlet, create_navlet_object
 from nav.web.utils import generate_qr_code_as_string
 from nav.web.utils import require_param
 from nav.web.webfront import (
@@ -67,6 +71,14 @@ from nav.web.webfront.forms import (
 from nav.web.webfront.utils import quick_read, tool_list
 
 _logger = logging.getLogger('nav.web.tools')
+
+
+COLUMNS_MAPPER = {
+    '1': 'medium-12',
+    '2': 'medium-6',
+    '3': 'medium-4',
+    '4': 'medium-3',
+}
 
 
 def index(request, did=None):
@@ -94,9 +106,37 @@ def index(request, did=None):
         'can_edit': dashboard.can_edit(account),
         'is_subscribed': dashboard.is_subscribed(account),
         'title': 'NAV - {}'.format(dashboard.name),
+        'widget_display_density': account.preferences.get('widget_display_density', ''),
     }
 
     return render(request, 'webfront/index.html', context)
+
+
+def load_dashboard(request, dashboard_id=None):
+    """Renders the dashboard widgets for a given dashboard."""
+    account = get_account(request)
+    dashboard = find_dashboard(account, dashboard_id)
+    usernavlets = dashboard.widgets.all()
+    compact = account.preferences.get('widget_display_density') == 'compact'
+
+    columns = dashboard.num_columns
+    column_map = {i: [] for i in range(1, columns + 1)}
+
+    for navlet in usernavlets:
+        col = max(1, min(navlet.column, columns))
+        column_map[col].append(create_navlet_object(navlet))
+
+    return render(
+        request,
+        'webfront/_dashboard_navlets.html',
+        {
+            'has_navlets': len(usernavlets) > 0,
+            'dashboard_id': dashboard.id,
+            'columns': column_map,
+            'compact': compact,
+            'column_class': COLUMNS_MAPPER.get(str(columns), 'medium-4'),
+        },
+    )
 
 
 @require_POST
