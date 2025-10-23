@@ -21,6 +21,7 @@ import logging
 import os
 from typing import Optional
 
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.deprecation import MiddlewareMixin
 
@@ -30,8 +31,10 @@ from nav.web.auth.utils import (
     ensure_account,
     authorization_not_required,
     get_account,
+    set_account,
+    get_user,
 )
-from nav.web.auth.sudo import get_sudoer
+from nav.web.auth.sudo import get_sudoer, set_sudo_operator
 from nav.web.utils import is_ajax
 
 
@@ -76,9 +79,7 @@ class AuthenticationMiddleware(MiddlewareMixin):
                 ensure_account(request)
 
         if sudo_operator is not None:
-            # XXX: sudo: Account.sudo_operator should be set by function!
-            request.account.sudo_operator = sudo_operator
-            request.user.sudo_operator = sudo_operator
+            set_sudo_operator(request, sudo_operator)
 
         _logger.debug(
             'AuthenticationMiddleware EXIT (session: %s, account: %s) from "%s"',
@@ -117,3 +118,31 @@ class AuthorizationMiddleware(MiddlewareMixin):
 
         new_url = get_login_url(request)
         return HttpResponseRedirect(new_url)
+
+
+class NAVAuthenticationMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        if not hasattr(request, "session"):
+            raise ImproperlyConfigured(
+                "The NAV Django authentication middleware requires session "
+                "middleware to be installed. Edit your MIDDLEWARE setting to "
+                "insert "
+                "'django.contrib.sessions.middleware.SessionMiddleware' before "
+                "'nav.web.auth.middleware.NAVAuthenticationMiddleware'."
+            )
+
+        user = get_user(request)  # NOT lazy!
+        set_account(request, user, cycle_session_id=False)
+
+        # NAV-specific sudo method
+        # XXX: sudo
+        sudo_operator = get_sudoer(request)  # Account or None
+        if sudo_operator:
+            logged_in = sudo_operator or user
+            _logger.debug(
+                ('AuthenticationMiddleware (logged_in: "%s" acting as "%s") from "%s"'),
+                logged_in.login,
+                user.login,
+                request.get_full_path(),
+            )
+            set_sudo_operator(request, sudo_operator)

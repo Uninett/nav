@@ -43,7 +43,7 @@ def sudo(request: HttpRequest, other_user: Account) -> None:
     if not account.is_admin():
         # Check if sudoer is acctually admin
         raise SudoNotAdminError()
-    original_user = request.account
+    original_user = get_account(request)
     request.session[SUDOER_ID_VAR] = original_user.id
     set_account(request, other_user)
     _logger.info('Sudo: "%s" acting as "%s"', original_user, other_user)
@@ -93,6 +93,11 @@ def get_sudoer(request: HttpRequest) -> Optional[Account]:
     """Returns a sudoer's Account, if current session is in sudo-mode"""
     if SUDOER_ID_VAR in request.session:
         return Account.objects.get(id=request.session[SUDOER_ID_VAR])
+
+
+def set_sudo_operator(request, sudo_operator):
+    request.account.sudo_operator = sudo_operator
+    request.user.sudo_operator = sudo_operator
 
 
 class SudoRecursionError(Exception):
