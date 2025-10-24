@@ -29,7 +29,6 @@ def test_set_default_dashboard_should_succeed(db, client, admin_account):
     """Tests that a default dashboard can be set"""
     dashboard = AccountDashboard.objects.create(
         name="new_default",
-        is_default=False,
         account=admin_account,
     )
     url = reverse("set-default-dashboard", args=(dashboard.pk,))
@@ -39,30 +38,26 @@ def test_set_default_dashboard_should_succeed(db, client, admin_account):
 
     assert response.status_code == 200
     assert f"Default dashboard set to «{dashboard.name}»" in smart_str(response.content)
-    assert dashboard.is_default
-    assert (
-        AccountDashboard.objects.filter(account=admin_account, is_default=True).count()
-        == 1
-    )
+    assert dashboard.is_default_for_account(admin_account)
 
 
 def test_set_default_dashboard_with_multiple_previous_defaults_should_succeed(
     db, client, admin_account
 ):
     """
+    TODO: REMOVE TEST, this is no longer possible with the current model constraints
     Tests that a default dashboard can be set if multiple default dashboards
     exist currently
     """
     # By default there already exists one default dashboard for the admin user
     # which is why we only have to create a second default one
-    default_dashboard = AccountDashboard.objects.create(
+    default_dashboard = create_dashboard(
         name="default_dashboard",
-        is_default=True,
         account=admin_account,
     )
-    dashboard = AccountDashboard.objects.create(
+    admin_account.set_default_dashboard(default_dashboard.id)
+    dashboard = create_dashboard(
         name="new_default",
-        is_default=False,
         account=admin_account,
     )
     url = reverse("set-default-dashboard", args=(dashboard.pk,))
@@ -73,20 +68,15 @@ def test_set_default_dashboard_with_multiple_previous_defaults_should_succeed(
 
     assert response.status_code == 200
     assert f"Default dashboard set to «{dashboard.name}»" in smart_str(response.content)
-    assert dashboard.is_default
-    assert not default_dashboard.is_default
-    assert (
-        AccountDashboard.objects.filter(account=admin_account, is_default=True).count()
-        == 1
-    )
+    assert dashboard.is_default_for_account(admin_account)
+    assert not default_dashboard.is_default_for_account(admin_account)
 
 
 def test_delete_last_dashboard_should_fail(db, client, admin_account):
     """Tests that the last dashboard cannot be deleted"""
-    dashboard = AccountDashboard.objects.get(
-        is_default=True,
+    dashboard = AccountDashboard.objects.filter(
         account=admin_account,
-    )
+    ).first()
     url = reverse("delete-dashboard", args=(dashboard.pk,))
     response = client.post(url, follow=True)
 
@@ -98,16 +88,12 @@ def test_delete_last_dashboard_should_fail(db, client, admin_account):
 def test_delete_default_dashboard_should_fail(db, client, admin_account):
     """Tests that the default dashboard cannot be deleted"""
     # Creating another dashboard, so that default is not the last one
-    AccountDashboard.objects.create(
+    create_dashboard(
         name="non_default",
-        is_default=False,
         account=admin_account,
     )
 
-    default_dashboard = AccountDashboard.objects.get(
-        is_default=True,
-        account=admin_account,
-    )
+    default_dashboard = admin_account.default_dashboard
     url = reverse("delete-dashboard", args=(default_dashboard.pk,))
     response = client.post(url, follow=True)
 
@@ -211,9 +197,7 @@ class TestDashboardIndexView:
         self, db, client, admin_account
     ):
         """Tests that the default dashboard is shown when no ID is given"""
-        default_dashboard = AccountDashboard.objects.get(
-            is_default=True, account=admin_account
-        )
+        default_dashboard = admin_account.default_dashboard
         url = reverse('dashboard-index')
         response = client.get(url)
 
@@ -801,10 +785,7 @@ class TestFindDashboardUtil:
         self, db, non_admin_account
     ):
         """Tests that the default dashboard is returned when no ID is given"""
-        default_dashboard = AccountDashboard.objects.get(
-            is_default=True, account=non_admin_account
-        )
-
+        default_dashboard = non_admin_account.default_dashboard
         dashboard = find_dashboard(non_admin_account)
         assert dashboard == default_dashboard
 
@@ -905,9 +886,7 @@ class TestGetDashboardsForAccount:
 
     def test_given_account_then_return_all_own_dashboards(self, db, non_admin_account):
         """Tests that all own dashboards are returned"""
-        default_dashboard = AccountDashboard.objects.get(
-            is_default=True, account=non_admin_account
-        )
+        default_dashboard = non_admin_account.default_dashboard
         other_dashboard = create_dashboard(
             non_admin_account, name="Own 1", is_shared=False
         )
@@ -1109,12 +1088,14 @@ class TestDashboardSearchViews:
 
 
 def create_dashboard(account, name="Test Dashboard", is_default=False, is_shared=False):
-    return AccountDashboard.objects.create(
+    dashboard = AccountDashboard.objects.create(
         name=name,
-        is_default=is_default,
         account=account,
         is_shared=is_shared,
     )
+    if is_default:
+        account.set_default_dashboard(dashboard.id)
+    return dashboard
 
 
 def create_widget(dashboard, navlet='nav.web.navlets.welcome.WelcomeNavlet'):
