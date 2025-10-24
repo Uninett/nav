@@ -171,8 +171,8 @@ urlpatterns = [
     ),
     # Usage category
     path('usage/', usage.usage, name='seeddb-usage'),
-    path(
-        'usage/edit/<usage_id>/',
+    re_path(
+        r'^usage/edit/(?P<usage_id>.+)/$',
         usage.usage_edit,
         name='seeddb-usage-edit',
     ),
