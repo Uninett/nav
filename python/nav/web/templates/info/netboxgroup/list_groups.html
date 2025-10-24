@@ -3,9 +3,22 @@
 {% block base_header_additional_head %}
   {{ block.super }}
   <style>
+   #device-groups-table {
+       width: 100%;
+       max-width: 1300px;
+   }
+   #device-groups-table th.description, td.description {
+      width: 100%;
+      overflow-wrap: anywhere;
+   }
+   #device-groups-table th:not(.description), td:not(.description) {
+      white-space: nowrap;
+      width: 1%;
+   }
    #device-groups-table .netboxgroup {
        max-height: 10em;
        overflow: auto;
+       margin-left: 0;
    }
   </style>
 {% endblock %}

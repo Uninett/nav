@@ -4,7 +4,7 @@
 <thead>
   <tr>
     <th>Group</th>
-    <th>Description</th>
+    <th class="description">Description</th>
     <th>Devices</th>
     <th>&nbsp;</th>
   </tr>
@@ -16,7 +16,7 @@
       <td>
         <a href="{% url 'netbox-group-detail' netboxgroup.pk %}">{{ netboxgroup.pk }}</a>
       </td>
-      <td>{{ netboxgroup.description }}</td>
+      <td class="description">{{ netboxgroup.description }}</td>
       <td>
         <ul class="netboxgroup inside">
           {% with netboxgroup.netboxes.all as netboxes %}
