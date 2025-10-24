@@ -22,7 +22,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.conf import settings
-from django_htmx.http import trigger_client_event
+from django_htmx.http import trigger_client_event, HttpResponseClientRedirect
 
 from nav.web.info.forms import SearchForm
 from nav.web.info import searchproviders as providers
@@ -52,7 +52,10 @@ def index(request):
             titles.append(('Search for "%s"' % request.GET["query"],))
             searchproviders, failed_providers = process_form(form)
             if has_only_one_result(searchproviders) and not failed_providers:
-                return HttpResponseRedirect(searchproviders[0].results[0].href)
+                redirect_url = searchproviders[0].results[0].href
+                if request.htmx:
+                    return HttpResponseClientRedirect(redirect_url)
+                return HttpResponseRedirect(redirect_url)
     else:
         form = SearchForm(form_action="info-search")
 
