@@ -103,6 +103,14 @@ define(['plugins/room_mapper'], function (RoomMapper) {
         });
         document.body.addEventListener('nav.navlet.added', function (event) {
             controller.updateOrder();
+            const navlet = document.querySelector(`[data-id="${event.detail.navlet_id}"]`);
+            if (navlet) {
+                navlet.classList.add('mark-new');
+                navlet.addEventListener("mouseenter", function () {
+                    navlet.classList.remove('mark-new');
+                })
+            }
+
             const node = document.getElementById('no-widgets-message');
             if (node) {
                 node.remove();
