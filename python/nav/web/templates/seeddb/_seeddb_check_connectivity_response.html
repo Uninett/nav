@@ -1,0 +1,35 @@
+{% if status == "loading" %}
+    <div
+        hx-post="{% url 'seeddb-netbox-check-connectivity-load' %}"
+        hx-trigger="load"
+        hx-swap="innerHTML"
+        hx-target="#connectivity-results"
+        hx-include="#id_ip, #id_profiles"
+        hx-indicator=".connectivity-indicator"
+    ></div>
+    <script>
+        document.querySelector("#seeddb-netbox-form").classList.add("loading")
+    </script>
+{% elif status == "error" %}
+    <div class="alert-box error">
+        {{ message }}
+    </div>
+{% endif %}
+{% if status == "select-address" %}
+    <div id="verify-address-feedback" hx-swap-oob="true">
+        <div class="alert-box alert">
+            <span>The hostname "{{ hostname }}" resolves to multiple IP addresses.</span>
+            <label for="address-select">
+                Please choose an IP address
+            </label>
+            <select id="address-select" onchange="document.querySelector('#id_ip').value = this.value;">
+                <option value="">---------</option>
+                {% for addr in addresses %}
+                    <option value="{{ addr }}">{{ addr }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+{% else %}
+    <div id="verify-address-feedback" hx-swap-oob="true"></div>
+{% endif %}

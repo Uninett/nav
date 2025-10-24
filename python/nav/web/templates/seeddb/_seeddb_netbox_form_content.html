@@ -18,20 +18,29 @@
       <fieldset>
         <legend>Management profiles</legend>
         {% show_field form.profiles %}
-        <input
-            type="button"
-            name="check_connectivity"
-            value="Check connectivity"
-            class="button small check_connectivity"
-            id="button-id-check_connectivity"
-        />
+        <div id="check-connectivity-button">
+            <button
+                name="check_connectivity"
+                class="small"
+                hx-post="{% url 'seeddb-netbox-check-connectivity' %}"
+                hx-include="#id_ip, #id_profiles"
+                hx-target="#connectivity-results"
+                hx-trigger="click"
+                hx-indicator=".connectivity-indicator"
+            >
+                Check connectivity
+            </button>
+            <div class="htmx-indicator connectivity-indicator">
+                <img src="/static/images/select2/select2-spinner.gif" alt="Loading spinner" />
+            </div>
+        </div>
+        <div id="connectivity-results"></div>
       </fieldset>
 
       <fieldset>
         <legend>Collected info</legend>
-        <div id="real_collected_fields" class="hide">
-          {% show_field form.sysname %}
-          {% show_field form.type %}
+        <div id="collected-info-fields">
+            {% include 'seeddb/_seeddb_collected_info.html' with sysname=form.instance.sysname type=form.instance.type %}
         </div>
       </fieldset>
     </div>
