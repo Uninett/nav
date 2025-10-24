@@ -1,6 +1,6 @@
 define([
     'rickshaw-utils',
-    'libs/jquery'], function (plugin) {
+    'jquery'], function (plugin) {
     describe("siNumbers", function () {
         it("should format two-digit numbers right", function() {
             assert.equal(plugin.siNumbers(42.0), "42.00");

@@ -71,7 +71,7 @@ define(['libs/spin.min'], function (Spinner) {
                 'profiles': profiles,
             });
             request.done(onSuccess);
-            request.error(onError);
+            request.fail(onError);
             request.always(onStop);
         }
 

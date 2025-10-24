@@ -1,4 +1,4 @@
-define(['libs/jquery-ui.min'], function () {
+define(['jquery-ui'], function () {
 
     function setTitle(fragment) {
         if (fragment && fragment !== "#undefined") {
@@ -24,7 +24,7 @@ define(['libs/jquery-ui.min'], function () {
         $selector.bind('tabsactivate', function (event, ui) {
             //* Check if this is the tabs we're hooked to *//
             if (event.target.id === $selector.attr('id')) {
-                var hashValue = ui.newPanel.selector;
+                var hashValue = '#' + ui.newPanel.attr('id');
                 if (ui.newTab.index() != 0 || window.location.hash) {
                     var hashes = window.location.hash.split('!');
                     if (parent) {

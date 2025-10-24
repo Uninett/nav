@@ -42,7 +42,7 @@ require([], function () {
                 displayFeedback();
             });
 
-            request.error(function () {
+            request.fail(function () {
                 $feedback.removeClass('success').addClass('error').text('Error adding widget');
                 displayFeedback();
             });

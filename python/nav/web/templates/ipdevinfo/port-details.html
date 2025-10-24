@@ -3,11 +3,11 @@
 
 {% block footer_scripts %}
   <script>
-    require(["libs/jquery-ui.min"], function () {
+    require(["jquery-ui"], function () {
       var tabs = $('#port-details-tabs').tabs({
         activate: function (event, ui) {
           // Resize graphs when tab is shown
-          if (ui.newPanel.selector === "#port-details-activity-graphs") {
+          if (ui.newPanel.attr('id') === "port-details-activity-graphs") {
             $(window).trigger('resize');
           }
         }

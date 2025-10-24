@@ -267,7 +267,7 @@ define(['libs/urijs/URI', 'libs/spin.min'], function (URI, Spinner) {
                         request.done(function () {
                             $header.find('.navlet-title').text($input.val());
                         });
-                        request.error(function () {
+                        request.fail(function () {
                             alert("The Oompa Loompas didn't want to change the title (an error occured) - sorry!");
                         });
                         request.always(function () {
