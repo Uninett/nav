@@ -652,10 +652,25 @@ def save_dashboard_columns(request, did):
 
     # Explicit fetch on account to prevent other people to change settings
     account = get_account(request)
+    num_columns = request.POST.get('num_columns')
+    if not num_columns or not num_columns.isdigit():
+        return HttpResponse(status=400)
+
+    new_column_count = int(num_columns)
+
     dashboard = get_object_or_404(AccountDashboard, pk=did, account=account)
-    dashboard.num_columns = request.POST.get('num_columns', 3)
+    dashboard.num_columns = new_column_count
     dashboard.save()
-    return HttpResponse()
+
+    response = render(
+        request,
+        "webfront/_dashboard_settings_columns_form.html",
+        {
+            'dashboard': dashboard,
+            'message': 'Dashboard updated to {} columns.'.format(new_column_count),
+        },
+    )
+    return trigger_client_event(response, name='nav.dashboard.reload')
 
 
 @require_POST

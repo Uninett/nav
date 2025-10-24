@@ -208,6 +208,9 @@ require([
             });
             request.done(function () {
                 $navletsContainer.data('widget-columns', columns);
+                // trigger event on body to let other components know
+                $('body').trigger('nav.dashboard.reload');
+                document.body.dispatchEvent(new CustomEvent('nav.dashboard.reload'));
             });
         });
     }
