@@ -3,7 +3,11 @@
     {% for navlet in navlets %}
       <li>
         <div class="panel">
-          <form class="add-user-navlet right" action="{% url 'add-user-navlet' dashboard_id %}" method="post">
+          <form
+                  class="add-user-navlet right"
+                  hx-post="{% url 'add-user-navlet' dashboard_id %}"
+                  hx-swap="beforeend"
+          >
             {% csrf_token %}
             <input type="hidden" name="navlet" value="{{ navlet.get_class }}">
             <input type="submit" class="button tiny" value="Add">

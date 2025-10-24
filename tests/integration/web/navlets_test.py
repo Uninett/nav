@@ -9,9 +9,9 @@ from nav.web.navlets import add_navlet, modify_navlet
 
 
 class TestAddUserNavletView:
-    def test_when_using_get_method_then_return_400(self, client, dashboard):
+    def test_when_using_get_method_then_it_should_return_405(self, client, dashboard):
         response = client.get(_get_dashboard_url(dashboard))
-        assert response.status_code == 400
+        assert response.status_code == 405
 
     def test_given_payload_without_navlet_then_return_400(self, client, dashboard):
         response = client.post(_get_dashboard_url(dashboard), data={})

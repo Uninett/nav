@@ -1,42 +1,19 @@
-{% if has_navlets %}
 <div class="row{% if compact %} collapse{% endif %}">
+{% if has_navlets %}
 {% for col_num, navlets in columns.items %}
     <div class="column navletColumn {{ column_class }}" data-col="{{ col_num }}">
         {% for navlet in navlets %}
-            <div
-                data-id="{{ navlet.id }}"
-                class="navlet {{ navlet.navlet_class }}"
-                {% if navlet.preferences.refresh_interval %}
-                data-refresh-interval="{{ navlet.preferences.refresh_interval }}"
-                {% endif %}
-                {% if navlet.ajax_reload %}
-                data-ajax-reload="true"
-                {% endif %}
-                {% if navlet.image_reload %}
-                data-image-reload="true"
-                {% endif %}
-                {% if navlet.highlight %}
-                data-highlight="true"
-                {% endif %}
-            >
-                <div
-                    hx-get="{% url 'get-user-navlet' navlet.id %}"
-                    hx-vals='{"mode": "VIEW"}'
-                    hx-target="[data-id='{{ navlet.id }}']"
-                    hx-trigger="load"
-                    hx-swap="innerHTML"
-                >
-                    Loading...
-                </div>
-            </div>
+            {% include 'navlets/_navlet_item.html' with navlet=navlet %}
         {% endfor %}
     </div>
 {% endfor %}
-</div>
 {% else %}
-<div class="row">
-    <div class="column {{ column_class }}">
-        <div class="alert-box info">No widgets added to this dashboard</div>
+{% for col_num in columns.keys %}
+    <div class="column navletColumn {{ column_class }}" data-col="{{ col_num }}">
+        {% if col_num == 1 %}
+            <div id="no-widgets-message" class="alert-box info">No widgets added to this dashboard</div>
+        {% endif %}
     </div>
-</div>
+{% endfor %}
 {% endif %}
+</div>
