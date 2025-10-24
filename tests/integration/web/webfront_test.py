@@ -1190,6 +1190,75 @@ class TestDashboardSearchViews:
         assert 'No dashboards found' in smart_str(response.content)
 
 
+class TestSaveDashboardColumns:
+    def test_given_valid_column_count_then_it_should_update_dashboard(
+        self, db, client, admin_account
+    ):
+        """Tests that valid column count updates the dashboard"""
+        dashboard = create_dashboard(admin_account)
+        new_columns = 4
+        url = reverse('save-dashboard-columns', args=(dashboard.id,))
+        response = client.post(url, data={'num_columns': new_columns})
+        dashboard.refresh_from_db()
+
+        assert response.status_code == 200
+        assert dashboard.num_columns == new_columns
+        assert f'Dashboard updated to {new_columns} columns' in smart_str(
+            response.content
+        )
+
+    def test_given_dashboard_that_does_not_exist_then_it_should_return_404(self, client):
+        """Tests that updating a non-existing dashboard returns 404"""
+        url = reverse('save-dashboard-columns', args=(9999,))
+        response = client.post(url, data={'num_columns': 3})
+
+        assert response.status_code == 404
+
+    def test_given_dashboard_of_other_account_then_it_should_return_404(
+        self, db, client, non_admin_account
+    ):
+        """Tests that updating another account's dashboard returns 404"""
+        other_dashboard = create_dashboard(non_admin_account)
+        url = reverse('save-dashboard-columns', args=(other_dashboard.id,))
+        response = client.post(url, data={'num_columns': 3})
+
+        assert response.status_code == 404
+
+    def test_given_missing_num_columns_parameter_then_it_should_return_400(
+        self, db, client, admin_account
+    ):
+        """Tests that missing num_columns parameter returns 400"""
+        dashboard = create_dashboard(admin_account)
+        url = reverse('save-dashboard-columns', args=(dashboard.id,))
+        response = client.post(url, data={})
+
+        assert response.status_code == 400
+
+    def test_given_non_digit_num_columns_then_it_should_return_400(
+        self, db, client, admin_account
+    ):
+        """Tests that 400 is returned when num_columns is not a digit"""
+        dashboard = create_dashboard(admin_account)
+
+        url = reverse('save-dashboard-columns', args=(dashboard.id,))
+        response = client.post(url, {'num_columns': 'not_a_number'})
+
+        assert response.status_code == 400
+
+    def test_response_should_contain_nav_dashboard_reload_event(
+        self, db, client, admin_account
+    ):
+        """Tests that response triggers client event for dashboard reload"""
+        dashboard = create_dashboard(admin_account)
+        new_columns = 5
+
+        url = reverse('save-dashboard-columns', args=(dashboard.id,))
+        response = client.post(url, {'num_columns': str(new_columns)})
+
+        assert response.status_code == 200
+        assert 'nav.dashboard.reload' in response.headers['HX-Trigger']
+
+
 def create_dashboard(account, name="Test Dashboard", is_default=False, is_shared=False):
     return AccountDashboard.objects.create(
         name=name,

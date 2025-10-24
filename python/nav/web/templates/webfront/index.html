@@ -107,7 +107,7 @@
        id="navlets-htmx"
        {% if widget_display_density == 'compact' %}class="compact"{% endif %}
        hx-get="{% url 'dashboard-load' dashboard.pk %}"
-       hx-trigger="load"
+       hx-trigger="load, nav.dashboard.reload from:body"
        hx-target="#navlets-htmx"
        data-save-order-url="{% url 'save-navlet-order' %}"
        data-columns="{{ dashboard.num_columns }}"
