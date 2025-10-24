@@ -17,7 +17,6 @@
 """URL configuration for Machinetracker tool"""
 
 from django.urls import path
-from django.urls import re_path
 from nav.web.machinetracker import views
 
 
@@ -39,8 +38,8 @@ urlpatterns = [
     path('swp/', views.switch_search, name='machinetracker-swp'),
     # NetBIOS
     path('netbios/', views.netbios_search, name='machinetracker-netbios'),
-    re_path(
-        r'^helpmodal/(?P<tab_name>[\w-]+)/$',
+    path(
+        'helpmodal/<slug:tab_name>/',
         views.render_search_help_modal,
         name='machinetracker-search-help-modal',
     ),

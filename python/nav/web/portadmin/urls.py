@@ -38,13 +38,13 @@ urlpatterns = [
         views.load_portadmin_data,
         name='portadmin-sysname-data',
     ),
-    re_path(
-        r'^interfaceid=(?P<interfaceid>\d+)$',
+    path(
+        'interfaceid=<int:interfaceid>',
         views.search_by_interfaceid,
         name='portadmin-interface',
     ),
-    re_path(
-        r'^interfaceid=(?P<interfaceid>\d+)/data/$',
+    path(
+        'interfaceid=<int:interfaceid>/data/',
         views.load_portadmin_data,
         name='portadmin-interface-data',
     ),

@@ -88,8 +88,8 @@ urlpatterns = [
     ),
     path('index/dashboard/', views.index, name='dashboard-index'),
     path('about/', views.about, name='webfront-about'),
-    re_path(
-        r'^doc/(?P<path>.+)$',
+    path(
+        'doc/<path:path>',
         RedirectView.as_view(url='/static/doc/%(path)s', permanent=True),
     ),
     path('doc/', RedirectView.as_view(url='/static/doc/index.html', permanent=True)),
